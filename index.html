@@ -150,17 +150,23 @@ td.num,th.num{text-align:right;}
             <input type="file" id="file-bolsao" accept=".xlsx,.xls">
           </label>
           <label class="dropzone" id="dz-elleven">
-            <b>🧾 Extrato do Elleven</b><br>
+            <b>🧾 Extrato do Elleven (consumo)</b><br>
             Arraste o .csv ou clique
             <div id="status-elleven" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
             <input type="file" id="file-elleven" accept=".csv">
           </label>
         </div>
+        <label class="dropzone" id="dz-patrimonio" style="margin-top:12px;">
+          <b>🏷️ Patrimônio do Elleven (itens com série/tag) — opcional</b><br>
+          Arraste o .csv ou clique
+          <div id="status-patrimonio" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
+          <input type="file" id="file-patrimonio" accept=".csv">
+        </label>
         <div class="actions">
           <button class="btn" id="btn-process" disabled>Consolidar e publicar para os técnicos</button>
           <button class="btn secondary" id="btn-reset-files">Limpar</button>
         </div>
-        <div class="hint">Casamento por CNPJ do técnico + código do material. Ao consolidar, o resultado é gravado no banco e cada técnico passa a ver o próprio saldo automaticamente.</div>
+        <div class="hint">Casamento por CNPJ do técnico + código do material. Ao consolidar, o resultado é gravado no banco e cada técnico passa a ver o próprio saldo automaticamente. O relatório de patrimônio é opcional: se não subir, o total considera só bolsão + Elleven consumo.</div>
       </div>
       <div id="consolidar-result"></div>
     </div>
@@ -211,7 +217,23 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentPerfil = null;
-let bolsaoData = null, ellevenData = null;
+let bolsaoData = null, ellevenData = null, patrimonioData = null;
+
+// alguns extratos do Elleven vêm com uma linha "sep=,ገ" no topo (dica de
+// delimitador do Excel) e podem usar ; ou , como separador
+function parseCSVSmart(text){
+  let delimiter = ';';
+  let body = text;
+  if (body.charCodeAt(0) === 0xFEFF) body = body.slice(1);
+  if (/^sep=/i.test(body)) {
+    const nl = body.indexOf('\n');
+    const sepLine = body.slice(0, nl);
+    const d = sepLine.split('=')[1];
+    if (d) delimiter = d.trim().replace('\r','');
+    body = body.slice(nl+1);
+  }
+  return Papa.parse(body, {header:true, delimiter, skipEmptyLines:true});
+}
 
 const $ = id => document.getElementById(id);
 const show = id => $(id).classList.remove('hidden');
@@ -336,7 +358,8 @@ function normCNPJ(v){
 
 $('dz-bolsao').onclick = () => $('file-bolsao').click();
 $('dz-elleven').onclick = () => $('file-elleven').click();
-['dz-bolsao','dz-elleven'].forEach(id=>{
+$('dz-patrimonio').onclick = () => $('file-patrimonio').click();
+['dz-bolsao','dz-elleven','dz-patrimonio'].forEach(id=>{
   const dz = $(id);
   dz.addEventListener('dragover', e=>e.preventDefault());
   dz.addEventListener('drop', e=>{
@@ -372,7 +395,7 @@ $('file-elleven').addEventListener('change', e => {
   const f = e.target.files[0]; if(!f) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    const parsed = Papa.parse(ev.target.result, {header:true, delimiter:';', skipEmptyLines:true});
+    const parsed = parseCSVSmart(ev.target.result);
     ellevenData = parsed.data.map(r=>({
       cnpj: normCNPJ(r['CNPJ Tecnico']),
       tecnico: String(r['Tecnico']||'').trim(),
@@ -388,14 +411,34 @@ $('file-elleven').addEventListener('change', e => {
   reader.readAsText(f, 'UTF-8');
 });
 
+$('file-patrimonio').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const parsed = parseCSVSmart(ev.target.result);
+    patrimonioData = parsed.data.map(r=>({
+      cnpj: normCNPJ(r['CNPJ']),
+      tecnico: String(r['Tecnico']||'').trim(),
+      codigo: String(r['Cod. Produto']||'').trim(),
+      descricao: String(r['Produto']||'').trim(),
+      serial: String(r['Serial']||r['Tag']||'').trim()
+    })).filter(r=>r.codigo);
+    $('status-patrimonio').textContent = `${patrimonioData.length} linhas (${f.name})`;
+    $('dz-patrimonio').classList.add('filled');
+    checkReadyConsolidar();
+  };
+  reader.readAsText(f, 'UTF-8');
+});
+
 function checkReadyConsolidar(){ $('btn-process').disabled = !(bolsaoData && ellevenData); }
 
 $('btn-reset-files').onclick = () => {
-  bolsaoData = null; ellevenData = null;
-  $('file-bolsao').value=''; $('file-elleven').value='';
+  bolsaoData = null; ellevenData = null; patrimonioData = null;
+  $('file-bolsao').value=''; $('file-elleven').value=''; $('file-patrimonio').value='';
   $('status-bolsao').textContent='Nenhum arquivo carregado';
   $('status-elleven').textContent='Nenhum arquivo carregado';
-  $('dz-bolsao').classList.remove('filled'); $('dz-elleven').classList.remove('filled');
+  $('status-patrimonio').textContent='Nenhum arquivo carregado';
+  $('dz-bolsao').classList.remove('filled'); $('dz-elleven').classList.remove('filled'); $('dz-patrimonio').classList.remove('filled');
   $('consolidar-result').innerHTML=''; checkReadyConsolidar();
 };
 
@@ -404,10 +447,16 @@ $('btn-process').onclick = async () => {
   $('btn-process').textContent = 'Consolidando...';
   const techs = {};
   const ensureTech = c => techs[c] || (techs[c] = {nomeBolsao:null, nomeElleven:null, materials:{}});
-  const ensureMat = (t,codigo,desc,unidade) => t.materials[codigo] || (t.materials[codigo] = {desc,unidade,bolsao:0,elleven:0});
+  const ensureMat = (t,codigo,desc,unidade) => t.materials[codigo] || (t.materials[codigo] = {desc,unidade,bolsao:0,elleven:0,patrimonio:0,serials:[]});
 
   bolsaoData.forEach(r=>{ const t=ensureTech(r.cnpj); t.nomeBolsao=r.tecnico; const m=ensureMat(t,r.codigo,r.descricao,r.unidade); m.bolsao+=r.qtd; });
   ellevenData.forEach(r=>{ const t=ensureTech(r.cnpj); t.nomeElleven=r.tecnico; const m=ensureMat(t,r.codigo,r.descricao,r.unidade); m.elleven+=r.qtd; });
+  (patrimonioData||[]).forEach(r=>{
+    const t=ensureTech(r.cnpj); t.nomeElleven = t.nomeElleven || r.tecnico;
+    const m=ensureMat(t,r.codigo,r.descricao,'UNID');
+    m.patrimonio += 1;
+    if (r.serial) m.serials.push(r.serial);
+  });
 
   const upsertRows = [];
   const histRows = [];
@@ -417,12 +466,14 @@ $('btn-process').onclick = async () => {
     Object.entries(t.materials).forEach(([codigo,m])=>{
       upsertRows.push({
         cnpj, nome_tecnico: nome, codigo_material: codigo, descricao_material: m.desc,
-        unidade: m.unidade, qtd_bolsao: m.bolsao, qtd_elleven: m.elleven,
+        unidade: m.unidade, qtd_bolsao: m.bolsao, qtd_elleven: m.elleven, qtd_patrimonio: m.patrimonio,
+        serials_patrimonio: m.serials.length ? m.serials.join(', ') : null,
         data_referencia: new Date().toISOString(), updated_at: new Date().toISOString()
       });
       histRows.push({
         cnpj, codigo_material: codigo, descricao_material: m.desc,
-        qtd_bolsao: m.bolsao, qtd_elleven: m.elleven, qtd_total: m.bolsao+m.elleven
+        qtd_bolsao: m.bolsao, qtd_elleven: m.elleven, qtd_patrimonio: m.patrimonio,
+        qtd_total: m.bolsao+m.elleven+m.patrimonio
       });
     });
   });
@@ -503,8 +554,9 @@ function renderVisao(){
     const techTotal = t.itens.reduce((s,i)=>s+Number(i.qtd_total||0),0);
     const rows = t.itens.map(i=>{
       const cls = Number(i.qtd_total)<=0?'zero':'ok';
-      return `<tr><td>${i.descricao_material}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div></td>
-        <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td>
+      const serialLine = i.serials_patrimonio ? `<div style="color:var(--text-muted);font-size:.66rem;margin-top:2px;">Séries: ${i.serials_patrimonio}</div>` : '';
+      return `<tr><td>${i.descricao_material}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div>${serialLine}</td>
+        <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td><td class="num">${i.qtd_patrimonio||0}</td>
         <td class="num"><span class="badge ${cls}">${i.qtd_total} ${i.unidade||''}</span></td></tr>`;
     }).join('');
     const equipeLabel = t.equipe === '__sem_equipe' ? 'sem equipe' : t.equipe;
@@ -513,7 +565,7 @@ function renderVisao(){
         <div><div class="tech-name">${t.nome}</div><div class="tech-sub">${t.itens.length} material(is) · ${equipeLabel}</div></div>
         <div class="tech-total">${techTotal.toFixed(0)} un.</div>
       </div>
-      <div class="tech-body"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="tech-body"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Patrimônio</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>
     </div>`;
   }).join('');
 }
@@ -591,11 +643,12 @@ async function loadMeuEstoque(){
   if (!data || !data.length) { $('meu-list').innerHTML = '<div class="empty-state">Nenhum material publicado para o seu CNPJ ainda.</div>'; return; }
   const rows = data.map(i=>{
     const cls = Number(i.qtd_total)<=0?'zero':'ok';
-    return `<tr><td>${i.descricao_material}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div></td>
-      <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td>
+    const serialLine = i.serials_patrimonio ? `<div style="color:var(--text-muted);font-size:.66rem;margin-top:2px;">Séries: ${i.serials_patrimonio}</div>` : '';
+    return `<tr><td>${i.descricao_material}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div>${serialLine}</td>
+      <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td><td class="num">${i.qtd_patrimonio||0}</td>
       <td class="num"><span class="badge ${cls}">${i.qtd_total} ${i.unidade||''}</span></td></tr>`;
   }).join('');
-  $('meu-list').innerHTML = `<div class="card"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  $('meu-list').innerHTML = `<div class="card"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Patrimônio</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 checkSession();
