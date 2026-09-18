@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estoque Consolidado — Net Turbo</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --nt-green:#8CBF3F; --nt-green-dark:#6fa02c;
+  --bg:#f4f6f2; --card:#ffffff; --text:#1c2318; --text-muted:#5b6b52;
+  --border:#e0e6da; --danger:#c0392b; --danger-bg:#fdecea;
+  --warn-bg:#fff7e0; --warn-text:#8a6d00;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12160f; --card:#1a2016; --text:#eef2e8; --text-muted:#a3b096;
+    --border:#2b3324; --danger-bg:#3a1a17; --warn-bg:#332a08; --warn-text:#e8d27a;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);padding:0;}
+.wrap{max-width:1000px;margin:0 auto;padding:16px;}
+.center-wrap{max-width:380px;margin:60px auto;padding:16px;}
+h1{font-size:1.2rem;margin:0;}
+h2{font-size:1rem;margin:0 0 10px;}
+.logo-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.logo-dot{width:12px;height:12px;border-radius:50%;background:var(--nt-green);flex-shrink:0;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;}
+input,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.9rem;margin-bottom:10px;}
+label{font-size:.78rem;color:var(--text-muted);display:block;margin-bottom:4px;}
+.btn{background:var(--nt-green);color:#12160f;border:none;border-radius:10px;padding:10px 16px;font-weight:600;font-size:.85rem;cursor:pointer;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn.danger{background:var(--danger);color:#fff;}
+.btn.small{padding:6px 10px;font-size:.75rem;}
+.link{color:var(--nt-green-dark);cursor:pointer;font-size:.82rem;text-decoration:underline;}
+.error{color:var(--danger);font-size:.8rem;margin:-4px 0 10px;}
+.hint{font-size:.75rem;color:var(--text-muted);margin-top:8px;line-height:1.5;}
+.hidden{display:none !important;}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+.who{font-size:.8rem;color:var(--text-muted);}
+.tabs{display:flex;gap:6px;padding:10px 16px 0;flex-wrap:wrap;}
+.tab{padding:8px 14px;border-radius:10px 10px 0 0;background:transparent;border:1px solid transparent;cursor:pointer;font-size:.82rem;color:var(--text-muted);}
+.tab.active{background:var(--card);border-color:var(--border);border-bottom-color:var(--card);color:var(--text);font-weight:600;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;}
+.stat .num{font-size:1.3rem;font-weight:700;color:var(--nt-green-dark);}
+.stat .lbl{font-size:.7rem;color:var(--text-muted);margin-top:2px;}
+.drop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media (max-width:640px){.drop-grid{grid-template-columns:1fr;}}
+.dropzone{border:2px dashed var(--border);border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;font-size:.82rem;color:var(--text-muted);}
+.dropzone.filled{border-color:var(--nt-green);color:var(--text);background:rgba(140,191,63,.08);}
+input[type=file]{display:none;}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.filters select, .filters input{width:auto;min-width:160px;margin:0;}
+.tech{border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;background:var(--card);}
+.tech-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;gap:10px;}
+.tech-head:hover{background:rgba(140,191,63,.06);}
+.tech-name{font-weight:600;font-size:.9rem;}
+.tech-sub{font-size:.72rem;color:var(--text-muted);}
+.tech-total{font-size:.9rem;font-weight:700;color:var(--nt-green-dark);white-space:nowrap;}
+.tech-body{display:none;border-top:1px solid var(--border);}
+.tech-body.open{display:block;}
+table{width:100%;border-collapse:collapse;font-size:.8rem;}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
+th{color:var(--text-muted);font-weight:600;font-size:.7rem;text-transform:uppercase;}
+td.num,th.num{text-align:right;}
+.badge{display:inline-block;padding:1px 7px;border-radius:99px;font-size:.68rem;font-weight:600;}
+.badge.zero{background:var(--danger-bg);color:var(--danger);}
+.badge.ok{background:rgba(140,191,63,.15);color:var(--nt-green-dark);}
+.badge.pend{background:var(--warn-bg);color:var(--warn-text);}
+.pending-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap;}
+.empty-state{text-align:center;color:var(--text-muted);padding:30px 10px;font-size:.85rem;}
+.msg-box{background:var(--warn-bg);color:var(--warn-text);border-radius:10px;padding:12px 14px;font-size:.85rem;margin-bottom:12px;}
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH VIEW ============ -->
+<div id="view-auth" class="center-wrap">
+  <div class="logo-row"><div class="logo-dot"></div><h1>Estoque Consolidado</h1></div>
+  <div class="card" id="login-card">
+    <h2>Entrar</h2>
+    <label>E-mail</label>
+    <input type="email" id="login-email">
+    <label>Senha</label>
+    <input type="password" id="login-senha">
+    <div class="error hidden" id="login-error"></div>
+    <button class="btn" id="btn-login" style="width:100%">Entrar</button>
+    <div class="hint" style="text-align:center;margin-top:12px;">Não tem conta? <span class="link" id="show-signup">Criar conta</span></div>
+  </div>
+
+  <div class="card hidden" id="signup-card">
+    <h2>Criar conta</h2>
+    <label>Nome completo</label>
+    <input type="text" id="signup-nome">
+    <label>Eu sou</label>
+    <select id="signup-tipo">
+      <option value="tecnico">Técnico de campo</option>
+      <option value="om">Gestão O&M</option>
+    </select>
+    <div id="signup-cnpj-wrap">
+      <label>CNPJ (o mesmo usado no bolsão/Elleven, só números)</label>
+      <input type="text" id="signup-cnpj" placeholder="Ex: 05131004586">
+    </div>
+    <label>E-mail</label>
+    <input type="email" id="signup-email">
+    <label>Senha</label>
+    <input type="password" id="signup-senha">
+    <div class="error hidden" id="signup-error"></div>
+    <button class="btn" id="btn-signup" style="width:100%">Criar conta</button>
+    <div class="hint" style="text-align:center;margin-top:12px;">Já tem conta? <span class="link" id="show-login">Entrar</span></div>
+    <div class="hint">Sua conta fica pendente até um responsável de O&M aprovar o cadastro.</div>
+  </div>
+</div>
+
+<!-- ============ PENDING VIEW ============ -->
+<div id="view-pending" class="center-wrap hidden">
+  <div class="logo-row"><div class="logo-dot"></div><h1>Estoque Consolidado</h1></div>
+  <div class="card">
+    <div class="msg-box" id="pending-msg">Seu cadastro está aguardando aprovação da gestão O&M.</div>
+    <button class="btn secondary" id="btn-logout-pending" style="width:100%">Sair</button>
+  </div>
+</div>
+
+<!-- ============ APP VIEW ============ -->
+<div id="view-app" class="hidden">
+  <div class="topbar">
+    <div class="logo-row" style="margin:0"><div class="logo-dot"></div><h1>Estoque Consolidado</h1></div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="who" id="who-label"></span>
+      <button class="btn secondary small" id="btn-logout">Sair</button>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="wrap">
+    <div id="tab-consolidar" class="tabpane hidden">
+      <div class="card">
+        <div class="drop-grid">
+          <label class="dropzone" id="dz-bolsao">
+            <b>📦 Planilha do Bolsão (SAP)</b><br>
+            Arraste o .xlsx ou clique
+            <div id="status-bolsao" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
+            <input type="file" id="file-bolsao" accept=".xlsx,.xls">
+          </label>
+          <label class="dropzone" id="dz-elleven">
+            <b>🧾 Extrato do Elleven</b><br>
+            Arraste o .csv ou clique
+            <div id="status-elleven" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
+            <input type="file" id="file-elleven" accept=".csv">
+          </label>
+        </div>
+        <div class="actions">
+          <button class="btn" id="btn-process" disabled>Consolidar e publicar para os técnicos</button>
+          <button class="btn secondary" id="btn-reset-files">Limpar</button>
+        </div>
+        <div class="hint">Casamento por CNPJ do técnico + código do material. Ao consolidar, o resultado é gravado no banco e cada técnico passa a ver o próprio saldo automaticamente.</div>
+      </div>
+      <div id="consolidar-result"></div>
+    </div>
+
+    <div id="tab-visao" class="tabpane hidden">
+      <div class="stats" id="visao-stats"></div>
+      <div class="filters">
+        <select id="filtro-equipe">
+          <option value="">Todas as equipes</option>
+          <option value="Implantação">Implantação</option>
+          <option value="Manutenção">Manutenção</option>
+          <option value="Transmissão">Transmissão</option>
+          <option value="GTD">GTD</option>
+          <option value="__sem_equipe">Sem equipe atribuída</option>
+        </select>
+        <input type="text" id="filtro-busca" placeholder="🔍 Buscar técnico...">
+      </div>
+      <div id="visao-list"></div>
+    </div>
+
+    <div id="tab-gestao" class="tabpane hidden">
+      <div class="card">
+        <h2>Pendentes de aprovação</h2>
+        <div id="gestao-pendentes"></div>
+      </div>
+      <div class="card">
+        <h2>Aprovados</h2>
+        <div id="gestao-aprovados"></div>
+      </div>
+    </div>
+
+    <div id="tab-meu" class="tabpane hidden">
+      <div class="card" id="meu-header"></div>
+      <div id="meu-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIGURAÇÃO — preencha após criar o projeto Supabase
+// ============================================================
+const SUPABASE_URL = 'https://ksatofcjlqziqhblpwul.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzYXRvZmNqbHF6aXFoYmxwd3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTA3NTIsImV4cCI6MjEwNTMyNjc1Mn0.IOAHnOcxVdrP1gBD7nCoQ6wq1mB-dEYVJQIM_WiJaqc';
+// ============================================================
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let currentPerfil = null;
+let bolsaoData = null, ellevenData = null;
+
+const $ = id => document.getElementById(id);
+const show = id => $(id).classList.remove('hidden');
+const hide = id => $(id).classList.add('hidden');
+
+// ---------- AUTH UI toggles ----------
+$('show-signup').onclick = () => { hide('login-card'); show('signup-card'); };
+$('show-login').onclick = () => { hide('signup-card'); show('login-card'); };
+$('signup-tipo').onchange = e => {
+  $('signup-cnpj-wrap').classList.toggle('hidden', e.target.value === 'om');
+};
+
+$('btn-login').onclick = async () => {
+  $('login-error').classList.add('hidden');
+  const email = $('login-email').value.trim();
+  const senha = $('login-senha').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+  if (error) { $('login-error').textContent = 'E-mail ou senha inválidos.'; $('login-error').classList.remove('hidden'); }
+};
+
+$('btn-signup').onclick = async () => {
+  $('signup-error').classList.add('hidden');
+  const nome = $('signup-nome').value.trim();
+  const tipo = $('signup-tipo').value;
+  const cnpj = $('signup-cnpj').value.replace(/\D/g,'').replace(/^0+/,'');
+  const email = $('signup-email').value.trim();
+  const senha = $('signup-senha').value;
+  if (!nome || !email || senha.length < 6 || (tipo==='tecnico' && !cnpj)) {
+    $('signup-error').textContent = 'Preencha todos os campos (senha com 6+ caracteres).';
+    $('signup-error').classList.remove('hidden');
+    return;
+  }
+  const { data, error } = await sb.auth.signUp({ email, password: senha });
+  if (error) { $('signup-error').textContent = error.message; $('signup-error').classList.remove('hidden'); return; }
+  const uid = data.user.id;
+  const { error: perr } = await sb.from('perfis').insert({
+    id: uid, nome, tipo, cnpj: tipo==='tecnico' ? cnpj : null, status: 'pendente'
+  });
+  if (perr) { $('signup-error').textContent = perr.message; $('signup-error').classList.remove('hidden'); return; }
+  await checkSession();
+};
+
+$('btn-logout-pending').onclick = () => sb.auth.signOut();
+$('btn-logout').onclick = () => sb.auth.signOut();
+
+sb.auth.onAuthStateChange((_event, _session) => checkSession());
+
+async function checkSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    currentUser = null; currentPerfil = null;
+    hide('view-pending'); hide('view-app'); show('view-auth');
+    return;
+  }
+  currentUser = session.user;
+  const { data: perfil, error } = await sb.from('perfis').select('*').eq('id', currentUser.id).single();
+  if (error || !perfil) {
+    hide('view-app'); hide('view-pending'); show('view-auth');
+    return;
+  }
+  currentPerfil = perfil;
+  if (perfil.status !== 'aprovado') {
+    hide('view-auth'); hide('view-app'); show('view-pending');
+    $('pending-msg').textContent = perfil.status === 'rejeitado'
+      ? 'Seu cadastro foi recusado. Fale com a gestão O&M.'
+      : 'Seu cadastro está aguardando aprovação da gestão O&M.';
+    return;
+  }
+  hide('view-auth'); hide('view-pending'); show('view-app');
+  initApp();
+}
+
+// ---------- APP SHELL ----------
+function initApp() {
+  $('who-label').textContent = `${currentPerfil.nome} · ${currentPerfil.tipo === 'om' ? 'O&M' : 'Técnico'}`;
+  const tabsEl = $('tabs');
+  tabsEl.innerHTML = '';
+  document.querySelectorAll('.tabpane').forEach(p => p.classList.add('hidden'));
+
+  let tabs = [];
+  if (currentPerfil.tipo === 'om') {
+    tabs = [
+      { id: 'consolidar', label: 'Consolidar' },
+      { id: 'visao', label: 'Visão geral' },
+      { id: 'gestao', label: 'Gestão de técnicos' }
+    ];
+  } else {
+    tabs = [{ id: 'meu', label: 'Meu estoque' }];
+  }
+  tabs.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (i===0 ? ' active' : '');
+    btn.textContent = t.label;
+    btn.onclick = () => switchTab(t.id);
+    tabsEl.appendChild(btn);
+  });
+  switchTab(tabs[0].id);
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.textContent === labelFor(id)));
+  document.querySelectorAll('.tabpane').forEach(p => p.classList.add('hidden'));
+  show('tab-' + id);
+  if (id === 'visao') loadVisaoGeral();
+  if (id === 'gestao') loadGestao();
+  if (id === 'meu') loadMeuEstoque();
+}
+function labelFor(id){
+  return {consolidar:'Consolidar', visao:'Visão geral', gestao:'Gestão de técnicos', meu:'Meu estoque'}[id];
+}
+
+// ---------- CONSOLIDAR (upload + parse + publish) ----------
+function normCNPJ(v){ return v ? String(v).replace(/\D/g,'').replace(/^0+/,'') : ''; }
+
+$('dz-bolsao').onclick = () => $('file-bolsao').click();
+$('dz-elleven').onclick = () => $('file-elleven').click();
+['dz-bolsao','dz-elleven'].forEach(id=>{
+  const dz = $(id);
+  dz.addEventListener('dragover', e=>e.preventDefault());
+  dz.addEventListener('drop', e=>{
+    e.preventDefault();
+    const input = dz.querySelector('input');
+    if(e.dataTransfer.files.length){ input.files = e.dataTransfer.files; input.dispatchEvent(new Event('change')); }
+  });
+});
+
+$('file-bolsao').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const wb = XLSX.read(ev.target.result, {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+    bolsaoData = rows.map(r=>({
+      cnpj: normCNPJ(r['Posição de depósito']),
+      tecnico: String(r['Descrição da Posição']||'').trim(),
+      codigo: String(r['Código do item']||'').trim(),
+      descricao: String(r['Descrição do item']||'').trim(),
+      unidade: String(r['UnidadeMedida']||'').trim(),
+      qtd: Number(r['Disponivel']||0)
+    })).filter(r=>r.codigo);
+    $('status-bolsao').textContent = `${bolsaoData.length} linhas (${f.name})`;
+    $('dz-bolsao').classList.add('filled');
+    checkReadyConsolidar();
+  };
+  reader.readAsArrayBuffer(f);
+});
+
+$('file-elleven').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const parsed = Papa.parse(ev.target.result, {header:true, delimiter:';', skipEmptyLines:true});
+    ellevenData = parsed.data.map(r=>({
+      cnpj: normCNPJ(r['CNPJ Tecnico']),
+      tecnico: String(r['Tecnico']||'').trim(),
+      codigo: String(r['Cod. Produto']||'').trim(),
+      descricao: String(r['Produto']||'').trim(),
+      unidade: String(r['Unidade']||'').trim(),
+      qtd: Number(String(r['Quantidade']||'0').replace(',','.'))
+    })).filter(r=>r.codigo);
+    $('status-elleven').textContent = `${ellevenData.length} linhas (${f.name})`;
+    $('dz-elleven').classList.add('filled');
+    checkReadyConsolidar();
+  };
+  reader.readAsText(f, 'UTF-8');
+});
+
+function checkReadyConsolidar(){ $('btn-process').disabled = !(bolsaoData && ellevenData); }
+
+$('btn-reset-files').onclick = () => {
+  bolsaoData = null; ellevenData = null;
+  $('file-bolsao').value=''; $('file-elleven').value='';
+  $('status-bolsao').textContent='Nenhum arquivo carregado';
+  $('status-elleven').textContent='Nenhum arquivo carregado';
+  $('dz-bolsao').classList.remove('filled'); $('dz-elleven').classList.remove('filled');
+  $('consolidar-result').innerHTML=''; checkReadyConsolidar();
+};
+
+$('btn-process').onclick = async () => {
+  $('btn-process').disabled = true;
+  $('btn-process').textContent = 'Consolidando...';
+  const techs = {};
+  const ensureTech = c => techs[c] || (techs[c] = {nomeBolsao:null, nomeElleven:null, materials:{}});
+  const ensureMat = (t,codigo,desc,unidade) => t.materials[codigo] || (t.materials[codigo] = {desc,unidade,bolsao:0,elleven:0});
+
+  bolsaoData.forEach(r=>{ const t=ensureTech(r.cnpj); t.nomeBolsao=r.tecnico; const m=ensureMat(t,r.codigo,r.descricao,r.unidade); m.bolsao+=r.qtd; });
+  ellevenData.forEach(r=>{ const t=ensureTech(r.cnpj); t.nomeElleven=r.tecnico; const m=ensureMat(t,r.codigo,r.descricao,r.unidade); m.elleven+=r.qtd; });
+
+  const upsertRows = [];
+  const histRows = [];
+  Object.entries(techs).forEach(([cnpj,t])=>{
+    if(!cnpj) return;
+    const nome = t.nomeElleven || t.nomeBolsao || cnpj;
+    Object.entries(t.materials).forEach(([codigo,m])=>{
+      upsertRows.push({
+        cnpj, nome_tecnico: nome, codigo_material: codigo, descricao_material: m.desc,
+        unidade: m.unidade, qtd_bolsao: m.bolsao, qtd_elleven: m.elleven,
+        data_referencia: new Date().toISOString(), updated_at: new Date().toISOString()
+      });
+      histRows.push({
+        cnpj, codigo_material: codigo, descricao_material: m.desc,
+        qtd_bolsao: m.bolsao, qtd_elleven: m.elleven, qtd_total: m.bolsao+m.elleven
+      });
+    });
+  });
+
+  // upsert em lotes de 500
+  let erro = null;
+  for (let i=0; i<upsertRows.length; i+=500){
+    const chunk = upsertRows.slice(i, i+500);
+    const { error } = await sb.from('estoque').upsert(chunk, { onConflict: 'cnpj,codigo_material' });
+    if (error) { erro = error; break; }
+  }
+  if (!erro) {
+    for (let i=0; i<histRows.length; i+=500){
+      const chunk = histRows.slice(i, i+500);
+      await sb.from('estoque_historico').insert(chunk);
+    }
+  }
+
+  $('btn-process').textContent = 'Consolidar e publicar para os técnicos';
+  $('btn-process').disabled = false;
+
+  if (erro) {
+    $('consolidar-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro ao publicar: ${erro.message}</div>`;
+    return;
+  }
+  $('consolidar-result').innerHTML = `<div class="msg-box">✅ ${upsertRows.length} combinações técnico×material publicadas. Os técnicos já veem o saldo atualizado.</div>`;
+};
+
+// ---------- VISÃO GERAL (O&M) ----------
+async function loadVisaoGeral(){
+  $('visao-list').innerHTML = '<div class="empty-state">Carregando...</div>';
+  const { data: estoque, error } = await sb.from('estoque').select('*').order('nome_tecnico');
+  const { data: perfis } = await sb.from('perfis').select('cnpj,equipe').eq('tipo','tecnico');
+  if (error) { $('visao-list').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
+
+  const equipeByCnpj = {};
+  (perfis||[]).forEach(p => { if(p.cnpj) equipeByCnpj[p.cnpj] = p.equipe || '__sem_equipe'; });
+
+  // agrupar por técnico
+  const byTech = {};
+  (estoque||[]).forEach(r => {
+    if (!byTech[r.cnpj]) byTech[r.cnpj] = { nome: r.nome_tecnico, cnpj: r.cnpj, equipe: equipeByCnpj[r.cnpj] || '__sem_equipe', itens: [] };
+    byTech[r.cnpj].itens.push(r);
+  });
+
+  window.__visaoData = byTech;
+  renderVisao();
+
+  $('filtro-equipe').onchange = renderVisao;
+  $('filtro-busca').oninput = renderVisao;
+}
+
+function renderVisao(){
+  const byTech = window.__visaoData || {};
+  const filtroEquipe = $('filtro-equipe').value;
+  const busca = $('filtro-busca').value.toLowerCase();
+
+  let totalTecnicos=0, totalItens=0, totalUnidades=0;
+  const list = Object.values(byTech).filter(t=>{
+    if (filtroEquipe && t.equipe !== filtroEquipe) return false;
+    if (busca && !t.nome.toLowerCase().includes(busca)) return false;
+    return true;
+  }).sort((a,b)=>a.nome.localeCompare(b.nome));
+
+  list.forEach(t=>{
+    totalTecnicos++; totalItens += t.itens.length;
+    t.itens.forEach(i=>totalUnidades += Number(i.qtd_total||0));
+  });
+
+  $('visao-stats').innerHTML = `
+    <div class="stat"><div class="num">${totalTecnicos}</div><div class="lbl">Técnicos</div></div>
+    <div class="stat"><div class="num">${totalItens}</div><div class="lbl">Combinações técnico×material</div></div>
+    <div class="stat"><div class="num">${totalUnidades.toFixed(0)}</div><div class="lbl">Unidades totais</div></div>`;
+
+  if (!list.length) { $('visao-list').innerHTML = '<div class="empty-state">Nenhum técnico encontrado com esse filtro.</div>'; return; }
+
+  $('visao-list').innerHTML = list.map(t=>{
+    const techTotal = t.itens.reduce((s,i)=>s+Number(i.qtd_total||0),0);
+    const rows = t.itens.map(i=>{
+      const cls = Number(i.qtd_total)<=0?'zero':'ok';
+      return `<tr><td>${i.descricao_material}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div></td>
+        <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td>
+        <td class="num"><span class="badge ${cls}">${i.qtd_total} ${i.unidade||''}</span></td></tr>`;
+    }).join('');
+    const equipeLabel = t.equipe === '__sem_equipe' ? 'sem equipe' : t.equipe;
+    return `<div class="tech">
+      <div class="tech-head" onclick="this.parentElement.querySelector('.tech-body').classList.toggle('open')">
+        <div><div class="tech-name">${t.nome}</div><div class="tech-sub">${t.itens.length} material(is) · ${equipeLabel}</div></div>
+        <div class="tech-total">${techTotal.toFixed(0)} un.</div>
+      </div>
+      <div class="tech-body"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- GESTÃO DE TÉCNICOS (O&M) ----------
+async function loadGestao(){
+  $('gestao-pendentes').innerHTML = 'Carregando...';
+  $('gestao-aprovados').innerHTML = '';
+  const { data: perfis, error } = await sb.from('perfis').select('*').order('created_at');
+  if (error) { $('gestao-pendentes').innerHTML = `Erro: ${error.message}`; return; }
+
+  const pendentes = (perfis||[]).filter(p=>p.status==='pendente');
+  const aprovados = (perfis||[]).filter(p=>p.status==='aprovado');
+
+  $('gestao-pendentes').innerHTML = pendentes.length ? pendentes.map(p=>`
+    <div class="pending-row">
+      <div>
+        <b>${p.nome}</b> <span class="badge pend">pendente</span><br>
+        <span class="tech-sub">${p.tipo === 'om' ? 'Gestão O&M' : 'Técnico · CNPJ ' + p.cnpj}</span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        ${p.tipo==='tecnico' ? `<select id="equipe-${p.id}" style="width:auto;margin:0;">
+          <option value="">Equipe...</option>
+          <option value="Implantação">Implantação</option>
+          <option value="Manutenção">Manutenção</option>
+          <option value="Transmissão">Transmissão</option>
+          <option value="GTD">GTD</option>
+        </select>` : ''}
+        <button class="btn small" onclick="aprovar('${p.id}','${p.tipo}')">Aprovar</button>
+        <button class="btn secondary small" onclick="rejeitar('${p.id}')">Recusar</button>
+      </div>
+    </div>`).join('') : '<div class="empty-state">Nenhum cadastro pendente.</div>';
+
+  $('gestao-aprovados').innerHTML = aprovados.length ? aprovados.map(p=>`
+    <div class="pending-row">
+      <div>
+        <b>${p.nome}</b><br>
+        <span class="tech-sub">${p.tipo === 'om' ? 'Gestão O&M' : 'Técnico · CNPJ ' + p.cnpj + ' · ' + (p.equipe||'sem equipe')}</span>
+      </div>
+      ${p.tipo==='tecnico' ? `<div style="display:flex;gap:6px;align-items:center;">
+        <select id="equipe-edit-${p.id}" style="width:auto;margin:0;">
+          <option value="">Sem equipe</option>
+          <option value="Implantação" ${p.equipe==='Implantação'?'selected':''}>Implantação</option>
+          <option value="Manutenção" ${p.equipe==='Manutenção'?'selected':''}>Manutenção</option>
+          <option value="Transmissão" ${p.equipe==='Transmissão'?'selected':''}>Transmissão</option>
+          <option value="GTD" ${p.equipe==='GTD'?'selected':''}>GTD</option>
+        </select>
+        <button class="btn secondary small" onclick="salvarEquipe('${p.id}')">Salvar</button>
+      </div>` : ''}
+    </div>`).join('') : '<div class="empty-state">Nenhum usuário aprovado ainda.</div>';
+}
+
+async function aprovar(id, tipo){
+  const equipeSel = document.getElementById('equipe-'+id);
+  const equipe = equipeSel ? equipeSel.value : null;
+  const { error } = await sb.from('perfis').update({ status:'aprovado', equipe: equipe||null }).eq('id', id);
+  if (error) alert('Erro: '+error.message); else loadGestao();
+}
+async function rejeitar(id){
+  const { error } = await sb.from('perfis').update({ status:'rejeitado' }).eq('id', id);
+  if (error) alert('Erro: '+error.message); else loadGestao();
+}
+async function salvarEquipe(id){
+  const val = document.getElementById('equipe-edit-'+id).value;
+  const { error } = await sb.from('perfis').update({ equipe: val||null }).eq('id', id);
+  if (error) alert('Erro: '+error.message); else loadGestao();
+}
+
+// ---------- MEU ESTOQUE (Técnico) ----------
+async function loadMeuEstoque(){
+  $('meu-header').innerHTML = `<h2>Meu estoque — ${currentPerfil.nome}</h2><div class="tech-sub">CNPJ ${currentPerfil.cnpj} · Equipe: ${currentPerfil.equipe||'não atribuída'}</div>`;
+  $('meu-list').innerHTML = 'Carregando...';
+  const { data, error } = await sb.from('estoque').select('*').eq('cnpj', currentPerfil.cnpj).order('descricao_material');
+  if (error) { $('meu-list').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
+  if (!data || !data.length) { $('meu-list').innerHTML = '<div class="empty-state">Nenhum material publicado para o seu CNPJ ainda.</div>'; return; }
+  const rows = data.map(i=>{
+    const cls = Number(i.qtd_total)<=0?'zero':'ok';
+    return `<tr><td>${i.descricao_material}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div></td>
+      <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td>
+      <td class="num"><span class="badge ${cls}">${i.qtd_total} ${i.unidade||''}</span></td></tr>`;
+  }).join('');
+  $('meu-list').innerHTML = `<div class="card"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+checkSession();
+</script>
+</body>
+</html>
