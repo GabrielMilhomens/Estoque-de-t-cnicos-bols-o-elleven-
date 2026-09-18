@@ -324,7 +324,15 @@ function labelFor(id){
 }
 
 // ---------- CONSOLIDAR (upload + parse + publish) ----------
-function normCNPJ(v){ return v ? String(v).replace(/\D/g,'').replace(/^0+/,'') : ''; }
+function normCNPJ(v){
+  if(!v) return '';
+  // pega o maior bloco de dígitos consecutivos da string (evita pegar
+  // dígitos de prefixos como "DEP1-" e ficar com "105131004586" em vez
+  // do CNPJ/CPF de verdade "05131004586")
+  const groups = String(v).match(/\d+/g) || [];
+  const maior = groups.reduce((a,b) => b.length > a.length ? b : a, '');
+  return maior.replace(/^0+/, '');
+}
 
 $('dz-bolsao').onclick = () => $('file-bolsao').click();
 $('dz-elleven').onclick = () => $('file-elleven').click();
