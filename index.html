@@ -555,8 +555,8 @@ async function atualizarTipo(tipo, rows, btnId, nomeLabel){
 
   // busca estado atual no banco para computar o "antes" e detectar quem some do arquivo
   const campo = tipo==='bolsao' ? 'qtd_bolsao' : tipo==='elleven' ? 'qtd_elleven' : 'qtd_patrimonio';
-  const { data: atuais, error: errFetch } = await sb.from('estoque')
-    .select('cnpj,codigo_material,nome_tecnico,descricao_material,unidade,'+campo+',serials_patrimonio');
+  const { data: atuais, error: errFetch } = await fetchAllRows('estoque',
+    q => q.select('cnpj,codigo_material,nome_tecnico,descricao_material,unidade,'+campo+',serials_patrimonio'));
   if (errFetch) {
     $('consolidar-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro ao ler estoque atual: ${errFetch.message}</div>`;
     btn.disabled = false; btn.textContent = original;
@@ -732,11 +732,25 @@ async function importarMovimentacoesElleven(){
 }
 
 // ---------- VISÃO GERAL (O&M) ----------
+async function fetchAllRows(table, buildQuery){
+  let all = [];
+  let from = 0;
+  const pageSize = 1000;
+  while (true) {
+    const { data, error } = await buildQuery(sb.from(table).select('*')).range(from, from+pageSize-1);
+    if (error) return { data: null, error };
+    all = all.concat(data || []);
+    if (!data || data.length < pageSize) break;
+    from += pageSize;
+  }
+  return { data: all, error: null };
+}
+
 async function loadVisaoGeral(){
   $('visao-list').innerHTML = '<div class="empty-state">Carregando...</div>';
   loadUltimasAtualizacoes();
-  const { data: estoque, error } = await sb.from('estoque').select('*').order('nome_tecnico');
-  const { data: perfis } = await sb.from('perfis').select('cnpj,equipe').eq('tipo','tecnico');
+  const { data: estoque, error } = await fetchAllRows('estoque', q => q.order('nome_tecnico'));
+  const { data: perfis } = await fetchAllRows('perfis', q => q.eq('tipo','tecnico'));
   if (error) { $('visao-list').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
 
   const equipeByCnpj = {};
@@ -898,7 +912,7 @@ function renderHistorico(){
 async function loadGestao(){
   $('gestao-pendentes').innerHTML = 'Carregando...';
   $('gestao-aprovados').innerHTML = '';
-  const { data: perfis, error } = await sb.from('perfis').select('*').order('created_at');
+  const { data: perfis, error } = await fetchAllRows('perfis', q => q.order('created_at'));
   if (error) { $('gestao-pendentes').innerHTML = `Erro: ${error.message}`; return; }
 
   const pendentes = (perfis||[]).filter(p=>p.status==='pendente');
