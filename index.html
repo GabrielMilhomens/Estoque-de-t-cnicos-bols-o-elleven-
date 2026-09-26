@@ -231,7 +231,7 @@ td.num,th.num{text-align:right;}
         <input type="date" id="hist-ate" min="2026-01-01">
         <input type="text" id="hist-busca" placeholder="🔍 Buscar técnico, material, código ou série...">
       </div>
-      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações de 2026 em diante.</div>
+      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações posteriores ao retrato-base (saldo base do Elleven).</div>
       <div id="historico-list"></div>
     </div>
 
@@ -269,7 +269,7 @@ td.num,th.num{text-align:right;}
         <input type="date" id="meuhist-ate" min="2026-01-01">
         <input type="text" id="meuhist-busca" placeholder="🔍 Buscar material, código ou cliente...">
       </div>
-      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações de 2026 em diante.</div>
+      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações posteriores ao retrato-base (saldo base do Elleven).</div>
       <div id="meu-historico"></div>
     </div>
   </div>
@@ -954,13 +954,14 @@ function eventoLedgerLine(m){
 }
 async function loadHistorico(){
   $('historico-list').innerHTML = '<div class="empty-state">Carregando...</div>';
-  const CORTE_2026 = '2026-01-01T00:00:00.000Z';
-  const deInformada = $('hist-de').value ? new Date($('hist-de').value+'T00:00:00').toISOString() : CORTE_2026;
-  const de = deInformada < CORTE_2026 ? CORTE_2026 : deInformada; // nunca busca antes de 2026
+  const { data: baseRow } = await sb.from('saldo_base_elleven').select('data_base').eq('id', true).maybeSingle();
+  const CORTE = baseRow ? baseRow.data_base : '2026-01-01T00:00:00.000Z'; // piso: data do retrato-base, ou 2026 se ainda não houver
+  const deInformada = $('hist-de').value ? new Date($('hist-de').value+'T00:00:00').toISOString() : CORTE;
+  const de = deInformada < CORTE ? CORTE : deInformada; // nunca mostra igual ou anterior ao retrato-base
   const ateInput = $('hist-ate').value ? new Date($('hist-ate').value+'T23:59:59').toISOString() : null;
 
-  let diffQ = sb.from('movimentacoes').select('*').gte('criado_em', de).order('criado_em', {ascending:false}).limit(1000);
-  let ledgerQ = sb.from('movimentacoes_elleven').select('*').gte('data_movimentacao', de).order('data_movimentacao', {ascending:false}).limit(1000);
+  let diffQ = sb.from('movimentacoes').select('*').gt('criado_em', de).order('criado_em', {ascending:false}).limit(1000);
+  let ledgerQ = sb.from('movimentacoes_elleven').select('*').gt('data_movimentacao', de).order('data_movimentacao', {ascending:false}).limit(1000);
   if (ateInput) { diffQ = diffQ.lte('criado_em', ateInput); ledgerQ = ledgerQ.lte('data_movimentacao', ateInput); }
 
   const [diffRes, ledgerRes] = await Promise.all([diffQ, ledgerQ]);
@@ -1100,13 +1101,14 @@ function renderMeuLista(){
 }
 async function loadMinhasMovimentacoes(){
   $('meu-historico').innerHTML = '<div class="empty-state">Carregando...</div>';
-  const CORTE_2026 = '2026-01-01T00:00:00.000Z';
-  const deInformada = $('meuhist-de').value ? new Date($('meuhist-de').value+'T00:00:00').toISOString() : CORTE_2026;
-  const de = deInformada < CORTE_2026 ? CORTE_2026 : deInformada; // nunca busca antes de 2026
+  const { data: baseRow } = await sb.from('saldo_base_elleven').select('data_base').eq('id', true).maybeSingle();
+  const CORTE = baseRow ? baseRow.data_base : '2026-01-01T00:00:00.000Z';
+  const deInformada = $('meuhist-de').value ? new Date($('meuhist-de').value+'T00:00:00').toISOString() : CORTE;
+  const de = deInformada < CORTE ? CORTE : deInformada; // nunca mostra igual ou anterior ao retrato-base
   const ateInput = $('meuhist-ate').value ? new Date($('meuhist-ate').value+'T23:59:59').toISOString() : null;
 
-  let diffQ = sb.from('movimentacoes').select('*').eq('cnpj', currentPerfil.cnpj).gte('criado_em', de).order('criado_em', {ascending:false}).limit(1000);
-  let ledgerQ = sb.from('movimentacoes_elleven').select('*').eq('cnpj_tecnico', currentPerfil.cnpj).gte('data_movimentacao', de).order('data_movimentacao', {ascending:false}).limit(1000);
+  let diffQ = sb.from('movimentacoes').select('*').eq('cnpj', currentPerfil.cnpj).gt('criado_em', de).order('criado_em', {ascending:false}).limit(1000);
+  let ledgerQ = sb.from('movimentacoes_elleven').select('*').eq('cnpj_tecnico', currentPerfil.cnpj).gt('data_movimentacao', de).order('data_movimentacao', {ascending:false}).limit(1000);
   if (ateInput) { diffQ = diffQ.lte('criado_em', ateInput); ledgerQ = ledgerQ.lte('data_movimentacao', ateInput); }
 
   const [diffRes, ledgerRes] = await Promise.all([diffQ, ledgerQ]);
