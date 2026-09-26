@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Estoque Consolidado — Net Turbo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -21,7 +21,7 @@
   }
 }
 *{box-sizing:border-box;}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);padding:0;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);padding:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
 .wrap{max-width:1000px;margin:0 auto;padding:16px;}
 .center-wrap{max-width:380px;margin:60px auto;padding:16px;}
 h1{font-size:1.2rem;margin:0;}
@@ -73,9 +73,22 @@ td.num,th.num{text-align:right;}
 .badge.zero{background:var(--danger-bg);color:var(--danger);}
 .badge.ok{background:rgba(140,191,63,.15);color:var(--nt-green-dark);}
 .badge.pend{background:var(--warn-bg);color:var(--warn-text);}
+.badge.hit{background:#fff3b0;color:#6b5900;}
 .pending-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap;}
 .empty-state{text-align:center;color:var(--text-muted);padding:30px 10px;font-size:.85rem;}
 .msg-box{background:var(--warn-bg);color:var(--warn-text);border-radius:10px;padding:12px 14px;font-size:.85rem;margin-bottom:12px;}
+.last-update{font-size:.72rem;color:var(--text-muted);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:14px;display:flex;gap:14px;flex-wrap:wrap;}
+.last-update b{color:var(--text);}
+.source-card{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--card);}
+.source-card h3{font-size:.88rem;margin:0 0 8px;}
+.item-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+.item-title{font-weight:600;font-size:.88rem;}
+.item-code{font-size:.7rem;color:var(--text-muted);margin-top:1px;}
+.item-serials{font-size:.68rem;color:var(--text-muted);margin-top:4px;}
+.item-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;}
+.chip{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:.72rem;color:var(--text-muted);}
+.chip b{color:var(--text);}
+.item-total{margin-left:auto;}
 </style>
 </head>
 <body>
@@ -141,37 +154,39 @@ td.num,th.num{text-align:right;}
 
   <div class="wrap">
     <div id="tab-consolidar" class="tabpane hidden">
-      <div class="card">
-        <div class="drop-grid">
-          <label class="dropzone" id="dz-bolsao">
-            <b>📦 Planilha do Bolsão (SAP)</b><br>
-            Arraste o .xlsx ou clique
-            <div id="status-bolsao" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
-            <input type="file" id="file-bolsao" accept=".xlsx,.xls">
-          </label>
-          <label class="dropzone" id="dz-elleven">
-            <b>🧾 Extrato do Elleven (consumo)</b><br>
-            Arraste o .csv ou clique
-            <div id="status-elleven" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
-            <input type="file" id="file-elleven" accept=".csv">
-          </label>
-        </div>
-        <label class="dropzone" id="dz-patrimonio" style="margin-top:12px;">
-          <b>🏷️ Patrimônio do Elleven (itens com série/tag) — opcional</b><br>
-          Arraste o .csv ou clique
+      <div class="source-card">
+        <h3>📦 Planilha do Bolsão (SAP)</h3>
+        <label class="dropzone" id="dz-bolsao">Arraste o .xlsx ou clique
+          <div id="status-bolsao" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
+          <input type="file" id="file-bolsao" accept=".xlsx,.xls">
+        </label>
+        <div class="actions"><button class="btn" id="btn-up-bolsao" disabled>Atualizar somente Bolsão</button></div>
+        <div class="hint" id="last-bolsao">Carregando...</div>
+      </div>
+      <div class="source-card">
+        <h3>🧾 Extrato do Elleven (consumo)</h3>
+        <label class="dropzone" id="dz-elleven">Arraste o .csv ou clique
+          <div id="status-elleven" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
+          <input type="file" id="file-elleven" accept=".csv">
+        </label>
+        <div class="actions"><button class="btn" id="btn-up-elleven" disabled>Atualizar somente Elleven (consumo)</button></div>
+        <div class="hint" id="last-elleven">Carregando...</div>
+      </div>
+      <div class="source-card">
+        <h3>🏷️ Patrimônio do Elleven (itens com série/tag)</h3>
+        <label class="dropzone" id="dz-patrimonio">Arraste o .csv ou clique
           <div id="status-patrimonio" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
           <input type="file" id="file-patrimonio" accept=".csv">
         </label>
-        <div class="actions">
-          <button class="btn" id="btn-process" disabled>Consolidar e publicar para os técnicos</button>
-          <button class="btn secondary" id="btn-reset-files">Limpar</button>
-        </div>
-        <div class="hint">Casamento por CNPJ do técnico + código do material. Ao consolidar, o resultado é gravado no banco e cada técnico passa a ver o próprio saldo automaticamente. O relatório de patrimônio é opcional: se não subir, o total considera só bolsão + Elleven consumo.</div>
+        <div class="actions"><button class="btn" id="btn-up-patrimonio" disabled>Atualizar somente Patrimônio</button></div>
+        <div class="hint" id="last-patrimonio">Carregando...</div>
       </div>
+      <div class="hint">Cada botão atualiza só aquele tipo de estoque — os outros dois continuam com os últimos valores publicados. Cada upload substitui o snapshot anterior daquele tipo (não soma com o anterior); técnicos/materiais que saírem do arquivo ficam zerados naquele tipo.</div>
       <div id="consolidar-result"></div>
     </div>
 
     <div id="tab-visao" class="tabpane hidden">
+      <div class="last-update" id="lastupdate-visao"></div>
       <div class="stats" id="visao-stats"></div>
       <div class="filters">
         <select id="filtro-equipe">
@@ -182,9 +197,22 @@ td.num,th.num{text-align:right;}
           <option value="GTD">GTD</option>
           <option value="__sem_equipe">Sem equipe atribuída</option>
         </select>
-        <input type="text" id="filtro-busca" placeholder="🔍 Buscar técnico...">
+        <input type="text" id="filtro-busca" placeholder="🔍 Buscar técnico, material, código ou série...">
       </div>
       <div id="visao-list"></div>
+    </div>
+
+    <div id="tab-historico" class="tabpane hidden">
+      <div class="filters">
+        <select id="hist-tipo">
+          <option value="">Todos os tipos</option>
+          <option value="bolsao">Bolsão</option>
+          <option value="elleven">Elleven (consumo)</option>
+          <option value="patrimonio">Patrimônio</option>
+        </select>
+        <input type="text" id="hist-busca" placeholder="🔍 Buscar técnico, material, código ou série...">
+      </div>
+      <div id="historico-list"></div>
     </div>
 
     <div id="tab-gestao" class="tabpane hidden">
@@ -200,7 +228,10 @@ td.num,th.num{text-align:right;}
 
     <div id="tab-meu" class="tabpane hidden">
       <div class="card" id="meu-header"></div>
+      <input type="text" id="meu-busca" placeholder="🔍 Buscar material, código ou série...">
       <div id="meu-list"></div>
+      <h2 style="margin-top:22px;">Movimentações recentes</h2>
+      <div id="meu-historico"></div>
     </div>
   </div>
 </div>
@@ -318,6 +349,7 @@ function initApp() {
     tabs = [
       { id: 'consolidar', label: 'Consolidar' },
       { id: 'visao', label: 'Visão geral' },
+      { id: 'historico', label: 'Histórico' },
       { id: 'gestao', label: 'Gestão de técnicos' }
     ];
   } else {
@@ -337,12 +369,36 @@ function switchTab(id) {
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.textContent === labelFor(id)));
   document.querySelectorAll('.tabpane').forEach(p => p.classList.add('hidden'));
   show('tab-' + id);
+  if (id === 'consolidar') loadUltimasAtualizacoes();
   if (id === 'visao') loadVisaoGeral();
+  if (id === 'historico') loadHistorico();
   if (id === 'gestao') loadGestao();
   if (id === 'meu') loadMeuEstoque();
 }
 function labelFor(id){
-  return {consolidar:'Consolidar', visao:'Visão geral', gestao:'Gestão de técnicos', meu:'Meu estoque'}[id];
+  return {consolidar:'Consolidar', visao:'Visão geral', historico:'Histórico', gestao:'Gestão de técnicos', meu:'Meu estoque'}[id];
+}
+
+function fmtData(iso){
+  if(!iso) return null;
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+}
+
+async function loadUltimasAtualizacoes(){
+  const { data } = await sb.from('metadados_estoque').select('*');
+  const map = {};
+  (data||[]).forEach(r=>map[r.tipo]=r.atualizado_em);
+  $('last-bolsao').textContent = map.bolsao ? `Última atualização: ${fmtData(map.bolsao)}` : 'Ainda não atualizado.';
+  $('last-elleven').textContent = map.elleven ? `Última atualização: ${fmtData(map.elleven)}` : 'Ainda não atualizado.';
+  $('last-patrimonio').textContent = map.patrimonio ? `Última atualização: ${fmtData(map.patrimonio)}` : 'Ainda não atualizado.';
+  const line = `
+    <span>📦 Bolsão: <b>${map.bolsao ? fmtData(map.bolsao) : 'nunca'}</b></span>
+    <span>🧾 Elleven: <b>${map.elleven ? fmtData(map.elleven) : 'nunca'}</b></span>
+    <span>🏷️ Patrimônio: <b>${map.patrimonio ? fmtData(map.patrimonio) : 'nunca'}</b></span>`;
+  if ($('lastupdate-visao')) $('lastupdate-visao').innerHTML = line;
+  window.__ultimasAtualizacoes = map;
+  return map;
 }
 
 // ---------- CONSOLIDAR (upload + parse + publish) ----------
@@ -386,7 +442,7 @@ $('file-bolsao').addEventListener('change', e => {
     })).filter(r=>r.codigo);
     $('status-bolsao').textContent = `${bolsaoData.length} linhas (${f.name})`;
     $('dz-bolsao').classList.add('filled');
-    checkReadyConsolidar();
+    $('btn-up-bolsao').disabled = false;
   };
   reader.readAsArrayBuffer(f);
 });
@@ -406,7 +462,7 @@ $('file-elleven').addEventListener('change', e => {
     })).filter(r=>r.codigo);
     $('status-elleven').textContent = `${ellevenData.length} linhas (${f.name})`;
     $('dz-elleven').classList.add('filled');
-    checkReadyConsolidar();
+    $('btn-up-elleven').disabled = false;
   };
   reader.readAsText(f, 'UTF-8');
 });
@@ -425,86 +481,115 @@ $('file-patrimonio').addEventListener('change', e => {
     })).filter(r=>r.codigo);
     $('status-patrimonio').textContent = `${patrimonioData.length} linhas (${f.name})`;
     $('dz-patrimonio').classList.add('filled');
-    checkReadyConsolidar();
+    $('btn-up-patrimonio').disabled = false;
   };
   reader.readAsText(f, 'UTF-8');
 });
 
-function checkReadyConsolidar(){ $('btn-process').disabled = !(bolsaoData && ellevenData); }
+// ---------- atualização por tipo (parcial): busca estado atual no banco,
+// calcula o que mudou, grava só o campo daquele tipo + histórico de movimentação ----------
+async function atualizarTipo(tipo, rows, btnId, nomeLabel){
+  const btn = $(btnId);
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = 'Atualizando...';
 
-$('btn-reset-files').onclick = () => {
-  bolsaoData = null; ellevenData = null; patrimonioData = null;
-  $('file-bolsao').value=''; $('file-elleven').value=''; $('file-patrimonio').value='';
-  $('status-bolsao').textContent='Nenhum arquivo carregado';
-  $('status-elleven').textContent='Nenhum arquivo carregado';
-  $('status-patrimonio').textContent='Nenhum arquivo carregado';
-  $('dz-bolsao').classList.remove('filled'); $('dz-elleven').classList.remove('filled'); $('dz-patrimonio').classList.remove('filled');
-  $('consolidar-result').innerHTML=''; checkReadyConsolidar();
-};
-
-$('btn-process').onclick = async () => {
-  $('btn-process').disabled = true;
-  $('btn-process').textContent = 'Consolidando...';
-  const techs = {};
-  const ensureTech = c => techs[c] || (techs[c] = {nomeBolsao:null, nomeElleven:null, materials:{}});
-  const ensureMat = (t,codigo,desc,unidade) => t.materials[codigo] || (t.materials[codigo] = {desc,unidade,bolsao:0,elleven:0,patrimonio:0,serials:[]});
-
-  bolsaoData.forEach(r=>{ const t=ensureTech(r.cnpj); t.nomeBolsao=r.tecnico; const m=ensureMat(t,r.codigo,r.descricao,r.unidade); m.bolsao+=r.qtd; });
-  ellevenData.forEach(r=>{ const t=ensureTech(r.cnpj); t.nomeElleven=r.tecnico; const m=ensureMat(t,r.codigo,r.descricao,r.unidade); m.elleven+=r.qtd; });
-  (patrimonioData||[]).forEach(r=>{
-    const t=ensureTech(r.cnpj); t.nomeElleven = t.nomeElleven || r.tecnico;
-    const m=ensureMat(t,r.codigo,r.descricao,'UNID');
-    m.patrimonio += 1;
-    if (r.serial) m.serials.push(r.serial);
+  // agrega o arquivo por cnpj+codigo
+  const novo = {}; // key -> {cnpj,codigo,nome,desc,unidade,qtd,serials}
+  rows.forEach(r=>{
+    if(!r.cnpj) return;
+    const key = r.cnpj+'|'+r.codigo;
+    if(!novo[key]) novo[key] = {cnpj:r.cnpj, codigo:r.codigo, nome:r.tecnico, desc:r.descricao, unidade:r.unidade||'UNID', qtd:0, serials:[]};
+    novo[key].nome = r.tecnico || novo[key].nome;
+    if (tipo==='patrimonio'){ novo[key].qtd += 1; if(r.serial) novo[key].serials.push(r.serial); }
+    else novo[key].qtd += r.qtd;
   });
 
+  // busca estado atual no banco para computar o "antes" e detectar quem some do arquivo
+  const campo = tipo==='bolsao' ? 'qtd_bolsao' : tipo==='elleven' ? 'qtd_elleven' : 'qtd_patrimonio';
+  const { data: atuais, error: errFetch } = await sb.from('estoque')
+    .select('cnpj,codigo_material,nome_tecnico,descricao_material,unidade,'+campo+',serials_patrimonio');
+  if (errFetch) {
+    $('consolidar-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro ao ler estoque atual: ${errFetch.message}</div>`;
+    btn.disabled = false; btn.textContent = original;
+    return;
+  }
+  const antesMap = {};
+  (atuais||[]).forEach(r=>{
+    antesMap[r.cnpj+'|'+r.codigo_material] = {
+      qtd: Number(r[campo]||0),
+      serials: r.serials_patrimonio ? r.serials_patrimonio.split(', ').filter(Boolean) : [],
+      nome: r.nome_tecnico, desc: r.descricao_material, unidade: r.unidade
+    };
+  });
+
+  const chaves = new Set([...Object.keys(antesMap), ...Object.keys(novo)]);
   const upsertRows = [];
-  const histRows = [];
-  Object.entries(techs).forEach(([cnpj,t])=>{
-    if(!cnpj) return;
-    const nome = t.nomeElleven || t.nomeBolsao || cnpj;
-    Object.entries(t.materials).forEach(([codigo,m])=>{
-      upsertRows.push({
-        cnpj, nome_tecnico: nome, codigo_material: codigo, descricao_material: m.desc,
-        unidade: m.unidade, qtd_bolsao: m.bolsao, qtd_elleven: m.elleven, qtd_patrimonio: m.patrimonio,
-        serials_patrimonio: m.serials.length ? m.serials.join(', ') : null,
-        data_referencia: new Date().toISOString(), updated_at: new Date().toISOString()
-      });
-      histRows.push({
-        cnpj, codigo_material: codigo, descricao_material: m.desc,
-        qtd_bolsao: m.bolsao, qtd_elleven: m.elleven, qtd_patrimonio: m.patrimonio,
-        qtd_total: m.bolsao+m.elleven+m.patrimonio
-      });
+  const movRows = [];
+  const now = new Date().toISOString();
+
+  chaves.forEach(key=>{
+    const [cnpj, codigo] = key.split('|');
+    const ant = antesMap[key];
+    const nov = novo[key];
+    const antesQtd = ant ? ant.qtd : 0;
+    const depoisQtd = nov ? nov.qtd : 0;
+    const antesSerials = ant ? ant.serials : [];
+    const depoisSerials = nov ? nov.serials : [];
+    const seriaisAdd = tipo==='patrimonio' ? depoisSerials.filter(s=>!antesSerials.includes(s)) : [];
+    const seriaisRem = tipo==='patrimonio' ? antesSerials.filter(s=>!depoisSerials.includes(s)) : [];
+    if (antesQtd === depoisQtd && !seriaisAdd.length && !seriaisRem.length) return;
+
+    const nome = (nov && nov.nome) || (ant && ant.nome) || cnpj;
+    const desc = (nov && nov.desc) || (ant && ant.desc) || codigo;
+    const unidade = (nov && nov.unidade) || (ant && ant.unidade) || '';
+
+    const payload = { cnpj, codigo_material: codigo, nome_tecnico: nome, descricao_material: desc, unidade, updated_at: now };
+    payload[campo] = depoisQtd;
+    if (tipo==='patrimonio') payload.serials_patrimonio = depoisSerials.length ? depoisSerials.join(', ') : null;
+    upsertRows.push(payload);
+
+    movRows.push({
+      cnpj, nome_tecnico: nome, tipo, codigo_material: codigo, descricao_material: desc,
+      qtd_antes: antesQtd, qtd_depois: depoisQtd,
+      seriais_adicionados: seriaisAdd.length ? seriaisAdd.join(', ') : null,
+      seriais_removidos: seriaisRem.length ? seriaisRem.join(', ') : null
     });
   });
 
-  // upsert em lotes de 500
   let erro = null;
   for (let i=0; i<upsertRows.length; i+=500){
-    const chunk = upsertRows.slice(i, i+500);
-    const { error } = await sb.from('estoque').upsert(chunk, { onConflict: 'cnpj,codigo_material' });
+    const { error } = await sb.from('estoque').upsert(upsertRows.slice(i,i+500), { onConflict: 'cnpj,codigo_material' });
     if (error) { erro = error; break; }
   }
-  if (!erro) {
-    for (let i=0; i<histRows.length; i+=500){
-      const chunk = histRows.slice(i, i+500);
-      await sb.from('estoque_historico').insert(chunk);
+  if (!erro && movRows.length) {
+    for (let i=0; i<movRows.length; i+=500){
+      await sb.from('movimentacoes').insert(movRows.slice(i,i+500));
     }
   }
+  if (!erro) {
+    await sb.from('metadados_estoque').upsert({ tipo, atualizado_em: now }, { onConflict: 'tipo' });
+  }
 
-  $('btn-process').textContent = 'Consolidar e publicar para os técnicos';
-  $('btn-process').disabled = false;
+  btn.textContent = original;
+  btn.disabled = false;
 
   if (erro) {
     $('consolidar-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro ao publicar: ${erro.message}</div>`;
     return;
   }
-  $('consolidar-result').innerHTML = `<div class="msg-box">✅ ${upsertRows.length} combinações técnico×material publicadas. Os técnicos já veem o saldo atualizado.</div>`;
-};
+  $('consolidar-result').innerHTML = `<div class="msg-box">✅ ${nomeLabel} atualizado — ${upsertRows.length} combinação(ões) alteradas (${movRows.length} movimentação(ões) registradas). Os outros tipos de estoque não foram alterados.</div>`;
+  loadUltimasAtualizacoes();
+}
+
+$('btn-up-bolsao').onclick = () => atualizarTipo('bolsao', bolsaoData, 'btn-up-bolsao', 'Bolsão');
+$('btn-up-elleven').onclick = () => atualizarTipo('elleven', ellevenData, 'btn-up-elleven', 'Elleven (consumo)');
+$('btn-up-patrimonio').onclick = () => atualizarTipo('patrimonio', patrimonioData, 'btn-up-patrimonio', 'Patrimônio');
 
 // ---------- VISÃO GERAL (O&M) ----------
 async function loadVisaoGeral(){
   $('visao-list').innerHTML = '<div class="empty-state">Carregando...</div>';
+  loadUltimasAtualizacoes();
   const { data: estoque, error } = await sb.from('estoque').select('*').order('nome_tecnico');
   const { data: perfis } = await sb.from('perfis').select('cnpj,equipe').eq('tipo','tecnico');
   if (error) { $('visao-list').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
@@ -529,14 +614,23 @@ async function loadVisaoGeral(){
 function renderVisao(){
   const byTech = window.__visaoData || {};
   const filtroEquipe = $('filtro-equipe').value;
-  const busca = $('filtro-busca').value.toLowerCase();
+  const busca = ($('filtro-busca').value||'').trim().toLowerCase();
 
   let totalTecnicos=0, totalItens=0, totalUnidades=0;
-  const list = Object.values(byTech).filter(t=>{
+  let list = Object.values(byTech).filter(t=>{
     if (filtroEquipe && t.equipe !== filtroEquipe) return false;
-    if (busca && !t.nome.toLowerCase().includes(busca)) return false;
     return true;
-  }).sort((a,b)=>a.nome.localeCompare(b.nome));
+  });
+  list = list.map(t=>{
+    if (!busca) return {...t, matchedByItem:false};
+    const matchesTecnico = t.nome.toLowerCase().includes(busca);
+    const matchesItem = t.itens.some(i =>
+      (i.codigo_material||'').toLowerCase().includes(busca) ||
+      (i.descricao_material||'').toLowerCase().includes(busca) ||
+      (i.serials_patrimonio||'').toLowerCase().includes(busca));
+    if (!matchesTecnico && !matchesItem) return null;
+    return {...t, matchedByItem: matchesItem};
+  }).filter(Boolean).sort((a,b)=>a.nome.localeCompare(b.nome));
 
   list.forEach(t=>{
     totalTecnicos++; totalItens += t.itens.length;
@@ -548,26 +642,76 @@ function renderVisao(){
     <div class="stat"><div class="num">${totalItens}</div><div class="lbl">Combinações técnico×material</div></div>
     <div class="stat"><div class="num">${totalUnidades.toFixed(0)}</div><div class="lbl">Unidades totais</div></div>`;
 
-  if (!list.length) { $('visao-list').innerHTML = '<div class="empty-state">Nenhum técnico encontrado com esse filtro.</div>'; return; }
+  if (!list.length) { $('visao-list').innerHTML = '<div class="empty-state">Nada encontrado com esse filtro/busca.</div>'; return; }
 
   $('visao-list').innerHTML = list.map(t=>{
     const techTotal = t.itens.reduce((s,i)=>s+Number(i.qtd_total||0),0);
     const rows = t.itens.map(i=>{
       const cls = Number(i.qtd_total)<=0?'zero':'ok';
+      const isHit = busca && (
+        (i.codigo_material||'').toLowerCase().includes(busca) ||
+        (i.descricao_material||'').toLowerCase().includes(busca) ||
+        (i.serials_patrimonio||'').toLowerCase().includes(busca));
       const serialLine = i.serials_patrimonio ? `<div style="color:var(--text-muted);font-size:.66rem;margin-top:2px;">Séries: ${i.serials_patrimonio}</div>` : '';
-      return `<tr><td>${i.descricao_material}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div>${serialLine}</td>
+      return `<tr ${isHit?'style="background:rgba(255,193,7,.12)"':''}><td>${i.descricao_material}${isHit?' <span class="badge hit">encontrado</span>':''}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div>${serialLine}</td>
         <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td><td class="num">${i.qtd_patrimonio||0}</td>
         <td class="num"><span class="badge ${cls}">${i.qtd_total} ${i.unidade||''}</span></td></tr>`;
     }).join('');
     const equipeLabel = t.equipe === '__sem_equipe' ? 'sem equipe' : t.equipe;
+    const openClass = t.matchedByItem ? ' open' : '';
     return `<div class="tech">
       <div class="tech-head" onclick="this.parentElement.querySelector('.tech-body').classList.toggle('open')">
         <div><div class="tech-name">${t.nome}</div><div class="tech-sub">${t.itens.length} material(is) · ${equipeLabel}</div></div>
         <div class="tech-total">${techTotal.toFixed(0)} un.</div>
       </div>
-      <div class="tech-body"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Patrimônio</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="tech-body${openClass}"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Patrimônio</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>
     </div>`;
   }).join('');
+}
+
+// ---------- HISTÓRICO DE MOVIMENTAÇÃO (O&M) ----------
+function movimentacaoLine(m){
+  const cls = m.delta > 0 ? 'ok' : (m.delta < 0 ? 'zero' : '');
+  const sinal = m.delta > 0 ? '+' : '';
+  const tipoLabel = {bolsao:'Bolsão', elleven:'Elleven (consumo)', patrimonio:'Patrimônio'}[m.tipo] || m.tipo;
+  let serialInfo = '';
+  if (m.seriais_adicionados) serialInfo += `<div style="color:var(--nt-green-dark);font-size:.7rem;margin-top:3px;">+ recebeu: ${m.seriais_adicionados}</div>`;
+  if (m.seriais_removidos) serialInfo += `<div style="color:var(--danger);font-size:.7rem;margin-top:3px;">− saiu: ${m.seriais_removidos}</div>`;
+  return `<div class="tech" style="margin-bottom:8px;">
+    <div style="padding:10px 14px;">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div><span class="tech-name" style="font-size:.85rem;">${m.nome_tecnico}</span>
+          <span class="badge" style="background:var(--bg);color:var(--text-muted);margin-left:6px;">${tipoLabel}</span></div>
+        <div class="tech-sub">${fmtData(m.criado_em)}</div>
+      </div>
+      <div class="tech-sub" style="margin-top:4px;">${m.descricao_material} <span style="color:var(--text-muted);">(${m.codigo_material})</span></div>
+      <div style="margin-top:6px;"><span class="badge ${cls}">${m.qtd_antes} → ${m.qtd_depois} (${sinal}${m.delta})</span></div>
+      ${serialInfo}
+    </div>
+  </div>`;
+}
+async function loadHistorico(){
+  $('historico-list').innerHTML = '<div class="empty-state">Carregando...</div>';
+  const { data, error } = await sb.from('movimentacoes').select('*').order('criado_em', {ascending:false}).limit(300);
+  if (error) { $('historico-list').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
+  window.__historicoData = data || [];
+  renderHistorico();
+  $('hist-tipo').onchange = renderHistorico;
+  $('hist-busca').oninput = renderHistorico;
+}
+function renderHistorico(){
+  const tipo = $('hist-tipo').value;
+  const busca = ($('hist-busca').value||'').trim().toLowerCase();
+  let list = window.__historicoData || [];
+  if (tipo) list = list.filter(m=>m.tipo===tipo);
+  if (busca) list = list.filter(m=>
+    (m.nome_tecnico||'').toLowerCase().includes(busca) ||
+    (m.codigo_material||'').toLowerCase().includes(busca) ||
+    (m.descricao_material||'').toLowerCase().includes(busca) ||
+    (m.seriais_adicionados||'').toLowerCase().includes(busca) ||
+    (m.seriais_removidos||'').toLowerCase().includes(busca));
+  if (!list.length){ $('historico-list').innerHTML = '<div class="empty-state">Nenhuma movimentação encontrada.</div>'; return; }
+  $('historico-list').innerHTML = list.map(movimentacaoLine).join('');
 }
 
 // ---------- GESTÃO DE TÉCNICOS (O&M) ----------
@@ -636,19 +780,50 @@ async function salvarEquipe(id){
 
 // ---------- MEU ESTOQUE (Técnico) ----------
 async function loadMeuEstoque(){
-  $('meu-header').innerHTML = `<h2>Meu estoque — ${currentPerfil.nome}</h2><div class="tech-sub">CNPJ ${currentPerfil.cnpj} · Equipe: ${currentPerfil.equipe||'não atribuída'}</div>`;
+  $('meu-header').innerHTML = `<h2>${currentPerfil.nome}</h2><div class="tech-sub">CNPJ ${currentPerfil.cnpj} · Equipe: ${currentPerfil.equipe||'não atribuída'}</div><div class="tech-sub" id="meu-lastupdate" style="margin-top:6px;"></div>`;
   $('meu-list').innerHTML = 'Carregando...';
+  const map = await loadUltimasAtualizacoes();
+  const geral = [map.bolsao, map.elleven, map.patrimonio].filter(Boolean).sort().reverse()[0];
+  const lu = document.getElementById('meu-lastupdate');
+  if (lu) lu.innerHTML = `Última atualização geral: <b>${geral ? fmtData(geral) : '—'}</b>`;
+
   const { data, error } = await sb.from('estoque').select('*').eq('cnpj', currentPerfil.cnpj).order('descricao_material');
   if (error) { $('meu-list').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
-  if (!data || !data.length) { $('meu-list').innerHTML = '<div class="empty-state">Nenhum material publicado para o seu CNPJ ainda.</div>'; return; }
-  const rows = data.map(i=>{
+  window.__meuEstoqueData = data || [];
+  $('meu-busca').oninput = renderMeuLista;
+  renderMeuLista();
+  loadMinhasMovimentacoes();
+}
+function renderMeuLista(){
+  const data = window.__meuEstoqueData || [];
+  const busca = ($('meu-busca').value||'').trim().toLowerCase();
+  let itens = data;
+  if (busca) itens = itens.filter(i =>
+    (i.codigo_material||'').toLowerCase().includes(busca) ||
+    (i.descricao_material||'').toLowerCase().includes(busca) ||
+    (i.serials_patrimonio||'').toLowerCase().includes(busca));
+  if (!itens.length) { $('meu-list').innerHTML = '<div class="empty-state">Nenhum material encontrado.</div>'; return; }
+  $('meu-list').innerHTML = itens.map(i=>{
     const cls = Number(i.qtd_total)<=0?'zero':'ok';
-    const serialLine = i.serials_patrimonio ? `<div style="color:var(--text-muted);font-size:.66rem;margin-top:2px;">Séries: ${i.serials_patrimonio}</div>` : '';
-    return `<tr><td>${i.descricao_material}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div>${serialLine}</td>
-      <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td><td class="num">${i.qtd_patrimonio||0}</td>
-      <td class="num"><span class="badge ${cls}">${i.qtd_total} ${i.unidade||''}</span></td></tr>`;
+    const serialLine = i.serials_patrimonio ? `<div class="item-serials">Séries: ${i.serials_patrimonio}</div>` : '';
+    return `<div class="item-card">
+      <div class="item-title">${i.descricao_material}</div>
+      <div class="item-code">${i.codigo_material}</div>
+      ${serialLine}
+      <div class="item-chips">
+        <span class="chip">Bolsão <b>${i.qtd_bolsao}</b></span>
+        <span class="chip">Elleven <b>${i.qtd_elleven}</b></span>
+        <span class="chip">Patrimônio <b>${i.qtd_patrimonio||0}</b></span>
+        <span class="badge ${cls} item-total">${i.qtd_total} ${i.unidade||''}</span>
+      </div>
+    </div>`;
   }).join('');
-  $('meu-list').innerHTML = `<div class="card"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Patrimônio</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+async function loadMinhasMovimentacoes(){
+  const { data, error } = await sb.from('movimentacoes').select('*').eq('cnpj', currentPerfil.cnpj).order('criado_em', {ascending:false}).limit(15);
+  if (error) { $('meu-historico').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
+  if (!data || !data.length) { $('meu-historico').innerHTML = '<div class="empty-state">Nenhuma movimentação recente.</div>'; return; }
+  $('meu-historico').innerHTML = data.map(movimentacaoLine).join('');
 }
 
 checkSession();
