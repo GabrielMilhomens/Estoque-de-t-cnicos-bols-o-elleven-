@@ -227,6 +227,19 @@ td.num,th.num{text-align:right;}
 
     <div id="tab-gestao" class="tabpane hidden">
       <div class="card">
+        <h2>Atribuir equipe por nome (sem precisar de conta)</h2>
+        <div class="hint">Cole uma lista de nomes de técnicos (um por linha, exatamente como aparecem na Visão Geral), escolha a equipe e clique em atribuir. Funciona mesmo para quem ainda não criou login — assim que a conta for criada e aprovada, essa equipe já vem preenchida.</div>
+        <textarea id="equipe-lote-nomes" rows="6" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.85rem;font-family:inherit;margin:10px 0;" placeholder="Um nome por linha..."></textarea>
+        <select id="equipe-lote-equipe">
+          <option value="Implantação">Implantação</option>
+          <option value="Manutenção">Manutenção</option>
+          <option value="Transmissão">Transmissão</option>
+          <option value="GTD">GTD</option>
+        </select>
+        <div class="actions"><button class="btn" id="btn-equipe-lote">Atribuir equipe a essa lista</button></div>
+        <div id="equipe-lote-result"></div>
+      </div>
+      <div class="card">
         <h2>Pendentes de aprovação</h2>
         <div id="gestao-pendentes"></div>
       </div>
@@ -794,10 +807,12 @@ async function loadVisaoGeral(){
   loadUltimasAtualizacoes();
   const { data: estoque, error } = await fetchAllRows('estoque', q => q.order('nome_tecnico'));
   const { data: perfis } = await fetchAllRows('perfis', q => q.eq('tipo','tecnico'));
+  const { data: equipesPorCnpj } = await fetchAllRows('equipes_tecnicos', q => q);
   if (error) { $('visao-list').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
 
   const equipeByCnpj = {};
-  (perfis||[]).forEach(p => { if(p.cnpj) equipeByCnpj[p.cnpj] = p.equipe || '__sem_equipe'; });
+  (equipesPorCnpj||[]).forEach(e => { if(e.cnpj) equipeByCnpj[e.cnpj] = e.equipe; }); // base: atribuída sem precisar de conta
+  (perfis||[]).forEach(p => { if(p.cnpj && p.equipe) equipeByCnpj[p.cnpj] = p.equipe; }); // perfil com conta tem prioridade
 
   // agrupar por técnico (ignorando itens com total zero em tudo)
   const byTech = {};
@@ -954,6 +969,46 @@ function renderHistorico(){
 }
 
 // ---------- GESTÃO DE TÉCNICOS (O&M) ----------
+$('btn-equipe-lote').onclick = async () => {
+  const btn = $('btn-equipe-lote');
+  const nomes = $('equipe-lote-nomes').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const equipe = $('equipe-lote-equipe').value;
+  if (!nomes.length) { $('equipe-lote-result').innerHTML = '<div class="msg-box">Cole ao menos um nome.</div>'; return; }
+  btn.disabled = true; const original = btn.textContent; btn.textContent = 'Atribuindo...';
+
+  // busca todos os cnpj+nome já vistos no estoque, para casar por nome
+  const { data: estoque, error } = await fetchAllRows('estoque', q => q.select('cnpj,nome_tecnico'));
+  if (error) {
+    $('equipe-lote-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro: ${error.message}</div>`;
+    btn.disabled = false; btn.textContent = original; return;
+  }
+  const cnpjPorNome = {};
+  (estoque||[]).forEach(r => { if (r.nome_tecnico) cnpjPorNome[norm(r.nome_tecnico)] = { cnpj: r.cnpj, nome: r.nome_tecnico }; });
+
+  const encontrados = [];
+  const naoEncontrados = [];
+  nomes.forEach(n => {
+    const achado = cnpjPorNome[norm(n)];
+    if (achado) encontrados.push(achado); else naoEncontrados.push(n);
+  });
+
+  if (encontrados.length) {
+    const rows = encontrados.map(e => ({ cnpj: e.cnpj, nome_referencia: e.nome, equipe, atualizado_em: new Date().toISOString() }));
+    const { error: errUp } = await sb.from('equipes_tecnicos').upsert(rows, { onConflict: 'cnpj' });
+    if (errUp) {
+      $('equipe-lote-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro ao salvar: ${errUp.message}</div>`;
+      btn.disabled = false; btn.textContent = original; return;
+    }
+  }
+
+  btn.disabled = false; btn.textContent = original;
+  let html = `<div class="msg-box">✅ ${encontrados.length} técnico(s) atribuído(s) à equipe ${equipe}.</div>`;
+  if (naoEncontrados.length) {
+    html += `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Não encontrei ${naoEncontrados.length} nome(s) no estoque (confira a grafia exata, como aparece na Visão Geral): ${naoEncontrados.join(', ')}</div>`;
+  }
+  $('equipe-lote-result').innerHTML = html;
+};
+
 async function loadGestao(){
   $('gestao-pendentes').innerHTML = 'Carregando...';
   $('gestao-aprovados').innerHTML = '';
