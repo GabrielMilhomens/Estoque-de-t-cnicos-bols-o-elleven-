@@ -349,20 +349,27 @@ $('btn-signup').onclick = async () => {
 $('btn-logout-pending').onclick = () => sb.auth.signOut();
 $('btn-logout').onclick = () => sb.auth.signOut();
 
-sb.auth.onAuthStateChange((event, _session) => {
-  // TOKEN_REFRESHED dispara toda vez que a aba volta a ficar visível
-  // (renovação automática de sessão) — ignorar evita resetar a tela.
-  if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') checkSession();
-});
+sb.auth.onAuthStateChange((_event, _session) => checkSession());
+
+let appInitializedForUserId = null;
 
 async function checkSession() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
+    appInitializedForUserId = null;
     currentUser = null; currentPerfil = null;
     hide('view-pending'); hide('view-app'); show('view-auth');
     return;
   }
   currentUser = session.user;
+
+  // Supabase renova a sessão sozinho sempre que a aba volta a ficar em foco,
+  // disparando este mesmo evento de novo. Se o app já está de pé para este
+  // mesmo usuário, não faz nada — evita resetar a aba em que a pessoa estava.
+  if (appInitializedForUserId === currentUser.id && !$('view-app').classList.contains('hidden')) {
+    return;
+  }
+
   const { data: perfil, error } = await sb.from('perfis').select('*').eq('id', currentUser.id).single();
   if (error || !perfil) {
     hide('view-app'); hide('view-pending'); show('view-auth');
@@ -377,6 +384,7 @@ async function checkSession() {
     return;
   }
   hide('view-auth'); hide('view-pending'); show('view-app');
+  appInitializedForUserId = currentUser.id;
   initApp();
 }
 
