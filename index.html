@@ -188,16 +188,7 @@ td.num,th.num{text-align:right;}
         <div class="hint" id="last-elleven">Carregando...</div>
         <div class="hint">O saldo do Elleven é calculado como entradas − saídas a partir da data-base definida acima. Linhas iguais ou anteriores à data-base, ou já importadas antes, são sempre ignoradas automaticamente — não corre risco de contar duas vezes.</div>
       </div>
-      <div class="source-card">
-        <h3>🏷️ Patrimônio do Elleven (itens com série/tag)</h3>
-        <label class="dropzone" id="dz-patrimonio">Arraste o .csv ou clique
-          <div id="status-patrimonio" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
-          <input type="file" id="file-patrimonio" accept=".csv">
-        </label>
-        <div class="actions"><button class="btn" id="btn-up-patrimonio" disabled>Atualizar somente Patrimônio</button></div>
-        <div class="hint" id="last-patrimonio">Carregando...</div>
-      </div>
-      <div class="hint">Cada botão atualiza só aquele tipo de estoque — os outros dois continuam com os últimos valores publicados. Cada upload substitui o snapshot anterior daquele tipo (não soma com o anterior); técnicos/materiais que saírem do arquivo ficam zerados naquele tipo.</div>
+      <div class="hint">Cada botão atualiza só aquele tipo de estoque — o outro continua com os últimos valores publicados. Cada upload substitui o snapshot anterior daquele tipo (não soma com o anterior); técnicos/materiais que saírem do arquivo ficam zerados naquele tipo.</div>
       <div id="consolidar-result"></div>
     </div>
 
@@ -225,7 +216,6 @@ td.num,th.num{text-align:right;}
           <option value="">Todos os tipos</option>
           <option value="bolsao">Bolsão</option>
           <option value="elleven">Elleven (consumo)</option>
-          <option value="patrimonio">Patrimônio</option>
         </select>
         <input type="date" id="hist-de" min="2026-01-01">
         <input type="date" id="hist-ate" min="2026-01-01">
@@ -258,7 +248,6 @@ td.num,th.num{text-align:right;}
           <option value="">Todos os tipos</option>
           <option value="bolsao">Bolsão</option>
           <option value="elleven">Elleven</option>
-          <option value="patrimonio">Patrimônio</option>
         </select>
         <select id="meuhist-movimento">
           <option value="">Entrada e saída</option>
@@ -287,7 +276,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentPerfil = null;
-let bolsaoData = null, ellevenData = null, patrimonioData = null;
+let bolsaoData = null, ellevenData = null;
 
 // alguns extratos do Elleven vêm com uma linha "sep=,ገ" no topo (dica de
 // delimitador do Excel) e podem usar ; ou , como separador
@@ -443,11 +432,9 @@ async function loadUltimasAtualizacoes(){
   (data||[]).forEach(r=>map[r.tipo]=r.atualizado_em);
   $('last-bolsao').textContent = map.bolsao ? `Última atualização: ${fmtData(map.bolsao)}` : 'Ainda não atualizado.';
   $('last-elleven').textContent = map.elleven ? `Última atualização: ${fmtData(map.elleven)}` : 'Ainda não atualizado.';
-  $('last-patrimonio').textContent = map.patrimonio ? `Última atualização: ${fmtData(map.patrimonio)}` : 'Ainda não atualizado.';
   const line = `
     <span>📦 Bolsão: <b>${map.bolsao ? fmtData(map.bolsao) : 'nunca'}</b></span>
-    <span>🧾 Elleven: <b>${map.elleven ? fmtData(map.elleven) : 'nunca'}</b></span>
-    <span>🏷️ Patrimônio: <b>${map.patrimonio ? fmtData(map.patrimonio) : 'nunca'}</b></span>`;
+    <span>🧾 Elleven: <b>${map.elleven ? fmtData(map.elleven) : 'nunca'}</b></span>`;
   if ($('lastupdate-visao')) $('lastupdate-visao').innerHTML = line;
   window.__ultimasAtualizacoes = map;
   return map;
@@ -471,9 +458,8 @@ function norm(s){
 
 $('dz-bolsao').onclick = () => $('file-bolsao').click();
 $('dz-elleven').onclick = () => $('file-elleven').click();
-$('dz-patrimonio').onclick = () => $('file-patrimonio').click();
 $('dz-baseline').onclick = () => $('file-baseline').click();
-['dz-bolsao','dz-elleven','dz-patrimonio','dz-baseline'].forEach(id=>{
+['dz-bolsao','dz-elleven','dz-baseline'].forEach(id=>{
   const dz = $(id);
   dz.addEventListener('dragover', e=>e.preventDefault());
   dz.addEventListener('drop', e=>{
@@ -592,24 +578,6 @@ $('file-elleven').addEventListener('change', e => {
   reader.readAsText(f, 'UTF-8');
 });
 
-$('file-patrimonio').addEventListener('change', e => {
-  const f = e.target.files[0]; if(!f) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const parsed = parseCSVSmart(ev.target.result);
-    patrimonioData = parsed.data.map(r=>({
-      cnpj: normCNPJ(r['CNPJ']),
-      tecnico: String(r['Tecnico']||'').trim(),
-      codigo: String(r['Cod. Produto']||'').trim(),
-      descricao: String(r['Produto']||'').trim(),
-      serial: String(r['Serial']||r['Tag']||'').trim()
-    })).filter(r=>r.codigo);
-    $('status-patrimonio').textContent = `${patrimonioData.length} linhas (${f.name})`;
-    $('dz-patrimonio').classList.add('filled');
-    $('btn-up-patrimonio').disabled = false;
-  };
-  reader.readAsText(f, 'UTF-8');
-});
 
 // ---------- atualização por tipo (parcial): busca estado atual no banco,
 // calcula o que mudou, grava só o campo daquele tipo + histórico de movimentação ----------
@@ -620,20 +588,19 @@ async function atualizarTipo(tipo, rows, btnId, nomeLabel){
   btn.textContent = 'Atualizando...';
 
   // agrega o arquivo por cnpj+codigo
-  const novo = {}; // key -> {cnpj,codigo,nome,desc,unidade,qtd,serials}
+  const novo = {}; // key -> {cnpj,codigo,nome,desc,unidade,qtd}
   rows.forEach(r=>{
     if(!r.cnpj) return;
     const key = r.cnpj+'|'+r.codigo;
-    if(!novo[key]) novo[key] = {cnpj:r.cnpj, codigo:r.codigo, nome:r.tecnico, desc:r.descricao, unidade:r.unidade||'UNID', qtd:0, serials:[]};
+    if(!novo[key]) novo[key] = {cnpj:r.cnpj, codigo:r.codigo, nome:r.tecnico, desc:r.descricao, unidade:r.unidade||'UNID', qtd:0};
     novo[key].nome = r.tecnico || novo[key].nome;
-    if (tipo==='patrimonio'){ novo[key].qtd += 1; if(r.serial) novo[key].serials.push(r.serial); }
-    else novo[key].qtd += r.qtd;
+    novo[key].qtd += r.qtd;
   });
 
   // busca estado atual no banco para computar o "antes" e detectar quem some do arquivo
-  const campo = tipo==='bolsao' ? 'qtd_bolsao' : tipo==='elleven' ? 'qtd_elleven' : 'qtd_patrimonio';
+  const campo = tipo==='bolsao' ? 'qtd_bolsao' : 'qtd_elleven';
   const { data: atuais, error: errFetch } = await fetchAllRows('estoque',
-    q => q.select('cnpj,codigo_material,nome_tecnico,descricao_material,unidade,'+campo+',serials_patrimonio'));
+    q => q.select('cnpj,codigo_material,nome_tecnico,descricao_material,unidade,'+campo));
   if (errFetch) {
     $('consolidar-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro ao ler estoque atual: ${errFetch.message}</div>`;
     btn.disabled = false; btn.textContent = original;
@@ -643,7 +610,6 @@ async function atualizarTipo(tipo, rows, btnId, nomeLabel){
   (atuais||[]).forEach(r=>{
     antesMap[r.cnpj+'|'+r.codigo_material] = {
       qtd: Number(r[campo]||0),
-      serials: r.serials_patrimonio ? r.serials_patrimonio.split(', ').filter(Boolean) : [],
       nome: r.nome_tecnico, desc: r.descricao_material, unidade: r.unidade
     };
   });
@@ -659,11 +625,7 @@ async function atualizarTipo(tipo, rows, btnId, nomeLabel){
     const nov = novo[key];
     const antesQtd = ant ? ant.qtd : 0;
     const depoisQtd = nov ? nov.qtd : 0;
-    const antesSerials = ant ? ant.serials : [];
-    const depoisSerials = nov ? nov.serials : [];
-    const seriaisAdd = tipo==='patrimonio' ? depoisSerials.filter(s=>!antesSerials.includes(s)) : [];
-    const seriaisRem = tipo==='patrimonio' ? antesSerials.filter(s=>!depoisSerials.includes(s)) : [];
-    if (antesQtd === depoisQtd && !seriaisAdd.length && !seriaisRem.length) return;
+    if (antesQtd === depoisQtd) return;
 
     const nome = (nov && nov.nome) || (ant && ant.nome) || cnpj;
     const desc = (nov && nov.desc) || (ant && ant.desc) || codigo;
@@ -671,14 +633,11 @@ async function atualizarTipo(tipo, rows, btnId, nomeLabel){
 
     const payload = { cnpj, codigo_material: codigo, nome_tecnico: nome, descricao_material: desc, unidade, updated_at: now };
     payload[campo] = depoisQtd;
-    if (tipo==='patrimonio') payload.serials_patrimonio = depoisSerials.length ? depoisSerials.join(', ') : null;
     upsertRows.push(payload);
 
     movRows.push({
       cnpj, nome_tecnico: nome, tipo, codigo_material: codigo, descricao_material: desc,
-      qtd_antes: antesQtd, qtd_depois: depoisQtd,
-      seriais_adicionados: seriaisAdd.length ? seriaisAdd.join(', ') : null,
-      seriais_removidos: seriaisRem.length ? seriaisRem.join(', ') : null
+      qtd_antes: antesQtd, qtd_depois: depoisQtd
     });
   });
 
@@ -709,7 +668,6 @@ async function atualizarTipo(tipo, rows, btnId, nomeLabel){
 
 $('btn-up-bolsao').onclick = () => atualizarTipo('bolsao', bolsaoData, 'btn-up-bolsao', 'Bolsão');
 $('btn-up-elleven').onclick = importarMovimentacoesElleven;
-$('btn-up-patrimonio').onclick = () => atualizarTipo('patrimonio', patrimonioData, 'btn-up-patrimonio', 'Patrimônio');
 
 // ---------- importação incremental do ledger Elleven (entrada/saída) ----------
 async function importarMovimentacoesElleven(){
@@ -864,8 +822,7 @@ function renderVisao(){
   const buscaItem = norm($('filtro-item').value);
 
   const itemMatches = i => norm(i.codigo_material).includes(buscaItem) ||
-      norm(i.descricao_material).includes(buscaItem) ||
-      norm(i.serials_patrimonio).includes(buscaItem);
+      norm(i.descricao_material).includes(buscaItem);
 
   let totalTecnicos=0, totalItens=0, totalUnidades=0;
   let list = Object.values(byTech).filter(t=>{
@@ -896,9 +853,8 @@ function renderVisao(){
     const rows = t.itensExibidos.map(i=>{
       const cls = Number(i.qtd_total)<=0?'zero':'ok';
       const isHit = buscaItem && itemMatches(i);
-      const serialLine = i.serials_patrimonio ? `<div style="color:var(--text-muted);font-size:.66rem;margin-top:2px;">Séries: ${i.serials_patrimonio}</div>` : '';
-      return `<tr ${isHit?'style="background:rgba(255,193,7,.12)"':''}><td>${i.descricao_material}${isHit?' <span class="badge hit">encontrado</span>':''}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div>${serialLine}</td>
-        <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td><td class="num">${i.qtd_patrimonio||0}</td>
+      return `<tr ${isHit?'style="background:rgba(255,193,7,.12)"':''}><td>${i.descricao_material}${isHit?' <span class="badge hit">encontrado</span>':''}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div></td>
+        <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td>
         <td class="num"><span class="badge ${cls}">${i.qtd_total} ${i.unidade||''}</span></td></tr>`;
     }).join('');
     const equipeLabel = t.equipe === '__sem_equipe' ? 'sem equipe' : t.equipe;
@@ -908,7 +864,7 @@ function renderVisao(){
         <div><div class="tech-name">${t.nome}</div><div class="tech-sub">${t.itensExibidos.length}${buscaItem?` de ${t.itens.length}`:''} material(is) · ${equipeLabel}</div></div>
         <div class="tech-total">${techTotal.toFixed(0)} un.</div>
       </div>
-      <div class="tech-body${openClass}"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Patrimônio</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="tech-body${openClass}"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>
     </div>`;
   }).join('');
 }
@@ -917,7 +873,7 @@ function renderVisao(){
 function movimentacaoLine(m){
   const cls = m.delta > 0 ? 'ok' : (m.delta < 0 ? 'zero' : '');
   const sinal = m.delta > 0 ? '+' : '';
-  const tipoLabel = {bolsao:'Bolsão', elleven:'Elleven (consumo)', patrimonio:'Patrimônio'}[m.tipo] || m.tipo;
+  const tipoLabel = {bolsao:'Bolsão', elleven:'Elleven (consumo)'}[m.tipo] || m.tipo;
   let serialInfo = '';
   if (m.seriais_adicionados) serialInfo += `<div style="color:var(--nt-green-dark);font-size:.7rem;margin-top:3px;">+ recebeu: ${m.seriais_adicionados}</div>`;
   if (m.seriais_removidos) serialInfo += `<div style="color:var(--danger);font-size:.7rem;margin-top:3px;">− saiu: ${m.seriais_removidos}</div>`;
@@ -1064,7 +1020,7 @@ async function loadMeuEstoque(){
   $('meu-header').innerHTML = `<h2>${currentPerfil.nome}</h2><div class="tech-sub">Equipe: ${currentPerfil.equipe||'não atribuída'}</div><div class="tech-sub" id="meu-lastupdate" style="margin-top:6px;"></div>`;
   $('meu-list').innerHTML = 'Carregando...';
   const map = await loadUltimasAtualizacoes();
-  const geral = [map.bolsao, map.elleven, map.patrimonio].filter(Boolean).sort().reverse()[0];
+  const geral = [map.bolsao, map.elleven].filter(Boolean).sort().reverse()[0];
   const lu = document.getElementById('meu-lastupdate');
   if (lu) lu.innerHTML = `Última atualização geral: <b>${geral ? fmtData(geral) : '—'}</b>`;
 
@@ -1080,20 +1036,16 @@ function renderMeuLista(){
   let itens = data;
   if (busca) itens = itens.filter(i =>
     norm(i.codigo_material).includes(busca) ||
-    norm(i.descricao_material).includes(busca) ||
-    norm(i.serials_patrimonio).includes(busca));
+    norm(i.descricao_material).includes(busca));
   if (!itens.length) { $('meu-list').innerHTML = '<div class="empty-state">Nenhum material encontrado.</div>'; return; }
   $('meu-list').innerHTML = itens.map(i=>{
     const cls = Number(i.qtd_total)<=0?'zero':'ok';
-    const serialLine = i.serials_patrimonio ? `<div class="item-serials">Séries: ${i.serials_patrimonio}</div>` : '';
     return `<div class="item-card">
       <div class="item-title">${i.descricao_material}</div>
       <div class="item-code">${i.codigo_material}</div>
-      ${serialLine}
       <div class="item-chips">
         <span class="chip">Bolsão <b>${i.qtd_bolsao}</b></span>
         <span class="chip">Elleven <b>${i.qtd_elleven}</b></span>
-        <span class="chip">Patrimônio <b>${i.qtd_patrimonio||0}</b></span>
         <span class="badge ${cls} item-total">${i.qtd_total} ${i.unidade||''}</span>
       </div>
     </div>`;
