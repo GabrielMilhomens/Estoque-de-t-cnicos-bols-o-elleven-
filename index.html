@@ -231,7 +231,23 @@ td.num,th.num{text-align:right;}
       <div class="card" id="meu-header"></div>
       <input type="text" id="meu-busca" placeholder="🔍 Buscar material, código ou série...">
       <div id="meu-list"></div>
-      <h2 style="margin-top:22px;">Movimentações recentes</h2>
+    </div>
+
+    <div id="tab-meuhistorico" class="tabpane hidden">
+      <div class="filters">
+        <select id="meuhist-tipo">
+          <option value="">Todos os tipos</option>
+          <option value="bolsao">Bolsão</option>
+          <option value="elleven">Elleven</option>
+          <option value="patrimonio">Patrimônio</option>
+        </select>
+        <select id="meuhist-movimento">
+          <option value="">Entrada e saída</option>
+          <option value="entrada">Só entradas</option>
+          <option value="saida">Só saídas</option>
+        </select>
+        <input type="text" id="meuhist-busca" placeholder="🔍 Buscar material, código ou cliente...">
+      </div>
       <div id="meu-historico"></div>
     </div>
   </div>
@@ -354,7 +370,7 @@ function initApp() {
       { id: 'gestao', label: 'Gestão de técnicos' }
     ];
   } else {
-    tabs = [{ id: 'meu', label: 'Meu estoque' }];
+    tabs = [{ id: 'meu', label: 'Meu estoque' }, { id: 'meuhistorico', label: 'Histórico' }];
   }
   tabs.forEach((t, i) => {
     const btn = document.createElement('button');
@@ -375,9 +391,10 @@ function switchTab(id) {
   if (id === 'historico') loadHistorico();
   if (id === 'gestao') loadGestao();
   if (id === 'meu') loadMeuEstoque();
+  if (id === 'meuhistorico') loadMinhasMovimentacoes();
 }
 function labelFor(id){
-  return {consolidar:'Consolidar', visao:'Visão geral', historico:'Histórico', gestao:'Gestão de técnicos', meu:'Meu estoque'}[id];
+  return {consolidar:'Consolidar', visao:'Visão geral', historico:'Histórico', gestao:'Gestão de técnicos', meu:'Meu estoque', meuhistorico:'Histórico'}[id];
 }
 
 function fmtData(iso){
@@ -915,7 +932,7 @@ async function salvarEquipe(id){
 
 // ---------- MEU ESTOQUE (Técnico) ----------
 async function loadMeuEstoque(){
-  $('meu-header').innerHTML = `<h2>${currentPerfil.nome}</h2><div class="tech-sub">CNPJ ${currentPerfil.cnpj} · Equipe: ${currentPerfil.equipe||'não atribuída'}</div><div class="tech-sub" id="meu-lastupdate" style="margin-top:6px;"></div>`;
+  $('meu-header').innerHTML = `<h2>${currentPerfil.nome}</h2><div class="tech-sub">Equipe: ${currentPerfil.equipe||'não atribuída'}</div><div class="tech-sub" id="meu-lastupdate" style="margin-top:6px;"></div>`;
   $('meu-list').innerHTML = 'Carregando...';
   const map = await loadUltimasAtualizacoes();
   const geral = [map.bolsao, map.elleven, map.patrimonio].filter(Boolean).sort().reverse()[0];
@@ -927,7 +944,6 @@ async function loadMeuEstoque(){
   window.__meuEstoqueData = data || [];
   $('meu-busca').oninput = renderMeuLista;
   renderMeuLista();
-  loadMinhasMovimentacoes();
 }
 function renderMeuLista(){
   const data = window.__meuEstoqueData || [];
@@ -955,17 +971,42 @@ function renderMeuLista(){
   }).join('');
 }
 async function loadMinhasMovimentacoes(){
+  $('meu-historico').innerHTML = '<div class="empty-state">Carregando...</div>';
   const [diffRes, ledgerRes] = await Promise.all([
-    sb.from('movimentacoes').select('*').eq('cnpj', currentPerfil.cnpj).order('criado_em', {ascending:false}).limit(10),
-    sb.from('movimentacoes_elleven').select('*').eq('cnpj_tecnico', currentPerfil.cnpj).order('data_movimentacao', {ascending:false}).limit(10)
+    sb.from('movimentacoes').select('*').eq('cnpj', currentPerfil.cnpj).order('criado_em', {ascending:false}).limit(150),
+    sb.from('movimentacoes_elleven').select('*').eq('cnpj_tecnico', currentPerfil.cnpj).order('data_movimentacao', {ascending:false}).limit(150)
   ]);
   if (diffRes.error || ledgerRes.error) { $('meu-historico').innerHTML = `<div class="empty-state">Erro: ${(diffRes.error||ledgerRes.error).message}</div>`; return; }
   const merged = [
     ...(diffRes.data||[]).map(m=>({...m, __kind:'diff', __ts:m.criado_em})),
     ...(ledgerRes.data||[]).map(m=>({...m, __kind:'ledger', __ts:m.data_movimentacao}))
-  ].sort((a,b)=> new Date(b.__ts) - new Date(a.__ts)).slice(0,15);
-  if (!merged.length) { $('meu-historico').innerHTML = '<div class="empty-state">Nenhuma movimentação recente.</div>'; return; }
-  $('meu-historico').innerHTML = merged.map(m=> m.__kind==='ledger' ? eventoLedgerLine(m) : movimentacaoLine(m)).join('');
+  ].sort((a,b)=> new Date(b.__ts) - new Date(a.__ts)).slice(0,200);
+  window.__minhasMovData = merged;
+  renderMinhasMovimentacoes();
+  $('meuhist-tipo').onchange = renderMinhasMovimentacoes;
+  $('meuhist-movimento').onchange = renderMinhasMovimentacoes;
+  $('meuhist-busca').oninput = renderMinhasMovimentacoes;
+}
+function renderMinhasMovimentacoes(){
+  const tipo = $('meuhist-tipo').value;
+  const movimento = $('meuhist-movimento').value;
+  const busca = ($('meuhist-busca').value||'').trim().toLowerCase();
+  let list = window.__minhasMovData || [];
+  if (tipo) list = list.filter(m => tipo==='elleven' ? m.__kind==='ledger' : (m.__kind==='diff' && m.tipo===tipo));
+  if (movimento) list = list.filter(m => {
+    if (m.__kind==='ledger') return m.tipo_movimento === movimento;
+    return movimento==='entrada' ? m.delta > 0 : m.delta < 0;
+  });
+  if (busca) list = list.filter(m=>{
+    const cod = (m.codigo_material||'').toLowerCase();
+    const desc = (m.descricao_material||'').toLowerCase();
+    const extra = m.__kind==='ledger'
+      ? (m.cliente_nome||'').toLowerCase()
+      : ((m.seriais_adicionados||'')+(m.seriais_removidos||'')).toLowerCase();
+    return cod.includes(busca) || desc.includes(busca) || extra.includes(busca);
+  });
+  if (!list.length) { $('meu-historico').innerHTML = '<div class="empty-state">Nenhuma movimentação encontrada.</div>'; return; }
+  $('meu-historico').innerHTML = list.map(m=> m.__kind==='ledger' ? eventoLedgerLine(m) : movimentacaoLine(m)).join('');
 }
 
 checkSession();
