@@ -169,9 +169,11 @@ td.num,th.num{text-align:right;}
           <div id="status-elleven" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
           <input type="file" id="file-elleven" accept=".csv">
         </label>
+        <label style="margin-top:10px;">Considerar movimentações a partir de (opcional)</label>
+        <input type="date" id="elleven-data-inicio">
         <div class="actions"><button class="btn" id="btn-up-elleven" disabled>Importar movimentações</button></div>
         <div class="hint" id="last-elleven">Carregando...</div>
-        <div class="hint">O saldo do Elleven é calculado como entradas − saídas. Pode subir o arquivo completo sempre — linhas já importadas antes são ignoradas automaticamente, só as novas entram.</div>
+        <div class="hint">O saldo do Elleven é calculado como entradas − saídas de tudo que já foi importado. Linhas já importadas antes são sempre ignoradas automaticamente. Use a data de início só para pular processamento de linhas antigas que você tem certeza que já foram importadas — não use na primeira importação, ou o saldo fica incompleto.</div>
       </div>
       <div class="source-card">
         <h3>🏷️ Patrimônio do Elleven (itens com série/tag)</h3>
@@ -638,13 +640,25 @@ async function importarMovimentacoesElleven(){
   const btn = $('btn-up-elleven');
   btn.disabled = true;
   const original = btn.textContent;
-  btn.textContent = 'Importando...';
 
+  const dataInicio = $('elleven-data-inicio').value; // yyyy-mm-dd ou vazio
+  let linhasParaProcessar = ellevenData;
+  if (dataInicio) {
+    const corte = new Date(dataInicio+'T00:00:00').getTime();
+    linhasParaProcessar = ellevenData.filter(r => r.data_movimentacao && new Date(r.data_movimentacao).getTime() >= corte);
+  }
+  if (!linhasParaProcessar.length) {
+    $('consolidar-result').innerHTML = `<div class="msg-box">Nenhuma linha do arquivo é igual ou posterior à data informada.</div>`;
+    btn.disabled = false; btn.textContent = original;
+    return;
+  }
+
+  btn.textContent = 'Importando...';
   let novasLinhas = [];
   let erro = null;
-  for (let i=0; i<ellevenData.length; i+=1000){
-    const chunk = ellevenData.slice(i, i+1000);
-    btn.textContent = `Importando... (${Math.min(i+1000, ellevenData.length)}/${ellevenData.length})`;
+  for (let i=0; i<linhasParaProcessar.length; i+=1000){
+    const chunk = linhasParaProcessar.slice(i, i+1000);
+    btn.textContent = `Importando... (${Math.min(i+1000, linhasParaProcessar.length)}/${linhasParaProcessar.length})`;
     const { data, error } = await sb.from('movimentacoes_elleven')
       .upsert(chunk, { onConflict: 'chave', ignoreDuplicates: true })
       .select('cnpj_tecnico,codigo_material,quantidade,tipo_movimento,nome_tecnico,descricao_material,unidade');
