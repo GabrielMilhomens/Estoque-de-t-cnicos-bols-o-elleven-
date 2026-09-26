@@ -164,13 +164,14 @@ td.num,th.num{text-align:right;}
         <div class="hint" id="last-bolsao">Carregando...</div>
       </div>
       <div class="source-card">
-        <h3>🧾 Extrato do Elleven (consumo)</h3>
+        <h3>🧾 Movimentações do Elleven (entrada/saída)</h3>
         <label class="dropzone" id="dz-elleven">Arraste o .csv ou clique
           <div id="status-elleven" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
           <input type="file" id="file-elleven" accept=".csv">
         </label>
-        <div class="actions"><button class="btn" id="btn-up-elleven" disabled>Atualizar somente Elleven (consumo)</button></div>
+        <div class="actions"><button class="btn" id="btn-up-elleven" disabled>Importar movimentações</button></div>
         <div class="hint" id="last-elleven">Carregando...</div>
+        <div class="hint">O saldo do Elleven é calculado como entradas − saídas. Pode subir o arquivo completo sempre — linhas já importadas antes são ignoradas automaticamente, só as novas entram.</div>
       </div>
       <div class="source-card">
         <h3>🏷️ Patrimônio do Elleven (itens com série/tag)</h3>
@@ -452,14 +453,35 @@ $('file-elleven').addEventListener('change', e => {
   const reader = new FileReader();
   reader.onload = ev => {
     const parsed = parseCSVSmart(ev.target.result);
-    ellevenData = parsed.data.map(r=>({
-      cnpj: normCNPJ(r['CNPJ Tecnico']),
-      tecnico: String(r['Tecnico']||'').trim(),
-      codigo: String(r['Cod. Produto']||'').trim(),
-      descricao: String(r['Produto']||'').trim(),
-      unidade: String(r['Unidade']||'').trim(),
-      qtd: Number(String(r['Quantidade']||'0').replace(',','.'))
-    })).filter(r=>r.codigo);
+    const contador = {}; // desempata linhas 100% idênticas de forma estável
+    ellevenData = parsed.data.map(r=>{
+      const codigo = String(r['Cod. Produto']||'').trim();
+      const cnpjTec = normCNPJ(r['Documento Tecnico']);
+      const dataStr = String(r['Data Movimentação']||'').trim();
+      const dataIso = dataStr ? new Date(dataStr.replace(' ','T')).toISOString() : '';
+      const nf = String(r['NF']||'').trim();
+      const qtd = Number(String(r['Quantidade']||'0').replace(',','.'));
+      const tipoMov = /entr/i.test(r['Entrada/Saida']||'') ? 'entrada' : 'saida';
+      const baseKey = [codigo, cnpjTec, dataIso, nf, qtd, tipoMov].join('|');
+      contador[baseKey] = (contador[baseKey]||0) + 1;
+      return {
+        chave: baseKey + '#' + contador[baseKey],
+        cnpj_tecnico: cnpjTec,
+        nome_tecnico: String(r['Tecnico']||'').trim(),
+        codigo_material: codigo,
+        descricao_material: String(r['Produto']||'').trim(),
+        unidade: String(r['Unidade']||'').trim(),
+        quantidade: qtd,
+        tipo_movimento: tipoMov,
+        cliente_codigo: String(r['Cod. Cliente']||'').trim() || null,
+        cliente_nome: String(r['Cliente']||'').trim() || null,
+        cliente_cnpj: String(r['CNPJ']||'').trim() || null,
+        contrato_id: String(r['ID Contrato']||'').trim() || null,
+        solicitacao: String(r['Solicitação']||'').trim() || null,
+        nf: nf || null,
+        data_movimentacao: dataIso || null
+      };
+    }).filter(r=>r.codigo_material && r.cnpj_tecnico);
     $('status-elleven').textContent = `${ellevenData.length} linhas (${f.name})`;
     $('dz-elleven').classList.add('filled');
     $('btn-up-elleven').disabled = false;
@@ -583,8 +605,93 @@ async function atualizarTipo(tipo, rows, btnId, nomeLabel){
 }
 
 $('btn-up-bolsao').onclick = () => atualizarTipo('bolsao', bolsaoData, 'btn-up-bolsao', 'Bolsão');
-$('btn-up-elleven').onclick = () => atualizarTipo('elleven', ellevenData, 'btn-up-elleven', 'Elleven (consumo)');
+$('btn-up-elleven').onclick = importarMovimentacoesElleven;
 $('btn-up-patrimonio').onclick = () => atualizarTipo('patrimonio', patrimonioData, 'btn-up-patrimonio', 'Patrimônio');
+
+// ---------- importação incremental do ledger Elleven (entrada/saída) ----------
+async function importarMovimentacoesElleven(){
+  if(!ellevenData) return;
+  const btn = $('btn-up-elleven');
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = 'Importando...';
+
+  let novasLinhas = [];
+  let erro = null;
+  for (let i=0; i<ellevenData.length; i+=1000){
+    const chunk = ellevenData.slice(i, i+1000);
+    btn.textContent = `Importando... (${Math.min(i+1000, ellevenData.length)}/${ellevenData.length})`;
+    const { data, error } = await sb.from('movimentacoes_elleven')
+      .upsert(chunk, { onConflict: 'chave', ignoreDuplicates: true })
+      .select('cnpj_tecnico,codigo_material,quantidade,tipo_movimento,nome_tecnico,descricao_material,unidade');
+    if (error) { erro = error; break; }
+    novasLinhas = novasLinhas.concat(data || []);
+  }
+
+  if (erro) {
+    $('consolidar-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro ao importar: ${erro.message}</div>`;
+    btn.disabled = false; btn.textContent = original;
+    return;
+  }
+  if (!novasLinhas.length) {
+    $('consolidar-result').innerHTML = `<div class="msg-box">Nenhuma movimentação nova — esse arquivo já tinha sido importado antes.</div>`;
+    btn.disabled = false; btn.textContent = original;
+    await sb.from('metadados_estoque').upsert({ tipo:'elleven', atualizado_em: new Date().toISOString() }, { onConflict: 'tipo' });
+    loadUltimasAtualizacoes();
+    return;
+  }
+
+  // agrega o delta (entrada soma, saída subtrai) por técnico+material
+  const deltas = {};
+  novasLinhas.forEach(r=>{
+    const key = r.cnpj_tecnico+'|'+r.codigo_material;
+    if(!deltas[key]) deltas[key] = {cnpj:r.cnpj_tecnico, codigo:r.codigo_material, nome:r.nome_tecnico, desc:r.descricao_material, unidade:r.unidade, delta:0};
+    deltas[key].delta += (r.tipo_movimento==='entrada' ? Number(r.quantidade) : -Number(r.quantidade));
+    if (r.nome_tecnico) deltas[key].nome = r.nome_tecnico;
+  });
+
+  const chaves = Object.keys(deltas);
+  const cnpjsAfetados = [...new Set(chaves.map(k=>deltas[k].cnpj))];
+  const { data: atuais, error: errFetch } = await sb.from('estoque')
+    .select('cnpj,codigo_material,qtd_elleven,nome_tecnico,descricao_material,unidade')
+    .in('cnpj', cnpjsAfetados);
+  if (errFetch) {
+    $('consolidar-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro ao ler saldo atual: ${errFetch.message}</div>`;
+    btn.disabled = false; btn.textContent = original;
+    return;
+  }
+  const atuaisMap = {};
+  (atuais||[]).forEach(r=> atuaisMap[r.cnpj+'|'+r.codigo_material] = r);
+
+  const upsertRows = chaves.map(key=>{
+    const d = deltas[key];
+    const atual = atuaisMap[key];
+    const antes = atual ? Number(atual.qtd_elleven||0) : 0;
+    const depois = antes + d.delta;
+    return {
+      cnpj: d.cnpj, codigo_material: d.codigo,
+      nome_tecnico: d.nome || (atual&&atual.nome_tecnico) || d.cnpj,
+      descricao_material: d.desc || (atual&&atual.descricao_material) || d.codigo,
+      unidade: d.unidade || (atual&&atual.unidade) || '',
+      qtd_elleven: depois, updated_at: new Date().toISOString()
+    };
+  });
+
+  let erro2 = null;
+  for (let i=0; i<upsertRows.length; i+=500){
+    const { error } = await sb.from('estoque').upsert(upsertRows.slice(i,i+500), { onConflict: 'cnpj,codigo_material' });
+    if (error) { erro2 = error; break; }
+  }
+  if (!erro2) await sb.from('metadados_estoque').upsert({ tipo:'elleven', atualizado_em: new Date().toISOString() }, { onConflict: 'tipo' });
+
+  btn.disabled = false; btn.textContent = original;
+  if (erro2) {
+    $('consolidar-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro ao atualizar saldo: ${erro2.message}</div>`;
+    return;
+  }
+  $('consolidar-result').innerHTML = `<div class="msg-box">✅ Elleven atualizado — ${novasLinhas.length} movimentação(ões) nova(s) importada(s), afetando ${upsertRows.length} combinação(ões) técnico×material.</div>`;
+  loadUltimasAtualizacoes();
+}
 
 // ---------- VISÃO GERAL (O&M) ----------
 async function loadVisaoGeral(){
@@ -690,11 +797,36 @@ function movimentacaoLine(m){
     </div>
   </div>`;
 }
+function eventoLedgerLine(m){
+  const isEntrada = m.tipo_movimento === 'entrada';
+  const sinal = isEntrada ? '+' : '−';
+  const cls = isEntrada ? 'ok' : 'zero';
+  const clienteInfo = (!isEntrada && m.cliente_nome) ? `<div class="tech-sub" style="margin-top:3px;">Cliente: ${m.cliente_nome}${m.nf?' · NF '+m.nf:''}</div>` : '';
+  return `<div class="tech" style="margin-bottom:8px;">
+    <div style="padding:10px 14px;">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div><span class="tech-name" style="font-size:.85rem;">${m.nome_tecnico}</span>
+          <span class="badge" style="background:var(--bg);color:var(--text-muted);margin-left:6px;">Elleven · ${isEntrada?'Entrada':'Saída'}</span></div>
+        <div class="tech-sub">${fmtData(m.data_movimentacao)}</div>
+      </div>
+      <div class="tech-sub" style="margin-top:4px;">${m.descricao_material} <span style="color:var(--text-muted);">(${m.codigo_material})</span></div>
+      <div style="margin-top:6px;"><span class="badge ${cls}">${sinal}${m.quantidade} ${m.unidade||''}</span></div>
+      ${clienteInfo}
+    </div>
+  </div>`;
+}
 async function loadHistorico(){
   $('historico-list').innerHTML = '<div class="empty-state">Carregando...</div>';
-  const { data, error } = await sb.from('movimentacoes').select('*').order('criado_em', {ascending:false}).limit(300);
-  if (error) { $('historico-list').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
-  window.__historicoData = data || [];
+  const [diffRes, ledgerRes] = await Promise.all([
+    sb.from('movimentacoes').select('*').order('criado_em', {ascending:false}).limit(200),
+    sb.from('movimentacoes_elleven').select('*').order('data_movimentacao', {ascending:false}).limit(200)
+  ]);
+  if (diffRes.error || ledgerRes.error) { $('historico-list').innerHTML = `<div class="empty-state">Erro: ${(diffRes.error||ledgerRes.error).message}</div>`; return; }
+  const merged = [
+    ...(diffRes.data||[]).map(m=>({...m, __kind:'diff', __ts:m.criado_em})),
+    ...(ledgerRes.data||[]).map(m=>({...m, __kind:'ledger', __ts:m.data_movimentacao}))
+  ].sort((a,b)=> new Date(b.__ts) - new Date(a.__ts)).slice(0,300);
+  window.__historicoData = merged;
   renderHistorico();
   $('hist-tipo').onchange = renderHistorico;
   $('hist-busca').oninput = renderHistorico;
@@ -703,15 +835,18 @@ function renderHistorico(){
   const tipo = $('hist-tipo').value;
   const busca = ($('hist-busca').value||'').trim().toLowerCase();
   let list = window.__historicoData || [];
-  if (tipo) list = list.filter(m=>m.tipo===tipo);
-  if (busca) list = list.filter(m=>
-    (m.nome_tecnico||'').toLowerCase().includes(busca) ||
-    (m.codigo_material||'').toLowerCase().includes(busca) ||
-    (m.descricao_material||'').toLowerCase().includes(busca) ||
-    (m.seriais_adicionados||'').toLowerCase().includes(busca) ||
-    (m.seriais_removidos||'').toLowerCase().includes(busca));
+  if (tipo) list = list.filter(m => tipo==='elleven' ? m.__kind==='ledger' : (m.__kind==='diff' && m.tipo===tipo));
+  if (busca) list = list.filter(m=>{
+    const nome = (m.nome_tecnico||'').toLowerCase();
+    const cod = (m.codigo_material||'').toLowerCase();
+    const desc = (m.descricao_material||'').toLowerCase();
+    const extra = m.__kind==='ledger'
+      ? (m.cliente_nome||'').toLowerCase()
+      : ((m.seriais_adicionados||'')+(m.seriais_removidos||'')).toLowerCase();
+    return nome.includes(busca) || cod.includes(busca) || desc.includes(busca) || extra.includes(busca);
+  });
   if (!list.length){ $('historico-list').innerHTML = '<div class="empty-state">Nenhuma movimentação encontrada.</div>'; return; }
-  $('historico-list').innerHTML = list.map(movimentacaoLine).join('');
+  $('historico-list').innerHTML = list.map(m=> m.__kind==='ledger' ? eventoLedgerLine(m) : movimentacaoLine(m)).join('');
 }
 
 // ---------- GESTÃO DE TÉCNICOS (O&M) ----------
@@ -820,10 +955,17 @@ function renderMeuLista(){
   }).join('');
 }
 async function loadMinhasMovimentacoes(){
-  const { data, error } = await sb.from('movimentacoes').select('*').eq('cnpj', currentPerfil.cnpj).order('criado_em', {ascending:false}).limit(15);
-  if (error) { $('meu-historico').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
-  if (!data || !data.length) { $('meu-historico').innerHTML = '<div class="empty-state">Nenhuma movimentação recente.</div>'; return; }
-  $('meu-historico').innerHTML = data.map(movimentacaoLine).join('');
+  const [diffRes, ledgerRes] = await Promise.all([
+    sb.from('movimentacoes').select('*').eq('cnpj', currentPerfil.cnpj).order('criado_em', {ascending:false}).limit(10),
+    sb.from('movimentacoes_elleven').select('*').eq('cnpj_tecnico', currentPerfil.cnpj).order('data_movimentacao', {ascending:false}).limit(10)
+  ]);
+  if (diffRes.error || ledgerRes.error) { $('meu-historico').innerHTML = `<div class="empty-state">Erro: ${(diffRes.error||ledgerRes.error).message}</div>`; return; }
+  const merged = [
+    ...(diffRes.data||[]).map(m=>({...m, __kind:'diff', __ts:m.criado_em})),
+    ...(ledgerRes.data||[]).map(m=>({...m, __kind:'ledger', __ts:m.data_movimentacao}))
+  ].sort((a,b)=> new Date(b.__ts) - new Date(a.__ts)).slice(0,15);
+  if (!merged.length) { $('meu-historico').innerHTML = '<div class="empty-state">Nenhuma movimentação recente.</div>'; return; }
+  $('meu-historico').innerHTML = merged.map(m=> m.__kind==='ledger' ? eventoLedgerLine(m) : movimentacaoLine(m)).join('');
 }
 
 checkSession();
