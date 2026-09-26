@@ -211,8 +211,11 @@ td.num,th.num{text-align:right;}
           <option value="elleven">Elleven (consumo)</option>
           <option value="patrimonio">Patrimônio</option>
         </select>
+        <input type="date" id="hist-de" min="2026-01-01">
+        <input type="date" id="hist-ate" min="2026-01-01">
         <input type="text" id="hist-busca" placeholder="🔍 Buscar técnico, material, código ou série...">
       </div>
+      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações de 2026 em diante.</div>
       <div id="historico-list"></div>
     </div>
 
@@ -246,8 +249,11 @@ td.num,th.num{text-align:right;}
           <option value="entrada">Só entradas</option>
           <option value="saida">Só saídas</option>
         </select>
+        <input type="date" id="meuhist-de" min="2026-01-01">
+        <input type="date" id="meuhist-ate" min="2026-01-01">
         <input type="text" id="meuhist-busca" placeholder="🔍 Buscar material, código ou cliente...">
       </div>
+      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações de 2026 em diante.</div>
       <div id="meu-historico"></div>
     </div>
   </div>
@@ -834,19 +840,27 @@ function eventoLedgerLine(m){
 }
 async function loadHistorico(){
   $('historico-list').innerHTML = '<div class="empty-state">Carregando...</div>';
-  const [diffRes, ledgerRes] = await Promise.all([
-    sb.from('movimentacoes').select('*').order('criado_em', {ascending:false}).limit(200),
-    sb.from('movimentacoes_elleven').select('*').order('data_movimentacao', {ascending:false}).limit(200)
-  ]);
+  const CORTE_2026 = '2026-01-01T00:00:00.000Z';
+  const deInformada = $('hist-de').value ? new Date($('hist-de').value+'T00:00:00').toISOString() : CORTE_2026;
+  const de = deInformada < CORTE_2026 ? CORTE_2026 : deInformada; // nunca busca antes de 2026
+  const ateInput = $('hist-ate').value ? new Date($('hist-ate').value+'T23:59:59').toISOString() : null;
+
+  let diffQ = sb.from('movimentacoes').select('*').gte('criado_em', de).order('criado_em', {ascending:false}).limit(1000);
+  let ledgerQ = sb.from('movimentacoes_elleven').select('*').gte('data_movimentacao', de).order('data_movimentacao', {ascending:false}).limit(1000);
+  if (ateInput) { diffQ = diffQ.lte('criado_em', ateInput); ledgerQ = ledgerQ.lte('data_movimentacao', ateInput); }
+
+  const [diffRes, ledgerRes] = await Promise.all([diffQ, ledgerQ]);
   if (diffRes.error || ledgerRes.error) { $('historico-list').innerHTML = `<div class="empty-state">Erro: ${(diffRes.error||ledgerRes.error).message}</div>`; return; }
   const merged = [
     ...(diffRes.data||[]).map(m=>({...m, __kind:'diff', __ts:m.criado_em})),
     ...(ledgerRes.data||[]).map(m=>({...m, __kind:'ledger', __ts:m.data_movimentacao}))
-  ].sort((a,b)=> new Date(b.__ts) - new Date(a.__ts)).slice(0,300);
+  ].sort((a,b)=> new Date(b.__ts) - new Date(a.__ts));
   window.__historicoData = merged;
   renderHistorico();
   $('hist-tipo').onchange = renderHistorico;
   $('hist-busca').oninput = renderHistorico;
+  $('hist-de').onchange = loadHistorico;
+  $('hist-ate').onchange = loadHistorico;
 }
 function renderHistorico(){
   const tipo = $('hist-tipo').value;
@@ -972,20 +986,28 @@ function renderMeuLista(){
 }
 async function loadMinhasMovimentacoes(){
   $('meu-historico').innerHTML = '<div class="empty-state">Carregando...</div>';
-  const [diffRes, ledgerRes] = await Promise.all([
-    sb.from('movimentacoes').select('*').eq('cnpj', currentPerfil.cnpj).order('criado_em', {ascending:false}).limit(150),
-    sb.from('movimentacoes_elleven').select('*').eq('cnpj_tecnico', currentPerfil.cnpj).order('data_movimentacao', {ascending:false}).limit(150)
-  ]);
+  const CORTE_2026 = '2026-01-01T00:00:00.000Z';
+  const deInformada = $('meuhist-de').value ? new Date($('meuhist-de').value+'T00:00:00').toISOString() : CORTE_2026;
+  const de = deInformada < CORTE_2026 ? CORTE_2026 : deInformada; // nunca busca antes de 2026
+  const ateInput = $('meuhist-ate').value ? new Date($('meuhist-ate').value+'T23:59:59').toISOString() : null;
+
+  let diffQ = sb.from('movimentacoes').select('*').eq('cnpj', currentPerfil.cnpj).gte('criado_em', de).order('criado_em', {ascending:false}).limit(1000);
+  let ledgerQ = sb.from('movimentacoes_elleven').select('*').eq('cnpj_tecnico', currentPerfil.cnpj).gte('data_movimentacao', de).order('data_movimentacao', {ascending:false}).limit(1000);
+  if (ateInput) { diffQ = diffQ.lte('criado_em', ateInput); ledgerQ = ledgerQ.lte('data_movimentacao', ateInput); }
+
+  const [diffRes, ledgerRes] = await Promise.all([diffQ, ledgerQ]);
   if (diffRes.error || ledgerRes.error) { $('meu-historico').innerHTML = `<div class="empty-state">Erro: ${(diffRes.error||ledgerRes.error).message}</div>`; return; }
   const merged = [
     ...(diffRes.data||[]).map(m=>({...m, __kind:'diff', __ts:m.criado_em})),
     ...(ledgerRes.data||[]).map(m=>({...m, __kind:'ledger', __ts:m.data_movimentacao}))
-  ].sort((a,b)=> new Date(b.__ts) - new Date(a.__ts)).slice(0,200);
+  ].sort((a,b)=> new Date(b.__ts) - new Date(a.__ts));
   window.__minhasMovData = merged;
   renderMinhasMovimentacoes();
   $('meuhist-tipo').onchange = renderMinhasMovimentacoes;
   $('meuhist-movimento').onchange = renderMinhasMovimentacoes;
   $('meuhist-busca').oninput = renderMinhasMovimentacoes;
+  $('meuhist-de').onchange = loadMinhasMovimentacoes;
+  $('meuhist-ate').onchange = loadMinhasMovimentacoes;
 }
 function renderMinhasMovimentacoes(){
   const tipo = $('meuhist-tipo').value;
