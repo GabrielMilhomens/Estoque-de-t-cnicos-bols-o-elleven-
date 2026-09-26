@@ -164,16 +164,29 @@ td.num,th.num{text-align:right;}
         <div class="hint" id="last-bolsao">Carregando...</div>
       </div>
       <div class="source-card">
+        <h3>📸 Saldo base do Elleven (retrato atual)</h3>
+        <label class="dropzone" id="dz-baseline">Arraste o .csv do retrato atual (mesmo formato do extrato antigo) ou clique
+          <div id="status-baseline" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
+          <input type="file" id="file-baseline" accept=".csv">
+        </label>
+        <label style="margin-top:10px;">Data/hora deste retrato</label>
+        <input type="datetime-local" id="baseline-data">
+        <div class="actions"><button class="btn" id="btn-up-baseline" disabled>Definir saldo base (substitui o saldo Elleven atual)</button></div>
+        <div class="hint" id="baseline-info">Carregando...</div>
+        <div class="hint">Defina isso <b>uma única vez</b> — é o seu ponto de partida fixo. Depois disso, não precisa mais subir retrato nenhum: é só usar o card de movimentações abaixo, sempre. Só volte aqui se um dia precisar recalibrar do zero (isso substitui o saldo atual).</div>
+      </div>
+
+      <div class="source-card">
         <h3>🧾 Movimentações do Elleven (entrada/saída)</h3>
         <label class="dropzone" id="dz-elleven">Arraste o .csv ou clique
           <div id="status-elleven" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
           <input type="file" id="file-elleven" accept=".csv">
         </label>
-        <label style="margin-top:10px;">Considerar movimentações a partir de (opcional)</label>
+        <label style="margin-top:10px;">Restringir ainda mais, a partir de (opcional)</label>
         <input type="date" id="elleven-data-inicio">
         <div class="actions"><button class="btn" id="btn-up-elleven" disabled>Importar movimentações</button></div>
         <div class="hint" id="last-elleven">Carregando...</div>
-        <div class="hint">O saldo do Elleven é calculado como entradas − saídas de tudo que já foi importado. Linhas já importadas antes são sempre ignoradas automaticamente. Use a data de início só para pular processamento de linhas antigas que você tem certeza que já foram importadas — não use na primeira importação, ou o saldo fica incompleto.</div>
+        <div class="hint">O saldo do Elleven é calculado como entradas − saídas a partir da data-base definida acima. Linhas iguais ou anteriores à data-base, ou já importadas antes, são sempre ignoradas automaticamente — não corre risco de contar duas vezes.</div>
       </div>
       <div class="source-card">
         <h3>🏷️ Patrimônio do Elleven (itens com série/tag)</h3>
@@ -395,7 +408,7 @@ function switchTab(id) {
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.textContent === labelFor(id)));
   document.querySelectorAll('.tabpane').forEach(p => p.classList.add('hidden'));
   show('tab-' + id);
-  if (id === 'consolidar') loadUltimasAtualizacoes();
+  if (id === 'consolidar') { loadUltimasAtualizacoes(); loadBaselineInfo(); }
   if (id === 'visao') loadVisaoGeral();
   if (id === 'historico') loadHistorico();
   if (id === 'gestao') loadGestao();
@@ -442,7 +455,8 @@ function normCNPJ(v){
 $('dz-bolsao').onclick = () => $('file-bolsao').click();
 $('dz-elleven').onclick = () => $('file-elleven').click();
 $('dz-patrimonio').onclick = () => $('file-patrimonio').click();
-['dz-bolsao','dz-elleven','dz-patrimonio'].forEach(id=>{
+$('dz-baseline').onclick = () => $('file-baseline').click();
+['dz-bolsao','dz-elleven','dz-patrimonio','dz-baseline'].forEach(id=>{
   const dz = $(id);
   dz.addEventListener('dragover', e=>e.preventDefault());
   dz.addEventListener('drop', e=>{
@@ -451,6 +465,52 @@ $('dz-patrimonio').onclick = () => $('file-patrimonio').click();
     if(e.dataTransfer.files.length){ input.files = e.dataTransfer.files; input.dispatchEvent(new Event('change')); }
   });
 });
+
+let baselineData = null;
+$('file-baseline').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const parsed = parseCSVSmart(ev.target.result);
+    baselineData = parsed.data.map(r=>({
+      cnpj: normCNPJ(r['CNPJ Tecnico']),
+      tecnico: String(r['Tecnico']||'').trim(),
+      codigo: String(r['Cod. Produto']||'').trim(),
+      descricao: String(r['Produto']||'').trim(),
+      unidade: String(r['Unidade']||'').trim(),
+      qtd: Number(String(r['Quantidade']||'0').replace(',','.'))
+    })).filter(r=>r.codigo && r.cnpj);
+    $('status-baseline').textContent = `${baselineData.length} linhas (${f.name})`;
+    $('dz-baseline').classList.add('filled');
+    $('btn-up-baseline').disabled = false;
+    if (!$('baseline-data').value) {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      $('baseline-data').value = now.toISOString().slice(0,16);
+    }
+  };
+  reader.readAsText(f, 'UTF-8');
+});
+
+$('btn-up-baseline').onclick = async () => {
+  if (!baselineData) return;
+  const dataBaseInput = $('baseline-data').value;
+  if (!dataBaseInput) { alert('Informe a data/hora deste retrato.'); return; }
+  const dataBaseIso = new Date(dataBaseInput).toISOString();
+  await atualizarTipo('elleven', baselineData, 'btn-up-baseline', 'Elleven (saldo base)');
+  const { error } = await sb.from('saldo_base_elleven').upsert({ id: true, data_base: dataBaseIso, atualizado_em: new Date().toISOString() }, { onConflict: 'id' });
+  if (error) {
+    $('consolidar-result').innerHTML += `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Saldo atualizado, mas houve erro ao gravar a data-base: ${error.message}</div>`;
+  }
+  loadBaselineInfo();
+};
+
+async function loadBaselineInfo(){
+  const { data } = await sb.from('saldo_base_elleven').select('*').eq('id', true).maybeSingle();
+  window.__baselineDataBase = data ? data.data_base : null;
+  $('baseline-info').textContent = data ? `Data-base atual: ${fmtData(data.data_base)}` : 'Nenhuma data-base definida ainda — a próxima importação de movimentações vai considerar tudo, desde o início.';
+  return data ? data.data_base : null;
+}
 
 $('file-bolsao').addEventListener('change', e => {
   const f = e.target.files[0]; if(!f) return;
@@ -641,14 +701,22 @@ async function importarMovimentacoesElleven(){
   btn.disabled = true;
   const original = btn.textContent;
 
-  const dataInicio = $('elleven-data-inicio').value; // yyyy-mm-dd ou vazio
+  const dataBase = await loadBaselineInfo(); // data-base do último retrato, se houver
+  const dataInicioManual = $('elleven-data-inicio').value; // yyyy-mm-dd ou vazio
+
+  let corteMs = null;
+  if (dataBase) corteMs = new Date(dataBase).getTime();
+  if (dataInicioManual) {
+    const corteManualMs = new Date(dataInicioManual+'T00:00:00').getTime();
+    if (corteMs === null || corteManualMs > corteMs) corteMs = corteManualMs; // manual só pode apertar mais, nunca afrouxar
+  }
+
   let linhasParaProcessar = ellevenData;
-  if (dataInicio) {
-    const corte = new Date(dataInicio+'T00:00:00').getTime();
-    linhasParaProcessar = ellevenData.filter(r => r.data_movimentacao && new Date(r.data_movimentacao).getTime() >= corte);
+  if (corteMs !== null) {
+    linhasParaProcessar = ellevenData.filter(r => r.data_movimentacao && new Date(r.data_movimentacao).getTime() > corteMs);
   }
   if (!linhasParaProcessar.length) {
-    $('consolidar-result').innerHTML = `<div class="msg-box">Nenhuma linha do arquivo é igual ou posterior à data informada.</div>`;
+    $('consolidar-result').innerHTML = `<div class="msg-box">Nenhuma linha do arquivo é posterior à data-base${dataBase?` (${fmtData(dataBase)})`:''}. Nada para importar.</div>`;
     btn.disabled = false; btn.textContent = original;
     return;
   }
