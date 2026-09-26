@@ -198,7 +198,8 @@ td.num,th.num{text-align:right;}
           <option value="GTD">GTD</option>
           <option value="__sem_equipe">Sem equipe atribuída</option>
         </select>
-        <input type="text" id="filtro-busca" placeholder="🔍 Buscar técnico, material, código ou série...">
+        <input type="text" id="filtro-tecnico" placeholder="🔍 Buscar técnico...">
+        <input type="text" id="filtro-item" placeholder="🔍 Buscar material, código ou série...">
       </div>
       <div id="visao-list"></div>
     </div>
@@ -738,33 +739,35 @@ async function loadVisaoGeral(){
   renderVisao();
 
   $('filtro-equipe').onchange = renderVisao;
-  $('filtro-busca').oninput = renderVisao;
+  $('filtro-tecnico').oninput = renderVisao;
+  $('filtro-item').oninput = renderVisao;
 }
 
 function renderVisao(){
   const byTech = window.__visaoData || {};
   const filtroEquipe = $('filtro-equipe').value;
-  const busca = ($('filtro-busca').value||'').trim().toLowerCase();
+  const buscaTecnico = ($('filtro-tecnico').value||'').trim().toLowerCase();
+  const buscaItem = ($('filtro-item').value||'').trim().toLowerCase();
+
+  const itemMatches = i => (i.codigo_material||'').toLowerCase().includes(buscaItem) ||
+      (i.descricao_material||'').toLowerCase().includes(buscaItem) ||
+      (i.serials_patrimonio||'').toLowerCase().includes(buscaItem);
 
   let totalTecnicos=0, totalItens=0, totalUnidades=0;
   let list = Object.values(byTech).filter(t=>{
     if (filtroEquipe && t.equipe !== filtroEquipe) return false;
+    if (buscaTecnico && !t.nome.toLowerCase().includes(buscaTecnico)) return false;
+    if (buscaItem && !t.itens.some(itemMatches)) return false;
     return true;
-  });
-  list = list.map(t=>{
-    if (!busca) return {...t, matchedByItem:false};
-    const matchesTecnico = t.nome.toLowerCase().includes(busca);
-    const matchesItem = t.itens.some(i =>
-      (i.codigo_material||'').toLowerCase().includes(busca) ||
-      (i.descricao_material||'').toLowerCase().includes(busca) ||
-      (i.serials_patrimonio||'').toLowerCase().includes(busca));
-    if (!matchesTecnico && !matchesItem) return null;
-    return {...t, matchedByItem: matchesItem};
-  }).filter(Boolean).sort((a,b)=>a.nome.localeCompare(b.nome));
+  }).map(t=>{
+    // quando há busca de item, mostra só as linhas que bateram
+    const itensExibidos = buscaItem ? t.itens.filter(itemMatches) : t.itens;
+    return {...t, itensExibidos};
+  }).sort((a,b)=>a.nome.localeCompare(b.nome));
 
   list.forEach(t=>{
-    totalTecnicos++; totalItens += t.itens.length;
-    t.itens.forEach(i=>totalUnidades += Number(i.qtd_total||0));
+    totalTecnicos++; totalItens += t.itensExibidos.length;
+    t.itensExibidos.forEach(i=>totalUnidades += Number(i.qtd_total||0));
   });
 
   $('visao-stats').innerHTML = `
@@ -775,23 +778,20 @@ function renderVisao(){
   if (!list.length) { $('visao-list').innerHTML = '<div class="empty-state">Nada encontrado com esse filtro/busca.</div>'; return; }
 
   $('visao-list').innerHTML = list.map(t=>{
-    const techTotal = t.itens.reduce((s,i)=>s+Number(i.qtd_total||0),0);
-    const rows = t.itens.map(i=>{
+    const techTotal = t.itensExibidos.reduce((s,i)=>s+Number(i.qtd_total||0),0);
+    const rows = t.itensExibidos.map(i=>{
       const cls = Number(i.qtd_total)<=0?'zero':'ok';
-      const isHit = busca && (
-        (i.codigo_material||'').toLowerCase().includes(busca) ||
-        (i.descricao_material||'').toLowerCase().includes(busca) ||
-        (i.serials_patrimonio||'').toLowerCase().includes(busca));
+      const isHit = buscaItem && itemMatches(i);
       const serialLine = i.serials_patrimonio ? `<div style="color:var(--text-muted);font-size:.66rem;margin-top:2px;">Séries: ${i.serials_patrimonio}</div>` : '';
       return `<tr ${isHit?'style="background:rgba(255,193,7,.12)"':''}><td>${i.descricao_material}${isHit?' <span class="badge hit">encontrado</span>':''}<div style="color:var(--text-muted);font-size:.68rem">${i.codigo_material}</div>${serialLine}</td>
         <td class="num">${i.qtd_bolsao}</td><td class="num">${i.qtd_elleven}</td><td class="num">${i.qtd_patrimonio||0}</td>
         <td class="num"><span class="badge ${cls}">${i.qtd_total} ${i.unidade||''}</span></td></tr>`;
     }).join('');
     const equipeLabel = t.equipe === '__sem_equipe' ? 'sem equipe' : t.equipe;
-    const openClass = t.matchedByItem ? ' open' : '';
+    const openClass = buscaItem ? ' open' : '';
     return `<div class="tech">
       <div class="tech-head" onclick="this.parentElement.querySelector('.tech-body').classList.toggle('open')">
-        <div><div class="tech-name">${t.nome}</div><div class="tech-sub">${t.itens.length} material(is) · ${equipeLabel}</div></div>
+        <div><div class="tech-name">${t.nome}</div><div class="tech-sub">${t.itensExibidos.length}${buscaItem?` de ${t.itens.length}`:''} material(is) · ${equipeLabel}</div></div>
         <div class="tech-total">${techTotal.toFixed(0)} un.</div>
       </div>
       <div class="tech-body${openClass}"><table><thead><tr><th>Material</th><th class="num">Bolsão</th><th class="num">Elleven</th><th class="num">Patrimônio</th><th class="num">Total</th></tr></thead><tbody>${rows}</tbody></table></div>
