@@ -117,7 +117,7 @@ td.num,th.num{text-align:right;}
       <option value="om">Gestão O&M</option>
     </select>
     <div id="signup-cnpj-wrap">
-      <label>CNPJ (o mesmo usado no bolsão/Elleven, só números)</label>
+      <label>CNPJ (o mesmo usado no bolsão/V-Task, só números)</label>
       <input type="text" id="signup-cnpj" placeholder="Ex: 05131004586">
     </div>
     <label>E-mail</label>
@@ -247,7 +247,7 @@ td.num,th.num{text-align:right;}
         <select id="meuhist-tipo">
           <option value="">Todos os tipos</option>
           <option value="bolsao">Bolsão</option>
-          <option value="elleven">Elleven</option>
+          <option value="elleven">V-Task</option>
         </select>
         <select id="meuhist-movimento">
           <option value="">Entrada e saída</option>
@@ -258,7 +258,7 @@ td.num,th.num{text-align:right;}
         <input type="date" id="meuhist-ate" min="2026-01-01">
         <input type="text" id="meuhist-busca" placeholder="🔍 Buscar material, código ou cliente...">
       </div>
-      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações posteriores ao retrato-base (saldo base do Elleven).</div>
+      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações posteriores ao retrato-base (saldo base do V-Task).</div>
       <div id="meu-historico"></div>
     </div>
   </div>
@@ -870,10 +870,11 @@ function renderVisao(){
 }
 
 // ---------- HISTÓRICO DE MOVIMENTAÇÃO (O&M) ----------
-function movimentacaoLine(m){
+function movimentacaoLine(m, ellevenLabel){
+  ellevenLabel = ellevenLabel || 'Elleven';
   const cls = m.delta > 0 ? 'ok' : (m.delta < 0 ? 'zero' : '');
   const sinal = m.delta > 0 ? '+' : '';
-  const tipoLabel = {bolsao:'Bolsão', elleven:'Elleven (consumo)'}[m.tipo] || m.tipo;
+  const tipoLabel = {bolsao:'Bolsão', elleven:`${ellevenLabel} (consumo)`}[m.tipo] || m.tipo;
   let serialInfo = '';
   if (m.seriais_adicionados) serialInfo += `<div style="color:var(--nt-green-dark);font-size:.7rem;margin-top:3px;">+ recebeu: ${m.seriais_adicionados}</div>`;
   if (m.seriais_removidos) serialInfo += `<div style="color:var(--danger);font-size:.7rem;margin-top:3px;">− saiu: ${m.seriais_removidos}</div>`;
@@ -890,7 +891,8 @@ function movimentacaoLine(m){
     </div>
   </div>`;
 }
-function eventoLedgerLine(m){
+function eventoLedgerLine(m, ellevenLabel){
+  ellevenLabel = ellevenLabel || 'Elleven';
   const isEntrada = m.tipo_movimento === 'entrada';
   const sinal = isEntrada ? '+' : '−';
   const cls = isEntrada ? 'ok' : 'zero';
@@ -899,7 +901,7 @@ function eventoLedgerLine(m){
     <div style="padding:10px 14px;">
       <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
         <div><span class="tech-name" style="font-size:.85rem;">${m.nome_tecnico}</span>
-          <span class="badge" style="background:var(--bg);color:var(--text-muted);margin-left:6px;">Elleven · ${isEntrada?'Entrada':'Saída'}</span></div>
+          <span class="badge" style="background:var(--bg);color:var(--text-muted);margin-left:6px;">${ellevenLabel} · ${isEntrada?'Entrada':'Saída'}</span></div>
         <div class="tech-sub">${fmtData(m.data_movimentacao)}</div>
       </div>
       <div class="tech-sub" style="margin-top:4px;">${m.descricao_material} <span style="color:var(--text-muted);">(${m.codigo_material})</span></div>
@@ -1045,7 +1047,7 @@ function renderMeuLista(){
       <div class="item-code">${i.codigo_material}</div>
       <div class="item-chips">
         <span class="chip">Bolsão <b>${i.qtd_bolsao}</b></span>
-        <span class="chip">Elleven <b>${i.qtd_elleven}</b></span>
+        <span class="chip">V-Task <b>${i.qtd_elleven}</b></span>
         <span class="badge ${cls} item-total">${i.qtd_total} ${i.unidade||''}</span>
       </div>
     </div>`;
@@ -1096,7 +1098,7 @@ function renderMinhasMovimentacoes(){
     return cod.includes(busca) || desc.includes(busca) || extra.includes(busca);
   });
   if (!list.length) { $('meu-historico').innerHTML = '<div class="empty-state">Nenhuma movimentação encontrada.</div>'; return; }
-  $('meu-historico').innerHTML = list.map(m=> m.__kind==='ledger' ? eventoLedgerLine(m) : movimentacaoLine(m)).join('');
+  $('meu-historico').innerHTML = list.map(m=> m.__kind==='ledger' ? eventoLedgerLine(m,'V-Task') : movimentacaoLine(m,'V-Task')).join('');
 }
 
 checkSession();
