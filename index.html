@@ -464,6 +464,11 @@ function normCNPJ(v){
   return maior.replace(/^0+/, '');
 }
 
+// remove acentos e caixa alta/baixa para busca (ex: "extensao" encontra "extensão")
+function norm(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
 $('dz-bolsao').onclick = () => $('file-bolsao').click();
 $('dz-elleven').onclick = () => $('file-elleven').click();
 $('dz-patrimonio').onclick = () => $('file-patrimonio').click();
@@ -836,9 +841,10 @@ async function loadVisaoGeral(){
   const equipeByCnpj = {};
   (perfis||[]).forEach(p => { if(p.cnpj) equipeByCnpj[p.cnpj] = p.equipe || '__sem_equipe'; });
 
-  // agrupar por técnico
+  // agrupar por técnico (ignorando itens com total zero em tudo)
   const byTech = {};
   (estoque||[]).forEach(r => {
+    if (Number(r.qtd_total) <= 0) return;
     if (!byTech[r.cnpj]) byTech[r.cnpj] = { nome: r.nome_tecnico, cnpj: r.cnpj, equipe: equipeByCnpj[r.cnpj] || '__sem_equipe', itens: [] };
     byTech[r.cnpj].itens.push(r);
   });
@@ -854,17 +860,17 @@ async function loadVisaoGeral(){
 function renderVisao(){
   const byTech = window.__visaoData || {};
   const filtroEquipe = $('filtro-equipe').value;
-  const buscaTecnico = ($('filtro-tecnico').value||'').trim().toLowerCase();
-  const buscaItem = ($('filtro-item').value||'').trim().toLowerCase();
+  const buscaTecnico = norm($('filtro-tecnico').value);
+  const buscaItem = norm($('filtro-item').value);
 
-  const itemMatches = i => (i.codigo_material||'').toLowerCase().includes(buscaItem) ||
-      (i.descricao_material||'').toLowerCase().includes(buscaItem) ||
-      (i.serials_patrimonio||'').toLowerCase().includes(buscaItem);
+  const itemMatches = i => norm(i.codigo_material).includes(buscaItem) ||
+      norm(i.descricao_material).includes(buscaItem) ||
+      norm(i.serials_patrimonio).includes(buscaItem);
 
   let totalTecnicos=0, totalItens=0, totalUnidades=0;
   let list = Object.values(byTech).filter(t=>{
     if (filtroEquipe && t.equipe !== filtroEquipe) return false;
-    if (buscaTecnico && !t.nome.toLowerCase().includes(buscaTecnico)) return false;
+    if (buscaTecnico && !norm(t.nome).includes(buscaTecnico)) return false;
     if (buscaItem && !t.itens.some(itemMatches)) return false;
     return true;
   }).map(t=>{
@@ -972,16 +978,16 @@ async function loadHistorico(){
 }
 function renderHistorico(){
   const tipo = $('hist-tipo').value;
-  const busca = ($('hist-busca').value||'').trim().toLowerCase();
+  const busca = norm($('hist-busca').value);
   let list = window.__historicoData || [];
   if (tipo) list = list.filter(m => tipo==='elleven' ? m.__kind==='ledger' : (m.__kind==='diff' && m.tipo===tipo));
   if (busca) list = list.filter(m=>{
-    const nome = (m.nome_tecnico||'').toLowerCase();
-    const cod = (m.codigo_material||'').toLowerCase();
-    const desc = (m.descricao_material||'').toLowerCase();
+    const nome = norm(m.nome_tecnico);
+    const cod = norm(m.codigo_material);
+    const desc = norm(m.descricao_material);
     const extra = m.__kind==='ledger'
-      ? (m.cliente_nome||'').toLowerCase()
-      : ((m.seriais_adicionados||'')+(m.seriais_removidos||'')).toLowerCase();
+      ? norm(m.cliente_nome)
+      : norm((m.seriais_adicionados||'')+(m.seriais_removidos||''));
     return nome.includes(busca) || cod.includes(busca) || desc.includes(busca) || extra.includes(busca);
   });
   if (!list.length){ $('historico-list').innerHTML = '<div class="empty-state">Nenhuma movimentação encontrada.</div>'; return; }
@@ -1063,18 +1069,18 @@ async function loadMeuEstoque(){
 
   const { data, error } = await sb.from('estoque').select('*').eq('cnpj', currentPerfil.cnpj).order('descricao_material');
   if (error) { $('meu-list').innerHTML = `<div class="empty-state">Erro: ${error.message}</div>`; return; }
-  window.__meuEstoqueData = data || [];
+  window.__meuEstoqueData = (data || []).filter(i => Number(i.qtd_total) > 0);
   $('meu-busca').oninput = renderMeuLista;
   renderMeuLista();
 }
 function renderMeuLista(){
   const data = window.__meuEstoqueData || [];
-  const busca = ($('meu-busca').value||'').trim().toLowerCase();
+  const busca = norm($('meu-busca').value);
   let itens = data;
   if (busca) itens = itens.filter(i =>
-    (i.codigo_material||'').toLowerCase().includes(busca) ||
-    (i.descricao_material||'').toLowerCase().includes(busca) ||
-    (i.serials_patrimonio||'').toLowerCase().includes(busca));
+    norm(i.codigo_material).includes(busca) ||
+    norm(i.descricao_material).includes(busca) ||
+    norm(i.serials_patrimonio).includes(busca));
   if (!itens.length) { $('meu-list').innerHTML = '<div class="empty-state">Nenhum material encontrado.</div>'; return; }
   $('meu-list').innerHTML = itens.map(i=>{
     const cls = Number(i.qtd_total)<=0?'zero':'ok';
@@ -1120,7 +1126,7 @@ async function loadMinhasMovimentacoes(){
 function renderMinhasMovimentacoes(){
   const tipo = $('meuhist-tipo').value;
   const movimento = $('meuhist-movimento').value;
-  const busca = ($('meuhist-busca').value||'').trim().toLowerCase();
+  const busca = norm($('meuhist-busca').value);
   let list = window.__minhasMovData || [];
   if (tipo) list = list.filter(m => tipo==='elleven' ? m.__kind==='ledger' : (m.__kind==='diff' && m.tipo===tipo));
   if (movimento) list = list.filter(m => {
@@ -1128,11 +1134,11 @@ function renderMinhasMovimentacoes(){
     return movimento==='entrada' ? m.delta > 0 : m.delta < 0;
   });
   if (busca) list = list.filter(m=>{
-    const cod = (m.codigo_material||'').toLowerCase();
-    const desc = (m.descricao_material||'').toLowerCase();
+    const cod = norm(m.codigo_material);
+    const desc = norm(m.descricao_material);
     const extra = m.__kind==='ledger'
-      ? (m.cliente_nome||'').toLowerCase()
-      : ((m.seriais_adicionados||'')+(m.seriais_removidos||'')).toLowerCase();
+      ? norm(m.cliente_nome)
+      : norm((m.seriais_adicionados||'')+(m.seriais_removidos||''));
     return cod.includes(busca) || desc.includes(busca) || extra.includes(busca);
   });
   if (!list.length) { $('meu-historico').innerHTML = '<div class="empty-state">Nenhuma movimentação encontrada.</div>'; return; }
