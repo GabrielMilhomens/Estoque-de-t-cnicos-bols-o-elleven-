@@ -349,7 +349,11 @@ $('btn-signup').onclick = async () => {
 $('btn-logout-pending').onclick = () => sb.auth.signOut();
 $('btn-logout').onclick = () => sb.auth.signOut();
 
-sb.auth.onAuthStateChange((_event, _session) => checkSession());
+sb.auth.onAuthStateChange((event, _session) => {
+  // TOKEN_REFRESHED dispara toda vez que a aba volta a ficar visível
+  // (renovação automática de sessão) — ignorar evita resetar a tela.
+  if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') checkSession();
+});
 
 async function checkSession() {
   const { data: { session } } = await sb.auth.getSession();
