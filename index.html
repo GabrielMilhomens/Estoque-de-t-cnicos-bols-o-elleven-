@@ -105,6 +105,17 @@ td.num,th.num{text-align:right;}
     <div class="error hidden" id="login-error"></div>
     <button class="btn" id="btn-login" style="width:100%">Entrar</button>
     <div class="hint" style="text-align:center;margin-top:12px;">Não tem conta? <span class="link" id="show-signup">Criar conta</span></div>
+    <div class="hint" style="text-align:center;margin-top:6px;"><span class="link" id="show-forgot">Esqueci minha senha</span></div>
+  </div>
+
+  <div class="card hidden" id="forgot-card">
+    <h2>Recuperar senha</h2>
+    <div class="hint" style="margin:0 0 10px;">Informe o e-mail da sua conta. Enviaremos um link para você definir uma nova senha.</div>
+    <label>E-mail</label>
+    <input type="email" id="forgot-email">
+    <div class="hint" id="forgot-msg" style="margin:-4px 0 10px;"></div>
+    <button class="btn" id="btn-forgot" style="width:100%">Enviar link</button>
+    <div class="hint" style="text-align:center;margin-top:12px;"><span class="link" id="back-to-login">Voltar ao login</span></div>
   </div>
 
   <div class="card hidden" id="signup-card">
@@ -132,6 +143,21 @@ td.num,th.num{text-align:right;}
   </div>
 </div>
 
+<!-- ============ NOVA SENHA (recuperação ou alteração) ============ -->
+<div id="view-newpass" class="center-wrap hidden">
+  <div class="logo-row"><div class="logo-dot"></div><h1>Estoque Consolidado</h1></div>
+  <div class="card">
+    <h2 id="newpass-title">Definir nova senha</h2>
+    <label>Nova senha (mínimo 6 caracteres)</label>
+    <input type="password" id="newpass-1" autocomplete="new-password">
+    <label>Repita a nova senha</label>
+    <input type="password" id="newpass-2" autocomplete="new-password">
+    <div class="error hidden" id="newpass-error"></div>
+    <button class="btn" id="btn-newpass-save" style="width:100%">Salvar nova senha</button>
+    <button class="btn secondary hidden" id="btn-newpass-cancel" style="width:100%;margin-top:8px;">Cancelar</button>
+  </div>
+</div>
+
 <!-- ============ PENDING VIEW ============ -->
 <div id="view-pending" class="center-wrap hidden">
   <div class="logo-row"><div class="logo-dot"></div><h1>Estoque Consolidado</h1></div>
@@ -147,6 +173,7 @@ td.num,th.num{text-align:right;}
     <div class="logo-row" style="margin:0"><div class="logo-dot"></div><h1>Estoque Consolidado</h1></div>
     <div style="display:flex;align-items:center;gap:12px;">
       <span class="who" id="who-label"></span>
+      <button class="btn secondary small" id="btn-change-pass">Alterar senha</button>
       <button class="btn secondary small" id="btn-logout">Sair</button>
     </div>
   </div>
@@ -352,13 +379,70 @@ $('btn-signup').onclick = async () => {
 $('btn-logout-pending').onclick = () => sb.auth.signOut();
 $('btn-logout').onclick = () => sb.auth.signOut();
 
-sb.auth.onAuthStateChange((_event, _session) => checkSession());
+// ---------- recuperação / alteração de senha ----------
+let recoveryMode = /type=recovery/.test(location.hash); // veio pelo link do e-mail
+let passwordViewOpen = recoveryMode;                    // enquanto a tela de senha está aberta, não mexe no resto
+
+function openNewPass(mode){
+  hide('view-auth'); hide('view-pending'); hide('view-app'); show('view-newpass');
+  $('newpass-title').textContent = mode === 'recovery' ? 'Definir nova senha' : 'Alterar senha';
+  $('btn-newpass-cancel').classList.toggle('hidden', mode === 'recovery');
+  $('newpass-1').value = ''; $('newpass-2').value = '';
+  $('newpass-error').classList.add('hidden');
+}
+function newPassError(msg){ $('newpass-error').textContent = msg; $('newpass-error').classList.remove('hidden'); }
+
+$('show-forgot').onclick = () => { hide('login-card'); show('forgot-card'); };
+$('back-to-login').onclick = () => { hide('forgot-card'); show('login-card'); };
+$('btn-forgot').onclick = async () => {
+  const email = $('forgot-email').value.trim();
+  if (!email) { $('forgot-msg').textContent = 'Informe o e-mail.'; return; }
+  const redirectTo = location.origin + location.pathname;
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+  $('forgot-msg').textContent = error
+    ? 'Não foi possível enviar agora: ' + error.message
+    : 'Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha. Confira também a caixa de spam.';
+};
+
+$('btn-change-pass').onclick = () => { passwordViewOpen = true; openNewPass('change'); };
+$('btn-newpass-cancel').onclick = () => { passwordViewOpen = false; hide('view-newpass'); show('view-app'); };
+$('btn-newpass-save').onclick = async () => {
+  const p1 = $('newpass-1').value, p2 = $('newpass-2').value;
+  if (p1.length < 6) return newPassError('A senha precisa ter ao menos 6 caracteres.');
+  if (p1 !== p2) return newPassError('As duas senhas não são iguais.');
+  const { error } = await sb.auth.updateUser({ password: p1 });
+  if (error) {
+    return newPassError(/session/i.test(error.message)
+      ? 'O link expirou ou já foi usado. Volte ao login e peça um novo em "Esqueci minha senha".'
+      : error.message);
+  }
+  const eraRecuperacao = recoveryMode;
+  recoveryMode = false; passwordViewOpen = false;
+  history.replaceState(null, '', location.pathname);
+  hide('view-newpass');
+  if (eraRecuperacao) await checkSession(); else show('view-app');
+  alert('Senha alterada com sucesso.');
+};
+
+if (recoveryMode) openNewPass('recovery');
+if (/error_code=otp_expired|error=access_denied/.test(location.hash)) {
+  // link de recuperação vencido: leva direto para pedir outro
+  history.replaceState(null, '', location.pathname);
+  hide('login-card'); show('forgot-card');
+  $('forgot-msg').textContent = 'Esse link expirou ou já foi usado. Peça um novo abaixo.';
+}
+
+sb.auth.onAuthStateChange((event, _session) => {
+  if (event === 'PASSWORD_RECOVERY') { recoveryMode = true; passwordViewOpen = true; openNewPass('recovery'); return; }
+  checkSession();
+});
 
 let appInitializedForUserId = null;
 let currentIsAdmin = false;
 let perm = { bolsao:false, elleven:false, baseline:false }; // o que este usuário pode subir
 
 async function checkSession() {
+  if (passwordViewOpen) return; // definindo/alterando senha: não recarrega nada por trás
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
     appInitializedForUserId = null;
