@@ -115,6 +115,7 @@ td.num,th.num{text-align:right;}
     <select id="signup-tipo">
       <option value="tecnico">Técnico de campo</option>
       <option value="om">Gestão O&M</option>
+      <option value="supply">Gestão Supply Chain</option>
     </select>
     <div id="signup-cnpj-wrap">
       <label>CNPJ/CPF (o mesmo usado no bolsão/V-Task, só números)</label>
@@ -154,7 +155,7 @@ td.num,th.num{text-align:right;}
 
   <div class="wrap">
     <div id="tab-consolidar" class="tabpane hidden">
-      <div class="source-card">
+      <div class="source-card" id="card-bolsao">
         <h3>📦 Planilha do Bolsão (SAP)</h3>
         <label class="dropzone" id="dz-bolsao">Arraste o .xlsx ou clique
           <div id="status-bolsao" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
@@ -163,7 +164,7 @@ td.num,th.num{text-align:right;}
         <div class="actions"><button class="btn" id="btn-up-bolsao" disabled>Atualizar somente Bolsão</button></div>
         <div class="hint" id="last-bolsao">Carregando...</div>
       </div>
-      <div class="source-card">
+      <div class="source-card" id="card-baseline">
         <h3>📸 Saldo base do Elleven (retrato atual)</h3>
         <label class="dropzone" id="dz-baseline">Arraste o .csv do retrato atual (mesmo formato do extrato antigo) ou clique
           <div id="status-baseline" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
@@ -176,7 +177,7 @@ td.num,th.num{text-align:right;}
         <div class="hint">Defina isso <b>uma única vez</b> — é o seu ponto de partida fixo. Depois disso, não precisa mais subir retrato nenhum: é só usar o card de movimentações abaixo, sempre. Só volte aqui se um dia precisar recalibrar do zero (isso substitui o saldo atual).</div>
       </div>
 
-      <div class="source-card">
+      <div class="source-card" id="card-elleven">
         <h3>🧾 Movimentações do Elleven (entrada/saída)</h3>
         <label class="dropzone" id="dz-elleven">Arraste o .csv ou clique
           <div id="status-elleven" style="margin-top:6px;font-size:.78rem;">Nenhum arquivo carregado</div>
@@ -186,9 +187,9 @@ td.num,th.num{text-align:right;}
         <input type="date" id="elleven-data-inicio">
         <div class="actions"><button class="btn" id="btn-up-elleven" disabled>Importar movimentações</button></div>
         <div class="hint" id="last-elleven">Carregando...</div>
-        <div class="hint">O saldo do Elleven é calculado como entradas − saídas a partir da data-base definida acima. Linhas iguais ou anteriores à data-base, ou já importadas antes, são sempre ignoradas automaticamente — não corre risco de contar duas vezes.</div>
+        <div class="hint">O saldo do Elleven é calculado como entradas − saídas a partir da data-base do saldo base (definida pelo administrador). Linhas iguais ou anteriores à data-base, ou já importadas antes, são sempre ignoradas automaticamente — não corre risco de contar duas vezes.</div>
       </div>
-      <div class="hint">Cada botão atualiza só aquele tipo de estoque — o outro continua com os últimos valores publicados. Cada upload substitui o snapshot anterior daquele tipo (não soma com o anterior); técnicos/materiais que saírem do arquivo ficam zerados naquele tipo.</div>
+      <div class="hint" id="hint-consolidar-geral">Cada botão atualiza só aquele tipo de estoque — o outro continua com os últimos valores publicados. Cada upload substitui o snapshot anterior daquele tipo (não soma com o anterior); técnicos/materiais que saírem do arquivo ficam zerados naquele tipo.</div>
       <div id="consolidar-result"></div>
     </div>
 
@@ -315,7 +316,7 @@ const hide = id => $(id).classList.add('hidden');
 $('show-signup').onclick = () => { hide('login-card'); show('signup-card'); };
 $('show-login').onclick = () => { hide('signup-card'); show('login-card'); };
 $('signup-tipo').onchange = e => {
-  $('signup-cnpj-wrap').classList.toggle('hidden', e.target.value === 'om');
+  $('signup-cnpj-wrap').classList.toggle('hidden', e.target.value !== 'tecnico');
 };
 
 $('btn-login').onclick = async () => {
@@ -354,6 +355,8 @@ $('btn-logout').onclick = () => sb.auth.signOut();
 sb.auth.onAuthStateChange((_event, _session) => checkSession());
 
 let appInitializedForUserId = null;
+let currentIsAdmin = false;
+let perm = { bolsao:false, elleven:false, baseline:false }; // o que este usuário pode subir
 
 async function checkSession() {
   const { data: { session } } = await sb.auth.getSession();
@@ -385,6 +388,8 @@ async function checkSession() {
       : 'Seu cadastro está aguardando aprovação da gestão O&M.';
     return;
   }
+  const { data: adm } = await sb.from('admins').select('user_id').eq('user_id', currentUser.id).maybeSingle();
+  currentIsAdmin = !!adm && perfil.tipo === 'om';
   hide('view-auth'); hide('view-pending'); show('view-app');
   appInitializedForUserId = currentUser.id;
   initApp();
@@ -392,19 +397,35 @@ async function checkSession() {
 
 // ---------- APP SHELL ----------
 function initApp() {
-  $('who-label').textContent = `${currentPerfil.nome} · ${currentPerfil.tipo === 'om' ? 'O&M' : 'Técnico'}`;
+  const tipo = currentPerfil.tipo;
+  const papel = currentIsAdmin ? 'Administrador' : ({om:'O&M', supply:'Supply Chain', tecnico:'Técnico'}[tipo] || '');
+  $('who-label').textContent = `${currentPerfil.nome} · ${papel}`;
   const tabsEl = $('tabs');
   tabsEl.innerHTML = '';
   document.querySelectorAll('.tabpane').forEach(p => p.classList.add('hidden'));
 
+  // permissões de upload: Supply Chain → só bolsão; O&M → só movimentações do Elleven;
+  // saldo base → somente o administrador (que também pode tudo o mais)
+  perm = {
+    bolsao: currentIsAdmin || tipo === 'supply',
+    elleven: tipo === 'om',
+    baseline: currentIsAdmin
+  };
+  $('card-bolsao').classList.toggle('hidden', !perm.bolsao);
+  $('card-elleven').classList.toggle('hidden', !perm.elleven);
+  $('card-baseline').classList.toggle('hidden', !perm.baseline);
+  $('hint-consolidar-geral').classList.toggle('hidden', tipo === 'supply');
+
   let tabs = [];
-  if (currentPerfil.tipo === 'om') {
+  if (tipo === 'om') {
     tabs = [
       { id: 'consolidar', label: 'Consolidar' },
       { id: 'visao', label: 'Visão geral' },
       { id: 'historico', label: 'Histórico' },
       { id: 'gestao', label: 'Gestão de técnicos' }
     ];
+  } else if (tipo === 'supply') {
+    tabs = [{ id: 'consolidar', label: 'Consolidar' }];
   } else {
     tabs = [{ id: 'meu', label: 'Meu estoque' }, { id: 'meuhistorico', label: 'Histórico' }];
   }
@@ -422,7 +443,7 @@ function switchTab(id) {
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.textContent === labelFor(id)));
   document.querySelectorAll('.tabpane').forEach(p => p.classList.add('hidden'));
   show('tab-' + id);
-  if (id === 'consolidar') { loadUltimasAtualizacoes(); loadBaselineInfo(); }
+  if (id === 'consolidar') { loadUltimasAtualizacoes(); if (perm.baseline) loadBaselineInfo(); }
   if (id === 'visao') loadVisaoGeral();
   if (id === 'historico') loadHistorico();
   if (id === 'gestao') loadGestao();
@@ -509,6 +530,7 @@ $('file-baseline').addEventListener('change', e => {
 });
 
 $('btn-up-baseline').onclick = async () => {
+  if (!perm.baseline) { alert('Somente o administrador pode alterar o saldo base do Elleven.'); return; }
   if (!baselineData) return;
   const dataBaseInput = $('baseline-data').value;
   if (!dataBaseInput) { alert('Informe a data/hora deste retrato.'); return; }
@@ -679,8 +701,14 @@ async function atualizarTipo(tipo, rows, btnId, nomeLabel){
   loadUltimasAtualizacoes();
 }
 
-$('btn-up-bolsao').onclick = () => atualizarTipo('bolsao', bolsaoData, 'btn-up-bolsao', 'Bolsão');
-$('btn-up-elleven').onclick = importarMovimentacoesElleven;
+$('btn-up-bolsao').onclick = () => {
+  if (!perm.bolsao) { alert('Seu perfil não tem permissão para atualizar o bolsão.'); return; }
+  atualizarTipo('bolsao', bolsaoData, 'btn-up-bolsao', 'Bolsão');
+};
+$('btn-up-elleven').onclick = () => {
+  if (!perm.elleven) { alert('Seu perfil não tem permissão para importar movimentações do Elleven.'); return; }
+  importarMovimentacoesElleven();
+};
 
 // ---------- importação incremental do ledger Elleven (entrada/saída) ----------
 async function importarMovimentacoesElleven(){
@@ -1022,7 +1050,7 @@ async function loadGestao(){
     <div class="pending-row">
       <div>
         <b>${p.nome}</b> <span class="badge pend">pendente</span><br>
-        <span class="tech-sub">${p.tipo === 'om' ? 'Gestão O&M' : 'Técnico · CNPJ ' + p.cnpj}</span>
+        <span class="tech-sub">${p.tipo === 'om' ? 'Gestão O&M' : p.tipo === 'supply' ? 'Gestão Supply Chain' : 'Técnico · CNPJ ' + p.cnpj}</span>
       </div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
         ${p.tipo==='tecnico' ? `<select id="equipe-${p.id}" style="width:auto;margin:0;">
@@ -1041,7 +1069,7 @@ async function loadGestao(){
     <div class="pending-row">
       <div>
         <b>${p.nome}</b><br>
-        <span class="tech-sub">${p.tipo === 'om' ? 'Gestão O&M' : 'Técnico · CNPJ ' + p.cnpj + ' · ' + (p.equipe||'sem equipe')}</span>
+        <span class="tech-sub">${p.tipo === 'om' ? 'Gestão O&M' : p.tipo === 'supply' ? 'Gestão Supply Chain' : 'Técnico · CNPJ ' + p.cnpj + ' · ' + (p.equipe||'sem equipe')}</span>
       </div>
       ${p.tipo==='tecnico' ? `<div style="display:flex;gap:6px;align-items:center;">
         <select id="equipe-edit-${p.id}" style="width:auto;margin:0;">
