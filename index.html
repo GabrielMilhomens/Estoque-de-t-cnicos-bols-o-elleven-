@@ -425,7 +425,11 @@ function initApp() {
       { id: 'gestao', label: 'Gestão de técnicos' }
     ];
   } else if (tipo === 'supply') {
-    tabs = [{ id: 'consolidar', label: 'Consolidar' }];
+    tabs = [
+      { id: 'consolidar', label: 'Consolidar' },
+      { id: 'visao', label: 'Visão geral' },
+      { id: 'historico', label: 'Histórico' }
+    ];
   } else {
     tabs = [{ id: 'meu', label: 'Meu estoque' }, { id: 'meuhistorico', label: 'Histórico' }];
   }
