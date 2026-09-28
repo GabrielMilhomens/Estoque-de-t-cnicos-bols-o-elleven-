@@ -251,7 +251,7 @@ td.num,th.num{text-align:right;}
         </select>
         <input type="date" id="hist-de" min="2026-01-01">
         <input type="date" id="hist-ate" min="2026-01-01">
-        <input type="text" id="hist-busca" placeholder="🔍 Buscar técnico, material, código ou série...">
+        <input type="text" id="hist-busca" placeholder="🔍 Buscar técnico, material, código, cliente ou NF...">
       </div>
       <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações posteriores ao retrato-base (saldo base do Elleven).</div>
       <div id="historico-list"></div>
@@ -1080,12 +1080,44 @@ function renderHistorico(){
     const cod = norm(m.codigo_material);
     const desc = norm(m.descricao_material);
     const extra = m.__kind==='ledger'
-      ? norm(m.cliente_nome)
-      : norm((m.seriais_adicionados||'')+(m.seriais_removidos||''));
+      ? norm((m.cliente_nome||'') + ' ' + (m.nf||''))
+      : '';
     return nome.includes(busca) || cod.includes(busca) || desc.includes(busca) || extra.includes(busca);
   });
   if (!list.length){ $('historico-list').innerHTML = '<div class="empty-state">Nenhuma movimentação encontrada.</div>'; return; }
-  $('historico-list').innerHTML = list.map(m=> m.__kind==='ledger' ? eventoLedgerLine(m) : movimentacaoLine(m)).join('');
+  $('historico-list').innerHTML = historicoTabela(list);
+}
+
+// visão em tabela (O&M e Supply Chain), mesmo estilo da Visão geral
+function historicoTabela(list){
+  const rows = list.map(m=>{
+    let origem, movimento, cliente = '—';
+    if (m.__kind === 'ledger') {
+      const entrada = m.tipo_movimento === 'entrada';
+      origem = 'Elleven';
+      movimento = `<span class="badge ${entrada?'ok':'zero'}">${entrada?'+':'−'}${m.quantidade} ${m.unidade||''}</span><div class="tech-sub">${entrada?'Entrada':'Saída'}</div>`;
+      if (!entrada && m.cliente_nome) cliente = `${m.cliente_nome}${m.nf ? `<div class="tech-sub">NF ${m.nf}</div>` : ''}`;
+      else if (m.nf) cliente = `<div class="tech-sub">NF ${m.nf}</div>`;
+    } else {
+      origem = m.tipo === 'bolsao' ? 'Bolsão' : 'Elleven (saldo base)';
+      const cls = m.delta > 0 ? 'ok' : (m.delta < 0 ? 'zero' : '');
+      movimento = `<span class="badge ${cls}">${m.qtd_antes} → ${m.qtd_depois} (${m.delta > 0 ? '+' : ''}${m.delta})</span><div class="tech-sub">Atualização de planilha</div>`;
+    }
+    const data = fmtData(m.__kind === 'ledger' ? m.data_movimentacao : m.criado_em);
+    return `<tr>
+      <td style="white-space:nowrap">${data}</td>
+      <td>${m.nome_tecnico || ''}</td>
+      <td>${origem}</td>
+      <td>${m.descricao_material || ''}<div style="color:var(--text-muted);font-size:.68rem">${m.codigo_material || ''}</div></td>
+      <td>${movimento}</td>
+      <td>${cliente}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="tech-sub" style="margin:0 0 8px;">${list.length} movimentação(ões)</div>
+    <div class="tech" style="overflow-x:auto;"><table style="min-width:760px;">
+      <thead><tr><th>Data</th><th>Técnico</th><th>Origem</th><th>Material</th><th>Movimento</th><th>Cliente / NF</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
 }
 
 // ---------- GESTÃO DE TÉCNICOS (O&M) ----------
