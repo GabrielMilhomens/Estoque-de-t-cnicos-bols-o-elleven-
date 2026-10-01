@@ -203,7 +203,7 @@ td.num,th.num{text-align:right;}
         </label>
         <label style="margin-top:10px;">Data/hora deste retrato</label>
         <input type="datetime-local" id="baseline-data">
-        <div class="actions"><button class="btn" id="btn-up-baseline" disabled>Definir saldo base (substitui o saldo Elleven atual)</button></div>
+        <div class="actions"><button class="btn" id="btn-up-baseline" disabled>Definir saldo base (só dos técnicos deste arquivo)</button></div>
         <div class="hint" id="baseline-info">Carregando...</div>
         <div class="hint">Defina isso <b>uma única vez</b> — é o seu ponto de partida fixo. Depois disso, não precisa mais subir retrato nenhum: é só usar o card de movimentações abaixo, sempre. Só volte aqui se um dia precisar recalibrar do zero (isso substitui o saldo atual).</div>
       </div>
@@ -218,7 +218,7 @@ td.num,th.num{text-align:right;}
         <input type="date" id="elleven-data-inicio">
         <div class="actions"><button class="btn" id="btn-up-elleven" disabled>Importar movimentações</button></div>
         <div class="hint" id="last-elleven">Carregando...</div>
-        <div class="hint">O saldo do Elleven é calculado como entradas − saídas a partir da data-base do saldo base (definida pelo administrador). Linhas iguais ou anteriores à data-base, ou já importadas antes, são sempre ignoradas automaticamente — não corre risco de contar duas vezes.</div>
+        <div class="hint">O saldo do Elleven é calculado como entradas − saídas a partir da data-base <b>de cada técnico</b> (definida pelo administrador, logo acima). Técnicos sem data-base ainda não entram no cálculo. Linhas iguais ou anteriores à data-base do técnico, ou já importadas antes, são sempre ignoradas automaticamente.</div>
       </div>
       <div class="hint" id="hint-consolidar-geral">Cada botão atualiza só aquele tipo de estoque — o outro continua com os últimos valores publicados. Cada upload substitui o snapshot anterior daquele tipo (não soma com o anterior); técnicos/materiais que saírem do arquivo ficam zerados naquele tipo.</div>
       <div id="consolidar-result"></div>
@@ -253,7 +253,7 @@ td.num,th.num{text-align:right;}
         <input type="date" id="hist-ate" min="2026-01-01">
         <input type="text" id="hist-busca" placeholder="🔍 Buscar técnico, material, código, cliente ou NF...">
       </div>
-      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações posteriores ao retrato-base (saldo base do Elleven).</div>
+      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações posteriores à data-base de cada técnico.</div>
       <div id="historico-list"></div>
     </div>
 
@@ -303,7 +303,7 @@ td.num,th.num{text-align:right;}
         <input type="date" id="meuhist-ate" min="2026-01-01">
         <input type="text" id="meuhist-busca" placeholder="🔍 Buscar material, código ou cliente...">
       </div>
-      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações posteriores ao retrato-base (saldo base do V-Task).</div>
+      <div class="hint" style="margin:-6px 0 12px;">Mostrando apenas movimentações posteriores à sua data-base (se ainda não foi definida, nada do V-Task aparece aqui).</div>
       <div id="meu-historico"></div>
     </div>
   </div>
@@ -628,18 +628,39 @@ $('btn-up-baseline').onclick = async () => {
   if (!dataBaseInput) { alert('Informe a data/hora deste retrato.'); return; }
   const dataBaseIso = new Date(dataBaseInput).toISOString();
   await atualizarTipo('elleven', baselineData, 'btn-up-baseline', 'Elleven (saldo base)');
-  const { error } = await sb.from('saldo_base_elleven').upsert({ id: true, data_base: dataBaseIso, atualizado_em: new Date().toISOString() }, { onConflict: 'id' });
-  if (error) {
-    $('consolidar-result').innerHTML += `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Saldo atualizado, mas houve erro ao gravar a data-base: ${error.message}</div>`;
+
+  // essa data vale só para os técnicos que apareceram NESTE arquivo
+  const porCnpj = {};
+  baselineData.forEach(r => { if (r.cnpj) porCnpj[r.cnpj] = r.tecnico || porCnpj[r.cnpj]; });
+  const rows = Object.entries(porCnpj).map(([cnpj, nome]) => ({
+    cnpj, nome_referencia: nome, data_base: dataBaseIso, atualizado_em: new Date().toISOString()
+  }));
+  if (rows.length) {
+    const { error } = await sb.from('saldo_base_elleven').upsert(rows, { onConflict: 'cnpj' });
+    if (error) {
+      $('consolidar-result').innerHTML += `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Saldo atualizado, mas houve erro ao gravar a data-base: ${error.message}</div>`;
+    }
   }
   loadBaselineInfo();
 };
 
+// mapa cnpj -> data-base (um valor por técnico, não mais um só pra todos)
 async function loadBaselineInfo(){
-  const { data } = await sb.from('saldo_base_elleven').select('*').eq('id', true).maybeSingle();
-  window.__baselineDataBase = data ? data.data_base : null;
-  $('baseline-info').textContent = data ? `Data-base atual: ${fmtData(data.data_base)}` : 'Nenhuma data-base definida ainda — a próxima importação de movimentações vai considerar tudo, desde o início.';
-  return data ? data.data_base : null;
+  const { data, error } = await fetchAllRows('saldo_base_elleven', q => q.order('nome_referencia'));
+  const map = {};
+  (data||[]).forEach(r => { map[r.cnpj] = r.data_base; });
+  window.__baselineMap = map;
+  if ($('baseline-info')) {
+    if (error) {
+      $('baseline-info').textContent = `Erro ao carregar: ${error.message}`;
+    } else if (!data || !data.length) {
+      $('baseline-info').textContent = 'Nenhuma data-base definida ainda — enquanto isso, a importação de movimentações não processa ninguém (defina o saldo base de cada técnico conforme o inventário dele for feito).';
+    } else {
+      $('baseline-info').innerHTML = `<div class="tech-sub" style="margin-bottom:4px;">${data.length} técnico(s) com data-base definida:</div>` +
+        data.map(r => `<div class="tech-sub">${r.nome_referencia || r.cnpj}: <b>${fmtData(r.data_base)}</b></div>`).join('');
+    }
+  }
+  return map;
 }
 
 $('file-bolsao').addEventListener('change', e => {
@@ -809,22 +830,25 @@ async function importarMovimentacoesElleven(){
   btn.disabled = true;
   const original = btn.textContent;
 
-  const dataBase = await loadBaselineInfo(); // data-base do último retrato, se houver
+  const baselineMap = await loadBaselineInfo(); // cnpj -> data-base
   const dataInicioManual = $('elleven-data-inicio').value; // yyyy-mm-dd ou vazio
+  const corteManualMs = dataInicioManual ? new Date(dataInicioManual+'T00:00:00').getTime() : null;
 
-  let corteMs = null;
-  if (dataBase) corteMs = new Date(dataBase).getTime();
-  if (dataInicioManual) {
-    const corteManualMs = new Date(dataInicioManual+'T00:00:00').getTime();
-    if (corteMs === null || corteManualMs > corteMs) corteMs = corteManualMs; // manual só pode apertar mais, nunca afrouxar
-  }
+  let tecnicosSemBaseline = new Set();
+  let linhasParaProcessar = ellevenData.filter(r => {
+    if (!r.data_movimentacao) return false;
+    const baseIso = baselineMap[r.cnpj_tecnico];
+    if (!baseIso) { tecnicosSemBaseline.add(r.cnpj_tecnico); return false; } // inventário desse técnico ainda não foi feito
+    let corte = new Date(baseIso).getTime();
+    if (corteManualMs !== null && corteManualMs > corte) corte = corteManualMs; // manual só pode apertar mais, nunca afrouxar
+    return new Date(r.data_movimentacao).getTime() > corte;
+  });
 
-  let linhasParaProcessar = ellevenData;
-  if (corteMs !== null) {
-    linhasParaProcessar = ellevenData.filter(r => r.data_movimentacao && new Date(r.data_movimentacao).getTime() > corteMs);
-  }
   if (!linhasParaProcessar.length) {
-    $('consolidar-result').innerHTML = `<div class="msg-box">Nenhuma linha do arquivo é posterior à data-base${dataBase?` (${fmtData(dataBase)})`:''}. Nada para importar.</div>`;
+    const aviso = tecnicosSemBaseline.size
+      ? ` ${tecnicosSemBaseline.size} técnico(s) do arquivo ainda não têm saldo base definido — defina o saldo base deles primeiro, na seção acima.`
+      : '';
+    $('consolidar-result').innerHTML = `<div class="msg-box">Nada para importar.${aviso}</div>`;
     btn.disabled = false; btn.textContent = original;
     return;
   }
@@ -848,7 +872,10 @@ async function importarMovimentacoesElleven(){
     return;
   }
   if (!novasLinhas.length) {
-    $('consolidar-result').innerHTML = `<div class="msg-box">Nenhuma movimentação nova — esse arquivo já tinha sido importado antes.</div>`;
+    const avisoSkip = tecnicosSemBaseline.size
+      ? ` ${tecnicosSemBaseline.size} técnico(s) do arquivo foram ignorados por ainda não terem saldo base definido.`
+      : '';
+    $('consolidar-result').innerHTML = `<div class="msg-box">Nenhuma movimentação nova — esse arquivo já tinha sido importado antes.${avisoSkip}</div>`;
     btn.disabled = false; btn.textContent = original;
     await sb.from('metadados_estoque').upsert({ tipo:'elleven', atualizado_em: new Date().toISOString() }, { onConflict: 'tipo' });
     loadUltimasAtualizacoes();
@@ -903,7 +930,10 @@ async function importarMovimentacoesElleven(){
     $('consolidar-result').innerHTML = `<div class="msg-box" style="background:var(--danger-bg);color:var(--danger)">Erro ao atualizar saldo: ${erro2.message}</div>`;
     return;
   }
-  $('consolidar-result').innerHTML = `<div class="msg-box">✅ Elleven atualizado — ${novasLinhas.length} movimentação(ões) nova(s) importada(s), afetando ${upsertRows.length} combinação(ões) técnico×material.</div>`;
+  const avisoSkip = tecnicosSemBaseline.size
+    ? ` ${tecnicosSemBaseline.size} técnico(s) do arquivo foram ignorados por ainda não terem saldo base definido.`
+    : '';
+  $('consolidar-result').innerHTML = `<div class="msg-box">✅ Elleven atualizado — ${novasLinhas.length} movimentação(ões) nova(s) importada(s), afetando ${upsertRows.length} combinação(ões) técnico×material.${avisoSkip}</div>`;
   loadUltimasAtualizacoes();
 }
 
@@ -1047,10 +1077,10 @@ function eventoLedgerLine(m, ellevenLabel){
 }
 async function loadHistorico(){
   $('historico-list').innerHTML = '<div class="empty-state">Carregando...</div>';
-  const { data: baseRow } = await sb.from('saldo_base_elleven').select('data_base').eq('id', true).maybeSingle();
-  const CORTE = baseRow ? baseRow.data_base : '2026-01-01T00:00:00.000Z'; // piso: data do retrato-base, ou 2026 se ainda não houver
-  const deInformada = $('hist-de').value ? new Date($('hist-de').value+'T00:00:00').toISOString() : CORTE;
-  const de = deInformada < CORTE ? CORTE : deInformada; // nunca mostra igual ou anterior ao retrato-base
+  const baselineMap = await loadBaselineInfo(); // cnpj -> data-base (um valor por técnico)
+  const CORTE_GERAL = '2026-01-01T00:00:00.000Z';
+  const deInformada = $('hist-de').value ? new Date($('hist-de').value+'T00:00:00').toISOString() : CORTE_GERAL;
+  const de = deInformada < CORTE_GERAL ? CORTE_GERAL : deInformada;
   const ateInput = $('hist-ate').value ? new Date($('hist-ate').value+'T23:59:59').toISOString() : null;
 
   let diffQ = sb.from('movimentacoes').select('*').gt('criado_em', de).order('criado_em', {ascending:false}).limit(1000);
@@ -1059,9 +1089,14 @@ async function loadHistorico(){
 
   const [diffRes, ledgerRes] = await Promise.all([diffQ, ledgerQ]);
   if (diffRes.error || ledgerRes.error) { $('historico-list').innerHTML = `<div class="empty-state">Erro: ${(diffRes.error||ledgerRes.error).message}</div>`; return; }
+  // linhas do Elleven: só aparecem depois da data-base DAQUELE técnico específico
+  const ledgerFiltrado = (ledgerRes.data||[]).filter(m=>{
+    const base = baselineMap[m.cnpj_tecnico];
+    return base && new Date(m.data_movimentacao) > new Date(base);
+  });
   const merged = [
     ...(diffRes.data||[]).map(m=>({...m, __kind:'diff', __ts:m.criado_em})),
-    ...(ledgerRes.data||[]).map(m=>({...m, __kind:'ledger', __ts:m.data_movimentacao}))
+    ...ledgerFiltrado.map(m=>({...m, __kind:'ledger', __ts:m.data_movimentacao}))
   ].sort((a,b)=> new Date(b.__ts) - new Date(a.__ts));
   window.__historicoData = merged;
   renderHistorico();
@@ -1262,10 +1297,11 @@ function renderMeuLista(){
 }
 async function loadMinhasMovimentacoes(){
   $('meu-historico').innerHTML = '<div class="empty-state">Carregando...</div>';
-  const { data: baseRow } = await sb.from('saldo_base_elleven').select('data_base').eq('id', true).maybeSingle();
-  const CORTE = baseRow ? baseRow.data_base : '2026-01-01T00:00:00.000Z';
-  const deInformada = $('meuhist-de').value ? new Date($('meuhist-de').value+'T00:00:00').toISOString() : CORTE;
-  const de = deInformada < CORTE ? CORTE : deInformada; // nunca mostra igual ou anterior ao retrato-base
+  const baselineMap = await loadBaselineInfo();
+  const baseProprio = baselineMap[currentPerfil.cnpj] || null;
+  const CORTE_GERAL = '2026-01-01T00:00:00.000Z';
+  const deInformada = $('meuhist-de').value ? new Date($('meuhist-de').value+'T00:00:00').toISOString() : CORTE_GERAL;
+  const de = deInformada < CORTE_GERAL ? CORTE_GERAL : deInformada;
   const ateInput = $('meuhist-ate').value ? new Date($('meuhist-ate').value+'T23:59:59').toISOString() : null;
 
   let diffQ = sb.from('movimentacoes').select('*').eq('cnpj', currentPerfil.cnpj).gt('criado_em', de).order('criado_em', {ascending:false}).limit(1000);
@@ -1274,9 +1310,13 @@ async function loadMinhasMovimentacoes(){
 
   const [diffRes, ledgerRes] = await Promise.all([diffQ, ledgerQ]);
   if (diffRes.error || ledgerRes.error) { $('meu-historico').innerHTML = `<div class="empty-state">Erro: ${(diffRes.error||ledgerRes.error).message}</div>`; return; }
+  // linhas do Elleven só aparecem se já houver saldo base definido para este técnico
+  const ledgerFiltrado = baseProprio
+    ? (ledgerRes.data||[]).filter(m => new Date(m.data_movimentacao) > new Date(baseProprio))
+    : [];
   const merged = [
     ...(diffRes.data||[]).map(m=>({...m, __kind:'diff', __ts:m.criado_em})),
-    ...(ledgerRes.data||[]).map(m=>({...m, __kind:'ledger', __ts:m.data_movimentacao}))
+    ...ledgerFiltrado.map(m=>({...m, __kind:'ledger', __ts:m.data_movimentacao}))
   ].sort((a,b)=> new Date(b.__ts) - new Date(a.__ts));
   window.__minhasMovData = merged;
   renderMinhasMovimentacoes();
