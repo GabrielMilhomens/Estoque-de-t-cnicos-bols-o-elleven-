@@ -206,6 +206,15 @@ td.num,th.num{text-align:right;}
         <div class="actions"><button class="btn" id="btn-up-baseline" disabled>Definir saldo base (só dos técnicos deste arquivo)</button></div>
         <div class="hint" id="baseline-info">Carregando...</div>
         <div class="hint">Defina isso <b>uma única vez</b> — é o seu ponto de partida fixo. Depois disso, não precisa mais subir retrato nenhum: é só usar o card de movimentações abaixo, sempre. Só volte aqui se um dia precisar recalibrar do zero (isso substitui o saldo atual).</div>
+
+        <div style="border-top:1px solid var(--border);margin:14px 0;padding-top:14px;">
+          <label>Ajustar a data-base de um técnico específico (sem subir arquivo)</label>
+          <select id="baseline-tecnico-select"><option value="">Carregando técnicos...</option></select>
+          <input type="datetime-local" id="baseline-tecnico-data">
+          <div class="actions"><button class="btn secondary" id="btn-baseline-tecnico-salvar" disabled>Salvar data-base deste técnico</button></div>
+          <div class="hint">Isso só grava a data — não mexe no saldo do técnico. Use para corrigir uma data errada, ou para definir a data-base de alguém sem precisar subir um arquivo com o retrato dele.</div>
+          <div class="hint" id="baseline-tecnico-result"></div>
+        </div>
       </div>
 
       <div class="source-card" id="card-elleven">
@@ -535,7 +544,7 @@ function switchTab(id) {
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.textContent === labelFor(id)));
   document.querySelectorAll('.tabpane').forEach(p => p.classList.add('hidden'));
   show('tab-' + id);
-  if (id === 'consolidar') { loadUltimasAtualizacoes(); if (perm.baseline) loadBaselineInfo(); }
+  if (id === 'consolidar') { loadUltimasAtualizacoes(); if (perm.baseline) { loadBaselineInfo(); carregarListaTecnicosBaseline(); } }
   if (id === 'visao') loadVisaoGeral();
   if (id === 'historico') loadHistorico();
   if (id === 'gestao') loadGestao();
@@ -662,6 +671,50 @@ async function loadBaselineInfo(){
   }
   return map;
 }
+
+// seletor de técnico para ajustar a data-base diretamente, sem subir arquivo
+async function carregarListaTecnicosBaseline(){
+  const sel = $('baseline-tecnico-select');
+  const { data, error } = await fetchAllRows('estoque', q => q.select('cnpj,nome_tecnico'));
+  if (error) { sel.innerHTML = '<option value="">Erro ao carregar técnicos</option>'; return; }
+  const porCnpj = {};
+  (data||[]).forEach(r => { if (r.cnpj) porCnpj[r.cnpj] = r.nome_tecnico || porCnpj[r.cnpj] || r.cnpj; });
+  const lista = Object.entries(porCnpj).sort((a,b)=>(a[1]||'').localeCompare(b[1]||''));
+  sel.innerHTML = '<option value="">Selecione um técnico...</option>' +
+    lista.map(([cnpj,nome]) => `<option value="${cnpj}">${nome}</option>`).join('');
+}
+$('baseline-tecnico-select').onchange = () => {
+  const cnpj = $('baseline-tecnico-select').value;
+  $('btn-baseline-tecnico-salvar').disabled = !cnpj;
+  const atual = cnpj ? (window.__baselineMap || {})[cnpj] : null;
+  if (atual) {
+    const d = new Date(atual);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    $('baseline-tecnico-data').value = d.toISOString().slice(0,16);
+  } else {
+    $('baseline-tecnico-data').value = '';
+  }
+  $('baseline-tecnico-result').textContent = '';
+};
+$('btn-baseline-tecnico-salvar').onclick = async () => {
+  if (!perm.baseline) { alert('Somente o administrador pode alterar o saldo base do Elleven.'); return; }
+  const cnpj = $('baseline-tecnico-select').value;
+  const nome = $('baseline-tecnico-select').selectedOptions[0]?.textContent || cnpj;
+  const dataInput = $('baseline-tecnico-data').value;
+  if (!cnpj) return;
+  if (!dataInput) { $('baseline-tecnico-result').textContent = 'Informe a data/hora.'; return; }
+  const btn = $('btn-baseline-tecnico-salvar');
+  btn.disabled = true; const original = btn.textContent; btn.textContent = 'Salvando...';
+  const { error } = await sb.from('saldo_base_elleven').upsert(
+    { cnpj, nome_referencia: nome, data_base: new Date(dataInput).toISOString(), atualizado_em: new Date().toISOString() },
+    { onConflict: 'cnpj' }
+  );
+  btn.disabled = false; btn.textContent = original;
+  $('baseline-tecnico-result').innerHTML = error
+    ? `<span style="color:var(--danger)">Erro: ${error.message}</span>`
+    : `<span style="color:var(--nt-green-dark)">✅ Data-base de ${nome} salva.</span>`;
+  if (!error) loadBaselineInfo();
+};
 
 $('file-bolsao').addEventListener('change', e => {
   const f = e.target.files[0]; if(!f) return;
