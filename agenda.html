@@ -539,7 +539,11 @@ let S={previsao:[],comp:{},ags:[],lpus:[],anexos:[],anexosLog:[],estoque:{}};
 function save(){agendarSync()}
 const ui={perfil:'coord',tab:'painel',tec:'c1',campoSel:null,cF:'hoje',agSel:null,fTab:'proj',q:'',agForm:{},agDia:hoje(),agFase:'all',baseQ:'',pIni:addD(hoje(),-14),pFim:addD(hoje(),7),aTab:'aguardando',pGrp:'cidade',agView:'semana',agTec:'all',kQ:'',kCid:'',vQ:'',vCid:'',vOrd:'entrega',sMes:hoje().slice(0,8)+'01',sDia:hoje(),aOpen:null,mTab:'aguardando',mIni:addD(hoje(),-30),mFim:hoje(),draft:{}};
 const getAg=id=>S.ags.find(a=>a.id===id);
-const realDias=(e,f)=>new Set(S.ags.filter(a=>a.etiqueta===e&&fasesOf(a).includes(f)&&a.status==='concluida').map(a=>a.data)).size;
+// Dias de execução: datas distintas em que uma atividade foi iniciada (ts.inicio).
+// Várias fases ou atividades no mesmo dia contam como 1 dia.
+const diaExec=a=>a.ts&&a.ts.inicio?isoD(new Date(a.ts.inicio)):null;
+const diasExec=(e,filtro)=>new Set(S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&diaExec(a)&&(!filtro||filtro(a))).map(diaExec)).size;
+const realDias=(e,f)=>diasExec(e,a=>fasesOf(a).includes(f));
 const faseFim=(e,f)=>S.ags.filter(a=>a.etiqueta===e&&a.ts&&a.ts.conclusao&&!['nao_concluida','cancelada'].includes(a.status)&&(a.fasesFin||[]).includes(f)).sort((a,b)=>a.ts.conclusao-b.ts.conclusao)[0]||null;
 const pPor=e=>S.previsao.find(x=>x.etiqueta===e)||{};
 const fasesReq=p=>FASES.filter(f=>f.k!=='ativ'&&!(f.k==='ext'&&p.semExt));
@@ -554,7 +558,13 @@ function faseFlags(p,gestao){const L=FASES.filter(f=>!(f.k==='ext'&&p.semExt)).m
     const ab=S.ags.find(a=>a.etiqueta===p.etiqueta&&fasesOf(a).includes(f.k)&&!FIM.includes(a.status)&&a.status!=='cancelada');
     return gestao?`<div class="ff"><b>${f.n}</b><span>${ab?`${ST[ab.status][0]} para ${dBR(ab.data)}, ${esc(tecN(ab.tec))}`:'Pendente'}</span></div>`:''}).join('');
   return gestao?`<div class="ffs">${L}</div>`:(L?`<div class="kmeta">${L}</div>`:'')}
-function progLabel(e){const k=etapa(pPor(e));return k==='entregue'?'<span class="chip ok">Ativado</span>':k==='backlog'?'<span class="chip">Sem início</span>':(k==='ativ'&&liberado(pPor(e))?'<span class="chip go">Liberado para ativar</span>':`<span class="chip info">Em ${faseN(k).toLowerCase()}</span>`)}
+const FSTATUS={rua:'lançamento rua',interno:'lançamento interno',ext:'extensão de sinal',ativ:'ativação'};
+function progLabel(e){const p=pPor(e);if(faseFim(e,'ativ'))return '<span class="chip ok">Entregue</span>';
+  const emExec=S.ags.filter(a=>a.etiqueta===e&&['deslocamento','no_local','execucao'].includes(a.status));
+  if(emExec.length){const fz=FASES.map(f=>f.k).filter(k=>emExec.some(a=>fasesOf(a).includes(k))&&!faseFim(e,k));const lista=fz.map(k=>FSTATUS[k]);
+    return `<span class="chip info">Em ${lista.length>1?lista.slice(0,-1).join(', ')+' e '+lista[lista.length-1]:lista[0]||'execução'}</span>`}
+  const falta=FASES.filter(f=>!(f.k==='ext'&&p.semExt)&&!faseFim(e,f.k)).map(f=>FSTATUS[f.k]);
+  return `<span class="chip ${falta.length===1&&liberado(p)?'go':'warn'}" style="white-space:normal">Falta${falta.length>1?'m':''}: ${falta.join(', ')}</span>`}
 function nextFase(e){const p=pPor(e);const f=FASES.filter(f=>!(f.k==='ext'&&p.semExt)).find(f=>!faseFim(e,f.k));return f?f.k:'ativ'}
 const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',usuarios:'Usuários e acessos',estoque:'Estoque dos técnicos',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
 
@@ -593,7 +603,7 @@ function viewPainel(){
   const ent=S.previsao.map(p=>({p,f:faseFim(p.etiqueta,'ativ')})).filter(x=>x.f&&x.f.data>=ui.pIni&&x.f.data<=ui.pFim);
   const topo={};ent.forEach(({p})=>{const t=p.topologia||'—';topo[t]=topo[t]||{n:0,v:0};topo[t].n++;topo[t].v+=+p.valor||0});
   const agsE=e=>S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada'),ia=a=>fasesOf(a).some(k=>k==='interno'||k==='ativ');
-  const efi=ent.map(({p,f})=>({p,f,tot:agsE(p.etiqueta).length,ia:agsE(p.etiqueta).filter(ia).length}));
+  const efi=ent.map(({p,f})=>({p,f,tot:diasExec(p.etiqueta),ia:diasExec(p.etiqueta,ia)}));
   const mTot=efi.length?(efi.reduce((s,x)=>s+x.tot,0)/efi.length):null,mIA=efi.length?(efi.reduce((s,x)=>s+x.ia,0)/efi.length):null;
   const f1=v=>v==null?'—':v.toFixed(1).replace('.',',');
   const dias=[];for(let d=ui.pIni;d<=ui.pFim&&dias.length<62;d=addD(d,1))dias.push(d);
@@ -606,7 +616,7 @@ function viewPainel(){
   <div class="toolbar"><div><h2>Painel de KPIs</h2><p class="muted">Indicadores calculados a partir dos registros dos técnicos.</p></div>
    <div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="pIni" value="${ui.pIni}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="pFim" value="${ui.pFim}"></label></div></div>
   <div class="kpis">${kp(ags.length,'Atividades agendadas')}${kp(noDia.length,'Concluídas no dia','ok')}${kp(pct(noDia.length,venc.length)+'%','Conclusão no dia (até hoje)','ok')}${kp(conc.length-noDia.length,'Concluídas fora do dia','warn')}${kp(nao.length,`Não concluídas (${reag.length} reagendadas)`,'bad')}${kp(atras.length,'Em atraso, sem registro','warn')}${kp(canc,'Canceladas')}</div>
-  <div class="kpis">${kp(ent.length,'Circuitos entregues','ok')}${kp(brl(ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(f1(mTot),'Agendamentos por circuito (todas as fases)')}${kp(f1(mIA),'Agendamentos por circuito (interno + ativação)')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
+  <div class="kpis">${kp(ent.length,'Circuitos entregues','ok')}${kp(brl(ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(f1(mTot),'Dias de execução por circuito (todas as fases)')}${kp(f1(mIA),'Dias de execução por circuito (interno + ativação)')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
   <div class="kpis">${kp(fdur(media(ags,a=>dur(a.ts.desloc,a.ts.chegada))),'Deslocamento médio')}${kp(pct(noEta.length,comEta.length)+'%','Chegadas dentro da previsão')}${kp(fdur(media(ags,a=>dur(a.ts.chegada,a.ts.inicio))),'Espera média no local')}${kp(fdur(media(conc,a=>dur(a.ts.inicio,a.ts.conclusao))),'Execução média')}${kp(fdur(media(conc,a=>dur(a.ts.conclusao,a.ts.encerramento))),'Tempo médio de relatório')}</div>
   <div class="grid2 even">
    <section class="panel"><div class="secth"><h3>Motivos de não conclusão</h3></div>${motH}</section>
@@ -622,7 +632,7 @@ function viewPainel(){
    <div class="dbars">${porDia.map(x=>`<div class="db1 ${x.d===hoje()?'hj':''}" title="${dBR(x.d)}: ${x.n} agendado(s), ${x.c} concluído(s)"><span class="dn">${x.n||''}</span><div class="dbw"><i style="height:${x.n/mxD*100}%"><b style="height:${x.n?x.c/x.n*100:0}%"></b></i></div><small>${dBR(x.d).slice(0,5)}</small><small class="ds">${DSEM[new Date(x.d+'T12:00:00').getDay()]}</small></div>`).join('')}</div></section>
   <div class="grid2 even">
    <section><div class="secth"><h3>Entregas por topologia</h3></div><div class="tablewrap"><table><thead><tr><th>Topologia</th><th class="r">Circuitos</th><th class="r">Valor mensal</th></tr></thead><tbody>${Object.entries(topo).sort((a,b)=>b[1].n-a[1].n).map(([t,x])=>`<tr><td>${esc(t)}</td><td class="r">${x.n}</td><td class="r">${brl(x.v)}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
-   <section><div class="secth"><h3>Agendamentos para entregar cada circuito</h3></div><div class="tablewrap"><table><thead><tr><th>Circuito</th><th>Entregue em</th><th class="r">Todas as fases</th><th class="r">Interno + ativação</th></tr></thead><tbody>${efi.map(x=>`<tr><td><b>${esc(x.p.etiqueta)}</b><br><small class="muted">${esc(x.p.cliente)}</small></td><td>${dBR(x.f.data)}</td><td class="r">${x.tot}</td><td class="r">${x.ia}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nenhuma entrega no período.</td></tr>'}${efi.length?`<tr><td colspan="2"><b>Média</b></td><td class="r"><b>${f1(mTot)}</b></td><td class="r"><b>${f1(mIA)}</b></td></tr>`:''}</tbody></table></div></section>
+   <section><div class="secth"><h3>Dias de execução para entregar cada circuito</h3><span class="muted">Dias em que houve atividade iniciada. Fases feitas no mesmo dia contam 1 dia.</span></div><div class="tablewrap"><table><thead><tr><th>Circuito</th><th>Entregue em</th><th class="r">Todas as fases</th><th class="r">Interno + ativação</th></tr></thead><tbody>${efi.map(x=>`<tr><td><b>${esc(x.p.etiqueta)}</b><br><small class="muted">${esc(x.p.cliente)}</small></td><td>${dBR(x.f.data)}</td><td class="r">${x.tot}</td><td class="r">${x.ia}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nenhuma entrega no período.</td></tr>'}${efi.length?`<tr><td colspan="2"><b>Média</b></td><td class="r"><b>${f1(mTot)}</b></td><td class="r"><b>${f1(mIA)}</b></td></tr>`:''}</tbody></table></div></section>
   </div>
   <section><div class="secth"><h3>Mão de obra de terceiros: ROI x LPU executada</h3><span class="muted">Projetos com LPU no período, sem as reprovadas</span></div><div class="tablewrap"><table><thead><tr><th>Projeto</th><th>Terceiro</th><th class="r">Mão de obra no ROI</th><th class="r">LPU aprovada</th><th class="r">LPU pendente</th><th class="r">LPU total</th><th class="r">Diferença</th></tr></thead><tbody>${moRows.map(r=>{const d=r.roi==null?null:r.tot-r.roi;return `<tr><td><b>${esc(r.e)}</b><br><small class="muted">${esc(r.p.cliente||'')}</small></td><td>${esc(r.tecs)}</td><td class="r">${r.roi==null?'<span class="muted">Sem ROI</span>':brl(r.roi)}</td><td class="r">${brl(r.ap)}</td><td class="r">${brl(r.pe)}</td><td class="r"><b>${brl(r.tot)}</b></td><td class="r">${d==null?'—':`<b style="color:${d>0?'var(--bad)':'var(--brand-ink)'}">${d>0?'+':''}${brl(d)}</b><br><small class="muted">${r.roi?(d/r.roi*100).toFixed(0)+'%':''}</small>`}</td></tr>`}).join('')||'<tr><td colspan="7" class="muted">Nenhuma LPU no período.</td></tr>'}${moRows.length?`<tr><td colspan="2"><b>Total</b></td><td class="r"><b>${brl(moT.roi)}</b></td><td colspan="2"></td><td class="r"><b>${brl(moT.tot)}</b></td><td class="r"><b>${brl(moT.tot-moT.roi)}</b></td></tr>`:''}</tbody></table></div></section>
   <section><div class="secth"><h3>Previsto x realizado por projeto</h3><span class="muted">Dias realizados / dias previstos em cada fase</span></div><div class="tablewrap"><table><thead><tr><th>Etiqueta</th><th>Cliente</th>${FASES.map(f=>`<th class="r">${f.n}</th>`).join('')}<th>Status</th></tr></thead><tbody>${prR||'<tr><td colspan="7">Nenhum projeto com atividade.</td></tr>'}</tbody></table></div></section>
@@ -659,9 +669,9 @@ function previsao(p){
     const resta=Math.max(1,pv-realDias(p.etiqueta,f.k));
     if(ab){const ini=ab.data<T?T:ab.data,fim=addUteis(ini,resta-1);out[f.k]={tipo:ab.data<T?'atr':'ag',ini:ab.data,fim,pv,tec:ab.tec};cur=fim>cur?fim:cur;continue}
     if(!pv&&f.k!=='ativ'){out[f.k]={tipo:'sem'};continue}
-    const ini=addUteis(cur,1),fim=addUteis(ini,resta-1);out[f.k]={tipo:'prev',ini,fim,pv};cur=fim;
+    out[f.k]={tipo:'prev',pv};
   }
-  out.entrega=out.ativ.tipo==='ok'?out.ativ.fim:out.ativ.fim;out.entregue=out.ativ.tipo==='ok';
+  out.entregue=out.ativ.tipo==='ok';out.entrega=['ok','ag','atr'].includes(out.ativ.tipo)?out.ativ.fim:null;
   return out;
 }
 function prevCell(c){const per=(a,b)=>a===b?dBR(a).slice(0,5):`${dBR(a).slice(0,5)} a ${dBR(b).slice(0,5)}`;
@@ -671,19 +681,19 @@ function prevCell(c){const per=(a,b)=>a===b?dBR(a).slice(0,5):`${dBR(a).slice(0,
     case 'ok':return `<div class="pc ok"><b>✓ ${dBR(c.fim).slice(0,5)}</b><small>${c.real} / ${c.pv} dias, ${esc(tecN(c.tec))}</small></div>`;
     case 'ag':return `<div class="pc"><b>${per(c.ini,c.fim)}</b><small>agendada, ${c.pv} dia(s), ${esc(tecN(c.tec))}</small></div>`;
     case 'atr':return `<div class="pc warn"><b>${per(c.ini,c.fim)}</b><small>atrasada desde ${dBR(c.ini).slice(0,5)}</small></div>`;
-    default:return `<div class="pc"><b>${per(c.ini,c.fim)}</b><small>previsão, ${c.pv||1} dia(s)</small></div>`}}
+    default:return `<div class="pc na"><b>Sem agendamento</b><small>previsão de ${c.pv||1} dia(s)</small></div>`}}
 function viewPrev(){
   const q=ui.vQ.toLowerCase(),cids=[...new Set(S.previsao.map(p=>p.cidade).filter(Boolean))].sort();
   let L=S.previsao.filter(p=>p.etiqueta&&(!q||[p.etiqueta,p.protocolo,p.cliente].join(' ').toLowerCase().includes(q))&&(!ui.vCid||p.cidade===ui.vCid)).map(p=>({p,v:previsao(p)}));
-  if(ui.vOrd==='entrega')L.sort((a,b)=>(a.v.entregue-b.v.entregue)||a.v.entrega.localeCompare(b.v.entrega));else if(ui.vOrd==='valor')L.sort((a,b)=>(+b.p.valor||0)-(+a.p.valor||0));else L.sort((a,b)=>a.p.cliente.localeCompare(b.p.cliente));
-  const T=hoje(),mes=T.slice(0,7),abertos=L.filter(x=>!x.v.entregue),noMes=abertos.filter(x=>x.v.entrega.slice(0,7)===mes);
+  if(ui.vOrd==='entrega')L.sort((a,b)=>(a.v.entregue-b.v.entregue)||((!a.v.entrega)-(!b.v.entrega))||(a.v.entrega||'').localeCompare(b.v.entrega||''));else if(ui.vOrd==='valor')L.sort((a,b)=>(+b.p.valor||0)-(+a.p.valor||0));else L.sort((a,b)=>a.p.cliente.localeCompare(b.p.cliente));
+  const T=hoje(),mes=T.slice(0,7),abertos=L.filter(x=>!x.v.entregue),noMes=abertos.filter(x=>x.v.entrega&&x.v.entrega.slice(0,7)===mes);
   const soma=a=>a.reduce((s,x)=>s+(+x.p.valor||0),0);
-  return `<div class="toolbar"><div><h2>Previsão dos projetos</h2><p class="muted">Datas calculadas em dias úteis a partir da previsão de dias de cada fase, dos agendamentos e das fases já finalizadas.</p></div>
+  return `<div class="toolbar"><div><h2>Previsão dos projetos</h2><p class="muted">As datas aparecem só para fases agendadas ou finalizadas. Fases sem agendamento mostram os dias previstos na base.</p></div>
    <div class="tools"><input class="inp" type="search" id="vQ" placeholder="Buscar etiqueta, protocolo ou cliente" data-in="vQ" value="${esc(ui.vQ)}"><select class="inp" data-ch="vCid"><option value="">Todas as cidades</option>${cids.map(c=>`<option ${c===ui.vCid?'selected':''}>${esc(c)}</option>`).join('')}</select>
    <select class="inp" data-ch="vOrd"><option value="entrega" ${ui.vOrd==='entrega'?'selected':''}>Ordenar por previsão de entrega</option><option value="valor" ${ui.vOrd==='valor'?'selected':''}>Ordenar por valor</option><option value="nome" ${ui.vOrd==='nome'?'selected':''}>Ordenar por nome</option></select></div></div>
    <div class="kpis" style="margin-bottom:14px"><div class="kpi"><b>${abertos.length}</b><span>Projetos em aberto (${brl(soma(abertos))} mensais)</span></div><div class="kpi ok"><b>${noMes.length}</b><span>Entregas previstas neste mês (${brl(soma(noMes))} mensais)</span></div><div class="kpi warn"><b>${abertos.filter(x=>Object.values(x.v).some(c=>c&&c.tipo==='atr')).length}</b><span>Com fase atrasada</span></div></div>
    <div class="tablewrap"><table class="prevt"><thead><tr><th>Protocolo</th><th>Etiqueta</th><th>Cliente</th><th>Cidade</th><th class="r">Valor mensal</th>${FASES.map(f=>`<th>${f.k==='rua'?'Lançamento externo':f.n}</th>`).join('')}<th>Previsão de entrega</th></tr></thead>
-   <tbody>${L.map(({p,v})=>`<tr><td>${esc(p.protocolo)}</td><td><b>${esc(p.etiqueta)}</b></td><td>${esc(p.cliente)}</td><td>${esc(p.cidade||'—')}</td><td class="r">${brl(p.valor)}</td>${FASES.map(f=>`<td>${prevCell(v[f.k])}</td>`).join('')}<td>${v.entregue?`<span class="chip ok">Entregue ${dBR(v.entrega).slice(0,5)}</span>`:`<b>${dBR(v.entrega)}</b>${v.entrega.slice(0,7)===mes?'<br><span class="chip ok">neste mês</span>':''}`}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">Nenhum projeto encontrado.</td></tr>'}</tbody></table></div>`;
+   <tbody>${L.map(({p,v})=>`<tr><td>${esc(p.protocolo)}</td><td><b>${esc(p.etiqueta)}</b></td><td>${esc(p.cliente)}</td><td>${esc(p.cidade||'—')}</td><td class="r">${brl(p.valor)}</td>${FASES.map(f=>`<td>${prevCell(v[f.k])}</td>`).join('')}<td>${v.entregue?`<span class="chip ok">Entregue ${dBR(v.entrega).slice(0,5)}</span>`:(v.entrega?`<b>${dBR(v.entrega)}</b>${v.entrega.slice(0,7)===mes?'<br><span class="chip ok">neste mês</span>':''}`:'<span class="muted">Ativação sem agendamento</span>')}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">Nenhum projeto encontrado.</td></tr>'}</tbody></table></div>`;
 }
 
 /* ---------- SIMULAÇÃO DE ENTREGA ---------- */
@@ -730,7 +740,7 @@ function viewKanban(){
     const flg=k==='backlog'?'':FASES.filter(f=>!(f.k==='ext'&&p.semExt)).map(f=>{const fin=faseFim(p.etiqueta,f.k);return fin?`<small>✓ ${FCURTO[f.k]}: ${esc(tecN(fin.tec))}</small>`:''}).join('');
     if(k==='backlog'){const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);falta.forEach(t=>meta.push(`<span class="chip warn">${t}</span>`));linha=falta.length?'Cadastro incompleto':'Pronto para agendar'}
     else if(k==='entregue'){const a=faseFim(p.etiqueta,'ativ');linha=`Ativado em ${dBR(a.data)} por ${tecN(a.tec)}`;
-      const tot=fasesAplic(p).reduce((s,f)=>s+realDias(p.etiqueta,f.k),0),prev=fasesAplic(p).reduce((s,f)=>s+(+p[f.p]||0),0);meta.push(`<span class="chip ${tot>prev?'bad':'ok'}">${tot} / ${prev} dias de campo</span>`)}
+      const tot=diasExec(p.etiqueta),prev=fasesAplic(p).reduce((s,f)=>s+(+p[f.p]||0),0);meta.push(`<span class="chip ${tot>prev?'bad':'ok'}">${tot} / ${prev} dias de campo</span>`)}
     else{const f=FASES.find(f=>f.k===k),r=realDias(p.etiqueta,k),pv=+p[f.p]||0,ab=x.filter(a=>fasesOf(a).includes(k)&&!FIM.includes(a.status)).sort((a,b)=>a.data.localeCompare(b.data))[0];
       linha=ab?`${ST[ab.status][0]}: ${dBR(ab.data)}, ${tecN(ab.tec)}`:'Aguardando agendamento';
       meta.push(`<span class="chip ${r>pv?'bad':''}">${r} / ${pv} dias</span>`);if(r>pv)meta.push('<span class="chip bad">Acima do previsto</span>');if(ab&&ab.data<hoje())meta.push('<span class="chip warn">Atrasada</span>');if(k==='ativ'&&liberado(p))meta.unshift('<span class="chip go">Liberado para ativar</span>')}
@@ -1383,7 +1393,7 @@ async function carregar(){
     const ids=pap.map(x=>x.user_id);const pf=ids.length?await todas(()=>sb.from('perfis').select('id,nome,cnpj').in('id',ids)):[];
     pf.forEach(x=>{const pp=pap.find(y=>y.user_id===x.id);TEC.push({id:x.id,nome:x.nome,tipo:pp.vinculo==='terceiro'?'TERC':'CLT',doc:x.cnpj||''})});TEC.sort((a,b)=>a.nome.localeCompare(b.nome))}
   else TEC.push({id:ME.id,nome:ME.nome,tipo:ME.vinculo==='terceiro'?'TERC':'CLT',doc:ME.cnpj||''});
-  const [pr,co,ag,lp,an,lg]=await Promise.all([todas(()=>sb.from('ag_projetos').select('*')),todas(()=>sb.from('ag_complementos').select('*')),todas(()=>sb.from('ag_agendamentos').select('*')),todas(()=>sb.from('ag_lpus').select('*')),todas(()=>sb.from('ag_anexos').select('*')),g?todas(()=>sb.from('ag_anexos_log').select('*')):Promise.resolve([])]);
+  const [pr,co,ag,lp,an,lg]=await Promise.all([(g?todas(()=>sb.from('ag_projetos').select('*')):sb.rpc('ag_projetos_tecnico').then(r=>{if(r.error)throw r.error;return r.data||[]})),todas(()=>sb.from('ag_complementos').select('*')),todas(()=>sb.from('ag_agendamentos').select('*')),todas(()=>sb.from('ag_lpus').select('*')),todas(()=>sb.from('ag_anexos').select('*')),g?todas(()=>sb.from('ag_anexos_log').select('*')):Promise.resolve([])]);
   S.previsao=pr.map(r=>Object.assign({id:r.id,etiqueta:r.etiqueta},r.dados));
   S.comp={};co.forEach(r=>S.comp[r.etiqueta]=r.dados||{});
   S.ags=ag.map(r=>Object.assign({},r.dados,{id:r.id,etiqueta:r.etiqueta,tec:r.tecnico,data:r.data,status:r.status,fases:r.fases,fase:(r.fases||[])[0]}));
