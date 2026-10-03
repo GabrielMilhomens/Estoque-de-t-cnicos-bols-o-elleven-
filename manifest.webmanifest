@@ -4,7 +4,7 @@
   "start_url": "agenda.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#131814",
+  "background_color": "#FFFFFF",
   "theme_color": "#8CBF3F",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
