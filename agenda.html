@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Agenda de Implantação | Net Turbo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#8CBF3F">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
@@ -570,12 +574,12 @@ const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Bac
 
 function render(){
   const P=PERFIS[ui.perfil];if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0];
-  $('whoBox').innerHTML=`<b>${esc(ME.nome)}</b>${PERFIS[ui.perfil].n}<div class="wbt"><button class="link" data-act="chPass">Alterar senha</button><button class="link" data-act="logout">Sair</button></div>`;
+  $('whoBox').innerHTML=`<b>${esc(ME.nome)}</b>${PERFIS[ui.perfil].n}<div class="wbt"><button class="link" data-act="chPass">Alterar senha</button><button class="link" data-act="logout">Sair</button></div>${pushOk()&&Notification.permission==='granted'?'<div class="wbt"><button class="link" data-act="pushTeste">Testar notificação</button></div>':''}`;
   const ORD=['painel','agenda','estoque','base','prev','sim','kanban','aprov','campo','minhas','usuarios'],GRP={usuarios:'Administração',painel:'Acompanhamento',agenda:'Operação',estoque:'Operação',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;return n?`<span class="nbadge">${n}</span>`:''};
   let g='',h='';ORD.filter(t=>P.tabs.includes(t)).forEach(t=>{if(GRP[t]!==g){g=GRP[t];h+=`<div class="ngrp">${g}</div>`}h+=`<button data-act="tab" data-t="${t}" aria-current="${t===ui.tab}"><span>${tabLabel(t)}</span>${badge(t)}</button>`});
   $('tabs').innerHTML=h;$('mTitle').textContent=tabLabel(ui.tab);
-  $('app').innerHTML=({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,usuarios:viewUsuarios,estoque:viewEstoque,sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
+  $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,usuarios:viewUsuarios,estoque:viewEstoque,sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
   if(ui.tab==='agenda')renderSug();
 }
 
@@ -1355,6 +1359,28 @@ const IN={
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(el&&ACT[el.dataset.act]){e.preventDefault();ACT[el.dataset.act](el,e)}});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-ch]');if(el&&CH[el.dataset.ch])CH[el.dataset.ch](el,e)});
 document.addEventListener('input',e=>{const el=e.target.closest('[data-in]');if(el&&IN[el.dataset.in])IN[el.dataset.in](el,e)});
+/* ---------- NOTIFICAÇÕES ---------- */
+const VAPID_PUB='BEUnalAZmw-HQWncPMlsHxIylqCcunl_hRfkm9fpQ6pbR-rGFm9K3LPXamQIEJJtsPpwDZ0MB8c1qEq0AeXBtP8';
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+const pushOk=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+const ehIOS=/iphone|ipad|ipod/i.test(navigator.userAgent),appInstalado=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+const b64u8=b=>{const p='='.repeat((4-b.length%4)%4),r=atob((b+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))};
+function pushBanner(){if(!ME||ui.pushFechado)return '';const g=['coord','sup','enc'].includes(ui.perfil);if(ui.perfil==='coord'||ui.perfil==='sup')return '';
+  const fechar='<button class="link" data-act="pushFechar" style="margin-left:8px">Agora não</button>';
+  if(ehIOS&&!appInstalado)return `<div class="note" style="margin-bottom:12px"><b>Receba avisos das suas atividades.</b> No iPhone, toque em Compartilhar e depois em "Adicionar à Tela de Início". Abra a agenda pelo ícone criado e ative as notificações.${fechar}</div>`;
+  if(!pushOk())return '';
+  if(Notification.permission==='denied')return `<div class="note" style="margin-bottom:12px">As notificações estão bloqueadas neste navegador. Libere nas configurações do site para receber os avisos${g?' de técnicos sem resposta':' das atividades'}.${fechar}</div>`;
+  if(Notification.permission==='granted')return '';
+  return `<div class="note" style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:200px"><b>Ative as notificações</b> para ${g?'saber quando um técnico não atualizar a atividade':'receber os avisos das suas atividades'}.</span><button class="btn sm primary" data-act="pushOn">Ativar notificações</button>${fechar}</div>`}
+async function assinarPush(){const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();
+  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u8(VAPID_PUB)});
+  const j=sub.toJSON(),r=await sb.rpc('ag_registrar_push',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent.slice(0,200)});if(r.error)throw r.error}
+Object.assign(ACT,{
+  pushOn:async()=>{try{const p=await Notification.requestPermission();if(p!=='granted'){render();toast('As notificações não foram autorizadas.','bad');return}await assinarPush();render();toast('Notificações ativadas neste aparelho.')}catch(e){toast('Não foi possível ativar: '+(e.message||e),'bad')}},
+  pushFechar:()=>{ui.pushFechado=true;render()},
+  pushTeste:async()=>{try{await assinarPush();const r=await sb.functions.invoke('agenda-lembretes',{body:{teste:true}});if(r.error)throw r.error;toast(r.data&&r.data.enviados?'Notificação de teste enviada.':'Nenhum aparelho registrado para receber.',r.data&&r.data.enviados?'':'bad')}catch(e){toast('Falha no teste: '+(e.message||e),'bad')}}
+});
+
 /* =====================================================================
    PRODUÇÃO: Supabase (login, dados, arquivos)
    ===================================================================== */
@@ -1450,7 +1476,10 @@ async function checarSessao(){if(NP_OPEN)return;
   ME={id:session.user.id,nome:pf.nome,cnpj:pf.cnpj,papel:pp.papel,vinculo:pp.vinculo};
   ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',tecnico:pp.vinculo==='terceiro'?'terc':'clt'}[pp.papel];ui.tab=PERFIS[ui.perfil].tabs[0];ui.tec=ME.id;
   try{await carregar()}catch(e){$('loadMsg').textContent='Erro ao carregar os dados: '+(e.message||e);return}
-  BOOT_UID=session.user.id;document.body.classList.add('app-on');render();ligarTempoReal();
+  BOOT_UID=session.user.id;document.body.classList.add('app-on');
+  const agLink=new URLSearchParams(location.search).get('ag');if(agLink){history.replaceState(null,'',location.pathname);const a=getAg(agLink);if(a){if(['clt','terc'].includes(ui.perfil)){ui.tab='campo';ui.campoSel=a.id}else ui.tab='agenda'}}
+  render();ligarTempoReal();if(agLink&&getAg(agLink)&&!['clt','terc'].includes(ui.perfil))ACT.agOpen({dataset:{id:agLink}});
+  if(pushOk()&&Notification.permission==='granted')assinarPush().catch(()=>{});
 }
 function ligarTempoReal(){if(RT)sb.removeChannel(RT);let t;const rec=()=>{clearTimeout(t);t=setTimeout(async()=>{if(SYNC_PEND||$('modal').classList.contains('open'))return;await SYNC_P;try{await carregar();render()}catch(e){}},800)};
   RT=sb.channel('agenda').on('postgres_changes',{event:'*',schema:'public',table:'ag_agendamentos'},rec).on('postgres_changes',{event:'*',schema:'public',table:'ag_lpus'},rec).subscribe()}
