@@ -1378,7 +1378,11 @@ async function assinarPush(){const reg=await navigator.serviceWorker.ready;let s
 Object.assign(ACT,{
   pushOn:async()=>{try{const p=await Notification.requestPermission();if(p!=='granted'){render();toast('As notificações não foram autorizadas.','bad');return}await assinarPush();render();toast('Notificações ativadas neste aparelho.')}catch(e){toast('Não foi possível ativar: '+(e.message||e),'bad')}},
   pushFechar:()=>{ui.pushFechado=true;render()},
-  pushTeste:async()=>{try{await assinarPush();const r=await sb.functions.invoke('agenda-lembretes',{body:{teste:true}});if(r.error)throw r.error;toast(r.data&&r.data.enviados?'Notificação de teste enviada.':'Nenhum aparelho registrado para receber.',r.data&&r.data.enviados?'':'bad')}catch(e){toast('Falha no teste: '+(e.message||e),'bad')}}
+  pushTeste:async()=>{let etapa='registrar este aparelho';try{await assinarPush();etapa='chamar a função agenda-lembretes';const r=await sb.functions.invoke('agenda-lembretes',{body:{teste:true}});
+    if(r.error){let det='';try{const c=r.error.context;if(c&&c.json){const j=await c.json();det=j.erro||JSON.stringify(j)}else if(c&&c.status)det='código '+c.status}catch(x){}
+      if(!det&&r.error.context&&r.error.context.status)det='código '+r.error.context.status;throw new Error((det||r.error.message))}
+    toast(r.data&&r.data.enviados?'Notificação de teste enviada.':'Não chegou: '+((r.data&&r.data.aparelhos_erro)||'nenhum aparelho registrado'),r.data&&r.data.enviados?'':'bad')}
+  catch(e){toast(`Falha ao ${etapa}: ${e.message||e}`,'bad')}}
 });
 
 /* =====================================================================
