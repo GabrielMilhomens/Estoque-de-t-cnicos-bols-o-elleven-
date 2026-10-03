@@ -1086,12 +1086,16 @@ document.getElementById('modal').addEventListener('click', e => {
   if(!ag||!window.supabase)return;
   var sb=window.supabase.createClient('https://ksatofcjlqziqhblpwul.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzYXRvZmNqbHF6aXFoYmxwd3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTA3NTIsImV4cCI6MjEwNTMyNjc1Mn0.IOAHnOcxVdrP1gBD7nCoQ6wq1mB-dEYVJQIM_WiJaqc');
   function aviso(t,cor){var el=document.getElementById('toast-agenda');if(!el){el=document.createElement('div');el.id='toast-agenda';el.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%);max-width:90vw;color:#fff;padding:14px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:10001;box-shadow:0 4px 20px rgba(0,0,0,.25)';document.body.appendChild(el)}el.style.background=cor||'#2d3444';el.textContent=t;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(function(){el.style.display='none'},cor==='#c0392b'?15000:6000)}
+  var VOLTA='agenda.html?ag='+encodeURIComponent(ag);
+  // botão para voltar à agenda sem gerar o relatório
+  function botaoVoltar(){var b=document.createElement('a');b.href=VOLTA;b.textContent='← Voltar para a agenda';b.style.cssText='position:fixed;top:10px;left:10px;z-index:10002;background:#2d3444;color:#fff;padding:9px 14px;border-radius:20px;font:600 13px Segoe UI,Arial,sans-serif;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25)';document.body.appendChild(b)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',botaoVoltar);else botaoVoltar();
   function enviar(art,tentativa){tentativa=tentativa||1;
     var nome=(art.nomeArquivo||'relatorio-entrega.pdf').replace(/[^\w.\-]+/g,'_');
     sb.storage.from('agenda').upload('relatorios/'+ag+'/'+nome,art.blob,{contentType:'application/pdf',upsert:true}).then(function(r){
-      if(r.error)throw r.error;aviso('PDF enviado para a agenda. Volte para a agenda e toque em "Verificar relatório".','#2d7d3f')
+      if(r.error)throw r.error;aviso('PDF salvo no celular e enviado à agenda. Voltando para a atividade…','#2d7d3f');setTimeout(function(){location.href=VOLTA+'&rel=1'},3000)
     }).catch(function(e){if(tentativa<3){setTimeout(function(){enviar(art,tentativa+1)},tentativa*3000);return}
-      aviso('O PDF foi gerado, mas não chegou à agenda'+(e&&/jwt|auth|session/i.test(e.message||'')?' (faça login na agenda neste aparelho)':'')+'. Gere o PDF novamente.','#c0392b')})}
+      aviso('O PDF foi salvo no celular, mas não chegou à agenda'+(e&&/jwt|auth|session/i.test(e.message||'')?' (faça login na agenda neste aparelho)':'')+'. Verifique a internet e gere o PDF novamente.','#c0392b')})}
   window.__sincronizarRelatorioAtivacao=function(){var a=window.__ultimoRelatorioAtivacao;if(a&&a.blob)enviar(a)};
 })();
 </script>

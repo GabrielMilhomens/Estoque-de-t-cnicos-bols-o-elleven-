@@ -928,7 +928,7 @@ function detalhe(a){
     case 'deslocamento':act=go('Cheguei no local')+nok;break;
     case 'no_local':act=go('Iniciar atividade')+nok;break;
     case 'execucao':act=go('Concluir atividade')+nok;break;
-    case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">Preencha os relatórios para encerrar a atividade.</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Preenchido':'Abrir formulário'}</small></button>`).join('')}</div><button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${terc?'Enviar relatórios e preencher LPU':'Enviar relatórios e encerrar'}</button>`;break}
+    case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">Preencha os relatórios para encerrar a atividade.</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${terc?'Enviar relatórios e preencher LPU':'Enviar relatórios e encerrar'}</button>`;break}
     case 'lpu':act=`<h3>Preenchimento da LPU</h3>${lpuEditor(a.id)}<button class="bigbtn" data-act="lpuEnviar" data-id="${a.id}">Enviar LPU e encerrar</button>`;break;
     case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída ${a.noDia?'no dia agendado':'fora do dia agendado'}, encerrada em ${dtBR(t.encerramento)}.</div>${l?`<div class="result">LPU de <b>${brl(l.total)}</b> ${lchip(l.status)}</div>`:''}`;break}
     case 'nao_concluida':act=`<div class="result bad"><b>Não concluída:</b> ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`<br>Reagendada para ${dBR(a.reag)}.`:a.pendReag?'<br>Aguardando reagendamento pelo encarregado.':''}</div>`;break;
@@ -1268,11 +1268,10 @@ const ACT={
     save();render()},
   concluirOk:el=>{const a=getAg(el.dataset.id),ff=[...document.querySelectorAll('.fzFin:checked')].map(x=>x.value);if(ff.includes('ativ')&&pendReq(pPor(a.etiqueta),ff).length){toast(`A ativação só pode ser finalizada depois de: ${pendReq(pPor(a.etiqueta),ff).map(k=>FCURTO[k].toLowerCase()).join(', ')}.`,'bad');return}a.fasesFin=ff;a.ts.conclusao=Date.now();a.status='relatorios';if(!relsDe(a).length){if(tecT(a.tec)==='TERC')a.status='lpu';else encerrar(a)}const rem=limparAnexos(a.etiqueta);save();closeModal();render();
     const p=pPor(a.etiqueta);if(rem.length)setTimeout(()=>toast(`${rem.length} anexo(s) excluído(s) automaticamente: ${rem.map(x=>x.nome).join(', ')}.`),3300);toast(a.fasesFin.length?`Fase(s) finalizada(s): ${a.fasesFin.map(k=>FCURTO[k]).join(', ')}.${liberado(p)?' Cliente liberado para ativação.':''}`:'Atividade concluída, fases seguem em andamento.')},
-  rel:el=>{const a=getAg(el.dataset.id),p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},i=p.inst||{};
+  rel:async el=>{const a=getAg(el.dataset.id),p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},i=p.inst||{};
     const q=new URLSearchParams({ag:a.id,cliente:p.cliente||'',etiqueta:a.etiqueta,cidade:p.cidade||'',uf:i.uf||'',endereco:c.endereco||'',tecnico:tecN(a.tec),data:hoje()});
-    window.open('relatorio-ativacao.html?'+q.toString(),'_blank');
-    openModal(`<h3>Relatório de entrega de circuito</h3><p class="muted" style="margin-top:6px">O relatório abriu em outra aba, já preenchido com cliente, etiqueta, cidade, endereço, data e técnico. Ao gerar o PDF, ele é enviado automaticamente para a agenda.</p><div class="placeholder"><b>Depois de gerar o PDF</b>Volte para esta tela e toque em Verificar relatório.</div><div class="actions"><button class="btn" data-act="close">Fechar</button><button class="btn" data-act="rel" data-id="${a.id}" data-r="entrega">Abrir de novo</button><button class="btn primary" data-act="relOk" data-id="${a.id}" data-r="entrega">Verificar relatório</button></div>`)},
-  relOk:async el=>{const a=getAg(el.dataset.id),ok=await checarRelatorio(a);if(ok){closeModal();render();toast('Relatório recebido.')}else toast('O PDF ainda não chegou. Gere o PDF no relatório e tente de novo.','bad')},
+    toast('Abrindo o relatório…');await flushSync();location.href='relatorio-ativacao.html?'+q.toString()},
+  relOk:async el=>{const a=getAg(el.dataset.id),ok=await checarRelatorio(a);if(ok){closeModal();render();toast('Relatório recebido. Agora é só encerrar a atividade.')}else toast('O PDF ainda não chegou. Gere o PDF no relatório e tente de novo.','bad')},
   relEnviar:el=>{const a=getAg(el.dataset.id);if(tecT(a.tec)==='TERC'){a.status='lpu';save();render()}else{encerrar(a);save();render();toast(a.noDia?'Atividade concluída no dia.':'Atividade concluída fora do dia agendado.')}},
   lpuEnviar:el=>{const a=getAg(el.dataset.id),itens=draftItens(a.id);if(!itens.length){toast('Informe a quantidade de pelo menos um serviço.','bad');return}ui.sign={tipo:'novo',id:a.id,key:a.id,tec:a.tec};conferirModal()},
   confOk:()=>assinarModal(),
@@ -1482,8 +1481,9 @@ async function checarSessao(){if(NP_OPEN)return;
   ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',tecnico:pp.vinculo==='terceiro'?'terc':'clt'}[pp.papel];ui.tab=PERFIS[ui.perfil].tabs[0];ui.tec=ME.id;
   try{await carregar()}catch(e){$('loadMsg').textContent='Erro ao carregar os dados: '+(e.message||e);return}
   BOOT_UID=session.user.id;document.body.classList.add('app-on');
-  const agLink=new URLSearchParams(location.search).get('ag');if(agLink){history.replaceState(null,'',location.pathname);const a=getAg(agLink);if(a){if(['clt','terc'].includes(ui.perfil)){ui.tab='campo';ui.campoSel=a.id}else ui.tab='agenda'}}
+  const qs=new URLSearchParams(location.search),agLink=qs.get('ag'),relVolta=qs.get('rel');if(agLink){history.replaceState(null,'',location.pathname);const a=getAg(agLink);if(a){if(['clt','terc'].includes(ui.perfil)){ui.tab='campo';ui.campoSel=a.id}else ui.tab='agenda'}}
   render();ligarTempoReal();if(agLink&&getAg(agLink)&&!['clt','terc'].includes(ui.perfil))ACT.agOpen({dataset:{id:agLink}});
+  if(relVolta&&agLink&&getAg(agLink)){const a=getAg(agLink);checarRelatorio(a).then(ok=>{render();toast(ok?'Relatório recebido. Agora é só encerrar a atividade.':'O PDF ainda não chegou à agenda. Toque em "Verificar relatório" em alguns segundos.',ok?'':'bad')})}
   if(pushOk()&&Notification.permission==='granted')assinarPush().catch(()=>{});
 }
 function ligarTempoReal(){if(RT)sb.removeChannel(RT);let t;const rec=()=>{clearTimeout(t);t=setTimeout(async()=>{if(SYNC_PEND||$('modal').classList.contains('open'))return;await SYNC_P;try{await carregar();render()}catch(e){}},800)};
