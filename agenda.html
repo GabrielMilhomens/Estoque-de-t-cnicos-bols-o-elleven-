@@ -155,6 +155,18 @@ body:not(.app-on) .side,body:not(.app-on) .shell,body:not(.app-on) .scrim{displa
 .aerr{color:var(--bad);font-size:13.5px;margin:0 0 10px}.alinks{display:flex;justify-content:space-between;gap:10px;margin-top:14px;flex-wrap:wrap}
 .who b{display:block;color:var(--ink);font-size:14px}.who .wbt{display:flex;gap:12px;margin-top:6px}
 #syncSt.err{color:var(--bad);font-weight:600}
+.mrow{padding:10px 12px;border-top:1px solid var(--line)}.mrow:first-of-type{border-top:0}
+.mtop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;font-size:14px}.mtop span{min-width:0;overflow-wrap:anywhere}
+.mnum{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;font-size:13px;color:var(--muted)}.mnum b{color:var(--ink)}
+.mrow small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.mlist{display:grid;gap:8px}.mcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}.mcard span,.mcard small{display:block}.mcard small{color:var(--muted)}
+td.r,th.r{white-space:nowrap}
+@media(max-width:640px){
+ main{padding:10px}.campo .panel{padding:12px}.campo .info .dl{grid-template-columns:1fr 1fr}
+ .campo h2{font-size:22px}.tlabels{font-size:10px}.bigbtn{min-height:60px;font-size:22px}
+ .campo table{font-size:13px}.campo td,.campo th{padding:6px}
+ .lpc{flex-wrap:wrap}.lpc select{flex:1 1 100%}
+}
 .prev{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px}
 .btn[disabled],.bigbtn[disabled]{opacity:.45;cursor:not-allowed}
 .icon{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px;font-size:15px}
@@ -489,7 +501,7 @@ const LPU_CONTAS=Object.keys(LPU_REGRAS);
 const lpuDaConta=c=>{const r=LPU_REGRAS[c]||LPU_REGRAS[LPU_CONTAS[0]];return LPU.filter(it=>{const n=parseInt(it.cod.replace(/\D/g,''));return r.intervalos.some(x=>n>=x.inicio&&n<=x.fim)||r.especificos.includes(it.cod)})};
 const REL=[{k:'entrega',n:'Relatório de entrega de circuito'},{k:'exec',n:'Relatório de execução'}];
 const relsDe=a=>{const f=(a.fases||[a.fase]);return REL.filter(r=>r.k==='entrega'&&f.includes('ativ'))};
-const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','estoque','base','prev','sim','kanban','aprov','campo','usuarios']},sup:{n:'Supervisor',tabs:['painel','agenda','estoque','aprov','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','estoque','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo']},terc:{n:'Técnico terceiro',tabs:['campo']}};
+const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','estoque','base','prev','sim','kanban','aprov','campo','usuarios']},sup:{n:'Supervisor',tabs:['painel','agenda','estoque','aprov','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','estoque','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo']},terc:{n:'Técnico terceiro',tabs:['campo','minhas']}};
 const ST={agendada:['Agendada',''],deslocamento:['Em deslocamento','info'],no_local:['No local','info'],execucao:['Em execução','info'],relatorios:['Relatórios pendentes','warn'],lpu:['LPU pendente','warn'],concluida:['Concluída','ok'],nao_concluida:['Não concluída','bad'],cancelada:['Cancelada','']};
 const LST={aguardando:['Aguardando aprovação','warn'],aprovada:['Aprovada','ok'],reprovada:['Reprovada','bad'],ajuste:['Devolvida para ajuste','info']};
 const FIM=['concluida','nao_concluida'];
@@ -544,13 +556,13 @@ function faseFlags(p,gestao){const L=FASES.filter(f=>!(f.k==='ext'&&p.semExt)).m
   return gestao?`<div class="ffs">${L}</div>`:(L?`<div class="kmeta">${L}</div>`:'')}
 function progLabel(e){const k=etapa(pPor(e));return k==='entregue'?'<span class="chip ok">Ativado</span>':k==='backlog'?'<span class="chip">Sem início</span>':(k==='ativ'&&liberado(pPor(e))?'<span class="chip go">Liberado para ativar</span>':`<span class="chip info">Em ${faseN(k).toLowerCase()}</span>`)}
 function nextFase(e){const p=pPor(e);const f=FASES.filter(f=>!(f.k==='ext'&&p.semExt)).find(f=>!faseFim(e,f.k));return f?f.k:'ativ'}
-const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',usuarios:'Usuários e acessos',estoque:'Estoque dos técnicos',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Minhas LPUs'})[t];
+const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',usuarios:'Usuários e acessos',estoque:'Estoque dos técnicos',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
 
 function render(){
   const P=PERFIS[ui.perfil];if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0];
   $('whoBox').innerHTML=`<b>${esc(ME.nome)}</b>${PERFIS[ui.perfil].n}<div class="wbt"><button class="link" data-act="chPass">Alterar senha</button><button class="link" data-act="logout">Sair</button></div>`;
   const ORD=['painel','agenda','estoque','base','prev','sim','kanban','aprov','campo','minhas','usuarios'],GRP={usuarios:'Administração',painel:'Acompanhamento',agenda:'Operação',estoque:'Operação',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
-  const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;return n?`<span class="nbadge">${n}</span>`:''};
+  const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;return n?`<span class="nbadge">${n}</span>`:''};
   let g='',h='';ORD.filter(t=>P.tabs.includes(t)).forEach(t=>{if(GRP[t]!==g){g=GRP[t];h+=`<div class="ngrp">${g}</div>`}h+=`<button data-act="tab" data-t="${t}" aria-current="${t===ui.tab}"><span>${tabLabel(t)}</span>${badge(t)}</button>`});
   $('tabs').innerHTML=h;$('mTitle').textContent=tabLabel(ui.tab);
   $('app').innerHTML=({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,usuarios:viewUsuarios,estoque:viewEstoque,sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
@@ -741,6 +753,8 @@ function matCheck(p,tec,fases){if(!p||!p.roi||!tec||!fases.length)return null;co
 function matHtml(L,tecView){if(L===null)return '';if(!L.length)return '<div class="mat"><div class="mh"><b>Material</b><span class="muted">Sem material do ROI para estas fases.</span></div></div>';
   const f=L.filter(x=>x.st!=='ok'),cls=!f.length?'ok':f.some(x=>x.st==='falta')?'bad':'warn',lab=tecView?'V-Task':'Elleven';
   const resumo=!f.length?'Técnico tem todo o material':`Falta material em ${f.length} de ${L.length} itens`;
+  const stc=x=>x.st==='ok'?'<span class="chip ok">Tem</span>':x.st==='parcial'?`<span class="chip warn">Faltam ${(x.qtd-Math.max(0,x.disp)).toLocaleString('pt-BR')}</span>`:'<span class="chip bad">Não tem</span>';
+  if(tecView)return `<div class="mat ${cls}"><div class="mh"><b>${resumo}</b></div>${L.map(x=>`<div class="mrow"><div class="mtop"><span>${esc(x.desc)}</span>${stc(x)}</div><div class="mnum"><span>Precisa <b>${x.qtd.toLocaleString('pt-BR')}</b></span><span>Bolsão <b>${x.bolsao.toLocaleString('pt-BR')}</b></span><span>V-Task <b>${x.elleven.toLocaleString('pt-BR')}</b></span><span>Disponível <b>${Math.max(0,x.disp).toLocaleString('pt-BR')}</b></span></div><small>${[x.cod,'Ponta '+x.ponta].filter(Boolean).map(esc).join(', ')}</small></div>`).join('')}</div>`;
   return `<div class="mat ${cls}"><div class="mh"><b>${resumo}</b><span class="chip ${cls==='ok'?'ok':cls}">${cls==='ok'?'Material completo':cls==='bad'?'Sem material':'Material parcial'}</span></div>
    <table><thead><tr><th>Material</th><th class="r">Precisa</th><th class="r">Bolsão</th><th class="r">${lab}</th>${tecView?'':'<th class="r">Em outros agend.</th>'}<th class="r">Disponível</th><th></th></tr></thead><tbody>${L.map(x=>`<tr><td>${esc(x.desc)}<br><small class="muted">${[x.cod,'Ponta '+x.ponta].filter(Boolean).map(esc).join(', ')}</small></td><td class="r">${x.qtd.toLocaleString('pt-BR')}</td><td class="r">${x.bolsao.toLocaleString('pt-BR')}</td><td class="r">${x.elleven.toLocaleString('pt-BR')}</td>${tecView?'':`<td class="r">${x.comp?x.comp.toLocaleString('pt-BR'):'—'}</td>`}<td class="r"><b>${Math.max(0,x.disp).toLocaleString('pt-BR')}</b></td><td>${x.st==='ok'?'<span class="chip ok">Tem</span>':x.st==='parcial'?`<span class="chip warn">Faltam ${(x.qtd-Math.max(0,x.disp)).toLocaleString('pt-BR')}</span>`:'<span class="chip bad">Não tem</span>'}</td></tr>`).join('')}</tbody></table></div>`}
 function viewEstoque(){
@@ -875,8 +889,8 @@ function viewCampo(){
   const a=ui.campoSel&&S.ags.find(x=>x.id===ui.campoSel&&x.tec===ui.tec);
   if(a)return `<div class="campo">${detalhe(a)}</div>`;
   const terc=tecT(ui.tec)==='TERC',nAj=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;
-  const sw=terc?`<div class="views" style="margin:4px 0 2px"><button data-act="cSec" data-v="at" aria-current="${ui.campoSec!=='fin'}">Atividades</button><button data-act="cSec" data-v="fin" aria-current="${ui.campoSec==='fin'}">Gestão financeira${nAj?` (${nAj} para ajuste)`:''}</button></div>`:'';
-  if(terc&&ui.campoSec==='fin')return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${viewMinhas(true)}</div>`;
+  const sw=terc&&ui.perfil==='coord'?`<div class="views" style="margin:4px 0 2px"><button data-act="cSec" data-v="at" aria-current="${ui.campoSec!=='fin'}">Atividades</button><button data-act="cSec" data-v="fin" aria-current="${ui.campoSec==='fin'}">Gestão financeira${nAj?` (${nAj} para ajuste)`:''}</button></div>`:'';
+  if(terc&&ui.perfil==='coord'&&ui.campoSec==='fin')return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${viewMinhas(true)}</div>`;
   const T=hoje(),mine=S.ags.filter(x=>x.tec===ui.tec&&x.status!=='cancelada');
   const g={hoje:mine.filter(x=>!FIM.includes(x.status)&&x.data<=T).sort((a,b)=>a.data.localeCompare(b.data)),prox:mine.filter(x=>!FIM.includes(x.status)&&x.data>T).sort((a,b)=>a.data.localeCompare(b.data)),enc:mine.filter(x=>FIM.includes(x.status)).sort((a,b)=>b.data.localeCompare(a.data))};
   const card=x=>{const c=S.comp[x.etiqueta]||{};return `<button class="acard" data-act="abrir" data-id="${x.id}"><div class="ah"><b>${esc(x.etiqueta)}</b>${chip(x.status)}</div><span>${esc(cliN(x.etiqueta))}</span><small>${fasesN(x)}, ${dBR(x.data)}${x.data<T&&!FIM.includes(x.status)?' (atrasada)':''}</small>${c.endereco?`<small>${esc(c.endereco)}</small>`:''}${faseFlags(pPor(x.etiqueta),0)}</button>`};
@@ -929,12 +943,14 @@ function lpuTotal(d){return lpuSel(d).reduce((s,[c,v])=>s+lpuUnit(itemOf(c),v)*(
 function lpuEditor(key){const d=lpuDraft(key),L=lpuDaConta(d.conta),n=lpuSel(d).length;
   return `<div class="lpu" data-lk="${esc(key)}">
    <label class="f"><span>Descrição contábil</span><select class="inp" data-ch="lpuConta" data-k="${esc(key)}">${LPU_CONTAS.map(c=>`<option value="${esc(c)}" ${c===d.conta?'selected':''}>${esc(c)}</option>`).join('')}</select></label>
-   <input class="inp" type="search" placeholder="Buscar serviço por código ou descrição" data-in="lpuBusca" data-k="${esc(key)}" style="margin-bottom:8px">
+   <input class="inp" type="search" placeholder="Buscar serviço por código ou descrição" data-in="lpuBusca" data-k="${esc(key)}" style="margin-bottom:6px">
+   <label class="chk" style="margin-bottom:8px"><input type="checkbox" data-ch="lpuSo"> Mostrar só os serviços preenchidos</label>
    <div class="lpul">${L.map(it=>{const v=d.q[it.cod]||{};return `<div class="lpi ${+v.qtd>0?'on':''}" data-busca="${esc(normK(it.cod+' '+it.desc))}">
      <div class="lpd"><b>${it.cod}</b> ${esc(it.desc)} ${it.tec?`<button class="info" data-act="lpuInfo" aria-label="Ver descritivo técnico">?</button>`:''}<small>${esc(it.classe)}, por ${esc(String(it.medida).toLowerCase())}</small>${it.tec?`<span class="ltec" hidden>${esc(it.tec)}</span>`:''}</div>
      <div class="lpc">${it.valor==null?`<input class="inp" type="number" min="0" step="0.01" inputmode="decimal" placeholder="R$ unit." value="${v.unit||''}" data-in="lpuUnit" data-k="${esc(key)}" data-c="${it.cod}">`:`<select class="inp" data-ch="lpuFator" data-k="${esc(key)}" data-c="${it.cod}"><option value="comum">Comum ${brl(it.valor)}</option>${it.valorCritico!=null?`<option value="critico" ${v.fator==='critico'?'selected':''}>Crítico ${brl(it.valorCritico)}</option>`:''}</select>`}
      <input class="inp q" type="number" min="0" step="any" inputmode="decimal" placeholder="Qtd" value="${v.qtd||''}" data-in="lpuQ" data-k="${esc(key)}" data-c="${it.cod}" aria-label="Quantidade de ${it.cod}"></div></div>`}).join('')}</div>
    <div class="ltotal"><span class="lcnt">Total da LPU (${n} ${n===1?'item':'itens'})</span><b class="ltb">${brl(lpuTotal(d))}</b></div></div>`}
+function lpuFiltrar(box){const q=normK((box.querySelector('[data-in="lpuBusca"]')||{}).value||''),so=(box.querySelector('[data-ch="lpuSo"]')||{}).checked;box.querySelectorAll('.lpi').forEach(r=>{r.hidden=(!!q&&!r.dataset.busca.includes(q))||(so&&!r.classList.contains('on'))})}
 function lpuRefresh(key){const d=lpuDraft(key),box=[...document.querySelectorAll('.lpu')].find(b=>b.dataset.lk===key);if(!box)return;const n=lpuSel(d).length;box.querySelector('.ltb').textContent=brl(lpuTotal(d));box.querySelector('.lcnt').textContent=`Total da LPU (${n} ${n===1?'item':'itens'})`}
 function draftItens(key){const d=lpuDraft(key);return lpuSel(d).map(([c,v])=>{const it=itemOf(c);return{cod:c,desc:it.desc,classe:it.classe,medida:it.medida,fator:v.fator==='critico'?'Crítico':'Comum',unit:lpuUnit(it,v),qtd:+v.qtd}})}
 function redraw(key){if(key.startsWith('L:'))openAjuste(key.slice(2));else render()}
@@ -952,8 +968,7 @@ function viewMinhas(emb){
    <div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="mIni" value="${ui.mIni}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="mFim" value="${ui.mFim}"></label></div>
    <div class="sum3"><div><span>Aguardando aprovação</span><b>${brl(tot(['aguardando','ajuste']))}</b></div><div><span>Aprovado</span><b>${brl(tot(['aprovada']))}</b></div><div><span>Reprovado</span><b>${brl(tot(['reprovada']))}</b></div></div>
    <div class="chips">${tabs.map(([k,n])=>`<button data-act="mTab" data-t="${k}" aria-current="${ui.mTab===k}">${n} (${cnt(k)})</button>`).join('')}</div>
-   <div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Etiqueta</th><th>Fases</th><th class="r">Valor</th>${ui.mTab==='reprovada'||ui.mTab==='ajuste'?'<th>Motivo</th>':''}${ui.mTab==='ajuste'?'<th></th>':''}</tr></thead>
-   <tbody>${rows.map(l=>`<tr><td>${dBR(l.data)}</td><td>${esc(cliN(l.etiqueta))}</td><td>${esc(l.etiqueta)}</td><td>${fasesN(l)}</td><td class="r"><b>${brl(l.total)}</b></td>${ui.mTab==='reprovada'||ui.mTab==='ajuste'?`<td style="white-space:normal;min-width:200px">${esc((last(l)||{}).motivo||'')}</td>`:''}${ui.mTab==='ajuste'?`<td><button class="btn" data-act="ajuste" data-id="${l.id}">Corrigir e reenviar</button></td>`:''}</tr>`).join('')||'<tr><td colspan="7" class="muted">Nenhuma LPU nesta situação no período.</td></tr>'}</tbody></table></div>
+   <div class="mlist">${rows.map(l=>{const m=(last(l)||{}).motivo;return `<div class="mcard"><div class="ah"><b>${esc(l.etiqueta)}</b><span class="val">${brl(l.total)}</span></div><span>${esc(cliN(l.etiqueta))}</span><small>${fasesN(l)}, ${dBR(l.data)}</small>${m&&(ui.mTab==='reprovada'||ui.mTab==='ajuste')?`<p class="note" style="margin:8px 0 0">${esc(m)}</p>`:''}<div class="actions" style="margin-top:8px">${l.pdf_path?`<button class="btn sm" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>`:''}${ui.mTab==='ajuste'?`<button class="btn sm primary" data-act="ajuste" data-id="${l.id}">Corrigir e reenviar</button>`:''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma LPU nesta situação no período.</p>'}</div>
    <p class="muted" style="margin-top:8px">Total da aba: <b>${brl(rows.reduce((x,l)=>x+l.total,0))}</b></p></div>`;
 }
 function openAjuste(lid){const l=S.lpus.find(x=>x.id===lid),k='L:'+lid;if(!ui.draft[k]){const q={};l.itens.forEach(i=>{q[i.cod]={qtd:i.qtd,fator:i.fator==='Crítico'?'critico':'comum',unit:i.unit}});ui.draft[k]={conta:l.conta||LPU_CONTAS[0],q}}const m=(l.hist||[]).slice().reverse().find(h=>h.motivo);
@@ -1116,6 +1131,11 @@ function wzApply(){const W=ui.wiz;if(!W)return;const r=parseInst(W.txt||'');let 
   const nt=r.notas.join('. ');if(nt&&W.t.notas!==nt){W.t.notas=nt;k++}
   if(k){renderWiz();toast(`${k} campo(s) preenchido(s) automaticamente. Confira antes de avançar.`)}}
 
+function conferirModal(){const g=ui.sign,d=lpuDraft(g.key),itens=draftItens(g.key),tot=itens.reduce((s,i)=>s+i.unit*i.qtd,0),cls=[...new Set(itens.map(i=>i.classe))];
+  openModal(`<h3>Conferir LPU</h3><p class="muted">Confira os serviços antes de assinar. Para corrigir, volte ao preenchimento.</p><p style="margin-top:8px;font-size:13px"><b>Descrição contábil:</b> ${esc(d.conta)}</p>
+   ${cls.map(c=>{const it=itens.filter(i=>i.classe===c);return `<h3 class="lsub">${esc(c)}</h3>${it.map(i=>`<div class="mrow"><div class="mtop"><span><b>${i.cod}</b> ${esc(i.desc)}</span><b>${brl(i.unit*i.qtd)}</b></div><div class="mnum"><span>Qtd <b>${String(i.qtd).replace('.',',')} ${esc(String(i.medida||'').toLowerCase())}</b></span><span>Fator <b>${i.fator}</b></span><span>Unitário <b>${brl(i.unit)}</b></span></div></div>`).join('')}<p class="muted r" style="font-size:13px">Subtotal ${esc(c)}: <b>${brl(it.reduce((s,i)=>s+i.unit*i.qtd,0))}</b></p>`}).join('')}
+   <div class="ltotal"><span>${itens.length} ${itens.length===1?'serviço':'serviços'}</span><b>${brl(tot)}</b></div>
+   <div class="actions"><button class="btn" data-act="confVoltar">Voltar e corrigir</button><button class="btn primary" data-act="confOk">Está correto, assinar</button></div>`)}
 function assinarModal(){const g=ui.sign,itens=draftItens(g.key),tot=itens.reduce((s,i)=>s+i.unit*i.qtd,0);ui.sgDraw=false;
   openModal(`<h3>Assinatura da LPU</h3><p class="muted">${itens.length} serviço(s), total de <b>${brl(tot)}</b>. Ao assinar, você confirma que os serviços lançados foram executados.</p>
    <label class="f" style="margin-top:12px"><span>Nome do responsável *</span><input class="inp" id="sgNome" value="${esc(tecN(g.tec))}"></label>
@@ -1239,9 +1259,11 @@ const ACT={
     openModal(`<h3>Relatório de entrega de circuito</h3><p class="muted" style="margin-top:6px">O relatório abriu em outra aba, já preenchido com cliente, etiqueta, cidade, endereço, data e técnico. Ao gerar o PDF, ele é enviado automaticamente para a agenda.</p><div class="placeholder"><b>Depois de gerar o PDF</b>Volte para esta tela e toque em Verificar relatório.</div><div class="actions"><button class="btn" data-act="close">Fechar</button><button class="btn" data-act="rel" data-id="${a.id}" data-r="entrega">Abrir de novo</button><button class="btn primary" data-act="relOk" data-id="${a.id}" data-r="entrega">Verificar relatório</button></div>`)},
   relOk:async el=>{const a=getAg(el.dataset.id),ok=await checarRelatorio(a);if(ok){closeModal();render();toast('Relatório recebido.')}else toast('O PDF ainda não chegou. Gere o PDF no relatório e tente de novo.','bad')},
   relEnviar:el=>{const a=getAg(el.dataset.id);if(tecT(a.tec)==='TERC'){a.status='lpu';save();render()}else{encerrar(a);save();render();toast(a.noDia?'Atividade concluída no dia.':'Atividade concluída fora do dia agendado.')}},
-  lpuEnviar:el=>{const a=getAg(el.dataset.id),itens=draftItens(a.id);if(!itens.length){toast('Informe a quantidade de pelo menos um serviço.','bad');return}ui.sign={tipo:'novo',id:a.id,key:a.id,tec:a.tec};assinarModal()},
+  lpuEnviar:el=>{const a=getAg(el.dataset.id),itens=draftItens(a.id);if(!itens.length){toast('Informe a quantidade de pelo menos um serviço.','bad');return}ui.sign={tipo:'novo',id:a.id,key:a.id,tec:a.tec};conferirModal()},
+  confOk:()=>assinarModal(),
   sgLimpar:()=>{const c=$('sgPad');c.getContext('2d').clearRect(0,0,c.width,c.height);ui.sgDraw=false},
-  sgVoltar:()=>{const g=ui.sign;closeModal();if(g.tipo==='ajuste')openAjuste(g.id)},
+  sgVoltar:()=>conferirModal(),
+  confVoltar:()=>{const g=ui.sign;closeModal();if(g.tipo==='ajuste')openAjuste(g.id)},
   sgOk:async()=>{const g=ui.sign,nome=$('sgNome').value.trim();if(!nome){toast('Informe o nome do responsável.','bad');return}if(!ui.sgDraw){toast('Faça a assinatura no quadro.','bad');return}
     const ass={img:$('sgPad').toDataURL('image/png'),nome,em:Date.now()},itens=draftItens(g.key),d=lpuDraft(g.key),total=itens.reduce((s,i)=>s+i.unit*i.qtd,0);
     if(g.tipo==='novo'){const a=getAg(g.id);closeModal();toast('Gerando o PDF da LPU…');const nl={id:uid(),conta:d.conta,ag:a.id,etiqueta:a.etiqueta,fases:fasesOf(a),data:a.data,tec:a.tec,itens,total,status:'aguardando',assinatura:ass,hist:[{acao:'Enviada e assinada',por:nome,em:Date.now()}]};await subirPdfLpu(nl);encerrar(a);S.lpus.push(nl);delete ui.draft[g.key];save();render();toast('LPU assinada e enviada para aprovação da supervisão.')}
@@ -1252,7 +1274,7 @@ const ACT={
     save();closeModal();render();toast('Registrado. O encarregado vai reagendar a atividade.')},
   mTab:el=>{ui.mTab=el.dataset.t;render()},
   ajuste:el=>openAjuste(el.dataset.id),
-  reenviar:el=>{const l=S.lpus.find(x=>x.id===el.dataset.id),k='L:'+l.id;if(!draftItens(k).length){toast('Informe a quantidade de pelo menos um serviço.','bad');return}ui.sign={tipo:'ajuste',id:l.id,key:k,tec:l.tec};assinarModal()},
+  reenviar:el=>{const l=S.lpus.find(x=>x.id===el.dataset.id),k='L:'+l.id;if(!draftItens(k).length){toast('Informe a quantidade de pelo menos um serviço.','bad');return}ui.sign={tipo:'ajuste',id:l.id,key:k,tec:l.tec};conferirModal()},
   aTab:el=>{ui.aTab=el.dataset.t;ui.aOpen=null;render()},
   aOpen:el=>{ui.aOpen=ui.aOpen===el.dataset.id?null:el.dataset.id;render()},
   aprovar:el=>{const l=S.lpus.find(x=>x.id===el.dataset.id);l.status='aprovada';l.hist.push({acao:'Aprovada',por:meNome(),em:Date.now()});ui.aOpen=null;save();render();toast(`LPU de ${brl(l.total)} aprovada.`)},
@@ -1263,6 +1285,7 @@ const ACT={
    <div class="grid2 even" style="margin-top:18px;gap:16px"><div style="text-align:center">${l.assinatura?`<img src="${l.assinatura.img}" alt="Assinatura" style="max-height:70px;max-width:100%">`:'<div style="height:70px"></div>'}<div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">${l.assinatura?esc(l.assinatura.nome)+', '+dtBR(l.assinatura.em):'Assinatura prestador'}</div></div><div style="text-align:center"><div style="height:70px;display:flex;align-items:flex-end;justify-content:center;font-size:13px">${l.status==='aprovada'?esc(((l.hist||[]).filter(h=>h.acao==='Aprovada').pop()||{}).por||''):''}</div><div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">Aprovador</div></div></div></div><div class="actions"><button class="btn" data-act="close">Fechar</button>${l.pdf_path?`<button class="btn primary" data-act="pdfArq" data-id="${l.id}">Abrir PDF assinado</button>`:''}</div>`)}
 };
 const CH={
+  lpuSo:el=>lpuFiltrar(el.closest('.lpu')),
   lpuFator:el=>{const k=el.dataset.k,d=lpuDraft(k),c=el.dataset.c;d.q[c]=d.q[c]||{};d.q[c].fator=el.value;lpuRefresh(k)},
   lpuConta:el=>{const k=el.dataset.k;lpuDraft(k).conta=el.value;redraw(k)},
   est:el=>{const E=S.estoque[el.dataset.t]=S.estoque[el.dataset.t]||{};E[el.dataset.c][el.dataset.k]=parseFloat(el.value)||0;save();render()},
@@ -1306,7 +1329,7 @@ const CH={
 const IN={
   lpuQ:el=>{const k=el.dataset.k,d=lpuDraft(k),c=el.dataset.c;d.q[c]=d.q[c]||{fator:'comum'};d.q[c].qtd=parseFloat(String(el.value).replace(',','.'))||0;el.closest('.lpi').classList.toggle('on',d.q[c].qtd>0);lpuRefresh(k)},
   lpuUnit:el=>{const k=el.dataset.k,d=lpuDraft(k),c=el.dataset.c;d.q[c]=d.q[c]||{fator:'comum'};d.q[c].unit=parseFloat(el.value)||0;lpuRefresh(k)},
-  lpuBusca:el=>{const q=normK(el.value),box=el.closest('.lpu');box.querySelectorAll('.lpi').forEach(r=>{r.hidden=!!q&&!r.dataset.busca.includes(q)})},
+  lpuBusca:el=>{const box=el.closest('.lpu');lpuFiltrar(box)},
   eQ:el=>{ui.eQ=el.value;render();const i=$('eQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
   vQ:el=>{ui.vQ=el.value;render();const i=$('vQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
   kQ:el=>{ui.kQ=el.value;render();const i=$('kQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
