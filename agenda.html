@@ -298,6 +298,7 @@ tr:last-child td{border-bottom:0}
 .relbtn{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px dashed var(--muted);background:var(--surface);border-radius:10px;padding:14px;cursor:pointer;text-align:left;font-weight:600}
 .relbtn small{color:var(--muted);font-weight:500}.relbtn.done{border-style:solid;border-color:var(--brand);background:var(--brand-soft)}.relbtn.done small{color:var(--brand-ink)}
 .result{border-radius:10px;padding:12px 14px;background:var(--bg)}
+.result.warn{background:var(--warn-soft);color:var(--warn)}
 .result.ok{background:var(--brand-soft);color:var(--brand-ink)}.result.bad{background:var(--bad-soft);color:var(--bad)}
 .tl{display:grid;gap:0}.tl div{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
 .tl div:last-child{border-bottom:0}.tl b{font:600 17px "Barlow Condensed",sans-serif}.tl small{display:block;color:var(--muted)}.tl .off{color:var(--muted)}
@@ -1021,8 +1022,9 @@ function viewCampo(){
   const T=hoje(),mine=S.ags.filter(x=>x.tec===ui.tec&&x.status!=='cancelada');
   const g={hoje:mine.filter(x=>!FIM.includes(x.status)&&x.data<=T).sort((a,b)=>a.data.localeCompare(b.data)),prox:mine.filter(x=>!FIM.includes(x.status)&&x.data>T).sort((a,b)=>a.data.localeCompare(b.data)),enc:mine.filter(x=>FIM.includes(x.status)).sort((a,b)=>b.data.localeCompare(a.data))};
   ui.cExp=ui.cExp||{};
-  const card=x=>{const c=S.comp[x.etiqueta]||{},o=!!ui.cExp[x.id];return `<article class="tcard"><button class="tchd tchb" data-act="cExp" data-id="${x.id}" aria-expanded="${o}" aria-label="${o?'Recolher':'Expandir'} ${esc(cliN(x.etiqueta))}"><div class="tcl"><span class="tccli">${esc(cliN(x.etiqueta))}</span>${chip(x.status)}</div><div class="tcl"><span class="tcetq">${esc(x.etiqueta)}</span><span class="tcsx">${o?IC.up:IC.dn}</span></div></button>
-    ${o?`<div class="tcband" style="background:${corFase(x)}"><span class="tck">O QUE FAZER</span><span class="tcf">${fasesN(x)}</span><span class="tcs">${esc(apoioTxt(x))}</span></div>
+  const card=x=>{const c=S.comp[x.etiqueta]||{},and=ANDAM.includes(x.status),o=ui.cExp[x.id]===undefined?and:!!ui.cExp[x.id],bl=x.status==='agendada'&&emAndamento(x.tec,x.id);return `<article class="tcard"><button class="tchd tchb" data-act="cExp" data-id="${x.id}" aria-expanded="${o}" aria-label="${o?'Recolher':'Expandir'} ${esc(cliN(x.etiqueta))}"><div class="tcl"><span class="tccli">${esc(cliN(x.etiqueta))}</span>${chip(x.status)}</div><div class="tcl"><span class="tcetq">${esc(x.etiqueta)}</span><span class="tcsx">${o?IC.up:IC.dn}</span></div></button>
+    ${o&&and?`<div class="tcb">${(()=>{const b=blocoAcao(x);return b.etapas+(['deslocamento','no_local','execucao'].includes(x.status)?`<div class="tact2">${b.act}</div>`:`<div class="result warn">${x.status==='lpu'?'Falta preencher a LPU.':'Falta enviar o relatório.'} Abra a atividade para continuar.</div>`)})()}<button class="tcopen" data-act="abrir" data-id="${x.id}">Abrir atividade</button></div>`:''}
+    ${o&&!and?`${bl?`<div class="result warn" style="margin:0 14px 10px">Bloqueada até encerrar ${esc(bl.etiqueta)}, que está em andamento.</div>`:''}<div class="tcband" style="background:${corFase(x)}"><span class="tck">O QUE FAZER</span><span class="tcf">${fasesN(x)}</span><span class="tcs">${esc(apoioTxt(x))}</span></div>
     <div class="tcb">${c.endereco?`<div class="tcend">${IC.pin}<span>${esc(endCurto(c.endereco))}</span></div>`:''}${andamentoHtml(x)}
      <div class="tcbt">${rotaLigar(c)}</div><button class="tcopen" data-act="abrir" data-id="${x.id}">Abrir atividade</button></div>`:''}</article>`};
   const lab={hoje:'Hoje',prox:'Próximas',enc:'Encerradas'};
@@ -1049,8 +1051,10 @@ function andamentoHtml(a){const p=pPor(a.etiqueta),fs=FASES.filter(f=>!(f.k==='e
   return `<div class="tcand"><span class="tck2">ANDAMENTO DO CIRCUITO</span><div class="tcbars" style="grid-template-columns:repeat(${fs.length},minmax(0,1fr))">${fs.map(f=>{const ok=!!faseFim(a.etiqueta,f.k),now=!ok&&fasesOf(a).includes(f.k);return `<div><i class="${ok?'ok':now?'now':''}"></i><span class="${ok?'ok':now?'now':''}">${ok?'✓ ':''}${FCURTO[f.k]}</span></div>`}).join('')}</div></div>`}
 function rotaLigar(c){const tel=(c.telefone||'').replace(/\D/g,''),nome=String(c.contato||'').split(/[\s(]/)[0];
   return `${c.endereco?`<a class="tcbtn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank" rel="noopener">${IC.rota}Rota</a>`:''}${tel?`<a class="tcbtn" href="tel:${tel}">${IC.tel}${nome?'Ligar para '+esc(nome):'Ligar'}</a>`:''}`}
-function detalhe(a){
-  const p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},terc=tecT(a.tec)==='TERC',t=a.ts;
+const ANDAM=['deslocamento','no_local','execucao','relatorios','lpu'];
+const emAndamento=(tec,exceto)=>S.ags.find(x=>x.tec===tec&&x.id!==exceto&&ANDAM.includes(x.status));
+function blocoAcao(a){
+  const terc=tecT(a.tec)==='TERC',t=a.ts;
   const steps=['Deslocamento','Chegada','Execução','Relatório'].concat(terc?['LPU']:[]).concat(['Encerrada']);
   const order=['agendada','deslocamento','no_local','execucao','relatorios'].concat(terc?['lpu']:[]).concat(['concluida']);
   const s=order.indexOf(a.status);
@@ -1059,7 +1063,7 @@ function detalhe(a){
   const go=l=>`<button class="bigbtn" data-act="go" data-id="${a.id}">${l}</button>`;
   let act='';
   switch(a.status){
-    case 'agendada':act=`<label class="f" style="margin:0"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta" style="font-size:17px;min-height:48px"></label><button class="bigbtn" data-act="go" data-id="${a.id}" id="goBtn" disabled>Iniciar deslocamento</button><p class="muted" id="etaHint" style="margin:-4px 0 0;font-size:13.5px">Informe a previsão de chegada para liberar o deslocamento.</p>`;break;
+    case 'agendada':{const bl=emAndamento(a.tec,a.id);if(bl){act=`<div class="result warn"><b>Atividade bloqueada.</b> Você tem uma atividade em andamento: ${esc(bl.etiqueta)} (${fasesN(bl)}). Encerre-a para iniciar esta.</div><button class="btn wide" data-act="abrir" data-id="${bl.id}">Ir para a atividade em andamento</button>`;break}act=`<label class="f" style="margin:0"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta" style="font-size:17px;min-height:48px"></label><button class="bigbtn" data-act="go" data-id="${a.id}" id="goBtn" disabled>Iniciar deslocamento</button><p class="muted" id="etaHint" style="margin:-4px 0 0;font-size:13.5px">Informe a previsão de chegada para liberar o deslocamento.</p>`;break}
     case 'deslocamento':act=go('Cheguei no local')+nok;break;
     case 'no_local':act=go('Iniciar atividade')+nok;break;
     case 'execucao':act=go('Concluir atividade')+nok;break;
@@ -1068,6 +1072,11 @@ function detalhe(a){
     case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída em ${dBR(isoD(new Date(t.encerramento||t.conclusao||Date.now())))}.</div>${l?`<div class="result">LPU de <b>${brl(l.total)}</b> ${lchip(l.status)}</div>`:''}`;break}
     case 'nao_concluida':act=`<div class="result bad"><b>Não realizada:</b> ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`<br>Reagendada para ${dBR(a.reag)}.`:a.pendReag?'<br>Aguardando reagendamento pelo encarregado.':''}</div>`;break;
   }
+  return{etapas,act};
+}
+function detalhe(a){
+  const p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},terc=tecT(a.tec)==='TERC',t=a.ts;
+  const{etapas,act}=blocoAcao(a);
   ui.tAcc=ui.tAcc||{};const ac=(k,ico,tit,sub,body)=>{const o=!!ui.tAcc[k];return `<section class="tacc"><button class="tacch" data-act="tAcc" data-k="${k}" aria-expanded="${o}"><span class="taci">${ico}</span><span class="tact"><b>${tit}</b><small>${sub}</small></span><span class="tacs">${o?IC.up:IC.dn}</span></button>${o?`<div class="taccb">${body}</div>`:''}</section>`};
   const mats=matCheck(p,a.tec,fasesOf(a),a.materiais),nm=mats?mats.length:0;
   const matBody=`${a.obs?`<div class="tobs"><b>Observação do agendamento</b><span>${esc(a.obs)}</span></div>`:''}${c.obs?`<div class="tobs2"><b>Observações do projeto</b><span>${esc(c.obs)}</span></div>`:''}${mats?matHtml(mats,1):'<p class="muted">Nenhum material listado para esta atividade.</p>'}`;
@@ -1302,7 +1311,7 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
-  cExp:el=>{ui.cExp=ui.cExp||{};ui.cExp[el.dataset.id]=!ui.cExp[el.dataset.id];render()},
+  cExp:el=>{ui.cExp=ui.cExp||{};const a=getAg(el.dataset.id),atual=ui.cExp[a.id]===undefined?ANDAM.includes(a.status):!!ui.cExp[a.id];ui.cExp[a.id]=!atual;render()},
   tAcc:el=>{ui.tAcc=ui.tAcc||{};ui.tAcc[el.dataset.k]=!ui.tAcc[el.dataset.k];render()},
   matRem:el=>{const F=ui.agForm;F.rem=[...new Set((F.rem||[]).concat(el.dataset.k))];render()},
   matRest:()=>{ui.agForm.rem=[];render()},
@@ -1409,7 +1418,7 @@ const ACT={
   cF:el=>{ui.cF=el.dataset.t;render()},
   abrir:el=>{ui.campoSel=el.dataset.id;ui.tAcc={};render();window.scrollTo(0,0)},
   voltar:()=>{ui.campoSel=null;render()},
-  go:el=>{const a=getAg(el.dataset.id),n=Date.now();
+  go:el=>{const a=getAg(el.dataset.id),n=Date.now();if(a.status==='agendada'){const bl=emAndamento(a.tec,a.id);if(bl){toast(`Encerre a atividade em andamento (${bl.etiqueta}) antes de iniciar outra.`,'bad');return}}
     if(a.status==='agendada'){const v=$('eta').value;if(!v){toast('Informe a previsão de chegada antes de iniciar o deslocamento.','bad');$('eta').focus();return}a.ts.desloc=n;a.ts.eta=ts(hoje(),v);a.status='deslocamento'}
     else if(a.status==='deslocamento'){a.ts.chegada=n;a.status='no_local'}
     else if(a.status==='no_local'){a.ts.inicio=n;a.status='execucao'}
