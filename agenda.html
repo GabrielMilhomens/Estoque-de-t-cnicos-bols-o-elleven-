@@ -840,10 +840,11 @@ const pontaUsada=(g,fases)=>g==='A'?fases.some(k=>k==='rua'||k==='interno'||k===
 const estDe=(tec,it)=>{const E=S.estoque[tec]||{};if(it.cod&&E[it.cod])return E[it.cod];return Object.values(E).find(x=>normK(x.desc)===normK(it.desc))||null};
 function necessidade(p,fases){if(!p||!p.roi)return [];const need={};
   p.roi.itens.filter(i=>!isMO(i)&&pontaUsada(pontaItem(i),fases)).forEach(i=>{const k=i.cod||'d:'+normK(i.desc);need[k]=need[k]||{cod:i.cod,desc:i.desc,qtd:0,ponta:pontaItem(i)};need[k].qtd+=+i.qtd||0});return Object.values(need)}
-function comprometido(tec,exceto){const por={};S.ags.filter(a=>a.tec===tec&&a.etiqueta!==exceto&&['agendada','deslocamento','no_local','execucao'].includes(a.status)).forEach(a=>{(por[a.etiqueta]=por[a.etiqueta]||new Set());fasesOf(a).forEach(k=>por[a.etiqueta].add(k))});
-  const out={};Object.entries(por).forEach(([e,fs])=>necessidade(pPor(e),[...fs]).forEach(n=>{const k=n.cod||'d:'+normK(n.desc);out[k]=(out[k]||0)+n.qtd}));return out}
-function matCheck(p,tec,fases){if(!p||!p.roi||!tec||!fases.length)return null;const cmp=comprometido(tec,p.etiqueta);
-  return necessidade(p,fases).map(n=>{const e=estDe(tec,n),b=e?+e.bolsao||0:0,v=e?+e.elleven||0:0,c=cmp[n.cod||'d:'+normK(n.desc)]||0,disp=b+v-c;return Object.assign({},n,{bolsao:b,elleven:v,comp:c,disp,st:disp>=n.qtd?'ok':disp>0?'parcial':'falta'})})}
+function comprometido(tec,exceto){const por={};S.ags.filter(a=>a.tec===tec&&a.etiqueta!==exceto&&['agendada','deslocamento','no_local','execucao'].includes(a.status)).forEach(a=>{const g=por[a.etiqueta]=por[a.etiqueta]||{fs:new Set(),mats:null};fasesOf(a).forEach(k=>g.fs.add(k));if(a.materiais){g.mats=g.mats||{};a.materiais.forEach(m=>{const k=mKey(m);g.mats[k]=Math.max(g.mats[k]||0,+m.qtd||0)})}});
+  const out={};Object.entries(por).forEach(([e,g])=>{if(g.mats)Object.entries(g.mats).forEach(([k,q])=>{out[k]=(out[k]||0)+q});else necessidade(pPor(e),[...g.fs]).forEach(n=>{const k=mKey(n);out[k]=(out[k]||0)+n.qtd})});return out}
+const mKey=n=>n.cod||'d:'+normK(n.desc);
+function matCheck(p,tec,fases,lista){if(!p||!tec||(!lista&&(!p.roi||!fases.length)))return null;const cmp=comprometido(tec,p.etiqueta);
+  return (lista||necessidade(p,fases)).map(n=>{const e=estDe(tec,n),b=e?+e.bolsao||0:0,v=e?+e.elleven||0:0,c=cmp[n.cod||'d:'+normK(n.desc)]||0,disp=b+v-c;return Object.assign({},n,{bolsao:b,elleven:v,comp:c,disp,st:disp>=n.qtd?'ok':disp>0?'parcial':'falta'})})}
 function matHtml(L,tecView){if(L===null)return '';if(!L.length)return '<div class="mat"><div class="mh"><b>Material</b><span class="muted">Sem material do ROI para estas fases.</span></div></div>';
   const f=L.filter(x=>x.st!=='ok'),cls=!f.length?'ok':f.some(x=>x.st==='falta')?'bad':'warn',lab=tecView?'V-Task':'Elleven';
   const resumo=!f.length?'Técnico tem todo o material':`Falta material em ${f.length} de ${L.length} itens`;
@@ -955,8 +956,17 @@ function renderRep(){const R=ui.rp,a=getAg(R.id),p=pPor(a.etiqueta);
    ${rangeHtml('rp',R.data,R.dataFim,R.uteis)}
    <label class="f"><span>Técnico</span><select class="inp" data-ch="rpR" data-f="tec">${TEC.map(t=>`<option value="${t.id}" ${t.id===R.tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></label>
    <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="repOk">${rg?'Reagendar':'Replicar agendamento'}</button></div>`)}
+const matLista=(p,F)=>{const rem=new Set(F.rem||[]);return necessidade(p,F.fases).filter(n=>!rem.has(mKey(n)))};
+function matEditor(p,F){if(!p.roi)return '<p class="note">Projeto sem ROI: não há lista de materiais. Se precisar, inclua o material nas observações para o técnico.</p>';
+  if(!F.fases.length)return '';const todos=necessidade(p,F.fases),rem=new Set(F.rem||[]),L=todos.filter(n=>!rem.has(mKey(n))),R=todos.filter(n=>rem.has(mKey(n)));
+  const st=F.tec?matCheck(p,F.tec,F.fases,L):null,stOf=n=>st?st.find(x=>mKey(x)===mKey(n)):null;
+  const chipSt=x=>!x?'':x.st==='ok'?'<span class="chip ok">Tem</span>':x.st==='parcial'?`<span class="chip warn">Faltam ${(x.qtd-Math.max(0,x.disp)).toLocaleString('pt-BR')}</span>`:'<span class="chip bad">Não tem</span>';
+  const falta=st?st.filter(x=>x.st!=='ok').length:0;
+  return `<div class="mat ${!st?'':falta?'bad':'ok'}" style="margin-bottom:12px"><div class="mh"><b>Materiais da atividade (${L.length})</b><span class="muted" style="font-size:13px">${st?(falta?`${falta} item(ns) em falta no estoque do técnico`:'Técnico tem todo o material'):'Escolha o técnico para conferir o estoque'}</span></div>
+   ${L.map(n=>{const x=stOf(n);return `<div class="mrow"><div class="mtop"><span>${esc(n.desc)}<small style="display:block;color:var(--muted);font-size:12px">${[n.cod,'Ponta '+n.ponta].filter(Boolean).map(esc).join(', ')}${x?`, disponível ${Math.max(0,x.disp).toLocaleString('pt-BR')}`:''}</small></span><span style="display:flex;gap:6px;align-items:center;flex:none"><b>${n.qtd.toLocaleString('pt-BR')}</b>${chipSt(x)}<button class="icon" data-act="matRem" data-k="${esc(mKey(n))}" aria-label="Remover ${esc(n.desc)}" title="Remover da atividade"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></span></div></div>`}).join('')||'<p class="muted pad" style="padding:10px 12px">Nenhum material para esta atividade.</p>'}
+   ${R.length?`<div class="mrow" style="background:var(--bg)"><small style="color:var(--muted)">Removidos: ${R.map(n=>esc(n.desc)).join(', ')}. </small><button class="link" data-act="matRest">Restaurar todos</button></div>`:''}</div>`}
 function agendForm(p){
-  const F=ui.agForm;if(F.etq!==p.etiqueta){F.etq=p.etiqueta;const nf=nextFase(p.etiqueta);F.fases=faseFim(p.etiqueta,nf)?[]:[nf];F.data=hoje();F.dataFim=hoje();F.uteis=true;F.tec=''}
+  const F=ui.agForm;if(F.etq!==p.etiqueta){F.etq=p.etiqueta;const nf=nextFase(p.etiqueta);F.fases=faseFim(p.etiqueta,nf)?[]:[nf];F.data=hoje();F.dataFim=hoje();F.uteis=true;F.tec='';F.rem=[];F.obs=''}
   if(!ativOk(p,F.fases))F.fases=F.fases.filter(k=>k!=='ativ');
   const opt=tp=>TEC.filter(t=>t.tipo===tp).map(t=>`<option value="${t.id}" ${t.id===F.tec?'selected':''}>${esc(t.nome)}</option>`).join('');
   const dias=diasRange(F.data,F.dataFim,F.uteis),carga=F.tec?S.ags.filter(a=>a.tec===F.tec&&dias.includes(a.data)&&a.status!=='cancelada').length:0;
@@ -967,7 +977,8 @@ function agendForm(p){
    ${(()=>{const L=anxDe(p.etiqueta),w=[];if(+p.metros>0&&F.fases.some(k=>k==='rua'||k==='interno')&&!L.some(x=>x.tipo==='kmzL'))w.push('KMZ de lançamento');if(temExt(p)&&F.fases.includes('ext')&&!L.some(x=>x.tipo==='kmzA'))w.push('KMZ de ativação');return w.length?`<p class="note">Ainda sem ${w.join(' e ')}. <button class="link" data-act="fTab" data-t="anx">Anexar agora</button></p>`:''})()}
    ${rangeHtml('ag',F.data,F.dataFim,F.uteis)}
    <label class="f"><span>Técnico</span><select class="inp" data-ch="agF" data-f="tec"><option value="">Selecione</option><optgroup label="Equipe própria (CLT)">${opt('CLT')}</optgroup><optgroup label="Terceiros">${opt('TERC')}</optgroup></select></label>
-   ${F.tec?matHtml(matCheck(p,F.tec,F.fases)):''}${F.tec&&!p.roi?'<p class="note">Projeto sem ROI: não há lista de materiais para comparar.</p>':''}
+   ${matEditor(p,F)}
+   <label class="f"><span>Observações para o técnico</span><textarea class="inp" rows="2" data-in="agObs" placeholder="Ex.: sobra de cabo deixada no poste em frente ao cliente pela equipe do lançamento na rua">${esc(F.obs||'')}</textarea></label>
    ${F.tec?`<p class="muted" style="margin:-4px 0 12px">${carga?`Esse técnico já tem ${carga} atividade(s) no período.`:'Sem outras atividades no período.'}</p>`:''}
    <button class="btn primary wide" data-act="agendar">Agendar e enviar ao técnico</button>`;
 }
@@ -1021,8 +1032,9 @@ function detalhe(a){
     ${c.contato?`<div><span class="muted">Contato no local</span><br>${esc(c.contato)}${tel?`, <a href="tel:${tel}">${esc(c.telefone)}</a>`:''}</div>`:''}
     <dl class="dl">${c.janela?`<div><dt>Janela</dt><dd>${esc(c.janela)}</dd></div>`:''}${c.acesso?`<div><dt>Acesso</dt><dd>${esc(c.acesso)}</dd></div>`:''}<div><dt>Topologia</dt><dd>${esc(p.topologia||'')}</dd></div><div><dt>Lançamento</dt><dd>${+p.metros||0} m</dd></div><div><dt>Caixas de emenda</dt><dd>${caixasTxt(p)}</dd></div>${p.pop?`<div><dt>POP</dt><dd>${esc(p.pop)}</dd></div>`:''}${p.equip?`<div><dt>Equipamento de acesso</dt><dd>${esc(p.equip)}</dd></div>`:''}${p.inst&&p.inst.porta?`<div><dt>Porta</dt><dd>${esc(p.inst.porta)}</dd></div>`:''}</dl>
     ${p.inst&&p.inst.pa?`<div><span class="muted">Ponto de acesso</span><br>${esc(p.inst.pa)}${p.inst.locPa?`, <a href="${esc(mapUrl(p.inst.locPa))}" target="_blank" rel="noopener">abrir localização</a>`:''}${p.semExt?'':(p.inst.pd?`<br><span class="muted">Ponto de derivação</span><br>${esc(p.inst.pd)}${p.inst.locPd?`, <a href="${esc(mapUrl(p.inst.locPd))}" target="_blank" rel="noopener">abrir localização</a>`:''}`:'')}</div>`:''}
+    ${a.obs?`<div class="note" style="margin:0"><b>Observação do agendamento:</b> ${esc(a.obs)}</div>`:''}
     ${c.obs?`<div><span class="muted">Observações</span><br>${esc(c.obs)}</div>`:''}
-    ${!FIM.includes(a.status)&&p.roi?`<div><span class="muted">Material para esta atividade</span>${matHtml(matCheck(p,a.tec,fasesOf(a)),1)}</div>`:''}
+    ${!FIM.includes(a.status)&&(p.roi||a.materiais)?`<div><span class="muted">Material para esta atividade</span>${matHtml(matCheck(p,a.tec,fasesOf(a),a.materiais),1)}</div>`:''}
     ${anexosTec(a.etiqueta)}
     ${p.roi?roiPontas(p.roi.itens):''}
    </div>
@@ -1248,6 +1260,8 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
+  matRem:el=>{const F=ui.agForm;F.rem=[...new Set((F.rem||[]).concat(el.dataset.k))];render()},
+  matRest:()=>{ui.agForm.rem=[];render()},
   pSec:el=>{const v=el.dataset.v,sb=el.dataset.s;if(v==='fin'&&!sb&&ui.pSec==='fin'){ui.fFech=!ui.fFech;render();return}if(v==='fin')ui.fFech=false;ui.tab='painel';ui.pSec=v;if(sb)ui.finSub=sb;ui.bEdit=false;if(v!=='fin'||sb)document.body.classList.remove('menu');render();window.scrollTo(0,0)},
   eqF:el=>{ui.eqF=el.dataset.v;render()},
   bEdit:()=>{ui.bEdit=!ui.bEdit;render()},
@@ -1257,8 +1271,8 @@ const ACT={
   lpuInfo:el=>{const t=el.parentElement.querySelector('.ltec');if(t)t.hidden=!t.hidden},
   cSec:el=>{ui.campoSec=el.dataset.v;render()},
   repOk:()=>{const R=ui.rp,a=getAg(R.id);if(!R.fases.length){toast('Selecione ao menos uma fase.','bad');return}if(!ativOk(pPor(a.etiqueta),R.fases)){toast('A ativação está bloqueada até as fases anteriores serem finalizadas.','bad');return}const dias=diasRange(R.data,R.dataFim,R.uteis);if(!dias.length){toast('O intervalo escolhido não tem dias válidos.','bad');return}
-    if(R.modo==='reag'){if(!canReag()){toast('Somente o encarregado reagenda.','bad');return}const fz=criarAgs(a.etiqueta,R.fases,R.tec,dias,meNome(),{origem:a.id});a.reag=dias[0];a.pendReag=false;a.reagPor=meNome();save();closeModal();render();toast(`Reagendado: ${a.etiqueta} para ${dBR(dias[0])} com ${tecN(R.tec)} (${fz.map(k=>FCURTO[k]).join(' + ')}).`);return}
-    const fz=criarAgs(a.etiqueta,R.fases,R.tec,dias,meNome(),{replicaDe:a.id});save();closeModal();render();toast(`Replicado: ${dias.length} agendamento(s) de ${a.etiqueta} para ${tecN(R.tec)} (${fz.map(k=>FCURTO[k]).join(' + ')}).`)},
+    if(R.modo==='reag'){if(!canReag()){toast('Somente o encarregado reagenda.','bad');return}const fz=criarAgs(a.etiqueta,R.fases,R.tec,dias,meNome(),Object.assign({origem:a.id},a.materiais?{materiais:a.materiais}:{},a.obs?{obs:a.obs}:{}));a.reag=dias[0];a.pendReag=false;a.reagPor=meNome();save();closeModal();render();toast(`Reagendado: ${a.etiqueta} para ${dBR(dias[0])} com ${tecN(R.tec)} (${fz.map(k=>FCURTO[k]).join(' + ')}).`);return}
+    const fz=criarAgs(a.etiqueta,R.fases,R.tec,dias,meNome(),Object.assign({replicaDe:a.id},a.materiais?{materiais:a.materiais}:{},a.obs?{obs:a.obs}:{}));save();closeModal();render();toast(`Replicado: ${dias.length} agendamento(s) de ${a.etiqueta} para ${tecN(R.tec)} (${fz.map(k=>FCURTO[k]).join(' + ')}).`)},
   reag:el=>{if(!canReag()){toast('Somente o encarregado reagenda.','bad');return}const a=getAg(el.dataset.id),ini=addD(hoje(),1);ui.rp={modo:'reag',id:a.id,data:ini,dataFim:ini,uteis:true,tec:a.tec,fases:fasesOf(a).filter(k=>!faseFim(a.etiqueta,k))};renderRep()},
   anxOpen:async el=>{const x=S.anexos.find(a=>a.id===el.dataset.id);const r=await sb.storage.from('agenda').createSignedUrl(x.path,120,{download:x.nome});if(r.error){toast('Não foi possível abrir o arquivo: '+r.error.message,'bad');return}window.open(r.data.signedUrl,'_blank')},
   anxDel:async el=>{const x=S.anexos.find(a=>a.id===el.dataset.id);if(!confirm(`Remover o anexo ${x.nome}?`))return;await sb.storage.from('agenda').remove([x.path]);const d=await sb.from('ag_anexos').delete().eq('id',x.id);if(d.error){toast('Erro ao remover: '+d.error.message,'bad');return}S.anexos=S.anexos.filter(a=>a!==x);render();toast('Anexo removido.')},
@@ -1270,7 +1284,11 @@ const ACT={
   limparFiltros:()=>{ui.agFase='all';ui.agTec='all';render()},
   agView:el=>{ui.agView=el.dataset.v;render()},
   hoje:()=>{ui.agDia=hoje();render()},
-  goDia:el=>{ui.agDia=el.dataset.d;ui.agView='dia';render()},
+  goDia:el=>{const d=el.dataset.d,L=S.ags.filter(a=>a.data===d&&agFilt(a)),dw=new Date(d+'T12:00:00');
+    openModal(`<h3>${DSEM[dw.getDay()].charAt(0).toUpperCase()+DSEM[dw.getDay()].slice(1)}, ${dBR(d)}</h3><p class="muted">${L.length} atividade(s)${ui.agFase!=='all'||ui.agTec!=='all'?' com os filtros atuais':''}</p>
+     <div style="margin-top:10px">${L.map(a=>`<button class="item" data-act="agOpen" data-id="${a.id}" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;cursor:pointer;color:inherit"><div><b>${esc(a.etiqueta)}</b> ${esc(cliN(a.etiqueta))}<small>${fasesN(a)}, ${esc(tecN(a.tec))}</small></div><div class="right">${chip(a.status)}</div></button>`).join('')||'<p class="muted pad">Nenhuma atividade neste dia.</p>'}</div>
+     <div class="actions"><button class="btn" data-act="diaVer" data-d="${d}">Ver na visão de dia</button><button class="btn primary" data-act="close">Fechar</button></div>`,'wide')},
+  diaVer:el=>{closeModal();ui.agDia=el.dataset.d;ui.agView='dia';render()},
   agOpen:el=>{const a=getAg(el.dataset.id),p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},t=a.ts,ed=a.status==='agendada';
     const tl=[['Deslocamento',t.desloc],['Chegada',t.chegada],['Início',t.inicio],['Conclusão',t.conclusao],['Encerramento',t.encerramento]].filter(x=>x[1]);
     openModal(`<div class="ah"><h3>${esc(a.etiqueta)}</h3>${chip(a.status)}</div><p>${esc(p.cliente||'')}</p>
@@ -1278,7 +1296,8 @@ const ACT={
     ${c.endereco?`<p style="margin-top:10px"><span class="muted">Endereço:</span> ${esc(c.endereco)}</p>`:''}${c.contato?`<p><span class="muted">Contato:</span> ${esc(c.contato)}${c.telefone?', '+esc(c.telefone):''}</p>`:''}
     ${a.motivo?`<div class="result bad" style="margin-top:10px">Não concluída: ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`. Reagendada para ${dBR(a.reag)}.`:''}</div>`:''}
     ${tl.length?`<h3 class="lsub">Registro de tempos</h3><dl class="dl">${tl.map(([l,v])=>`<div><dt>${l}</dt><dd>${hm(v)}</dd></div>`).join('')}</dl>`:''}
-    ${!FIM.includes(a.status)&&a.status!=='cancelada'&&p.roi?`<h3 class="lsub">Material do técnico</h3>${matHtml(matCheck(p,a.tec,fasesOf(a)))}`:''}
+    ${!FIM.includes(a.status)&&a.status!=='cancelada'&&(p.roi||a.materiais)?`<h3 class="lsub">Material do técnico</h3>${matHtml(matCheck(p,a.tec,fasesOf(a),a.materiais))}`:''}
+    ${a.obs?`<p class="note" style="margin-top:10px"><b>Observação do agendamento:</b> ${esc(a.obs)}</p>`:''}
     <h3 class="lsub">Fases do projeto</h3>${faseFlags(p,1)}
     ${anxDe(a.etiqueta).length?`<h3 class="lsub">Anexos</h3>${anxDe(a.etiqueta).map(x=>anxLinha(x,0)).join('')}`:''}
     ${a.pendReag?`<p class="note" style="margin-top:10px">${canReag()?'Aguardando reagendamento.':'Aguardando o encarregado reagendar.'}</p>`:''}
@@ -1339,7 +1358,7 @@ const ACT={
     if(falta.length){ui.fTab='comp';render();toast('Preencha '+falta.join(', ')+' em Dados complementares para agendar.','bad');return}
     if(!F.fases||!F.fases.length){toast('Selecione ao menos uma fase.','bad');return}if(!ativOk(pPor(ui.agSel),F.fases)){toast('A ativação está bloqueada até as fases anteriores serem finalizadas.','bad');return}if(!F.data){toast('Informe a data.','bad');return}if(!F.tec){toast('Selecione o técnico.','bad');return}
     const dias=diasRange(F.data,F.dataFim,F.uteis);if(!dias.length){toast('O intervalo escolhido não tem dias válidos.','bad');return}
-    const etq=ui.agSel,mc=matCheck(pPor(etq),F.tec,F.fases),fz=criarAgs(etq,F.fases,F.tec,dias,meNome());save();
+    const etq=ui.agSel,pp=pPor(etq),lista=pp.roi?matLista(pp,F).map(n=>({cod:n.cod,desc:n.desc,qtd:n.qtd,ponta:n.ponta})):null,mc=lista?matCheck(pp,F.tec,F.fases,lista):null,fz=criarAgs(etq,F.fases,F.tec,dias,meNome(),Object.assign({},lista?{materiais:lista}:{},(F.obs||'').trim()?{obs:F.obs.trim()}:{}));save();
     const fm=mc?mc.filter(x=>x.st!=='ok').length:0;if(mc)setTimeout(()=>toast(fm?`Atenção: ${tecN(F.tec)} não tem todo o material (${fm} item(ns) em falta).`:`${tecN(F.tec)} tem todo o material do ROI para estas fases.`,fm?'bad':''),3300);
     ui.agDia=F.data;ui.agSel=null;ui.agForm={};render();toast(`${etq}: ${dias.length} agendamento(s) para ${tecN(F.tec)}${dias.length>1?` de ${dBR(dias[0])} a ${dBR(dias[dias.length-1])}`:` em ${dBR(dias[0])}`} (${fz.map(k=>FCURTO[k]).join(' + ')}).`)},
   cancelar:el=>{const a=getAg(el.dataset.id);if(confirm(`Cancelar o agendamento de ${a.etiqueta}?`)){a.status='cancelada';save();closeModal();render();toast('Agendamento cancelado.')}},
@@ -1429,6 +1448,7 @@ const CH={
   tec:el=>{ui.tec=el.value;ui.campoSel=null;if(tecT(ui.tec)!=='TERC')ui.campoSec='at';render()}
 };
 const IN={
+  agObs:el=>{ui.agForm.obs=el.value},
   lpuQ:el=>{const k=el.dataset.k,d=lpuDraft(k),c=el.dataset.c;d.q[c]=d.q[c]||{fator:'comum'};d.q[c].qtd=parseFloat(String(el.value).replace(',','.'))||0;el.closest('.lpi').classList.toggle('on',d.q[c].qtd>0);lpuRefresh(k)},
   lpuUnit:el=>{const k=el.dataset.k,d=lpuDraft(k),c=el.dataset.c;d.q[c]=d.q[c]||{fator:'comum'};d.q[c].unit=parseFloat(el.value)||0;lpuRefresh(k)},
   lpuBusca:el=>{const box=el.closest('.lpu');lpuFiltrar(box)},
