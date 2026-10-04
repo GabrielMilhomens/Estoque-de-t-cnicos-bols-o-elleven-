@@ -193,6 +193,26 @@ nav.tabs .nv2{padding-left:44px;font-size:14px;min-height:38px}nav.tabs .nv2.on{
 .pbody{min-width:0;display:flex;flex-direction:column;gap:14px}.phd h3{font-size:22px}.phd p{margin-top:2px}
 .bbar{display:flex;height:11px;background:var(--bg);border-radius:6px;overflow:hidden;margin:3px 0}.bbar i{display:block;height:100%;background:var(--brand-ink)}.bbar b{display:block;height:100%;background:#E3B567}.bbar.thin{height:8px}
 .topi{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:14px;margin-bottom:8px}.tpn{font:600 15px "Barlow Condensed",sans-serif;color:var(--muted)}.tpd{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tpd b{color:var(--brand-ink)}
+.tcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:12px}
+.tchd{padding:14px 14px 12px;display:flex;flex-direction:column;gap:6px}.tcl{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tccli{font:700 23px/1.1 "Barlow Condensed",sans-serif}.tcetq{align-self:flex-start;font:700 17px "Barlow Condensed",sans-serif;letter-spacing:.04em;background:var(--brand-soft);color:var(--ink);padding:3px 10px;border-radius:6px}
+.tcband{color:#fff;padding:11px 14px;display:flex;flex-direction:column;gap:1px}.tck{font-size:12px;font-weight:600;letter-spacing:.06em;opacity:.92}.tcf{font:700 22px/1.1 "Barlow Condensed",sans-serif}.tcs{font-size:13.5px;opacity:.95}
+.tcb{padding:12px 14px 14px;display:flex;flex-direction:column;gap:12px}.tcend{display:flex;gap:8px;align-items:flex-start;font-size:14px}.tcend svg{flex:none;margin-top:1px;color:var(--muted)}
+.tck2{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em}.tcand{display:flex;flex-direction:column;gap:5px}.tcbars{display:grid;gap:4px}
+.tcbars div{display:flex;flex-direction:column;gap:3px;min-width:0}.tcbars i{display:block;height:6px;border-radius:3px;background:var(--line)}.tcbars i.ok{background:var(--brand-ink)}.tcbars i.now{background:var(--brand)}
+.tcbars span{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tcbars span.ok{color:var(--brand-ink);font-weight:600}.tcbars span.now{color:var(--ink);font-weight:600}
+.tcbt{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px}.tcbtn{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border:1px solid var(--line);border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;font-size:14px;padding:0 8px;text-align:center}
+.tcopen{min-height:48px;border:0;border-radius:10px;background:var(--brand);color:var(--on-brand);font:600 18px "Barlow Condensed",sans-serif;cursor:pointer}
+.tact2{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:10px;background:var(--bg)}
+.tacc{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.tacch{width:100%;background:none;border:0;padding:14px;min-height:64px;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;color:var(--ink)}
+.taci{width:38px;height:38px;border-radius:10px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;flex:none}
+.tact{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.tact b{font:600 18px "Barlow Condensed",sans-serif}.tact small{font-size:13.5px;color:var(--muted);overflow-wrap:anywhere}.tacs{color:var(--muted);flex:none}
+.taccb{border-top:1px solid var(--line);padding:12px 14px 14px;display:flex;flex-direction:column;gap:12px}
+.tobs{background:var(--warn-soft);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}.tobs b{color:var(--warn);font-size:14px}.tobs span{font-size:14px}
+.tobs2{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}.tobs2 b{font-size:13px;color:var(--muted)}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;font-size:14px}.tgrid span{display:block;font-size:12.5px;color:var(--muted);font-weight:600}
+.tanx{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:10px}
 .prev{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px}
 .btn[disabled],.bigbtn[disabled]{opacity:.45;cursor:not-allowed}
 .icon{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px;font-size:15px}
@@ -998,49 +1018,67 @@ function viewCampo(){
   if(terc&&ui.perfil==='coord'&&ui.campoSec==='fin')return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${viewMinhas(true)}</div>`;
   const T=hoje(),mine=S.ags.filter(x=>x.tec===ui.tec&&x.status!=='cancelada');
   const g={hoje:mine.filter(x=>!FIM.includes(x.status)&&x.data<=T).sort((a,b)=>a.data.localeCompare(b.data)),prox:mine.filter(x=>!FIM.includes(x.status)&&x.data>T).sort((a,b)=>a.data.localeCompare(b.data)),enc:mine.filter(x=>FIM.includes(x.status)).sort((a,b)=>b.data.localeCompare(a.data))};
-  const card=x=>{const c=S.comp[x.etiqueta]||{};return `<button class="acard" data-act="abrir" data-id="${x.id}"><div class="ah"><b>${esc(x.etiqueta)}</b>${chip(x.status)}</div><span>${esc(cliN(x.etiqueta))}</span><small>${fasesN(x)}, ${dBR(x.data)}${x.data<T&&!FIM.includes(x.status)?' (atrasada)':''}</small>${c.endereco?`<small>${esc(c.endereco)}</small>`:''}${faseFlags(pPor(x.etiqueta),0)}</button>`};
+  const card=x=>{const c=S.comp[x.etiqueta]||{};return `<article class="tcard">${tcTopo(x,'')}
+    <div class="tcb">${c.endereco?`<div class="tcend">${IC.pin}<span>${esc(endCurto(c.endereco))}</span></div>`:''}${andamentoHtml(x)}
+     <div class="tcbt">${rotaLigar(c)}</div><button class="tcopen" data-act="abrir" data-id="${x.id}">Abrir atividade</button></div></article>`};
   const lab={hoje:'Hoje',prox:'Próximas',enc:'Encerradas'};
   return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}
    <div class="chips">${Object.keys(lab).map(k=>`<button data-act="cF" data-t="${k}" aria-current="${ui.cF===k}">${lab[k]} (${g[k].length})</button>`).join('')}</div>
    ${g[ui.cF].map(card).join('')||'<p class="muted pad">Nenhuma atividade aqui.</p>'}</div>`;
 }
+const IC={pin:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>',
+  rota:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>',
+  tel:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>',
+  mat:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>',
+  doc:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+  dn:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+  up:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>'};
+const COR_FASE={rua:'#245F80',interno:'#2E6B3A',ext:'#7A4E0C',ativ:'#4F3A86'};
+const endCurto=e=>String(e||'').replace(/,?\s*CEP\s*[\d.\-]+\s*$/i,'');
+const corFase=a=>{const f=fasesOf(a),k=['ativ','ext','interno','rua'].find(x=>f.includes(x))||'rua';return COR_FASE[k]};
+function apoioTxt(a){const c=S.comp[a.etiqueta]||{},T=hoje(),p=pPor(a.etiqueta),L=[];
+  L.push(a.data===T?'Hoje':a.data<T&&!FIM.includes(a.status)?`Atrasada, era para ${dBR(a.data).slice(0,5)}`:dBR(a.data).slice(0,5));
+  if(c.janela)L.push('janela '+c.janela);if(fasesOf(a).includes('ativ')&&!faseFim(a.etiqueta,'ativ')&&ativOk(p,fasesOf(a)))L.push('liberado para ativar');return L.join(', ')}
+function tcTopo(a,extra){return `<div class="tchd"><div class="tcl"><span class="tccli">${esc(cliN(a.etiqueta))}</span>${chip(a.status)}</div><span class="tcetq">${esc(a.etiqueta)}</span></div>
+  <div class="tcband" style="background:${corFase(a)}"><span class="tck">O QUE FAZER</span><span class="tcf">${fasesN(a)}</span><span class="tcs">${esc(apoioTxt(a))}</span></div>${extra}`}
+function andamentoHtml(a){const p=pPor(a.etiqueta),fs=FASES.filter(f=>!(f.k==='ext'&&p.semExt));
+  return `<div class="tcand"><span class="tck2">ANDAMENTO DO CIRCUITO</span><div class="tcbars" style="grid-template-columns:repeat(${fs.length},minmax(0,1fr))">${fs.map(f=>{const ok=!!faseFim(a.etiqueta,f.k),now=!ok&&fasesOf(a).includes(f.k);return `<div><i class="${ok?'ok':now?'now':''}"></i><span class="${ok?'ok':now?'now':''}">${ok?'✓ ':''}${FCURTO[f.k]}</span></div>`}).join('')}</div></div>`}
+function rotaLigar(c){const tel=(c.telefone||'').replace(/\D/g,''),nome=String(c.contato||'').split(/[\s(]/)[0];
+  return `${c.endereco?`<a class="tcbtn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank" rel="noopener">${IC.rota}Rota</a>`:''}${tel?`<a class="tcbtn" href="tel:${tel}">${IC.tel}${nome?'Ligar para '+esc(nome):'Ligar'}</a>`:''}`}
 function detalhe(a){
-  const p=S.previsao.find(x=>x.etiqueta===a.etiqueta)||{},c=S.comp[a.etiqueta]||{},terc=tecT(a.tec)==='TERC',t=a.ts;
-  const steps=['Deslocamento','Chegada','Execução','Relatórios'].concat(terc?['LPU']:[]).concat(['Encerrada']);
+  const p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},terc=tecT(a.tec)==='TERC',t=a.ts;
+  const steps=['Deslocamento','Chegada','Execução','Relatório'].concat(terc?['LPU']:[]).concat(['Encerrada']);
   const order=['agendada','deslocamento','no_local','execucao','relatorios'].concat(terc?['lpu']:[]).concat(['concluida']);
   const s=order.indexOf(a.status);
-  const track=a.status==='nao_concluida'?'':`<div class="track">${steps.map((_,i)=>`<div class="${a.status==='concluida'||i<s-1?'done':(i===s-1?'cur':'')}"></div>`).join('')}</div><div class="tlabels">${steps.map(x=>`<span>${x}</span>`).join('')}</div>`;
-  const nok=`<button class="btn ghost wide" data-act="nao" data-id="${a.id}">Não foi possível concluir</button>`;
+  const etapas=a.status==='nao_concluida'?'':`<div class="tcand"><span class="tck2">ETAPAS DESTA ATIVIDADE</span><div class="tcbars" style="grid-template-columns:repeat(${steps.length},minmax(0,1fr))">${steps.map((n,i)=>{const done=a.status==='concluida'||i<s-1,cur=!done&&i===Math.max(0,s-1)&&a.status!=='agendada'||(a.status==='agendada'&&i===0);return `<div><i class="${done?'ok':cur?'now':''}"></i><span class="${done?'ok':cur?'now':''}">${n}</span></div>`}).join('')}</div></div>`;
+  const nok=`<button class="btn ghost wide" data-act="nao" data-id="${a.id}">Não foi possível realizar</button>`;
   const go=l=>`<button class="bigbtn" data-act="go" data-id="${a.id}">${l}</button>`;
   let act='';
   switch(a.status){
-    case 'agendada':act=`<label class="f" style="margin:0"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta"></label><button class="bigbtn" data-act="go" data-id="${a.id}" id="goBtn" disabled>Iniciar deslocamento</button><p class="muted" id="etaHint" style="margin:-4px 0 0;font-size:13.5px">Informe a previsão de chegada para liberar o deslocamento.</p>${nok}`;break;
+    case 'agendada':act=`<label class="f" style="margin:0"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta" style="font-size:17px;min-height:48px"></label><button class="bigbtn" data-act="go" data-id="${a.id}" id="goBtn" disabled>Iniciar deslocamento</button><p class="muted" id="etaHint" style="margin:-4px 0 0;font-size:13.5px">Informe a previsão de chegada para liberar o deslocamento.</p>`;break;
     case 'deslocamento':act=go('Cheguei no local')+nok;break;
     case 'no_local':act=go('Iniciar atividade')+nok;break;
     case 'execucao':act=go('Concluir atividade')+nok;break;
-    case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">Preencha os relatórios para encerrar a atividade.</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${terc?'Enviar relatórios e preencher LPU':'Enviar relatórios e encerrar'}</button>`;break}
+    case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">Preencha o relatório para encerrar a atividade.</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${terc?'Enviar relatório e preencher LPU':'Enviar relatório e encerrar'}</button>`;break}
     case 'lpu':act=`<h3>Preenchimento da LPU</h3>${lpuEditor(a.id)}<button class="bigbtn" data-act="lpuEnviar" data-id="${a.id}">Enviar LPU e encerrar</button>`;break;
-    case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída ${a.noDia?'no dia agendado':'fora do dia agendado'}, encerrada em ${dtBR(t.encerramento)}.</div>${l?`<div class="result">LPU de <b>${brl(l.total)}</b> ${lchip(l.status)}</div>`:''}`;break}
-    case 'nao_concluida':act=`<div class="result bad"><b>Não concluída:</b> ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`<br>Reagendada para ${dBR(a.reag)}.`:a.pendReag?'<br>Aguardando reagendamento pelo encarregado.':''}</div>`;break;
+    case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída em ${dBR(isoD(new Date(t.encerramento||t.conclusao||Date.now())))}.</div>${l?`<div class="result">LPU de <b>${brl(l.total)}</b> ${lchip(l.status)}</div>`:''}`;break}
+    case 'nao_concluida':act=`<div class="result bad"><b>Não realizada:</b> ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`<br>Reagendada para ${dBR(a.reag)}.`:a.pendReag?'<br>Aguardando reagendamento pelo encarregado.':''}</div>`;break;
   }
-  const tlr=[['Início do deslocamento',t.desloc,t.eta?`previsão de chegada ${hm(t.eta)}`:''],['Chegada no local',t.chegada,t.desloc&&t.chegada?`deslocamento de ${fdur(dur(t.desloc,t.chegada))}${t.eta?(t.chegada>t.eta+600000?', depois da previsão':', dentro da previsão'):''}`:''],['Início da atividade',t.inicio,t.chegada&&t.inicio?`espera de ${fdur(dur(t.chegada,t.inicio))} no local`:''],['Conclusão da atividade',t.conclusao,t.inicio&&t.conclusao?`execução de ${fdur(dur(t.inicio,t.conclusao))}`:''],['Encerramento',t.encerramento,t.conclusao&&t.encerramento?`relatórios em ${fdur(dur(t.conclusao,t.encerramento))}`:'']];
-  const tel=(c.telefone||'').replace(/\D/g,'');
-  return `<button class="back" data-act="voltar">‹ Voltar para a lista</button>
-  <div class="panel"><div class="ah"><h2>${esc(a.etiqueta)}</h2>${chip(a.status)}</div><p>${esc(p.cliente||'')}</p>${faseFlags(p,0)}<p class="muted">${fasesN(a)}, agendada para ${dBR(a.data)}</p>${track}
-   <div class="info">
-    ${c.endereco?`<div><span class="muted">Endereço</span><br><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank" rel="noopener">${esc(c.endereco)}</a></div>`:''}
-    ${c.contato?`<div><span class="muted">Contato no local</span><br>${esc(c.contato)}${tel?`, <a href="tel:${tel}">${esc(c.telefone)}</a>`:''}</div>`:''}
-    <dl class="dl">${c.janela?`<div><dt>Janela</dt><dd>${esc(c.janela)}</dd></div>`:''}${c.acesso?`<div><dt>Acesso</dt><dd>${esc(c.acesso)}</dd></div>`:''}<div><dt>Topologia</dt><dd>${esc(p.topologia||'')}</dd></div><div><dt>Lançamento</dt><dd>${+p.metros||0} m</dd></div><div><dt>Caixas de emenda</dt><dd>${caixasTxt(p)}</dd></div>${p.pop?`<div><dt>POP</dt><dd>${esc(p.pop)}</dd></div>`:''}${p.equip?`<div><dt>Equipamento de acesso</dt><dd>${esc(p.equip)}</dd></div>`:''}${p.inst&&p.inst.porta?`<div><dt>Porta</dt><dd>${esc(p.inst.porta)}</dd></div>`:''}</dl>
-    ${p.inst&&p.inst.pa?`<div><span class="muted">Ponto de acesso</span><br>${esc(p.inst.pa)}${p.inst.locPa?`, <a href="${esc(mapUrl(p.inst.locPa))}" target="_blank" rel="noopener">abrir localização</a>`:''}${p.semExt?'':(p.inst.pd?`<br><span class="muted">Ponto de derivação</span><br>${esc(p.inst.pd)}${p.inst.locPd?`, <a href="${esc(mapUrl(p.inst.locPd))}" target="_blank" rel="noopener">abrir localização</a>`:''}`:'')}</div>`:''}
-    ${a.obs?`<div class="note" style="margin:0"><b>Observação do agendamento:</b> ${esc(a.obs)}</div>`:''}
-    ${c.obs?`<div><span class="muted">Observações</span><br>${esc(c.obs)}</div>`:''}
-    ${!FIM.includes(a.status)&&(p.roi||a.materiais)?`<div><span class="muted">Material para esta atividade</span>${matHtml(matCheck(p,a.tec,fasesOf(a),a.materiais),1)}</div>`:''}
-    ${anexosTec(a.etiqueta)}
-    ${p.roi?roiPontas(p.roi.itens):''}
-   </div>
-   <div class="acts">${act}</div>
-   <h3 class="lsub">Registro de tempos</h3><div class="tl">${tlr.map(([l,v,s])=>`<div><b class="${v?'':'off'}">${hm(v)}</b><span>${l}${s?`<small>${s}</small>`:''}</span></div>`).join('')}</div>
-  </div>`;
+  ui.tAcc=ui.tAcc||{};const ac=(k,ico,tit,sub,body)=>{const o=!!ui.tAcc[k];return `<section class="tacc"><button class="tacch" data-act="tAcc" data-k="${k}" aria-expanded="${o}"><span class="taci">${ico}</span><span class="tact"><b>${tit}</b><small>${sub}</small></span><span class="tacs">${o?IC.up:IC.dn}</span></button>${o?`<div class="taccb">${body}</div>`:''}</section>`};
+  const mats=matCheck(p,a.tec,fasesOf(a),a.materiais),nm=mats?mats.length:0;
+  const matBody=`${a.obs?`<div class="tobs"><b>Observação do agendamento</b><span>${esc(a.obs)}</span></div>`:''}${c.obs?`<div class="tobs2"><b>Observações do projeto</b><span>${esc(c.obs)}</span></div>`:''}${mats?matHtml(mats,1):'<p class="muted">Nenhum material listado para esta atividade.</p>'}`;
+  const dd=(l,v)=>v?`<div><span>${l}</span>${v}</div>`:'';
+  const endBody=`<div style="font-size:15px">${esc(c.endereco||'Endereço não informado')}</div><div class="tgrid">${dd('Quem vai receber',esc(c.contato||''))}${dd('Telefone',esc(c.telefone||''))}${dd('Janela',esc(c.janela||''))}${dd('Acesso',esc(c.acesso||''))}</div><div class="tcbt">${rotaLigar(c)}</div>`;
+  const pi=p.inst||{},anx=anxDe(a.etiqueta);
+  const tecBody=`<div class="tgrid">${dd('Topologia',esc(p.topologia||''))}${dd('Lançamento',(+p.metros||0)+' m')}${dd('Caixas de emenda',caixasTxt(p))}${dd('POP',esc(p.pop||''))}${dd('Porta',esc(pi.porta||''))}${p.equip?`<div style="grid-column:1/-1"><span>Equipamento de acesso</span>${esc(p.equip)}</div>`:''}${pi.pa?`<div><span>Ponto de acesso</span>${esc(pi.pa)}${pi.locPa?`, <a href="${esc(mapUrl(pi.locPa))}" target="_blank" rel="noopener">ver no mapa</a>`:''}</div>`:''}${pi.pd&&!p.semExt?`<div><span>Ponto de derivação</span>${esc(pi.pd)}${pi.locPd?`, <a href="${esc(mapUrl(pi.locPd))}" target="_blank" rel="noopener">ver no mapa</a>`:''}</div>`:''}</div>
+   <div class="tanx"><span class="tck2">ANEXOS</span>${anx.length?anx.map(x=>anxLinha(x,0)).join(''):'<p class="muted" style="margin:4px 0 0">Nenhum anexo.</p>'}</div>`;
+  const resumoMat=[nm?nm+(nm===1?' item':' itens'):'sem materiais',a.obs?'1 observação do agendamento':''].filter(Boolean).join(', ');
+  const resumoTec=[p.topologia,+p.metros?(+p.metros)+' m':'',anx.length?anx.length+(anx.length===1?' anexo':' anexos'):''].filter(Boolean).join(', ');
+  return `<button class="back" data-act="voltar">‹ Minhas atividades</button>
+  <article class="tcard">${tcTopo(a,'')}<div class="tcb">${etapas}<div class="tact2">${act}</div>${andamentoHtml(a)}</div></article>
+  ${ac('mat',IC.mat,'Materiais e observações',esc(resumoMat),matBody)}
+  ${ac('end',IC.pin,'Endereço e contato',esc(endCurto(c.endereco||'Endereço não informado')),endBody)}
+  ${ac('tec',IC.doc,'Dados técnicos e anexos',esc(resumoTec||'Ver dados do projeto'),tecBody)}`;
 }
 function lpuDraft(key){return ui.draft[key]||(ui.draft[key]={conta:LPU_CONTAS[0],q:{}})}
 const lpuUnit=(it,v)=>it.valor==null?(+v.unit||0):(v.fator==='critico'&&it.valorCritico!=null?it.valorCritico:it.valor);
@@ -1260,6 +1298,7 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
+  tAcc:el=>{ui.tAcc=ui.tAcc||{};ui.tAcc[el.dataset.k]=!ui.tAcc[el.dataset.k];render()},
   matRem:el=>{const F=ui.agForm;F.rem=[...new Set((F.rem||[]).concat(el.dataset.k))];render()},
   matRest:()=>{ui.agForm.rem=[];render()},
   pSec:el=>{const v=el.dataset.v,sb=el.dataset.s;if(v==='fin'&&!sb&&ui.pSec==='fin'){ui.fFech=!ui.fFech;render();return}if(v==='fin')ui.fFech=false;ui.tab='painel';ui.pSec=v;if(sb)ui.finSub=sb;ui.bEdit=false;if(v!=='fin'||sb)document.body.classList.remove('menu');render();window.scrollTo(0,0)},
@@ -1363,7 +1402,7 @@ const ACT={
     ui.agDia=F.data;ui.agSel=null;ui.agForm={};render();toast(`${etq}: ${dias.length} agendamento(s) para ${tecN(F.tec)}${dias.length>1?` de ${dBR(dias[0])} a ${dBR(dias[dias.length-1])}`:` em ${dBR(dias[0])}`} (${fz.map(k=>FCURTO[k]).join(' + ')}).`)},
   cancelar:el=>{const a=getAg(el.dataset.id);if(confirm(`Cancelar o agendamento de ${a.etiqueta}?`)){a.status='cancelada';save();closeModal();render();toast('Agendamento cancelado.')}},
   cF:el=>{ui.cF=el.dataset.t;render()},
-  abrir:el=>{ui.campoSel=el.dataset.id;render();window.scrollTo(0,0)},
+  abrir:el=>{ui.campoSel=el.dataset.id;ui.tAcc={};render();window.scrollTo(0,0)},
   voltar:()=>{ui.campoSel=null;render()},
   go:el=>{const a=getAg(el.dataset.id),n=Date.now();
     if(a.status==='agendada'){const v=$('eta').value;if(!v){toast('Informe a previsão de chegada antes de iniciar o deslocamento.','bad');$('eta').focus();return}a.ts.desloc=n;a.ts.eta=ts(hoje(),v);a.status='deslocamento'}
@@ -1534,7 +1573,7 @@ async function carregar(){
   const [pr,co,ag,lp,an,lg]=await Promise.all([(g?todas(()=>sb.from('ag_projetos').select('*')):sb.rpc('ag_projetos_tecnico').then(r=>{if(r.error)throw r.error;return r.data||[]})),todas(()=>sb.from('ag_complementos').select('*')),todas(()=>sb.from('ag_agendamentos').select('*')),todas(()=>sb.from('ag_lpus').select('*')),todas(()=>sb.from('ag_anexos').select('*')),g?todas(()=>sb.from('ag_anexos_log').select('*')):Promise.resolve([])]);
   S.previsao=pr.map(r=>Object.assign({id:r.id,etiqueta:r.etiqueta},r.dados));
   S.comp={};co.forEach(r=>S.comp[r.etiqueta]=r.dados||{});
-  S.ags=ag.map(r=>Object.assign({},r.dados,{id:r.id,etiqueta:r.etiqueta,tec:r.tecnico,data:r.data,status:r.status,fases:r.fases,fase:(r.fases||[])[0]}));
+  S.ags=ag.map(r=>Object.assign({ts:{},rel:{}},r.dados,{id:r.id,etiqueta:r.etiqueta,tec:r.tecnico,data:r.data,status:r.status,fases:r.fases,fase:(r.fases||[])[0]}));
   S.lpus=lp.map(r=>Object.assign({},r.dados,{id:r.id,ag:r.agendamento,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total,pdf_path:r.pdf_path}));
   S.anexos=an.map(r=>({id:r.id,etiqueta:r.etiqueta,tipo:r.tipo,fase:r.fase,nome:r.nome,tam:r.tamanho,em:new Date(r.enviado_em).getTime(),por:'',path:r.path}));
   S.anexosLog=lg.map(r=>({etiqueta:r.etiqueta,nome:r.nome,tipo:r.tipo,em:new Date(r.excluido_em).getTime()}));
