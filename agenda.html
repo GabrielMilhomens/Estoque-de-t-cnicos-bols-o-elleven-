@@ -172,6 +172,17 @@ td.r,th.r{white-space:nowrap}
  .campo table{font-size:13px}.campo td,.campo th{padding:6px}
  .lpc{flex-wrap:wrap}.lpc select{flex:1 1 100%}
 }
+.pnl{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.pnav{flex:1 1 200px;max-width:260px;display:flex;flex-direction:column;gap:3px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}
+@media(max-width:820px){.pnav{max-width:none}}
+.pnt{font:600 12.5px "Barlow Condensed",sans-serif;color:var(--muted);letter-spacing:.03em;padding:6px 10px 2px}
+.pni{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-radius:8px;padding:10px 12px;min-height:44px;font-weight:600;color:var(--muted);text-align:left;cursor:pointer}
+.pni i{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}.pni:hover{background:var(--bg);color:var(--ink)}
+.pni.on{background:var(--brand-soft);color:var(--brand-ink)}.pni.on i{background:var(--brand)}
+.pni.sub{padding-left:30px;font-weight:500;font-size:14.5px;min-height:40px}.pni.sub.on{font-weight:600}
+.pbody{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:14px}.phd h3{font-size:22px}.phd p{margin-top:2px}
+.bbar{display:flex;height:11px;background:var(--bg);border-radius:6px;overflow:hidden;margin:3px 0}.bbar i{display:block;height:100%;background:var(--brand-ink)}.bbar b{display:block;height:100%;background:#E3B567}.bbar.thin{height:8px}
+.topi{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:14px;margin-bottom:8px}.tpn{font:600 15px "Barlow Condensed",sans-serif;color:var(--muted)}.tpd{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tpd b{color:var(--brand-ink)}
 .prev{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px}
 .btn[disabled],.bigbtn[disabled]{opacity:.45;cursor:not-allowed}
 .icon{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px;font-size:15px}
@@ -542,7 +553,7 @@ const itemOf=c=>LPU.find(i=>i.cod===c)||LPU[0];
 
 let S={previsao:[],comp:{},ags:[],lpus:[],anexos:[],anexosLog:[],estoque:{}};
 function save(){agendarSync()}
-const ui={perfil:'coord',tab:'painel',tec:'c1',campoSel:null,cF:'hoje',agSel:null,fTab:'proj',q:'',agForm:{},agDia:hoje(),agFase:'all',baseQ:'',pIni:addD(hoje(),-14),pFim:addD(hoje(),7),aTab:'aguardando',pGrp:'cidade',agView:'semana',agTec:'all',kQ:'',kCid:'',vQ:'',vCid:'',vOrd:'entrega',sMes:hoje().slice(0,8)+'01',sDia:hoje(),aOpen:null,mTab:'aguardando',mIni:addD(hoje(),-30),mFim:hoje(),draft:{}};
+const ui={perfil:'coord',tab:'painel',tec:'c1',campoSel:null,cF:'hoje',agSel:null,fTab:'proj',q:'',agForm:{},agDia:hoje(),agFase:'all',baseQ:'',pIni:addD(hoje(),-14),pFim:addD(hoje(),7),aTab:'aguardando',pGrp:'cidade',pSec:'geral',finSub:'budget',eqF:'all',bMes:hoje().slice(0,7),bEdit:false,dSit:'ap',dConta:'',dPres:'',dClasse:'',agView:'semana',agTec:'all',kQ:'',kCid:'',vQ:'',vCid:'',vOrd:'entrega',sMes:hoje().slice(0,8)+'01',sDia:hoje(),aOpen:null,mTab:'aguardando',mIni:addD(hoje(),-30),mFim:hoje(),draft:{}};
 const getAg=id=>S.ags.find(a=>a.id===id);
 // Dias de execução: datas distintas em que uma atividade foi iniciada (ts.inicio).
 // Várias fases ou atividades no mesmo dia contam como 1 dia.
@@ -586,63 +597,112 @@ function render(){
 
 /* ---------- PAINEL ---------- */
 function media(arr,f){const v=arr.map(f).filter(x=>x!=null);return v.length?Math.round(v.reduce((s,x)=>s+x,0)/v.length):null}
+const f1=v=>v==null||isNaN(v)?'—':v.toFixed(1).replace('.',',');
+const mesDe=t=>{const d=new Date(t);return d.getFullYear()+'-'+pad(d.getMonth()+1)};
+const MESES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const mesNome=m=>{const[a,b]=m.split('-');return MESES[+b-1].charAt(0).toUpperCase()+MESES[+b-1].slice(1)+'/'+a};
+// dias de execução de uma fase até uma data (inclusive)
+const realAte=(e,f,lim)=>new Set(S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&diaExec(a)&&fasesOf(a).includes(f)&&diaExec(a)<=lim).map(diaExec)).size;
+// atividade concluída dentro da previsão de dias de todas as suas fases (fases sem previsão não contam)
+function dentroPrev(a){const p=pPor(a.etiqueta),lim=a.ts&&a.ts.conclusao?isoD(new Date(a.ts.conclusao)):a.data;
+  return fasesOf(a).every(k=>{const f=FASES.find(x=>x.k===k),pv=+p[f.p]||0;return !pv||realAte(a.etiqueta,k,lim)<=pv})}
+const aprovEm=l=>{const h=(l.hist||[]).filter(x=>x.acao==='Aprovada').pop();return h?h.em:null};
+const kp=(v,l,c='')=>`<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`;
+const PSEC=[['geral','Visão geral','Como estamos? O resumo para bater o olho ou levar à gerência.'],['entregas','Entregas','O que entregamos e quanto tempo de campo cada circuito consumiu?'],['exec','Execução em campo','A operação está fluindo? Conclusões dentro e fora da previsão, não conclusões e tempos.'],['equipes','Equipes','Quem está produzindo e como? Técnico a técnico, própria x terceiros.'],['fin','Financeiro','']];
+const FSUB=[['budget','Budget e ROI','Quanto do budget de mão de obra terceirizada já foi consumido, e como a LPU executada se compara ao ROI?'],['det','Detalhamento das LPUs','Em quais serviços e classes o valor das LPUs está concentrado?']];
 function viewPainel(){
-  const T=hoje(),inP=a=>a.data>=ui.pIni&&a.data<=ui.pFim;
-  const all=S.ags.filter(inP),ags=all.filter(a=>a.status!=='cancelada'),canc=all.length-ags.length;
-  const venc=ags.filter(a=>a.data<=T),conc=ags.filter(a=>a.status==='concluida'),noDia=conc.filter(a=>a.noDia);
-  const nao=ags.filter(a=>a.status==='nao_concluida'),reag=nao.filter(a=>a.reag);
-  const atras=ags.filter(a=>a.data<T&&!FIM.includes(a.status));
-  const comEta=ags.filter(a=>a.ts.eta&&a.ts.chegada),noEta=comEta.filter(a=>a.ts.chegada<=a.ts.eta+600000);
-  const kp=(v,l,c='')=>`<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`;
-  const mot={};nao.forEach(a=>{mot[a.motivo]=(mot[a.motivo]||0)+1});const mx=Math.max(1,...Object.values(mot));
-  const motH=Object.keys(mot).length?Object.entries(mot).sort((a,b)=>b[1]-a[1]).map(([m,n])=>`<div class="bar"><span>${esc(m)}</span><div><i style="width:${n/mx*100}%"></i></div><b>${n}</b></div>`).join(''):'<p class="muted">Nenhuma atividade não concluída no período.</p>';
-  const tecR=TEC.map(t=>{const x=ags.filter(a=>a.tec===t.id);if(!x.length)return '';const v=x.filter(a=>a.data<=T),c=x.filter(a=>a.status==='concluida'&&a.noDia),n=x.filter(a=>a.status==='nao_concluida');
-    return `<tr><td>${esc(t.nome)}</td><td>${t.tipo==='CLT'?'CLT':'Terceiro'}</td><td class="r">${x.length}</td><td class="r">${c.length}</td><td class="r">${n.length}</td><td class="r">${pct(c.length,v.length)}%</td><td class="r">${fdur(media(x,a=>dur(a.ts.desloc,a.ts.chegada)))}</td><td class="r">${fdur(media(x.filter(a=>a.status==='concluida'),a=>dur(a.ts.inicio,a.ts.conclusao)))}</td></tr>`}).join('');
-  const eqR=['CLT','TERC'].map(tp=>{const x=ags.filter(a=>tecT(a.tec)===tp),v=x.filter(a=>a.data<=T),c=x.filter(a=>a.status==='concluida'&&a.noDia);const nt=new Set(v.map(a=>a.tec)).size,dias=new Set(v.map(a=>a.data)).size;
-    return `<tr><td>${tp==='CLT'?'Equipe própria (CLT)':'Terceiros'}</td><td class="r">${x.length}</td><td class="r">${c.length}</td><td class="r">${pct(c.length,v.length)}%</td><td class="r">${nt&&dias?(c.length/(nt*dias)).toFixed(1).replace('.',','):'—'}</td></tr>`}).join('');
-  const faR=FASES.map(f=>{const x=conc.filter(a=>fasesOf(a).includes(f.k));return `<tr><td>${f.n}</td><td class="r">${ags.filter(a=>fasesOf(a).includes(f.k)).length}</td><td class="r">${x.length}</td><td class="r">${fdur(media(x,a=>dur(a.ts.inicio,a.ts.conclusao)))}</td></tr>`}).join('');
-  const prR=S.previsao.filter(p=>S.ags.some(a=>a.etiqueta===p.etiqueta)).map(p=>`<tr><td><b>${esc(p.etiqueta)}</b></td><td>${esc(p.cliente)}</td>${FASES.map(f=>{if(p.semExt&&f.k==='ext')return '<td class="r"><span class="chip">N/A</span></td>';const r=realDias(p.etiqueta,f.k),pv=+p[f.p]||0;const c=r>pv?'bad':(r&&r>=pv?'ok':'');return `<td class="r"><span class="chip ${c}">${r} / ${pv}</span></td>`}).join('')}<td>${progLabel(p.etiqueta)}</td></tr>`).join('');
-  const grpN={cidade:'Cidade',pop:'POP',equip:'Equipamento de acesso'};const gm={};ags.forEach(a=>{const p=S.previsao.find(x=>x.etiqueta===a.etiqueta)||{};const k=p[ui.pGrp]||'Não informado';(gm[k]=gm[k]||[]).push(a)});
-  const grR=Object.entries(gm).sort((a,b)=>b[1].length-a[1].length).map(([k,x])=>{const v=x.filter(a=>a.data<=T),c=x.filter(a=>a.status==='concluida'&&a.noDia),n=x.filter(a=>a.status==='nao_concluida');const val=[...new Set(x.map(a=>a.etiqueta))].reduce((s,e)=>s+(+(S.previsao.find(p=>p.etiqueta===e)||{}).valor||0),0);return `<tr><td><b>${esc(k)}</b></td><td class="r">${x.length}</td><td class="r">${c.length}</td><td class="r">${n.length}</td><td class="r">${pct(c.length,v.length)}%</td><td class="r">${fdur(media(x,a=>dur(a.ts.desloc,a.ts.chegada)))}</td><td class="r">${brl(val)}</td></tr>`}).join('');
-  // entregas e eficiência
+  const sec=ui.pSec||'geral',sub=ui.finSub||'budget';
+  const nav=PSEC.map(([k,n])=>{const on=sec===k;let h=`<button class="pni ${on?'on':''}" data-act="pSec" data-v="${k}" ${on?'aria-current="page"':''}><i></i>${n}</button>`;
+    if(k==='fin')h+=FSUB.map(([sk,sn])=>`<button class="pni sub ${on&&sub===sk?'on':''}" data-act="pSec" data-v="fin" data-s="${sk}">${sn}</button>`).join('');return h}).join('');
+  const titulo=sec==='fin'?'Financeiro: '+FSUB.find(x=>x[0]===sub)[1].toLowerCase():PSEC.find(x=>x[0]===sec)[1];
+  const perg=sec==='fin'?FSUB.find(x=>x[0]===sub)[2]:PSEC.find(x=>x[0]===sec)[2];
+  const corpo=sec==='geral'?pGeral():sec==='entregas'?pEntregas():sec==='exec'?pExec():sec==='equipes'?pEquipes():sub==='det'?pDetalhe():pBudget();
+  const periodo=!(sec==='fin'&&sub==='budget');
+  return `<div class="toolbar"><div><h2>Painel de KPIs</h2></div>${periodo?`<div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="pIni" value="${ui.pIni}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="pFim" value="${ui.pFim}"></label></div>`:''}</div>
+  <div class="pnl"><nav class="pnav" aria-label="Seções do painel"><span class="pnt">Seções</span>${nav}</nav>
+  <div class="pbody"><div class="phd"><h3>${titulo}</h3><p class="muted">${perg}</p></div>${corpo}</div></div>`;
+}
+function pBase(){const T=hoje(),inP=a=>a.data>=ui.pIni&&a.data<=ui.pFim,all=S.ags.filter(inP),ags=all.filter(a=>a.status!=='cancelada');
+  const conc=ags.filter(a=>a.status==='concluida'),dentro=conc.filter(dentroPrev);
   const ent=S.previsao.map(p=>({p,f:faseFim(p.etiqueta,'ativ')})).filter(x=>x.f&&x.f.data>=ui.pIni&&x.f.data<=ui.pFim);
-  const topo={};ent.forEach(({p})=>{const t=p.topologia||'—';topo[t]=topo[t]||{n:0,v:0};topo[t].n++;topo[t].v+=+p.valor||0});
-  const agsE=e=>S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada'),ia=a=>fasesOf(a).some(k=>k==='interno'||k==='ativ');
-  const efi=ent.map(({p,f})=>({p,f,tot:diasExec(p.etiqueta),ia:diasExec(p.etiqueta,ia)}));
-  const mTot=efi.length?(efi.reduce((s,x)=>s+x.tot,0)/efi.length):null,mIA=efi.length?(efi.reduce((s,x)=>s+x.ia,0)/efi.length):null;
-  const f1=v=>v==null?'—':v.toFixed(1).replace('.',',');
+  const ia=a=>fasesOf(a).some(k=>k==='interno'||k==='ativ'),efi=ent.map(({p,f})=>({p,f,tot:diasExec(p.etiqueta),ia:diasExec(p.etiqueta,ia)}));
+  return{T,all,ags,conc,dentro,canc:all.length-ags.length,nao:ags.filter(a=>a.status==='nao_concluida'),atras:ags.filter(a=>a.data<T&&!FIM.includes(a.status)),ent,efi,
+    mTot:efi.length?efi.reduce((s,x)=>s+x.tot,0)/efi.length:null,mIA:efi.length?efi.reduce((s,x)=>s+x.ia,0)/efi.length:null}}
+function pGeral(){const b=pBase();
   const dias=[];for(let d=ui.pIni;d<=ui.pFim&&dias.length<62;d=addD(d,1))dias.push(d);
   const porDia=dias.map(d=>({d,n:S.ags.filter(a=>a.data===d&&a.status!=='cancelada').length,c:S.ags.filter(a=>a.data===d&&a.status==='concluida').length}));const mxD=Math.max(1,...porDia.map(x=>x.n));
-  // mão de obra ROI x LPU
-  const moRows=[...new Set(S.lpus.filter(inP).map(l=>l.etiqueta))].map(e=>{const p=pPor(e),Ls=S.lpus.filter(l=>l.etiqueta===e&&l.status!=='reprovada'),ap=Ls.filter(l=>l.status==='aprovada').reduce((s,l)=>s+l.total,0),pe=Ls.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+l.total,0),roi=p.roi&&p.roi.fin&&p.roi.fin.custoMO!=null?+p.roi.fin.custoMO:null;return{e,p,ap,pe,tot:ap+pe,roi,tecs:[...new Set(Ls.map(l=>tecN(l.tec)))].join(', ')}});
+  return `<div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${kp(brl(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(pct(b.dentro.length,b.conc.length)+'%','Concluídas dentro da previsão')}${kp(f1(b.mTot),'Dias de execução por circuito')}${kp(b.atras.length,'Atividades em atraso','warn')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
+  <section class="panel"><div class="secth"><h3>Agendamentos por dia</h3><span class="muted">${porDia.reduce((s,x)=>s+x.n,0)} no período. Verde claro = agendados, verde escuro = concluídos</span></div>
+   <div class="dbars">${porDia.map(x=>`<div class="db1 ${x.d===hoje()?'hj':''}" title="${dBR(x.d)}: ${x.n} agendado(s), ${x.c} concluído(s)"><span class="dn">${x.n||''}</span><div class="dbw"><i style="height:${x.n/mxD*100}%"><b style="height:${x.n?x.c/x.n*100:0}%"></b></i></div><small>${dBR(x.d).slice(0,5)}</small><small class="ds">${DSEM[new Date(x.d+'T12:00:00').getDay()]}</small></div>`).join('')}</div></section>`}
+function pEntregas(){const b=pBase();
+  const topo={};b.ent.forEach(({p})=>{const t=p.topologia||'—';topo[t]=topo[t]||{n:0,v:0};topo[t].n++;topo[t].v+=+p.valor||0});
+  const grpN={cidade:'Cidade',pop:'POP',equip:'Equipamento de acesso'},gm={};b.efi.forEach(x=>{const k=x.p[ui.pGrp]||'Não informado';(gm[k]=gm[k]||[]).push(x)});
+  const grR=Object.entries(gm).sort((a,c)=>c[1].length-a[1].length).map(([k,x])=>`<tr><td><b>${esc(k)}</b></td><td class="r">${x.length}</td><td class="r">${f1(x.reduce((s,y)=>s+y.tot,0)/x.length)}</td><td class="r">${brl(x.reduce((s,y)=>s+(+y.p.valor||0),0))}</td></tr>`).join('');
+  const cel=(p,f)=>{if(p.semExt&&f.k==='ext')return '<td class="r"><span class="chip">N/A</span></td>';const r=realDias(p.etiqueta,f.k),pv=+p[f.p]||0;return `<td class="r"><span class="chip ${r>pv?'bad':(r&&r>=pv?'ok':'')}">${r} / ${pv}</span></td>`};
+  return `<div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${kp(f1(b.mTot),'Dias de execução por circuito (todas as fases)')}${kp(f1(b.mIA),'Dias de execução por circuito (interno + ativação)')}</div>
+  <div class="grid2 even">
+   <section><div class="secth"><h3>Entregas por topologia</h3></div><div class="tablewrap"><table><thead><tr><th>Topologia</th><th class="r">Circuitos</th><th class="r">Valor mensal</th></tr></thead><tbody>${Object.entries(topo).sort((a,c)=>c[1].n-a[1].n).map(([t,x])=>`<tr><td>${esc(t)}</td><td class="r">${x.n}</td><td class="r">${brl(x.v)}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
+   <section><div class="secth"><h3>Entregas por ${grpN[ui.pGrp].toLowerCase()}</h3><select class="inp" style="width:auto" data-ch="pGrp">${Object.entries(grpN).map(([k,n])=>`<option value="${k}" ${k===ui.pGrp?'selected':''}>Agrupar por ${n.toLowerCase()}</option>`).join('')}</select></div><div class="tablewrap"><table><thead><tr><th>${grpN[ui.pGrp]}</th><th class="r">Circuitos</th><th class="r">Dias por circuito</th><th class="r">Valor mensal</th></tr></thead><tbody>${grR||'<tr><td colspan="4" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
+  </div>
+  <section><div class="secth"><h3>Dias de execução e previsto x realizado por circuito</h3><span class="muted">Nas fases: dias realizados / previstos. Fases feitas no mesmo dia contam 1 dia no total.</span></div><div class="tablewrap"><table><thead><tr><th>Circuito</th><th>Entregue em</th><th class="r">Dias (todas)</th><th class="r">Dias (int. + ativ.)</th>${FASES.map(f=>`<th class="r">${f.k==='rua'?'Lanç. rua':f.k==='interno'?'Lanç. interno':f.k==='ext'?'Extensão':'Ativação'}</th>`).join('')}</tr></thead><tbody>${b.efi.map(x=>`<tr><td><b>${esc(x.p.etiqueta)}</b><br><small class="muted">${esc(x.p.cliente)}</small></td><td>${dBR(x.f.data)}</td><td class="r">${x.tot}</td><td class="r">${x.ia}</td>${FASES.map(f=>cel(x.p,f)).join('')}</tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhuma entrega no período. Os projetos em andamento estão em Previsão dos projetos.</td></tr>'}${b.efi.length?`<tr><td colspan="2"><b>Média</b></td><td class="r"><b>${f1(b.mTot)}</b></td><td class="r"><b>${f1(b.mIA)}</b></td><td colspan="4"></td></tr>`:''}</tbody></table></div></section>`}
+function pExec(){const b=pBase(),reag=b.nao.filter(a=>a.reag);
+  const comEta=b.ags.filter(a=>a.ts.eta&&a.ts.chegada),noEta=comEta.filter(a=>a.ts.chegada<=a.ts.eta+600000);
+  const mot={};b.nao.forEach(a=>{mot[a.motivo]=(mot[a.motivo]||0)+1});const mx=Math.max(1,...Object.values(mot));
+  const motH=Object.keys(mot).length?Object.entries(mot).sort((a,c)=>c[1]-a[1]).map(([m,n])=>`<div class="bar"><span>${esc(m)}</span><div><i style="width:${n/mx*100}%"></i></div><b>${n}</b></div>`).join(''):'<p class="muted">Nenhuma atividade não concluída no período.</p>';
+  const faR=FASES.map(f=>{const fins=S.previsao.map(p=>({p,fin:faseFim(p.etiqueta,f.k)})).filter(x=>x.fin&&x.fin.data>=ui.pIni&&x.fin.data<=ui.pFim);
+    const den=fins.filter(x=>{const pv=+x.p[f.p]||0;return !pv||realAte(x.p.etiqueta,f.k,x.fin.data)<=pv}).length;const x=b.conc.filter(a=>fasesOf(a).includes(f.k));
+    return `<tr><td>${f.n}</td><td class="r">${b.ags.filter(a=>fasesOf(a).includes(f.k)).length}</td><td class="r">${den}</td><td class="r">${fins.length-den}</td><td class="r">${fdur(media(x,a=>dur(a.ts.inicio,a.ts.conclusao)))}</td></tr>`}).join('');
+  return `<div class="kpis">${kp(b.ags.length,'Atividades agendadas')}${kp(b.dentro.length,'Concluídas dentro da previsão','ok')}${kp(b.conc.length-b.dentro.length,'Concluídas fora da previsão','warn')}${kp(b.nao.length,`Não concluídas (${reag.length} reagendadas)`,'bad')}${kp(b.canc,'Canceladas')}</div>
+  <div class="kpis">${kp(fdur(media(b.ags,a=>dur(a.ts.desloc,a.ts.chegada))),'Deslocamento médio')}${kp(pct(noEta.length,comEta.length)+'%','Chegadas dentro da previsão')}${kp(fdur(media(b.ags,a=>dur(a.ts.chegada,a.ts.inicio))),'Espera média no local')}${kp(fdur(media(b.conc,a=>dur(a.ts.inicio,a.ts.conclusao))),'Execução média')}${kp(fdur(media(b.conc,a=>dur(a.ts.conclusao,a.ts.encerramento))),'Tempo de relatório')}</div>
+  <div class="grid2 even"><section class="panel"><div class="secth"><h3>Motivos de não conclusão</h3></div>${motH}</section>
+   <section><div class="secth"><h3>Tempo por fase</h3><span class="muted">Fases finalizadas no período</span></div><div class="tablewrap"><table><thead><tr><th>Fase</th><th class="r">Agendadas</th><th class="r">Dentro da previsão</th><th class="r">Fora da previsão</th><th class="r">Execução média</th></tr></thead><tbody>${faR}</tbody></table></div></section></div>
+  <p class="muted" style="font-size:13px">Dentro da previsão: a fase foi feita em até os dias previstos para ela na Base de previsão.</p>`}
+function pEquipes(){const b=pBase(),F=ui.eqF||'all',tecs=TEC.filter(t=>F==='all'||t.tipo===F);
+  const linha=(nome,vinc,x)=>{const v=x.filter(a=>a.data<=b.T),c=x.filter(a=>a.status==='concluida'),d=c.filter(dentroPrev),n=x.filter(a=>a.status==='nao_concluida'),de=new Set(x.filter(a=>diaExec(a)).map(a=>a.tec+'|'+diaExec(a))).size;
+    return `<tr><td>${esc(nome)}</td>${vinc!==null?`<td>${vinc}</td>`:''}<td class="r">${x.length}</td><td class="r">${c.length}</td><td class="r">${d.length}</td><td class="r">${n.length}</td><td class="r">${pct(c.length,v.length)}%</td><td class="r">${de}</td><td class="r">${fdur(media(c,a=>dur(a.ts.inicio,a.ts.conclusao)))}</td></tr>`};
+  const tecR=tecs.map(t=>{const x=b.ags.filter(a=>a.tec===t.id);return x.length?linha(t.nome,t.tipo==='CLT'?'CLT':'Terceiro',x):''}).join('');
+  const eqR=['CLT','TERC'].map(tp=>{const x=b.ags.filter(a=>tecT(a.tec)===tp),v=x.filter(a=>a.data<=b.T),c=x.filter(a=>a.status==='concluida');const nt=new Set(v.map(a=>a.tec)).size,dias=new Set(v.map(a=>a.data)).size;
+    return `<tr><td>${tp==='CLT'?'Equipe própria (CLT)':'Terceiros'}</td><td class="r">${x.length}</td><td class="r">${c.length}</td><td class="r">${c.filter(dentroPrev).length}</td><td class="r">${pct(c.length,v.length)}%</td><td class="r">${nt&&dias?(c.length/(nt*dias)).toFixed(1).replace('.',','):'—'}</td></tr>`}).join('');
+  return `<div class="chips" style="margin-top:0">${[['all','Todos'],['CLT','Equipe própria (CLT)'],['TERC','Terceiros']].map(([k,n])=>`<button data-act="eqF" data-v="${k}" aria-current="${F===k}">${n}</button>`).join('')}</div>
+  <section><div class="secth"><h3>Produtividade por técnico</h3></div><div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Não concl.</th><th class="r">Taxa de conclusão</th><th class="r">Dias de execução</th><th class="r">Execução média</th></tr></thead><tbody>${tecR||'<tr><td colspan="9" class="muted">Sem atividades no período.</td></tr>'}</tbody></table></div></section>
+  <section><div class="secth"><h3>Equipe própria x terceiros</h3></div><div class="tablewrap"><table><thead><tr><th>Equipe</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Taxa de conclusão</th><th class="r">Concl. por técnico/dia</th></tr></thead><tbody>${eqR}</tbody></table></div></section>`}
+function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&ui.perfil==='coord',B=(S.budget||{})[mes]||{};
+  const ap=S.lpus.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes),pe=S.lpus.filter(l=>l.status==='aguardando'||l.status==='ajuste');
+  const contas=LPU_CONTAS.filter(c=>ed||+B[c]>0||ap.some(l=>l.conta===c)||pe.some(l=>l.conta===c));
+  const cod=c=>c.split(' - ')[0],nome=c=>c.split(' - ').slice(1).join(' - ').replace(/^Serviços de /,'');
+  const rows=contas.map(c=>{const orc=+B[c]||0,A=ap.filter(l=>l.conta===c),P=pe.filter(l=>l.conta===c),uso=A.reduce((s,l)=>s+l.total,0),comp=P.reduce((s,l)=>s+l.total,0),disp=orc-uso,p=orc?Math.round(uso/orc*100):0,tot=Math.max(orc,uso+comp)||1;return{c,orc,A,P,uso,comp,disp,p,wU:uso/tot*100,wC:comp/tot*100,est:orc&&uso+comp>orc}});
+  const tO=rows.reduce((s,r)=>s+r.orc,0),tU=ap.reduce((s,l)=>s+l.total,0),tC=pe.reduce((s,l)=>s+l.total,0);
+  const meses=[];for(let k=-12;k<=2;k++){const d=new Date(hoje().slice(0,4),+hoje().slice(5,7)-1+k,1);meses.push(d.getFullYear()+'-'+pad(d.getMonth()+1))}
+  const nL=n=>n+(n===1?' LPU':' LPUs'),cor=p=>p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)';
+  // ROI x LPU (período)
+  const inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim;
+  const moRows=[...new Set(S.lpus.filter(inP).map(l=>l.etiqueta))].map(e=>{const p=pPor(e),Ls=S.lpus.filter(l=>l.etiqueta===e&&l.status!=='reprovada'),a=Ls.filter(l=>l.status==='aprovada').reduce((s,l)=>s+l.total,0),q=Ls.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+l.total,0),roi=p.roi&&p.roi.fin&&p.roi.fin.custoMO!=null?+p.roi.fin.custoMO:null;return{e,p,a,q,tot:a+q,roi,tecs:[...new Set(Ls.map(l=>tecN(l.tec)))].join(', ')}});
   const moT={roi:moRows.reduce((s,r)=>s+(r.roi||0),0),tot:moRows.reduce((s,r)=>s+r.tot,0)};
-  const L=S.lpus.filter(inP),tl=s=>L.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0);
-  return `<div class="stack">
-  <div class="toolbar"><div><h2>Painel de KPIs</h2><p class="muted">Indicadores calculados a partir dos registros dos técnicos.</p></div>
-   <div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="pIni" value="${ui.pIni}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="pFim" value="${ui.pFim}"></label></div></div>
-  <div class="kpis">${kp(ags.length,'Atividades agendadas')}${kp(noDia.length,'Concluídas no dia','ok')}${kp(pct(noDia.length,venc.length)+'%','Conclusão no dia (até hoje)','ok')}${kp(conc.length-noDia.length,'Concluídas fora do dia','warn')}${kp(nao.length,`Não concluídas (${reag.length} reagendadas)`,'bad')}${kp(atras.length,'Em atraso, sem registro','warn')}${kp(canc,'Canceladas')}</div>
-  <div class="kpis">${kp(ent.length,'Circuitos entregues','ok')}${kp(brl(ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(f1(mTot),'Dias de execução por circuito (todas as fases)')}${kp(f1(mIA),'Dias de execução por circuito (interno + ativação)')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
-  <div class="kpis">${kp(fdur(media(ags,a=>dur(a.ts.desloc,a.ts.chegada))),'Deslocamento médio')}${kp(pct(noEta.length,comEta.length)+'%','Chegadas dentro da previsão')}${kp(fdur(media(ags,a=>dur(a.ts.chegada,a.ts.inicio))),'Espera média no local')}${kp(fdur(media(conc,a=>dur(a.ts.inicio,a.ts.conclusao))),'Execução média')}${kp(fdur(media(conc,a=>dur(a.ts.conclusao,a.ts.encerramento))),'Tempo médio de relatório')}</div>
-  <div class="grid2 even">
-   <section class="panel"><div class="secth"><h3>Motivos de não conclusão</h3></div>${motH}</section>
-   <section class="panel"><div class="secth"><h3>LPUs de terceiros no período</h3></div><div class="sum3" style="margin:0"><div><span>Aguardando</span><b>${brl(tl('aguardando')+tl('ajuste'))}</b></div><div><span>Aprovado</span><b>${brl(tl('aprovada'))}</b></div><div><span>Reprovado</span><b>${brl(tl('reprovada'))}</b></div></div></section>
-  </div>
-  <section><div class="secth"><h3>Por ${grpN[ui.pGrp].toLowerCase()}</h3><select class="inp" style="width:auto" data-ch="pGrp">${Object.entries(grpN).map(([k,n])=>`<option value="${k}" ${k===ui.pGrp?'selected':''}>Agrupar por ${n.toLowerCase()}</option>`).join('')}</select></div><div class="tablewrap"><table><thead><tr><th>${grpN[ui.pGrp]}</th><th class="r">Agendadas</th><th class="r">Concl. no dia</th><th class="r">Não concl.</th><th class="r">Taxa no dia</th><th class="r">Desloc. médio</th><th class="r">Valor dos projetos</th></tr></thead><tbody>${grR||'<tr><td colspan="7">Sem atividades no período.</td></tr>'}</tbody></table></div></section>
-  <section><div class="secth"><h3>Produtividade por técnico</h3></div><div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Agendadas</th><th class="r">Concl. no dia</th><th class="r">Não concl.</th><th class="r">Taxa no dia</th><th class="r">Desloc. médio</th><th class="r">Execução média</th></tr></thead><tbody>${tecR||'<tr><td colspan="8">Sem atividades no período.</td></tr>'}</tbody></table></div></section>
-  <div class="grid2 even">
-   <section><div class="secth"><h3>Equipe própria x terceiros</h3></div><div class="tablewrap"><table><thead><tr><th>Equipe</th><th class="r">Agendadas</th><th class="r">Concl. no dia</th><th class="r">Taxa</th><th class="r">Concl. por técnico/dia</th></tr></thead><tbody>${eqR}</tbody></table></div></section>
-   <section><div class="secth"><h3>Tempo por fase</h3></div><div class="tablewrap"><table><thead><tr><th>Fase</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Execução média</th></tr></thead><tbody>${faR}</tbody></table></div></section>
-  </div>
-  <section class="panel"><div class="secth"><h3>Agendamentos por dia</h3><span class="muted">${porDia.reduce((s,x)=>s+x.n,0)} no período, barra verde escura = concluídos</span></div>
-   <div class="dbars">${porDia.map(x=>`<div class="db1 ${x.d===hoje()?'hj':''}" title="${dBR(x.d)}: ${x.n} agendado(s), ${x.c} concluído(s)"><span class="dn">${x.n||''}</span><div class="dbw"><i style="height:${x.n/mxD*100}%"><b style="height:${x.n?x.c/x.n*100:0}%"></b></i></div><small>${dBR(x.d).slice(0,5)}</small><small class="ds">${DSEM[new Date(x.d+'T12:00:00').getDay()]}</small></div>`).join('')}</div></section>
-  <div class="grid2 even">
-   <section><div class="secth"><h3>Entregas por topologia</h3></div><div class="tablewrap"><table><thead><tr><th>Topologia</th><th class="r">Circuitos</th><th class="r">Valor mensal</th></tr></thead><tbody>${Object.entries(topo).sort((a,b)=>b[1].n-a[1].n).map(([t,x])=>`<tr><td>${esc(t)}</td><td class="r">${x.n}</td><td class="r">${brl(x.v)}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
-   <section><div class="secth"><h3>Dias de execução para entregar cada circuito</h3><span class="muted">Dias em que houve atividade iniciada. Fases feitas no mesmo dia contam 1 dia.</span></div><div class="tablewrap"><table><thead><tr><th>Circuito</th><th>Entregue em</th><th class="r">Todas as fases</th><th class="r">Interno + ativação</th></tr></thead><tbody>${efi.map(x=>`<tr><td><b>${esc(x.p.etiqueta)}</b><br><small class="muted">${esc(x.p.cliente)}</small></td><td>${dBR(x.f.data)}</td><td class="r">${x.tot}</td><td class="r">${x.ia}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nenhuma entrega no período.</td></tr>'}${efi.length?`<tr><td colspan="2"><b>Média</b></td><td class="r"><b>${f1(mTot)}</b></td><td class="r"><b>${f1(mIA)}</b></td></tr>`:''}</tbody></table></div></section>
-  </div>
-  <section><div class="secth"><h3>Mão de obra de terceiros: ROI x LPU executada</h3><span class="muted">Projetos com LPU no período, sem as reprovadas</span></div><div class="tablewrap"><table><thead><tr><th>Projeto</th><th>Terceiro</th><th class="r">Mão de obra no ROI</th><th class="r">LPU aprovada</th><th class="r">LPU pendente</th><th class="r">LPU total</th><th class="r">Diferença</th></tr></thead><tbody>${moRows.map(r=>{const d=r.roi==null?null:r.tot-r.roi;return `<tr><td><b>${esc(r.e)}</b><br><small class="muted">${esc(r.p.cliente||'')}</small></td><td>${esc(r.tecs)}</td><td class="r">${r.roi==null?'<span class="muted">Sem ROI</span>':brl(r.roi)}</td><td class="r">${brl(r.ap)}</td><td class="r">${brl(r.pe)}</td><td class="r"><b>${brl(r.tot)}</b></td><td class="r">${d==null?'—':`<b style="color:${d>0?'var(--bad)':'var(--brand-ink)'}">${d>0?'+':''}${brl(d)}</b><br><small class="muted">${r.roi?(d/r.roi*100).toFixed(0)+'%':''}</small>`}</td></tr>`}).join('')||'<tr><td colspan="7" class="muted">Nenhuma LPU no período.</td></tr>'}${moRows.length?`<tr><td colspan="2"><b>Total</b></td><td class="r"><b>${brl(moT.roi)}</b></td><td colspan="2"></td><td class="r"><b>${brl(moT.tot)}</b></td><td class="r"><b>${brl(moT.tot-moT.roi)}</b></td></tr>`:''}</tbody></table></div></section>
-  <section><div class="secth"><h3>Previsto x realizado por projeto</h3><span class="muted">Dias realizados / dias previstos em cada fase</span></div><div class="tablewrap"><table><thead><tr><th>Etiqueta</th><th>Cliente</th>${FASES.map(f=>`<th class="r">${f.n}</th>`).join('')}<th>Status</th></tr></thead><tbody>${prR||'<tr><td colspan="7">Nenhum projeto com atividade.</td></tr>'}</tbody></table></div></section>
-  </div>`;
-}
+  return `<section class="panel"><div class="secth"><div><h3>Budget de mão de obra terceirizada</h3><span class="muted">Consumido pelas LPUs aprovadas no mês da aprovação, conforme a conta contábil de cada uma.</span></div>
+   <div class="tools"><label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${meses.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>${ui.perfil==='coord'?(ed?'<button class="btn primary" data-act="bSalvar">Salvar budget</button><button class="btn" data-act="bEdit">Cancelar</button>':'<button class="btn" data-act="bEdit">Definir budget do mês</button>'):''}</div></div>
+   <div class="kpis" style="margin:10px 0">${kp(brl(tO),'Budget do mês')}${kp(brl(tU),`Consumido: ${pct(tU,tO)}% (${ap.length===1?'1 LPU aprovada':ap.length+' LPUs aprovadas'})`,'ok')}${kp(brl(tO-tU),'Disponível',tO-tU<0?'bad':'')}${kp(brl(tC),`Aguardando aprovação (${nL(pe.length)})`,'warn')}</div>
+   <div class="tablewrap"><table><thead><tr><th>Conta contábil</th><th class="r">Budget</th><th class="r">Consumido</th><th class="r">Disponível</th><th class="r">Aguardando aprovação</th><th style="min-width:180px">Consumo</th></tr></thead><tbody>
+   ${rows.map(r=>`<tr><td><b>${esc(cod(r.c))}</b><br><small class="muted">${esc(nome(r.c))}</small></td><td class="r">${ed?`<input class="inp r" type="number" min="0" step="100" style="max-width:130px;margin-left:auto" data-bud="${esc(r.c)}" value="${r.orc||''}" placeholder="0">`:brl(r.orc)}</td><td class="r">${brl(r.uso)}<br><small class="muted">${r.A.length} aprovada${r.A.length===1?'':'s'}</small></td><td class="r"><b style="color:${r.disp<0?'var(--bad)':'inherit'}">${brl(r.disp)}</b></td><td class="r">${brl(r.comp)}<br><small class="muted">${r.P.length?nL(r.P.length)+' aguardando':'nenhuma'}</small>${r.est?'<br><small style="color:var(--bad);font-weight:600">passa do budget se aprovar tudo</small>':''}</td><td><div class="bbar"><i style="width:${r.wU}%"></i><b style="width:${r.wC}%"></b></div><small style="color:${cor(r.p)};font-weight:600">${r.orc?r.p+'% consumido':'sem budget definido'}</small></td></tr>`).join('')||'<tr><td colspan="6" class="muted">Nenhum budget definido nem LPU aprovada neste mês.</td></tr>'}
+   </tbody></table></div><p class="muted" style="font-size:13px;margin-top:8px">Barra: verde escuro = consumido; amarelo = aguardando aprovação, que só consome o budget depois de aprovado.</p></section>
+  <section><div class="secth"><h3>Mão de obra de terceiros: ROI x LPU executada</h3><span class="muted">Projetos com LPU no período (filtro De/Até das outras seções), sem as reprovadas</span></div><div class="tablewrap"><table><thead><tr><th>Projeto</th><th>Terceiro</th><th class="r">Mão de obra no ROI</th><th class="r">LPU aprovada</th><th class="r">LPU pendente</th><th class="r">Diferença</th></tr></thead><tbody>${moRows.map(r=>{const d=r.roi==null?null:r.tot-r.roi;return `<tr><td><b>${esc(r.e)}</b><br><small class="muted">${esc(r.p.cliente||'')}</small></td><td>${esc(r.tecs)}</td><td class="r">${r.roi==null?'<span class="muted">Sem ROI</span>':brl(r.roi)}</td><td class="r">${brl(r.a)}</td><td class="r">${brl(r.q)}</td><td class="r">${d==null?'—':`<b style="color:${d>0?'var(--bad)':'var(--brand-ink)'}">${d>0?'+':''}${brl(d)}</b>`}</td></tr>`}).join('')||'<tr><td colspan="6" class="muted">Nenhuma LPU no período.</td></tr>'}${moRows.length?`<tr><td colspan="2"><b>Total</b></td><td class="r"><b>${brl(moT.roi)}</b></td><td colspan="2"></td><td class="r"><b>${brl(moT.tot-moT.roi)}</b></td></tr>`:''}</tbody></table></div></section>`}
+function pDetalhe(){const sit=ui.dSit||'ap',conta=ui.dConta||'',pres=ui.dPres||'',cls=ui.dClasse||'';
+  const noP=t=>{if(!t)return false;const d=isoD(new Date(t));return d>=ui.pIni&&d<=ui.pFim};
+  const L=S.lpus.filter(l=>(sit==='ap'?l.status==='aprovada'&&noP(aprovEm(l)):sit==='pe'?(l.status==='aguardando'||l.status==='ajuste'):(l.status==='aprovada'&&noP(aprovEm(l)))||l.status==='aguardando'||l.status==='ajuste')&&(!conta||l.conta===conta)&&(!pres||l.tec===pres));
+  const M={};L.forEach(l=>(l.itens||[]).forEach(i=>{const r=M[i.cod]=M[i.cod]||{cod:i.cod,desc:i.desc,classe:i.classe||'Sem classe',med:i.medida||'',ref:(itemOf(i.cod)||{}).valor,qtd:0,val:0,ls:new Set()};r.qtd+=+i.qtd||0;r.val+=(+i.unit||0)*(+i.qtd||0);r.ls.add(l.id)}));
+  const I=Object.values(M).sort((a,b)=>b.val-a.val),tot=L.reduce((s,l)=>s+l.total,0),C={};
+  I.forEach(i=>{C[i.classe]=C[i.classe]||{n:i.classe,v:0,k:0};C[i.classe].v+=i.val;C[i.classe].k++});const Cs=Object.values(C).sort((a,b)=>b.v-a.v),mxC=Cs.length?Cs[0].v:1,mxT=I.length?I[0].val:1;
+  const F=cls?I.filter(i=>i.classe===cls):I;
+  const ters=TEC.filter(t=>t.tipo==='TERC'),num=v=>(+v).toLocaleString('pt-BR',{maximumFractionDigits:2});
+  return `<div class="tools" style="margin-bottom:12px"><label class="f inline"><span>Conta contábil</span><select class="inp" data-ch="dConta"><option value="">Todas</option>${LPU_CONTAS.map(c=>`<option value="${esc(c)}" ${c===conta?'selected':''}>${esc(c.split(' - ')[0])} ${esc(c.split(' - ').slice(1).join(' - ').replace(/^Serviços de /,''))}</option>`).join('')}</select></label>
+   <label class="f inline"><span>Prestador</span><select class="inp" data-ch="dPres"><option value="">Todos</option>${ters.map(t=>`<option value="${t.id}" ${t.id===pres?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></label>
+   <label class="f inline"><span>Situação</span><select class="inp" data-ch="dSit">${[['ap','Aprovadas no período'],['pe','Aguardando aprovação'],['ambas','Aprovadas e aguardando']].map(([k,n])=>`<option value="${k}" ${k===sit?'selected':''}>${n}</option>`).join('')}</select></label></div>
+  <div class="kpis">${kp(brl(tot),'Valor das LPUs','ok')}${kp(L.length,'LPUs')}${kp(I.length,'Serviços diferentes lançados')}${kp(L.length?brl(tot/L.length):'—','Valor médio por LPU')}</div>
+  <div class="grid2 even" style="margin-top:16px"><section class="panel"><div class="secth"><h3>Valor por classe</h3></div>${Cs.map(c=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:10px;font-size:14px"><span><b>${esc(c.n)}</b> <span class="muted">${c.k} ${c.k===1?'serviço':'serviços'}</span></span><span style="white-space:nowrap"><b>${brl(c.v)}</b> <span class="muted">${pct(c.v,tot)}%</span></span></div><div class="bbar"><i style="width:${c.v/mxC*100}%;background:var(--brand)"></i></div></div>`).join('')||'<p class="muted">Nenhuma LPU com esses filtros.</p>'}</section>
+   <section class="panel"><div class="secth"><h3>10 itens com maior valor acumulado</h3></div>${I.slice(0,10).map((i,k)=>`<div class="topi"><span class="tpn">${k+1}</span><div><span class="tpd"><b>${esc(i.cod)}</b> ${esc(i.desc)}</span><div class="bbar thin"><i style="width:${i.val/mxT*100}%"></i></div></div><b>${brl(i.val)}</b></div>`).join('')||'<p class="muted">Nenhuma LPU com esses filtros.</p>'}</section></div>
+  <section style="margin-top:16px"><div class="secth"><h3>Quantidade e valor por item</h3><label class="f inline"><span>Classe</span><select class="inp" data-ch="dClasse"><option value="">Todas as classes</option>${Cs.map(c=>`<option ${c.n===cls?'selected':''}>${esc(c.n)}</option>`).join('')}</select></label></div>
+   <div class="tablewrap"><table><thead><tr><th>Código</th><th>Serviço</th><th>Classe</th><th class="r">Quantidade</th><th class="r">Valor unit. (comum)</th><th class="r">Valor acumulado</th><th class="r">Em quantas LPUs</th></tr></thead><tbody>${F.map(i=>`<tr><td><b style="color:var(--brand-ink)">${esc(i.cod)}</b></td><td>${esc(i.desc)}</td><td>${esc(i.classe)}</td><td class="r">${num(i.qtd)} ${esc(String(i.med).toLowerCase())}</td><td class="r">${i.ref!=null?brl(i.ref):'—'}</td><td class="r"><b>${brl(i.val)}</b></td><td class="r">${i.ls.size}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">Nenhum item com esses filtros.</td></tr>'}${F.length?`<tr><td colspan="5"><b>Total ${cls?'da '+esc(cls):'geral'}</b></td><td class="r"><b>${brl(F.reduce((s,i)=>s+i.val,0))}</b></td><td></td></tr>`:''}</tbody></table></div>
+   <p class="muted" style="font-size:13px;margin-top:6px">O valor acumulado soma o que foi lançado em cada LPU, já considerando os itens com fator crítico.</p></section>`}
+
 
 /* ---------- BASE ---------- */
 const COLS=[['protocolo','Protocolo principal','t'],['etiqueta','Etiqueta','t'],['cliente','Cliente (razão social)','t'],['valor','Valor mensal (R$)','n'],['cidade','Cidade','t'],['pop','POP','t'],['equip','Equipamento de acesso','t'],['topologia','Topologia','s'],['metros','Metros de cabo','n'],['caixas','Caixas de emenda','n'],['dRua','Dias lanç. rua','n'],['dInterno','Dias lanç. interno','n'],['dExt','Dias extensão','n'],['dAtiv','Dias ativação','n']];
@@ -1169,6 +1229,12 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
+  pSec:el=>{ui.pSec=el.dataset.v;if(el.dataset.s)ui.finSub=el.dataset.s;ui.bEdit=false;render()},
+  eqF:el=>{ui.eqF=el.dataset.v;render()},
+  bEdit:()=>{ui.bEdit=!ui.bEdit;render()},
+  bSalvar:async()=>{const mes=ui.bMes,rows=[...document.querySelectorAll('[data-bud]')].map(i=>({mes,conta:i.dataset.bud,valor:parseFloat(i.value)||0}));
+    const r=await sb.from('ag_budget').upsert(rows,{onConflict:'mes,conta'});if(r.error){toast('Não foi possível salvar o budget: '+r.error.message,'bad');return}
+    S.budget=S.budget||{};S.budget[mes]={};rows.forEach(x=>{S.budget[mes][x.conta]=x.valor});ui.bEdit=false;render();toast('Budget de '+mesNome(mes)+' salvo.')},
   lpuInfo:el=>{const t=el.parentElement.querySelector('.ltec');if(t)t.hidden=!t.hidden},
   cSec:el=>{ui.campoSec=el.dataset.v;render()},
   repOk:()=>{const R=ui.rp,a=getAg(R.id);if(!R.fases.length){toast('Selecione ao menos uma fase.','bad');return}if(!ativOk(pPor(a.etiqueta),R.fases)){toast('A ativação está bloqueada até as fases anteriores serem finalizadas.','bad');return}const dias=diasRange(R.data,R.dataFim,R.uteis);if(!dias.length){toast('O intervalo escolhido não tem dias válidos.','bad');return}
@@ -1299,6 +1365,8 @@ const ACT={
    <div class="grid2 even" style="margin-top:18px;gap:16px"><div style="text-align:center">${l.assinatura?`<img src="${l.assinatura.img}" alt="Assinatura" style="max-height:70px;max-width:100%">`:'<div style="height:70px"></div>'}<div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">${l.assinatura?esc(l.assinatura.nome)+', '+dtBR(l.assinatura.em):'Assinatura prestador'}</div></div><div style="text-align:center"><div style="height:70px;display:flex;align-items:flex-end;justify-content:center;font-size:13px">${l.status==='aprovada'?esc(((l.hist||[]).filter(h=>h.acao==='Aprovada').pop()||{}).por||''):''}</div><div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">Aprovador</div></div></div></div><div class="actions"><button class="btn" data-act="close">Fechar</button>${l.pdf_path?`<button class="btn primary" data-act="pdfArq" data-id="${l.id}">Abrir PDF assinado</button>`:''}</div>`)}
 };
 const CH={
+  bMes:el=>{ui.bMes=el.value;ui.bEdit=false;render()},
+  dSit:el=>{ui.dSit=el.value;render()},dConta:el=>{ui.dConta=el.value;render()},dPres:el=>{ui.dPres=el.value;render()},dClasse:el=>{ui.dClasse=el.value;render()},
   lpuSo:el=>lpuFiltrar(el.closest('.lpu')),
   lpuFator:el=>{const k=el.dataset.k,d=lpuDraft(k),c=el.dataset.c;d.q[c]=d.q[c]||{};d.q[c].fator=el.value;lpuRefresh(k)},
   lpuConta:el=>{const k=el.dataset.k;lpuDraft(k).conta=el.value;redraw(k)},
@@ -1430,6 +1498,7 @@ async function carregar(){
   S.lpus=lp.map(r=>Object.assign({},r.dados,{id:r.id,ag:r.agendamento,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total,pdf_path:r.pdf_path}));
   S.anexos=an.map(r=>({id:r.id,etiqueta:r.etiqueta,tipo:r.tipo,fase:r.fase,nome:r.nome,tam:r.tamanho,em:new Date(r.enviado_em).getTime(),por:'',path:r.path}));
   S.anexosLog=lg.map(r=>({etiqueta:r.etiqueta,nome:r.nome,tipo:r.tipo,em:new Date(r.excluido_em).getTime()}));
+  S.budget={};if(g){try{const bd=await todas(()=>sb.from('ag_budget').select('*'));bd.forEach(r=>{(S.budget[r.mes]=S.budget[r.mes]||{})[r.conta]=+r.valor||0})}catch(e){console.warn('budget',e)}}
   // estoque (sistema de estoque)
   S.estoque={};const porDoc={};TEC.forEach(t=>{if(t.doc)porDoc[docN(t.doc)]=t.id});const docs=Object.keys(porDoc);
   if(docs.length){try{const est=await todas(()=>sb.from('estoque').select('cnpj,codigo_material,descricao_material,qtd_bolsao,qtd_elleven').in('cnpj',TEC.map(t=>t.doc).filter(Boolean)));
