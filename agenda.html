@@ -221,6 +221,7 @@ nav.tabs .nv2{padding-left:44px;font-size:14px;min-height:38px}nav.tabs .nv2.on{
 .rfx{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:0;background:var(--bad);color:#fff;font-size:12px;cursor:pointer}
 .rfbt{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rfb{min-height:46px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
 .rfb.pri{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.calert{background:var(--bad-soft);border-radius:10px;padding:12px 14px;display:grid;gap:8px;margin-top:12px}.calert div{display:flex;flex-direction:column;gap:2px}.calert b{color:var(--bad)}.calert span{font-size:14.5px}
 .prev{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px}
 .btn[disabled],.bigbtn[disabled]{opacity:.45;cursor:not-allowed}
 .icon{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px;font-size:15px}
@@ -560,7 +561,7 @@ const FOTOS_LANC=[['lote_ini','Lote e metragem no início do lançamento','unica
 const FOTOS_EXT=[['sinal_ini','Nível de sinal na CEO/CTO de Ponto de acesso','unica','sinal'],['ceo_ini','CEO acomodada no início da extensão','unica',''],['sinal_fim','Nível de sinal na CEO/CTO de Ponto de derivação','unica','sinal'],['ceos','Todas as CEOs trabalhadas','multi','']];
 const fotosDaFase=k=>k==='rua'||k==='interno'?FOTOS_LANC:k==='ext'?FOTOS_EXT:[];
 const REGRA_FOTO={unica:'Obrigatória',opcional:'Se houver; várias fotos',multi:'Obrigatória; várias fotos'};
-const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','estoque','base','prev','sim','kanban','campo','usuarios']},sup:{n:'Supervisor',tabs:['painel','agenda','estoque','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','estoque','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo']},terc:{n:'Técnico terceiro',tabs:['campo','minhas']}};
+const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','base','prev','sim','kanban','campo','usuarios']},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo']},terc:{n:'Técnico terceiro',tabs:['campo','minhas']}};
 const ST={agendada:['Agendada',''],deslocamento:['Em deslocamento','info'],no_local:['No local','info'],execucao:['Em execução','info'],relatorios:['Relatórios pendentes','warn'],lpu:['LPU pendente','warn'],concluida:['Concluída','ok'],nao_concluida:['Não concluída','bad'],cancelada:['Cancelada','']};
 const LST={aguardando:['Aguardando aprovação','warn'],aprovada:['Aprovada','ok'],reprovada:['Reprovada','bad'],ajuste:['Devolvida para ajuste','info']};
 const FIM=['concluida','nao_concluida'];
@@ -631,12 +632,12 @@ function progLabel(e){const p=pPor(e);if(faseFim(e,'ativ'))return '<span class="
   const falta=fasesProj(p).filter(f=>!faseFim(e,f.k)).map(f=>FSTATUS[f.k]);
   return `<span class="chip ${falta.length===1&&liberado(p)?'go':'warn'}" style="white-space:normal">Falta${falta.length>1?'m':''}: ${falta.join(', ')}</span>`}
 function nextFase(e){const p=pPor(e);const f=fasesProj(p).find(f=>!faseFim(e,f.k));return f?f.k:'ativ'}
-const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',usuarios:'Usuários e acessos',estoque:'Estoque dos técnicos',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
+const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',estoque:'Estoque dos técnicos',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
 
 function render(){
   const P=PERFIS[ui.perfil];if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0];
   $('whoBox').innerHTML=`<b>${esc(ME.nome)}</b>${PERFIS[ui.perfil].n}<div class="wbt"><button class="link" data-act="chPass">Alterar senha</button><button class="link" data-act="logout">Sair</button></div>${pushOk()&&Notification.permission==='granted'?'<div class="wbt"><button class="link" data-act="pushTeste">Testar notificação</button></div>':''}`;
-  const ORD=['painel','agenda','estoque','base','prev','sim','kanban','aprov','campo','minhas','usuarios'],GRP={usuarios:'Administração',painel:'Acompanhamento',agenda:'Operação',estoque:'Operação',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
+  const ORD=['painel','agenda','relat','estoque','base','prev','sim','kanban','aprov','campo','minhas','usuarios'],GRP={usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Operação',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -650,7 +651,7 @@ function render(){
         h+=`<button class="nv1 ${on?'on':''}" data-act="pSec" data-v="${k}"><i></i><span>${n}</span>${k==='fin'?bAp+seta(fOpen):''}</button>`;
         if(k==='fin'&&fOpen)FSUB.forEach(([sk,sn])=>{h+=`<button class="nv2 ${sub===sk?'on':''}" data-act="pSec" data-v="fin" data-s="${sk}"><span>${sn}</span>${sk==='aprov'?bAp:''}</button>`})})}})});
   $('tabs').innerHTML=h;$('mTitle').textContent=tabLabel(ui.tab);
-  $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,usuarios:viewUsuarios,estoque:viewEstoque,sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
+  $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,usuarios:viewUsuarios,estoque:viewEstoque,sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
   if(ui.tab==='agenda')renderSug();
 }
 
@@ -667,7 +668,7 @@ function dentroPrev(a){const p=pPor(a.etiqueta),lim=a.ts&&a.ts.conclusao?isoD(ne
   return fasesOf(a).every(k=>{const f=FASES.find(x=>x.k===k),pv=+p[f.p]||0;return !pv||realAte(a.etiqueta,k,lim)<=pv})}
 const aprovEm=l=>{const h=(l.hist||[]).filter(x=>x.acao==='Aprovada').pop();return h?h.em:null};
 const kp=(v,l,c='')=>`<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`;
-const PSEC=[['geral','Visão geral','Como estamos? O resumo para bater o olho ou levar à gerência.'],['entregas','Entregas','O que entregamos e quanto tempo de campo cada circuito consumiu?'],['exec','Execução em campo','A operação está fluindo? Conclusões dentro e fora da previsão, não conclusões e tempos.'],['equipes','Equipes','Quem está produzindo e como? Técnico a técnico, própria x terceiros.'],['fin','Financeiro','']];
+const PSEC=[['geral','Visão geral','Como estamos? O resumo para bater o olho ou levar à gerência.'],['entregas','Entregas','O que entregamos e quanto tempo de campo cada circuito consumiu?'],['rede','Rede executada','Quanto de rede foi construído no período: cabo, cordoalha, CEOs reabertas e extensão de fibra.'],['exec','Execução em campo','A operação está fluindo? Conclusões dentro e fora da previsão, não conclusões e tempos.'],['equipes','Equipes','Quem está produzindo e como? Técnico a técnico, própria x terceiros.'],['fin','Financeiro','']];
 const FSUB=[['budget','Budget e ROI','Quanto do budget de mão de obra terceirizada já foi consumido, e como a LPU executada se compara ao ROI?'],['det','Detalhamento das LPUs','Em quais serviços e classes o valor das LPUs está concentrado?'],['aprov','Aprovação de LPU','Fila da supervisão: confira itens, tempos e histórico de cada LPU antes de aprovar, devolver ou reprovar.']];
 function viewPainel(){
   const sec=ui.pSec||'geral',sub=ui.finSub||'budget';
@@ -675,7 +676,7 @@ function viewPainel(){
     if(k==='fin')h+=FSUB.map(([sk,sn])=>`<button class="pni sub ${on&&sub===sk?'on':''}" data-act="pSec" data-v="fin" data-s="${sk}">${sn}</button>`).join('');return h}).join('');
   const titulo=sec==='fin'?'Financeiro: '+FSUB.find(x=>x[0]===sub)[1].toLowerCase():PSEC.find(x=>x[0]===sec)[1];
   const perg=sec==='fin'?FSUB.find(x=>x[0]===sub)[2]:PSEC.find(x=>x[0]===sec)[2];
-  const corpo=sec==='geral'?pGeral():sec==='entregas'?pEntregas():sec==='exec'?pExec():sec==='equipes'?pEquipes():sub==='det'?pDetalhe():sub==='aprov'?viewAprov(true):pBudget();
+  const corpo=sec==='geral'?pGeral():sec==='entregas'?pEntregas():sec==='rede'?pRede():sec==='exec'?pExec():sec==='equipes'?pEquipes():sub==='det'?pDetalhe():sub==='aprov'?viewAprov(true):pBudget();
   const periodo=!(sec==='fin'&&(sub==='budget'||sub==='aprov'));
   return `<div class="toolbar"><div><h2>Painel de KPIs</h2></div>${periodo?`<div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="pIni" value="${ui.pIni}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="pFim" value="${ui.pFim}"></label></div>`:''}</div>
   <div class="pbody"><div class="phd"><h3>${titulo}</h3><p class="muted">${perg}</p></div>${corpo}</div>`;
@@ -703,6 +704,19 @@ function pEntregas(){const b=pBase();
    <section><div class="secth"><h3>Entregas por ${grpN[ui.pGrp].toLowerCase()}</h3><select class="inp" style="width:auto" data-ch="pGrp">${Object.entries(grpN).map(([k,n])=>`<option value="${k}" ${k===ui.pGrp?'selected':''}>Agrupar por ${n.toLowerCase()}</option>`).join('')}</select></div><div class="tablewrap"><table><thead><tr><th>${grpN[ui.pGrp]}</th><th class="r">Circuitos</th><th class="r">Dias por circuito</th><th class="r">Valor mensal</th></tr></thead><tbody>${grR||'<tr><td colspan="4" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
   </div>
   <section><div class="secth"><h3>Dias de execução e previsto x realizado por circuito</h3><span class="muted">Nas fases: dias realizados / previstos. Fases feitas no mesmo dia contam 1 dia no total.</span></div><div class="tablewrap"><table><thead><tr><th>Circuito</th><th>Entregue em</th><th class="r">Dias (todas)</th><th class="r">Dias (int. + ativ.)</th>${FASES.map(f=>`<th class="r">${f.k==='rua'?'Lanç. rua':f.k==='interno'?'Lanç. interno':f.k==='ext'?'Extensão':'Ativação'}</th>`).join('')}</tr></thead><tbody>${b.efi.map(x=>`<tr><td><b>${esc(x.p.etiqueta)}</b><br><small class="muted">${esc(x.p.cliente)}</small></td><td>${dBR(x.f.data)}</td><td class="r">${x.tot}</td><td class="r">${x.ia}</td>${FASES.map(f=>cel(x.p,f)).join('')}</tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhuma entrega no período. Os projetos em andamento estão em Previsão dos projetos.</td></tr>'}${b.efi.length?`<tr><td colspan="2"><b>Média</b></td><td class="r"><b>${f1(b.mTot)}</b></td><td class="r"><b>${f1(b.mIA)}</b></td><td colspan="4"></td></tr>`:''}</tbody></table></div></section>`}
+function pRede(){const inP=d=>d>=ui.pIni&&d<=ui.pFim,ags=S.ags.filter(a=>inP(a.data)&&a.status!=='cancelada'),L=S.lpus.filter(l=>l.status==='aprovada'&&inP(l.data));
+  const soma=(ls,cods)=>ls.reduce((s,l)=>s+(l.itens||[]).filter(i=>cods.includes(i.cod)).reduce((x,i)=>x+(+i.qtd||0),0),0);
+  const COR=['SEV0009','SEV0010'],REA=['SEV0037'],EXT=['SEV0088'];
+  const cabo=ags.reduce((s,a)=>s+(metrosAg(a)||0),0),n=v=>(+v||0).toLocaleString('pt-BR');
+  const sem=[];for(let d=semanaIni(ui.pIni);d<=ui.pFim&&sem.length<12;d=addD(d,7))sem.push(d);
+  const S2=sem.map(d=>{const f=addD(d,6),x=ags.filter(a=>a.data>=d&&a.data<=f);return{d,f,clt:x.filter(a=>tecT(a.tec)==='CLT').reduce((s,a)=>s+(metrosAg(a)||0),0),ter:x.filter(a=>tecT(a.tec)==='TERC').reduce((s,a)=>s+(metrosAg(a)||0),0)}}),mx=Math.max(1,...S2.map(x=>x.clt+x.ter));
+  const linhas=TEC.map(t=>{const x=ags.filter(a=>a.tec===t.id),lt=L.filter(l=>l.tec===t.id),c=x.reduce((s,a)=>s+(metrosAg(a)||0),0),cl=soma(lt,CABO_LPU);if(!c&&!lt.length)return '';
+    return `<tr><td>${esc(t.nome)}</td><td>${t.tipo==='CLT'?'CLT':'Terceiro'}</td><td class="r">${n(c)} m</td><td class="r" style="${cl!==c&&lt.length?'color:var(--bad);font-weight:600':''}">${lt.length?n(cl)+' m':'—'}</td><td class="r">${n(soma(lt,COR))} m</td><td class="r">${n(soma(lt,REA))}</td><td class="r">${n(soma(lt,EXT))} m</td></tr>`}).join('');
+  return `<div class="kpis">${kp(n(cabo)+' m','Cabo lançado (relatórios)','ok')}${kp(n(soma(L,COR))+' m','Cordoalha lançada (LPUs)')}${kp(n(soma(L,REA)),'Reaberturas e fechamentos de CEO')}${kp(n(soma(L,EXT))+' m','Extensão de fibra')}</div>
+  <section class="panel"><div class="secth"><h3>Cabo lançado por semana</h3><span class="muted">Verde escuro = equipe própria, verde claro = terceiros</span></div>
+   <div class="dbars">${S2.map(x=>`<div class="db1" title="${dBR(x.d)} a ${dBR(x.f)}: ${n(x.clt)} m própria, ${n(x.ter)} m terceiros"><span class="dn">${x.clt+x.ter?n(x.clt+x.ter):''}</span><div class="dbw" style="max-width:70px"><i style="height:${(x.clt+x.ter)/mx*100}%;flex-direction:column;justify-content:flex-end"><b style="height:${x.clt+x.ter?x.clt/(x.clt+x.ter)*100:0}%"></b></i></div><small>${dBR(x.d).slice(0,5)}</small></div>`).join('')}</div></section>
+  <section><div class="secth"><h3>Por técnico ou prestador</h3><span class="muted">Cabo na LPU em vermelho quando diferente do relatório</span></div><div class="tablewrap"><table><thead><tr><th>Técnico ou prestador</th><th>Vínculo</th><th class="r">Cabo lançado (relatório)</th><th class="r">Cabo na LPU</th><th class="r">Cordoalha</th><th class="r">Reaberturas e fechamentos</th><th class="r">Extensão de fibra</th></tr></thead><tbody>${linhas||'<tr><td colspan="7" class="muted">Sem relatórios ou LPUs aprovadas no período.</td></tr>'}</tbody></table></div></section>
+  <p class="muted" style="font-size:13px">Cabo lançado vem dos relatórios fotográficos. Cordoalha, reaberturas e extensão de fibra vêm das LPUs aprovadas, de todos os técnicos. Período pela data da atividade.</p>`}
 function pExec(){const b=pBase(),reag=b.nao.filter(a=>a.reag);
   const comEta=b.ags.filter(a=>a.ts.eta&&a.ts.chegada),noEta=comEta.filter(a=>a.ts.chegada<=a.ts.eta+600000);
   const mot={};b.nao.forEach(a=>{mot[a.motivo]=(mot[a.motivo]||0)+1});const mx=Math.max(1,...Object.values(mot));
@@ -725,7 +739,7 @@ function pEquipes(){const b=pBase(),F=ui.eqF||'all',tecs=TEC.filter(t=>F==='all'
   <section><div class="secth"><h3>Produtividade por técnico</h3></div><div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Não concl.</th><th class="r">Taxa de conclusão</th><th class="r">Dias de execução</th><th class="r">Execução média</th></tr></thead><tbody>${tecR||'<tr><td colspan="9" class="muted">Sem atividades no período.</td></tr>'}</tbody></table></div></section>
   <section><div class="secth"><h3>Equipe própria x terceiros</h3></div><div class="tablewrap"><table><thead><tr><th>Equipe</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Taxa de conclusão</th><th class="r">Concl. por técnico/dia</th></tr></thead><tbody>${eqR}</tbody></table></div></section>`}
 function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&ui.perfil==='coord',B=(S.budget||{})[mes]||{};
-  const ap=S.lpus.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes),pe=S.lpus.filter(l=>l.status==='aguardando'||l.status==='ajuste');
+  const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC'),ap=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes),pe=LT.filter(l=>l.status==='aguardando'||l.status==='ajuste');
   const contas=LPU_CONTAS.filter(c=>ed||+B[c]>0||ap.some(l=>l.conta===c)||pe.some(l=>l.conta===c));
   const cod=c=>c.split(' - ')[0],nome=c=>c.split(' - ').slice(1).join(' - ').replace(/^Serviços de /,'');
   const rows=contas.map(c=>{const orc=+B[c]||0,A=ap.filter(l=>l.conta===c),P=pe.filter(l=>l.conta===c),uso=A.reduce((s,l)=>s+l.total,0),comp=P.reduce((s,l)=>s+l.total,0),disp=orc-uso,p=orc?Math.round(uso/orc*100):0,tot=Math.max(orc,uso+comp)||1;return{c,orc,A,P,uso,comp,disp,p,wU:uso/tot*100,wC:comp/tot*100,est:orc&&uso+comp>orc}});
@@ -734,7 +748,7 @@ function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&ui.perfil==
   const nL=n=>n+(n===1?' LPU':' LPUs'),cor=p=>p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)';
   // ROI x LPU (período)
   const inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim;
-  const moRows=[...new Set(S.lpus.filter(inP).map(l=>l.etiqueta))].map(e=>{const p=pPor(e),Ls=S.lpus.filter(l=>l.etiqueta===e&&l.status!=='reprovada'),a=Ls.filter(l=>l.status==='aprovada').reduce((s,l)=>s+l.total,0),q=Ls.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+l.total,0),roi=p.roi&&p.roi.fin&&p.roi.fin.custoMO!=null?+p.roi.fin.custoMO:null;return{e,p,a,q,tot:a+q,roi,tecs:[...new Set(Ls.map(l=>tecN(l.tec)))].join(', ')}});
+  const moRows=[...new Set(S.lpus.filter(l=>inP(l)&&tecT(l.tec)==='TERC').map(l=>l.etiqueta))].map(e=>{const p=pPor(e),Ls=S.lpus.filter(l=>l.etiqueta===e&&l.status!=='reprovada'&&tecT(l.tec)==='TERC'),a=Ls.filter(l=>l.status==='aprovada').reduce((s,l)=>s+l.total,0),q=Ls.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+l.total,0),roi=p.roi&&p.roi.fin&&p.roi.fin.custoMO!=null?+p.roi.fin.custoMO:null;return{e,p,a,q,tot:a+q,roi,tecs:[...new Set(Ls.map(l=>tecN(l.tec)))].join(', ')}});
   const moT={roi:moRows.reduce((s,r)=>s+(r.roi||0),0),tot:moRows.reduce((s,r)=>s+r.tot,0)};
   return `<section class="panel"><div class="secth"><div><h3>Budget de mão de obra terceirizada</h3><span class="muted">Consumido pelas LPUs aprovadas no mês da aprovação, conforme a conta contábil de cada uma.</span></div>
    <div class="tools"><label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${meses.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>${ui.perfil==='coord'?(ed?'<button class="btn primary" data-act="bSalvar">Salvar budget</button><button class="btn" data-act="bEdit">Cancelar</button>':'<button class="btn" data-act="bEdit">Definir budget do mês</button>'):''}</div></div>
@@ -750,9 +764,9 @@ function pDetalhe(){const sit=ui.dSit||'ap',conta=ui.dConta||'',pres=ui.dPres||'
   const I=Object.values(M).sort((a,b)=>b.val-a.val),tot=L.reduce((s,l)=>s+l.total,0),C={};
   I.forEach(i=>{C[i.classe]=C[i.classe]||{n:i.classe,v:0,k:0};C[i.classe].v+=i.val;C[i.classe].k++});const Cs=Object.values(C).sort((a,b)=>b.v-a.v),mxC=Cs.length?Cs[0].v:1,mxT=I.length?I[0].val:1;
   const F=cls?I.filter(i=>i.classe===cls):I;
-  const ters=TEC.filter(t=>t.tipo==='TERC'),num=v=>(+v).toLocaleString('pt-BR',{maximumFractionDigits:2});
+  const ters=TEC,num=v=>(+v).toLocaleString('pt-BR',{maximumFractionDigits:2});
   return `<div class="tools" style="margin-bottom:12px"><label class="f inline"><span>Conta contábil</span><select class="inp" data-ch="dConta"><option value="">Todas</option>${LPU_CONTAS.map(c=>`<option value="${esc(c)}" ${c===conta?'selected':''}>${esc(c.split(' - ')[0])} ${esc(c.split(' - ').slice(1).join(' - ').replace(/^Serviços de /,''))}</option>`).join('')}</select></label>
-   <label class="f inline"><span>Prestador</span><select class="inp" data-ch="dPres"><option value="">Todos</option>${ters.map(t=>`<option value="${t.id}" ${t.id===pres?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></label>
+   <label class="f inline"><span>Técnico ou prestador</span><select class="inp" data-ch="dPres"><option value="">Todos</option>${ters.map(t=>`<option value="${t.id}" ${t.id===pres?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></label>
    <label class="f inline"><span>Situação</span><select class="inp" data-ch="dSit">${[['ap','Aprovadas no período'],['pe','Aguardando aprovação'],['ambas','Aprovadas e aguardando']].map(([k,n])=>`<option value="${k}" ${k===sit?'selected':''}>${n}</option>`).join('')}</select></label></div>
   <div class="kpis">${kp(brl(tot),'Valor das LPUs','ok')}${kp(L.length,'LPUs')}${kp(I.length,'Serviços diferentes lançados')}${kp(L.length?brl(tot/L.length):'—','Valor médio por LPU')}</div>
   <div class="grid2 even" style="margin-top:16px"><section class="panel"><div class="secth"><h3>Valor por classe</h3></div>${Cs.map(c=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:10px;font-size:14px"><span><b>${esc(c.n)}</b> <span class="muted">${c.k} ${c.k===1?'serviço':'serviços'}</span></span><span style="white-space:nowrap"><b>${brl(c.v)}</b> <span class="muted">${pct(c.v,tot)}%</span></span></div><div class="bbar"><i style="width:${c.v/mxC*100}%;background:var(--brand)"></i></div></div>`).join('')||'<p class="muted">Nenhuma LPU com esses filtros.</p>'}</section>
@@ -761,6 +775,24 @@ function pDetalhe(){const sit=ui.dSit||'ap',conta=ui.dConta||'',pres=ui.dPres||'
    <div class="tablewrap"><table><thead><tr><th>Código</th><th>Serviço</th><th>Classe</th><th class="r">Quantidade</th><th class="r">Valor unit. (comum)</th><th class="r">Valor acumulado</th><th class="r">Em quantas LPUs</th></tr></thead><tbody>${F.map(i=>`<tr><td><b style="color:var(--brand-ink)">${esc(i.cod)}</b></td><td>${esc(i.desc)}</td><td>${esc(i.classe)}</td><td class="r">${num(i.qtd)} ${esc(String(i.med).toLowerCase())}</td><td class="r">${i.ref!=null?brl(i.ref):'—'}</td><td class="r"><b>${brl(i.val)}</b></td><td class="r">${i.ls.size}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">Nenhum item com esses filtros.</td></tr>'}${F.length?`<tr><td colspan="5"><b>Total ${cls?'da '+esc(cls):'geral'}</b></td><td class="r"><b>${brl(F.reduce((s,i)=>s+i.val,0))}</b></td><td></td></tr>`:''}</tbody></table></div>
    <p class="muted" style="font-size:13px;margin-top:6px">O valor acumulado soma o que foi lançado em cada LPU, já considerando os itens com fator crítico.</p></section>`}
 
+
+/* ---------- RELATÓRIOS POR CLIENTE ---------- */
+function viewRelat(){const q=normK(ui.rQ||''),tipo=ui.rTipo||'',tec=ui.rTec||'',ini=ui.rIni||addD(hoje(),-30),fim=ui.rFim||hoje(),so=!!ui.rDiv;
+  const linhas=[];S.ags.filter(a=>a.rel&&a.data>=ini&&a.data<=fim&&(!tec||a.tec===tec)).forEach(a=>{const l=S.lpus.find(x=>x.ag===a.id&&x.status!=='reprovada'),al=alertasCabo(a,l);
+    if(a.rel.foto&&a.rel.foto.path&&(!tipo||tipo==='foto'))linhas.push({a,k:'foto',path:a.rel.foto.path,al});
+    if(a.rel.entrega&&a.rel.entrega.path&&(!tipo||tipo==='entrega'))linhas.push({a,k:'entrega',path:a.rel.entrega.path,al:[]})});
+  const G={};linhas.forEach(x=>{const p=pPor(x.a.etiqueta),c=p.cliente||x.a.etiqueta;if(q&&!normK(c+' '+x.a.etiqueta).includes(q))return;if(so&&!x.al.length)return;(G[c]=G[c]||[]).push(x)});
+  const cls=Object.keys(G).sort((a,b)=>a.localeCompare(b));ui.rOpen=ui.rOpen||{};
+  const med=a=>{const m=a.medicoes||{},v=[];const mt=metrosAg(a);if(mt!=null)v.push(mt.toLocaleString('pt-BR')+' m lançados');if(m['ext:sinal_ini:dbm']!=null)v.push('sinal '+m['ext:sinal_ini:dbm']+' / '+(m['ext:sinal_fim:dbm']||'—')+' dBm');return v.join(', ')||'—'};
+  return `<div class="toolbar"><div><h2>Relatórios</h2><p class="muted">Relatórios fotográficos e de entrega enviados pelos técnicos, organizados por cliente.</p></div></div>
+  <div class="tools" style="margin-bottom:12px"><input class="inp" type="search" id="rQ" placeholder="Buscar cliente ou etiqueta" data-in="rQ" value="${esc(ui.rQ||'')}">
+   <select class="inp" data-ch="rTipo"><option value="">Todos os tipos</option><option value="foto" ${tipo==='foto'?'selected':''}>Fotográfico</option><option value="entrega" ${tipo==='entrega'?'selected':''}>Entrega de circuito</option></select>
+   <select class="inp" data-ch="rTec"><option value="">Todos os técnicos</option>${TEC.map(t=>`<option value="${t.id}" ${t.id===tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</select>
+   <label class="f inline"><span>De</span><input type="date" class="inp" data-ch="rIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="rFim" value="${fim}"></label>
+   <label class="chk" style="margin:0"><input type="checkbox" data-ch="rDiv" ${so?'checked':''}> Só com divergência de cabo</label></div>
+  ${cls.map(c=>{const L=G[c].sort((x,y)=>y.a.data.localeCompare(x.a.data)),nAl=new Set(L.filter(x=>x.al.length).map(x=>x.a.id)).size,o=ui.rOpen[c]!==undefined?ui.rOpen[c]:cls.length===1,etqs=[...new Set(L.map(x=>x.a.etiqueta))].join(', '),cid=pPor(L[0].a.etiqueta).cidade;
+    return `<section class="lcard"><button class="lhead" data-act="rOpen" data-c="${esc(c)}" aria-expanded="${o}"><div><b style="font:700 20px 'Barlow Condensed',sans-serif">${esc(c)}</b><small>${esc(etqs)}${cid?', '+esc(cid):''}</small></div><span style="display:flex;gap:8px;align-items:center">${nAl?`<span class="chip bad">${nAl} ${nAl>1?'divergências':'divergência'} de cabo</span>`:''}<span class="chip">${L.length} ${L.length>1?'relatórios':'relatório'}</span><span class="muted">${o?'▴':'▾'}</span></span></button>
+     ${o?`<div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table><thead><tr><th>Data</th><th>Relatório</th><th>Etiqueta e fases</th><th>Técnico</th><th>Medições</th><th>Conferência</th><th></th></tr></thead><tbody>${L.map(x=>`<tr><td>${dBR(x.a.data)}</td><td><b>${x.k==='foto'?'Fotográfico':'Entrega de circuito'}</b></td><td>${esc(x.a.etiqueta)}<br><small class="muted">${fasesN(x.a)}</small></td><td>${esc(tecN(x.a.tec))}</td><td>${x.k==='foto'?esc(med(x.a)):'Circuito entregue'}</td><td>${x.k!=='foto'?'<span class="chip">Sem cabo</span>':x.al.length?x.al.map(y=>`<span class="chip bad" style="margin:1px 2px 1px 0">${esc(y.curto)}</span>`).join(''):metrosAg(x.a)!=null?'<span class="chip ok">Conferido</span>':'<span class="chip">Sem cabo</span>'}</td><td class="r"><button class="btn sm" data-act="relVer" data-p="${esc(x.path)}">Abrir PDF</button></td></tr>`).join('')}</tbody></table></div>`:''}</section>`}).join('')||'<p class="muted pad">Nenhum relatório com esses filtros.</p>'}`}
 
 /* ---------- BASE ---------- */
 const COLS=[['protocolo','Protocolo principal','t'],['etiqueta','Etiqueta','t'],['cliente','Cliente (razão social)','t'],['valor','Valor mensal (R$)','n'],['cidade','Cidade','t'],['pop','POP','t'],['equip','Equipamento de acesso','t'],['topologia','Topologia','s'],['metros','Metros de cabo','n'],['caixas','Caixas de emenda','n'],['dRua','Dias lanç. rua','n'],['dInterno','Dias lanç. interno','n'],['dExt','Dias extensão','n'],['dAtiv','Dias ativação','n']];
@@ -1079,8 +1111,8 @@ const ANDAM=['deslocamento','no_local','execucao','relatorios','lpu'];
 const emAndamento=(tec,exceto)=>S.ags.find(x=>x.tec===tec&&x.id!==exceto&&ANDAM.includes(x.status));
 function blocoAcao(a){
   const terc=tecT(a.tec)==='TERC',t=a.ts;
-  const steps=['Deslocamento','Chegada','Execução','Relatório'].concat(terc?['LPU']:[]).concat(['Encerrada']);
-  const order=['agendada','deslocamento','no_local','execucao','relatorios'].concat(terc?['lpu']:[]).concat(['concluida']);
+  const steps=['Deslocamento','Chegada','Execução','Relatório','LPU','Encerrada'];
+  const order=['agendada','deslocamento','no_local','execucao','relatorios'].concat(['lpu']).concat(['concluida']);
   const s=order.indexOf(a.status);
   const etapas=a.status==='nao_concluida'?'':`<div class="tcand"><span class="tck2">ETAPAS DESTA ATIVIDADE</span><div class="tcbars" style="grid-template-columns:repeat(${steps.length},minmax(0,1fr))">${steps.map((n,i)=>{const done=a.status==='concluida'||i<s-1,cur=!done&&i===Math.max(0,s-1)&&a.status!=='agendada'||(a.status==='agendada'&&i===0);return `<div><i class="${done?'ok':cur?'now':''}"></i><span class="${done?'ok':cur?'now':''}">${n}</span></div>`}).join('')}</div></div>`;
   const nok=`<button class="btn ghost wide" data-act="nao" data-id="${a.id}">Não foi possível realizar</button>`;
@@ -1091,9 +1123,9 @@ function blocoAcao(a){
     case 'deslocamento':act=go('Cheguei no local')+nok;break;
     case 'no_local':act=go('Iniciar atividade')+nok;break;
     case 'execucao':act=go('Concluir atividade')+nok;break;
-    case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">Preencha o relatório para encerrar a atividade.</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${terc?'Enviar relatório e preencher LPU':'Enviar relatório e encerrar'}</button>`;break}
+    case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">Preencha o relatório para encerrar a atividade.</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${'Enviar relatório e preencher LPU'}</button>`;break}
     case 'lpu':act=`<h3>Preenchimento da LPU</h3>${lpuEditor(a.id)}<button class="bigbtn" data-act="lpuEnviar" data-id="${a.id}">Enviar LPU e encerrar</button>`;break;
-    case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída em ${dBR(isoD(new Date(t.encerramento||t.conclusao||Date.now())))}.</div>${l?`<div class="result">LPU de <b>${brl(l.total)}</b> ${lchip(l.status)}</div>`:''}`;break}
+    case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída em ${dBR(isoD(new Date(t.encerramento||t.conclusao||Date.now())))}.</div>${l?`<div class="result">LPU enviada ${lchip(l.status)}</div>`:''}`;break}
     case 'nao_concluida':act=`<div class="result bad"><b>Não realizada:</b> ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`<br>Reagendada para ${dBR(a.reag)}.`:a.pendReag?'<br>Aguardando reagendamento pelo encarregado.':''}</div>`;break;
   }
   return{etapas,act};
@@ -1154,16 +1186,17 @@ function lpuDraft(key){return ui.draft[key]||(ui.draft[key]={conta:LPU_CONTAS[0]
 const lpuUnit=(it,v)=>it.valor==null?(+v.unit||0):(v.fator==='critico'&&it.valorCritico!=null?it.valorCritico:it.valor);
 function lpuSel(d){const ok=new Set(lpuDaConta(d.conta).map(x=>x.cod));return Object.entries(d.q).filter(([c,v])=>ok.has(c)&&+v.qtd>0)}
 function lpuTotal(d){return lpuSel(d).reduce((s,[c,v])=>s+lpuUnit(itemOf(c),v)*(+v.qtd||0),0)}
-function lpuEditor(key){const d=lpuDraft(key),L=lpuDaConta(d.conta),n=lpuSel(d).length;
+const verValor=()=>['coord','sup','enc'].includes(ui.perfil);
+function lpuEditor(key){const d=lpuDraft(key),L=lpuDaConta(d.conta),n=lpuSel(d).length,vv=verValor();
   return `<div class="lpu" data-lk="${esc(key)}">
    <label class="f"><span>Descrição contábil</span><select class="inp" data-ch="lpuConta" data-k="${esc(key)}">${LPU_CONTAS.map(c=>`<option value="${esc(c)}" ${c===d.conta?'selected':''}>${esc(c)}</option>`).join('')}</select></label>
    <input class="inp" type="search" placeholder="Buscar serviço por código ou descrição" data-in="lpuBusca" data-k="${esc(key)}" style="margin-bottom:6px">
    <label class="chk" style="margin-bottom:8px"><input type="checkbox" data-ch="lpuSo"> Mostrar só os serviços preenchidos</label>
    <div class="lpul">${L.map(it=>{const v=d.q[it.cod]||{};return `<div class="lpi ${+v.qtd>0?'on':''}" data-busca="${esc(normK(it.cod+' '+it.desc))}">
      <div class="lpd"><b>${it.cod}</b> ${esc(it.desc)} ${it.tec?`<button class="info" data-act="lpuInfo" aria-label="Ver descritivo técnico">?</button>`:''}<small>${esc(it.classe)}, por ${esc(String(it.medida).toLowerCase())}</small>${it.tec?`<span class="ltec" hidden>${esc(it.tec)}</span>`:''}</div>
-     <div class="lpc">${it.valor==null?`<input class="inp" type="number" min="0" step="0.01" inputmode="decimal" placeholder="R$ unit." value="${v.unit||''}" data-in="lpuUnit" data-k="${esc(key)}" data-c="${it.cod}">`:`<select class="inp" data-ch="lpuFator" data-k="${esc(key)}" data-c="${it.cod}"><option value="comum">Comum ${brl(it.valor)}</option>${it.valorCritico!=null?`<option value="critico" ${v.fator==='critico'?'selected':''}>Crítico ${brl(it.valorCritico)}</option>`:''}</select>`}
+     <div class="lpc">${it.valor==null?`<input class="inp" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Valor do reembolso (R$)" value="${v.unit||''}" data-in="lpuUnit" data-k="${esc(key)}" data-c="${it.cod}">`:`<select class="inp" data-ch="lpuFator" data-k="${esc(key)}" data-c="${it.cod}"><option value="comum">Comum${vv?' '+brl(it.valor):''}</option>${it.valorCritico!=null?`<option value="critico" ${v.fator==='critico'?'selected':''}>Crítico${vv?' '+brl(it.valorCritico):''}</option>`:''}</select>`}
      <input class="inp q" type="number" min="0" step="any" inputmode="decimal" placeholder="Qtd" value="${v.qtd||''}" data-in="lpuQ" data-k="${esc(key)}" data-c="${it.cod}" aria-label="Quantidade de ${it.cod}"></div></div>`}).join('')}</div>
-   <div class="ltotal"><span class="lcnt">Total da LPU (${n} ${n===1?'item':'itens'})</span><b class="ltb">${brl(lpuTotal(d))}</b></div></div>`}
+   <div class="ltotal"><span class="lcnt">Total da LPU (${n} ${n===1?'item':'itens'})</span><b class="ltb" ${vv?'':'hidden'}>${brl(lpuTotal(d))}</b></div></div>`}
 function lpuFiltrar(box){const q=normK((box.querySelector('[data-in="lpuBusca"]')||{}).value||''),so=(box.querySelector('[data-ch="lpuSo"]')||{}).checked;box.querySelectorAll('.lpi').forEach(r=>{r.hidden=(!!q&&!r.dataset.busca.includes(q))||(so&&!r.classList.contains('on'))})}
 function lpuRefresh(key){const d=lpuDraft(key),box=[...document.querySelectorAll('.lpu')].find(b=>b.dataset.lk===key);if(!box)return;const n=lpuSel(d).length;box.querySelector('.ltb').textContent=brl(lpuTotal(d));box.querySelector('.lcnt').textContent=`Total da LPU (${n} ${n===1?'item':'itens'})`}
 function draftItens(key){const d=lpuDraft(key);return lpuSel(d).map(([c,v])=>{const it=itemOf(c);return{cod:c,desc:it.desc,classe:it.classe,medida:it.medida,fator:v.fator==='critico'?'Crítico':'Comum',unit:lpuUnit(it,v),qtd:+v.qtd}})}
@@ -1189,16 +1222,35 @@ function openAjuste(lid){const l=S.lpus.find(x=>x.id===lid),k='L:'+lid;if(!ui.dr
   openModal(`<h3>Corrigir LPU ${esc(l.etiqueta)}</h3>${m?`<p class="note" style="margin-top:8px">Motivo da devolução: ${esc(m.motivo)}</p>`:''}${lpuEditor(k)}<div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="reenviar" data-id="${lid}">Reenviar para aprovação</button></div>`)}
 
 /* ---------- APROVAÇÃO ---------- */
+const CABO_LPU=['SEV0006','SEV0008','SEV0011','SEV0012','SEV0013','SEV0014','SEV0015','SEV0016','SEV0017'];
+const caboLpu=l=>(l.itens||[]).filter(i=>CABO_LPU.includes(i.cod)).reduce((s,i)=>s+(+i.qtd||0),0);
+const metrosAg=a=>{const m=a&&a.medicoes;if(!m)return null;const v=['rua','interno'].map(f=>m[f+':metros']).filter(x=>x!=null);return v.length?v.reduce((s,x)=>s+(+x||0),0):null};
+const metrosProj=e=>{const v=S.ags.filter(a=>a.etiqueta===e).map(metrosAg).filter(x=>x!=null);return v.length?v.reduce((s,x)=>s+x,0):null};
+const difTxt=(d,base)=>`${d>0?'+':''}${d.toLocaleString('pt-BR')} m${base?` (${d>0?'+':''}${Math.round(d/base*100)}%)`:''}`;
+function alertasCabo(a,l){const out=[];if(!a)return out;const rel=metrosAg(a),p=pPor(a.etiqueta),roi=+p.metros||0,lc=l?caboLpu(l):null;
+  if(l&&rel!=null&&lc!==rel)out.push({t:'Cabo da LPU diferente do relatório',d:`O relatório informa <b>${rel.toLocaleString('pt-BR')} m</b> lançados e a LPU cobra <b>${lc.toLocaleString('pt-BR')} m</b> de cabo: <b>${difTxt(lc-rel,rel)}</b> ${lc>rel?'a mais':'a menos'} na LPU.`,curto:`LPU ${difTxt(lc-rel)}`});
+  if(l&&rel==null&&lc>0)out.push({t:'LPU com cabo e sem metragem no relatório',d:`A LPU cobra <b>${lc.toLocaleString('pt-BR')} m</b> de cabo, mas a atividade não tem metragem de lançamento registrada no relatório.`,curto:'LPU sem metragem no relatório'});
+  const tot=metrosProj(a.etiqueta);if(tot!=null&&roi&&tot!==roi)out.push({t:tot>roi?'Lançado acima do ROI':'Lançado abaixo do ROI',d:`O ROI previa <b>${roi.toLocaleString('pt-BR')} m</b> de cabo e o projeto já tem <b>${tot.toLocaleString('pt-BR')} m</b> lançados nos relatórios: <b>${difTxt(tot-roi,roi)}</b>.`,curto:`ROI ${difTxt(tot-roi)}`});
+  return out}
+const relBtns=a=>a&&a.rel?`${a.rel.foto&&a.rel.foto.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.foto.path)}">Relatório fotográfico${a.rel.foto.fotos?` (${a.rel.foto.fotos} fotos)`:''}</button>`:''}${a.rel.entrega&&a.rel.entrega.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.entrega.path)}">Relatório de entrega</button>`:''}`:'';
 function viewAprov(emb){
   const tabs=[['aguardando','Aguardando'],['ajuste','Em ajuste'],['aprovada','Aprovadas'],['reprovada','Reprovadas']];
   const tot=s=>S.lpus.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0),cnt=s=>S.lpus.filter(l=>l.status===s).length;
   const rows=S.lpus.filter(l=>l.status===ui.aTab).sort((a,b)=>b.data.localeCompare(a.data));
-  const card=l=>{const a=getAg(l.ag)||{ts:{}},op=ui.aOpen===l.id;
-    return `<div class="lcard"><button class="lhead" data-act="aOpen" data-id="${l.id}" aria-expanded="${op}"><div><b>${esc(l.etiqueta)}</b> <span>${esc(cliN(l.etiqueta))}</span><small>${esc(tecN(l.tec))}, ${fasesN(l)}, ${dBR(l.data)}</small></div><span class="val">${brl(l.total)}</span></button>
-    ${op?`<div class="lbody"><div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd</th><th class="r">Unitário</th><th class="r">Subtotal</th></tr></thead><tbody>${l.itens.map(i=>`<tr><td>${i.cod}</td><td>${esc(i.desc)}</td><td>${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.unit*i.qtd)}</td></tr>`).join('')}</tbody></table></div>
+  const card=l=>{const a=getAg(l.ag)||{ts:{}},op=ui.aOpen===l.id,al=alertasCabo(getAg(l.ag),l),p=pPor(l.etiqueta),rel=metrosAg(getAg(l.ag)),lc=caboLpu(l),mp=metrosProj(l.etiqueta);
+    return `<div class="lcard"><button class="lhead" data-act="aOpen" data-id="${l.id}" aria-expanded="${op}"><div><b>${esc(l.etiqueta)}</b> <span>${esc(cliN(l.etiqueta))}</span>${al.length?` <span class="chip bad">${al.length} ${al.length>1?'alertas':'alerta'} de cabo</span>`:''}<small>${esc(tecN(l.tec))} (${vinc(l.tec)}), ${fasesN(l)}, ${dBR(l.data)}</small></div><span class="val">${brl(l.total)}</span></button>
+    ${op?`<div class="lbody">${al.length?`<div class="calert">${al.map(x=>`<div><b>${x.t}</b><span>${x.d}</span></div>`).join('')}</div>`:''}
+     <div class="grid2 even" style="margin-top:12px"><section><h3 class="lsub" style="margin-top:0">Conferência de cabo</h3><div class="tablewrap"><table><thead><tr><th>Fonte</th><th class="r">Cabo</th><th>Detalhe</th></tr></thead><tbody>
+      <tr><td>ROI do projeto</td><td class="r">${+p.metros?(+p.metros).toLocaleString('pt-BR')+' m':'—'}</td><td class="muted">Metros de cabo da Base de previsão</td></tr>
+      <tr><td>Relatório desta atividade</td><td class="r"><b>${rel!=null?rel.toLocaleString('pt-BR')+' m':'—'}</b></td><td class="muted">${a.medicoes&&['rua','interno'].some(f=>a.medicoes[f+':lote_ini:m']!=null)?['rua','interno'].filter(f=>a.medicoes[f+':lote_ini:m']!=null).map(f=>`${FCURTO[f]}: início ${esc(a.medicoes[f+':lote_ini:m'])} m, término ${esc(a.medicoes[f+':lote_fim:m']||'—')} m, lote ${esc(a.medicoes[f+':lote_ini:lote']||'—')}`).join('; '):'Sem metragem registrada'}</td></tr>
+      <tr><td>LPU</td><td class="r"><b style="color:${al.some(x=>x.curto.startsWith('LPU'))?'var(--bad)':'inherit'}">${lc.toLocaleString('pt-BR')} m</b></td><td class="muted">${(l.itens||[]).filter(i=>CABO_LPU.includes(i.cod)).map(i=>esc(i.cod)+' '+esc(i.desc)).join('; ')||'Nenhum serviço de lançamento de cabo'}</td></tr>
+      <tr><td>Total lançado no projeto</td><td class="r">${mp!=null?mp.toLocaleString('pt-BR')+' m':'—'}</td><td class="muted">Soma dos relatórios de todas as atividades</td></tr>
+     </tbody></table></div></section>
+     <section><h3 class="lsub" style="margin-top:0">Relatórios da atividade</h3>${relBtns(getAg(l.ag))?`<div class="tools">${relBtns(getAg(l.ag))}</div>`:'<p class="muted">Nenhum relatório enviado nesta atividade.</p>'}</section></div>
+     <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd</th><th class="r">Unitário</th><th class="r">Subtotal</th></tr></thead><tbody>${l.itens.map(i=>`<tr><td>${i.cod}</td><td>${esc(i.desc)}</td><td>${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.unit*i.qtd)}</td></tr>`).join('')}</tbody></table></div>
      <dl class="dl" style="margin-top:12px"><div><dt>Deslocamento</dt><dd>${fdur(dur(a.ts.desloc,a.ts.chegada))}</dd></div><div><dt>Execução</dt><dd>${fdur(dur(a.ts.inicio,a.ts.conclusao))}</dd></div><div><dt>Relatórios</dt><dd>${relsDe(a).every(r=>a.rel&&a.rel[r.k])?'Enviados':'Pendentes'}</dd></div><div><dt>Situação</dt><dd>${lchip(l.status)}</dd></div></dl>
      <div class="hist">${(l.hist||[]).map(h=>`<div>${esc(h.acao)} por ${esc(h.por)} em ${dtBR(h.em)}${h.motivo?`: ${esc(h.motivo)}`:''}</div>`).join('')}</div>
-     <div class="actions"><button class="btn" data-act="pdf" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'?`<button class="btn" data-act="decidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="decidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="aprovar" data-id="${l.id}">Aprovar</button>`:''}</div></div>`:''}</div>`};
+     <div class="actions"><button class="btn" data-act="pdf" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'?`<button class="btn" data-act="decidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="decidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="aprovar" data-id="${l.id}">${al.length?'Aprovar mesmo assim':'Aprovar'}</button>`:''}</div></div>`:''}</div>`};
   return `${emb?'':`<div class="toolbar"><div><h2>Aprovação de LPU</h2><p class="muted">Fila da supervisão. Toque na LPU para ver itens, tempos e histórico.</p></div></div>`}
    <div class="kpis" style="margin-bottom:14px">${tabs.map(([k,n])=>`<div class="kpi ${k==='aprovada'?'ok':k==='reprovada'?'bad':k==='aguardando'?'warn':''}"><b>${brl(tot(k))}</b><span>${n} (${cnt(k)})</span></div>`).join('')}</div>
    <div class="chips">${tabs.map(([k,n])=>`<button data-act="aTab" data-t="${k}" aria-current="${ui.aTab===k}">${n} (${cnt(k)})</button>`).join('')}</div>
@@ -1345,13 +1397,13 @@ function wzApply(){const W=ui.wiz;if(!W)return;const r=parseInst(W.txt||'');let 
   const nt=r.notas.join('. ');if(nt&&W.t.notas!==nt){W.t.notas=nt;k++}
   if(k){renderWiz();toast(`${k} campo(s) preenchido(s) automaticamente. Confira antes de avançar.`)}}
 
-function conferirModal(){const g=ui.sign,d=lpuDraft(g.key),itens=draftItens(g.key),tot=itens.reduce((s,i)=>s+i.unit*i.qtd,0),cls=[...new Set(itens.map(i=>i.classe))];
+function conferirModal(){const vv=verValor(),g=ui.sign,d=lpuDraft(g.key),itens=draftItens(g.key),tot=itens.reduce((s,i)=>s+i.unit*i.qtd,0),cls=[...new Set(itens.map(i=>i.classe))];
   openModal(`<h3>Conferir LPU</h3><p class="muted">Confira os serviços antes de assinar. Para corrigir, volte ao preenchimento.</p><p style="margin-top:8px;font-size:13px"><b>Descrição contábil:</b> ${esc(d.conta)}</p>
-   ${cls.map(c=>{const it=itens.filter(i=>i.classe===c);return `<h3 class="lsub">${esc(c)}</h3>${it.map(i=>`<div class="mrow"><div class="mtop"><span><b>${i.cod}</b> ${esc(i.desc)}</span><b>${brl(i.unit*i.qtd)}</b></div><div class="mnum"><span>Qtd <b>${String(i.qtd).replace('.',',')} ${esc(String(i.medida||'').toLowerCase())}</b></span><span>Fator <b>${i.fator}</b></span><span>Unitário <b>${brl(i.unit)}</b></span></div></div>`).join('')}<p class="muted r" style="font-size:13px">Subtotal ${esc(c)}: <b>${brl(it.reduce((s,i)=>s+i.unit*i.qtd,0))}</b></p>`}).join('')}
-   <div class="ltotal"><span>${itens.length} ${itens.length===1?'serviço':'serviços'}</span><b>${brl(tot)}</b></div>
+   ${cls.map(c=>{const it=itens.filter(i=>i.classe===c);return `<h3 class="lsub">${esc(c)}</h3>${it.map(i=>`<div class="mrow"><div class="mtop"><span><b>${i.cod}</b> ${esc(i.desc)}</span>${vv?`<b>${brl(i.unit*i.qtd)}</b>`:''}</div><div class="mnum"><span>Qtd <b>${String(i.qtd).replace('.',',')} ${esc(String(i.medida||'').toLowerCase())}</b></span><span>Fator <b>${i.fator}</b></span>${vv?`<span>Unitário <b>${brl(i.unit)}</b></span>`:''}</div></div>`).join('')}${vv?`<p class="muted r" style="font-size:13px">Subtotal ${esc(c)}: <b>${brl(it.reduce((s,i)=>s+i.unit*i.qtd,0))}</b></p>`:''}`}).join('')}
+   <div class="ltotal"><span>${itens.length} ${itens.length===1?'serviço':'serviços'}</span>${vv?`<b>${brl(tot)}</b>`:''}</div>
    <div class="actions"><button class="btn" data-act="confVoltar">Voltar e corrigir</button><button class="btn primary" data-act="confOk">Está correto, assinar</button></div>`)}
 function assinarModal(){const g=ui.sign,itens=draftItens(g.key),tot=itens.reduce((s,i)=>s+i.unit*i.qtd,0);ui.sgDraw=false;
-  openModal(`<h3>Assinatura da LPU</h3><p class="muted">${itens.length} serviço(s), total de <b>${brl(tot)}</b>. Ao assinar, você confirma que os serviços lançados foram executados.</p>
+  openModal(`<h3>Assinatura da LPU</h3><p class="muted">${itens.length} serviço(s)${verValor()?`, total de <b>${brl(tot)}</b>`:''}. Ao assinar, você confirma que os serviços lançados foram executados.</p>
    <label class="f" style="margin-top:12px"><span>Nome do responsável *</span><input class="inp" id="sgNome" value="${esc(tecN(g.tec))}"></label>
    <div class="f"><span>Assinatura *</span><canvas id="sgPad" class="sig" aria-label="Quadro de assinatura"></canvas><button class="link" data-act="sgLimpar" style="margin-top:4px">Limpar assinatura</button></div>
    <div class="actions"><button class="btn" data-act="sgVoltar">Voltar</button><button class="btn primary" data-act="sgOk">Assinar e enviar</button></div>`);
@@ -1368,6 +1420,7 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
+  rOpen:el=>{ui.rOpen=ui.rOpen||{};const c=el.dataset.c,atual=ui.rOpen[c]!==undefined?ui.rOpen[c]:false;ui.rOpen[c]=!atual;render()},
   rfFechar:()=>{ui.rf=null;render();window.scrollTo(0,0)},
   rfNao:el=>{ui.rf.nao=el.checked;salvarRascunhoFoto();render()},
   rfDel:el=>{const D=ui.rf,L=D.fotos[el.dataset.k]||[];L.splice(+el.dataset.i,1);salvarRascunhoFoto();render()},
@@ -1491,14 +1544,14 @@ const ACT={
     else if(a.status==='no_local'){a.ts.inicio=n;a.status='execucao'}
     else if(a.status==='execucao'){openModal(`<h3>Concluir atividade</h3><p class="muted">Marque as fases que ficaram finalizadas nesta atividade. Se alguma fase continua em outro dia, deixe desmarcada.</p><div class="fchk" style="margin-top:12px">${fasesOf(a).map(k=>`<label><input type="checkbox" class="fzFin" value="${k}" checked><span>${faseN(k)}</span></label>`).join('')}</div><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="concluirOk" data-id="${a.id}">Concluir atividade</button></div>`);return}
     save();render()},
-  concluirOk:el=>{const a=getAg(el.dataset.id),ff=[...document.querySelectorAll('.fzFin:checked')].map(x=>x.value);if(ff.includes('ativ')&&pendReq(pPor(a.etiqueta),ff).length){toast(`A ativação só pode ser finalizada depois de: ${pendReq(pPor(a.etiqueta),ff).map(k=>FCURTO[k].toLowerCase()).join(', ')}.`,'bad');return}a.fasesFin=ff;a.ts.conclusao=Date.now();a.status='relatorios';if(!relsDe(a).length){if(tecT(a.tec)==='TERC')a.status='lpu';else encerrar(a)}const rem=limparAnexos(a.etiqueta);save();closeModal();render();
+  concluirOk:el=>{const a=getAg(el.dataset.id),ff=[...document.querySelectorAll('.fzFin:checked')].map(x=>x.value);if(ff.includes('ativ')&&pendReq(pPor(a.etiqueta),ff).length){toast(`A ativação só pode ser finalizada depois de: ${pendReq(pPor(a.etiqueta),ff).map(k=>FCURTO[k].toLowerCase()).join(', ')}.`,'bad');return}a.fasesFin=ff;a.ts.conclusao=Date.now();a.status='relatorios';if(!relsDe(a).length)a.status='lpu';const rem=limparAnexos(a.etiqueta);save();closeModal();render();
     const p=pPor(a.etiqueta);if(rem.length)setTimeout(()=>toast(`${rem.length} anexo(s) excluído(s) automaticamente: ${rem.map(x=>x.nome).join(', ')}.`),3300);toast(a.fasesFin.length?`Fase(s) finalizada(s): ${a.fasesFin.map(k=>FCURTO[k]).join(', ')}.${liberado(p)?' Cliente liberado para ativação.':''}`:'Atividade concluída, fases seguem em andamento.')},
   rel:async el=>{if(el.dataset.r==='foto'){const id=el.dataset.id;let d=null;try{d=await IDB.get('rf:'+id)}catch(e){}ui.rf=Object.assign({ag:id,fotos:{},campos:{},nao:false},d||{});ui.rf.ag=id;render();window.scrollTo(0,0);return}
     const a=getAg(el.dataset.id),p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},i=p.inst||{};
     const q=new URLSearchParams({ag:a.id,cliente:p.cliente||'',etiqueta:a.etiqueta,cidade:p.cidade||'',uf:i.uf||'',endereco:c.endereco||'',tecnico:tecN(a.tec),data:hoje()});
     toast('Abrindo o relatório…');await flushSync();location.href='relatorio-ativacao.html?'+q.toString()},
   relOk:async el=>{const a=getAg(el.dataset.id),ok=await checarRelatorio(a);if(ok){closeModal();render();toast('Relatório recebido. Agora é só encerrar a atividade.')}else toast('O PDF ainda não chegou. Gere o PDF no relatório e tente de novo.','bad')},
-  relEnviar:el=>{const a=getAg(el.dataset.id);if(tecT(a.tec)==='TERC'){a.status='lpu';save();render()}else{encerrar(a);save();render();toast(a.noDia?'Atividade concluída no dia.':'Atividade concluída fora do dia agendado.')}},
+  relEnviar:el=>{const a=getAg(el.dataset.id);a.status='lpu';save();render()},
   lpuEnviar:el=>{const a=getAg(el.dataset.id),itens=draftItens(a.id);if(!itens.length){toast('Informe a quantidade de pelo menos um serviço.','bad');return}ui.sign={tipo:'novo',id:a.id,key:a.id,tec:a.tec};conferirModal()},
   confOk:()=>assinarModal(),
   sgLimpar:()=>{const c=$('sgPad');c.getContext('2d').clearRect(0,0,c.width,c.height);ui.sgDraw=false},
@@ -1525,6 +1578,7 @@ const ACT={
    <div class="grid2 even" style="margin-top:18px;gap:16px"><div style="text-align:center">${l.assinatura?`<img src="${l.assinatura.img}" alt="Assinatura" style="max-height:70px;max-width:100%">`:'<div style="height:70px"></div>'}<div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">${l.assinatura?esc(l.assinatura.nome)+', '+dtBR(l.assinatura.em):'Assinatura prestador'}</div></div><div style="text-align:center"><div style="height:70px;display:flex;align-items:flex-end;justify-content:center;font-size:13px">${l.status==='aprovada'?esc(((l.hist||[]).filter(h=>h.acao==='Aprovada').pop()||{}).por||''):''}</div><div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">Aprovador</div></div></div></div><div class="actions"><button class="btn" data-act="close">Fechar</button>${l.pdf_path?`<button class="btn primary" data-act="pdfArq" data-id="${l.id}">Abrir PDF assinado</button>`:''}</div>`)}
 };
 const CH={
+  rTipo:el=>{ui.rTipo=el.value;render()},rTec:el=>{ui.rTec=el.value;render()},rIni:el=>{ui.rIni=el.value;render()},rFim:el=>{ui.rFim=el.value;render()},rDiv:el=>{ui.rDiv=el.checked;render()},
   fotoReq:el=>{const F=ui.agForm;F.fOff=F.fOff||[];if(el.checked)F.fOff=F.fOff.filter(k=>k!==el.value);else if(!F.fOff.includes(el.value))F.fOff.push(el.value);render()},
   fotoArq:async el=>{const fs=[...(el.files||[])];el.value='';if(!fs.length)return;const k=el.dataset.k,D=ui.rf;if(!D)return;toast('Preparando a foto…');
     for(const f of fs){try{const u=await reduzirFoto(f);(D.fotos[k]=D.fotos[k]||[]).push(u)}catch(e){toast('Não foi possível ler a foto: '+(e.message||e),'bad')}}
@@ -1573,6 +1627,7 @@ const CH={
   tec:el=>{ui.tec=el.value;ui.campoSel=null;if(tecT(ui.tec)!=='TERC')ui.campoSec='at';render()}
 };
 const IN={
+  rQ:el=>{ui.rQ=el.value;render();const i=$('rQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
   rfCampo:el=>{const D=ui.rf;if(!D)return;D.campos[el.dataset.k]=el.value;salvarRascunhoFoto();const m=$('rfMetros-'+el.dataset.k.split(':')[0]);if(m)m.innerHTML=metrosHtml(el.dataset.k.split(':')[0])},
   agObs:el=>{ui.agForm.obs=el.value},
   lpuQ:el=>{const k=el.dataset.k,d=lpuDraft(k),c=el.dataset.c;d.q[c]=d.q[c]||{fator:'comum'};d.q[c].qtd=parseFloat(String(el.value).replace(',','.'))||0;el.closest('.lpi').classList.toggle('on',d.q[c].qtd>0);lpuRefresh(k)},
