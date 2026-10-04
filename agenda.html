@@ -215,6 +215,7 @@ nav.tabs .nv2{padding-left:44px;font-size:14px;min-height:38px}nav.tabs .nv2.on{
 .tobs2{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}.tobs2 b{font-size:13px;color:var(--muted)}
 .tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;font-size:14px}.tgrid span{display:block;font-size:12.5px;color:var(--muted);font-weight:600}
 .tanx{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:10px}
+.dbm{display:flex;align-items:center;gap:8px}.dbm .inp{flex:1}.dbms{width:52px;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font:700 22px Barlow,sans-serif;color:var(--ink);cursor:pointer;flex:none}.dbms.neg{background:var(--ink);color:#fff;border-color:var(--ink)}
 .rfi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;margin-bottom:10px}.rfi.ok{border-color:var(--brand)}
 .rfh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.rfh b{font-weight:600;font-size:15px;line-height:1.3}
 .rfth{display:flex;flex-wrap:wrap;gap:8px}.rft{position:relative;width:78px;height:78px}.rft img{width:100%;height:100%;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
@@ -777,22 +778,22 @@ function pDetalhe(){const sit=ui.dSit||'ap',conta=ui.dConta||'',pres=ui.dPres||'
 
 
 /* ---------- RELATÓRIOS POR CLIENTE ---------- */
-function viewRelat(){const q=normK(ui.rQ||''),tipo=ui.rTipo||'',tec=ui.rTec||'',ini=ui.rIni||addD(hoje(),-30),fim=ui.rFim||hoje(),so=!!ui.rDiv;
-  const linhas=[];S.ags.filter(a=>a.rel&&a.data>=ini&&a.data<=fim&&(!tec||a.tec===tec)).forEach(a=>{const l=S.lpus.find(x=>x.ag===a.id&&x.status!=='reprovada'),al=alertasCabo(a,l);
-    if(a.rel.foto&&a.rel.foto.path&&(!tipo||tipo==='foto'))linhas.push({a,k:'foto',path:a.rel.foto.path,al});
-    if(a.rel.entrega&&a.rel.entrega.path&&(!tipo||tipo==='entrega'))linhas.push({a,k:'entrega',path:a.rel.entrega.path,al:[]})});
-  const G={};linhas.forEach(x=>{const p=pPor(x.a.etiqueta),c=p.cliente||x.a.etiqueta;if(q&&!normK(c+' '+x.a.etiqueta).includes(q))return;if(so&&!x.al.length)return;(G[c]=G[c]||[]).push(x)});
+function viewRelat(){const q=normK(ui.rQ||''),tipo=ui.rTipo||'',tec=ui.rTec||'',ini=ui.rIni||addD(hoje(),-30),fim=ui.rFim||hoje();
+  const linhas=[];S.ags.filter(a=>a.rel&&a.data>=ini&&a.data<=fim&&(!tec||a.tec===tec)).forEach(a=>{
+    if(a.rel.foto&&a.rel.foto.path&&(!tipo||tipo==='foto'))linhas.push({a,k:'foto',path:a.rel.foto.path});
+    if(a.rel.entrega&&a.rel.entrega.path&&(!tipo||tipo==='entrega'))linhas.push({a,k:'entrega',path:a.rel.entrega.path})});
+  const G={};linhas.forEach(x=>{const p=pPor(x.a.etiqueta),c=p.cliente||x.a.etiqueta;if(q&&!normK(c+' '+x.a.etiqueta).includes(q))return;(G[c]=G[c]||[]).push(x)});
   const cls=Object.keys(G).sort((a,b)=>a.localeCompare(b));ui.rOpen=ui.rOpen||{};
-  const med=a=>{const m=a.medicoes||{},v=[];const mt=metrosAg(a);if(mt!=null)v.push(mt.toLocaleString('pt-BR')+' m lançados');if(m['ext:sinal_ini:dbm']!=null)v.push('sinal '+m['ext:sinal_ini:dbm']+' / '+(m['ext:sinal_fim:dbm']||'—')+' dBm');return v.join(', ')||'—'};
+  const med=a=>{const m=a.medicoes||{},v=[];const mt=metrosAg(a);if(mt!=null)v.push(mt.toLocaleString('pt-BR')+' m lançados');if(m['ext:sinal_ini:dbm']!=null)v.push('sinal '+String(m['ext:sinal_ini:dbm']).replace('.',',')+' / '+String(m['ext:sinal_fim:dbm']||'—').replace('.',',')+' dBm');return v.join(', ')||'—'};
   return `<div class="toolbar"><div><h2>Relatórios</h2><p class="muted">Relatórios fotográficos e de entrega enviados pelos técnicos, organizados por cliente.</p></div></div>
   <div class="tools" style="margin-bottom:12px"><input class="inp" type="search" id="rQ" placeholder="Buscar cliente ou etiqueta" data-in="rQ" value="${esc(ui.rQ||'')}">
    <select class="inp" data-ch="rTipo"><option value="">Todos os tipos</option><option value="foto" ${tipo==='foto'?'selected':''}>Fotográfico</option><option value="entrega" ${tipo==='entrega'?'selected':''}>Entrega de circuito</option></select>
    <select class="inp" data-ch="rTec"><option value="">Todos os técnicos</option>${TEC.map(t=>`<option value="${t.id}" ${t.id===tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</select>
    <label class="f inline"><span>De</span><input type="date" class="inp" data-ch="rIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="rFim" value="${fim}"></label>
-   <label class="chk" style="margin:0"><input type="checkbox" data-ch="rDiv" ${so?'checked':''}> Só com divergência de cabo</label></div>
-  ${cls.map(c=>{const L=G[c].sort((x,y)=>y.a.data.localeCompare(x.a.data)),nAl=new Set(L.filter(x=>x.al.length).map(x=>x.a.id)).size,o=ui.rOpen[c]!==undefined?ui.rOpen[c]:cls.length===1,etqs=[...new Set(L.map(x=>x.a.etiqueta))].join(', '),cid=pPor(L[0].a.etiqueta).cidade;
-    return `<section class="lcard"><button class="lhead" data-act="rOpen" data-c="${esc(c)}" aria-expanded="${o}"><div><b style="font:700 20px 'Barlow Condensed',sans-serif">${esc(c)}</b><small>${esc(etqs)}${cid?', '+esc(cid):''}</small></div><span style="display:flex;gap:8px;align-items:center">${nAl?`<span class="chip bad">${nAl} ${nAl>1?'divergências':'divergência'} de cabo</span>`:''}<span class="chip">${L.length} ${L.length>1?'relatórios':'relatório'}</span><span class="muted">${o?'▴':'▾'}</span></span></button>
-     ${o?`<div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table><thead><tr><th>Data</th><th>Relatório</th><th>Etiqueta e fases</th><th>Técnico</th><th>Medições</th><th>Conferência</th><th></th></tr></thead><tbody>${L.map(x=>`<tr><td>${dBR(x.a.data)}</td><td><b>${x.k==='foto'?'Fotográfico':'Entrega de circuito'}</b></td><td>${esc(x.a.etiqueta)}<br><small class="muted">${fasesN(x.a)}</small></td><td>${esc(tecN(x.a.tec))}</td><td>${x.k==='foto'?esc(med(x.a)):'Circuito entregue'}</td><td>${x.k!=='foto'?'<span class="chip">Sem cabo</span>':x.al.length?x.al.map(y=>`<span class="chip bad" style="margin:1px 2px 1px 0">${esc(y.curto)}</span>`).join(''):metrosAg(x.a)!=null?'<span class="chip ok">Conferido</span>':'<span class="chip">Sem cabo</span>'}</td><td class="r"><button class="btn sm" data-act="relVer" data-p="${esc(x.path)}">Abrir PDF</button></td></tr>`).join('')}</tbody></table></div>`:''}</section>`}).join('')||'<p class="muted pad">Nenhum relatório com esses filtros.</p>'}`}
+   </div>
+  ${cls.map(c=>{const L=G[c].sort((x,y)=>y.a.data.localeCompare(x.a.data)),o=ui.rOpen[c]!==undefined?ui.rOpen[c]:cls.length===1,etqs=[...new Set(L.map(x=>x.a.etiqueta))].join(', '),cid=pPor(L[0].a.etiqueta).cidade;
+    return `<section class="lcard"><button class="lhead" data-act="rOpen" data-c="${esc(c)}" aria-expanded="${o}"><div><b style="font:700 20px 'Barlow Condensed',sans-serif">${esc(c)}</b><small>${esc(etqs)}${cid?', '+esc(cid):''}</small></div><span style="display:flex;gap:8px;align-items:center"><span class="chip">${L.length} ${L.length>1?'relatórios':'relatório'}</span><span class="muted">${o?'▴':'▾'}</span></span></button>
+     ${o?`<div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table><thead><tr><th>Data</th><th>Relatório</th><th>Etiqueta e fases</th><th>Técnico</th><th>Medições</th><th></th></tr></thead><tbody>${L.map(x=>`<tr><td>${dBR(x.a.data)}</td><td><b>${x.k==='foto'?'Fotográfico':'Entrega de circuito'}</b></td><td>${esc(x.a.etiqueta)}<br><small class="muted">${fasesN(x.a)}</small></td><td>${esc(tecN(x.a.tec))}</td><td>${x.k==='foto'?esc(med(x.a)):'Circuito entregue'}</td><td class="r"><button class="btn sm" data-act="relVer" data-p="${esc(x.path)}">Abrir PDF</button></td></tr>`).join('')}</tbody></table></div>`:''}</section>`}).join('')||'<p class="muted pad">Nenhum relatório com esses filtros.</p>'}`}
 
 /* ---------- BASE ---------- */
 const COLS=[['protocolo','Protocolo principal','t'],['etiqueta','Etiqueta','t'],['cliente','Cliente (razão social)','t'],['valor','Valor mensal (R$)','n'],['cidade','Cidade','t'],['pop','POP','t'],['equip','Equipamento de acesso','t'],['topologia','Topologia','s'],['metros','Metros de cabo','n'],['caixas','Caixas de emenda','n'],['dRua','Dias lanç. rua','n'],['dInterno','Dias lanç. interno','n'],['dExt','Dias extensão','n'],['dAtiv','Dias ativação','n']];
@@ -1132,7 +1133,7 @@ function blocoAcao(a){
 }
 /* ---------- RELATÓRIO FOTOGRÁFICO ---------- */
 function reduzirFoto(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(fr.error);fr.onload=()=>{const img=new Image();img.onerror=()=>rej(new Error('arquivo de imagem inválido'));img.onload=()=>{const M=1600,r=Math.min(1,M/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',0.7))};img.src=fr.result};fr.readAsDataURL(file)})}
-async function salvarRascunhoFoto(){const D=ui.rf;if(!D)return;try{await IDB.put('rf:'+D.ag,{fotos:D.fotos,campos:D.campos,nao:D.nao})}catch(e){}}
+async function salvarRascunhoFoto(){const D=ui.rf;if(!D)return;try{await IDB.put('rf:'+D.ag,{fotos:D.fotos,campos:D.campos,nao:D.nao,pos:D.pos||{}})}catch(e){}}
 function itensFoto(a){return(a.fotosReq||[]).map(k=>{const[f,id]=k.split(':'),d=fotosDaFase(f).find(x=>x[0]===id)||[id,id,'unica',''];return{k,f,id,nome:d[1],tipo:d[2],campo:d[3]}})}
 function metrosHtml(f){const D=ui.rf,a=parseFloat(String(D.campos[f+':lote_ini:m']||'').replace(',','.')),b=parseFloat(String(D.campos[f+':lote_fim:m']||'').replace(',','.'));return isNaN(a)||isNaN(b)?'':`<b>Metros lançados: ${Math.abs(b-a).toLocaleString('pt-BR')} m</b> (término menos início)`}
 function fotoStatus(a){const D=ui.rf,I=itensFoto(a);let feitos=0,falta=[];I.forEach(i=>{const n=(D.fotos[i.k]||[]).length;let ok=i.tipo==='opcional'?(n>0||D.nao):n>0;if(ok&&i.campo==='lote')ok=!!(D.campos[i.k+':lote']||'').trim()&&!!String(D.campos[i.k+':m']||'').trim();if(ok&&i.campo==='sinal')ok=!!String(D.campos[i.k+':dbm']||'').trim();if(ok)feitos++;else falta.push(i)});return{feitos,total:I.length,falta}}
@@ -1142,7 +1143,7 @@ function fotoView(a){const D=ui.rf,I=itensFoto(a),st=fotoStatus(a),fasesG=[...ne
     return `<section class="rfi ${ok?'ok':''}"><div class="rfh"><b>${i.nome}</b><span class="chip ${ok?'ok':opc?'':'warn'}">${ok?'Feito':opc?'Se houver':'Obrigatória'}</span></div>
      ${n?`<div class="rfth">${fs.map((u,x)=>`<div class="rft"><img src="${u}" alt="Foto ${x+1} de ${esc(i.nome)}"><button class="rfx" data-act="rfDel" data-k="${i.k}" data-i="${x}" aria-label="Remover foto ${x+1}">✕</button></div>`).join('')}</div>`:''}
      ${i.campo==='lote'?`<div class="tgrid"><label class="f" style="margin:0"><span>Lote do cabo</span><input class="inp" data-in="rfCampo" data-k="${i.k}:lote" value="${esc(D.campos[i.k+':lote']||'')}" placeholder="Ex.: 2405-118"></label><label class="f" style="margin:0"><span>Metragem (m)</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-k="${i.k}:m" value="${esc(D.campos[i.k+':m']||'')}" placeholder="Ex.: 1250"></label></div>`:''}
-     ${i.campo==='sinal'?`<label class="f" style="margin:0"><span>Nível de sinal (dBm)</span><input class="inp" type="number" step="0.01" inputmode="decimal" data-in="rfCampo" data-k="${i.k}:dbm" value="${esc(D.campos[i.k+':dbm']||'')}" placeholder="Ex.: -18,40"></label>`:''}
+     ${i.campo==='sinal'?(()=>{const v=String(D.campos[i.k+':dbm']||''),pos=v?!v.startsWith('-'):!!(D.pos&&D.pos[i.k]),cls='dbmv-'+i.k.replace(':','-');return `<div class="f" style="margin:0"><span>Nível de sinal (dBm)</span><div class="dbm"><button class="dbms ${pos?'':'neg'}" data-act="rfSinal" data-k="${i.k}" aria-label="Sinal ${pos?'positivo':'negativo'}. Tocar para trocar">${pos?'+':'−'}</button><input class="inp" type="text" inputmode="decimal" data-in="rfDbm" data-k="${i.k}" value="${esc(v.replace(/^[-+]/,'').replace('.',','))}" placeholder="Ex.: 18,40" aria-label="Valor do nível de sinal em dBm"><span class="muted">dBm</span></div><small class="muted">Toque em ${pos?'+':'−'} para trocar o sinal. Valor registrado: <b class="${cls}">${v?esc(v.replace('.',','))+' dBm':'—'}</b></small></div>`})():''}
      ${opc&&!n?`<label class="chk" style="margin:0"><input type="checkbox" data-act="rfNao" ${D.nao?'checked':''}> Não houve reserva técnica</label>`:''}
      ${pode?`${n?'<small class="muted">Adicionar outra foto</small>':''}<div class="rfbt"><label class="rfb ${n?'':'pri'}">${cam}Câmera<input type="file" accept="image/*" capture="environment" data-ch="fotoArq" data-k="${i.k}" hidden></label><label class="rfb ${n?'':'pri'}">${gal}Galeria<input type="file" accept="image/*" ${multi?'multiple':''} data-ch="fotoArq" data-k="${i.k}" hidden></label></div>`:''}</section>`};
   return `<button class="back" data-act="rfFechar">‹ Voltar para a atividade</button>
@@ -1420,6 +1421,7 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
+  rfSinal:el=>{const D=ui.rf,k=el.dataset.k;D.pos=D.pos||{};const v=String(D.campos[k+':dbm']||''),pos=v?!v.startsWith('-'):!!D.pos[k];D.pos[k]=!pos;if(v)D.campos[k+':dbm']=(D.pos[k]?'':'-')+v.replace(/^[-+]/,'');salvarRascunhoFoto();render()},
   rOpen:el=>{ui.rOpen=ui.rOpen||{};const c=el.dataset.c,atual=ui.rOpen[c]!==undefined?ui.rOpen[c]:false;ui.rOpen[c]=!atual;render()},
   rfFechar:()=>{ui.rf=null;render();window.scrollTo(0,0)},
   rfNao:el=>{ui.rf.nao=el.checked;salvarRascunhoFoto();render()},
@@ -1578,7 +1580,7 @@ const ACT={
    <div class="grid2 even" style="margin-top:18px;gap:16px"><div style="text-align:center">${l.assinatura?`<img src="${l.assinatura.img}" alt="Assinatura" style="max-height:70px;max-width:100%">`:'<div style="height:70px"></div>'}<div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">${l.assinatura?esc(l.assinatura.nome)+', '+dtBR(l.assinatura.em):'Assinatura prestador'}</div></div><div style="text-align:center"><div style="height:70px;display:flex;align-items:flex-end;justify-content:center;font-size:13px">${l.status==='aprovada'?esc(((l.hist||[]).filter(h=>h.acao==='Aprovada').pop()||{}).por||''):''}</div><div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">Aprovador</div></div></div></div><div class="actions"><button class="btn" data-act="close">Fechar</button>${l.pdf_path?`<button class="btn primary" data-act="pdfArq" data-id="${l.id}">Abrir PDF assinado</button>`:''}</div>`)}
 };
 const CH={
-  rTipo:el=>{ui.rTipo=el.value;render()},rTec:el=>{ui.rTec=el.value;render()},rIni:el=>{ui.rIni=el.value;render()},rFim:el=>{ui.rFim=el.value;render()},rDiv:el=>{ui.rDiv=el.checked;render()},
+  rTipo:el=>{ui.rTipo=el.value;render()},rTec:el=>{ui.rTec=el.value;render()},rIni:el=>{ui.rIni=el.value;render()},rFim:el=>{ui.rFim=el.value;render()},
   fotoReq:el=>{const F=ui.agForm;F.fOff=F.fOff||[];if(el.checked)F.fOff=F.fOff.filter(k=>k!==el.value);else if(!F.fOff.includes(el.value))F.fOff.push(el.value);render()},
   fotoArq:async el=>{const fs=[...(el.files||[])];el.value='';if(!fs.length)return;const k=el.dataset.k,D=ui.rf;if(!D)return;toast('Preparando a foto…');
     for(const f of fs){try{const u=await reduzirFoto(f);(D.fotos[k]=D.fotos[k]||[]).push(u)}catch(e){toast('Não foi possível ler a foto: '+(e.message||e),'bad')}}
@@ -1627,6 +1629,8 @@ const CH={
   tec:el=>{ui.tec=el.value;ui.campoSel=null;if(tecT(ui.tec)!=='TERC')ui.campoSec='at';render()}
 };
 const IN={
+  rfDbm:el=>{const D=ui.rf;if(!D)return;const k=el.dataset.k,v0=String(D.campos[k+':dbm']||''),pos=v0?!v0.startsWith('-'):!!(D.pos&&D.pos[k]),n=el.value.replace(/[^0-9.,]/g,'');if(n!==el.value)el.value=n;
+    D.campos[k+':dbm']=n?(pos?'':'-')+n.replace(',','.'):'';if(!n){D.pos=D.pos||{};D.pos[k]=pos}salvarRascunhoFoto();const b=document.querySelector('.dbmv-'+k.replace(':','-'));if(b)b.textContent=n?D.campos[k+':dbm'].replace('.',',')+' dBm':'—'},
   rQ:el=>{ui.rQ=el.value;render();const i=$('rQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
   rfCampo:el=>{const D=ui.rf;if(!D)return;D.campos[el.dataset.k]=el.value;salvarRascunhoFoto();const m=$('rfMetros-'+el.dataset.k.split(':')[0]);if(m)m.innerHTML=metrosHtml(el.dataset.k.split(':')[0])},
   agObs:el=>{ui.agForm.obs=el.value},
