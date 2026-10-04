@@ -219,6 +219,7 @@ td.r,th.r{white-space:nowrap}
 .rfbt{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rfb{min-height:46px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
 .rfb.pri{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
 .calert{background:var(--bad-soft);border-radius:10px;padding:12px 14px;display:grid;gap:8px;margin-top:12px}.calert div{display:flex;flex-direction:column;gap:2px}.calert b{color:var(--bad)}.calert span{font-size:14.5px}
+.estdz{display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;text-align:center;border:2px dashed var(--line);border-radius:10px;padding:18px;margin:10px 0;cursor:pointer;min-height:84px}.estdz:hover{border-color:var(--brand)}.estdz.on{border-style:solid;border-color:var(--brand);background:var(--brand-soft)}.estdz small{color:var(--muted)}
 .prev{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px}
 .btn[disabled],.bigbtn[disabled]{opacity:.45;cursor:not-allowed}
 .icon{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px;font-size:15px}
@@ -381,6 +382,8 @@ footer{max-width:1480px;margin:8px auto 24px;padding:0 16px;display:flex;gap:12p
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const FASES=[{k:'rua',n:'Lançamento na rua',p:'dRua'},{k:'interno',n:'Lançamento interno',p:'dInterno'},{k:'ext',n:'Extensão de sinal',p:'dExt'},{k:'ativ',n:'Ativação',p:'dAtiv'}];
 const TOPO=['GPON','Ponto a ponto','Last mile','Voz','Firewall'];
@@ -558,7 +561,7 @@ const FOTOS_LANC=[['lote_ini','Lote e metragem no início do lançamento','unica
 const FOTOS_EXT=[['sinal_ini','Nível de sinal na CEO/CTO de Ponto de acesso','unica','sinal'],['ceo_ini','CEO acomodada no início da extensão','unica',''],['sinal_fim','Nível de sinal na CEO/CTO de Ponto de derivação','unica','sinal'],['ceos','Todas as CEOs trabalhadas','multi','']];
 const fotosDaFase=k=>k==='rua'||k==='interno'?FOTOS_LANC:k==='ext'?FOTOS_EXT:[];
 const REGRA_FOTO={unica:'Obrigatória',opcional:'Se houver; várias fotos',multi:'Obrigatória; várias fotos'};
-const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','base','prev','sim','kanban','campo','usuarios']},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo']},terc:{n:'Técnico terceiro',tabs:['campo','minhas']}};
+const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','campo','usuarios']},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']}};
 const ST={agendada:['Agendada',''],deslocamento:['Em deslocamento','info'],no_local:['No local','info'],execucao:['Em execução','info'],relatorios:['Relatórios pendentes','warn'],lpu:['LPU pendente','warn'],concluida:['Concluída','ok'],nao_concluida:['Não concluída','bad'],cancelada:['Cancelada','']};
 const LST={aguardando:['Aguardando aprovação','warn'],aprovada:['Aprovada','ok'],reprovada:['Reprovada','bad'],ajuste:['Devolvida para ajuste','info']};
 const FIM=['concluida','nao_concluida'];
@@ -629,19 +632,19 @@ function progLabel(e){const p=pPor(e);if(faseFim(e,'ativ'))return '<span class="
   const falta=fasesProj(p).filter(f=>!faseFim(e,f.k)).map(f=>FSTATUS[f.k]);
   return `<span class="chip ${falta.length===1&&liberado(p)?'go':'warn'}" style="white-space:normal">Falta${falta.length>1?'m':''}: ${falta.join(', ')}</span>`}
 function nextFase(e){const p=pPor(e);const f=fasesProj(p).find(f=>!faseFim(e,f.k));return f?f.k:'ativ'}
-const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',estoque:'Estoque dos técnicos',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
+const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',estoque:'Estoque dos técnicos',estAtual:'Atualizar estoque',estHist:'Movimentações',meuEst:'Meu estoque',meuHist:'Meu histórico',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
 
 const _sv=(d,w)=>`<svg width="${w||19}" height="${w||19}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w?2.2:1.9}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICN={'Acompanhamento':_sv('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>'),'Operação':_sv('<path d="M8 2v4M16 2v4M3 9h18"/><rect x="3" y="4" width="18" height="18" rx="2"/>'),'Projetos':_sv('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
   'Campo':_sv('<path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>'),'Administração':_sv('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>'),
-  'Financeiro':_sv('<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'),
+  'Estoque':_sv('<path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>'),'Financeiro':_sv('<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'),
   gear:_sv('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>'),sair:_sv('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'),
   dn:_sv('<path d="M6 9l6 6 6-6"/>',16),up:_sv('<path d="M6 15l6-6 6 6"/>',16)};
 function render(){
   const P=PERFIS[ui.perfil];if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0];
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span><button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
-  const ORD=['painel','agenda','relat','estoque','base','prev','sim','kanban','aprov','campo','minhas','usuarios'],GRP={usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Operação',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
+  const ORD=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -657,7 +660,7 @@ function render(){
         if(k==='fin'&&fOpen){h+='<div class="nlv">';FSUB.forEach(([sk,sn])=>{h+=`<button class="nit" data-act="pSec" data-v="fin" data-s="${sk}" aria-current="${sub===sk}"><span class="nt">${sn}</span>${sk==='aprov'?bAp:''}</button>`});h+='</div>'}});h+='</div>'}});
     h+='</div>'});
   $('tabs').innerHTML=h;$('mTitle').textContent=tabLabel(ui.tab);
-  $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,usuarios:viewUsuarios,estoque:viewEstoque,sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
+  $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,usuarios:viewUsuarios,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
   if(ui.tab==='agenda')renderSug();
 }
 
@@ -935,10 +938,92 @@ function viewEstoque(){
   const inp=(t,c,k,v)=>ed?`<input type="number" min="0" step="any" class="inp r" style="min-height:32px;padding:4px 6px;max-width:90px;margin-left:auto" data-ch="est" data-t="${t}" data-c="${c}" data-k="${k}" value="${v}">`:(+v).toLocaleString('pt-BR');
   return `<div class="toolbar"><div><h2>Estoque dos técnicos</h2><p class="muted">Saldo por técnico e material (bolsão SAP + Elleven), casado pelo CPF/CNPJ do técnico e pelo código do material. "Comprometido" soma o que os agendamentos em aberto do técnico vão consumir pelo ROI.</p></div>
    <div class="tools"><input class="inp" type="search" id="eQ" placeholder="Buscar código ou material" data-in="eQ" value="${esc(ui.eQ||'')}"><select class="inp" data-ch="eTec"><option value="">Todos os técnicos</option>${TEC.map(t=>`<option value="${t.id}" ${ui.eTec===t.id?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></div></div>
-   <p class="muted" style="margin-bottom:10px">Dados lidos do sistema de Estoque de Materiais.</p>
+   
    <div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Código</th><th>Material</th><th class="r">Bolsão (SAP)</th><th class="r">Elleven</th><th class="r">Saldo total</th><th class="r">Comprometido</th><th class="r">Disponível</th></tr></thead>
    <tbody>${rows.map(r=>`<tr><td>${esc(r.t.nome)}<br><small class="muted">${esc(r.t.doc)}</small></td><td>${esc(r.c)}</td><td>${esc(r.x.desc)}</td><td class="r">${inp(r.t.id,r.c,'bolsao',r.x.bolsao)}</td><td class="r">${inp(r.t.id,r.c,'elleven',r.x.elleven)}</td><td class="r">${r.tot.toLocaleString('pt-BR')}</td><td class="r">${r.cm?r.cm.toLocaleString('pt-BR'):'—'}</td><td class="r"><b style="color:${r.disp<0?'var(--bad)':'inherit'}">${r.disp.toLocaleString('pt-BR')}</b></td></tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhum material encontrado.</td></tr>'}</tbody></table></div>`;
 }
+
+/* ---------- ESTOQUE: importação, movimentações e meu estoque ---------- */
+// Mesmas regras do antigo sistema de Estoque de Materiais (mesmas tabelas do Supabase).
+const EST={meta:null,base:null,mov:{},meu:null,imp:{},msg:'',bus:{},err:{}};
+// junta CPF/CNPJ formatado (051.310.045-86) sem colar prefixos como "DEP1-" ao número
+const normCNPJ=v=>{const g=String(v||'').replace(/(\d)[.\/](?=\d)/g,'$1').replace(/(\d)-(\d{2})(?!\d)/g,'$1$2').match(/\d+/g)||[];return g.reduce((a,b)=>b.length>a.length?b:a,'').replace(/^0+/,'')};
+const meuDoc=()=>normCNPJ(ME&&ME.cnpj);
+const fmtDH=iso=>iso?new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+const vtask=t=>['clt','terc'].includes(ui.perfil)?'V-Task':t;
+function estCarregar(chave,fn){if(EST.bus[chave]||EST.err[chave])return;EST.bus[chave]=true;fn().catch(e=>{EST.err[chave]=true;EST.msg='Erro ao carregar o estoque: '+(e.message||e)}).finally(()=>{EST.bus[chave]=false;render()})}
+function parseCSVSmart(text){let d=';',b=text;if(b.charCodeAt(0)===0xFEFF)b=b.slice(1);if(/^sep=/i.test(b)){const nl=b.indexOf('\n'),x=b.slice(0,nl).split('=')[1];if(x)d=x.trim().replace('\r','');b=b.slice(nl+1)}return Papa.parse(b,{header:true,delimiter:d,skipEmptyLines:true})}
+function lerArquivoEst(k,f){const rd=new FileReader();rd.onerror=()=>toast('Não foi possível ler o arquivo.','bad');
+  rd.onload=ev=>{try{let rows=[];
+    if(k==='bolsao'){const wb=XLSX.read(ev.target.result,{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]];rows=XLSX.utils.sheet_to_json(ws,{defval:''}).map(r=>({cnpj:normCNPJ(r['Posição de depósito']),tecnico:String(r['Descrição da Posição']||'').trim(),codigo:String(r['Código do item']||'').trim(),descricao:String(r['Descrição do item']||'').trim(),unidade:String(r['UnidadeMedida']||'').trim(),qtd:Number(r['Disponivel']||0)})).filter(r=>r.codigo)}
+    else if(k==='base'){rows=parseCSVSmart(ev.target.result).data.map(r=>({cnpj:normCNPJ(r['CNPJ Tecnico']),tecnico:String(r['Tecnico']||'').trim(),codigo:String(r['Cod. Produto']||'').trim(),descricao:String(r['Produto']||'').trim(),unidade:String(r['Unidade']||'').trim(),qtd:Number(String(r['Quantidade']||'0').replace(',','.'))})).filter(r=>r.codigo&&r.cnpj)}
+    else{const cont={};rows=parseCSVSmart(ev.target.result).data.map(r=>{const codigo=String(r['Cod. Produto']||'').trim(),cnpjTec=normCNPJ(r['Documento Tecnico']),ds=String(r['Data Movimentação']||'').trim(),dataIso=ds?new Date(ds.replace(' ','T')).toISOString():'',nf=String(r['NF']||'').trim(),qtd=Number(String(r['Quantidade']||'0').replace(',','.')),tipoMov=/entr/i.test(r['Entrada/Saida']||'')?'entrada':'saida',bk=[codigo,cnpjTec,dataIso,nf,qtd,tipoMov].join('|');cont[bk]=(cont[bk]||0)+1;
+      return{chave:bk+'#'+cont[bk],cnpj_tecnico:cnpjTec,nome_tecnico:String(r['Tecnico']||'').trim(),codigo_material:codigo,descricao_material:String(r['Produto']||'').trim(),unidade:String(r['Unidade']||'').trim(),quantidade:qtd,tipo_movimento:tipoMov,cliente_codigo:String(r['Cod. Cliente']||'').trim()||null,cliente_nome:String(r['Cliente']||'').trim()||null,cliente_cnpj:String(r['CNPJ']||'').trim()||null,contrato_id:String(r['ID Contrato']||'').trim()||null,solicitacao:String(r['Solicitação']||'').trim()||null,nf:nf||null,data_movimentacao:dataIso||null}}).filter(r=>r.codigo_material&&r.cnpj_tecnico)}
+    EST.imp[k]={rows,nome:f.name};EST.msg='';render()}catch(e){toast('Arquivo fora do formato esperado: '+(e.message||e),'bad')}};
+  if(k==='bolsao')rd.readAsArrayBuffer(f);else rd.readAsText(f,'UTF-8')}
+async function estAtualizarTipo(tipo,rows,label){const novo={};rows.forEach(r=>{if(!r.cnpj)return;const k=r.cnpj+'|'+r.codigo;novo[k]=novo[k]||{cnpj:r.cnpj,codigo:r.codigo,nome:r.tecnico,desc:r.descricao,unidade:r.unidade||'UNID',qtd:0};novo[k].nome=r.tecnico||novo[k].nome;novo[k].qtd+=r.qtd});
+  const campo=tipo==='bolsao'?'qtd_bolsao':'qtd_elleven',at=await todas(()=>sb.from('estoque').select('cnpj,codigo_material,nome_tecnico,descricao_material,unidade,'+campo)),antes={};
+  at.forEach(r=>{antes[r.cnpj+'|'+r.codigo_material]={qtd:Number(r[campo]||0),nome:r.nome_tecnico,desc:r.descricao_material,unidade:r.unidade}});
+  const up=[],mov=[],now=new Date().toISOString();new Set([...Object.keys(antes),...Object.keys(novo)]).forEach(k=>{const[cnpj,codigo]=k.split('|'),a=antes[k],n=novo[k],qa=a?a.qtd:0,qd=n?n.qtd:0;if(qa===qd)return;
+    const nome=(n&&n.nome)||(a&&a.nome)||cnpj,desc=(n&&n.desc)||(a&&a.desc)||codigo,unidade=(n&&n.unidade)||(a&&a.unidade)||'',p={cnpj,codigo_material:codigo,nome_tecnico:nome,descricao_material:desc,unidade,updated_at:now};p[campo]=qd;up.push(p);mov.push({cnpj,nome_tecnico:nome,tipo,codigo_material:codigo,descricao_material:desc,qtd_antes:qa,qtd_depois:qd})});
+  for(let i=0;i<up.length;i+=500){const r=await sb.from('estoque').upsert(up.slice(i,i+500),{onConflict:'cnpj,codigo_material'});if(r.error)throw r.error}
+  for(let i=0;i<mov.length;i+=500){const r=await sb.from('movimentacoes').insert(mov.slice(i,i+500));if(r.error)throw r.error}
+  await sb.from('metadados_estoque').upsert({tipo,atualizado_em:now},{onConflict:'tipo'});
+  return `${label} atualizado: ${up.length} combinação(ões) técnico × material alterada(s), ${mov.length} movimentação(ões) registrada(s). Os outros saldos não foram alterados.`}
+async function estBaseMap(){const d=await todas(()=>sb.from('saldo_base_elleven').select('*').order('nome_referencia'));EST.base=d;const m={};d.forEach(r=>{m[r.cnpj]=r.data_base});return m}
+async function estImportarElleven(rows,inicio){const bm=await estBaseMap(),corteM=inicio?new Date(inicio+'T00:00:00').getTime():null,sem=new Set();
+  const L=rows.filter(r=>{if(!r.data_movimentacao)return false;const b=bm[r.cnpj_tecnico];if(!b){sem.add(r.cnpj_tecnico);return false}let c=new Date(b).getTime();if(corteM!==null&&corteM>c)c=corteM;return new Date(r.data_movimentacao).getTime()>c});
+  const av=sem.size?` ${sem.size} técnico(s) do arquivo foram ignorados por ainda não terem saldo base definido.`:'';
+  if(!L.length)return 'Nada para importar.'+av;
+  let nov=[];for(let i=0;i<L.length;i+=1000){const r=await sb.from('movimentacoes_elleven').upsert(L.slice(i,i+1000),{onConflict:'chave',ignoreDuplicates:true}).select('cnpj_tecnico,codigo_material,quantidade,tipo_movimento,nome_tecnico,descricao_material,unidade');if(r.error)throw r.error;nov=nov.concat(r.data||[])}
+  await sb.from('metadados_estoque').upsert({tipo:'elleven',atualizado_em:new Date().toISOString()},{onConflict:'tipo'});
+  if(!nov.length)return 'Nenhuma movimentação nova: esse arquivo já tinha sido importado antes.'+av;
+  const dl={};nov.forEach(r=>{const k=r.cnpj_tecnico+'|'+r.codigo_material;dl[k]=dl[k]||{cnpj:r.cnpj_tecnico,codigo:r.codigo_material,nome:r.nome_tecnico,desc:r.descricao_material,unidade:r.unidade,d:0};dl[k].d+=(r.tipo_movimento==='entrada'?1:-1)*Number(r.quantidade);if(r.nome_tecnico)dl[k].nome=r.nome_tecnico});
+  const cn=[...new Set(Object.values(dl).map(x=>x.cnpj))],at=await todas(()=>sb.from('estoque').select('cnpj,codigo_material,qtd_elleven,nome_tecnico,descricao_material,unidade').in('cnpj',cn)),am={};at.forEach(r=>{am[r.cnpj+'|'+r.codigo_material]=r});
+  const up=Object.entries(dl).map(([k,d])=>{const a=am[k],an=a?Number(a.qtd_elleven||0):0;return{cnpj:d.cnpj,codigo_material:d.codigo,nome_tecnico:d.nome||(a&&a.nome_tecnico)||d.cnpj,descricao_material:d.desc||(a&&a.descricao_material)||d.codigo,unidade:d.unidade||(a&&a.unidade)||'',qtd_elleven:an+d.d,updated_at:new Date().toISOString()}});
+  for(let i=0;i<up.length;i+=500){const r=await sb.from('estoque').upsert(up.slice(i,i+500),{onConflict:'cnpj,codigo_material'});if(r.error)throw r.error}
+  return `Elleven atualizado: ${nov.length} movimentação(ões) nova(s), afetando ${up.length} combinação(ões) técnico × material.`+av}
+function viewEstAtual(){
+  if(!EST.meta)estCarregar('meta',async()=>{const m=await todas(()=>sb.from('metadados_estoque').select('*'));EST.meta={};m.forEach(r=>{EST.meta[r.tipo]=r.atualizado_em});if(ui.perfil==='supply')return;await estBaseMap();
+    const t=await todas(()=>sb.from('estoque').select('cnpj,nome_tecnico'));const pc={};t.forEach(r=>{if(r.cnpj)pc[r.cnpj]=r.nome_tecnico||pc[r.cnpj]||r.cnpj});EST.tecs=Object.entries(pc).sort((a,b)=>String(a[1]).localeCompare(String(b[1])))});
+  const M=EST.meta||{},I=EST.imp,bm={};(EST.base||[]).forEach(r=>{bm[r.cnpj]=r.data_base});
+  const card=(k,tit,desc,acc,extra)=>`<section class="panel" style="margin-bottom:14px"><div class="secth"><div><h3>${tit}</h3><span class="muted">${desc}</span></div></div>
+    <label class="estdz ${I[k]?'on':''}"><input type="file" accept="${acc}" data-ch="estArq" data-k="${k}" hidden><b>${I[k]?esc(I[k].nome):'Toque para escolher o arquivo'}</b><small>${I[k]?I[k].rows.length+' linhas lidas':'Formato '+acc.replace(/\./g,'').toUpperCase()}</small></label>${extra||''}
+    <button class="btn primary" data-act="estPub" data-k="${k}" ${I[k]&&!EST.bus.pub?'':'disabled'}>${EST.bus.pub===k?'Atualizando…':'Publicar'}</button></section>`;
+  const sel=ui.estBaseTec||'',cur=sel&&bm[sel]?new Date(new Date(bm[sel]).getTime()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16):'';
+  const sp=ui.perfil==='supply';
+  return `<div class="toolbar"><div><h2>Atualizar estoque</h2><p class="muted">${sp?'Publique aqui a planilha diária do bolsão (SAP) dos técnicos.':'Importação das planilhas do bolsão (SAP) e das movimentações do Elleven, com as mesmas regras do antigo sistema de Estoque de Materiais.'}</p></div></div>
+  <div class="kpis" style="margin-bottom:14px">${kp(fmtDH(M.bolsao),'Última atualização do bolsão')}${sp?'':kp(fmtDH(M.elleven),'Última atualização do Elleven')+kp((EST.base||[]).length,'Técnicos com saldo base do Elleven')}</div>
+  ${EST.msg?`<div class="result ${/^Erro/.test(EST.msg)?'bad':'ok'}" style="margin-bottom:14px">${esc(EST.msg)}</div>`:''}
+  ${card('bolsao','Planilha do bolsão (SAP)','Planilha diária enviada pela logística. Substitui o saldo do bolsão de cada técnico pelo da planilha.','.xlsx,.xls')}
+  ${sp?'':card('elleven','Movimentações do Elleven','Extrato de entradas e saídas. Só entra o que for posterior à data-base de cada técnico; o que já foi importado é ignorado.','.csv',`<label class="f inline" style="margin:10px 0"><span>Ignorar movimentações antes de (opcional)</span><input type="date" class="inp" data-in="estIni" value="${esc(ui.estIni||'')}"></label>`)}
+  ${ui.perfil==='coord'?card('base','Saldo base do Elleven','Retrato do saldo de cada técnico no dia do inventário. Define o ponto de partida das movimentações de cada técnico que estiver no arquivo.','.csv',`<label class="f inline" style="margin:10px 0"><span>Data e hora deste retrato *</span><input type="datetime-local" class="inp" data-in="estBaseDt" value="${esc(ui.estBaseDt||'')}"></label>`)+`
+  <section class="panel"><div class="secth"><div><h3>Data-base por técnico</h3><span class="muted">Ajuste a data-base de um técnico sem subir arquivo.</span></div></div>
+   <div class="tools"><select class="inp" data-ch="estBaseTec"><option value="">Selecione um técnico…</option>${(EST.tecs||[]).map(([c,n])=>`<option value="${esc(c)}" ${c===sel?'selected':''}>${esc(n)}</option>`).join('')}</select><input type="datetime-local" class="inp" id="estBaseTecDt" value="${cur}"><button class="btn" data-act="estBaseSalvar" ${sel?'':'disabled'}>Salvar data-base</button></div>
+   <details style="margin-top:10px"><summary class="muted">${(EST.base||[]).length} técnico(s) com data-base definida</summary><div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Técnico</th><th>Data-base</th></tr></thead><tbody>${(EST.base||[]).map(r=>`<tr><td>${esc(r.nome_referencia||r.cnpj)}</td><td>${fmtDH(r.data_base)}</td></tr>`).join('')}</tbody></table></div></details></section>`:''}`}
+function viewMov(meu){const de=ui.mDe||addD(hoje(),-30),ate=ui.mAte||hoje(),chave=(meu?'meu:':'all:')+de+':'+ate,doc=meuDoc();
+  if(meu&&!doc)return `<div class="toolbar"><div><h2>Meu histórico</h2></div></div><p class="muted pad">Seu cadastro não tem CPF/CNPJ. Peça à coordenação para completar o cadastro.</p>`;
+  if(!EST.mov[chave])estCarregar('mov'+chave,async()=>{const bm=await estBaseMap(),di=new Date(de+'T00:00:00').toISOString(),df=new Date(ate+'T23:59:59').toISOString();
+    let q1=sb.from('movimentacoes').select('*').gt('criado_em',di).lte('criado_em',df).order('criado_em',{ascending:false}).limit(1000),q2=sb.from('movimentacoes_elleven').select('*').gt('data_movimentacao',di).lte('data_movimentacao',df).order('data_movimentacao',{ascending:false}).limit(1000);
+    if(meu){q1=q1.eq('cnpj',doc);q2=q2.eq('cnpj_tecnico',doc)}const[a,b]=await Promise.all([q1,q2]);if(a.error)throw a.error;if(b.error)throw b.error;
+    EST.mov[chave]=[...(a.data||[]).map(m=>({...m,k:'diff',ts:m.criado_em})),...(b.data||[]).filter(m=>{const x=bm[m.cnpj_tecnico];return x&&new Date(m.data_movimentacao)>new Date(x)}).map(m=>({...m,k:'led',ts:m.data_movimentacao}))].sort((x,y)=>new Date(y.ts)-new Date(x.ts))});
+  const tipo=ui.mTipo||'',q=normK(ui.mQ||''),EL=vtask('Elleven');
+  let L=EST.mov[chave]||[];if(tipo)L=L.filter(m=>tipo==='elleven'?m.k==='led':(m.k==='diff'&&m.tipo===tipo));
+  if(q)L=L.filter(m=>normK([m.nome_tecnico,m.codigo_material,m.descricao_material,m.cliente_nome,m.nf].join(' ')).includes(q));
+  const linha=m=>{if(m.k==='led'){const e=m.tipo_movimento==='entrada';return `<tr><td>${fmtDH(m.ts)}</td>${meu?'':`<td>${esc(m.nome_tecnico||'')}</td>`}<td>${esc(m.descricao_material||'')}<br><small class="muted">${esc(m.codigo_material||'')}</small></td><td>${EL}</td><td class="r"><span class="chip ${e?'ok':'bad'}">${e?'+':'−'}${(+m.quantidade).toLocaleString('pt-BR')} ${esc(m.unidade||'')}</span><br><small class="muted">${e?'Entrada':'Saída'}</small></td><td>${!e&&m.cliente_nome?esc(m.cliente_nome):'—'}${m.nf?`<br><small class="muted">NF ${esc(m.nf)}</small>`:''}</td></tr>`}
+    const d=(+m.qtd_depois||0)-(+m.qtd_antes||0);return `<tr><td>${fmtDH(m.ts)}</td>${meu?'':`<td>${esc(m.nome_tecnico||'')}</td>`}<td>${esc(m.descricao_material||'')}<br><small class="muted">${esc(m.codigo_material||'')}</small></td><td>${m.tipo==='bolsao'?'Bolsão':EL+' (saldo base)'}</td><td class="r"><span class="chip ${d>0?'ok':d<0?'bad':''}">${d>0?'+':''}${d.toLocaleString('pt-BR')}</span><br><small class="muted">${(+m.qtd_antes).toLocaleString('pt-BR')} → ${(+m.qtd_depois).toLocaleString('pt-BR')}</small></td><td>—</td></tr>`};
+  return `<div class="toolbar"><div><h2>${meu?'Meu histórico':'Movimentações de estoque'}</h2><p class="muted">${meu?'Entradas e saídas do seu estoque.':'Alterações do bolsão e entradas e saídas do Elleven, de todos os técnicos.'}</p></div></div>
+  <div class="tools" style="margin-bottom:12px"><input class="inp" type="search" id="mQ" placeholder="${meu?'Buscar material, cliente ou NF':'Buscar técnico, material, cliente ou NF'}" data-in="mQ" value="${esc(ui.mQ||'')}"><select class="inp" data-ch="mTipo"><option value="">Todos os tipos</option><option value="bolsao" ${tipo==='bolsao'?'selected':''}>Bolsão</option><option value="elleven" ${tipo==='elleven'?'selected':''}>${EL}</option></select><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="mDe" value="${de}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="mAte" value="${ate}"></label></div>
+  ${EST.msg&&/^Erro/.test(EST.msg)?`<div class="result bad">${esc(EST.msg)}</div>`:''}
+  ${!EST.mov[chave]?'<p class="muted pad">Carregando…</p>':`<div class="tablewrap"><table><thead><tr><th>Data</th>${meu?'':'<th>Técnico</th>'}<th>Material</th><th>Origem</th><th class="r">Movimento</th><th>Cliente e NF</th></tr></thead><tbody>${L.map(linha).join('')||`<tr><td colspan="${meu?5:6}" class="muted">Nenhuma movimentação no período.</td></tr>`}</tbody></table></div><p class="muted" style="font-size:13px;margin-top:6px">${L.length} movimentação(ões). Mostra até 1.000 registros de cada origem por período.</p>`}`}
+function viewMeuEst(){const doc=meuDoc();
+  if(!doc)return `<div class="toolbar"><div><h2>Meu estoque</h2></div></div><p class="muted pad">Seu cadastro não tem CPF/CNPJ. Peça à coordenação para completar o cadastro.</p>`;
+  if(!EST.meu)estCarregar('meu',async()=>{const[r,m]=await Promise.all([todas(()=>sb.from('estoque').select('*').eq('cnpj',doc).order('descricao_material')),todas(()=>sb.from('metadados_estoque').select('*'))]);EST.meu=r;EST.meta={};m.forEach(x=>{EST.meta[x.tipo]=x.atualizado_em})});
+  const q=normK(ui.meQ||''),L=(EST.meu||[]).filter(r=>(+r.qtd_bolsao||0)+(+r.qtd_elleven||0)!==0&&(!q||normK(r.codigo_material+' '+r.descricao_material).includes(q))),M=EST.meta||{};
+  return `<div class="toolbar"><div><h2>Meu estoque</h2><p class="muted">Material sob sua responsabilidade: bolsão (SAP) + V-Task.</p></div></div>
+  <p class="muted" style="font-size:13px;margin-bottom:10px">Bolsão atualizado em ${fmtDH(M.bolsao)}. V-Task atualizado em ${fmtDH(M.elleven)}.</p>
+  <input class="inp" type="search" id="meQ" placeholder="Buscar código ou material" data-in="meQ" value="${esc(ui.meQ||'')}" style="margin-bottom:12px">
+  ${!EST.meu?'<p class="muted pad">Carregando…</p>':L.map(r=>{const tot=(+r.qtd_bolsao||0)+(+r.qtd_elleven||0);return `<div class="mrow" style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px"><div class="mtop"><span>${esc(r.descricao_material)}<small style="display:block;color:var(--muted);font-size:12px">${esc(r.codigo_material)}</small></span><b style="font-size:17px">${tot.toLocaleString('pt-BR')} ${esc(r.unidade||'')}</b></div><div class="mnum"><span>Bolsão <b>${(+r.qtd_bolsao||0).toLocaleString('pt-BR')}</b></span><span>V-Task <b>${(+r.qtd_elleven||0).toLocaleString('pt-BR')}</b></span></div></div>`}).join('')||'<p class="muted pad">Nenhum material encontrado.</p>'}`}
 
 /* ---------- ANEXOS ---------- */
 const IDB={p:null,open(){if(!this.p)this.p=new Promise((res,rej)=>{try{const r=indexedDB.open('impl_anexos',1);r.onupgradeneeded=()=>r.result.createObjectStore('f');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});return this.p},
@@ -1426,6 +1511,19 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
+  estPub:async el=>{const k=el.dataset.k,I=EST.imp[k];if(!I||EST.bus.pub)return;if(ui.perfil==='supply'&&k!=='bolsao'){toast('Seu perfil só publica a planilha do bolsão.','bad');return}
+    if(k==='base'&&ui.perfil!=='coord')return;
+    if(k==='base'&&!ui.estBaseDt){toast('Informe a data e a hora do retrato.','bad');return}
+    EST.bus.pub=k;EST.msg='';render();
+    try{let msg;if(k==='bolsao')msg=await estAtualizarTipo('bolsao',I.rows,'Bolsão');
+      else if(k==='elleven')msg=await estImportarElleven(I.rows,ui.estIni||'');
+      else{msg=await estAtualizarTipo('elleven',I.rows,'Saldo base do Elleven');const pc={};I.rows.forEach(r=>{if(r.cnpj)pc[r.cnpj]=r.tecnico||pc[r.cnpj]});const iso=new Date(ui.estBaseDt).toISOString(),rows=Object.entries(pc).map(([cnpj,n])=>({cnpj,nome_referencia:n,data_base:iso,atualizado_em:new Date().toISOString()}));if(rows.length){const r=await sb.from('saldo_base_elleven').upsert(rows,{onConflict:'cnpj'});if(r.error)msg+=' Atenção: erro ao gravar a data-base: '+r.error.message}}
+      EST.msg=msg;delete EST.imp[k];EST.meta=null;EST.mov={};EST.meu=null;EST.err={};await carregar()}
+    catch(e){EST.msg='Erro ao publicar: '+(e.message||e)}
+    EST.bus.pub=false;render()},
+  estBaseSalvar:async()=>{const cnpj=ui.estBaseTec,v=($('estBaseTecDt')||{}).value;if(!cnpj)return;if(!v){toast('Informe a data e a hora.','bad');return}
+    const nome=((EST.tecs||[]).find(x=>x[0]===cnpj)||[])[1]||cnpj,r=await sb.from('saldo_base_elleven').upsert({cnpj,nome_referencia:nome,data_base:new Date(v).toISOString(),atualizado_em:new Date().toISOString()},{onConflict:'cnpj'});
+    if(r.error){toast('Erro: '+r.error.message,'bad');return}EST.meta=null;EST.mov={};EST.err={};toast('Data-base de '+nome+' salva.');render()},
   conta:()=>{const pg=pushOk()&&Notification.permission==='granted';openModal(`<h3>Minha conta</h3><p class="muted">${esc(ME.nome)}, ${PERFIS[ui.perfil].n}</p>
     <div style="display:grid;gap:8px;margin-top:12px"><button class="btn wide" data-act="chPass">Alterar senha</button>${pushOk()?(pg?'<button class="btn wide" data-act="pushTeste">Testar notificação</button>':'<button class="btn wide" data-act="pushOn">Ativar notificações neste aparelho</button>'):'<p class="muted" style="font-size:13px">Para receber notificações no iPhone, adicione o app à Tela de Início.</p>'}</div>
     <div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)},
@@ -1588,6 +1686,9 @@ const ACT={
    <div class="grid2 even" style="margin-top:18px;gap:16px"><div style="text-align:center">${l.assinatura?`<img src="${l.assinatura.img}" alt="Assinatura" style="max-height:70px;max-width:100%">`:'<div style="height:70px"></div>'}<div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">${l.assinatura?esc(l.assinatura.nome)+', '+dtBR(l.assinatura.em):'Assinatura prestador'}</div></div><div style="text-align:center"><div style="height:70px;display:flex;align-items:flex-end;justify-content:center;font-size:13px">${l.status==='aprovada'?esc(((l.hist||[]).filter(h=>h.acao==='Aprovada').pop()||{}).por||''):''}</div><div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">Aprovador</div></div></div></div><div class="actions"><button class="btn" data-act="close">Fechar</button>${l.pdf_path?`<button class="btn primary" data-act="pdfArq" data-id="${l.id}">Abrir PDF assinado</button>`:''}</div>`)}
 };
 const CH={
+  estArq:el=>{const f=el.files&&el.files[0];el.value='';if(f)lerArquivoEst(el.dataset.k,f)},
+  estBaseTec:el=>{ui.estBaseTec=el.value;render()},
+  mTipo:el=>{ui.mTipo=el.value;render()},mDe:el=>{ui.mDe=el.value;render()},mAte:el=>{ui.mAte=el.value;render()},
   rTipo:el=>{ui.rTipo=el.value;render()},rTec:el=>{ui.rTec=el.value;render()},rIni:el=>{ui.rIni=el.value;render()},rFim:el=>{ui.rFim=el.value;render()},
   fotoReq:el=>{const F=ui.agForm;F.fOff=F.fOff||[];if(el.checked)F.fOff=F.fOff.filter(k=>k!==el.value);else if(!F.fOff.includes(el.value))F.fOff.push(el.value);render()},
   fotoArq:async el=>{const fs=[...(el.files||[])];el.value='';if(!fs.length)return;const k=el.dataset.k,D=ui.rf;if(!D)return;toast('Preparando a foto…');
@@ -1637,6 +1738,9 @@ const CH={
   tec:el=>{ui.tec=el.value;ui.campoSel=null;if(tecT(ui.tec)!=='TERC')ui.campoSec='at';render()}
 };
 const IN={
+  estIni:el=>{ui.estIni=el.value},estBaseDt:el=>{ui.estBaseDt=el.value},
+  mQ:el=>{ui.mQ=el.value;render();const i=$('mQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
+  meQ:el=>{ui.meQ=el.value;render();const i=$('meQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
   rfDbm:el=>{const D=ui.rf;if(!D)return;const k=el.dataset.k,v0=String(D.campos[k+':dbm']||''),pos=v0?!v0.startsWith('-'):!!(D.pos&&D.pos[k]),n=el.value.replace(/[^0-9.,]/g,'');if(n!==el.value)el.value=n;
     D.campos[k+':dbm']=n?(pos?'':'-')+n.replace(',','.'):'';if(!n){D.pos=D.pos||{};D.pos[k]=pos}salvarRascunhoFoto();const b=document.querySelector('.dbmv-'+k.replace(':','-'));if(b)b.textContent=n?D.campos[k+':dbm'].replace('.',',')+' dBm':'—'},
   rQ:el=>{ui.rQ=el.value;render();const i=$('rQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
@@ -1666,7 +1770,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(
 const pushOk=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
 const ehIOS=/iphone|ipad|ipod/i.test(navigator.userAgent),appInstalado=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 const b64u8=b=>{const p='='.repeat((4-b.length%4)%4),r=atob((b+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))};
-function pushBanner(){if(!ME||ui.pushFechado)return '';const g=['coord','sup','enc'].includes(ui.perfil);if(ui.perfil==='coord'||ui.perfil==='sup')return '';
+function pushBanner(){if(!ME||ui.pushFechado||ui.perfil==='supply')return '';const g=['coord','sup','enc'].includes(ui.perfil);if(ui.perfil==='coord'||ui.perfil==='sup')return '';
   const fechar='<button class="link" data-act="pushFechar" style="margin-left:8px">Agora não</button>';
   if(ehIOS&&!appInstalado)return `<div class="note" style="margin-bottom:12px"><b>Receba avisos das suas atividades.</b> No iPhone, toque em Compartilhar e depois em "Adicionar à Tela de Início". Abra a agenda pelo ícone criado e ative as notificações.${fechar}</div>`;
   if(!pushOk())return '';
@@ -1717,6 +1821,7 @@ async function syncAgora(){SYNC_PEND=false;const r=curRows();
   catch(e){console.error(e);setSt('Erro ao salvar',1);toast('Não foi possível salvar: '+(e.message||e)+'. Os dados foram recarregados.','bad');await carregar();render()}}
 async function todas(q){let out=[],de=0;for(;;){const r=await q().range(de,de+999);if(r.error)throw r.error;out=out.concat(r.data||[]);if(!r.data||r.data.length<1000)break;de+=1000}return out}
 async function carregar(){
+  if(ui.perfil==='supply'){TEC.length=0;S.previsao=[];S.comp={};S.ags=[];S.lpus=[];S.anexos=[];S.anexosLog=[];S.budget={};S.estoque={};snapAll();setSt('Tudo salvo');return}
   const g=['coord','sup','enc'].includes(ui.perfil);
   // técnicos
   TEC.length=0;
@@ -1760,14 +1865,14 @@ function gerarPdfLpu(l){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m
 // ---- usuários e acessos (coordenador)
 let USR=null;
 async function carregarUsuarios(){const[pf,pp]=await Promise.all([todas(()=>sb.from('perfis').select('id,nome,tipo,cnpj,status,equipe').order('nome')),todas(()=>sb.from('agenda_papeis').select('*'))]);USR={pf,pp}}
-const PAPEIS=[['','Sem acesso à agenda'],['coordenador','Coordenador'],['supervisor','Supervisor'],['encarregado','Encarregado'],['tecnico:clt','Técnico próprio (CLT)'],['tecnico:terceiro','Técnico terceiro']];
+const PAPEIS=[['','Sem acesso à agenda'],['coordenador','Coordenador'],['supervisor','Supervisor'],['encarregado','Encarregado'],['tecnico:clt','Técnico próprio (CLT)'],['tecnico:terceiro','Técnico terceiro'],['supply','Supply Chain (só planilha do bolsão)']];
 function viewUsuarios(){if(!USR){carregarUsuarios().then(render).catch(e=>toast(e.message,'bad'));return '<p class="muted pad">Carregando usuários…</p>'}
   const pap=id=>{const x=USR.pp.find(p=>p.user_id===id&&p.ativo);return x?(x.papel==='tecnico'?'tecnico:'+x.vinculo:x.papel):''};
   const pend=USR.pf.filter(p=>p.status==='pendente'),q=normK(ui.uQ||''),apr=USR.pf.filter(p=>p.status==='aprovado'&&(!q||normK(p.nome+' '+(p.equipe||'')).includes(q))&&(!ui.uSo||pap(p.id)||(p.equipe||'').toLowerCase().includes('implanta')));
   return `<div class="toolbar"><div><h2>Usuários e acessos</h2><p class="muted">Os cadastros são os mesmos do Estoque de Materiais. Aqui você aprova cadastros novos e define quem acessa a agenda e com qual papel.</p></div></div>
    ${pend.length?`<section class="panel" style="margin-bottom:14px"><h3>Cadastros aguardando aprovação</h3>${pend.map(p=>`<div class="item"><div><b>${esc(p.nome)}</b><small>${p.tipo==='tecnico'?'Técnico, '+esc(p.cnpj||''):'Gestão'}</small></div><div class="right"><button class="btn sm" data-act="uRej" data-id="${p.id}">Recusar</button><button class="btn sm primary" data-act="uApr" data-id="${p.id}">Aprovar</button></div></div>`).join('')}</section>`:''}
    <div class="tools" style="margin-bottom:10px"><input class="inp" type="search" id="uQ" placeholder="Buscar nome ou equipe" data-in="uQ" value="${esc(ui.uQ||'')}"><label class="chk" style="margin:0"><input type="checkbox" data-ch="uSo" ${ui.uSo?'checked':''}> Só Implantação e quem já tem acesso</label></div>
-   <div class="tablewrap"><table><thead><tr><th>Nome</th><th>Cadastro</th><th>Equipe</th><th>Acesso à agenda</th></tr></thead><tbody>${apr.map(p=>`<tr><td><b>${esc(p.nome)}</b>${p.cnpj?`<br><small class="muted">${esc(p.cnpj)}</small>`:''}</td><td>${p.tipo==='tecnico'?'Técnico':p.tipo==='om'?'Gestão O&M':esc(p.tipo)}</td><td>${esc(p.equipe||'—')}</td><td><select class="inp" style="min-width:190px" data-ch="uPapel" data-id="${p.id}" ${p.id===ME.id?'disabled':''}>${PAPEIS.map(([v,n])=>`<option value="${v}" ${pap(p.id)===v?'selected':''}>${n}</option>`).join('')}</select></td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nenhum usuário encontrado.</td></tr>'}</tbody></table></div>`}
+   <div class="tablewrap"><table><thead><tr><th>Nome</th><th>Cadastro</th><th>Equipe</th><th>Acesso à agenda</th></tr></thead><tbody>${apr.map(p=>`<tr><td><b>${esc(p.nome)}</b>${p.cnpj?`<br><small class="muted">${esc(p.cnpj)}</small>`:''}</td><td>${p.tipo==='tecnico'?'Técnico':p.tipo==='om'?'Gestão O&M':p.tipo==='supply'?'Supply Chain':esc(p.tipo)}</td><td>${esc(p.equipe||'—')}</td><td><select class="inp" style="min-width:190px" data-ch="uPapel" data-id="${p.id}" ${p.id===ME.id?'disabled':''}>${PAPEIS.map(([v,n])=>`<option value="${v}" ${pap(p.id)===v?'selected':''}>${n}</option>`).join('')}</select></td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nenhum usuário encontrado.</td></tr>'}</tbody></table></div>`}
 // ---- sessão
 let RECUP=/type=recovery/.test(location.hash),NP_OPEN=RECUP,BOOT_UID=null;
 async function checarSessao(){if(NP_OPEN)return;
@@ -1780,7 +1885,7 @@ async function checarSessao(){if(NP_OPEN)return;
   const{data:pp}=await sb.from('agenda_papeis').select('*').eq('user_id',session.user.id).eq('ativo',true).maybeSingle();
   if(!pp){showAuth('cPend');$('pendMsg').textContent='Seu cadastro está aprovado, mas o acesso à Agenda de Implantação ainda não foi liberado pela coordenação.';return}
   ME={id:session.user.id,nome:pf.nome,cnpj:pf.cnpj,papel:pp.papel,vinculo:pp.vinculo};
-  ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',tecnico:pp.vinculo==='terceiro'?'terc':'clt'}[pp.papel];ui.tab=PERFIS[ui.perfil].tabs[0];ui.tec=ME.id;
+  ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',supply:'supply',tecnico:pp.vinculo==='terceiro'?'terc':'clt'}[pp.papel];if(!ui.perfil){showAuth('cPend');$('pendMsg').textContent='Seu perfil de acesso à agenda não é reconhecido. Fale com a coordenação.';return}ui.tab=PERFIS[ui.perfil].tabs[0];ui.tec=ME.id;
   try{await carregar()}catch(e){$('loadMsg').textContent='Erro ao carregar os dados: '+(e.message||e);return}
   BOOT_UID=session.user.id;document.body.classList.add('app-on');
   const qs=new URLSearchParams(location.search),agLink=qs.get('ag'),relVolta=qs.get('rel');if(agLink){history.replaceState(null,'',location.pathname);const a=getAg(agLink);if(a){if(['clt','terc'].includes(ui.perfil)){ui.tab='campo';ui.campoSel=a.id}else ui.tab='agenda'}}
