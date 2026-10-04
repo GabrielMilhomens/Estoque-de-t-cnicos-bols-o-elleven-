@@ -1437,7 +1437,7 @@ async function carregar(){
   snapAll();setSt('Tudo salvo');
 }
 async function checarRelatorio(a){const r=await sb.storage.from('agenda').list('relatorios/'+a.id);const f=(r.data||[]).filter(x=>/\.pdf$/i.test(x.name));if(!f.length)return false;a.rel=a.rel||{};a.rel.entrega={path:'relatorios/'+a.id+'/'+f[f.length-1].name,em:Date.now()};save();return true}
-async function subirPdfLpu(l){try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-${Date.now()}.pdf`;const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:true});if(up.error)throw up.error;l.pdf_path=path}catch(e){console.error(e);toast('A LPU será enviada, mas o PDF não foi gerado: '+(e.message||e),'bad')}}
+async function subirPdfLpu(l){try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-${Date.now()}.pdf`;const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;l.pdf_path=path}catch(e){console.error(e);toast('A LPU será enviada, mas o PDF não foi gerado: '+(e.message||e),'bad')}}
 function gerarPdfLpu(l){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m=15,W=210,H=297,p=pPor(l.etiqueta);
   doc.setFontSize(16);doc.setFont('helvetica','bold');doc.setTextColor(61,61,61);doc.text('Relatório de Prestação de Serviços (LPU)',m,20);
   doc.setDrawColor(140,191,63);doc.setLineWidth(.8);doc.line(m,25,W-m,25);

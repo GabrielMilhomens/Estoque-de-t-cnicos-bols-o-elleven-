@@ -1092,10 +1092,10 @@ document.getElementById('modal').addEventListener('click', e => {
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',botaoVoltar);else botaoVoltar();
   function enviar(art,tentativa){tentativa=tentativa||1;
     var nome=(art.nomeArquivo||'relatorio-entrega.pdf').replace(/[^\w.\-]+/g,'_');
-    sb.storage.from('agenda').upload('relatorios/'+ag+'/'+nome,art.blob,{contentType:'application/pdf',upsert:true}).then(function(r){
+    sb.storage.from('agenda').upload('relatorios/'+ag+'/'+Date.now()+'-'+nome,art.blob,{contentType:'application/pdf',upsert:false}).then(function(r){
       if(r.error)throw r.error;aviso('PDF salvo no celular e enviado à agenda. Voltando para a atividade…','#2d7d3f');setTimeout(function(){location.href=VOLTA+'&rel=1'},3000)
     }).catch(function(e){if(tentativa<3){setTimeout(function(){enviar(art,tentativa+1)},tentativa*3000);return}
-      aviso('O PDF foi salvo no celular, mas não chegou à agenda'+(e&&/jwt|auth|session/i.test(e.message||'')?' (faça login na agenda neste aparelho)':'')+'. Verifique a internet e gere o PDF novamente.','#c0392b')})}
+      var m=(e&&(e.message||e.error||e.statusCode))||'erro desconhecido';aviso('O PDF foi salvo no celular, mas não chegou à agenda ('+m+')'+(/jwt|auth|session/i.test(String(m))?'. Faça login na agenda neste aparelho':'')+'. Gere o PDF novamente.','#c0392b')})}
   window.__sincronizarRelatorioAtivacao=function(){var a=window.__ultimoRelatorioAtivacao;if(a&&a.blob)enviar(a)};
 })();
 </script>
