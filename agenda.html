@@ -173,6 +173,11 @@ td.r,th.r{white-space:nowrap}
  .lpc{flex-wrap:wrap}.lpc select{flex:1 1 100%}
 }
 .pnl{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+nav.tabs .nv1,nav.tabs .nv2{justify-content:flex-start;gap:9px;font-size:14.5px;font-weight:500;padding:8px 10px 8px 24px;min-height:40px}
+nav.tabs .nv1 i{width:7px;height:7px;border-radius:50%;background:var(--line);flex:none}
+nav.tabs .nv1 em{margin-left:auto;font-style:normal;font-size:12px;color:var(--muted)}
+nav.tabs .nv1.on{color:var(--brand-ink);font-weight:600;background:none}nav.tabs .nv1.on i{background:var(--brand)}
+nav.tabs .nv2{padding-left:44px;font-size:14px;min-height:38px}nav.tabs .nv2.on{color:var(--brand-ink);font-weight:600;background:var(--brand-soft)}
 .pnav{flex:1 1 200px;max-width:260px;display:flex;flex-direction:column;gap:3px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}
 @media(max-width:820px){.pnav{max-width:none}}
 .pnt{font:600 12.5px "Barlow Condensed",sans-serif;color:var(--muted);letter-spacing:.03em;padding:6px 10px 2px}
@@ -180,7 +185,7 @@ td.r,th.r{white-space:nowrap}
 .pni i{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}.pni:hover{background:var(--bg);color:var(--ink)}
 .pni.on{background:var(--brand-soft);color:var(--brand-ink)}.pni.on i{background:var(--brand)}
 .pni.sub{padding-left:30px;font-weight:500;font-size:14.5px;min-height:40px}.pni.sub.on{font-weight:600}
-.pbody{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:14px}.phd h3{font-size:22px}.phd p{margin-top:2px}
+.pbody{min-width:0;display:flex;flex-direction:column;gap:14px}.phd h3{font-size:22px}.phd p{margin-top:2px}
 .bbar{display:flex;height:11px;background:var(--bg);border-radius:6px;overflow:hidden;margin:3px 0}.bbar i{display:block;height:100%;background:var(--brand-ink)}.bbar b{display:block;height:100%;background:#E3B567}.bbar.thin{height:8px}
 .topi{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:14px;margin-bottom:8px}.tpn{font:600 15px "Barlow Condensed",sans-serif;color:var(--muted)}.tpd{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tpd b{color:var(--brand-ink)}
 .prev{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px}
@@ -589,7 +594,9 @@ function render(){
   $('whoBox').innerHTML=`<b>${esc(ME.nome)}</b>${PERFIS[ui.perfil].n}<div class="wbt"><button class="link" data-act="chPass">Alterar senha</button><button class="link" data-act="logout">Sair</button></div>${pushOk()&&Notification.permission==='granted'?'<div class="wbt"><button class="link" data-act="pushTeste">Testar notificação</button></div>':''}`;
   const ORD=['painel','agenda','estoque','base','prev','sim','kanban','aprov','campo','minhas','usuarios'],GRP={usuarios:'Administração',painel:'Acompanhamento',agenda:'Operação',estoque:'Operação',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;return n?`<span class="nbadge">${n}</span>`:''};
-  let g='',h='';ORD.filter(t=>P.tabs.includes(t)).forEach(t=>{if(GRP[t]!==g){g=GRP[t];h+=`<div class="ngrp">${g}</div>`}h+=`<button data-act="tab" data-t="${t}" aria-current="${t===ui.tab}"><span>${tabLabel(t)}</span>${badge(t)}</button>`});
+  let g='',h='';ORD.filter(t=>P.tabs.includes(t)).forEach(t=>{if(GRP[t]!==g){g=GRP[t];h+=`<div class="ngrp">${g}</div>`}h+=`<button data-act="tab" data-t="${t}" aria-current="${t===ui.tab}"><span>${tabLabel(t)}</span>${badge(t)}</button>`;
+    if(t==='painel'&&ui.tab==='painel'){const sec=ui.pSec||'geral',sub=ui.finSub||'budget';PSEC.forEach(([k,n])=>{const on=sec===k;h+=`<button class="nv1 ${on?'on':''}" data-act="pSec" data-v="${k}"><i></i><span>${n}</span>${k==='fin'?`<em>${on?'▾':'▸'}</em>`:''}</button>`;
+      if(k==='fin'&&on)FSUB.forEach(([sk,sn])=>{h+=`<button class="nv2 ${sub===sk?'on':''}" data-act="pSec" data-v="fin" data-s="${sk}"><span>${sn}</span></button>`})})}});
   $('tabs').innerHTML=h;$('mTitle').textContent=tabLabel(ui.tab);
   $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,usuarios:viewUsuarios,estoque:viewEstoque,sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
   if(ui.tab==='agenda')renderSug();
@@ -619,8 +626,7 @@ function viewPainel(){
   const corpo=sec==='geral'?pGeral():sec==='entregas'?pEntregas():sec==='exec'?pExec():sec==='equipes'?pEquipes():sub==='det'?pDetalhe():pBudget();
   const periodo=!(sec==='fin'&&sub==='budget');
   return `<div class="toolbar"><div><h2>Painel de KPIs</h2></div>${periodo?`<div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="pIni" value="${ui.pIni}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="pFim" value="${ui.pFim}"></label></div>`:''}</div>
-  <div class="pnl"><nav class="pnav" aria-label="Seções do painel"><span class="pnt">Seções</span>${nav}</nav>
-  <div class="pbody"><div class="phd"><h3>${titulo}</h3><p class="muted">${perg}</p></div>${corpo}</div></div>`;
+  <div class="pbody"><div class="phd"><h3>${titulo}</h3><p class="muted">${perg}</p></div>${corpo}</div>`;
 }
 function pBase(){const T=hoje(),inP=a=>a.data>=ui.pIni&&a.data<=ui.pFim,all=S.ags.filter(inP),ags=all.filter(a=>a.status!=='cancelada');
   const conc=ags.filter(a=>a.status==='concluida'),dentro=conc.filter(dentroPrev);
@@ -1229,7 +1235,7 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
-  pSec:el=>{ui.pSec=el.dataset.v;if(el.dataset.s)ui.finSub=el.dataset.s;ui.bEdit=false;render()},
+  pSec:el=>{ui.tab='painel';ui.pSec=el.dataset.v;if(el.dataset.s)ui.finSub=el.dataset.s;ui.bEdit=false;if(el.dataset.v!=='fin'||el.dataset.s)document.body.classList.remove('menu');render();window.scrollTo(0,0)},
   eqF:el=>{ui.eqF=el.dataset.v;render()},
   bEdit:()=>{ui.bEdit=!ui.bEdit;render()},
   bSalvar:async()=>{const mes=ui.bMes,rows=[...document.querySelectorAll('[data-bud]')].map(i=>({mes,conta:i.dataset.bud,valor:parseFloat(i.value)||0}));
