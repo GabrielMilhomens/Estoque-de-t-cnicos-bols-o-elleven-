@@ -194,7 +194,9 @@ nav.tabs .nv2{padding-left:44px;font-size:14px;min-height:38px}nav.tabs .nv2.on{
 .bbar{display:flex;height:11px;background:var(--bg);border-radius:6px;overflow:hidden;margin:3px 0}.bbar i{display:block;height:100%;background:var(--brand-ink)}.bbar b{display:block;height:100%;background:#E3B567}.bbar.thin{height:8px}
 .topi{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:14px;margin-bottom:8px}.tpn{font:600 15px "Barlow Condensed",sans-serif;color:var(--muted)}.tpd{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tpd b{color:var(--brand-ink)}
 .tcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:12px}
-.tchd{padding:14px 14px 12px;display:flex;flex-direction:column;gap:6px}.tcl{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tchd{padding:14px 14px 12px;display:flex;flex-direction:column;gap:6px}
+.tchb{width:100%;background:none;border:0;text-align:left;cursor:pointer;color:var(--ink);font-family:inherit}.tchb .tcl{align-items:center}
+.tcsx{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);flex:none}.tchb[aria-expanded="true"] .tcsx{background:var(--brand-soft);color:var(--brand-ink);border-color:transparent}.tcl{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .tccli{font:700 23px/1.1 "Barlow Condensed",sans-serif}.tcetq{align-self:flex-start;font:700 17px "Barlow Condensed",sans-serif;letter-spacing:.04em;background:var(--brand-soft);color:var(--ink);padding:3px 10px;border-radius:6px}
 .tcband{color:#fff;padding:11px 14px;display:flex;flex-direction:column;gap:1px}.tck{font-size:12px;font-weight:600;letter-spacing:.06em;opacity:.92}.tcf{font:700 22px/1.1 "Barlow Condensed",sans-serif}.tcs{font-size:13.5px;opacity:.95}
 .tcb{padding:12px 14px 14px;display:flex;flex-direction:column;gap:12px}.tcend{display:flex;gap:8px;align-items:flex-start;font-size:14px}.tcend svg{flex:none;margin-top:1px;color:var(--muted)}
@@ -1018,9 +1020,11 @@ function viewCampo(){
   if(terc&&ui.perfil==='coord'&&ui.campoSec==='fin')return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${viewMinhas(true)}</div>`;
   const T=hoje(),mine=S.ags.filter(x=>x.tec===ui.tec&&x.status!=='cancelada');
   const g={hoje:mine.filter(x=>!FIM.includes(x.status)&&x.data<=T).sort((a,b)=>a.data.localeCompare(b.data)),prox:mine.filter(x=>!FIM.includes(x.status)&&x.data>T).sort((a,b)=>a.data.localeCompare(b.data)),enc:mine.filter(x=>FIM.includes(x.status)).sort((a,b)=>b.data.localeCompare(a.data))};
-  const card=x=>{const c=S.comp[x.etiqueta]||{};return `<article class="tcard">${tcTopo(x,'')}
+  ui.cExp=ui.cExp||{};
+  const card=x=>{const c=S.comp[x.etiqueta]||{},o=!!ui.cExp[x.id];return `<article class="tcard"><button class="tchd tchb" data-act="cExp" data-id="${x.id}" aria-expanded="${o}" aria-label="${o?'Recolher':'Expandir'} ${esc(cliN(x.etiqueta))}"><div class="tcl"><span class="tccli">${esc(cliN(x.etiqueta))}</span>${chip(x.status)}</div><div class="tcl"><span class="tcetq">${esc(x.etiqueta)}</span><span class="tcsx">${o?IC.up:IC.dn}</span></div></button>
+    ${o?`<div class="tcband" style="background:${corFase(x)}"><span class="tck">O QUE FAZER</span><span class="tcf">${fasesN(x)}</span><span class="tcs">${esc(apoioTxt(x))}</span></div>
     <div class="tcb">${c.endereco?`<div class="tcend">${IC.pin}<span>${esc(endCurto(c.endereco))}</span></div>`:''}${andamentoHtml(x)}
-     <div class="tcbt">${rotaLigar(c)}</div><button class="tcopen" data-act="abrir" data-id="${x.id}">Abrir atividade</button></div></article>`};
+     <div class="tcbt">${rotaLigar(c)}</div><button class="tcopen" data-act="abrir" data-id="${x.id}">Abrir atividade</button></div>`:''}</article>`};
   const lab={hoje:'Hoje',prox:'Próximas',enc:'Encerradas'};
   return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}
    <div class="chips">${Object.keys(lab).map(k=>`<button data-act="cF" data-t="${k}" aria-current="${ui.cF===k}">${lab[k]} (${g[k].length})</button>`).join('')}</div>
@@ -1298,6 +1302,7 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
+  cExp:el=>{ui.cExp=ui.cExp||{};ui.cExp[el.dataset.id]=!ui.cExp[el.dataset.id];render()},
   tAcc:el=>{ui.tAcc=ui.tAcc||{};ui.tAcc[el.dataset.k]=!ui.tAcc[el.dataset.k];render()},
   matRem:el=>{const F=ui.agForm;F.rem=[...new Set((F.rem||[]).concat(el.dataset.k))];render()},
   matRest:()=>{ui.agForm.rem=[];render()},
