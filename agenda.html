@@ -934,7 +934,7 @@ function matHtml(L,tecView){if(L===null)return '';if(!L.length)return '<div clas
    <table><thead><tr><th>Material</th><th class="r">Precisa</th><th class="r">Bolsão</th><th class="r">${lab}</th>${tecView?'':'<th class="r">Em outros agend.</th>'}<th class="r">Disponível</th><th></th></tr></thead><tbody>${L.map(x=>`<tr><td>${esc(x.desc)}<br><small class="muted">${[x.cod,'Ponta '+x.ponta].filter(Boolean).map(esc).join(', ')}</small></td><td class="r">${x.qtd.toLocaleString('pt-BR')}</td><td class="r">${x.bolsao.toLocaleString('pt-BR')}</td><td class="r">${x.elleven.toLocaleString('pt-BR')}</td>${tecView?'':`<td class="r">${x.comp?x.comp.toLocaleString('pt-BR'):'—'}</td>`}<td class="r"><b>${Math.max(0,x.disp).toLocaleString('pt-BR')}</b></td><td>${x.st==='ok'?'<span class="chip ok">Tem</span>':x.st==='parcial'?`<span class="chip warn">Faltam ${(x.qtd-Math.max(0,x.disp)).toLocaleString('pt-BR')}</span>`:'<span class="chip bad">Não tem</span>'}</td></tr>`).join('')}</tbody></table></div>`}
 function viewEstoque(){
   const ed=false,q=normK(ui.eQ||''),T=TEC.filter(t=>!ui.eTec||t.id===ui.eTec);
-  const rows=[];T.forEach(t=>{const E=S.estoque[t.id]||{},cmp=comprometido(t.id,null);Object.entries(E).forEach(([c,x])=>{if(q&&!normK(c+' '+x.desc).includes(q))return;const tot=(+x.bolsao||0)+(+x.elleven||0),cm=cmp[c]||0;rows.push({t,c,x,tot,cm,disp:tot-cm})})});
+  const rows=[];T.forEach(t=>{const E=S.estoque[t.id]||{},cmp=comprometido(t.id,null);Object.entries(E).forEach(([c,x])=>{if(q&&!normK(c+' '+x.desc).includes(q))return;const tot=(+x.bolsao||0)+(+x.elleven||0),cm=cmp[c]||0;if(!(+x.bolsao)&&!(+x.elleven)&&!cm)return;rows.push({t,c,x,tot,cm,disp:tot-cm})})});
   const inp=(t,c,k,v)=>ed?`<input type="number" min="0" step="any" class="inp r" style="min-height:32px;padding:4px 6px;max-width:90px;margin-left:auto" data-ch="est" data-t="${t}" data-c="${c}" data-k="${k}" value="${v}">`:(+v).toLocaleString('pt-BR');
   return `<div class="toolbar"><div><h2>Estoque dos técnicos</h2><p class="muted">Saldo por técnico e material (bolsão SAP + Elleven), casado pelo CPF/CNPJ do técnico e pelo código do material. "Comprometido" soma o que os agendamentos em aberto do técnico vão consumir pelo ROI.</p></div>
    <div class="tools"><input class="inp" type="search" id="eQ" placeholder="Buscar código ou material" data-in="eQ" value="${esc(ui.eQ||'')}"><select class="inp" data-ch="eTec"><option value="">Todos os técnicos</option>${TEC.map(t=>`<option value="${t.id}" ${ui.eTec===t.id?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></div></div>
@@ -1824,11 +1824,12 @@ async function carregar(){
   if(ui.perfil==='supply'){TEC.length=0;S.previsao=[];S.comp={};S.ags=[];S.lpus=[];S.anexos=[];S.anexosLog=[];S.budget={};S.estoque={};snapAll();setSt('Tudo salvo');return}
   const g=['coord','sup','enc'].includes(ui.perfil);
   // técnicos
-  TEC.length=0;
+  const novos=[];
   if(g){const pap=await todas(()=>sb.from('agenda_papeis').select('user_id,papel,vinculo,ativo').eq('papel','tecnico').eq('ativo',true));
-    const ids=pap.map(x=>x.user_id);const pf=ids.length?await todas(()=>sb.from('perfis').select('id,nome,cnpj').in('id',ids)):[];
-    pf.forEach(x=>{const pp=pap.find(y=>y.user_id===x.id);TEC.push({id:x.id,nome:x.nome,tipo:pp.vinculo==='terceiro'?'TERC':'CLT',doc:x.cnpj||''})});TEC.sort((a,b)=>a.nome.localeCompare(b.nome))}
-  else TEC.push({id:ME.id,nome:ME.nome,tipo:ME.vinculo==='terceiro'?'TERC':'CLT',doc:ME.cnpj||''});
+    const ids=[...new Set(pap.map(x=>x.user_id))];const pf=ids.length?await todas(()=>sb.from('perfis').select('id,nome,cnpj').in('id',ids)):[];
+    pf.forEach(x=>{if(novos.some(t=>t.id===x.id))return;const pp=pap.find(y=>y.user_id===x.id);novos.push({id:x.id,nome:x.nome,tipo:pp.vinculo==='terceiro'?'TERC':'CLT',doc:x.cnpj||''})});novos.sort((a,b)=>a.nome.localeCompare(b.nome))}
+  else novos.push({id:ME.id,nome:ME.nome,tipo:ME.vinculo==='terceiro'?'TERC':'CLT',doc:ME.cnpj||''});
+  TEC.splice(0,TEC.length,...novos);
   const [pr,co,ag,lp,an,lg]=await Promise.all([(g?todas(()=>sb.from('ag_projetos').select('*')):sb.rpc('ag_projetos_tecnico').then(r=>{if(r.error)throw r.error;return r.data||[]})),todas(()=>sb.from('ag_complementos').select('*')),todas(()=>sb.from('ag_agendamentos').select('*')),todas(()=>sb.from('ag_lpus').select('*')),todas(()=>sb.from('ag_anexos').select('*')),g?todas(()=>sb.from('ag_anexos_log').select('*')):Promise.resolve([])]);
   S.previsao=pr.map(r=>Object.assign({id:r.id,etiqueta:r.etiqueta},r.dados));
   S.comp={};co.forEach(r=>S.comp[r.etiqueta]=r.dados||{});
