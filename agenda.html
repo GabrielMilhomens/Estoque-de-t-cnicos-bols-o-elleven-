@@ -605,13 +605,19 @@ const diasExec=(e,filtro)=>new Set(S.ags.filter(a=>a.etiqueta===e&&a.status!=='c
 const realDias=(e,f)=>diasExec(e,a=>fasesOf(a).includes(f));
 const faseFim=(e,f)=>S.ags.filter(a=>a.etiqueta===e&&a.ts&&a.ts.conclusao&&!['nao_concluida','cancelada'].includes(a.status)&&(a.fasesFin||[]).includes(f)).sort((a,b)=>a.ts.conclusao-b.ts.conclusao)[0]||null;
 const pPor=e=>S.previsao.find(x=>x.etiqueta===e)||{};
-const fasesReq=p=>FASES.filter(f=>f.k!=='ativ'&&!(f.k==='ext'&&p.semExt));
+// Fases que precisam ser feitas antes da ativação:
+//  * Firewall: nenhuma (ativa direto)
+//  * Last mile: só as fases com dias previstos na base (todas zeradas = ativa direto)
+//  * Demais topologias: rua, interno e extensão (extensão sai quando não há extensão de sinal)
+const fasesReq=p=>{const t=normK(p.topologia||'');if(t==='firewall')return [];const base=FASES.filter(f=>f.k!=='ativ'&&!(f.k==='ext'&&p.semExt));return t==='last mile'?base.filter(f=>(+p[f.p]||0)>0):base};
+const fasesProj=p=>FASES.filter(f=>f.k==='ativ'||fasesReq(p).some(x=>x.k===f.k));
+const naoAplica=(p,k)=>k!=='ativ'&&!fasesReq(p).some(x=>x.k===k);
 const liberado=p=>!faseFim(p.etiqueta,'ativ')&&fasesReq(p).every(f=>faseFim(p.etiqueta,f.k));
 const pendReq=(p,fz)=>fasesReq(p).filter(f=>!faseFim(p.etiqueta,f.k)&&!(fz||[]).includes(f.k)).map(f=>f.k);
 const ativOk=(p,fz)=>!fz.includes('ativ')||!pendReq(p,fz).length;
 const canReag=()=>ui.perfil==='enc'||ui.perfil==='coord';
 const vinc=t=>tecT(t)==='CLT'?'equipe própria':'terceiro';
-function faseFlags(p,gestao){const L=FASES.filter(f=>!(f.k==='ext'&&p.semExt)).map(f=>{const fin=faseFim(p.etiqueta,f.k);
+function faseFlags(p,gestao){const L=fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);
     if(fin)return gestao?`<div class="ff ok"><b>✓ ${f.n}</b><span>Finalizada por ${esc(tecN(fin.tec))} (${vinc(fin.tec)}) em ${dBR(fin.data)}</span></div>`:`<span class="chip ok">✓ ${FCURTO[f.k]}</span>`;
     if(f.k==='ativ'&&liberado(p))return gestao?`<div class="ff go"><b>${f.n}</b><span>Liberado para ativar o cliente</span></div>`:`<span class="chip go">Liberado para ativar</span>`;
     const ab=S.ags.find(a=>a.etiqueta===p.etiqueta&&fasesOf(a).includes(f.k)&&!FIM.includes(a.status)&&a.status!=='cancelada');
@@ -622,9 +628,9 @@ function progLabel(e){const p=pPor(e);if(faseFim(e,'ativ'))return '<span class="
   const emExec=S.ags.filter(a=>a.etiqueta===e&&['deslocamento','no_local','execucao'].includes(a.status));
   if(emExec.length){const fz=FASES.map(f=>f.k).filter(k=>emExec.some(a=>fasesOf(a).includes(k))&&!faseFim(e,k));const lista=fz.map(k=>FSTATUS[k]);
     return `<span class="chip info">Em ${lista.length>1?lista.slice(0,-1).join(', ')+' e '+lista[lista.length-1]:lista[0]||'execução'}</span>`}
-  const falta=FASES.filter(f=>!(f.k==='ext'&&p.semExt)&&!faseFim(e,f.k)).map(f=>FSTATUS[f.k]);
+  const falta=fasesProj(p).filter(f=>!faseFim(e,f.k)).map(f=>FSTATUS[f.k]);
   return `<span class="chip ${falta.length===1&&liberado(p)?'go':'warn'}" style="white-space:normal">Falta${falta.length>1?'m':''}: ${falta.join(', ')}</span>`}
-function nextFase(e){const p=pPor(e);const f=FASES.filter(f=>!(f.k==='ext'&&p.semExt)).find(f=>!faseFim(e,f.k));return f?f.k:'ativ'}
+function nextFase(e){const p=pPor(e);const f=fasesProj(p).find(f=>!faseFim(e,f.k));return f?f.k:'ativ'}
 const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',usuarios:'Usuários e acessos',estoque:'Estoque dos técnicos',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
 
 function render(){
@@ -690,7 +696,7 @@ function pEntregas(){const b=pBase();
   const topo={};b.ent.forEach(({p})=>{const t=p.topologia||'—';topo[t]=topo[t]||{n:0,v:0};topo[t].n++;topo[t].v+=+p.valor||0});
   const grpN={cidade:'Cidade',pop:'POP',equip:'Equipamento de acesso'},gm={};b.efi.forEach(x=>{const k=x.p[ui.pGrp]||'Não informado';(gm[k]=gm[k]||[]).push(x)});
   const grR=Object.entries(gm).sort((a,c)=>c[1].length-a[1].length).map(([k,x])=>`<tr><td><b>${esc(k)}</b></td><td class="r">${x.length}</td><td class="r">${f1(x.reduce((s,y)=>s+y.tot,0)/x.length)}</td><td class="r">${brl(x.reduce((s,y)=>s+(+y.p.valor||0),0))}</td></tr>`).join('');
-  const cel=(p,f)=>{if(p.semExt&&f.k==='ext')return '<td class="r"><span class="chip">N/A</span></td>';const r=realDias(p.etiqueta,f.k),pv=+p[f.p]||0;return `<td class="r"><span class="chip ${r>pv?'bad':(r&&r>=pv?'ok':'')}">${r} / ${pv}</span></td>`};
+  const cel=(p,f)=>{if(naoAplica(p,f.k))return '<td class="r"><span class="chip">N/A</span></td>';const r=realDias(p.etiqueta,f.k),pv=+p[f.p]||0;return `<td class="r"><span class="chip ${r>pv?'bad':(r&&r>=pv?'ok':'')}">${r} / ${pv}</span></td>`};
   return `<div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${kp(f1(b.mTot),'Dias de execução por circuito (todas as fases)')}${kp(f1(b.mIA),'Dias de execução por circuito (interno + ativação)')}</div>
   <div class="grid2 even">
    <section><div class="secth"><h3>Entregas por topologia</h3></div><div class="tablewrap"><table><thead><tr><th>Topologia</th><th class="r">Circuitos</th><th class="r">Valor mensal</th></tr></thead><tbody>${Object.entries(topo).sort((a,c)=>c[1].n-a[1].n).map(([t,x])=>`<tr><td>${esc(t)}</td><td class="r">${x.n}</td><td class="r">${brl(x.v)}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
@@ -779,7 +785,7 @@ const addUteis=(iso,n)=>{let d=iso;for(let k=0;k<n;k++)d=util(addD(d,1));return 
 function previsao(p){
   const T=hoje();let cur=T;const out={};
   for(const f of FASES){
-    if(f.k==='ext'&&p.semExt){out[f.k]={tipo:'na'};continue}
+    if(naoAplica(p,f.k)){out[f.k]={tipo:'na'};continue}
     const pv=+p[f.p]||0,fin=faseFim(p.etiqueta,f.k);
     if(fin){out[f.k]={tipo:'ok',ini:fin.data,fim:fin.data,tec:fin.tec,pv,real:realDias(p.etiqueta,f.k)};if(fin.data>cur)cur=fin.data;continue}
     const ab=S.ags.filter(a=>a.etiqueta===p.etiqueta&&fasesOf(a).includes(f.k)&&!FIM.includes(a.status)&&a.status!=='cancelada').sort((a,b)=>a.data.localeCompare(b.data))[0];
@@ -793,7 +799,7 @@ function previsao(p){
 }
 function prevCell(c){const per=(a,b)=>a===b?dBR(a).slice(0,5):`${dBR(a).slice(0,5)} a ${dBR(b).slice(0,5)}`;
   switch(c.tipo){
-    case 'na':return '<div class="pc na"><b>N/A</b><small>sem extensão</small></div>';
+    case 'na':return '<div class="pc na"><b>N/A</b><small>não se aplica</small></div>';
     case 'sem':return '<div class="pc na"><b>Sem previsão</b><small>informe os dias</small></div>';
     case 'ok':return `<div class="pc ok"><b>✓ ${dBR(c.fim).slice(0,5)}</b><small>${c.real} / ${c.pv} dias, ${esc(tecN(c.tec))}</small></div>`;
     case 'ag':return `<div class="pc"><b>${per(c.ini,c.fim)}</b><small>agendada, ${c.pv} dia(s), ${esc(tecN(c.tec))}</small></div>`;
@@ -845,16 +851,16 @@ function viewSim(){
 
 /* ---------- BACKLOG (KANBAN) ---------- */
 const KCOLS=[['backlog','Backlog'],['rua','Lançamento externo'],['interno','Lançamento interno'],['ext','Extensão de sinal'],['ativ','Ativação'],['entregue','Circuitos entregues']];
-const fasesAplic=p=>FASES.filter(f=>!(f.k==='ext'&&p.semExt));
+const fasesAplic=p=>fasesProj(p);
 function etapa(p){if(!p||!p.etiqueta)return 'backlog';const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');
   if(faseFim(p.etiqueta,'ativ'))return 'entregue';if(!x.length)return 'backlog';
-  const f=FASES.filter(f=>!(f.k==='ext'&&p.semExt)).find(f=>!faseFim(p.etiqueta,f.k));return f?f.k:'ativ'}
+  const f=fasesProj(p).find(f=>!faseFim(p.etiqueta,f.k));return f?f.k:'ativ'}
 function viewKanban(){
   const q=ui.kQ.toLowerCase(),cids=[...new Set(S.previsao.map(p=>p.cidade).filter(Boolean))].sort();
   const L=S.previsao.filter(p=>p.etiqueta&&(!q||[p.etiqueta,p.protocolo,p.cliente,p.pop].join(' ').toLowerCase().includes(q))&&(!ui.kCid||p.cidade===ui.kCid));
   const g={};KCOLS.forEach(([k])=>g[k]=[]);L.forEach(p=>g[etapa(p)].push(p));
   const card=(p,k)=>{const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');const meta=[];let linha='';
-    const flg=k==='backlog'?'':FASES.filter(f=>!(f.k==='ext'&&p.semExt)).map(f=>{const fin=faseFim(p.etiqueta,f.k);return fin?`<small>✓ ${FCURTO[f.k]}: ${esc(tecN(fin.tec))}</small>`:''}).join('');
+    const flg=k==='backlog'?'':fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);return fin?`<small>✓ ${FCURTO[f.k]}: ${esc(tecN(fin.tec))}</small>`:''}).join('');
     if(k==='backlog'){const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);falta.forEach(t=>meta.push(`<span class="chip warn">${t}</span>`));linha=falta.length?'Cadastro incompleto':'Pronto para agendar'}
     else if(k==='entregue'){const a=faseFim(p.etiqueta,'ativ');linha=`Ativado em ${dBR(a.data)} por ${tecN(a.tec)}`;
       const tot=diasExec(p.etiqueta),prev=fasesAplic(p).reduce((s,f)=>s+(+p[f.p]||0),0);meta.push(`<span class="chip ${tot>prev?'bad':'ok'}">${tot} / ${prev} dias de campo</span>`)}
@@ -933,7 +939,7 @@ function viewAgenda(){
     let body='';
     if(ui.fTab==='proj')body=`<dl class="dl">${dd('Cliente',esc(p.cliente))}${dd('Protocolo',esc(p.protocolo))}${dd('Etiqueta',esc(p.etiqueta))}${dd('Valor mensal',brl(p.valor))}${dd('Topologia',esc(p.topologia))}${dd('Lançamento',(+p.metros||0)+' m')}${dd('Caixas de emenda',caixasTxt(p))}${dd('Cidade',esc(p.cidade||'—'))}${dd('POP',esc(p.pop||'—'))}${dd('Equipamento de acesso',esc(p.equip||'—'))}${p.inst&&p.inst.porta?dd('Porta',esc(p.inst.porta)):''}${p.inst&&p.inst.pa?dd('Ponto de acesso',esc(p.inst.pa)):''}${p.inst&&p.inst.pd?dd('Ponto de derivação',esc(p.inst.pd)):''}${dd('Extensão de sinal',p.semExt?'Não se aplica':'Prevista')}${dd('Lista de ROI',p.roi?`${esc(p.roi.nome)} (${p.roi.itens.length} itens)`:'Não enviada')}${p.roi&&p.roi.fin?FIN.filter(([k])=>p.roi.fin[k]!==undefined).map(([k,l,m])=>dd(l,m?brl(p.roi.fin[k]):String(p.roi.fin[k]).replace('.',','))).join(''):''}${dd('Status',progLabel(p.etiqueta))}</dl>
       <h3 class="lsub">Fases do projeto</h3>${faseFlags(p,1)}
-      <h3 class="lsub">Dias realizados / previstos</h3><div class="phases">${FASES.filter(f=>!(p.semExt&&f.k==='ext')).map(f=>`<div><span>${f.n}</span><b>${realDias(p.etiqueta,f.k)} / ${+p[f.p]||0}</b></div>`).join('')}</div>`;
+      <h3 class="lsub">Dias realizados / previstos</h3><div class="phases">${fasesProj(p).map(f=>`<div><span>${f.n}</span><b>${realDias(p.etiqueta,f.k)} / ${+p[f.p]||0}</b></div>`).join('')}</div>`;
     else if(ui.fTab==='comp')body=`<button class="btn sm" style="margin-bottom:12px" data-act="wiz" data-n="2" data-id="${p.id}">Editar endereço e dados técnicos</button>${usado&&c.endereco?'<p class="note">Dados gravados nesta etiqueta em agendamento anterior. Revise antes de agendar.</p>':''}${fld('endereco','Endereço completo *')}${fld('contato','Contato no local *')}${fld('telefone','Telefone do contato *','tel')}${fld('janela','Horário ou janela de atendimento')}${fld('acesso','Condições de acesso (portaria, autorização, chave)')}${fld('obs','Observações técnicas','area')}`;
     else if(ui.fTab==='anx')body=anexosEdit(p);
     else body=agendForm(p);
@@ -985,7 +991,7 @@ const diasTxt=L=>!L.length?'Nenhum dia no intervalo.':L.length===1?`1 agendament
 function renderRep(){const R=ui.rp,a=getAg(R.id),p=pPor(a.etiqueta);
   const rg=R.modo==='reag';
   openModal(`<h3>${rg?'Reagendar atividade':'Replicar agendamento'}</h3>${rg&&a.motivo?`<p class="note" style="margin-top:6px">Não concluída: ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}</p>`:''}<p class="muted">${esc(a.etiqueta)}, ${esc(p.cliente||'')}. Original: ${fasesN(a)} em ${dBR(a.data)} com ${esc(tecN(a.tec))}.</p>
-   <div class="f" style="margin-top:12px"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Fases *</span><div class="fchk">${FASES.filter(f=>!(f.k==='ext'&&p.semExt)).map(f=>{const fin=faseFim(a.etiqueta,f.k);const blq=f.k==='ativ'&&!fin&&pendReq(p,R.fases).length;return `<label class="${fin||blq?'dis':''}"><input type="checkbox" data-ch="rpFz" value="${f.k}" ${R.fases.includes(f.k)&&!blq?'checked':''} ${fin||blq?'disabled':''}><span>${f.n}${fin?'<small>Finalizada</small>':blq?`<small>Bloqueada até finalizar ${pendReq(p,R.fases).map(k=>FCURTO[k].toLowerCase()).join(', ')}</small>`:''}</span></label>`}).join('')}</div></div>
+   <div class="f" style="margin-top:12px"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Fases *</span><div class="fchk">${fasesProj(p).map(f=>{const fin=faseFim(a.etiqueta,f.k);const blq=f.k==='ativ'&&!fin&&pendReq(p,R.fases).length;return `<label class="${fin||blq?'dis':''}"><input type="checkbox" data-ch="rpFz" value="${f.k}" ${R.fases.includes(f.k)&&!blq?'checked':''} ${fin||blq?'disabled':''}><span>${f.n}${fin?'<small>Finalizada</small>':blq?`<small>Bloqueada até finalizar ${pendReq(p,R.fases).map(k=>FCURTO[k].toLowerCase()).join(', ')}</small>`:''}</span></label>`}).join('')}</div></div>
    ${rangeHtml('rp',R.data,R.dataFim,R.uteis)}
    <label class="f"><span>Técnico</span><select class="inp" data-ch="rpR" data-f="tec">${TEC.map(t=>`<option value="${t.id}" ${t.id===R.tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></label>
    <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="repOk">${rg?'Reagendar':'Replicar agendamento'}</button></div>`)}
@@ -1010,7 +1016,7 @@ function agendForm(p){
   if(!ativOk(p,F.fases))F.fases=F.fases.filter(k=>k!=='ativ');
   const opt=tp=>TEC.filter(t=>t.tipo===tp).map(t=>`<option value="${t.id}" ${t.id===F.tec?'selected':''}>${esc(t.nome)}</option>`).join('');
   const dias=diasRange(F.data,F.dataFim,F.uteis),carga=F.tec?S.ags.filter(a=>a.tec===F.tec&&dias.includes(a.data)&&a.status!=='cancelada').length:0;
-  const fs=FASES.filter(f=>!(p.semExt&&f.k==='ext')).map(f=>{const fin=faseFim(p.etiqueta,f.k);let sub='';
+  const fs=fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);let sub='';
     let blq=false;if(fin)sub=`Finalizada por ${esc(tecN(fin.tec))} em ${dBR(fin.data)}`;else if(f.k==='ativ'){const pr=pendReq(p,F.fases);blq=!!pr.length;sub=liberado(p)?'<b style="color:var(--brand-ink)">Liberado para ativar o cliente</b>':pr.length?`Bloqueada até finalizar ${pr.map(k=>FCURTO[k].toLowerCase()).join(', ')}. Para ativar na mesma visita, selecione essas fases também.`:'Liberada junto com as fases selecionadas neste agendamento'}
     return `<label class="${fin||blq?'dis':''}"><input type="checkbox" data-ch="agFz" value="${f.k}" ${F.fases.includes(f.k)&&!blq?'checked':''} ${fin||blq?'disabled':''}><span>${f.n}${sub?`<small>${sub}</small>`:''}</span></label>`}).join('');
   return `<div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Fases que o técnico vai realizar *</span><div class="fchk">${fs}</div></div>
@@ -1065,7 +1071,7 @@ function apoioTxt(a){const c=S.comp[a.etiqueta]||{},T=hoje(),p=pPor(a.etiqueta),
   if(c.janela)L.push('janela '+c.janela);if(fasesOf(a).includes('ativ')&&!faseFim(a.etiqueta,'ativ')&&ativOk(p,fasesOf(a)))L.push('liberado para ativar');return L.join(', ')}
 function tcTopo(a,extra){return `<div class="tchd"><div class="tcl"><span class="tccli">${esc(cliN(a.etiqueta))}</span>${chip(a.status)}</div><span class="tcetq">${esc(a.etiqueta)}</span></div>
   <div class="tcband" style="background:${corFase(a)}"><span class="tck">O QUE FAZER</span><span class="tcf">${fasesN(a)}</span><span class="tcs">${esc(apoioTxt(a))}</span></div>${extra}`}
-function andamentoHtml(a){const p=pPor(a.etiqueta),fs=FASES.filter(f=>!(f.k==='ext'&&p.semExt));
+function andamentoHtml(a){const p=pPor(a.etiqueta),fs=fasesProj(p);
   return `<div class="tcand"><span class="tck2">ANDAMENTO DO CIRCUITO</span><div class="tcbars" style="grid-template-columns:repeat(${fs.length},minmax(0,1fr))">${fs.map(f=>{const ok=!!faseFim(a.etiqueta,f.k),now=!ok&&fasesOf(a).includes(f.k);return `<div><i class="${ok?'ok':now?'now':''}"></i><span class="${ok?'ok':now?'now':''}">${ok?'✓ ':''}${FCURTO[f.k]}</span></div>`}).join('')}</div></div>`}
 function rotaLigar(c){const tel=(c.telefone||'').replace(/\D/g,''),nome=String(c.contato||'').split(/[\s(]/)[0];
   return `${c.endereco?`<a class="tcbtn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank" rel="noopener">${IC.rota}Rota</a>`:''}${tel?`<a class="tcbtn" href="tel:${tel}">${IC.tel}${nome?'Ligar para '+esc(nome):'Ligar'}</a>`:''}`}
