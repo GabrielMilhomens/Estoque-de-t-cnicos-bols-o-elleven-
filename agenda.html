@@ -220,6 +220,11 @@ td.r,th.r{white-space:nowrap}
 .rfb.pri{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
 .calert{background:var(--bad-soft);border-radius:10px;padding:12px 14px;display:grid;gap:8px;margin-top:12px}.calert div{display:flex;flex-direction:column;gap:2px}.calert b{color:var(--bad)}.calert span{font-size:14.5px}
 .estdz{display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;text-align:center;border:2px dashed var(--line);border-radius:10px;padding:18px;margin:10px 0;cursor:pointer;min-height:84px}.estdz:hover{border-color:var(--brand)}.estdz.on{border-style:solid;border-color:var(--brand);background:var(--brand-soft)}.estdz small{color:var(--muted)}
+.pwrap{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}.pcol{flex:999 1 420px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.pgrp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;padding-bottom:6px}.pgh{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--line);margin-bottom:4px}.pgh b{font:600 17px "Barlow Condensed",sans-serif}
+.prow{display:flex;align-items:center;gap:10px;min-height:40px;padding:2px 10px;margin:0 6px;border-radius:8px;cursor:pointer;font-size:15px}.prow:hover{background:var(--bg)}.prow.off{opacity:.45;cursor:default}.prow input{width:18px;height:18px;accent-color:var(--brand-ink);flex:none}.prow span{flex:1}.prow .pt0{font-weight:600}
+.prow em{font-style:normal;font-size:12px;font-weight:600;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:999px}.prow em.acao{color:var(--info);background:var(--info-soft)}
+.pprev{flex:1 1 240px;max-width:290px;position:sticky;top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}.pmg b{font-size:14.5px}.pmg .nlv span{font-size:14px;color:var(--ink)}
 .prev{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px}
 .btn[disabled],.bigbtn[disabled]{opacity:.45;cursor:not-allowed}
 .icon{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px;font-size:15px}
@@ -561,6 +566,27 @@ const FOTOS_LANC=[['lote_ini','Lote e metragem no início do lançamento','unica
 const FOTOS_EXT=[['sinal_ini','Nível de sinal na CEO/CTO de Ponto de acesso','unica','sinal'],['ceo_ini','CEO acomodada no início da extensão','unica',''],['sinal_fim','Nível de sinal na CEO/CTO de Ponto de derivação','unica','sinal'],['ceos','Todas as CEOs trabalhadas','multi','']];
 const fotosDaFase=k=>k==='rua'||k==='interno'?FOTOS_LANC:k==='ext'?FOTOS_EXT:[];
 const REGRA_FOTO={unica:'Obrigatória',opcional:'Se houver; várias fotos',multi:'Obrigatória; várias fotos'};
+/* ---------- PERMISSÕES DA GESTÃO ----------
+   Árvore igual ao menu: [chave, nome, 't' tela | 'a' ação, filhos]. O coordenador pode tudo.
+   permissoes = null (agenda_papeis) → padrão do papel, que reproduz o acesso que cada papel já tinha. */
+const PERM_T=[
+  ['Acompanhamento',[['painel','Painel de KPIs','t',[['p_geral','Visão geral','t'],['p_entregas','Entregas','t'],['p_rede','Rede executada','t'],['p_exec','Execução em campo','t'],['p_equipes','Equipes','t'],
+    ['p_fin','Financeiro','t',[['f_budget','Budget e ROI','t',[['a_budget','Definir o budget do mês','a']]],['f_det','Detalhamento das LPUs','t'],['f_aprov','Aprovação de LPU','t',[['a_aprovar','Aprovar, reprovar e devolver LPUs','a']]]]]]]]],
+  ['Operação',[['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar e editar atividades','a'],['a_anexos','Enviar e apagar anexos','a']]],['relat','Relatórios','t']]],
+  ['Estoque',[['estoque','Estoque dos técnicos','t'],['estAtual','Atualizar estoque','t',[['a_bolsao','Publicar planilha do bolsão (SAP)','a'],['a_elleven','Importar movimentações do Elleven','a'],['a_base','Saldo base e data-base do Elleven','a']]],['estHist','Movimentações','t']]],
+  ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['sim','Simulação de entrega','t'],['kanban','Backlog de projetos','t']]]];
+const PERM_ALL=(()=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));return o})();
+const _sem=l=>PERM_ALL.filter(k=>!l.includes(k));
+const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto']),
+  encarregado:_sem(['painel','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto']),
+  supply:['estAtual','a_bolsao']};
+const permDe=(papel,perm)=>Array.isArray(perm)?perm:(PERM_PAD[papel]||[]);
+const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc'].includes(ui.perfil))return false;return permDe(ME.papel,ME.perm).includes(k)};
+const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban'];
+const tabsDe=()=>['coord','clt','terc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs:G_TABS.filter(pode);
+const PSEC_K={geral:'p_geral',entregas:'p_entregas',rede:'p_rede',exec:'p_exec',equipes:'p_equipes',fin:'p_fin'},FSUB_K={budget:'f_budget',det:'f_det',aprov:'f_aprov'};
+const secsOk=()=>PSEC.filter(([k])=>pode(PSEC_K[k])),subsOk=()=>FSUB.filter(([k])=>pode(FSUB_K[k]));
+const semPerm=()=>{toast('Seu usuário não tem permissão para esta ação. Fale com a coordenação.','bad');return true};
 const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','campo','usuarios']},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']}};
 const ST={agendada:['Agendada',''],deslocamento:['Em deslocamento','info'],no_local:['No local','info'],execucao:['Em execução','info'],relatorios:['Relatórios pendentes','warn'],lpu:['LPU pendente','warn'],concluida:['Concluída','ok'],nao_concluida:['Não concluída','bad'],cancelada:['Cancelada','']};
 const LST={aguardando:['Aguardando aprovação','warn'],aprovada:['Aprovada','ok'],reprovada:['Reprovada','bad'],ajuste:['Devolvida para ajuste','info']};
@@ -616,7 +642,7 @@ const naoAplica=(p,k)=>k!=='ativ'&&!fasesReq(p).some(x=>x.k===k);
 const liberado=p=>!faseFim(p.etiqueta,'ativ')&&fasesReq(p).every(f=>faseFim(p.etiqueta,f.k));
 const pendReq=(p,fz)=>fasesReq(p).filter(f=>!faseFim(p.etiqueta,f.k)&&!(fz||[]).includes(f.k)).map(f=>f.k);
 const ativOk=(p,fz)=>!fz.includes('ativ')||!pendReq(p,fz).length;
-const canReag=()=>ui.perfil==='enc'||ui.perfil==='coord';
+const canReag=()=>pode('a_reagendar');
 const vinc=t=>tecT(t)==='CLT'?'equipe própria':'terceiro';
 function faseFlags(p,gestao){const L=fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);
     if(fin)return gestao?`<div class="ff ok"><b>✓ ${f.n}</b><span>Finalizada por ${esc(tecN(fin.tec))} (${vinc(fin.tec)}) em ${dBR(fin.data)}</span></div>`:`<span class="chip ok">✓ ${FCURTO[f.k]}</span>`;
@@ -641,26 +667,26 @@ const ICN={'Acompanhamento':_sv('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-
   gear:_sv('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>'),sair:_sv('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'),
   dn:_sv('<path d="M6 9l6 6 6-6"/>',16),up:_sv('<path d="M6 15l6-6 6 6"/>',16)};
 function render(){
-  const P=PERFIS[ui.perfil];if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0];
+  const P={tabs:tabsDe()};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span><button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
   const ORD=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
-  const nAprov=S.lpus.filter(l=>l.status==='aguardando').length,bAp=nAprov&&['coord','sup'].includes(ui.perfil)?`<span class="nbadge">${nAprov}</span>`:'';
+  const nAprov=S.lpus.filter(l=>l.status==='aguardando').length,bAp=nAprov&&pode('f_aprov')?`<span class="nbadge">${nAprov}</span>`:'';
   const chev=o=>`<span class="nch">${o?ICN.up:ICN.dn}</span>`;let h='';
   grupos.forEach(g=>{const its=vis.filter(t=>GRP[t]===g),aberto=grupos.length===1||!!ui.grpOpen[g];
     h+=grupos.length===1?`<div class="ngb so"><span class="nic">${ICN[g]||''}</span><span class="nt">${g}</span></div>`:`<button class="ngb" data-act="grp" data-g="${g}" aria-expanded="${aberto}"><span class="nic">${ICN[g]||''}</span><span class="nt">${g}</span>${chev(aberto)}</button>`;
     if(!aberto)return;h+='<div class="nlv">';
     its.forEach(t=>{const pOpen=t==='painel'&&ui.tab==='painel'&&!ui.pFech,cur=t===ui.tab;
       h+=`<button class="nit ${pOpen?'pai':''}" data-act="tab" data-t="${t}" aria-current="${cur&&!pOpen}"><span class="nt">${tabLabel(t)}</span>${t==='painel'?(pOpen?'':bAp)+chev(pOpen):badge(t)}</button>`;
-      if(pOpen){const sec=ui.pSec||'geral',sub=ui.finSub||'budget';h+='<div class="nlv">';PSEC.forEach(([k,n])=>{const on=sec===k,fOpen=on&&k==='fin'&&!ui.fFech;
+      if(pOpen){const sec=ui.pSec||'geral',sub=ui.finSub||'budget';h+='<div class="nlv">';secsOk().forEach(([k,n])=>{const on=sec===k,fOpen=on&&k==='fin'&&!ui.fFech;
         h+=`<button class="nit ${fOpen?'pai':''}" data-act="pSec" data-v="${k}" aria-current="${on&&!fOpen}"><span class="nt">${n}</span>${k==='fin'?(fOpen?'':bAp)+chev(fOpen):''}</button>`;
-        if(k==='fin'&&fOpen){h+='<div class="nlv">';FSUB.forEach(([sk,sn])=>{h+=`<button class="nit" data-act="pSec" data-v="fin" data-s="${sk}" aria-current="${sub===sk}"><span class="nt">${sn}</span>${sk==='aprov'?bAp:''}</button>`});h+='</div>'}});h+='</div>'}});
+        if(k==='fin'&&fOpen){h+='<div class="nlv">';subsOk().forEach(([sk,sn])=>{h+=`<button class="nit" data-act="pSec" data-v="fin" data-s="${sk}" aria-current="${sub===sk}"><span class="nt">${sn}</span>${sk==='aprov'?bAp:''}</button>`});h+='</div>'}});h+='</div>'}});
     h+='</div>'});
-  $('tabs').innerHTML=h;$('mTitle').textContent=tabLabel(ui.tab);
-  $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,usuarios:viewUsuarios,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
+  $('tabs').innerHTML=h;$('mTitle').textContent=tabLabel(ui.tab)||'Agenda de Implantação';
+  $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,semAcesso:()=>'<div class="toolbar"><div><h2>Nenhuma tela liberada</h2><p class="muted">Seu acesso à agenda está ativo, mas a coordenação ainda não liberou nenhuma tela para o seu usuário.</p></div></div>',usuarios:viewUsuarios,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
   if(ui.tab==='agenda')renderSug();
 }
 
@@ -680,6 +706,8 @@ const kp=(v,l,c='')=>`<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`;
 const PSEC=[['geral','Visão geral','Como estamos? O resumo para bater o olho ou levar à gerência.'],['entregas','Entregas','O que entregamos e quanto tempo de campo cada circuito consumiu?'],['rede','Rede executada','Quanto de rede foi construído no período: cabo, cordoalha, CEOs reabertas e extensão de fibra.'],['exec','Execução em campo','A operação está fluindo? Conclusões dentro e fora da previsão, não conclusões e tempos.'],['equipes','Equipes','Quem está produzindo e como? Técnico a técnico, própria x terceiros.'],['fin','Financeiro','']];
 const FSUB=[['budget','Budget e ROI','Quanto do budget de mão de obra terceirizada já foi consumido, e como a LPU executada se compara ao ROI?'],['det','Detalhamento das LPUs','Em quais serviços e classes o valor das LPUs está concentrado?'],['aprov','Aprovação de LPU','Fila da supervisão: confira itens, tempos e histórico de cada LPU antes de aprovar, devolver ou reprovar.']];
 function viewPainel(){
+  const SO=secsOk(),FO=subsOk();if(!SO.length)return '<div class="toolbar"><div><h2>Painel de KPIs</h2><p class="muted">Nenhuma seção do painel liberada para o seu usuário.</p></div></div>';
+  if(!SO.some(x=>x[0]===ui.pSec))ui.pSec=SO[0][0];if(ui.pSec==='fin'&&!FO.some(x=>x[0]===ui.finSub))ui.finSub=(FO[0]||['budget'])[0];
   const sec=ui.pSec||'geral',sub=ui.finSub||'budget';
   const nav=PSEC.map(([k,n])=>{const on=sec===k;let h=`<button class="pni ${on?'on':''}" data-act="pSec" data-v="${k}" ${on?'aria-current="page"':''}><i></i>${n}</button>`;
     if(k==='fin')h+=FSUB.map(([sk,sn])=>`<button class="pni sub ${on&&sub===sk?'on':''}" data-act="pSec" data-v="fin" data-s="${sk}">${sn}</button>`).join('');return h}).join('');
@@ -699,17 +727,17 @@ function pBase(){const T=hoje(),inP=a=>a.data>=ui.pIni&&a.data<=ui.pFim,all=S.ag
 function pGeral(){const b=pBase();
   const dias=[];for(let d=ui.pIni;d<=ui.pFim&&dias.length<62;d=addD(d,1))dias.push(d);
   const porDia=dias.map(d=>({d,n:S.ags.filter(a=>a.data===d&&a.status!=='cancelada').length,c:S.ags.filter(a=>a.data===d&&a.status==='concluida').length}));const mxD=Math.max(1,...porDia.map(x=>x.n));
-  return `<div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${kp(brl(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(pct(b.dentro.length,b.conc.length)+'%','Concluídas dentro da previsão')}${kp(f1(b.mTot),'Dias de execução por circuito')}${kp(b.atras.length,'Atividades em atraso','warn')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
+  return `<div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${kp(S.semValor?'—':brl(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(pct(b.dentro.length,b.conc.length)+'%','Concluídas dentro da previsão')}${kp(f1(b.mTot),'Dias de execução por circuito')}${kp(b.atras.length,'Atividades em atraso','warn')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
   <section class="panel"><div class="secth"><h3>Agendamentos por dia</h3><span class="muted">${porDia.reduce((s,x)=>s+x.n,0)} no período. Verde claro = agendados, verde escuro = concluídos</span></div>
    <div class="dbars">${porDia.map(x=>`<div class="db1 ${x.d===hoje()?'hj':''}" title="${dBR(x.d)}: ${x.n} agendado(s), ${x.c} concluído(s)"><span class="dn">${x.n||''}</span><div class="dbw"><i style="height:${x.n/mxD*100}%"><b style="height:${x.n?x.c/x.n*100:0}%"></b></i></div><small>${dBR(x.d).slice(0,5)}</small><small class="ds">${DSEM[new Date(x.d+'T12:00:00').getDay()]}</small></div>`).join('')}</div></section>`}
 function pEntregas(){const b=pBase();
   const topo={};b.ent.forEach(({p})=>{const t=p.topologia||'—';topo[t]=topo[t]||{n:0,v:0};topo[t].n++;topo[t].v+=+p.valor||0});
   const grpN={cidade:'Cidade',pop:'POP',equip:'Equipamento de acesso'},gm={};b.efi.forEach(x=>{const k=x.p[ui.pGrp]||'Não informado';(gm[k]=gm[k]||[]).push(x)});
-  const grR=Object.entries(gm).sort((a,c)=>c[1].length-a[1].length).map(([k,x])=>`<tr><td><b>${esc(k)}</b></td><td class="r">${x.length}</td><td class="r">${f1(x.reduce((s,y)=>s+y.tot,0)/x.length)}</td><td class="r">${brl(x.reduce((s,y)=>s+(+y.p.valor||0),0))}</td></tr>`).join('');
+  const grR=Object.entries(gm).sort((a,c)=>c[1].length-a[1].length).map(([k,x])=>`<tr><td><b>${esc(k)}</b></td><td class="r">${x.length}</td><td class="r">${f1(x.reduce((s,y)=>s+y.tot,0)/x.length)}</td><td class="r">${S.semValor?'—':brl(x.reduce((s,y)=>s+(+y.p.valor||0),0))}</td></tr>`).join('');
   const cel=(p,f)=>{if(naoAplica(p,f.k))return '<td class="r"><span class="chip">N/A</span></td>';const r=realDias(p.etiqueta,f.k),pv=+p[f.p]||0;return `<td class="r"><span class="chip ${r>pv?'bad':(r&&r>=pv?'ok':'')}">${r} / ${pv}</span></td>`};
   return `<div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${kp(f1(b.mTot),'Dias de execução por circuito (todas as fases)')}${kp(f1(b.mIA),'Dias de execução por circuito (interno + ativação)')}</div>
   <div class="grid2 even">
-   <section><div class="secth"><h3>Entregas por topologia</h3></div><div class="tablewrap"><table><thead><tr><th>Topologia</th><th class="r">Circuitos</th><th class="r">Valor mensal</th></tr></thead><tbody>${Object.entries(topo).sort((a,c)=>c[1].n-a[1].n).map(([t,x])=>`<tr><td>${esc(t)}</td><td class="r">${x.n}</td><td class="r">${brl(x.v)}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
+   <section><div class="secth"><h3>Entregas por topologia</h3></div><div class="tablewrap"><table><thead><tr><th>Topologia</th><th class="r">Circuitos</th><th class="r">Valor mensal</th></tr></thead><tbody>${Object.entries(topo).sort((a,c)=>c[1].n-a[1].n).map(([t,x])=>`<tr><td>${esc(t)}</td><td class="r">${x.n}</td><td class="r">${S.semValor?'—':brl(x.v)}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
    <section><div class="secth"><h3>Entregas por ${grpN[ui.pGrp].toLowerCase()}</h3><select class="inp" style="width:auto" data-ch="pGrp">${Object.entries(grpN).map(([k,n])=>`<option value="${k}" ${k===ui.pGrp?'selected':''}>Agrupar por ${n.toLowerCase()}</option>`).join('')}</select></div><div class="tablewrap"><table><thead><tr><th>${grpN[ui.pGrp]}</th><th class="r">Circuitos</th><th class="r">Dias por circuito</th><th class="r">Valor mensal</th></tr></thead><tbody>${grR||'<tr><td colspan="4" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
   </div>
   <section><div class="secth"><h3>Dias de execução e previsto x realizado por circuito</h3><span class="muted">Nas fases: dias realizados / previstos. Fases feitas no mesmo dia contam 1 dia no total.</span></div><div class="tablewrap"><table><thead><tr><th>Circuito</th><th>Entregue em</th><th class="r">Dias (todas)</th><th class="r">Dias (int. + ativ.)</th>${FASES.map(f=>`<th class="r">${f.k==='rua'?'Lanç. rua':f.k==='interno'?'Lanç. interno':f.k==='ext'?'Extensão':'Ativação'}</th>`).join('')}</tr></thead><tbody>${b.efi.map(x=>`<tr><td><b>${esc(x.p.etiqueta)}</b><br><small class="muted">${esc(x.p.cliente)}</small></td><td>${dBR(x.f.data)}</td><td class="r">${x.tot}</td><td class="r">${x.ia}</td>${FASES.map(f=>cel(x.p,f)).join('')}</tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhuma entrega no período. Os projetos em andamento estão em Previsão dos projetos.</td></tr>'}${b.efi.length?`<tr><td colspan="2"><b>Média</b></td><td class="r"><b>${f1(b.mTot)}</b></td><td class="r"><b>${f1(b.mIA)}</b></td><td colspan="4"></td></tr>`:''}</tbody></table></div></section>`}
@@ -747,7 +775,7 @@ function pEquipes(){const b=pBase(),F=ui.eqF||'all',tecs=TEC.filter(t=>F==='all'
   return `<div class="chips" style="margin-top:0">${[['all','Todos'],['CLT','Equipe própria (CLT)'],['TERC','Terceiros']].map(([k,n])=>`<button data-act="eqF" data-v="${k}" aria-current="${F===k}">${n}</button>`).join('')}</div>
   <section><div class="secth"><h3>Produtividade por técnico</h3></div><div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Não concl.</th><th class="r">Taxa de conclusão</th><th class="r">Dias de execução</th><th class="r">Execução média</th></tr></thead><tbody>${tecR||'<tr><td colspan="9" class="muted">Sem atividades no período.</td></tr>'}</tbody></table></div></section>
   <section><div class="secth"><h3>Equipe própria x terceiros</h3></div><div class="tablewrap"><table><thead><tr><th>Equipe</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Taxa de conclusão</th><th class="r">Concl. por técnico/dia</th></tr></thead><tbody>${eqR}</tbody></table></div></section>`}
-function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&ui.perfil==='coord',B=(S.budget||{})[mes]||{};
+function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&pode('a_budget'),B=(S.budget||{})[mes]||{};
   const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC'),ap=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes),pe=LT.filter(l=>l.status==='aguardando'||l.status==='ajuste');
   const contas=LPU_CONTAS.filter(c=>ed||+B[c]>0||ap.some(l=>l.conta===c)||pe.some(l=>l.conta===c));
   const cod=c=>c.split(' - ')[0],nome=c=>c.split(' - ').slice(1).join(' - ').replace(/^Serviços de /,'');
@@ -760,7 +788,7 @@ function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&ui.perfil==
   const moRows=[...new Set(S.lpus.filter(l=>inP(l)&&tecT(l.tec)==='TERC').map(l=>l.etiqueta))].map(e=>{const p=pPor(e),Ls=S.lpus.filter(l=>l.etiqueta===e&&l.status!=='reprovada'&&tecT(l.tec)==='TERC'),a=Ls.filter(l=>l.status==='aprovada').reduce((s,l)=>s+l.total,0),q=Ls.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+l.total,0),roi=p.roi&&p.roi.fin&&p.roi.fin.custoMO!=null?+p.roi.fin.custoMO:null;return{e,p,a,q,tot:a+q,roi,tecs:[...new Set(Ls.map(l=>tecN(l.tec)))].join(', ')}});
   const moT={roi:moRows.reduce((s,r)=>s+(r.roi||0),0),tot:moRows.reduce((s,r)=>s+r.tot,0)};
   return `<section class="panel"><div class="secth"><div><h3>Budget de mão de obra terceirizada</h3><span class="muted">Consumido pelas LPUs aprovadas no mês da aprovação, conforme a conta contábil de cada uma.</span></div>
-   <div class="tools"><label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${meses.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>${ui.perfil==='coord'?(ed?'<button class="btn primary" data-act="bSalvar">Salvar budget</button><button class="btn" data-act="bEdit">Cancelar</button>':'<button class="btn" data-act="bEdit">Definir budget do mês</button>'):''}</div></div>
+   <div class="tools"><label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${meses.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>${pode('a_budget')?(ed?'<button class="btn primary" data-act="bSalvar">Salvar budget</button><button class="btn" data-act="bEdit">Cancelar</button>':'<button class="btn" data-act="bEdit">Definir budget do mês</button>'):''}</div></div>
    <div class="kpis" style="margin:10px 0">${kp(brl(tO),'Budget do mês')}${kp(brl(tU),`Consumido: ${pct(tU,tO)}% (${ap.length===1?'1 LPU aprovada':ap.length+' LPUs aprovadas'})`,'ok')}${kp(brl(tO-tU),'Disponível',tO-tU<0?'bad':'')}${kp(brl(tC),`Aguardando aprovação (${nL(pe.length)})`,'warn')}</div>
    <div class="tablewrap"><table><thead><tr><th>Conta contábil</th><th class="r">Budget</th><th class="r">Consumido</th><th class="r">Disponível</th><th class="r">Aguardando aprovação</th><th style="min-width:180px">Consumo</th></tr></thead><tbody>
    ${rows.map(r=>`<tr><td><b>${esc(cod(r.c))}</b><br><small class="muted">${esc(nome(r.c))}</small></td><td class="r">${ed?`<input class="inp r" type="number" min="0" step="100" style="max-width:130px;margin-left:auto" data-bud="${esc(r.c)}" value="${r.orc||''}" placeholder="0">`:brl(r.orc)}</td><td class="r">${brl(r.uso)}<br><small class="muted">${r.A.length} aprovada${r.A.length===1?'':'s'}</small></td><td class="r"><b style="color:${r.disp<0?'var(--bad)':'inherit'}">${brl(r.disp)}</b></td><td class="r">${brl(r.comp)}<br><small class="muted">${r.P.length?nL(r.P.length)+' aguardando':'nenhuma'}</small>${r.est?'<br><small style="color:var(--bad);font-weight:600">passa do budget se aprovar tudo</small>':''}</td><td><div class="bbar"><i style="width:${r.wU}%"></i><b style="width:${r.wC}%"></b></div><small style="color:${cor(r.p)};font-weight:600">${r.orc?r.p+'% consumido':'sem budget definido'}</small></td></tr>`).join('')||'<tr><td colspan="6" class="muted">Nenhum budget definido nem LPU aprovada neste mês.</td></tr>'}
@@ -806,7 +834,7 @@ function viewRelat(){const q=normK(ui.rQ||''),tipo=ui.rTipo||'',tec=ui.rTec||'',
 /* ---------- BASE ---------- */
 const COLS=[['protocolo','Protocolo principal','t'],['etiqueta','Etiqueta','t'],['cliente','Cliente (razão social)','t'],['valor','Valor mensal (R$)','n'],['cidade','Cidade','t'],['pop','POP','t'],['equip','Equipamento de acesso','t'],['topologia','Topologia','s'],['metros','Metros de cabo','n'],['caixas','Caixas de emenda','n'],['dRua','Dias lanç. rua','n'],['dInterno','Dias lanç. interno','n'],['dExt','Dias extensão','n'],['dAtiv','Dias ativação','n']];
 function viewBase(){
-  const ed=ui.perfil==='coord',q=ui.baseQ.toLowerCase();
+  const ed=pode('a_projeto')&&pode('a_valor'),q=ui.baseQ.toLowerCase();
   const rows=S.previsao.filter(p=>!q||[p.protocolo,p.etiqueta,p.cliente,p.topologia].join(' ').toLowerCase().includes(q));
   const cell=(p,c)=>{const[f,l,t]=c,v=p[f]??'';
     if(p.semExt&&f==='caixas')return `<td class="ro r" title="Sem extensão de sinal: direto do splitter">1</td>`;
@@ -991,13 +1019,13 @@ function viewEstAtual(){
     <label class="estdz ${I[k]?'on':''}"><input type="file" accept="${acc}" data-ch="estArq" data-k="${k}" hidden><b>${I[k]?esc(I[k].nome):'Toque para escolher o arquivo'}</b><small>${I[k]?I[k].rows.length+' linhas lidas':'Formato '+acc.replace(/\./g,'').toUpperCase()}</small></label>${extra||''}
     <button class="btn primary" data-act="estPub" data-k="${k}" ${I[k]&&!EST.bus.pub?'':'disabled'}>${EST.bus.pub===k?'Atualizando…':'Publicar'}</button></section>`;
   const sel=ui.estBaseTec||'',cur=sel&&bm[sel]?new Date(new Date(bm[sel]).getTime()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16):'';
-  const sp=ui.perfil==='supply';
+  const sp=!pode('a_elleven')&&!pode('a_base');
   return `<div class="toolbar"><div><h2>Atualizar estoque</h2><p class="muted">${sp?'Publique aqui a planilha diária do bolsão (SAP) dos técnicos.':'Importação das planilhas do bolsão (SAP) e das movimentações do Elleven, com as mesmas regras do antigo sistema de Estoque de Materiais.'}</p></div></div>
   <div class="kpis" style="margin-bottom:14px">${kp(fmtDH(M.bolsao),'Última atualização do bolsão')}${sp?'':kp(fmtDH(M.elleven),'Última atualização do Elleven')+kp((EST.base||[]).length,'Técnicos com saldo base do Elleven')}</div>
   ${EST.msg?`<div class="result ${/^Erro/.test(EST.msg)?'bad':'ok'}" style="margin-bottom:14px">${esc(EST.msg)}</div>`:''}
-  ${card('bolsao','Planilha do bolsão (SAP)','Planilha diária enviada pela logística. Substitui o saldo do bolsão de cada técnico pelo da planilha.','.xlsx,.xls')}
-  ${sp?'':card('elleven','Movimentações do Elleven','Extrato de entradas e saídas. Só entra o que for posterior à data-base de cada técnico; o que já foi importado é ignorado.','.csv',`<label class="f inline" style="margin:10px 0"><span>Ignorar movimentações antes de (opcional)</span><input type="date" class="inp" data-in="estIni" value="${esc(ui.estIni||'')}"></label>`)}
-  ${ui.perfil==='coord'?card('base','Saldo base do Elleven','Retrato do saldo de cada técnico no dia do inventário. Define o ponto de partida das movimentações de cada técnico que estiver no arquivo.','.csv',`<label class="f inline" style="margin:10px 0"><span>Data e hora deste retrato *</span><input type="datetime-local" class="inp" data-in="estBaseDt" value="${esc(ui.estBaseDt||'')}"></label>`)+`
+  ${!pode('a_bolsao')?'':card('bolsao','Planilha do bolsão (SAP)','Planilha diária enviada pela logística. Substitui o saldo do bolsão de cada técnico pelo da planilha.','.xlsx,.xls')}
+  ${!pode('a_elleven')?'':card('elleven','Movimentações do Elleven','Extrato de entradas e saídas. Só entra o que for posterior à data-base de cada técnico; o que já foi importado é ignorado.','.csv',`<label class="f inline" style="margin:10px 0"><span>Ignorar movimentações antes de (opcional)</span><input type="date" class="inp" data-in="estIni" value="${esc(ui.estIni||'')}"></label>`)}
+  ${pode('a_base')?card('base','Saldo base do Elleven','Retrato do saldo de cada técnico no dia do inventário. Define o ponto de partida das movimentações de cada técnico que estiver no arquivo.','.csv',`<label class="f inline" style="margin:10px 0"><span>Data e hora deste retrato *</span><input type="datetime-local" class="inp" data-in="estBaseDt" value="${esc(ui.estBaseDt||'')}"></label>`)+`
   <section class="panel"><div class="secth"><div><h3>Data-base por técnico</h3><span class="muted">Ajuste a data-base de um técnico sem subir arquivo.</span></div></div>
    <div class="tools"><select class="inp" data-ch="estBaseTec"><option value="">Selecione um técnico…</option>${(EST.tecs||[]).map(([c,n])=>`<option value="${esc(c)}" ${c===sel?'selected':''}>${esc(n)}</option>`).join('')}</select><input type="datetime-local" class="inp" id="estBaseTecDt" value="${cur}"><button class="btn" data-act="estBaseSalvar" ${sel?'':'disabled'}>Salvar data-base</button></div>
    <details style="margin-top:10px"><summary class="muted">${(EST.base||[]).length} técnico(s) com data-base definida</summary><div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Técnico</th><th>Data-base</th></tr></thead><tbody>${(EST.base||[]).map(r=>`<tr><td>${esc(r.nome_referencia||r.cnpj)}</td><td>${fmtDH(r.data_base)}</td></tr>`).join('')}</tbody></table></div></details></section>`:''}`}
@@ -1150,7 +1178,7 @@ function agendForm(p){
    ${fotosEditor(F)}
    <label class="f"><span>Observações para o técnico</span><textarea class="inp" rows="2" data-in="agObs" placeholder="Ex.: sobra de cabo deixada no poste em frente ao cliente pela equipe do lançamento na rua">${esc(F.obs||'')}</textarea></label>
    ${F.tec?`<p class="muted" style="margin:-4px 0 12px">${carga?`Esse técnico já tem ${carga} atividade(s) no período.`:'Sem outras atividades no período.'}</p>`:''}
-   <button class="btn primary wide" data-act="agendar">Agendar e enviar ao técnico</button>`;
+   ${pode('a_agendar')?'<button class="btn primary wide" data-act="agendar">Agendar e enviar ao técnico</button>':'<p class="note">Seu usuário não tem permissão para agendar atividades.</p>'}`;
 }
 function renderSug(){const el=$('sug');if(!el)return;const q=(ui.q||'').trim().toLowerCase();if(!q){el.innerHTML='';return}
   const m=S.previsao.filter(p=>p.etiqueta&&[p.etiqueta,p.protocolo,p.cliente].join(' ').toLowerCase().includes(q)).slice(0,6);
@@ -1341,7 +1369,7 @@ function viewAprov(emb){
      <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd</th><th class="r">Unitário</th><th class="r">Subtotal</th></tr></thead><tbody>${l.itens.map(i=>`<tr><td>${i.cod}</td><td>${esc(i.desc)}</td><td>${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.unit*i.qtd)}</td></tr>`).join('')}</tbody></table></div>
      <dl class="dl" style="margin-top:12px"><div><dt>Deslocamento</dt><dd>${fdur(dur(a.ts.desloc,a.ts.chegada))}</dd></div><div><dt>Execução</dt><dd>${fdur(dur(a.ts.inicio,a.ts.conclusao))}</dd></div><div><dt>Relatórios</dt><dd>${relsDe(a).every(r=>a.rel&&a.rel[r.k])?'Enviados':'Pendentes'}</dd></div><div><dt>Situação</dt><dd>${lchip(l.status)}</dd></div></dl>
      <div class="hist">${(l.hist||[]).map(h=>`<div>${esc(h.acao)} por ${esc(h.por)} em ${dtBR(h.em)}${h.motivo?`: ${esc(h.motivo)}`:''}</div>`).join('')}</div>
-     <div class="actions"><button class="btn" data-act="pdf" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'?`<button class="btn" data-act="decidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="decidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="aprovar" data-id="${l.id}">${al.length?'Aprovar mesmo assim':'Aprovar'}</button>`:''}</div></div>`:''}</div>`};
+     <div class="actions"><button class="btn" data-act="pdf" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'&&pode('a_aprovar')?`<button class="btn" data-act="decidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="decidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="aprovar" data-id="${l.id}">${al.length?'Aprovar mesmo assim':'Aprovar'}</button>`:''}</div></div>`:''}</div>`};
   return `${emb?'':`<div class="toolbar"><div><h2>Aprovação de LPU</h2><p class="muted">Fila da supervisão. Toque na LPU para ver itens, tempos e histórico.</p></div></div>`}
    <div class="kpis" style="margin-bottom:14px">${tabs.map(([k,n])=>`<div class="kpi ${k==='aprovada'?'ok':k==='reprovada'?'bad':k==='aguardando'?'warn':''}"><b>${brl(tot(k))}</b><span>${n} (${cnt(k)})</span></div>`).join('')}</div>
    <div class="chips">${tabs.map(([k,n])=>`<button data-act="aTab" data-t="${k}" aria-current="${ui.aTab===k}">${n} (${cnt(k)})</button>`).join('')}</div>
@@ -1511,8 +1539,13 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
-  estPub:async el=>{const k=el.dataset.k,I=EST.imp[k];if(!I||EST.bus.pub)return;if(ui.perfil==='supply'&&k!=='bolsao'){toast('Seu perfil só publica a planilha do bolsão.','bad');return}
-    if(k==='base'&&ui.perfil!=='coord')return;
+  permAbrir:el=>{ui.permSel=el.dataset.id;ui.permEd=null;render();window.scrollTo(0,0)},
+  permFechar:()=>{ui.permSel=null;ui.permEd=null;render()},
+  permPadrao:()=>{const pp=USR.pp.find(x=>x.user_id===ui.permSel);ui.permEd.set=(PERM_PAD[pp.papel]||[]).slice();render()},
+  permSalvar:async()=>{const id=ui.permSel,pp=USR.pp.find(x=>x.user_id===id),L=ui.permEd.set.filter(k=>PERM_ALL.includes(k)),pad=PERM_PAD[pp.papel]||[],igual=pad.length===L.length&&pad.every(k=>L.includes(k));
+    const r=await sb.from('agenda_papeis').update({permissoes:igual?null:L}).eq('user_id',id);if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return}
+    await carregarUsuarios();ui.permSel=null;ui.permEd=null;render();toast('Permissões salvas. Valem no próximo acesso do usuário (ou ao recarregar a agenda).')},
+  estPub:async el=>{const k=el.dataset.k,I=EST.imp[k];if(!I||EST.bus.pub)return;if(!pode({bolsao:'a_bolsao',elleven:'a_elleven',base:'a_base'}[k])&&semPerm())return;
     if(k==='base'&&!ui.estBaseDt){toast('Informe a data e a hora do retrato.','bad');return}
     EST.bus.pub=k;EST.msg='';render();
     try{let msg;if(k==='bolsao')msg=await estAtualizarTipo('bolsao',I.rows,'Bolsão');
@@ -1521,7 +1554,7 @@ const ACT={
       EST.msg=msg;delete EST.imp[k];EST.meta=null;EST.mov={};EST.meu=null;EST.err={};await carregar()}
     catch(e){EST.msg='Erro ao publicar: '+(e.message||e)}
     EST.bus.pub=false;render()},
-  estBaseSalvar:async()=>{const cnpj=ui.estBaseTec,v=($('estBaseTecDt')||{}).value;if(!cnpj)return;if(!v){toast('Informe a data e a hora.','bad');return}
+  estBaseSalvar:async()=>{if(!pode('a_base')&&semPerm())return;const cnpj=ui.estBaseTec,v=($('estBaseTecDt')||{}).value;if(!cnpj)return;if(!v){toast('Informe a data e a hora.','bad');return}
     const nome=((EST.tecs||[]).find(x=>x[0]===cnpj)||[])[1]||cnpj,r=await sb.from('saldo_base_elleven').upsert({cnpj,nome_referencia:nome,data_base:new Date(v).toISOString(),atualizado_em:new Date().toISOString()},{onConflict:'cnpj'});
     if(r.error){toast('Erro: '+r.error.message,'bad');return}EST.meta=null;EST.mov={};EST.err={};toast('Data-base de '+nome+' salva.');render()},
   conta:()=>{const pg=pushOk()&&Notification.permission==='granted';openModal(`<h3>Minha conta</h3><p class="muted">${esc(ME.nome)}, ${PERFIS[ui.perfil].n}</p>
@@ -1553,9 +1586,9 @@ const ACT={
   repOk:()=>{const R=ui.rp,a=getAg(R.id);if(!R.fases.length){toast('Selecione ao menos uma fase.','bad');return}if(!ativOk(pPor(a.etiqueta),R.fases)){toast('A ativação está bloqueada até as fases anteriores serem finalizadas.','bad');return}const dias=diasRange(R.data,R.dataFim,R.uteis);if(!dias.length){toast('O intervalo escolhido não tem dias válidos.','bad');return}
     if(R.modo==='reag'){if(!canReag()){toast('Somente o encarregado reagenda.','bad');return}const fz=criarAgs(a.etiqueta,R.fases,R.tec,dias,meNome(),Object.assign({origem:a.id},a.materiais?{materiais:a.materiais}:{},a.obs?{obs:a.obs}:{},a.fotosReq?{fotosReq:a.fotosReq.filter(k=>R.fases.includes(k.split(':')[0]))}:{}));a.reag=dias[0];a.pendReag=false;a.reagPor=meNome();save();closeModal();render();toast(`Reagendado: ${a.etiqueta} para ${dBR(dias[0])} com ${tecN(R.tec)} (${fz.map(k=>FCURTO[k]).join(' + ')}).`);return}
     const fz=criarAgs(a.etiqueta,R.fases,R.tec,dias,meNome(),Object.assign({replicaDe:a.id},a.materiais?{materiais:a.materiais}:{},a.obs?{obs:a.obs}:{},a.fotosReq?{fotosReq:a.fotosReq.filter(k=>R.fases.includes(k.split(':')[0]))}:{}));save();closeModal();render();toast(`Replicado: ${dias.length} agendamento(s) de ${a.etiqueta} para ${tecN(R.tec)} (${fz.map(k=>FCURTO[k]).join(' + ')}).`)},
-  reag:el=>{if(!canReag()){toast('Somente o encarregado reagenda.','bad');return}const a=getAg(el.dataset.id),ini=addD(hoje(),1);ui.rp={modo:'reag',id:a.id,data:ini,dataFim:ini,uteis:true,tec:a.tec,fases:fasesOf(a).filter(k=>!faseFim(a.etiqueta,k))};renderRep()},
+  reag:el=>{if(!canReag()){semPerm();return}const a=getAg(el.dataset.id),ini=addD(hoje(),1);ui.rp={modo:'reag',id:a.id,data:ini,dataFim:ini,uteis:true,tec:a.tec,fases:fasesOf(a).filter(k=>!faseFim(a.etiqueta,k))};renderRep()},
   anxOpen:async el=>{const x=S.anexos.find(a=>a.id===el.dataset.id);const r=await sb.storage.from('agenda').createSignedUrl(x.path,120,{download:x.nome});if(r.error){toast('Não foi possível abrir o arquivo: '+r.error.message,'bad');return}window.open(r.data.signedUrl,'_blank')},
-  anxDel:async el=>{const x=S.anexos.find(a=>a.id===el.dataset.id);if(!confirm(`Remover o anexo ${x.nome}?`))return;await sb.storage.from('agenda').remove([x.path]);const d=await sb.from('ag_anexos').delete().eq('id',x.id);if(d.error){toast('Erro ao remover: '+d.error.message,'bad');return}S.anexos=S.anexos.filter(a=>a!==x);render();toast('Anexo removido.')},
+  anxDel:async el=>{if(!pode('a_anexos')&&semPerm())return;const x=S.anexos.find(a=>a.id===el.dataset.id);if(!confirm(`Remover o anexo ${x.nome}?`))return;await sb.storage.from('agenda').remove([x.path]);const d=await sb.from('ag_anexos').delete().eq('id',x.id);if(d.error){toast('Erro ao remover: '+d.error.message,'bad');return}S.anexos=S.anexos.filter(a=>a!==x);render();toast('Anexo removido.')},
   sDia:el=>{ui.sDia=el.dataset.d;if(ui.sDia.slice(0,7)!==ui.sMes.slice(0,7))ui.sMes=ui.sDia.slice(0,8)+'01';render();simDia(ui.sDia)},
   simAg:el=>{ACT.agOpen(el)},
   sMes:el=>{const d=new Date(ui.sMes+'T12:00:00');ui.sMes=isoD(new Date(d.getFullYear(),d.getMonth()+(+el.dataset.n),1));ui.sDia=ui.sMes;render()},
@@ -1583,8 +1616,8 @@ const ACT={
     ${anxDe(a.etiqueta).length?`<h3 class="lsub">Anexos</h3>${anxDe(a.etiqueta).map(x=>anxLinha(x,0)).join('')}`:''}
     ${a.pendReag?`<p class="note" style="margin-top:10px">${canReag()?'Aguardando reagendamento.':'Aguardando o encarregado reagendar.'}</p>`:''}
     ${ed?`<h3 class="lsub">Alterar agendamento</h3><div class="grid2 even" style="gap:0 12px"><label class="f"><span>Data${canReag()?'':' (somente o encarregado altera)'}</span><input type="date" class="inp" id="eData" value="${a.data}" ${canReag()?'':'disabled'}></label><label class="f"><span>Técnico</span><select class="inp" id="eTec">${TEC.map(x=>`<option value="${x.id}" ${x.id===a.tec?'selected':''}>${esc(x.nome)}</option>`).join('')}</select></label></div>`:''}
-    <div class="actions"><button class="btn" data-act="close">Fechar</button>${ed?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button><button class="btn primary" data-act="agEdit" data-id="${a.id}">Salvar alterações</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button><button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button></div>`)},
-  replicar:el=>{const a=getAg(el.dataset.id),p=pPor(a.etiqueta),ini=addD(a.data<hoje()?hoje():a.data,1);ui.rp={id:a.id,data:ini,dataFim:ini,uteis:true,tec:a.tec,fases:fasesOf(a).filter(k=>!faseFim(a.etiqueta,k))};renderRep()},
+    <div class="actions"><button class="btn" data-act="close">Fechar</button>${ed&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button><button class="btn primary" data-act="agEdit" data-id="${a.id}">Salvar alterações</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button></div>`)},
+  replicar:el=>{if(!pode('a_agendar')&&semPerm())return;const a=getAg(el.dataset.id),p=pPor(a.etiqueta),ini=addD(a.data<hoje()?hoje():a.data,1);ui.rp={id:a.id,data:ini,dataFim:ini,uteis:true,tec:a.tec,fases:fasesOf(a).filter(k=>!faseFim(a.etiqueta,k))};renderRep()},
   agEdit:el=>{const a=getAg(el.dataset.id),d=$('eData').value,t=$('eTec').value;if(!d){toast('Informe a data.','bad');return}if(d!==a.data&&!canReag()){toast('Somente o encarregado reagenda.','bad');return}a.data=d;a.tec=t;save();closeModal();render();toast(`Agendamento atualizado: ${dBR(d)}, ${tecN(t)}.`)},
   verProj:el=>{closeModal();ui.agSel=el.dataset.etq;ui.fTab='proj';ui.agForm={};render();window.scrollTo(0,0)},
   kOpen:el=>{ui.tab='agenda';ui.agSel=el.dataset.etq;ui.q='';ui.agForm={};ui.fTab=el.dataset.k==='entregue'?'proj':'ag';render();window.scrollTo(0,0)},
@@ -1635,14 +1668,14 @@ const ACT={
   unpick:()=>{ui.agSel=null;render()},
   fTab:el=>{ui.fTab=el.dataset.t;render()},
   dia:el=>{const n=+el.dataset.n;if(ui.agView==='semana')ui.agDia=addD(ui.agDia,7*n);else if(ui.agView==='mes'){const d=new Date(ui.agDia+'T12:00:00');ui.agDia=isoD(new Date(d.getFullYear(),d.getMonth()+n,1))}else ui.agDia=addD(ui.agDia,n);render()},
-  agendar:()=>{const F=ui.agForm,c=S.comp[ui.agSel]||{},falta=[];if(!(c.endereco||'').trim())falta.push('endereço');if(!(c.contato||'').trim())falta.push('contato');if(!(c.telefone||'').trim())falta.push('telefone');
+  agendar:()=>{if(!pode('a_agendar')&&semPerm())return;const F=ui.agForm,c=S.comp[ui.agSel]||{},falta=[];if(!(c.endereco||'').trim())falta.push('endereço');if(!(c.contato||'').trim())falta.push('contato');if(!(c.telefone||'').trim())falta.push('telefone');
     if(falta.length){ui.fTab='comp';render();toast('Preencha '+falta.join(', ')+' em Dados complementares para agendar.','bad');return}
     if(!F.fases||!F.fases.length){toast('Selecione ao menos uma fase.','bad');return}if(!ativOk(pPor(ui.agSel),F.fases)){toast('A ativação está bloqueada até as fases anteriores serem finalizadas.','bad');return}if(!F.data){toast('Informe a data.','bad');return}if(!F.tec){toast('Selecione o técnico.','bad');return}
     const dias=diasRange(F.data,F.dataFim,F.uteis);if(!dias.length){toast('O intervalo escolhido não tem dias válidos.','bad');return}
     const etq=ui.agSel,pp=pPor(etq),lista=pp.roi?matLista(pp,F).map(n=>({cod:n.cod,desc:n.desc,qtd:n.qtd,ponta:n.ponta})):null,mc=lista?matCheck(pp,F.tec,F.fases,lista):null,fz=criarAgs(etq,F.fases,F.tec,dias,meNome(),Object.assign({},lista?{materiais:lista}:{},(F.obs||'').trim()?{obs:F.obs.trim()}:{},fotosReqDe(F).length?{fotosReq:fotosReqDe(F)}:{}));save();
     const fm=mc?mc.filter(x=>x.st!=='ok').length:0;if(mc)setTimeout(()=>toast(fm?`Atenção: ${tecN(F.tec)} não tem todo o material (${fm} item(ns) em falta).`:`${tecN(F.tec)} tem todo o material do ROI para estas fases.`,fm?'bad':''),3300);
     ui.agDia=F.data;ui.agSel=null;ui.agForm={};render();toast(`${etq}: ${dias.length} agendamento(s) para ${tecN(F.tec)}${dias.length>1?` de ${dBR(dias[0])} a ${dBR(dias[dias.length-1])}`:` em ${dBR(dias[0])}`} (${fz.map(k=>FCURTO[k]).join(' + ')}).`)},
-  cancelar:el=>{const a=getAg(el.dataset.id);if(confirm(`Cancelar o agendamento de ${a.etiqueta}?`)){a.status='cancelada';save();closeModal();render();toast('Agendamento cancelado.')}},
+  cancelar:el=>{if(!pode('a_cancelar')&&semPerm())return;const a=getAg(el.dataset.id);if(confirm(`Cancelar o agendamento de ${a.etiqueta}?`)){a.status='cancelada';save();closeModal();render();toast('Agendamento cancelado.')}},
   cF:el=>{ui.cF=el.dataset.t;render()},
   abrir:el=>{ui.campoSel=el.dataset.id;ui.tAcc={};render();window.scrollTo(0,0)},
   voltar:()=>{ui.campoSel=null;render()},
@@ -1678,14 +1711,17 @@ const ACT={
   reenviar:el=>{const l=S.lpus.find(x=>x.id===el.dataset.id),k='L:'+l.id;if(!draftItens(k).length){toast('Informe a quantidade de pelo menos um serviço.','bad');return}ui.sign={tipo:'ajuste',id:l.id,key:k,tec:l.tec};conferirModal()},
   aTab:el=>{ui.aTab=el.dataset.t;ui.aOpen=null;render()},
   aOpen:el=>{ui.aOpen=ui.aOpen===el.dataset.id?null:el.dataset.id;render()},
-  aprovar:el=>{const l=S.lpus.find(x=>x.id===el.dataset.id);l.status='aprovada';l.hist.push({acao:'Aprovada',por:meNome(),em:Date.now()});ui.aOpen=null;save();render();toast(`LPU de ${brl(l.total)} aprovada.`)},
-  decidir:el=>{const t=el.dataset.t;openModal(`<h3>${t==='ajuste'?'Devolver para ajuste':'Reprovar LPU'}</h3><label class="f" style="margin-top:12px"><span>Motivo *</span><textarea id="dMot" class="inp" rows="4" placeholder="${t==='ajuste'?'O que o prestador precisa corrigir':'Por que a LPU foi reprovada'}"></textarea></label><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn ${t==='ajuste'?'primary':'danger'}" data-act="decOk" data-t="${t}" data-id="${el.dataset.id}">${t==='ajuste'?'Devolver para ajuste':'Reprovar'}</button></div>`)},
+  aprovar:el=>{if(!pode('a_aprovar')&&semPerm())return;const l=S.lpus.find(x=>x.id===el.dataset.id);l.status='aprovada';l.hist.push({acao:'Aprovada',por:meNome(),em:Date.now()});ui.aOpen=null;save();render();toast(`LPU de ${brl(l.total)} aprovada.`)},
+  decidir:el=>{if(!pode('a_aprovar')&&semPerm())return;const t=el.dataset.t;openModal(`<h3>${t==='ajuste'?'Devolver para ajuste':'Reprovar LPU'}</h3><label class="f" style="margin-top:12px"><span>Motivo *</span><textarea id="dMot" class="inp" rows="4" placeholder="${t==='ajuste'?'O que o prestador precisa corrigir':'Por que a LPU foi reprovada'}"></textarea></label><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn ${t==='ajuste'?'primary':'danger'}" data-act="decOk" data-t="${t}" data-id="${el.dataset.id}">${t==='ajuste'?'Devolver para ajuste':'Reprovar'}</button></div>`)},
   decOk:el=>{const m=$('dMot').value.trim();if(!m){toast('Informe o motivo.','bad');return}const l=S.lpus.find(x=>x.id===el.dataset.id),t=el.dataset.t;l.status=t;l.hist.push({acao:t==='ajuste'?'Devolvida para ajuste':'Reprovada',por:meNome(),em:Date.now(),motivo:m});ui.aOpen=null;save();closeModal();render();toast(t==='ajuste'?'LPU devolvida ao prestador.':'LPU reprovada.')},
   pdfArq:async el=>{const l=S.lpus.find(x=>x.id===el.dataset.id);const r=await sb.storage.from('agenda').createSignedUrl(l.pdf_path,120);if(r.error){toast('Não foi possível abrir o PDF: '+r.error.message,'bad');return}window.open(r.data.signedUrl,'_blank')},
   pdf:el=>{const l=S.lpus.find(x=>x.id===el.dataset.id),p=S.previsao.find(x=>x.etiqueta===l.etiqueta)||{};openModal(`<div class="doc"><div class="dochead"><span class="mark">NT</span><div><b>LPU de serviço executado</b><small>Net Turbo Telecom</small></div></div><dl class="dl"><div><dt>Prestador</dt><dd>${esc(tecN(l.tec))}</dd></div><div><dt>Cliente</dt><dd>${esc(p.cliente||'')}</dd></div><div><dt>Etiqueta</dt><dd>${esc(l.etiqueta)}</dd></div><div><dt>Protocolo</dt><dd>${esc(p.protocolo||'')}</dd></div><div><dt>Fases</dt><dd>${fasesN(l)}</dd></div><div><dt>Data</dt><dd>${dBR(l.data)}</dd></div><div style="grid-column:1/-1"><dt>Descrição contábil</dt><dd>${esc(l.conta||'')}</dd></div></dl><div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd</th><th class="r">Unit.</th><th class="r">Total</th></tr></thead><tbody>${l.itens.map(i=>`<tr><td>${i.cod}</td><td>${esc(i.desc)}</td><td>${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.unit*i.qtd)}</td></tr>`).join('')}</tbody></table></div><div class="ltotal"><span>Total</span><b>${brl(l.total)}</b></div>
    <div class="grid2 even" style="margin-top:18px;gap:16px"><div style="text-align:center">${l.assinatura?`<img src="${l.assinatura.img}" alt="Assinatura" style="max-height:70px;max-width:100%">`:'<div style="height:70px"></div>'}<div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">${l.assinatura?esc(l.assinatura.nome)+', '+dtBR(l.assinatura.em):'Assinatura prestador'}</div></div><div style="text-align:center"><div style="height:70px;display:flex;align-items:flex-end;justify-content:center;font-size:13px">${l.status==='aprovada'?esc(((l.hist||[]).filter(h=>h.acao==='Aprovada').pop()||{}).por||''):''}</div><div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">Aprovador</div></div></div></div><div class="actions"><button class="btn" data-act="close">Fechar</button>${l.pdf_path?`<button class="btn primary" data-act="pdfArq" data-id="${l.id}">Abrir PDF assinado</button>`:''}</div>`)}
 };
 const CH={
+  permTog:el=>{const E=ui.permEd,k=el.value,s=new Set(E.set),filhos=[];const find=(L)=>{for(const n of L){if(n[0]===k){const w=x=>(x||[]).forEach(c=>{filhos.push(c[0]);w(c[3])});w(n[3]);return true}if(n[3]&&find(n[3]))return true}return false};PERM_T.forEach(g=>find(g[1]));
+    if(el.checked){s.add(k);filhos.forEach(c=>s.add(c));if(k==='a_projeto')s.add('a_valor')}else{s.delete(k);filhos.forEach(c=>s.delete(c));if(k==='a_valor')s.delete('a_projeto')}E.set=[...s];render()},
+  permCopia:el=>{const x=USR.pp.find(y=>y.user_id===el.value);if(x){ui.permEd.set=permDe(x.papel,x.permissoes).slice();render()}},
   estArq:el=>{const f=el.files&&el.files[0];el.value='';if(f)lerArquivoEst(el.dataset.k,f)},
   estBaseTec:el=>{ui.estBaseTec=el.value;render()},
   mTipo:el=>{ui.mTipo=el.value;render()},mDe:el=>{ui.mDe=el.value;render()},mAte:el=>{ui.mAte=el.value;render()},
@@ -1703,7 +1739,7 @@ const CH={
   eTec:el=>{ui.eTec=el.value;render()},
   rpR:el=>{const R=ui.rp,k=el.dataset.f;R[k]=el.type==='checkbox'?el.checked:el.value;if(k==='data'&&(!R.dataFim||R.dataFim<R.data))R.dataFim=R.data;renderRep()},
   rpFz:el=>{const R=ui.rp;R.fases=el.checked?[...new Set(R.fases.concat(el.value))]:R.fases.filter(k=>k!==el.value);const p=pPor(getAg(R.id).etiqueta);if(!ativOk(p,R.fases))R.fases=R.fases.filter(k=>k!=='ativ');renderRep()},
-  anexo:async el=>{const fs=[...(el.files||[])],tipo=el.dataset.tipo,e=ui.agSel;if(!fs.length||!e)return;
+  anexo:async el=>{if(!pode('a_anexos')){el.value='';semPerm();return}const fs=[...(el.files||[])],tipo=el.dataset.tipo,e=ui.agSel;if(!fs.length||!e)return;
     if(tipo!=='outro'&&!/\.km[lz]$/i.test(fs[0].name)){toast('Envie um arquivo .kmz ou .kml.','bad');el.value='';return}
     await flushSync();toast('Enviando arquivo…');let ok=0;
     for(const f of (tipo==='outro'?fs:[fs[0]])){const id=uid(),path=`anexos/${e}/${id}-${f.name.replace(/[^\w.\-]+/g,'_')}`;
@@ -1811,11 +1847,11 @@ function setSt(t,err){const e=$('syncSt');if(e){e.textContent=t;e.classList.togg
 function agendarSync(){SYNC_PEND=true;setSt('Salvando…');clearTimeout(SYNC_T);SYNC_T=setTimeout(()=>{SYNC_P=SYNC_P.then(syncAgora)},350)}
 async function flushSync(){if(SYNC_PEND){clearTimeout(SYNC_T);SYNC_P=SYNC_P.then(syncAgora)}await SYNC_P}
 async function syncAgora(){SYNC_PEND=false;const r=curRows();
-  try{for(const k of ['p','c','a','l']){const ch=r[k].filter(x=>SNAP[k].get(x[KEYS[k]])!==JSON.stringify(x)),K=KEYS[k];
+  try{const KS=S.semValor?['c','a','l']:['p','c','a','l'];for(const k of KS){const ch=r[k].filter(x=>SNAP[k].get(x[KEYS[k]])!==JSON.stringify(x)),K=KEYS[k];
       const novos=ch.filter(x=>!SNAP[k].has(x[K])),alt=ch.filter(x=>SNAP[k].has(x[K]));
       if(novos.length){const q=k==='c'?await sb.from(TBL[k]).upsert(novos,{onConflict:K}):await sb.from(TBL[k]).insert(novos);if(q.error)throw q.error;novos.forEach(x=>SNAP[k].set(x[K],JSON.stringify(x)))}
       for(const x of alt){const q=await sb.from(TBL[k]).update(x).eq(K,x[K]);if(q.error)throw q.error;SNAP[k].set(x[K],JSON.stringify(x))}}
-    for(const k of ['l','a','c','p']){const vivos=new Set(r[k].map(x=>x[KEYS[k]])),rem=[...SNAP[k].keys()].filter(x=>!vivos.has(x));
+    for(const k of KS.slice().reverse()){const vivos=new Set(r[k].map(x=>x[KEYS[k]])),rem=[...SNAP[k].keys()].filter(x=>!vivos.has(x));
       if(rem.length){const q=await sb.from(TBL[k]).delete().in(KEYS[k],rem);if(q.error)throw q.error;rem.forEach(x=>SNAP[k].delete(x))}}
     setSt('Tudo salvo')}
   catch(e){console.error(e);setSt('Erro ao salvar',1);toast('Não foi possível salvar: '+(e.message||e)+'. Os dados foram recarregados.','bad');await carregar();render()}}
@@ -1832,6 +1868,7 @@ async function carregar(){
   TEC.splice(0,TEC.length,...novos);
   const [pr,co,ag,lp,an,lg]=await Promise.all([(g?todas(()=>sb.from('ag_projetos').select('*')):sb.rpc('ag_projetos_tecnico').then(r=>{if(r.error)throw r.error;return r.data||[]})),todas(()=>sb.from('ag_complementos').select('*')),todas(()=>sb.from('ag_agendamentos').select('*')),todas(()=>sb.from('ag_lpus').select('*')),todas(()=>sb.from('ag_anexos').select('*')),g?todas(()=>sb.from('ag_anexos_log').select('*')):Promise.resolve([])]);
   S.previsao=pr.map(r=>Object.assign({id:r.id,etiqueta:r.etiqueta},r.dados));
+  S.semValor=g&&!pode('a_valor');if(S.semValor)S.previsao.forEach(p=>{delete p.valor;if(p.roi&&p.roi.fin)delete p.roi.fin});
   S.comp={};co.forEach(r=>S.comp[r.etiqueta]=r.dados||{});
   S.ags=ag.map(r=>Object.assign({ts:{},rel:{}},r.dados,{id:r.id,etiqueta:r.etiqueta,tec:r.tecnico,data:r.data,status:r.status,fases:r.fases,fase:(r.fases||[])[0]}));
   S.lpus=lp.map(r=>Object.assign({},r.dados,{id:r.id,ag:r.agendamento,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total,pdf_path:r.pdf_path}));
@@ -1867,13 +1904,26 @@ function gerarPdfLpu(l){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m
 let USR=null;
 async function carregarUsuarios(){const[pf,pp]=await Promise.all([todas(()=>sb.from('perfis').select('id,nome,tipo,cnpj,status,equipe').order('nome')),todas(()=>sb.from('agenda_papeis').select('*'))]);USR={pf,pp}}
 const PAPEIS=[['','Sem acesso à agenda'],['coordenador','Coordenador'],['supervisor','Supervisor'],['encarregado','Encarregado'],['tecnico:clt','Técnico próprio (CLT)'],['tecnico:terceiro','Técnico terceiro'],['supply','Supply Chain (só planilha do bolsão)']];
-function viewUsuarios(){if(!USR){carregarUsuarios().then(render).catch(e=>toast(e.message,'bad'));return '<p class="muted pad">Carregando usuários…</p>'}
+function viewPermissoes(){const id=ui.permSel,pf=USR.pf.find(x=>x.id===id),pp=USR.pp.find(x=>x.user_id===id);if(!pf||!pp){ui.permSel=null;return viewUsuarios()}
+  ui.permEd=ui.permEd&&ui.permEd.id===id?ui.permEd:{id,set:permDe(pp.papel,pp.permissoes).slice()};const P=new Set(ui.permEd.set),pad=PERM_PAD[pp.papel]||[],igual=pad.length===P.size&&pad.every(k=>P.has(k));
+  const papN={supervisor:'Supervisor',encarregado:'Encarregado',supply:'Supply Chain'}[pp.papel];
+  const grupos=PERM_T.map(([gn,nos])=>{let h='';const tl=[];const w=(L,niv,ok)=>L.forEach(n=>{const[k,nome,tp,fi]=n,on=P.has(k)&&ok;if(tp==='t')tl.push(k);
+      h+=`<label class="prow ${ok?'':'off'}" style="padding-left:${8+niv*26}px"><input type="checkbox" data-ch="permTog" value="${k}" ${on?'checked':''} ${ok?'':'disabled'}><span class="${tp==='t'&&!niv?'pt0':''}">${nome}</span><em class="${tp==='a'?'acao':''}">${tp==='a'?'Ação':'Tela'}</em></label>`;if(fi)w(fi,niv+1,on)});
+    w(nos,0,true);return `<section class="pgrp"><div class="pgh"><b>${gn}</b><span class="muted">${tl.filter(k=>P.has(k)).length} de ${tl.length} telas</span></div>${h}</section>`}).join('');
+  const menu=PERM_T.map(([gn,nos])=>{const it=[];const w=(L,niv,ok)=>L.forEach(n=>{if(n[2]!=='t')return;const on=ok&&P.has(n[0]);if(on)it.push(`<span style="padding-left:${niv*12}px">${n[1]}</span>`);if(n[3])w(n[3],niv+1,on)});w(nos,0,true);return it.length?`<div class="pmg"><b>${gn}</b><div class="nlv">${it.join('')}</div></div>`:''}).join('');
+  const outros=USR.pp.filter(x=>x.user_id!==id&&['supervisor','encarregado','supply'].includes(x.papel)&&x.ativo);
+  return `<button class="back" data-act="permFechar">‹ Usuários e acessos</button>
+  <div class="toolbar"><div><h2>Permissões de ${esc(pf.nome)}</h2><p class="muted">${papN}. Marque o que ele vê e o que pode fazer na agenda. ${igual?'<span class="chip ok">Padrão do papel</span>':'<span class="chip warn">Personalizado</span>'}</p></div>
+   <div class="tools"><button class="btn" data-act="permPadrao">Restaurar padrão do papel</button><select class="inp" data-ch="permCopia"><option value="">Copiar de…</option>${outros.map(x=>{const n=(USR.pf.find(y=>y.id===x.user_id)||{}).nome||'';return `<option value="${x.user_id}">${esc(n)}</option>`}).join('')}</select></div></div>
+  <div class="pwrap"><div class="pcol">${grupos}</div><aside class="pprev"><b style="font:600 17px 'Barlow Condensed',sans-serif">Como fica o menu dele</b>${menu||'<p style="color:var(--bad);font-size:14px">Nenhuma tela marcada: ele não verá nada.</p>'}</aside></div>
+  <div class="actions"><button class="btn" data-act="permFechar">Cancelar</button><button class="btn primary" data-act="permSalvar">Salvar permissões</button></div>`}
+function viewUsuarios(){if(USR&&ui.permSel)return viewPermissoes();if(!USR){carregarUsuarios().then(render).catch(e=>toast(e.message,'bad'));return '<p class="muted pad">Carregando usuários…</p>'}
   const pap=id=>{const x=USR.pp.find(p=>p.user_id===id&&p.ativo);return x?(x.papel==='tecnico'?'tecnico:'+x.vinculo:x.papel):''};
   const pend=USR.pf.filter(p=>p.status==='pendente'),q=normK(ui.uQ||''),apr=USR.pf.filter(p=>p.status==='aprovado'&&(!q||normK(p.nome+' '+(p.equipe||'')).includes(q))&&(!ui.uSo||pap(p.id)||(p.equipe||'').toLowerCase().includes('implanta')));
   return `<div class="toolbar"><div><h2>Usuários e acessos</h2><p class="muted">Os cadastros são os mesmos do Estoque de Materiais. Aqui você aprova cadastros novos e define quem acessa a agenda e com qual papel.</p></div></div>
    ${pend.length?`<section class="panel" style="margin-bottom:14px"><h3>Cadastros aguardando aprovação</h3>${pend.map(p=>`<div class="item"><div><b>${esc(p.nome)}</b><small>${p.tipo==='tecnico'?'Técnico, '+esc(p.cnpj||''):'Gestão'}</small></div><div class="right"><button class="btn sm" data-act="uRej" data-id="${p.id}">Recusar</button><button class="btn sm primary" data-act="uApr" data-id="${p.id}">Aprovar</button></div></div>`).join('')}</section>`:''}
    <div class="tools" style="margin-bottom:10px"><input class="inp" type="search" id="uQ" placeholder="Buscar nome ou equipe" data-in="uQ" value="${esc(ui.uQ||'')}"><label class="chk" style="margin:0"><input type="checkbox" data-ch="uSo" ${ui.uSo?'checked':''}> Só Implantação e quem já tem acesso</label></div>
-   <div class="tablewrap"><table><thead><tr><th>Nome</th><th>Cadastro</th><th>Equipe</th><th>Acesso à agenda</th></tr></thead><tbody>${apr.map(p=>`<tr><td><b>${esc(p.nome)}</b>${p.cnpj?`<br><small class="muted">${esc(p.cnpj)}</small>`:''}</td><td>${p.tipo==='tecnico'?'Técnico':p.tipo==='om'?'Gestão O&M':p.tipo==='supply'?'Supply Chain':esc(p.tipo)}</td><td>${esc(p.equipe||'—')}</td><td><select class="inp" style="min-width:190px" data-ch="uPapel" data-id="${p.id}" ${p.id===ME.id?'disabled':''}>${PAPEIS.map(([v,n])=>`<option value="${v}" ${pap(p.id)===v?'selected':''}>${n}</option>`).join('')}</select></td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nenhum usuário encontrado.</td></tr>'}</tbody></table></div>`}
+   <div class="tablewrap"><table><thead><tr><th>Nome</th><th>Cadastro</th><th>Equipe</th><th>Acesso à agenda</th><th>Permissões</th></tr></thead><tbody>${apr.map(p=>`<tr><td><b>${esc(p.nome)}</b>${p.cnpj?`<br><small class="muted">${esc(p.cnpj)}</small>`:''}</td><td>${p.tipo==='tecnico'?'Técnico':p.tipo==='om'?'Gestão O&M':p.tipo==='supply'?'Supply Chain':esc(p.tipo)}</td><td>${esc(p.equipe||'—')}</td><td><select class="inp" style="min-width:190px" data-ch="uPapel" data-id="${p.id}" ${p.id===ME.id?'disabled':''}>${PAPEIS.map(([v,n])=>`<option value="${v}" ${pap(p.id)===v?'selected':''}>${n}</option>`).join('')}</select></td><td>${['supervisor','encarregado','supply'].includes(pap(p.id))?(()=>{const x=USR.pp.find(y=>y.user_id===p.id),L=permDe(x.papel,x.permissoes),nt=L.filter(k=>!k.startsWith('a_')).length;return `<button class="btn sm" data-act="permAbrir" data-id="${p.id}">Definir</button><br><small class="muted">${x.permissoes==null?'Padrão do papel':nt+(nt===1?' tela':' telas')}</small>`})():pap(p.id)==='coordenador'?'<small class="muted">Acesso total</small>':'<small class="muted">—</small>'}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Nenhum usuário encontrado.</td></tr>'}</tbody></table></div>`}
 // ---- sessão
 let RECUP=/type=recovery/.test(location.hash),NP_OPEN=RECUP,BOOT_UID=null;
 async function checarSessao(){if(NP_OPEN)return;
@@ -1885,8 +1935,8 @@ async function checarSessao(){if(NP_OPEN)return;
   if(pf.status!=='aprovado'){showAuth('cPend');$('pendMsg').textContent=pf.status==='rejeitado'?'Seu cadastro foi recusado. Fale com a coordenação.':'Seu cadastro está aguardando aprovação da coordenação.';return}
   const{data:pp}=await sb.from('agenda_papeis').select('*').eq('user_id',session.user.id).eq('ativo',true).maybeSingle();
   if(!pp){showAuth('cPend');$('pendMsg').textContent='Seu cadastro está aprovado, mas o acesso à Agenda de Implantação ainda não foi liberado pela coordenação.';return}
-  ME={id:session.user.id,nome:pf.nome,cnpj:pf.cnpj,papel:pp.papel,vinculo:pp.vinculo};
-  ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',supply:'supply',tecnico:pp.vinculo==='terceiro'?'terc':'clt'}[pp.papel];if(!ui.perfil){showAuth('cPend');$('pendMsg').textContent='Seu perfil de acesso à agenda não é reconhecido. Fale com a coordenação.';return}ui.tab=PERFIS[ui.perfil].tabs[0];ui.tec=ME.id;
+  ME={id:session.user.id,nome:pf.nome,cnpj:pf.cnpj,papel:pp.papel,vinculo:pp.vinculo,perm:pp.permissoes};
+  ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',supply:'supply',tecnico:pp.vinculo==='terceiro'?'terc':'clt'}[pp.papel];if(!ui.perfil){showAuth('cPend');$('pendMsg').textContent='Seu perfil de acesso à agenda não é reconhecido. Fale com a coordenação.';return}ui.tab=tabsDe()[0]||'semAcesso';ui.tec=ME.id;
   try{await carregar()}catch(e){$('loadMsg').textContent='Erro ao carregar os dados: '+(e.message||e);return}
   BOOT_UID=session.user.id;document.body.classList.add('app-on');
   const qs=new URLSearchParams(location.search),agLink=qs.get('ag'),relVolta=qs.get('rel');if(agLink){history.replaceState(null,'',location.pathname);const a=getAg(agLink);if(a){if(['clt','terc'].includes(ui.perfil)){ui.tab='campo';ui.campoSel=a.id}else ui.tab='agenda'}}
@@ -1919,8 +1969,8 @@ Object.assign(CH,{
   suTipo:el=>$('suDocW').classList.toggle('hidden',el.value!=='tecnico'),
   uSo:el=>{ui.uSo=el.checked;render()},
   uPapel:async el=>{const id=el.dataset.id,[papel,vinculo]=el.value.split(':');let r;
-    if(!papel)r=await sb.from('agenda_papeis').delete().eq('user_id',id);else r=await sb.from('agenda_papeis').upsert({user_id:id,papel,vinculo:vinculo||null,ativo:true},{onConflict:'user_id'});
-    if(r.error){toast('Erro: '+r.error.message,'bad');await carregarUsuarios();render();return}toast('Acesso atualizado.');await carregarUsuarios();if(papel==='tecnico'||!papel){await carregar()}render()}
+    if(!papel)r=await sb.from('agenda_papeis').delete().eq('user_id',id);else{const ant=USR.pp.find(x=>x.user_id===id),novo=!ant||ant.papel!==papel;const row={user_id:id,papel,vinculo:vinculo||null,ativo:true};if(['supervisor','encarregado','supply'].includes(papel)){if(novo)row.permissoes=[]}else row.permissoes=null;r=await sb.from('agenda_papeis').upsert(row,{onConflict:'user_id'})}
+    if(r.error){toast('Erro: '+r.error.message,'bad');await carregarUsuarios();render();return}toast(['supervisor','encarregado','supply'].includes(papel)&&(()=>{const a=USR.pp.find(x=>x.user_id===id);return !a||a.papel!==papel})()?'Acesso liberado sem nenhuma tela. Toque em Definir, na coluna Permissões, para escolher o que ele vê.':'Acesso atualizado.');await carregarUsuarios();if(papel==='tecnico'||!papel){await carregar()}render()}
 });
 Object.assign(IN,{uQ:el=>{ui.uQ=el.value;render();const i=$('uQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.body.classList.contains('app-on')){if(!$('cLogin').classList.contains('hidden'))ACT.login()}});
