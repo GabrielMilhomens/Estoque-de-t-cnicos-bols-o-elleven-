@@ -230,6 +230,20 @@ td.r,th.r{white-space:nowrap}
 .pzq{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:10px;background:var(--surface)}.pzq>b{font:600 19px "Barlow Condensed",sans-serif}.pzb{display:flex;flex-wrap:wrap;gap:8px}.pzb .btn{flex:1;min-height:48px}.pzb .btn.on{border-color:var(--info);background:var(--info-soft);color:var(--info);font-weight:700}
 .diab{border:2px solid var(--info);color:var(--info);font-weight:700;min-height:52px}
 .dcard{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}.dch{display:flex;justify-content:space-between;gap:8px;align-items:center}.dts{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13.5px;color:var(--muted);margin-top:6px}.dts b{color:var(--ink)}
+.tbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}.lpt{font:700 22px/1.1 "Barlow Condensed",sans-serif}
+.lpst{display:flex;gap:6px}.lpst div{flex:1;display:flex;flex-direction:column;gap:3px}.lpst i{display:block;height:6px;border-radius:3px;background:var(--line)}.lpst span{font-size:12px;color:var(--muted)}.lpst .ok i{background:var(--brand-ink)}.lpst .now i{background:var(--brand)}.lpst .now span{color:var(--ink);font-weight:600}
+.lpconta{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}.lpconta span{display:flex;flex-direction:column;min-width:0}.lpconta small{font-size:12px;color:var(--muted);font-weight:600}.lpconta b{font-weight:600;font-size:14.5px}
+.lpcls{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}.lpcls button{flex:none;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);font-weight:600;font-size:13.5px;cursor:pointer;white-space:nowrap}.lpcls button.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.lpn{display:flex;flex-direction:column;gap:10px;padding-bottom:84px}.lpc2{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}.lpc2.on{border-color:var(--brand)}
+.lph{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.lph>div{display:flex;flex-direction:column;gap:3px;min-width:0}.lph b{font-weight:600;font-size:15px;line-height:1.3}.lph small{font-size:13px;color:var(--muted)}
+.lpcod{align-self:flex-start;font:700 13px "Barlow Condensed",sans-serif;letter-spacing:.04em;color:var(--brand-ink);background:var(--brand-soft);padding:2px 8px;border-radius:6px}
+.lprem{width:40px;height:40px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--bad);flex:none}
+.lpdica{font-size:13px;color:var(--info);background:var(--info-soft);padding:6px 10px;border-radius:8px}
+.lprow{display:flex;align-items:center;gap:8px;margin:0}.lprow>span{font-size:13px;font-weight:600;color:var(--muted);width:82px;flex:none}.lprow .lpq{width:130px;text-align:center;font-size:17px;font-weight:600}.lprow em{font-style:normal;font-size:13px;color:var(--muted)}
+.lpseg{display:flex;flex:1;border:1px solid var(--line);border-radius:10px;overflow:hidden}.lpseg button{flex:1;min-height:42px;border:0;background:var(--surface);color:var(--muted);font-weight:600;font-size:14px;cursor:pointer}.lpseg button+button{border-left:1px solid var(--line)}.lpseg button.on{background:var(--ink);color:var(--surface)}
+.lpbar{position:sticky;bottom:0;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 -4px 14px rgba(0,0,0,.08);margin-top:-72px}.lpbar b{flex:1;font:700 19px "Barlow Condensed",sans-serif}
+.lpch{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px}.lpch b{font:600 19px "Barlow Condensed",sans-serif}
+.lpcr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line)}.lpcr>span{display:flex;flex-direction:column;gap:2px;min-width:0}.lpcr>b{font:700 20px "Barlow Condensed",sans-serif;white-space:nowrap}
 .prev{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px}
 .btn[disabled],.bigbtn[disabled]{opacity:.45;cursor:not-allowed}
 .icon{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px;font-size:15px}
@@ -478,7 +492,7 @@ const LPU = [
 	{ cod:"SEV0073", desc:"Retirada de Periférico – Routerboard", classe:"Classe INT", medida:"unidade", valor:42, valorCritico:null, tec:"Retirada de equipamento Routerboard instalado. Inclui desconexão das interfaces de rede e energia, remoção e acondicionamento para devolução." },
 	{ cod:"SEV0074", desc:"Retirada de Periférico – Transceivers", classe:"Classe INT", medida:"unidade", valor:13, valorCritico:null, tec:"Retirada de transceiver (módulo SFP/SFP+) instalado em equipamento ativo. Inclui desconexão do cabo óptico, extração do módulo e acondicionamento adequado." },
 	{ cod:"SEV0075", desc:"Retirada de Periférico – Equipamentos Wireless (UNIFI)", classe:"Classe INT", medida:"unidade", valor:90, 	valorCritico:null, tec:"Retirada de equipamento wireless (UniFi AP, roteador, etc.) instalado em teto, parede ou poste. Inclui desconexão do cabo e remoção do suporte de fixação." },
-	{ cod:"SEV0076", desc:"Visita Técnica Improdutiva", classe:"Improtividade", medida:"unidade", valor:91, valorCritico:99, tec:"Visita técnica realizada sem execução de serviço por motivos alheios à equipe (cliente ausente, acesso negado, endereço incorreto, etc.). Inclui deslocamento e registro da ocorrência." },
+	{ cod:"SEV0076", desc:"Visita Técnica Improdutiva", classe:"Improdutividade", medida:"unidade", valor:91, valorCritico:99, tec:"Visita técnica realizada sem execução de serviço por motivos alheios à equipe (cliente ausente, acesso negado, endereço incorreto, etc.). Inclui deslocamento e registro da ocorrência." },
 	{ cod:"SEV0077", desc:"Mão de Obra Disponível", classe:"Plantão", medida:"Hora", valor:19, valorCritico:21, tec:"Disponibilização de mão de obra técnica por hora, sem vínculo com serviço específico. Utilizado em plantões, acompanhamentos ou demandas avulsas fora do escopo padrão." },
 	{ cod:"SEV0078", desc:"Deslocamento para Barueri, São Paulo, Guarulhos e ABC Paulista", classe:"Deslocamento", medida:"unidade", valor:90, valorCritico:100, tec:"Deslocamento de equipe técnica para execução de serviço nos municípios de Barueri, São Paulo (capital), Guarulhos e região do ABC Paulista." },
 	{ cod:"SEV0079", desc:"Deslocamento para Piracicaba, Araras, Rio Claro, Limeira, Jaguariúna", classe:"Deslocamento", medida:"unidade", valor:80, valorCritico:90, tec:"Deslocamento de equipe técnica para Piracicaba, Araras, Rio Claro, Limeira e Jaguariúna." },
@@ -695,6 +709,7 @@ function render(){
   $('tabs').innerHTML=h;$('mTitle').textContent=tabLabel(ui.tab)||'Agenda de Implantação';
   $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,semAcesso:()=>'<div class="toolbar"><div><h2>Nenhuma tela liberada</h2><p class="muted">Seu acesso à agenda está ativo, mas a coordenação ainda não liberou nenhuma tela para o seu usuário.</p></div></div>',usuarios:viewUsuarios,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
   if(ui.tab==='agenda')renderSug();
+  if(ui.lpuTela){if(ui.lpuP===3&&$('sgPad')){ui.sgDraw=false;iniciarPad()}if((ui.lpuP||1)===1)lpuFiltro2()}
 }
 
 /* ---------- PAINEL ---------- */
@@ -1210,7 +1225,7 @@ function tecSelect(L,label){if(!L.length)return '<span class="muted">Nenhum téc
 function viewCampo(){
   const sel=tecSelect(tecsPerfil(),ui.perfil==='coord'?'Ver como':'Técnico logado');
   const a=ui.campoSel&&S.ags.find(x=>x.id===ui.campoSel&&x.tec===ui.tec);
-  if(a)return `<div class="campo">${ui.rf&&ui.rf.ag===a.id?fotoView(a):detalhe(a)}</div>`;
+  if(a)return `<div class="campo">${ui.rf&&ui.rf.ag===a.id?fotoView(a):ui.lpuTela===a.id&&a.status==='lpu'?lpuView(a):detalhe(a)}</div>`;
   const terc=tecT(ui.tec)==='TERC',nAj=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;
   const sw=terc&&ui.perfil==='coord'?`<div class="views" style="margin:4px 0 2px"><button data-act="cSec" data-v="at" aria-current="${ui.campoSec!=='fin'}">Atividades</button><button data-act="cSec" data-v="fin" aria-current="${ui.campoSec==='fin'}">Gestão financeira${nAj?` (${nAj} para ajuste)`:''}</button></div>`:'';
   if(terc&&ui.perfil==='coord'&&ui.campoSec==='fin')return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${viewMinhas(true)}</div>`;
@@ -1274,7 +1289,7 @@ function blocoAcao(a){
         <button class="btn primary wide" data-act="pzEnviar" data-id="${a.id}">Enviar pedido à gestão</button><button class="link" data-act="pzVoltar" data-id="${a.id}">Voltar</button>`}</section>`}
       act=pz+go('Concluir atividade')+(proxDia(a)?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (continuo em ${dBR(proxDia(a)).slice(0,5)})</button>`:ph&&ph.status==='pendente'?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (aguardo a gestão)</button>`:'')+nok;break}
     case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">${a.parcial?'Envie o relatório do que foi feito antes de lançar na LPU.':'Preencha o relatório para encerrar a atividade.'}</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${'Enviar relatório e preencher LPU'}</button>`;break}
-    case 'lpu':act=`${a.parcial?`<div class="result warn"><b>Atividade não concluída:</b> ${esc(a.motivo||'')}${a.obsMotivo?'. '+esc(a.obsMotivo):''}<br>Lance na LPU somente o que foi executado nesta visita.</div>`:''}<h3>Preenchimento da LPU</h3>${lpuEditor(a.id)}<button class="bigbtn" data-act="lpuEnviar" data-id="${a.id}">${a.parcial?'Enviar LPU do que foi feito':'Enviar LPU e encerrar'}</button>`;break;
+    case 'lpu':act=`${a.parcial?`<div class="result warn"><b>Atividade não concluída:</b> ${esc(a.motivo||'')}${a.obsMotivo?'. '+esc(a.obsMotivo):''}<br>Lance na LPU somente o que foi executado nesta visita.</div>`:''}<p class="muted" style="margin:0">Lance os serviços executados nesta visita.</p><button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;break;
     case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída em ${dBR(isoD(new Date(t.encerramento||t.conclusao||Date.now())))}.</div>${l?`<div class="result">LPU enviada ${lchip(l.status)}</div>`:''}`;break}
     case 'nao_concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result bad"><b>Não realizada:</b> ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`<br>Reagendada para ${dBR(a.reag)}.`:a.pendReag?'<br>Aguardando reagendamento pelo encarregado.':''}</div>${l?`<div class="result">LPU do que foi feito enviada ${lchip(l.status)}</div>`:t.chegada?`<button class="btn wide" data-act="lpuParcial" data-id="${a.id}">Fiz parte do serviço: lançar na LPU</button>`:''}`;break}
   }
@@ -1341,6 +1356,50 @@ const lpuUnit=(it,v)=>it.valor==null?(+v.unit||0):(v.fator==='critico'&&it.valor
 function lpuSel(d){const ok=new Set(lpuDaConta(d.conta).map(x=>x.cod));return Object.entries(d.q).filter(([c,v])=>ok.has(c)&&+v.qtd>0)}
 function lpuTotal(d){return lpuSel(d).reduce((s,[c,v])=>s+lpuUnit(itemOf(c),v)*(+v.qtd||0),0)}
 const verValor=()=>['coord','sup','enc'].includes(ui.perfil);
+/* ---------- LPU DO TÉCNICO: serviços → conferência → assinatura ---------- */
+const lpuInc=d=>Object.entries(d.q).filter(([c,v])=>v&&(v.inc||+v.qtd>0)&&lpuDaConta(d.conta).some(x=>x.cod===c));
+function lpuFiltro2(){const box=document.querySelector('.lpn');if(!box)return;const q=normK(ui.lpuQ||''),W=q?q.split(/\s+/):[],cl=ui.lpuCls||'';let vis=0;
+  box.querySelectorAll('.lpc2').forEach(r=>{const ok=(!cl||r.dataset.cl===cl)&&W.every(w=>r.dataset.busca.includes(w));r.hidden=!ok;if(ok)vis++});const v=box.querySelector('.lpvazio');if(v)v.hidden=vis>0}
+function lpuView(a){const key=a.id,d=lpuDraft(key),P=ui.lpuP||1,L=lpuDaConta(d.conta),vv=verValor(),pas=['Serviços','Conferência','Assinatura'];
+  const barra=`<div class="lpst">${pas.map((n,i)=>`<div class="${i+1<P?'ok':i+1===P?'now':''}"><i></i><span>${i+1}. ${n}</span></div>`).join('')}</div>`;
+  const topo=`<section class="tbox"><span class="tck2">LPU DA ATIVIDADE, PASSO ${P} DE 3</span><b class="lpt">${esc(cliN(a.etiqueta))}</b><span class="muted" style="font-size:14px">${esc(a.etiqueta)}, ${fasesN(a)}, ${dBR(a.data)}</span>${barra}
+    ${a.parcial?`<div class="result warn" style="margin:0"><b>Atividade não concluída:</b> ${esc(a.motivo||'')}. Lance só o que foi executado.</div>`:''}</section>`;
+  if(P===1){const inc=lpuInc(d),mt=metrosAg(a),cls=[...new Set(L.map(i=>i.classe))];
+    return `<button class="back" data-act="lpuFechar">‹ Voltar para a atividade</button>${topo}
+    <section class="tbox"><div class="lpconta"><span><small>Conta contábil</small><b>${esc(d.conta.split(' - ')[0])}, ${esc(d.conta.split(' - ').slice(1).join(' - ').replace(/^Serviços de /,''))}</b></span><button class="btn sm" data-act="lpuTrocar">${ui.lpuContaAb?'Fechar':'Trocar'}</button></div>
+      ${ui.lpuContaAb?`<select class="inp" data-ch="lpuConta" data-k="${esc(key)}">${LPU_CONTAS.map(c=>`<option value="${esc(c)}" ${c===d.conta?'selected':''}>${esc(c)}</option>`).join('')}</select>`:''}
+      <input class="inp" type="search" id="lpuQ" placeholder="Buscar por código ou descrição (acento opcional)" aria-label="Buscar serviço" data-in="lpuQ2" value="${esc(ui.lpuQ||'')}" autocomplete="off">
+      <div class="lpcls">${['',...cls].map(c=>`<button class="${(ui.lpuCls||'')===c?'on':''}" data-act="lpuCls" data-v="${esc(c)}" aria-pressed="${(ui.lpuCls||'')===c}">${c?esc(c):'Todas'}</button>`).join('')}</div></section>
+    <div class="lpn">${L.map(it=>{const v=d.q[it.cod],on=!!(v&&(v.inc||+v.qtd>0)),crit=on&&v.fator==='critico',un=/metro/i.test(it.medida)?'m':/hora/i.test(it.medida)?'h':'un';
+      return `<article class="lpc2 ${on?'on':''}" data-cl="${esc(it.classe)}" data-busca="${esc(normK(it.cod+' '+it.desc+' '+it.classe))}"><div class="lph"><div><span class="lpcod">${it.cod}</span><b>${esc(it.desc)}</b><small>${esc(it.classe)}, por ${esc(String(it.medida).toLowerCase())}${it.tec?` <button class="link" data-act="lpuInfo2" aria-label="Ver descritivo técnico">o que é?</button>`:''}</small>${it.tec?`<span class="ltec" hidden>${esc(it.tec)}</span>`:''}</div>
+        ${on?`<button class="icon lprem" data-act="lpuRem" data-c="${it.cod}" aria-label="Remover ${it.cod}">✕</button>`:`<button class="btn primary sm" data-act="lpuInc" data-c="${it.cod}">Incluir</button>`}</div>
+        ${on?`${CABO_LPU.includes(it.cod)&&mt!=null?`<span class="lpdica">O relatório registrou ${mt.toLocaleString('pt-BR')} m lançados nesta atividade.</span>`:''}
+        ${it.valor==null?`<label class="lprow"><span>Valor (R$)</span><input class="inp" type="text" inputmode="decimal" autocomplete="off" placeholder="Valor do reembolso" value="${v.unit||''}" data-in="lpuUnit" data-k="${esc(key)}" data-c="${it.cod}"></label><label class="lprow"><span>Quantidade</span><input class="inp lpq" type="text" inputmode="decimal" autocomplete="off" value="${v.qtd||''}" data-in="lpuQ3" data-c="${it.cod}" aria-label="Quantidade de ${it.cod}"><em>${un}</em></label>`
+        :`<label class="lprow"><span>Quantidade</span><input class="inp lpq" type="text" inputmode="decimal" autocomplete="off" value="${v.qtd?String(v.qtd).replace('.',','):''}" data-in="lpuQ3" data-c="${it.cod}" aria-label="Quantidade de ${it.cod}"><em>${un}</em></label>
+        ${it.valorCritico!=null?`<div class="lprow"><span>Condição</span><div class="lpseg" role="group" aria-label="Condição"><button class="${crit?'':'on'}" data-act="lpuCond" data-c="${it.cod}" data-v="comum" aria-pressed="${!crit}">Comum${vv?' '+brl(it.valor):''}</button><button class="${crit?'on':''}" data-act="lpuCond" data-c="${it.cod}" data-v="critico" aria-pressed="${crit}">Crítica${vv?' '+brl(it.valorCritico):''}</button></div></div>`:''}`}`:''}</article>`}).join('')}<p class="muted lpvazio" hidden>Nenhum serviço encontrado.</p></div>
+    <div class="lpbar"><b id="lpuCnt">${inc.length===1?'1 serviço incluído':inc.length+' serviços incluídos'}</b><button class="btn primary" data-act="lpuRevisar">Revisar</button></div>`}
+  const itens=draftItens(key);
+  if(P===2)return `<button class="back" data-act="lpuPasso" data-p="1">‹ Voltar e corrigir</button>${topo}
+    <section class="tcard" style="margin-bottom:12px"><div class="lpch"><b>${itens.length} ${itens.length===1?'serviço':'serviços'}, conta ${esc(d.conta.split(' - ')[0])}</b><button class="link" data-act="lpuPasso" data-p="1">Editar</button></div>
+     ${itens.map(i=>`<div class="lpcr"><span><span class="lpcod">${i.cod}</span><span>${esc(i.desc)}</span><small class="muted">Condição ${i.fator==='Crítico'?'crítica':'comum'}${vv?', '+brl(i.unit*i.qtd):''}</small></span><b>${String(i.qtd).replace('.',',')} ${/metro/i.test(i.medida)?'m':/hora/i.test(i.medida)?'h':'un'}</b></div>`).join('')}
+     ${vv?`<div class="lpcr"><b>Total</b><b>${brl(itens.reduce((s0,i)=>s0+i.unit*i.qtd,0))}</b></div>`:''}</section>
+    <div class="result warn">Confira as quantidades com o que foi executado. Depois de assinar, só a gestão pode devolver a LPU para ajuste.</div>
+    <label class="f"><span>Observação para a gestão (opcional)</span><textarea class="inp" rows="3" data-in="lpuObs" placeholder="Ex.: espinamento em condição crítica por causa da travessia da avenida">${esc(d.obs||'')}</textarea></label>
+    <button class="bigbtn" data-act="lpuPasso" data-p="3">Ir para a assinatura</button>`;
+  return `<button class="back" data-act="lpuPasso" data-p="2">‹ Voltar para a conferência</button>${topo}
+    <section class="tbox"><b class="lpt" style="font-size:19px">Resumo</b><span style="font-size:14.5px">${itens.length} ${itens.length===1?'serviço':'serviços'}: ${itens.map(i=>esc(i.desc.split(' ').slice(0,4).join(' '))+' '+String(i.qtd).replace('.',',')).join('; ')}</span></section>
+    <section class="tbox"><b class="lpt" style="font-size:19px">Assinatura do técnico</b>
+     <label class="f" style="margin:0"><span>Nome completo *</span><input class="inp" id="sgNome" value="${esc(tecN(a.tec))}"></label>
+     <div class="f" style="margin:0"><span style="display:flex;justify-content:space-between;align-items:center">Assine com o dedo no espaço abaixo *<button class="btn sm" data-act="sgLimpar">Limpar</button></span><canvas id="sgPad" class="sig" aria-label="Quadro de assinatura"></canvas></div>
+     <label class="chk" style="margin:0;align-items:flex-start"><input type="checkbox" id="sgDecl" style="margin-top:3px"><span>Declaro que os serviços desta LPU foram executados por mim nesta atividade, nas quantidades informadas.</span></label>
+     <small class="muted">Data e hora da assinatura são registradas automaticamente ao enviar.</small></section>
+    <button class="bigbtn" data-act="sgOk">Enviar LPU</button>
+    <p class="muted" style="font-size:13.5px;text-align:center">Ao enviar, a agenda gera o PDF da LPU com a sua assinatura e manda para a aprovação da gestão.</p>`}
+function iniciarPad(){const c=$('sgPad');if(!c||c.dataset.ok)return;c.dataset.ok='1';const r=window.devicePixelRatio||1;c.width=c.clientWidth*r;c.height=c.clientHeight*r;const x=c.getContext('2d');x.scale(r,r);x.lineWidth=2.2;x.lineCap='round';x.lineJoin='round';x.strokeStyle='#1d2620';
+  let on=false;const pt=e=>{const b=c.getBoundingClientRect();return[e.clientX-b.left,e.clientY-b.top]};
+  c.onpointerdown=e=>{on=true;c.setPointerCapture(e.pointerId);const[a,b]=pt(e);x.beginPath();x.moveTo(a,b)};
+  c.onpointermove=e=>{if(!on)return;const[a,b]=pt(e);x.lineTo(a,b);x.stroke();ui.sgDraw=true};
+  c.onpointerup=c.onpointercancel=()=>{on=false}}
 function lpuEditor(key){const d=lpuDraft(key),L=lpuDaConta(d.conta),n=lpuSel(d).length,vv=verValor();
   return `<div class="lpu" data-lk="${esc(key)}">
    <label class="f"><span>Descrição contábil</span><select class="inp" data-ch="lpuConta" data-k="${esc(key)}">${LPU_CONTAS.map(c=>`<option value="${esc(c)}" ${c===d.conta?'selected':''}>${esc(c)}</option>`).join('')}</select></label>
@@ -1393,7 +1452,7 @@ function viewAprov(emb){
   const rows=S.lpus.filter(l=>l.status===ui.aTab).sort((a,b)=>b.data.localeCompare(a.data));
   const card=l=>{const a=getAg(l.ag)||{ts:{}},op=ui.aOpen===l.id,al=alertasCabo(getAg(l.ag),l),p=pPor(l.etiqueta),rel=metrosAg(getAg(l.ag)),lc=caboLpu(l),mp=metrosProj(l.etiqueta);
     return `<div class="lcard"><button class="lhead" data-act="aOpen" data-id="${l.id}" aria-expanded="${op}"><div><b>${esc(l.etiqueta)}</b> <span>${esc(cliN(l.etiqueta))}</span>${l.parcial?' <span class="chip warn">Atividade não concluída</span>':''}${al.length?` <span class="chip bad">${al.length} ${al.length>1?'alertas':'alerta'} de cabo</span>`:''}<small>${esc(tecN(l.tec))} (${vinc(l.tec)}), ${fasesN(l)}, ${dBR(l.data)}</small></div><span class="val">${brl(l.total)}</span></button>
-    ${op?`<div class="lbody">${l.parcial?`<div class="result warn" style="margin-top:12px"><b>LPU de atividade não concluída.</b> Motivo: ${esc(l.parcial.motivo)}${l.parcial.obs?'. '+esc(l.parcial.obs):''}. Confira se os serviços lançados correspondem ao que foi executado.</div>`:''}${al.length?`<div class="calert">${al.map(x=>`<div><b>${x.t}</b><span>${x.d}</span></div>`).join('')}</div>`:''}
+    ${op?`<div class="lbody">${l.obs?`<div class="note" style="margin-top:12px"><b>Observação do técnico:</b> ${esc(l.obs)}</div>`:''}${l.parcial?`<div class="result warn" style="margin-top:12px"><b>LPU de atividade não concluída.</b> Motivo: ${esc(l.parcial.motivo)}${l.parcial.obs?'. '+esc(l.parcial.obs):''}. Confira se os serviços lançados correspondem ao que foi executado.</div>`:''}${al.length?`<div class="calert">${al.map(x=>`<div><b>${x.t}</b><span>${x.d}</span></div>`).join('')}</div>`:''}
      <div class="grid2 even" style="margin-top:12px"><section><h3 class="lsub" style="margin-top:0">Conferência de cabo</h3><div class="tablewrap"><table><thead><tr><th>Fonte</th><th class="r">Cabo</th><th>Detalhe</th></tr></thead><tbody>
       <tr><td>ROI do projeto</td><td class="r">${+p.metros?(+p.metros).toLocaleString('pt-BR')+' m':'—'}</td><td class="muted">Metros de cabo da Base de previsão</td></tr>
       <tr><td>Relatório desta atividade</td><td class="r"><b>${rel!=null?rel.toLocaleString('pt-BR')+' m':'—'}</b></td><td class="muted">${a.medicoes&&['rua','interno'].some(f=>a.medicoes[f+':lote_ini:m']!=null)?['rua','interno'].filter(f=>a.medicoes[f+':lote_ini:m']!=null).map(f=>`${FCURTO[f]}: início ${esc(a.medicoes[f+':lote_ini:m'])} m, término ${esc(a.medicoes[f+':lote_fim:m']||'—')} m, lote ${esc(a.medicoes[f+':lote_ini:lote']||'—')}`).join('; '):'Sem metragem registrada'}</td></tr>
@@ -1575,6 +1634,20 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
+  lpuAbrir:el=>{ui.lpuTela=el.dataset.id;ui.lpuP=1;ui.lpuQ='';ui.lpuCls='';ui.lpuContaAb=false;render();window.scrollTo(0,0)},
+  lpuFechar:()=>{ui.lpuTela=null;render();window.scrollTo(0,0)},
+  lpuTrocar:()=>{ui.lpuContaAb=!ui.lpuContaAb;render()},
+  lpuCls:el=>{ui.lpuCls=el.dataset.v;document.querySelectorAll('.lpcls button').forEach(b=>{const on=b.dataset.v===ui.lpuCls;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});lpuFiltro2()},
+  lpuInc:el=>{const d=lpuDraft(ui.lpuTela),c=el.dataset.c;d.q[c]=Object.assign({fator:'comum'},d.q[c]||{},{inc:true});const y=window.scrollY;render();window.scrollTo(0,y);const q=document.querySelector(`[data-in="lpuQ3"][data-c="${c}"]`);if(q)q.focus()},
+  lpuRem:el=>{const d=lpuDraft(ui.lpuTela);delete d.q[el.dataset.c];const y=window.scrollY;render();window.scrollTo(0,y)},
+  lpuCond:el=>{const d=lpuDraft(ui.lpuTela),c=el.dataset.c;d.q[c]=Object.assign({inc:true},d.q[c]||{},{fator:el.dataset.v});const y=window.scrollY;render();window.scrollTo(0,y)},
+  lpuInfo2:el=>{const t=el.closest('.lph').querySelector('.ltec');if(t)t.hidden=!t.hidden},
+  lpuRevisar:()=>{const a=getAg(ui.lpuTela),d=lpuDraft(a.id),inc=lpuInc(d),semQ=inc.filter(([c,v])=>!(+v.qtd>0));
+    if(!inc.length){toast('Inclua pelo menos um serviço executado.','bad');return}
+    if(semQ.length){toast('Informe a quantidade de '+semQ.map(([c])=>c).join(', ')+'.','bad');return}
+    const sv=inc.filter(([c,v])=>itemOf(c).valor==null&&!(+v.unit>0));if(sv.length){toast('Informe o valor do reembolso em '+sv.map(([c])=>c).join(', ')+'.','bad');return}
+    ui.lpuP=2;render();window.scrollTo(0,0)},
+  lpuPasso:el=>{const p=+el.dataset.p,a=getAg(ui.lpuTela);if(p===3)ui.sign={tipo:'novo',id:a.id,key:a.id,tec:a.tec};ui.lpuP=p;render();window.scrollTo(0,0)},
   pzHoje:el=>{const a=getAg(el.dataset.id);a.prazo={data:hoje(),resp:'hoje',em:Date.now()};save();render();toast('Registrado: a atividade termina hoje.')},
   pzMais:el=>{ui.pz=ui.pz||{};ui.pz[el.dataset.id]={dias:1};render()},
   pzVoltar:el=>{delete (ui.pz||{})[el.dataset.id];render()},
@@ -1774,9 +1847,9 @@ const ACT={
   sgLimpar:()=>{const c=$('sgPad');c.getContext('2d').clearRect(0,0,c.width,c.height);ui.sgDraw=false},
   sgVoltar:()=>conferirModal(),
   confVoltar:()=>{const g=ui.sign;closeModal();if(g.tipo==='ajuste')openAjuste(g.id)},
-  sgOk:async()=>{const g=ui.sign,nome=$('sgNome').value.trim();if(!nome){toast('Informe o nome do responsável.','bad');return}if(!ui.sgDraw){toast('Faça a assinatura no quadro.','bad');return}
+  sgOk:async()=>{const g=ui.sign,nome=$('sgNome').value.trim();if(!nome){toast('Informe o nome do responsável.','bad');return}if(!ui.sgDraw){toast('Faça a assinatura no quadro.','bad');return}if($('sgDecl')&&!$('sgDecl').checked){toast('Marque a declaração para enviar.','bad');return}
     const ass={img:$('sgPad').toDataURL('image/png'),nome,em:Date.now()},itens=draftItens(g.key),d=lpuDraft(g.key),total=itens.reduce((s,i)=>s+i.unit*i.qtd,0);
-    if(g.tipo==='novo'){const a=getAg(g.id);closeModal();toast('Gerando o PDF da LPU…');const nl={id:uid(),conta:d.conta,ag:a.id,etiqueta:a.etiqueta,fases:fasesOf(a),data:a.data,tec:a.tec,itens,total,status:'aguardando',assinatura:ass,hist:[{acao:a.parcial?'Enviada e assinada (atividade não concluída)':'Enviada e assinada',por:nome,em:Date.now()}]};if(a.parcial)nl.parcial={motivo:a.motivo||'',obs:a.obsMotivo||''};await subirPdfLpu(nl);if(a.parcial)a.status='nao_concluida';else encerrar(a);S.lpus.push(nl);delete ui.draft[g.key];save();render();toast('LPU assinada e enviada para aprovação da supervisão.')}
+    if(g.tipo==='novo'){const a=getAg(g.id);closeModal();toast('Gerando o PDF da LPU…');const nl={id:uid(),obs:(d.obs||'').trim()||undefined,conta:d.conta,ag:a.id,etiqueta:a.etiqueta,fases:fasesOf(a),data:a.data,tec:a.tec,itens,total,status:'aguardando',assinatura:ass,hist:[{acao:a.parcial?'Enviada e assinada (atividade não concluída)':'Enviada e assinada',por:nome,em:Date.now()}]};if(a.parcial)nl.parcial={motivo:a.motivo||'',obs:a.obsMotivo||''};await subirPdfLpu(nl);if(a.parcial)a.status='nao_concluida';else encerrar(a);S.lpus.push(nl);delete ui.draft[g.key];ui.lpuTela=null;ui.lpuP=1;save();render();window.scrollTo(0,0);toast('LPU assinada e enviada para aprovação da supervisão.')}
     else{const l=S.lpus.find(x=>x.id===g.id);closeModal();toast('Gerando o PDF da LPU…');const tmp=Object.assign({},l,{conta:d.conta,itens,total,assinatura:ass});await subirPdfLpu(tmp);Object.assign(l,{conta:d.conta,itens,total,status:'aguardando',assinatura:ass,pdf_path:tmp.pdf_path||l.pdf_path});l.hist.push({acao:'Reenviada e assinada após ajuste',por:nome,em:Date.now()});delete ui.draft[g.key];save();render();toast('LPU corrigida, assinada e reenviada.')}},
   nao:el=>{const a=getAg(el.dataset.id);openModal(`<h3>Atividade não concluída</h3><p class="muted">${esc(a.etiqueta)}, ${fasesN(a)}</p><label class="f" style="margin-top:12px"><span>Motivo *</span><select id="mMot" class="inp"><option value="">Selecione</option>${MOTIVOS.map(m=>`<option>${m}</option>`).join('')}</select></label><label class="f"><span>Observação</span><textarea id="mObs" class="inp" rows="3" placeholder="O que ficou faltando e o que já foi feito"></textarea></label>${['no_local','execucao'].includes(a.status)?'<label class="chk" style="margin:4px 0 8px;align-items:flex-start"><input type="checkbox" id="mParc" style="margin-top:3px"><span><b>Fiz parte do serviço e quero lançar na LPU</b><small style="display:block;color:var(--muted)">Depois de registrar, você preenche a LPU só com o que foi executado.</small></span></label>':''}<p class="muted" style="font-size:13.5px">O encarregado recebe o aviso e faz o reagendamento.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="naoOk" data-id="${a.id}">Registrar não conclusão</button></div>`)},
   naoOk:el=>{const a=getAg(el.dataset.id),m=$('mMot').value;if(!m){toast('Selecione o motivo.','bad');return}
@@ -1854,6 +1927,9 @@ const CH={
   tec:el=>{ui.tec=el.value;ui.campoSel=null;if(tecT(ui.tec)!=='TERC')ui.campoSec='at';render()}
 };
 const IN={
+  lpuQ2:el=>{ui.lpuQ=el.value;lpuFiltro2()},
+  lpuQ3:el=>{const d=lpuDraft(ui.lpuTela),c=el.dataset.c;d.q[c]=Object.assign({fator:'comum',inc:true},d.q[c]||{});d.q[c].qtd=parseFloat(String(el.value).replace(',','.'))||0;const n=lpuInc(d).length,b=$('lpuCnt');if(b)b.textContent=n===1?'1 serviço incluído':n+' serviços incluídos'},
+  lpuObs:el=>{lpuDraft(ui.lpuTela).obs=el.value},
   estIni:el=>{ui.estIni=el.value},estBaseDt:el=>{ui.estBaseDt=el.value},
   mQ:el=>{ui.mQ=el.value;render();const i=$('mQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
   meQ:el=>{ui.meQ=el.value;render();const i=$('meQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
