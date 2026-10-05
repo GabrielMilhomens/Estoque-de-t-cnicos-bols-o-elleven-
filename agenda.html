@@ -244,6 +244,14 @@ td.r,th.r{white-space:nowrap}
 .lpbar{position:sticky;bottom:0;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 -4px 14px rgba(0,0,0,.08);margin-top:-72px}.lpbar b{flex:1;font:700 19px "Barlow Condensed",sans-serif}
 .lpch{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px}.lpch b{font:600 19px "Barlow Condensed",sans-serif}
 .lpcr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line)}.lpcr>span{display:flex;flex-direction:column;gap:2px;min-width:0}.lpcr>b{font:700 20px "Barlow Condensed",sans-serif;white-space:nowrap}
+.pdk{font-size:13px;font-weight:600;color:var(--brand-ink);letter-spacing:.06em}.pdclk{display:flex;flex-direction:column;align-items:flex-end}.pdclk b{font:700 40px/1 "Barlow Condensed",sans-serif}.pdclk small{color:var(--muted);font-size:13px}
+.pdcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;align-items:start;margin-top:14px}.pdcol{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}.pdcol.cam{background:var(--info-soft)}.pdcol.exec{background:var(--brand-soft)}.pdcol.fim{background:var(--surface)}
+.pdct{display:flex;justify-content:space-between;font:700 20px "Barlow Condensed",sans-serif}.pdc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:5px;font-size:14px}.pdc.ent{border-color:var(--brand)}.pdc.nao{border-color:var(--bad)}
+.pdh{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.pdh b{font:700 19px/1.15 "Barlow Condensed",sans-serif}.pdc small{color:var(--muted);font-size:13.5px}.pdi{font-weight:500;border-top:1px solid var(--line);padding-top:6px}
+.chip.pdent{background:var(--brand-ink);color:var(--surface)}.pdu{display:flex;flex-direction:column;gap:4px;background:var(--bg);border-radius:8px;padding:8px 10px}.pdu>span{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.05em}.pdu div{display:grid;grid-template-columns:42px 1fr;gap:6px;font-size:13.5px}
+.upd{border:1px solid var(--info);border-radius:12px;padding:12px;display:grid;gap:10px;background:var(--surface)}.upd>b{font:600 19px "Barlow Condensed",sans-serif}.updb{border:2px solid var(--info);color:var(--info);font-weight:700}
+.updt{display:grid;grid-template-columns:1fr 1fr;gap:8px}.updt .btn{min-height:48px;white-space:normal;line-height:1.2}.updt .btn.on{border:2px solid var(--brand-ink);background:var(--brand-soft)}.updt .btn.on.par{border-color:var(--warn);background:var(--warn-soft)}
+.updl{display:flex;flex-direction:column;gap:2px}.updl div{display:grid;grid-template-columns:44px 1fr;gap:8px;font-size:14px;padding:6px 0;border-top:1px solid var(--line)}
 .prev{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px}
 .btn[disabled],.bigbtn[disabled]{opacity:.45;cursor:not-allowed}
 .icon{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px;font-size:15px}
@@ -591,7 +599,7 @@ const REGRA_FOTO={unica:'Obrigatória',opcional:'Se houver; várias fotos',multi
 const PERM_T=[
   ['Acompanhamento',[['painel','Painel de KPIs','t',[['p_geral','Visão geral','t'],['p_entregas','Entregas','t'],['p_rede','Rede executada','t'],['p_exec','Execução em campo','t'],['p_equipes','Equipes','t'],
     ['p_fin','Financeiro','t',[['f_budget','Budget e ROI','t',[['a_budget','Definir o budget do mês','a']]],['f_det','Detalhamento das LPUs','t'],['f_aprov','Aprovação de LPU','t',[['a_aprovar','Aprovar, reprovar e devolver LPUs','a']]]]]]]]],
-  ['Operação',[['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar e editar atividades','a'],['a_anexos','Enviar e apagar anexos','a']]],['relat','Relatórios','t']]],
+  ['Operação',[['painelDia','Painel do dia','t'],['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar e editar atividades','a'],['a_anexos','Enviar e apagar anexos','a']]],['relat','Relatórios','t']]],
   ['Estoque',[['estoque','Estoque dos técnicos','t'],['estAtual','Atualizar estoque','t',[['a_bolsao','Publicar planilha do bolsão (SAP)','a'],['a_elleven','Importar movimentações do Elleven','a'],['a_base','Saldo base e data-base do Elleven','a']]],['estHist','Movimentações','t']]],
   ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['sim','Simulação de entrega','t'],['kanban','Backlog de projetos','t']]]];
 const PERM_ALL=(()=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));return o})();
@@ -601,12 +609,12 @@ const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto'])
   supply:['estAtual','a_bolsao']};
 const permDe=(papel,perm)=>Array.isArray(perm)?perm:(PERM_PAD[papel]||[]);
 const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc'].includes(ui.perfil))return false;return permDe(ME.papel,ME.perm).includes(k)};
-const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban'];
-const tabsDe=()=>['coord','clt','terc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs:G_TABS.filter(pode);
+const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','painelDia'];
+const tabsDe=()=>['coord','clt','terc','visu'].includes(ui.perfil)?PERFIS[ui.perfil].tabs:G_TABS.filter(pode);
 const PSEC_K={geral:'p_geral',entregas:'p_entregas',rede:'p_rede',exec:'p_exec',equipes:'p_equipes',fin:'p_fin'},FSUB_K={budget:'f_budget',det:'f_det',aprov:'f_aprov'};
 const secsOk=()=>PSEC.filter(([k])=>pode(PSEC_K[k])),subsOk=()=>FSUB.filter(([k])=>pode(FSUB_K[k]));
 const semPerm=()=>{toast('Seu usuário não tem permissão para esta ação. Fale com a coordenação.','bad');return true};
-const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','campo','usuarios']},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']}};
+const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','campo','usuarios','painelDia']},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']},visu:{n:'Visualização',tabs:['painelDia']}};
 const ST={agendada:['Agendada',''],deslocamento:['Em deslocamento','info'],no_local:['No local','info'],execucao:['Em execução','info'],relatorios:['Relatórios pendentes','warn'],lpu:['LPU pendente','warn'],concluida:['Concluída','ok'],nao_concluida:['Não concluída','bad'],cancelada:['Cancelada','']};
 const LST={aguardando:['Aguardando aprovação','warn'],aprovada:['Aprovada','ok'],reprovada:['Reprovada','bad'],ajuste:['Devolvida para ajuste','info']};
 const FIM=['concluida','nao_concluida'];
@@ -679,7 +687,7 @@ function progLabel(e){const p=pPor(e);if(faseFim(e,'ativ'))return '<span class="
   const falta=fasesProj(p).filter(f=>!faseFim(e,f.k)).map(f=>FSTATUS[f.k]);
   return `<span class="chip ${falta.length===1&&liberado(p)?'go':'warn'}" style="white-space:normal">Falta${falta.length>1?'m':''}: ${falta.join(', ')}</span>`}
 function nextFase(e){const p=pPor(e);const f=fasesProj(p).find(f=>!faseFim(e,f.k));return f?f.k:'ativ'}
-const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',estoque:'Estoque dos técnicos',estAtual:'Atualizar estoque',estHist:'Movimentações',meuEst:'Meu estoque',meuHist:'Meu histórico',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
+const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',painelDia:'Painel do dia',estoque:'Estoque dos técnicos',estAtual:'Atualizar estoque',estHist:'Movimentações',meuEst:'Meu estoque',meuHist:'Meu histórico',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
 
 const _sv=(d,w)=>`<svg width="${w||19}" height="${w||19}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w?2.2:1.9}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICN={'Acompanhamento':_sv('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>'),'Operação':_sv('<path d="M8 2v4M16 2v4M3 9h18"/><rect x="3" y="4" width="18" height="18" rx="2"/>'),'Projetos':_sv('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
@@ -691,7 +699,7 @@ function render(){
   const P={tabs:tabsDe()};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span><button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
-  const ORD=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
+  const ORD=['painel','agenda','painelDia','relat','estoque','estAtual','estHist','base','prev','sim','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={painelDia:'Operação',usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -707,10 +715,35 @@ function render(){
         if(k==='fin'&&fOpen){h+='<div class="nlv">';subsOk().forEach(([sk,sn])=>{h+=`<button class="nit" data-act="pSec" data-v="fin" data-s="${sk}" aria-current="${sub===sk}"><span class="nt">${sn}</span>${sk==='aprov'?bAp:''}</button>`});h+='</div>'}});h+='</div>'}});
     h+='</div>'});
   $('tabs').innerHTML=h;$('mTitle').textContent=tabLabel(ui.tab)||'Agenda de Implantação';
-  $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,semAcesso:()=>'<div class="toolbar"><div><h2>Nenhuma tela liberada</h2><p class="muted">Seu acesso à agenda está ativo, mas a coordenação ainda não liberou nenhuma tela para o seu usuário.</p></div></div>',usuarios:viewUsuarios,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
+  $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,painelDia:viewPainelDia,semAcesso:()=>'<div class="toolbar"><div><h2>Nenhuma tela liberada</h2><p class="muted">Seu acesso à agenda está ativo, mas a coordenação ainda não liberou nenhuma tela para o seu usuário.</p></div></div>',usuarios:viewUsuarios,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
   if(ui.tab==='agenda')renderSug();
   if(ui.lpuTela){if(ui.lpuP===3&&$('sgPad')){ui.sgDraw=false;iniciarPad()}if((ui.lpuP||1)===1)lpuFiltro2()}
 }
+
+/* ---------- PAINEL DO DIA (somente leitura, também para outros setores) ---------- */
+const PD={rows:null,em:0,bus:false};
+function pdLinhasLocais(d){return S.ags.filter(a=>a.status!=='cancelada'&&naData(a,d)).map(a=>{const p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{};return{id:a.id,etiqueta:a.etiqueta,cliente:p.cliente||'',cidade:p.cidade||'',fases:fasesOf(a),tecnico:tecN(a.tec),status:a.status,ts:a.ts||{},atualizacoes:a.atualizacoes||[],motivo:a.motivo||'',fasesFin:a.fasesFin||[],janela:c.janela||'',dias:a.dias||null,data:a.data}})}
+async function pdCarregar(){if(PD.bus)return;PD.bus=true;try{const r=await sb.rpc('ag_painel_dia',{p_data:hoje()});if(r.error)throw r.error;PD.rows=(r.data||[]).map(x=>x.ag_painel_dia||x);PD.em=Date.now();PD.err=''}catch(e){PD.err=e.message||String(e)}PD.bus=false;if(ui.tab==='painelDia')render()}
+setInterval(()=>{if(!ME||ui.tab!=='painelDia')return;const ae=document.activeElement;if(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;if(ui.perfil==='visu')pdCarregar();else render()},60000);
+function viewPainelDia(){const T=hoje(),loc=ui.perfil!=='visu';if(!loc&&!PD.rows&&!PD.bus)pdCarregar();
+  const all=(loc?pdLinhasLocais(T):(PD.rows||[]));const cids=[...new Set(all.map(r=>r.cidade).filter(Boolean))].sort(),cid=ui.pdCid||'';const L=all.filter(r=>!cid||r.cidade===cid);
+  const hm=v=>v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
+  const dur=v=>{const m=Math.max(0,Math.round((Date.now()-v)/60000));return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')};
+  const grupo=r=>r.status==='agendada'?'ag':r.status==='deslocamento'?'cam':['no_local','execucao'].includes(r.status)?'exec':'fim';
+  const conc=r=>['relatorios','lpu','concluida'].includes(r.status),entregue=r=>conc(r)&&(r.fasesFin||[]).includes('ativ');
+  const fz=r=>(r.fases||[]).map(k=>FCURTO[k]||k).join(' + ')+(r.dias&&r.dias.length>1?`, dia ${r.dias.indexOf(T)+1} de ${r.dias.length}`:'');
+  const info=r=>{const t=r.ts||{};if(r.status==='agendada')return r.janela?'Janela '+r.janela:'Aguardando início';if(r.status==='deslocamento')return `Saiu às ${hm(t.desloc)}${t.eta?`, chegada prevista ${hm(t.eta)}`:''}`;if(r.status==='no_local')return `Chegou às ${hm(t.chegada)}`;if(r.status==='execucao')return `Em execução desde ${hm(t.inicio)} (${dur(t.inicio)})`;if(r.status==='nao_concluida')return 'Não concluída: '+(r.motivo||'');return `Concluída às ${hm(t.conclusao||t.encerramento)}${entregue(r)?', circuito entregue':''}`};
+  const card=r=>{const ups=(r.atualizacoes||[]).slice(-2).reverse(),ch=r.status==='nao_concluida'?'<span class="chip bad">Não concluída</span>':entregue(r)?'<span class="chip pdent">Circuito entregue</span>':conc(r)?'<span class="chip ok">Concluída</span>':'';
+    return `<article class="pdc ${r.status==='nao_concluida'?'nao':entregue(r)?'ent':''}"><div class="pdh"><b>${esc(r.cliente||r.etiqueta)}</b>${ch}</div><span><b>${esc(fz(r))}</b>${r.cidade?', '+esc(r.cidade):''}</span><small>${esc(r.etiqueta)}, ${esc(r.tecnico)}</small><span class="pdi">${esc(info(r))}</span>
+      ${ups.length&&grupo(r)!=='fim'?`<div class="pdu"><span>ATUALIZAÇÕES DO TÉCNICO</span>${ups.map(u=>`<div><b>${hm(u.em)}</b><span>${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}</span></div>`).join('')}</div>`:''}</article>`};
+  const COL=[['ag','Aguardando início'],['cam','A caminho'],['exec','Em execução'],['fim','Encerradas']];
+  const n=k=>L.filter(r=>grupo(r)===k).length;
+  return `<div class="toolbar"><div><span class="pdk">NET TURBO, IMPLANTAÇÃO</span><h2 style="font-size:32px">Atividades de hoje</h2><p class="muted">${DSEM[new Date(T+'T12:00:00').getDay()]}, ${dBR(T)}</p></div><div class="pdclk"><b>${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</b><small>Atualiza sozinho${!loc&&PD.em?`, última atualização ${hm(PD.em)}`:''}</small></div></div>
+  ${PD.err&&!loc?`<div class="result bad" style="margin-bottom:12px">Não foi possível atualizar o painel: ${esc(PD.err)}</div>`:''}
+  <div class="kpis">${kp(L.length,'Programadas hoje')}${kp(n('cam'),'A caminho')}${kp(n('exec'),'Em execução','ok')}${kp(L.filter(conc).length,'Concluídas','ok')}${kp(L.filter(entregue).length,'Circuitos entregues','ok')}${kp(L.filter(r=>r.status==='nao_concluida').length,'Não concluídas','bad')}</div>
+  ${cids.length>1?`<div class="chips" role="group" aria-label="Filtrar por cidade">${['',...cids].map(c=>`<button data-act="pdCid" data-v="${esc(c)}" aria-current="${cid===c}">${c?esc(c):'Todas'}</button>`).join('')}</div>`:''}
+  ${!loc&&!PD.rows?'<p class="muted pad">Carregando…</p>':`<div class="pdcols">${COL.map(([k,nm])=>{const it=L.filter(r=>grupo(r)===k);return `<section class="pdcol ${k}"><div class="pdct"><b>${nm}</b><b>${it.length}</b></div>${it.map(card).join('')||'<span class="muted">Nenhuma atividade.</span>'}</section>`}).join('')}</div>`}
+  <p class="muted" style="font-size:13px;margin-top:10px">Somente leitura. Não mostra valores, endereços nem telefones dos clientes.</p>`}
 
 /* ---------- PAINEL ---------- */
 function media(arr,f){const v=arr.map(f).filter(x=>x!=null);return v.length?Math.round(v.reduce((s,x)=>s+x,0)/v.length):null}
@@ -1263,6 +1296,16 @@ function rotaLigar(c){const tel=(c.telefone||'').replace(/\D/g,''),nome=String(c
   return `${c.endereco?`<a class="tcbtn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank" rel="noopener">${IC.rota}Rota</a>`:''}${tel?`<a class="tcbtn" href="tel:${tel}">${IC.tel}${nome?'Ligar para '+esc(nome):'Ligar'}</a>`:''}`}
 const ANDAM=['deslocamento','no_local','execucao','relatorios','lpu'];
 const emAndamento=(tec,exceto)=>S.ags.find(x=>x.tec===tec&&x.id!==exceto&&ANDAM.includes(x.status));
+const UPD_TIPOS=['Andamento normal','Parado: aguardando cliente','Parado: aguardando material','Parado: chuva','Parado: infraestrutura','Finalizando'];
+function updHtml(a){const U=a.atualizacoes||[],ult=U.length?U[U.length-1]:null,F=(ui.upd||{})[a.id],hm=v=>new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  return `<section class="upd"><b>Atualizar o andamento</b><small class="muted">${ult?`Última atualização às ${hm(ult.em)}.`:'Nenhuma atualização enviada ainda.'} A gestão e os outros setores veem no painel do dia.</small>
+   ${!F?`<button class="btn wide updb" data-act="updAbrir" data-id="${a.id}">Enviar atualização do andamento</button>`:`
+   <span class="muted" style="font-size:13px;font-weight:600">Como está agora? *</span><div class="updt">${UPD_TIPOS.map(t=>`<button class="btn ${F.tipo===t?(t.startsWith('Parado')?'on par':'on'):''}" data-act="updTipo" data-id="${a.id}" data-v="${esc(t)}" aria-pressed="${F.tipo===t}">${t}</button>`).join('')}</div>
+   ${fasesOf(a).some(k=>k==='rua'||k==='interno')?`<label class="f" style="margin:0"><span>Metragem lançada até agora (opcional)</span><input class="inp" id="updM" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 120"></label>`:''}
+   <label class="f" style="margin:0"><span>Comentário (opcional)</span><textarea class="inp" id="updObs" rows="2" placeholder="Ex.: cabo passado até o 3º andar, faltam 2 andares"></textarea></label>
+   <label class="f" style="margin:0"><span>Foto (opcional)</span><input class="inp" id="updFoto" type="file" accept="image/*"></label>
+   <button class="btn primary wide" data-act="updEnviar" data-id="${a.id}">Enviar atualização</button><button class="link" data-act="updFechar" data-id="${a.id}">Cancelar</button>`}
+   ${U.length?`<div class="updl"><span class="tck2">${U.length} ${U.length===1?'ATUALIZAÇÃO ENVIADA':'ATUALIZAÇÕES ENVIADAS'}</span>${U.slice().reverse().map(u=>`<div><b>${hm(u.em)}</b><span>${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}${u.foto?' (com foto)':''}</span></div>`).join('')}</div>`:''}</section>`}
 function blocoAcao(a){
   const terc=tecT(a.tec)==='TERC',t=a.ts;
   const steps=['Deslocamento','Chegada','Execução','Relatório','LPU','Encerrada'];
@@ -1287,7 +1330,7 @@ function blocoAcao(a){
         <label class="f" style="margin:0"><span>Por quê? *</span><select class="inp" id="pzMot"><option value="">Selecione…</option>${MOT_PRAZO.map(m=>`<option>${m}</option>`).join('')}</select></label>
         <label class="f" style="margin:0"><span>Explique o que falta *</span><textarea class="inp" id="pzObs" rows="3" placeholder="Ex.: a travessia da avenida precisa de autorização; faltam 180 m"></textarea></label>
         <button class="btn primary wide" data-act="pzEnviar" data-id="${a.id}">Enviar pedido à gestão</button><button class="link" data-act="pzVoltar" data-id="${a.id}">Voltar</button>`}</section>`}
-      act=pz+go('Concluir atividade')+(proxDia(a)?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (continuo em ${dBR(proxDia(a)).slice(0,5)})</button>`:ph&&ph.status==='pendente'?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (aguardo a gestão)</button>`:'')+nok;break}
+      act=pz+updHtml(a)+go('Concluir atividade')+(proxDia(a)?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (continuo em ${dBR(proxDia(a)).slice(0,5)})</button>`:ph&&ph.status==='pendente'?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (aguardo a gestão)</button>`:'')+nok;break}
     case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">${a.parcial?'Envie o relatório do que foi feito antes de lançar na LPU.':'Preencha o relatório para encerrar a atividade.'}</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${'Enviar relatório e preencher LPU'}</button>`;break}
     case 'lpu':act=`${a.parcial?`<div class="result warn"><b>Atividade não concluída:</b> ${esc(a.motivo||'')}${a.obsMotivo?'. '+esc(a.obsMotivo):''}<br>Lance na LPU somente o que foi executado nesta visita.</div>`:''}<p class="muted" style="margin:0">Lance os serviços executados nesta visita.</p><button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;break;
     case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída em ${dBR(isoD(new Date(t.encerramento||t.conclusao||Date.now())))}.</div>${l?`<div class="result">LPU enviada ${lchip(l.status)}</div>`:''}`;break}
@@ -1634,6 +1677,14 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
+  updAbrir:el=>{ui.upd=ui.upd||{};ui.upd[el.dataset.id]={tipo:''};render()},
+  updFechar:el=>{delete (ui.upd||{})[el.dataset.id];render()},
+  updTipo:el=>{const F=ui.upd[el.dataset.id],m=$('updM')&&$('updM').value,o=$('updObs')&&$('updObs').value;F.tipo=el.dataset.v;render();if(m&&$('updM'))$('updM').value=m;if(o&&$('updObs'))$('updObs').value=o},
+  updEnviar:async el=>{const a=getAg(el.dataset.id),F=(ui.upd||{})[a.id];if(!F||!F.tipo){toast('Escolha como está o andamento.','bad');return}
+    const u={em:Date.now(),tipo:F.tipo,m:(($('updM')||{}).value||'').trim().replace('.',',')||null,obs:(($('updObs')||{}).value||'').trim()||null},fl=(($('updFoto')||{}).files||[])[0];el.disabled=true;
+    if(fl){try{const d=await reduzirFoto(fl),b=await (await fetch(d)).blob(),path=`relatorios/${a.id}/atualizacoes/${Date.now()}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)u.foto=path}catch(e){}}
+    a.atualizacoes=(a.atualizacoes||[]).concat([u]);delete ui.upd[a.id];save();render();toast('Atualização enviada. Já aparece no painel do dia.')},
+  pdCid:el=>{ui.pdCid=el.dataset.v;render()},
   lpuAbrir:el=>{ui.lpuTela=el.dataset.id;ui.lpuP=1;ui.lpuQ='';ui.lpuCls='';ui.lpuContaAb=false;render();window.scrollTo(0,0)},
   lpuFechar:()=>{ui.lpuTela=null;render();window.scrollTo(0,0)},
   lpuTrocar:()=>{ui.lpuContaAb=!ui.lpuContaAb;render()},
@@ -1755,7 +1806,7 @@ const ACT={
     openModal(`<div class="ah"><h3>${esc(a.etiqueta)}</h3>${chip(a.status)}</div><p>${esc(p.cliente||'')}</p>
     <dl class="dl" style="margin-top:10px"><div><dt>Fases</dt><dd>${fasesN(a)}</dd></div><div><dt>Data</dt><dd>${a.dias&&a.dias.length>1?`${dBR(a.dias[0])} a ${dBR(a.dias[a.dias.length-1])} (${a.dias.length} dias)`:dBR(a.data)}</dd></div><div><dt>Técnico</dt><dd>${esc(tecN(a.tec))} (${vinc(a.tec)})</dd></div><div><dt>Agendado por</dt><dd>${esc(a.criadoPor||'')}</dd></div>${(a.fasesFin||[]).length?`<div><dt>Finalizou</dt><dd>${a.fasesFin.map(k=>FCURTO[k]).join(', ')}</dd></div>`:''}</dl>
     ${c.endereco?`<p style="margin-top:10px"><span class="muted">Endereço:</span> ${esc(c.endereco)}</p>`:''}${c.contato?`<p><span class="muted">Contato:</span> ${esc(c.contato)}${c.telefone?', '+esc(c.telefone):''}</p>`:''}
-    ${pzHtml}${diasHtml}
+    ${pzHtml}${(a.atualizacoes||[]).length?`<h3 class="lsub">Atualizações do técnico</h3>${a.atualizacoes.slice().reverse().map(u=>`<div class="dts" style="margin:4px 0"><b>${hm(u.em)}</b><span style="color:var(--ink)">${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}</span>${u.foto?`<button class="btn sm" data-act="relVer" data-p="${esc(u.foto)}">Foto</button>`:''}</div>`).join('')}`:''}${diasHtml}
     ${a.motivo?`<div class="result bad" style="margin-top:10px">Não concluída: ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`. Reagendada para ${dBR(a.reag)}.`:''}</div>`:''}
     ${a.rel&&(a.rel.foto||a.rel.entrega)?`<h3 class="lsub">Relatórios</h3><div class="tools">${a.rel.foto&&a.rel.foto.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.foto.path)}">Relatório fotográfico</button>`:''}${a.rel.entrega&&a.rel.entrega.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.entrega.path)}">Relatório de entrega</button>`:''}</div>${a.medicoes?`<dl class="dl" style="margin-top:8px">${['rua','interno'].filter(f=>a.medicoes[f+':metros']!=null).map(f=>`<div><dt>Metros lançados (${FCURTO[f].toLowerCase()})</dt><dd>${(+a.medicoes[f+':metros']).toLocaleString('pt-BR')} m</dd></div>`).join('')}${['sinal_ini','sinal_fim'].filter(k=>a.medicoes['ext:'+k+':dbm']!=null).map(k=>`<div><dt>${k==='sinal_ini'?'Sinal no ponto de acesso':'Sinal no ponto de derivação'}</dt><dd>${esc(a.medicoes['ext:'+k+':dbm'])} dBm</dd></div>`).join('')}</dl>`:''}`:''}
     ${tl.length?`<h3 class="lsub">Registro de tempos</h3><dl class="dl">${tl.map(([l,v])=>`<div><dt>${l}</dt><dd>${hm(v)}</dd></div>`).join('')}</dl>`:''}
@@ -1962,7 +2013,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(
 const pushOk=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
 const ehIOS=/iphone|ipad|ipod/i.test(navigator.userAgent),appInstalado=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 const b64u8=b=>{const p='='.repeat((4-b.length%4)%4),r=atob((b+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))};
-function pushBanner(){if(!ME||ui.pushFechado||ui.perfil==='supply')return '';const g=['coord','sup','enc'].includes(ui.perfil);if(ui.perfil==='coord'||ui.perfil==='sup')return '';
+function pushBanner(){if(!ME||ui.pushFechado||ui.perfil==='supply'||ui.perfil==='visu')return '';const g=['coord','sup','enc'].includes(ui.perfil);if(ui.perfil==='coord'||ui.perfil==='sup')return '';
   const fechar='<button class="link" data-act="pushFechar" style="margin-left:8px">Agora não</button>';
   if(ehIOS&&!appInstalado)return `<div class="note" style="margin-bottom:12px"><b>Receba avisos das suas atividades.</b> No iPhone, toque em Compartilhar e depois em "Adicionar à Tela de Início". Abra a agenda pelo ícone criado e ative as notificações.${fechar}</div>`;
   if(!pushOk())return '';
@@ -2013,7 +2064,7 @@ async function syncAgora(){SYNC_PEND=false;const r=curRows();
   catch(e){console.error(e);setSt('Erro ao salvar',1);toast('Não foi possível salvar: '+(e.message||e)+'. Os dados foram recarregados.','bad');await carregar();render()}}
 async function todas(q){let out=[],de=0;for(;;){const r=await q().range(de,de+999);if(r.error)throw r.error;out=out.concat(r.data||[]);if(!r.data||r.data.length<1000)break;de+=1000}return out}
 async function carregar(){
-  if(ui.perfil==='supply'){TEC.length=0;S.previsao=[];S.comp={};S.ags=[];S.lpus=[];S.anexos=[];S.anexosLog=[];S.budget={};S.estoque={};snapAll();setSt('Tudo salvo');return}
+  if(ui.perfil==='supply'||ui.perfil==='visu'){TEC.length=0;S.previsao=[];S.comp={};S.ags=[];S.lpus=[];S.anexos=[];S.anexosLog=[];S.budget={};S.estoque={};snapAll();setSt('Tudo salvo');return}
   const g=['coord','sup','enc'].includes(ui.perfil);
   // técnicos
   const novos=[];
@@ -2059,7 +2110,7 @@ function gerarPdfLpu(l){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m
 // ---- usuários e acessos (coordenador)
 let USR=null;
 async function carregarUsuarios(){const[pf,pp]=await Promise.all([todas(()=>sb.from('perfis').select('id,nome,tipo,cnpj,status,equipe').order('nome')),todas(()=>sb.from('agenda_papeis').select('*'))]);USR={pf,pp}}
-const PAPEIS=[['','Sem acesso à agenda'],['coordenador','Coordenador'],['supervisor','Supervisor'],['encarregado','Encarregado'],['tecnico:clt','Técnico próprio (CLT)'],['tecnico:terceiro','Técnico terceiro'],['supply','Supply Chain (só planilha do bolsão)']];
+const PAPEIS=[['','Sem acesso à agenda'],['coordenador','Coordenador'],['supervisor','Supervisor'],['encarregado','Encarregado'],['tecnico:clt','Técnico próprio (CLT)'],['tecnico:terceiro','Técnico terceiro'],['supply','Supply Chain (só planilha do bolsão)'],['visualizacao','Visualização (só painel do dia)']];
 function viewPermissoes(){const id=ui.permSel,pf=USR.pf.find(x=>x.id===id),pp=USR.pp.find(x=>x.user_id===id);if(!pf||!pp){ui.permSel=null;return viewUsuarios()}
   ui.permEd=ui.permEd&&ui.permEd.id===id?ui.permEd:{id,set:permDe(pp.papel,pp.permissoes).slice()};const P=new Set(ui.permEd.set),pad=PERM_PAD[pp.papel]||[],igual=pad.length===P.size&&pad.every(k=>P.has(k));
   const papN={supervisor:'Supervisor',encarregado:'Encarregado',supply:'Supply Chain'}[pp.papel];
@@ -2092,7 +2143,7 @@ async function checarSessao(){if(NP_OPEN)return;
   const{data:pp}=await sb.from('agenda_papeis').select('*').eq('user_id',session.user.id).eq('ativo',true).maybeSingle();
   if(!pp){showAuth('cPend');$('pendMsg').textContent='Seu cadastro está aprovado, mas o acesso à Agenda de Implantação ainda não foi liberado pela coordenação.';return}
   ME={id:session.user.id,nome:pf.nome,cnpj:pf.cnpj,papel:pp.papel,vinculo:pp.vinculo,perm:pp.permissoes};
-  ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',supply:'supply',tecnico:pp.vinculo==='terceiro'?'terc':'clt'}[pp.papel];if(!ui.perfil){showAuth('cPend');$('pendMsg').textContent='Seu perfil de acesso à agenda não é reconhecido. Fale com a coordenação.';return}ui.tab=tabsDe()[0]||'semAcesso';ui.tec=ME.id;
+  ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',supply:'supply',visualizacao:'visu',tecnico:pp.vinculo==='terceiro'?'terc':'clt'}[pp.papel];if(!ui.perfil){showAuth('cPend');$('pendMsg').textContent='Seu perfil de acesso à agenda não é reconhecido. Fale com a coordenação.';return}ui.tab=tabsDe()[0]||'semAcesso';ui.tec=ME.id;
   try{await carregar()}catch(e){$('loadMsg').textContent='Erro ao carregar os dados: '+(e.message||e);return}
   BOOT_UID=session.user.id;document.body.classList.add('app-on');
   const qs=new URLSearchParams(location.search),agLink=qs.get('ag'),relVolta=qs.get('rel');if(agLink){history.replaceState(null,'',location.pathname);const a=getAg(agLink);if(a){if(['clt','terc'].includes(ui.perfil)){ui.tab='campo';ui.campoSel=a.id}else ui.tab='agenda'}}

@@ -102,6 +102,7 @@ Para um ambiente interno sem acesso à internet pública, essas bibliotecas prec
 | `ag_pode(chave)` | Verifica uma permissão da matriz de permissões (telas e ações). O coordenador sempre pode tudo; `permissoes` nulo usa o padrão do papel. |
 | `ag_aprova_lpu()`, `ag_reagenda()` | Atalhos de permissão usados nas políticas. |
 | `ag_projetos_tecnico()` | Devolve os projetos ao técnico sem o valor mensal do cliente. |
+| `ag_painel_dia(data)` | Atividades do dia para o Painel do dia (gestão e perfil Visualização), sem dados financeiros nem de contato. |
 | `ag_meu_doc()` | CPF/CNPJ normalizado do usuário (para o técnico ver o próprio estoque). |
 | `ag_registrar_push()` | Registra o aparelho para notificações. |
 | `ag_chamar_avisos()`, `ag_aviso_insert()`, `ag_aviso_update()` | Triggers que chamam a Edge Function na hora (atividade nova, remarcada, transferida, cancelada, pedido de prazo e resposta). |
@@ -131,6 +132,7 @@ Os arquivos são abertos por URL assinada temporária. As fotos são reduzidas n
 8. `agenda_ajuste_07_estoque_na_agenda.sql` — estoque dentro da agenda e papel Supply Chain
 9. `agenda_ajuste_08_permissoes.sql` — permissões por usuário (`ag_pode`)
 10. `agenda_ajuste_09_varios_dias_e_prazo.sql` — avisos de pedido de prazo e atividades de vários dias
+11. `agenda_ajuste_10_painel_do_dia.sql` — papel Visualização, função `ag_painel_dia` e Painel do dia no padrão de supervisor e encarregado
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -144,6 +146,7 @@ Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create 
 | Supervisor | Painel de KPIs (com aprovação de LPU), Agenda, Relatórios, Estoque (com importações) e Projetos. Não reagenda nem define budget. |
 | Encarregado | Agenda (agendar, reagendar, cancelar, anexos), Relatórios, Estoque (consulta e movimentações) e Projetos. |
 | Supply Chain | Somente publicação da planilha diária do bolsão (SAP). |
+| Visualização | Somente o Painel do dia (outros setores, TV da sala). Não acessa as tabelas da agenda: lê os dados pela função `ag_painel_dia`, sem valores, endereços ou telefones. |
 | Técnico CLT | Minhas atividades, Meu estoque e Meu histórico. |
 | Técnico terceiro | Igual ao CLT, mais Gestão financeira (LPUs e totais). |
 
@@ -194,6 +197,8 @@ Cada aviso é enviado uma única vez por atividade e por dia (`ag_notificacoes`)
 - **LPU:** preenchimento pelos técnicos em tela própria e em 3 passos (serviços, conferência e assinatura), sem exibição de valores. Busca por código ou descrição que ignora acentos e aceita palavras em qualquer ordem, filtro por classe, inclusão item a item com quantidade e condição (comum ou crítica), aviso da metragem registrada no relatório, observação para a gestão e declaração de execução antes de assinar. Gera o PDF assinado. Aprovação com conferência de cabo (relatório × LPU × ROI) e alertas de divergência.
 - **Financeiro:** budget mensal por conta contábil (consumido pelas LPUs aprovadas no mês da aprovação), comparação ROI × LPU e detalhamento por classe e por item.
 - **Estoque:** visão por técnico (bolsão SAP + Elleven, comprometido pelos agendamentos), importação da planilha do bolsão e do extrato do Elleven, saldo base, movimentações, e Meu estoque e Meu histórico para os técnicos.
+- **Painel do dia (grupo Operação):** visão somente leitura das atividades de hoje, para outros setores e para TV: números do dia, filtro por cidade e colunas Aguardando início, A caminho, Em execução e Encerradas, com as últimas atualizações enviadas pelo técnico e o selo de circuito entregue. Atualiza sozinho a cada minuto.
+- **Atualizações do andamento:** durante a execução, o técnico envia quantas atualizações quiser (situação, metragem, comentário e foto), exibidas no Painel do dia e no card da atividade.
 - **Painel de KPIs:** visão geral, entregas, rede executada (cabo, cordoalha, reaberturas de CEO, extensão de fibra), execução em campo, equipes e financeiro.
 
 ---
@@ -240,6 +245,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 06/10/2026 | Painel do dia no grupo Operação (somente leitura, para outros setores e TV), perfil Visualização e atualizações do andamento enviadas pelo técnico durante a execução. | `agenda.html`, `agenda_ajuste_10` |
 | 06/10/2026 | Novo preenchimento da LPU pelo técnico: tela própria em 3 passos (serviços, conferência e assinatura), busca sem acento, filtro por classe, itens incluídos um a um com quantidade e condição, aviso da metragem do relatório, observação para a gestão (exibida na aprovação) e declaração obrigatória na assinatura. Correção do nome da classe "Improdutividade". | `agenda.html` |
 | 05/10/2026 | Atividades com execução em vários dias (diário por dia, encerramento do dia, conclusão antecipada); pergunta "Você termina hoje?" e pedido de prazo à gestão; relatório da não conclusão antes da LPU parcial. | `agenda.html`, `agenda-lembretes.ts` (deploy), `agenda_ajuste_09` |
 | 05/10/2026 | LPU do que foi feito em atividades não concluídas. | `agenda.html` |
