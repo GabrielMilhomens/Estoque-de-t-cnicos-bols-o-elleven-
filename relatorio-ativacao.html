@@ -639,7 +639,51 @@ function rmPdf(key) {
 
 let dynPhotoIdx = 0;
 
-function compressImage(file, maxSize, quality) {
+/* ---------- CARIMBO DAS FOTOS: horário, data, endereço, coordenadas e código ---------- */
+const CARIMBO=(()=>{
+  let ultPos=null,seq=0;const endCache={};
+  const MES=['jan.','fev.','mar.','abr.','mai.','jun.','jul.','ago.','set.','out.','nov.','dez.'],SEM=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],pad=n=>String(n).padStart(2,'0');
+  function pos(maxAge){return new Promise(res=>{if(ultPos&&Date.now()-ultPos.em<(maxAge||120000))return res(ultPos);if(!navigator.geolocation)return res(null);
+    navigator.geolocation.getCurrentPosition(p=>{ultPos={lat:p.coords.latitude,lon:p.coords.longitude,em:Date.now()};res(ultPos)},()=>res(null),{enableHighAccuracy:true,timeout:12000,maximumAge:60000})})}
+  function tiff(v,t){const le=v.getUint16(t)===0x4949,u16=p=>v.getUint16(p,le),u32=p=>v.getUint32(p,le);
+    const ifd=off=>{const n=u16(t+off),r={};for(let i=0;i<n;i++){const e=t+off+2+i*12;r[u16(e)]={cnt:u32(e+4),vo:e+8}}return r};
+    const ascii=en=>{const off=en.cnt>4?t+u32(en.vo):en.vo;let s='';for(let i=0;i<en.cnt-1;i++)s+=String.fromCharCode(v.getUint8(off+i));return s};
+    const rat3=en=>{const off=t+u32(en.vo),r=i=>u32(off+i*8)/(u32(off+i*8+4)||1);return r(0)+r(1)/60+r(2)/3600};
+    const dataDe=en=>{const m=en&&ascii(en).match(/(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)/);return m?new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6]):null};
+    const i0=ifd(u32(t+4));let data=null,lat=null,lon=null;
+    if(i0[0x8769]){const ex=ifd(u32(i0[0x8769].vo));data=dataDe(ex[0x9003]||ex[0x9004])}
+    if(!data)data=dataDe(i0[0x0132]);
+    if(i0[0x8825]){const g=ifd(u32(i0[0x8825].vo));if(g[2]&&g[4]){lat=rat3(g[2]);lon=rat3(g[4]);const ref=e=>e?String.fromCharCode(v.getUint8(e.vo)):'';if(ref(g[1])==='S')lat=-lat;if(ref(g[3])==='W')lon=-lon;if(!lat&&!lon)lat=lon=null}}
+    return{data,lat,lon}}
+  function exif(buf){try{const v=new DataView(buf);if(v.getUint16(0)!==0xFFD8)return null;let o=2;while(o<v.byteLength-10){const mk=v.getUint16(o);if((mk&0xFF00)!==0xFF00)return null;const len=v.getUint16(o+2);if(mk===0xFFE1&&v.getUint32(o+4)===0x45786966)return tiff(v,o+10);o+=2+len}}catch(e){}return null}
+  async function endereco(lat,lon,inv){const k=lat.toFixed(4)+','+lon.toFixed(4);if(k in endCache)return endCache[k];let t='';try{const r=await inv('reverse',{lat,lon});t=(r&&r.label)||''}catch(e){}endCache[k]=t;return t}
+  // o = {etq, cam (veio da câmera), inv (chamada da função agenda-rota)}
+  async function meta(file,o){o=o||{};let dt=null,lat=null,lon=null;
+    try{const e=exif(await file.slice(0,262144).arrayBuffer());if(e){dt=e.data;if(e.lat!=null){lat=e.lat;lon=e.lon}}}catch(e){}
+    const fresca=o.cam||(Date.now()-(file.lastModified||0)<5*60000);let galeria=false;
+    if(fresca){if(!dt)dt=new Date();if(lat==null){const p=await pos();if(p){lat=p.lat;lon=p.lon}}}
+    if(!dt){dt=new Date();galeria=true}
+    const end=lat!=null&&o.inv?await endereco(lat,lon,o.inv):'';seq++;
+    const cod=String(o.etq||'FOTO').toUpperCase()+'-'+pad(dt.getDate())+pad(dt.getMonth()+1)+'-'+pad(dt.getHours())+pad(dt.getMinutes())+'-'+pad(seq);
+    return{dt,lat,lon,end,cod,galeria:galeria&&lat==null}}
+  function quebra(x,txt,max){const w=txt.split(' '),L=[];let l='';w.forEach(p=>{const t=l?l+' '+p:p;if(x.measureText(t).width>max&&l){L.push(l);l=p}else l=t});if(l)L.push(l);return L.slice(0,3)}
+  function desenhar(c,m){const x=c.getContext('2d'),W=c.width,H=c.height,u=Math.min(W,H)/100,P=3.2*u,F='"Barlow",Arial,sans-serif',FC='"Barlow Condensed","Arial Narrow",Arial,sans-serif';
+    const tira=5.2*u,yT=H-tira;
+    x.font=`500 ${3.3*u}px ${F}`;const endTxt=m.galeria?'Foto da galeria, sem localização':(m.end||(m.lat!=null?'':'Localização indisponível'));
+    const linhas=endTxt?quebra(x,endTxt,W-2*P):[];const temC=m.lat!=null;
+    const hC=temC?5*u:0,yC=yT-1.8*u-hC,yE=(temC?yC:yT)-1.6*u-linhas.length*4.3*u,yH=yE-1.4*u;
+    const g=x.createLinearGradient(0,yH-14*u,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.35,'rgba(0,0,0,.45)');g.addColorStop(1,'rgba(0,0,0,.72)');x.fillStyle=g;x.fillRect(0,yH-14*u,W,H-(yH-14*u));
+    x.fillStyle='#fff';x.textBaseline='alphabetic';
+    const hora=pad(m.dt.getHours())+':'+pad(m.dt.getMinutes());x.font=`400 ${12*u}px ${FC}`;x.fillText(hora,P,yH);const tw=x.measureText(hora).width;
+    x.fillStyle='#F2B33D';x.fillRect(P+tw+2*u,yH-9.2*u,.7*u,9.2*u);x.fillStyle='#fff';x.font=`500 ${3.4*u}px ${F}`;
+    x.fillText(pad(m.dt.getDate())+' '+MES[m.dt.getMonth()]+' '+m.dt.getFullYear(),P+tw+4*u,yH-5.4*u);x.fillText(SEM[m.dt.getDay()],P+tw+4*u,yH-1*u);
+    x.font=`500 ${3.3*u}px ${F}`;linhas.forEach((l,i)=>x.fillText(l,P,yE+(i+1)*4.3*u-0.8*u));
+    if(temC){const t='Coordenadas: '+m.lat.toFixed(6)+', '+m.lon.toFixed(6);x.font=`500 ${3.1*u}px ${F}`;const w=x.measureText(t).width;x.fillStyle='rgba(0,0,0,.35)';x.fillRect(P-u,yC,w+2*u,hC);x.fillStyle='#fff';x.fillText(t,P,yC+hC-1.5*u)}
+    x.fillStyle='rgba(0,0,0,.6)';x.fillRect(0,yT,W,tira);x.fillStyle='#E3E8DF';x.font=`500 ${2.8*u}px ${F}`;const lb='Código da foto: ',lw=x.measureText(lb).width;x.fillText(lb,P,H-1.7*u);x.fillStyle='#fff';x.font=`700 ${2.8*u}px ${F}`;x.fillText(m.cod,P+lw+0.3*u,H-1.7*u)}
+  return{meta,desenhar,pos};
+})();
+
+function compressImage(file, maxSize, quality, o) {
   return new Promise(resolve => {
     const reader = new FileReader();
     reader.onload = e => {
@@ -654,7 +698,9 @@ function compressImage(file, maxSize, quality) {
         const c = document.createElement('canvas');
         c.width = w; c.height = h;
         c.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(c.toDataURL('image/jpeg', quality));
+        const fim = () => resolve(c.toDataURL('image/jpeg', quality));
+        if (o === false) return fim();
+        CARIMBO.meta(file, Object.assign({ inv: window.__invRota }, o || {})).then(m => { CARIMBO.desenhar(c, m); fim(); }).catch(fim);
       };
       img.src = e.target.result;
     };
@@ -664,7 +710,7 @@ function compressImage(file, maxSize, quality) {
 
 async function prevPhoto(input, imgId) {
   if (!input.files[0]) return;
-  const dataUrl = await compressImage(input.files[0], 1200, 0.82);
+  const dataUrl = await compressImage(input.files[0], 1200, 0.82, { etq: (document.getElementById('f-etiqueta') || {}).value || '', cam: input.hasAttribute('capture') });
   const img = document.getElementById(imgId);
   img.src = dataUrl; img.style.display = 'block';
   img.closest('.phc').dataset.has = '1';
@@ -1161,6 +1207,7 @@ document.getElementById('modal').addEventListener('click', e => {
   // botão para voltar à agenda sem gerar o relatório
   function botaoVoltar(){var b=document.createElement('a');b.href=VOLTA;b.textContent='← Voltar para a agenda';b.style.cssText='position:fixed;top:10px;left:10px;z-index:10002;background:#2d3444;color:#fff;padding:9px 14px;border-radius:20px;font:600 13px Segoe UI,Arial,sans-serif;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25)';document.body.appendChild(b)}
   window.__voltaAgenda=VOLTA;
+  window.__invRota=function(action,body){return sb.functions.invoke('agenda-rota',{body:Object.assign({action:action},body||{})}).then(function(x){if(x.error)throw x.error;return x.data})};
   function enviar(art,tentativa){tentativa=tentativa||1;
     var nome=(art.nomeArquivo||'relatorio-entrega.pdf').replace(/[^\w.\-]+/g,'_');
     sb.storage.from('agenda').upload('relatorios/'+ag+'/'+Date.now()+'-'+nome,art.blob,{contentType:'application/pdf',upsert:false}).then(function(r){

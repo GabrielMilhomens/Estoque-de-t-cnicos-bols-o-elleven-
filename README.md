@@ -52,7 +52,8 @@ Sistema web de gestão das atividades de campo da área de Implantação e Infra
 | Arquivo | Onde vai |
 |---|---|
 | `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `09` | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
-| `agenda-lembretes.ts` | Código da Edge Function (pode ficar em repositório privado). |
+| `agenda-lembretes.ts` | Código da Edge Function de notificações (pode ficar em repositório privado). |
+| `agenda-rota.ts` | Código da Edge Function `agenda-rota` (rota, previsão de chegada e endereço das fotos pelo OpenRouteService). |
 | `NAO_SUBIR_NO_GITHUB_segredos_notificacoes.txt` | Segredos da Edge Function (ver seção 6). |
 
 ---
@@ -188,6 +189,16 @@ Cada aviso é enviado uma única vez por atividade e por dia (`ag_notificacoes`)
 
 ---
 
+## 6.1 Rota e localização (Edge Function `agenda-rota`)
+
+**Implantação:** Supabase → Edge Functions → criar `agenda-rota` → colar o conteúdo de `agenda-rota.ts` → Deploy, **com** a verificação de JWT ligada (só usuários logados usam a função). Em Secrets, cadastrar `ORS_API_KEY` com a chave do OpenRouteService.
+
+**Ações:** `rota` (tempo e distância de carro entre o técnico e o cliente), `geocode` (coordenadas a partir do endereço do cliente) e `reverse` (endereço a partir das coordenadas, usado no carimbo das fotos). Plano gratuito do OpenRouteService: 2.000 rotas e 1.000 consultas de endereço por dia.
+
+**Previsão de chegada:** ao iniciar o deslocamento, a agenda lê a localização do celular e calcula a rota até o cliente (coordenadas dos dados complementares, se informadas; senão, convertidas do endereço e guardadas na atividade). A previsão é recalculada a cada 90 segundos enquanto a agenda está aberta no celular do técnico. A 5 minutos ou menos, grava o aviso, e o Painel do dia mostra "Chegando em cerca de 5 minutos" (pela localização ou, sem localização, pela previsão). Se a rota não puder ser calculada, o técnico informa a previsão à mão.
+
+**Carimbo das fotos:** toda foto enviada pela agenda e pelo relatório de entrega recebe, na própria imagem, horário, data e dia da semana, endereço, coordenadas e um código (etiqueta, data, hora e sequência). Fotos da galeria usam a data e o local gravados pelo celular; sem essas informações, o carimbo indica "Foto da galeria, sem localização".
+
 ## 7. Módulos funcionais
 
 - **Base de previsão:** cadastro de projetos em 3 etapas (leitura automática do PDF do ROI, endereço e dados técnicos), status por fase e regras por topologia (Firewall e Last mile sem lançamento liberam a ativação direto).
@@ -225,6 +236,8 @@ Cada aviso é enviado uma única vez por atividade e por dia (`ag_notificacoes`)
 - **Chave pública no front-end:** a chave `anon` é pública por natureza; a proteção dos dados depende das políticas RLS, que precisam ser preservadas em qualquer migração.
 - **LPU em nome de outro usuário:** por regra de segurança, o banco só aceita LPU enviada pelo próprio técnico. Testes feitos pela "Visão do técnico" da coordenação não geram LPU.
 - **Dependência de CDNs:** ver seção 3.
+- **Localização do técnico:** o navegador só entrega a localização com a agenda aberta na tela. Com o celular bloqueado, a previsão fica parada na última calculada, e o aviso dos 5 minutos sai pelo horário previsto.
+- **Chave do OpenRouteService:** fica só nos segredos do Supabase. Se a chave for exposta, gere outra no painel do OpenRouteService e atualize o segredo.
 
 ---
 
@@ -245,6 +258,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 06/10/2026 | Previsão de chegada calculada automaticamente pela localização do técnico (sem digitar o horário), aviso "Chegando em cerca de 5 minutos" no Painel do dia, coordenadas opcionais do cliente nos dados complementares e carimbo de horário, data, endereço, coordenadas e código nas fotos (agenda e relatório de entrega). | `agenda.html`, `relatorio-ativacao.html`, nova Edge Function `agenda-rota` (deploy) e segredo `ORS_API_KEY` |
 | 06/10/2026 | Relatório de Entrega de Circuito no layout da agenda: seções numa única página, redundância e tipo de link em botões, campos de IP estático ou PPPoE conforme o tipo, progresso de itens preenchidos e envio no fim da página. O PDF segue o mesmo modelo; sem link redundante, o bloco passa a se chamar "Link". | `relatorio-ativacao.html` |
 | 06/10/2026 | Painel do dia no grupo Operação (somente leitura, para outros setores e TV), perfil Visualização e atualizações do andamento enviadas pelo técnico durante a execução. | `agenda.html`, `agenda_ajuste_10` |
 | 06/10/2026 | Novo preenchimento da LPU pelo técnico: tela própria em 3 passos (serviços, conferência e assinatura), busca sem acento, filtro por classe, itens incluídos um a um com quantidade e condição, aviso da metragem do relatório, observação para a gestão (exibida na aprovação) e declaração obrigatória na assinatura. Correção do nome da classe "Improdutividade". | `agenda.html` |

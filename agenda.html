@@ -252,6 +252,8 @@ td.r,th.r{white-space:nowrap}
 .upd{border:1px solid var(--info);border-radius:12px;padding:12px;display:grid;gap:10px;background:var(--surface)}.upd>b{font:600 19px "Barlow Condensed",sans-serif}.updb{border:2px solid var(--info);color:var(--info);font-weight:700}
 .updt{display:grid;grid-template-columns:1fr 1fr;gap:8px}.updt .btn{min-height:48px;white-space:normal;line-height:1.2}.updt .btn.on{border:2px solid var(--brand-ink);background:var(--brand-soft)}.updt .btn.on.par{border-color:var(--warn);background:var(--warn-soft)}
 .updl{display:flex;flex-direction:column;gap:2px}.updl div{display:grid;grid-template-columns:44px 1fr;gap:8px;font-size:14px;padding:6px 0;border-top:1px solid var(--line)}
+.etab{border:1px solid var(--info);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;background:var(--surface)}.etab>small:first-child{font-size:12px;font-weight:600;letter-spacing:.05em;color:var(--muted)}.etab div{display:flex;align-items:baseline;gap:10px}.etab b{font:700 38px/1 "Barlow Condensed",sans-serif}.etab span{font-size:14.5px;color:var(--muted)}
+.pdperto{background:var(--info);color:#fff;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:1px}.pdperto b{font-weight:600;font-size:14px}.pdperto span{font-size:13px;opacity:.92}
 .prev{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px}
 .btn[disabled],.bigbtn[disabled]{opacity:.45;cursor:not-allowed}
 .icon{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px;font-size:15px}
@@ -736,6 +738,7 @@ function viewPainelDia(){const T=hoje(),loc=ui.perfil!=='visu';if(!loc&&!PD.rows
   const info=r=>{const t=r.ts||{};if(encDia(r)){const x=diaFeito(r);return `Dia encerrado às ${hm(x.ts&&x.ts.fimDia)}${r.aguardaPrazo?', aguardando a gestão decidir o pedido de prazo':`, continua em ${dBR(r.data).slice(0,5)}`}${x.resumo?'. '+x.resumo:''}`}if(r.status==='agendada')return r.janela?'Janela '+r.janela:'Aguardando início';if(r.status==='deslocamento')return `Saiu às ${hm(t.desloc)}${t.eta?`, chegada prevista ${hm(t.eta)}`:''}`;if(r.status==='no_local')return `Chegou às ${hm(t.chegada)}`;if(r.status==='execucao')return `Em execução desde ${hm(t.inicio)} (${dur(t.inicio)})`;if(r.status==='nao_concluida')return 'Não concluída: '+(r.motivo||'');return `Concluída às ${hm(t.conclusao||t.encerramento)}${entregue(r)?', circuito entregue':''}`};
   const card=r=>{const ups=(r.atualizacoes||[]).slice(-2).reverse(),ch=encDia(r)?`<span class="chip warn">${r.aguardaPrazo?'Aguardando prazo':r.data===addD(T,1)?'Continua amanhã':'Continua em '+dBR(r.data).slice(0,5)}</span>`:r.status==='nao_concluida'?'<span class="chip bad">Não concluída</span>':entregue(r)?'<span class="chip pdent">Circuito entregue</span>':conc(r)?'<span class="chip ok">Concluída</span>':'';
     return `<article class="pdc ${r.status==='nao_concluida'?'nao':entregue(r)?'ent':''}"><div class="pdh"><b>${esc(r.cliente||r.etiqueta)}</b>${ch}</div><span><b>${esc(fz(r))}</b>${r.cidade?', '+esc(r.cidade):''}</span><small>${esc(r.etiqueta)}, ${esc(r.tecnico)}</small><span class="pdi">${esc(info(r))}</span>
+      ${r.status==='deslocamento'&&(r.ts||{}).eta&&((r.ts||{}).perto||Date.now()>=r.ts.eta-300000)?`<div class="pdperto"><b>Chegando em cerca de 5 minutos</b><span>${(r.ts||{}).pertoVia==='gps'?'Aviso automático pela localização do técnico':'Pela previsão de chegada'}</span></div>`:''}
       ${ups.length&&grupo(r)!=='fim'?`<div class="pdu"><span>ATUALIZAÇÕES DO TÉCNICO</span>${ups.map(u=>`<div><b>${hm(u.em)}</b><span>${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}</span></div>`).join('')}</div>`:''}</article>`};
   const COL=[['ag','Aguardando início'],['cam','A caminho'],['exec','Em execução'],['fim','Encerradas']];
   const n=k=>L.filter(r=>grupo(r)===k).length;
@@ -1148,7 +1151,7 @@ function viewAgenda(){
     if(ui.fTab==='proj')body=`<dl class="dl">${dd('Cliente',esc(p.cliente))}${dd('Protocolo',esc(p.protocolo))}${dd('Etiqueta',esc(p.etiqueta))}${dd('Valor mensal',brl(p.valor))}${dd('Topologia',esc(p.topologia))}${dd('Lançamento',(+p.metros||0)+' m')}${dd('Caixas de emenda',caixasTxt(p))}${dd('Cidade',esc(p.cidade||'—'))}${dd('POP',esc(p.pop||'—'))}${dd('Equipamento de acesso',esc(p.equip||'—'))}${p.inst&&p.inst.porta?dd('Porta',esc(p.inst.porta)):''}${p.inst&&p.inst.pa?dd('Ponto de acesso',esc(p.inst.pa)):''}${p.inst&&p.inst.pd?dd('Ponto de derivação',esc(p.inst.pd)):''}${dd('Extensão de sinal',p.semExt?'Não se aplica':'Prevista')}${dd('Lista de ROI',p.roi?`${esc(p.roi.nome)} (${p.roi.itens.length} itens)`:'Não enviada')}${p.roi&&p.roi.fin?FIN.filter(([k])=>p.roi.fin[k]!==undefined).map(([k,l,m])=>dd(l,m?brl(p.roi.fin[k]):String(p.roi.fin[k]).replace('.',','))).join(''):''}${dd('Status',progLabel(p.etiqueta))}</dl>
       <h3 class="lsub">Fases do projeto</h3>${faseFlags(p,1)}
       <h3 class="lsub">Dias realizados / previstos</h3><div class="phases">${fasesProj(p).map(f=>`<div><span>${f.n}</span><b>${realDias(p.etiqueta,f.k)} / ${+p[f.p]||0}</b></div>`).join('')}</div>`;
-    else if(ui.fTab==='comp')body=`<button class="btn sm" style="margin-bottom:12px" data-act="wiz" data-n="2" data-id="${p.id}">Editar endereço e dados técnicos</button>${usado&&c.endereco?'<p class="note">Dados gravados nesta etiqueta em agendamento anterior. Revise antes de agendar.</p>':''}${fld('endereco','Endereço completo *')}${fld('contato','Contato no local *')}${fld('telefone','Telefone do contato *','tel')}${fld('janela','Horário ou janela de atendimento')}${fld('acesso','Condições de acesso (portaria, autorização, chave)')}${fld('obs','Observações técnicas','area')}`;
+    else if(ui.fTab==='comp')body=`<button class="btn sm" style="margin-bottom:12px" data-act="wiz" data-n="2" data-id="${p.id}">Editar endereço e dados técnicos</button>${usado&&c.endereco?'<p class="note">Dados gravados nesta etiqueta em agendamento anterior. Revise antes de agendar.</p>':''}${fld('endereco','Endereço completo *')}${fld('coord','Coordenadas do cliente (opcional, ex.: -22.889654, -47.076362)')}${fld('contato','Contato no local *')}${fld('telefone','Telefone do contato *','tel')}${fld('janela','Horário ou janela de atendimento')}${fld('acesso','Condições de acesso (portaria, autorização, chave)')}${fld('obs','Observações técnicas','area')}`;
     else if(ui.fTab==='anx')body=anexosEdit(p);
     else body=agendForm(p);
     ficha=`<div class="ficha"><div class="fhead"><div><b>${esc(p.etiqueta)}</b><span>${esc(p.cliente)}</span></div><button class="icon" data-act="unpick" aria-label="Fechar ficha">✕</button></div>
@@ -1307,6 +1310,23 @@ function updHtml(a){const U=a.atualizacoes||[],ult=U.length?U[U.length-1]:null,F
    <label class="f" style="margin:0"><span>Foto (opcional)</span><input class="inp" id="updFoto" type="file" accept="image/*"></label>
    <button class="btn primary wide" data-act="updEnviar" data-id="${a.id}">Enviar atualização</button><button class="link" data-act="updFechar" data-id="${a.id}">Cancelar</button>`}
    ${U.length?`<div class="updl"><span class="tck2">${U.length} ${U.length===1?'ATUALIZAÇÃO ENVIADA':'ATUALIZAÇÕES ENVIADAS'}</span>${U.slice().reverse().map(u=>`<div><b>${hm(u.em)}</b><span>${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}${u.foto?' (com foto)':''}</span></div>`).join('')}</div>`:''}</section>`}
+/* ---------- DESLOCAMENTO: rota e previsão de chegada pela localização ---------- */
+const parseCoord=t=>{const m=String(t||'').match(/(-?\d+(?:[.,]\d+)?)\s*[,; ]\s*(-?\d+(?:[.,]\d+)?)/);if(!m)return null;const la=+m[1].replace(',','.'),lo=+m[2].replace(',','.');return Math.abs(la)<=90&&Math.abs(lo)<=180?{lat:la,lon:lo}:null};
+async function destinoAg(a){const c=S.comp[a.etiqueta]||{},m=parseCoord(c.coord);if(m)return m;if(a.geoCli)return a.geoCli;if(!(c.endereco||'').trim())throw new Error('endereço do cliente não informado');
+  const g=await invRota('geocode',{endereco:c.endereco});a.geoCli={lat:g.lat,lon:g.lon};return a.geoCli}
+const ROTA={bus:{},em:{}};
+async function calcRota(a,forca){if(!a||a.status!=='deslocamento'||ROTA.bus[a.id])return;if(!ME||a.tec!==ME.id){if(!a.ts.eta){a.rotaErro='a previsão automática usa a localização do próprio técnico';render()}return}if(!forca&&ROTA.em[a.id]&&Date.now()-ROTA.em[a.id]<90000)return;ROTA.bus[a.id]=true;ROTA.em[a.id]=Date.now();
+  try{const p=await CARIMBO.pos(30000);if(!p)throw new Error('localização não autorizada ou indisponível');const d=await destinoAg(a);const r=await invRota('rota',{de:[p.lon,p.lat],para:[d.lon,d.lat]});
+    a.ts.eta=Date.now()+r.segundos*1000;a.rota={seg:r.segundos,m:r.metros,em:Date.now()};delete a.rotaErro;if(r.segundos<=300&&!a.ts.perto){a.ts.perto=Date.now();a.ts.pertoVia='gps'}save()}
+  catch(e){if(!a.ts.eta)a.rotaErro=e.message||String(e)}ROTA.bus[a.id]=false;if(ui.campoSel===a.id&&!$('modal').classList.contains('open')){const ae=document.activeElement;if(!(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)))render()}}
+function etaBox(a){const t=a.ts||{},hm=v=>new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  if(!t.eta&&a.rotaErro)return `<div class="result warn"><b>Não foi possível calcular a rota:</b> ${esc(a.rotaErro)}. Informe a previsão de chegada.</div><label class="f" style="margin:0"><span>Previsão de chegada</span><input type="time" id="etaMan" class="inp" style="font-size:17px;min-height:48px"></label><button class="btn wide" data-act="etaManual" data-id="${a.id}">Salvar previsão</button><button class="link" data-act="rotaDeNovo" data-id="${a.id}">Tentar calcular de novo</button>`;
+  if(!t.eta)return '<div class="etab"><span>Calculando a rota até o cliente…</span></div>';
+  const falta=Math.max(0,Math.round((t.eta-Date.now())/60000));
+  return `<div class="etab"><small>PREVISÃO DE CHEGADA</small><div><b>${hm(t.eta)}</b><span>${falta?'faltam '+falta+' min':'chegando'}</span></div>${a.rota?`<span>${(a.rota.m/1000).toFixed(1).replace('.',',')} km pelo trajeto até o cliente</span><small class="muted">Atualizada às ${hm(a.rota.em)} pela sua localização.</small>`:'<small class="muted">Informada pelo técnico.</small>'}</div>
+   ${t.perto?'<div class="result ok"><b>Você está a cerca de 5 minutos.</b> A gestão já foi avisada no painel do dia.</div>':''}<small class="muted">Deixe a agenda aberta durante o trajeto para a previsão continuar se atualizando.</small>`}
+setInterval(()=>{if(!ME||!['clt','terc','coord'].includes(ui.perfil)||document.visibilityState!=='visible')return;S.ags.filter(a=>a.status==='deslocamento'&&a.tec===ME.id).forEach(a=>calcRota(a))},30000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&ME)S.ags.filter(a=>a.status==='deslocamento'&&a.tec===ME.id).forEach(a=>calcRota(a))});
 function blocoAcao(a){
   const terc=tecT(a.tec)==='TERC',t=a.ts;
   const steps=['Deslocamento','Chegada','Execução','Relatório','LPU','Encerrada'];
@@ -1317,8 +1337,8 @@ function blocoAcao(a){
   const go=l=>`<button class="bigbtn" data-act="go" data-id="${a.id}">${l}</button>`;
   let act='';
   switch(a.status){
-    case 'agendada':{if(a.aguardaPrazo){act=`<div class="result warn"><b>Aguardando a gestão.</b> Você pediu mais ${a.prazo&&a.prazo.dias>1?a.prazo.dias+' dias':'1 dia'} para concluir. Assim que a gestão decidir, você recebe uma notificação.</div>`;break}const bl=emAndamento(a.tec,a.id);if(bl){act=`<div class="result warn"><b>Atividade bloqueada.</b> Você tem uma atividade em andamento: ${esc(bl.etiqueta)} (${fasesN(bl)}). Encerre-a para iniciar esta.</div><button class="btn wide" data-act="abrir" data-id="${bl.id}">Ir para a atividade em andamento</button>`;break}act=`<label class="f" style="margin:0"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta" style="font-size:17px;min-height:48px"></label><button class="bigbtn" data-act="go" data-id="${a.id}" id="goBtn" disabled>Iniciar deslocamento</button><p class="muted" id="etaHint" style="margin:-4px 0 0;font-size:13.5px">Informe a previsão de chegada para liberar o deslocamento.</p>`;break}
-    case 'deslocamento':act=go('Cheguei no local')+nok;break;
+    case 'agendada':{if(a.aguardaPrazo){act=`<div class="result warn"><b>Aguardando a gestão.</b> Você pediu mais ${a.prazo&&a.prazo.dias>1?a.prazo.dias+' dias':'1 dia'} para concluir. Assim que a gestão decidir, você recebe uma notificação.</div>`;break}const bl=emAndamento(a.tec,a.id);if(bl){act=`<div class="result warn"><b>Atividade bloqueada.</b> Você tem uma atividade em andamento: ${esc(bl.etiqueta)} (${fasesN(bl)}). Encerre-a para iniciar esta.</div><button class="btn wide" data-act="abrir" data-id="${bl.id}">Ir para a atividade em andamento</button>`;break}act=`<p class="muted" style="margin:0;font-size:14px">Ao iniciar, a agenda usa a sua localização para calcular a rota e a previsão de chegada. Você não precisa informar o horário.</p><button class="bigbtn" data-act="go" data-id="${a.id}">Iniciar deslocamento</button>`;break}
+    case 'deslocamento':act=etaBox(a)+go('Cheguei no local')+nok;break;
     case 'no_local':act=go('Iniciar atividade')+nok;break;
     case 'execucao':{const ph=prazoHoje(a);let pz='';
       if(ph&&ph.status==='aprovado')pz=`<div class="result ok"><b>A gestão aprovou mais ${ph.dias>1?ph.dias+' dias':'1 dia'}.</b> A atividade agora vai até ${dBR(a.dias[a.dias.length-1])}.</div>`;
@@ -1340,7 +1360,54 @@ function blocoAcao(a){
   return{etapas,act};
 }
 /* ---------- RELATÓRIO FOTOGRÁFICO ---------- */
-function reduzirFoto(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(fr.error);fr.onload=()=>{const img=new Image();img.onerror=()=>rej(new Error('arquivo de imagem inválido'));img.onload=()=>{const M=1600,r=Math.min(1,M/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',0.7))};img.src=fr.result};fr.readAsDataURL(file)})}
+/* ---------- CARIMBO DAS FOTOS: horário, data, endereço, coordenadas e código ---------- */
+const CARIMBO=(()=>{
+  let ultPos=null,seq=0;const endCache={};
+  const MES=['jan.','fev.','mar.','abr.','mai.','jun.','jul.','ago.','set.','out.','nov.','dez.'],SEM=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],pad=n=>String(n).padStart(2,'0');
+  function pos(maxAge){return new Promise(res=>{if(ultPos&&Date.now()-ultPos.em<(maxAge||120000))return res(ultPos);if(!navigator.geolocation)return res(null);
+    navigator.geolocation.getCurrentPosition(p=>{ultPos={lat:p.coords.latitude,lon:p.coords.longitude,em:Date.now()};res(ultPos)},()=>res(null),{enableHighAccuracy:true,timeout:12000,maximumAge:60000})})}
+  function tiff(v,t){const le=v.getUint16(t)===0x4949,u16=p=>v.getUint16(p,le),u32=p=>v.getUint32(p,le);
+    const ifd=off=>{const n=u16(t+off),r={};for(let i=0;i<n;i++){const e=t+off+2+i*12;r[u16(e)]={cnt:u32(e+4),vo:e+8}}return r};
+    const ascii=en=>{const off=en.cnt>4?t+u32(en.vo):en.vo;let s='';for(let i=0;i<en.cnt-1;i++)s+=String.fromCharCode(v.getUint8(off+i));return s};
+    const rat3=en=>{const off=t+u32(en.vo),r=i=>u32(off+i*8)/(u32(off+i*8+4)||1);return r(0)+r(1)/60+r(2)/3600};
+    const dataDe=en=>{const m=en&&ascii(en).match(/(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)/);return m?new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6]):null};
+    const i0=ifd(u32(t+4));let data=null,lat=null,lon=null;
+    if(i0[0x8769]){const ex=ifd(u32(i0[0x8769].vo));data=dataDe(ex[0x9003]||ex[0x9004])}
+    if(!data)data=dataDe(i0[0x0132]);
+    if(i0[0x8825]){const g=ifd(u32(i0[0x8825].vo));if(g[2]&&g[4]){lat=rat3(g[2]);lon=rat3(g[4]);const ref=e=>e?String.fromCharCode(v.getUint8(e.vo)):'';if(ref(g[1])==='S')lat=-lat;if(ref(g[3])==='W')lon=-lon;if(!lat&&!lon)lat=lon=null}}
+    return{data,lat,lon}}
+  function exif(buf){try{const v=new DataView(buf);if(v.getUint16(0)!==0xFFD8)return null;let o=2;while(o<v.byteLength-10){const mk=v.getUint16(o);if((mk&0xFF00)!==0xFF00)return null;const len=v.getUint16(o+2);if(mk===0xFFE1&&v.getUint32(o+4)===0x45786966)return tiff(v,o+10);o+=2+len}}catch(e){}return null}
+  async function endereco(lat,lon,inv){const k=lat.toFixed(4)+','+lon.toFixed(4);if(k in endCache)return endCache[k];let t='';try{const r=await inv('reverse',{lat,lon});t=(r&&r.label)||''}catch(e){}endCache[k]=t;return t}
+  // o = {etq, cam (veio da câmera), inv (chamada da função agenda-rota)}
+  async function meta(file,o){o=o||{};let dt=null,lat=null,lon=null;
+    try{const e=exif(await file.slice(0,262144).arrayBuffer());if(e){dt=e.data;if(e.lat!=null){lat=e.lat;lon=e.lon}}}catch(e){}
+    const fresca=o.cam||(Date.now()-(file.lastModified||0)<5*60000);let galeria=false;
+    if(fresca){if(!dt)dt=new Date();if(lat==null){const p=await pos();if(p){lat=p.lat;lon=p.lon}}}
+    if(!dt){dt=new Date();galeria=true}
+    const end=lat!=null&&o.inv?await endereco(lat,lon,o.inv):'';seq++;
+    const cod=String(o.etq||'FOTO').toUpperCase()+'-'+pad(dt.getDate())+pad(dt.getMonth()+1)+'-'+pad(dt.getHours())+pad(dt.getMinutes())+'-'+pad(seq);
+    return{dt,lat,lon,end,cod,galeria:galeria&&lat==null}}
+  function quebra(x,txt,max){const w=txt.split(' '),L=[];let l='';w.forEach(p=>{const t=l?l+' '+p:p;if(x.measureText(t).width>max&&l){L.push(l);l=p}else l=t});if(l)L.push(l);return L.slice(0,3)}
+  function desenhar(c,m){const x=c.getContext('2d'),W=c.width,H=c.height,u=Math.min(W,H)/100,P=3.2*u,F='"Barlow",Arial,sans-serif',FC='"Barlow Condensed","Arial Narrow",Arial,sans-serif';
+    const tira=5.2*u,yT=H-tira;
+    x.font=`500 ${3.3*u}px ${F}`;const endTxt=m.galeria?'Foto da galeria, sem localização':(m.end||(m.lat!=null?'':'Localização indisponível'));
+    const linhas=endTxt?quebra(x,endTxt,W-2*P):[];const temC=m.lat!=null;
+    const hC=temC?5*u:0,yC=yT-1.8*u-hC,yE=(temC?yC:yT)-1.6*u-linhas.length*4.3*u,yH=yE-1.4*u;
+    const g=x.createLinearGradient(0,yH-14*u,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.35,'rgba(0,0,0,.45)');g.addColorStop(1,'rgba(0,0,0,.72)');x.fillStyle=g;x.fillRect(0,yH-14*u,W,H-(yH-14*u));
+    x.fillStyle='#fff';x.textBaseline='alphabetic';
+    const hora=pad(m.dt.getHours())+':'+pad(m.dt.getMinutes());x.font=`400 ${12*u}px ${FC}`;x.fillText(hora,P,yH);const tw=x.measureText(hora).width;
+    x.fillStyle='#F2B33D';x.fillRect(P+tw+2*u,yH-9.2*u,.7*u,9.2*u);x.fillStyle='#fff';x.font=`500 ${3.4*u}px ${F}`;
+    x.fillText(pad(m.dt.getDate())+' '+MES[m.dt.getMonth()]+' '+m.dt.getFullYear(),P+tw+4*u,yH-5.4*u);x.fillText(SEM[m.dt.getDay()],P+tw+4*u,yH-1*u);
+    x.font=`500 ${3.3*u}px ${F}`;linhas.forEach((l,i)=>x.fillText(l,P,yE+(i+1)*4.3*u-0.8*u));
+    if(temC){const t='Coordenadas: '+m.lat.toFixed(6)+', '+m.lon.toFixed(6);x.font=`500 ${3.1*u}px ${F}`;const w=x.measureText(t).width;x.fillStyle='rgba(0,0,0,.35)';x.fillRect(P-u,yC,w+2*u,hC);x.fillStyle='#fff';x.fillText(t,P,yC+hC-1.5*u)}
+    x.fillStyle='rgba(0,0,0,.6)';x.fillRect(0,yT,W,tira);x.fillStyle='#E3E8DF';x.font=`500 ${2.8*u}px ${F}`;const lb='Código da foto: ',lw=x.measureText(lb).width;x.fillText(lb,P,H-1.7*u);x.fillStyle='#fff';x.font=`700 ${2.8*u}px ${F}`;x.fillText(m.cod,P+lw+0.3*u,H-1.7*u)}
+  return{meta,desenhar,pos};
+})();
+
+const invRota=async(action,body)=>{const r=await sb.functions.invoke('agenda-rota',{body:Object.assign({action},body||{})});if(r.error)throw r.error;if(r.data&&r.data.erro)throw new Error(r.data.erro);return r.data};
+// reduz a foto e grava o carimbo (horário, data, endereço, coordenadas e código); o = {etq, cam}
+function reduzirFoto(file,o){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(fr.error);fr.onload=()=>{const img=new Image();img.onerror=()=>rej(new Error('arquivo de imagem inválido'));img.onload=async()=>{const M=1600,r=Math.min(1,M/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  if(o!==false){try{const m=await CARIMBO.meta(file,Object.assign({inv:invRota},o||{}));CARIMBO.desenhar(c,m)}catch(e){}}res(c.toDataURL('image/jpeg',0.72))};img.src=fr.result};fr.readAsDataURL(file)})}
 async function salvarRascunhoFoto(){const D=ui.rf;if(!D)return;try{await IDB.put('rf:'+D.ag,{fotos:D.fotos,campos:D.campos,nao:D.nao,pos:D.pos||{}})}catch(e){}}
 function itensFoto(a){if(a.parcial){const lf=fasesOf(a).find(k=>k==='rua'||k==='interno');return[{k:'parc:imped',f:'parc',nome:'Foto do impedimento',tipo:'multi',campo:'',dica:'Mostre o que impediu a conclusão: duto obstruído, poste sem acesso, local fechado.'},{k:'parc:exec',f:'parc',nome:'O que foi executado',tipo:'texto',obrig:true},{k:'parc:falta',f:'parc',nome:'O que ficou faltando',tipo:'texto',obrig:false},{k:'parc:feito',f:'parc',nome:'Fotos do que foi feito',tipo:'multi',campo:''}].concat(lf?[{k:'parc:metr',f:'parc',lf,nome:'Metragem do cabo lançado',tipo:'medida'}]:[])}
   return(a.fotosReq||[]).map(k=>{const[f,id]=k.split(':'),d=fotosDaFase(f).find(x=>x[0]===id)||[id,id,'unica',''];return{k,f,id,nome:d[1],tipo:d[2],campo:d[3]}})}
@@ -1678,12 +1745,14 @@ let tT;function toast(msg,k){const t=$('toast');t.textContent=msg;t.className=k|
 
 /* ---------- AÇÕES ---------- */
 const ACT={
+  etaManual:el=>{const a=getAg(el.dataset.id),v=$('etaMan').value;if(!v){toast('Informe a previsão de chegada.','bad');return}a.ts.eta=ts(hoje(),v);delete a.rotaErro;save();render()},
+  rotaDeNovo:el=>{const a=getAg(el.dataset.id);delete a.rotaErro;render();calcRota(a,true)},
   updAbrir:el=>{ui.upd=ui.upd||{};ui.upd[el.dataset.id]={tipo:''};render()},
   updFechar:el=>{delete (ui.upd||{})[el.dataset.id];render()},
   updTipo:el=>{const F=ui.upd[el.dataset.id],m=$('updM')&&$('updM').value,o=$('updObs')&&$('updObs').value;F.tipo=el.dataset.v;render();if(m&&$('updM'))$('updM').value=m;if(o&&$('updObs'))$('updObs').value=o},
   updEnviar:async el=>{const a=getAg(el.dataset.id),F=(ui.upd||{})[a.id];if(!F||!F.tipo){toast('Escolha como está o andamento.','bad');return}
     const u={em:Date.now(),tipo:F.tipo,m:(($('updM')||{}).value||'').trim().replace('.',',')||null,obs:(($('updObs')||{}).value||'').trim()||null},fl=(($('updFoto')||{}).files||[])[0];el.disabled=true;
-    if(fl){try{const d=await reduzirFoto(fl),b=await (await fetch(d)).blob(),path=`relatorios/${a.id}/atualizacoes/${Date.now()}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)u.foto=path}catch(e){}}
+    if(fl){try{const d=await reduzirFoto(fl,{etq:a.etiqueta}),b=await (await fetch(d)).blob(),path=`relatorios/${a.id}/atualizacoes/${Date.now()}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)u.foto=path}catch(e){}}
     a.atualizacoes=(a.atualizacoes||[]).concat([u]);delete ui.upd[a.id];save();render();toast('Atualização enviada. Já aparece no painel do dia.')},
   pdCid:el=>{ui.pdCid=el.dataset.v;render()},
   lpuAbrir:el=>{ui.lpuTela=el.dataset.id;ui.lpuP=1;ui.lpuQ='';ui.lpuCls='';ui.lpuContaAb=false;render();window.scrollTo(0,0)},
@@ -1713,7 +1782,7 @@ const ACT={
     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="diaOk" data-id="${a.id}">Encerrar o dia</button></div>`)},
   diaOk:async el=>{const a=getAg(el.dataset.id),res=$('dfRes').value.trim();if(!res){toast('Conte o que foi feito hoje.','bad');return}
     const fs=[...(($('dfFotos')||{}).files||[])].slice(0,8),fotos=[],dia=a.data;el.disabled=true;
-    if(fs.length){toast('Enviando as fotos do dia…');for(const[x,f0]of fs.entries()){try{const u=await reduzirFoto(f0),b=await (await fetch(u)).blob(),path=`relatorios/${a.id}/dias/${dia}-${Date.now()}-${x+1}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)fotos.push(path)}catch(e){}}}
+    if(fs.length){toast('Enviando as fotos do dia…');for(const[x,f0]of fs.entries()){try{const u=await reduzirFoto(f0,{etq:a.etiqueta}),b=await (await fetch(u)).blob(),path=`relatorios/${a.id}/dias/${dia}-${Date.now()}-${x+1}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)fotos.push(path)}catch(e){}}}
     a.diario=(a.diario||[]).concat([{data:dia,ts:Object.assign({},a.ts,{fimDia:Date.now()}),resumo:res,m:(($('dfM')||{}).value||'').trim()||null,lote:(($('dfLote')||{}).value||'').trim()||null,fotos}]);
     const prox=proxDia(a);a.ts={};if(prox){a.data=prox;a.status='agendada'}else{a.status='agendada';a.aguardaPrazo=true}
     save();closeModal();ui.campoSel=null;render();window.scrollTo(0,0);toast(prox?`Dia encerrado. Continue em ${dBR(prox)}.`:'Dia encerrado. A atividade aguarda a decisão da gestão.')},
@@ -1881,7 +1950,7 @@ const ACT={
   abrir:el=>{ui.campoSel=el.dataset.id;ui.tAcc={};render();window.scrollTo(0,0)},
   voltar:()=>{ui.campoSel=null;render()},
   go:el=>{const a=getAg(el.dataset.id),n=Date.now();if(a.status==='agendada'){const bl=emAndamento(a.tec,a.id);if(bl){toast(`Encerre a atividade em andamento (${bl.etiqueta}) antes de iniciar outra.`,'bad');return}}
-    if(a.status==='agendada'){const v=$('eta').value;if(!v){toast('Informe a previsão de chegada antes de iniciar o deslocamento.','bad');$('eta').focus();return}a.ts.desloc=n;a.ts.eta=ts(hoje(),v);a.status='deslocamento'}
+    if(a.status==='agendada'){a.ts.desloc=n;delete a.ts.eta;delete a.ts.perto;delete a.rota;delete a.rotaErro;a.status='deslocamento';setTimeout(()=>calcRota(a,true),50)}
     else if(a.status==='deslocamento'){a.ts.chegada=n;a.status='no_local'}
     else if(a.status==='no_local'){a.ts.inicio=n;a.status='execucao'}
     else if(a.status==='execucao'){openModal(`<h3>Concluir atividade</h3><p class="muted">Marque as fases que ficaram finalizadas nesta atividade. Se alguma fase continua em outro dia, deixe desmarcada.</p><div class="fchk" style="margin-top:12px">${fasesOf(a).map(k=>`<label><input type="checkbox" class="fzFin" value="${k}" checked><span>${faseN(k)}</span></label>`).join('')}</div><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="concluirOk" data-id="${a.id}">Concluir atividade</button></div>`);return}
@@ -1933,7 +2002,7 @@ const CH={
   rTipo:el=>{ui.rTipo=el.value;render()},rTec:el=>{ui.rTec=el.value;render()},rIni:el=>{ui.rIni=el.value;render()},rFim:el=>{ui.rFim=el.value;render()},
   fotoReq:el=>{const F=ui.agForm;F.fOff=F.fOff||[];if(el.checked)F.fOff=F.fOff.filter(k=>k!==el.value);else if(!F.fOff.includes(el.value))F.fOff.push(el.value);render()},
   fotoArq:async el=>{const fs=[...(el.files||[])];el.value='';if(!fs.length)return;const k=el.dataset.k,D=ui.rf;if(!D)return;toast('Preparando a foto…');
-    for(const f of fs){try{const u=await reduzirFoto(f);(D.fotos[k]=D.fotos[k]||[]).push(u)}catch(e){toast('Não foi possível ler a foto: '+(e.message||e),'bad')}}
+    const aF=getAg(D.ag)||{},cam=el.hasAttribute('capture');for(const f of fs){try{const u=await reduzirFoto(f,{etq:aF.etiqueta,cam});(D.fotos[k]=D.fotos[k]||[]).push(u)}catch(e){toast('Não foi possível ler a foto: '+(e.message||e),'bad')}}
     if(k.endsWith(':reserva'))D.nao=false;await salvarRascunhoFoto();render()},
   bMes:el=>{ui.bMes=el.value;ui.bEdit=false;render()},
   dSit:el=>{ui.dSit=el.value;render()},dConta:el=>{ui.dConta=el.value;render()},dPres:el=>{ui.dPres=el.value;render()},dClasse:el=>{ui.dClasse=el.value;render()},
