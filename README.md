@@ -258,6 +258,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 06/10/2026 | LPU do técnico: correção da busca e do filtro por classe no celular (os itens filtrados continuavam visíveis), descritivo técnico volta a abrir só no "o que é?", observação para a gestão sem texto de exemplo. LPU aprovada mostra "Aprovada por [nome] em [data e hora]" para a gestão e para o técnico. | `agenda.html` |
 | 06/10/2026 | Previsão de chegada calculada automaticamente pela localização do técnico (sem digitar o horário), aviso "Chegando em cerca de 5 minutos" no Painel do dia, coordenadas opcionais do cliente nos dados complementares e carimbo de horário, data, endereço, coordenadas e código nas fotos (agenda e relatório de entrega). | `agenda.html`, `relatorio-ativacao.html`, nova Edge Function `agenda-rota` (deploy) e segredo `ORS_API_KEY` |
 | 06/10/2026 | Relatório de Entrega de Circuito no layout da agenda: seções numa única página, redundância e tipo de link em botões, campos de IP estático ou PPPoE conforme o tipo, progresso de itens preenchidos e envio no fim da página. O PDF segue o mesmo modelo; sem link redundante, o bloco passa a se chamar "Link". | `relatorio-ativacao.html` |
 | 06/10/2026 | Painel do dia no grupo Operação (somente leitura, para outros setores e TV), perfil Visualização e atualizações do andamento enviadas pelo técnico durante a execução. | `agenda.html`, `agenda_ajuste_10` |
