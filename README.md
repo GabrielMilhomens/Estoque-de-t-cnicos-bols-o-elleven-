@@ -190,13 +190,11 @@ Cada aviso é enviado uma única vez por atividade e por dia (`ag_notificacoes`)
 
 ---
 
-## 6.1 Rota e localização (Edge Function `agenda-rota`)
+## 6.1 Localização das fotos (Edge Function `agenda-rota`)
 
 **Implantação:** Supabase → Edge Functions → criar `agenda-rota` → colar o conteúdo de `agenda-rota.ts` → Deploy, **com** a verificação de JWT ligada (só usuários logados usam a função). Em Secrets, cadastrar `ORS_API_KEY` com a chave do OpenRouteService.
 
-**Ações:** `rota` (tempo e distância de carro entre o técnico e o cliente), `geocode` (coordenadas a partir do endereço do cliente) e `reverse` (endereço a partir das coordenadas, usado no carimbo das fotos). Plano gratuito do OpenRouteService: 2.000 rotas e 1.000 consultas de endereço por dia.
-
-**Previsão de chegada:** ao iniciar o deslocamento, a agenda calcula a rota até o cliente numa única chamada (`eta`), usando primeiro a localização rápida do celular e depois a precisa. O destino vem das coordenadas dos dados complementares, se informadas; senão, do endereço completado com cidade e UF do projeto, buscado perto do técnico. A busca do endereço é adiantada quando o técnico abre a atividade, antes de sair. Se o endereço encontrado estiver fora da cidade do projeto, muito longe (mais de 60 km) ou impreciso, técnico e gestão veem "Confira o destino", com o link do ponto no mapa. Como o serviço de rotas não considera trânsito, a previsão é multiplicada por um fator que começa em 1,25 e passa a ser aprendido com as chegadas reais (mediana, entre 1,0 e 2,0). Durante o trajeto, com a agenda aberta, recalcula ao andar 400 m ou a cada 2 minutos. A 5 minutos ou menos, grava o aviso, e o Painel do dia mostra "Chegando em cerca de 5 minutos" (pela localização ou, sem localização, pela previsão). Se a rota não puder ser calculada, o técnico informa a previsão à mão.
+**Uso atual:** a função faz a busca do endereço a partir das coordenadas (`reverse`), usada no carimbo das fotos. As ações `eta`, `rota` e `geocode` continuam disponíveis, mas a agenda não calcula mais a previsão de chegada automaticamente: o técnico informa a previsão ao iniciar o deslocamento, e o Painel do dia mostra "Chegando em cerca de 5 minutos" a partir desse horário. Plano gratuito do OpenRouteService: 1.000 consultas de endereço por dia.
 
 **Carimbo das fotos:** toda foto enviada pela agenda e pelo relatório de entrega recebe, na própria imagem, horário, data e dia da semana, endereço, coordenadas e um código (etiqueta, data, hora e sequência). Fotos da galeria usam a data e o local gravados pelo celular; sem essas informações, o carimbo indica "Foto da galeria, sem localização".
 
@@ -237,7 +235,6 @@ Cada aviso é enviado uma única vez por atividade e por dia (`ag_notificacoes`)
 - **Chave pública no front-end:** a chave `anon` é pública por natureza; a proteção dos dados depende das políticas RLS, que precisam ser preservadas em qualquer migração.
 - **LPU em nome de outro usuário:** por regra de segurança, o banco só aceita LPU enviada pelo próprio técnico. Testes feitos pela "Visão do técnico" da coordenação não geram LPU.
 - **Dependência de CDNs:** ver seção 3.
-- **Localização do técnico:** o navegador só entrega a localização com a agenda aberta na tela. Com o celular bloqueado, a previsão fica parada na última calculada, e o aviso dos 5 minutos sai pelo horário previsto.
 - **Chave do OpenRouteService:** fica só nos segredos do Supabase. Se a chave for exposta, gere outra no painel do OpenRouteService e atualize o segredo.
 
 ---
@@ -259,6 +256,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 06/10/2026 | Volta da previsão de chegada informada pelo técnico ao iniciar o deslocamento (o cálculo automático pela localização foi retirado por demora e erros de destino). O Painel do dia mantém o aviso "Chegando em cerca de 5 minutos" pela previsão informada, e o carimbo das fotos continua igual. Campo de coordenadas do cliente retirado dos dados complementares. | `agenda.html` |
 | 06/10/2026 | Previsão de chegada mais rápida e precisa: uma chamada só para destino e rota, localização rápida antes da precisa, busca do endereço com cidade e UF e adiantada ao abrir a atividade, aviso "Confira o destino" com link do mapa quando o endereço cai fora da cidade, ajuste de trânsito aprendido com as chegadas reais e recálculo por deslocamento de 400 m. | `agenda.html`, `agenda-rota.ts` (deploy) |
 | 06/10/2026 | PDF da LPU com a aprovação eletrônica (nome de quem aprovou, data e hora): gerado e guardado no momento da aprovação, mantendo o PDF original do envio; LPUs aprovadas antes disso geram a versão com o aprovador ao abrir. Botão "Abrir PDF da LPU" na atividade do técnico e correção da abertura do PDF no celular (o navegador bloqueava a janela). | `agenda.html` |
 | 06/10/2026 | Notificação ao técnico quando a LPU é aprovada, reprovada ou devolvida para ajuste (com quem decidiu e o motivo); tocar na notificação abre a atividade. | `agenda-lembretes.ts` (deploy), `agenda_ajuste_11` |
