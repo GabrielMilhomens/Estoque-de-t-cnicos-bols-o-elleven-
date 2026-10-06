@@ -259,6 +259,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 06/10/2026 | PDF da LPU com a aprovação eletrônica (nome de quem aprovou, data e hora): gerado e guardado no momento da aprovação, mantendo o PDF original do envio; LPUs aprovadas antes disso geram a versão com o aprovador ao abrir. Botão "Abrir PDF da LPU" na atividade do técnico e correção da abertura do PDF no celular (o navegador bloqueava a janela). | `agenda.html` |
 | 06/10/2026 | Notificação ao técnico quando a LPU é aprovada, reprovada ou devolvida para ajuste (com quem decidiu e o motivo); tocar na notificação abre a atividade. | `agenda-lembretes.ts` (deploy), `agenda_ajuste_11` |
 | 06/10/2026 | LPU do técnico: correção da busca e do filtro por classe no celular (os itens filtrados continuavam visíveis), descritivo técnico volta a abrir só no "o que é?", observação para a gestão sem texto de exemplo. LPU aprovada mostra "Aprovada por [nome] em [data e hora]" para a gestão e para o técnico. | `agenda.html` |
 | 06/10/2026 | Previsão de chegada calculada automaticamente pela localização do técnico (sem digitar o horário), aviso "Chegando em cerca de 5 minutos" no Painel do dia, coordenadas opcionais do cliente nos dados complementares e carimbo de horário, data, endereço, coordenadas e código nas fotos (agenda e relatório de entrega). | `agenda.html`, `relatorio-ativacao.html`, nova Edge Function `agenda-rota` (deploy) e segredo `ORS_API_KEY` |
