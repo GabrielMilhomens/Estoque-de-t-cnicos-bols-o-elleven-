@@ -1313,23 +1313,54 @@ function updHtml(a){const U=a.atualizacoes||[],ult=U.length?U[U.length-1]:null,F
    <label class="f" style="margin:0"><span>Foto (opcional)</span><input class="inp" id="updFoto" type="file" accept="image/*"></label>
    <button class="btn primary wide" data-act="updEnviar" data-id="${a.id}">Enviar atualização</button><button class="link" data-act="updFechar" data-id="${a.id}">Cancelar</button>`}
    ${U.length?`<div class="updl"><span class="tck2">${U.length} ${U.length===1?'ATUALIZAÇÃO ENVIADA':'ATUALIZAÇÕES ENVIADAS'}</span>${U.slice().reverse().map(u=>`<div><b>${hm(u.em)}</b><span>${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}${u.foto?' (com foto)':''}</span></div>`).join('')}</div>`:''}</section>`}
-/* ---------- DESLOCAMENTO: rota e previsão de chegada pela localização ---------- */
+/* ---------- DESLOCAMENTO: rota e previsão de chegada pela localização ----------
+   1 chamada só (destino + rota), posição rápida primeiro e refinada depois,
+   endereço buscado com cidade/UF e perto do técnico, conferência de destino suspeito
+   e ajuste de trânsito aprendido com as chegadas reais. */
 const parseCoord=t=>{const m=String(t||'').match(/(-?\d+(?:[.,]\d+)?)\s*[,; ]\s*(-?\d+(?:[.,]\d+)?)/);if(!m)return null;const la=+m[1].replace(',','.'),lo=+m[2].replace(',','.');return Math.abs(la)<=90&&Math.abs(lo)<=180?{lat:la,lon:lo}:null};
-async function destinoAg(a){const c=S.comp[a.etiqueta]||{},m=parseCoord(c.coord);if(m)return m;if(a.geoCli)return a.geoCli;if(!(c.endereco||'').trim())throw new Error('endereço do cliente não informado');
-  const g=await invRota('geocode',{endereco:c.endereco});a.geoCli={lat:g.lat,lon:g.lon};return a.geoCli}
-const ROTA={bus:{},em:{}};
-async function calcRota(a,forca){if(!a||a.status!=='deslocamento'||ROTA.bus[a.id])return;if(!ME||a.tec!==ME.id){if(!a.ts.eta){a.rotaErro='a previsão automática usa a localização do próprio técnico';render()}return}if(!forca&&ROTA.em[a.id]&&Date.now()-ROTA.em[a.id]<90000)return;ROTA.bus[a.id]=true;ROTA.em[a.id]=Date.now();
-  try{const p=await CARIMBO.pos(30000);if(!p)throw new Error('localização não autorizada ou indisponível');const d=await destinoAg(a);const r=await invRota('rota',{de:[p.lon,p.lat],para:[d.lon,d.lat]});
-    a.ts.eta=Date.now()+r.segundos*1000;a.rota={seg:r.segundos,m:r.metros,em:Date.now()};delete a.rotaErro;if(r.segundos<=300&&!a.ts.perto){a.ts.perto=Date.now();a.ts.pertoVia='gps'}save()}
-  catch(e){if(!a.ts.eta)a.rotaErro=e.message||String(e)}ROTA.bus[a.id]=false;if(ui.campoSel===a.id&&!$('modal').classList.contains('open')){const ae=document.activeElement;if(!(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)))render()}}
-function etaBox(a){const t=a.ts||{},hm=v=>new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const distKm=(a,b)=>{const R=6371,r=x=>x*Math.PI/180,dl=r(b.lat-a.lat),dg=r(b.lon-a.lon),h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+// endereço completo para a busca: rua + cidade + UF (o endereço sozinho levava a cidades erradas)
+function enderecoBusca(a){const c=S.comp[a.etiqueta]||{},p=pPor(a.etiqueta),i=p.inst||{},e=(c.endereco||'').trim(),cid=(p.cidade||'').trim(),uf=(i.uf||'').trim();
+  let t=e;if(cid&&!normK(e).includes(normK(cid)))t+=', '+cid;if(uf&&!new RegExp('\\b'+uf+'\\b','i').test(t))t+=' - '+uf;return t+', Brasil'}
+function destinoFixo(a){const c=S.comp[a.etiqueta]||{},m=parseCoord(c.coord);if(m)return Object.assign({fonte:'coord'},m);if(a.geoCli&&a.geoCli.ok)return a.geoCli;return null}
+// posição: primeiro a rápida (rede/última conhecida), depois a precisa
+function posRota(precisa){return new Promise(res=>{if(!navigator.geolocation)return res(null);navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lon:p.coords.longitude,prec:p.coords.accuracy,em:Date.now()}),()=>res(null),precisa?{enableHighAccuracy:true,timeout:15000,maximumAge:20000}:{enableHighAccuracy:false,timeout:6000,maximumAge:300000})})}
+// trânsito: o serviço de rotas não considera trânsito; o fator aprende com as chegadas reais (mediana, entre 1,0 e 2,0)
+function fatorTransito(){const r=S.ags.filter(a=>a.rota0&&a.ts&&a.ts.desloc&&a.ts.chegada&&a.rota0>120).slice(-40).map(a=>(a.ts.chegada-a.ts.desloc)/1000/a.rota0).filter(x=>x>.5&&x<3).sort((x,y)=>x-y);
+  if(r.length<3)return 1.25;const md=r[Math.floor(r.length/2)];return Math.min(2,Math.max(1,md))}
+function conferirDestino(a,g,p){const cid=(pPor(a.etiqueta).cidade||'').trim(),longe=p?distKm(p,g)>60:false,outraCid=cid&&g.label&&!normK(g.label).includes(normK(cid)),fraco=(g.confianca??g.conf??1)<.6;
+  return{ok:!longe&&!outraCid&&!fraco,motivo:outraCid?`O endereço do cliente foi localizado fora de ${cid}`:longe?'O endereço do cliente foi localizado muito longe de você':fraco?'O endereço do cliente foi localizado de forma aproximada':''}}
+const ROTA={bus:{},em:{},pos:{},watch:null};
+async function calcRota(a,forca){if(!a||a.status!=='deslocamento'||ROTA.bus[a.id])return;if(!ME||a.tec!==ME.id){if(!a.ts.eta){a.rotaErro='a previsão automática usa a localização do próprio técnico';render()}return}
+  const ult=ROTA.pos[a.id];if(!forca&&ROTA.em[a.id]&&Date.now()-ROTA.em[a.id]<60000)return;ROTA.bus[a.id]=true;ROTA.em[a.id]=Date.now();
+  try{let p=ROTA.ultima&&Date.now()-ROTA.ultima.em<60000?ROTA.ultima:await posRota(false);if(!p)p=await posRota(true);if(!p)throw new Error('localização não autorizada ou indisponível');
+    const d=destinoFixo(a),body={de:[p.lon,p.lat]};if(d)body.para=[d.lon,d.lat];else body.endereco=enderecoBusca(a);
+    const r=await invRota('eta',body);
+    if(r.destino){const g=r.destino,c=conferirDestino(a,g,p);a.geoCli={lat:g.lat,lon:g.lon,label:g.label,conf:g.confianca,camada:g.camada,ok:c.ok};if(!c.ok)a.geoSuspeito=c.motivo;else delete a.geoSuspeito}
+    const f=fatorTransito(),seg=Math.round(r.segundos*f);if(!a.rota0)a.rota0=r.segundos;
+    a.ts.eta=Date.now()+seg*1000;a.rota={seg,base:r.segundos,m:r.metros,fator:f,em:Date.now()};ROTA.pos[a.id]=p;delete a.rotaErro;
+    if((seg<=300||r.metros<=1500)&&!a.ts.perto){a.ts.perto=Date.now();a.ts.pertoVia='gps'}save()}
+  catch(e){if(!a.ts.eta)a.rotaErro=e.message||String(e)}ROTA.bus[a.id]=false;
+  if(ui.campoSel===a.id&&!$('modal').classList.contains('open')){const ae=document.activeElement;if(!(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)))render()}}
+// enquanto a agenda estiver aberta no trajeto: recalcula quando andar 400 m ou a cada 2 minutos
+function vigiarTrajeto(){const tem=ME&&S.ags.some(a=>a.status==='deslocamento'&&a.tec===ME.id);
+  if(tem&&ROTA.watch==null&&navigator.geolocation){ROTA.watch=navigator.geolocation.watchPosition(p=>{ROTA.ultima={lat:p.coords.latitude,lon:p.coords.longitude,prec:p.coords.accuracy,em:Date.now()};
+      S.ags.filter(a=>a.status==='deslocamento'&&a.tec===ME.id).forEach(a=>{const q=ROTA.pos[a.id];if(!q||distKm(q,ROTA.ultima)>.4||Date.now()-(ROTA.em[a.id]||0)>120000)calcRota(a)})},()=>{},{enableHighAccuracy:true,maximumAge:15000,timeout:30000})}
+  else if(!tem&&ROTA.watch!=null){navigator.geolocation.clearWatch(ROTA.watch);ROTA.watch=null}}
+// adianta a busca do endereço do cliente quando o técnico abre a atividade, antes de sair
+async function prepararDestino(a){if(!a||a.status!=='agendada'||!ME||a.tec!==ME.id||destinoFixo(a)||a.geoCli||ROTA.bus['g'+a.id])return;ROTA.bus['g'+a.id]=true;
+  try{const p=await posRota(false),g=await invRota('geocode',{endereco:enderecoBusca(a),perto:p?[p.lon,p.lat]:undefined}),c=conferirDestino(a,g,p);a.geoCli={lat:g.lat,lon:g.lon,label:g.label,conf:g.confianca,camada:g.camada,ok:c.ok};if(!c.ok)a.geoSuspeito=c.motivo;save()}catch(e){}ROTA.bus['g'+a.id]=false}
+function etaBox(a){const t=a.ts||{},hm=v=>new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),g=a.geoCli;
+  const dest=g?`<a class="link" href="https://www.google.com/maps/search/?api=1&query=${g.lat},${g.lon}" target="_blank" rel="noopener">Ver o destino usado no mapa</a>`:'';
+  const susp=a.geoSuspeito?`<div class="result warn"><b>Confira o destino.</b> ${esc(a.geoSuspeito)}${g&&g.label?' ('+esc(g.label)+')':''}. Se estiver errado, avise o encarregado para corrigir o endereço ou informar as coordenadas do cliente. ${dest}</div>`:'';
   if(!t.eta&&a.rotaErro)return `<div class="result warn"><b>Não foi possível calcular a rota:</b> ${esc(a.rotaErro)}. Informe a previsão de chegada.</div><label class="f" style="margin:0"><span>Previsão de chegada</span><input type="time" id="etaMan" class="inp" style="font-size:17px;min-height:48px"></label><button class="btn wide" data-act="etaManual" data-id="${a.id}">Salvar previsão</button><button class="link" data-act="rotaDeNovo" data-id="${a.id}">Tentar calcular de novo</button>`;
   if(!t.eta)return '<div class="etab"><span>Calculando a rota até o cliente…</span></div>';
   const falta=Math.max(0,Math.round((t.eta-Date.now())/60000));
-  return `<div class="etab"><small>PREVISÃO DE CHEGADA</small><div><b>${hm(t.eta)}</b><span>${falta?'faltam '+falta+' min':'chegando'}</span></div>${a.rota?`<span>${(a.rota.m/1000).toFixed(1).replace('.',',')} km pelo trajeto até o cliente</span><small class="muted">Atualizada às ${hm(a.rota.em)} pela sua localização.</small>`:'<small class="muted">Informada pelo técnico.</small>'}</div>
+  return `${susp}<div class="etab"><small>PREVISÃO DE CHEGADA</small><div><b>${hm(t.eta)}</b><span>${falta?'faltam '+falta+' min':'chegando'}</span></div>${a.rota?`<span>${(a.rota.m/1000).toFixed(1).replace('.',',')} km pelo trajeto até o cliente${a.rota.fator>1.01?', já considerando o trânsito':''}</span><small class="muted">Atualizada às ${hm(a.rota.em)} pela sua localização.</small>${a.geoSuspeito?'':dest}`:'<small class="muted">Informada pelo técnico.</small>'}</div>
    ${t.perto?'<div class="result ok"><b>Você está a cerca de 5 minutos.</b> A gestão já foi avisada no painel do dia.</div>':''}<small class="muted">Deixe a agenda aberta durante o trajeto para a previsão continuar se atualizando.</small>`}
-setInterval(()=>{if(!ME||!['clt','terc','coord'].includes(ui.perfil)||document.visibilityState!=='visible')return;S.ags.filter(a=>a.status==='deslocamento'&&a.tec===ME.id).forEach(a=>calcRota(a))},30000);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&ME)S.ags.filter(a=>a.status==='deslocamento'&&a.tec===ME.id).forEach(a=>calcRota(a))});
+setInterval(()=>{if(!ME||!['clt','terc','coord'].includes(ui.perfil)||document.visibilityState!=='visible')return;vigiarTrajeto();S.ags.filter(a=>a.status==='deslocamento'&&a.tec===ME.id).forEach(a=>calcRota(a))},30000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&ME){vigiarTrajeto();S.ags.filter(a=>a.status==='deslocamento'&&a.tec===ME.id).forEach(a=>calcRota(a,true))}});
+
 function blocoAcao(a){
   const terc=tecT(a.tec)==='TERC',t=a.ts;
   const steps=['Deslocamento','Chegada','Execução','Relatório','LPU','Encerrada'];
@@ -1879,7 +1910,7 @@ const ACT={
     openModal(`<div class="ah"><h3>${esc(a.etiqueta)}</h3>${chip(a.status)}</div><p>${esc(p.cliente||'')}</p>
     <dl class="dl" style="margin-top:10px"><div><dt>Fases</dt><dd>${fasesN(a)}</dd></div><div><dt>Data</dt><dd>${a.dias&&a.dias.length>1?`${dBR(a.dias[0])} a ${dBR(a.dias[a.dias.length-1])} (${a.dias.length} dias)`:dBR(a.data)}</dd></div><div><dt>Técnico</dt><dd>${esc(tecN(a.tec))} (${vinc(a.tec)})</dd></div><div><dt>Agendado por</dt><dd>${esc(a.criadoPor||'')}</dd></div>${(a.fasesFin||[]).length?`<div><dt>Finalizou</dt><dd>${a.fasesFin.map(k=>FCURTO[k]).join(', ')}</dd></div>`:''}</dl>
     ${c.endereco?`<p style="margin-top:10px"><span class="muted">Endereço:</span> ${esc(c.endereco)}</p>`:''}${c.contato?`<p><span class="muted">Contato:</span> ${esc(c.contato)}${c.telefone?', '+esc(c.telefone):''}</p>`:''}
-    ${pzHtml}${(a.atualizacoes||[]).length?`<h3 class="lsub">Atualizações do técnico</h3>${a.atualizacoes.slice().reverse().map(u=>`<div class="dts" style="margin:4px 0"><b>${hm(u.em)}</b><span style="color:var(--ink)">${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}</span>${u.foto?`<button class="btn sm" data-act="relVer" data-p="${esc(u.foto)}">Foto</button>`:''}</div>`).join('')}`:''}${diasHtml}
+    ${a.geoSuspeito&&a.geoCli?`<div class="result warn" style="margin-top:10px"><b>Destino do cliente a conferir:</b> ${esc(a.geoSuspeito)}${a.geoCli.label?' ('+esc(a.geoCli.label)+')':''}. <a class="link" href="https://www.google.com/maps/search/?api=1&query=${a.geoCli.lat},${a.geoCli.lon}" target="_blank" rel="noopener">Ver no mapa</a>. Corrija o endereço ou preencha as coordenadas do cliente nos dados complementares.</div>`:''}${pzHtml}${(a.atualizacoes||[]).length?`<h3 class="lsub">Atualizações do técnico</h3>${a.atualizacoes.slice().reverse().map(u=>`<div class="dts" style="margin:4px 0"><b>${hm(u.em)}</b><span style="color:var(--ink)">${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}</span>${u.foto?`<button class="btn sm" data-act="relVer" data-p="${esc(u.foto)}">Foto</button>`:''}</div>`).join('')}`:''}${diasHtml}
     ${a.motivo?`<div class="result bad" style="margin-top:10px">Não concluída: ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`. Reagendada para ${dBR(a.reag)}.`:''}</div>`:''}
     ${a.rel&&(a.rel.foto||a.rel.entrega)?`<h3 class="lsub">Relatórios</h3><div class="tools">${a.rel.foto&&a.rel.foto.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.foto.path)}">Relatório fotográfico</button>`:''}${a.rel.entrega&&a.rel.entrega.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.entrega.path)}">Relatório de entrega</button>`:''}</div>${a.medicoes?`<dl class="dl" style="margin-top:8px">${['rua','interno'].filter(f=>a.medicoes[f+':metros']!=null).map(f=>`<div><dt>Metros lançados (${FCURTO[f].toLowerCase()})</dt><dd>${(+a.medicoes[f+':metros']).toLocaleString('pt-BR')} m</dd></div>`).join('')}${['sinal_ini','sinal_fim'].filter(k=>a.medicoes['ext:'+k+':dbm']!=null).map(k=>`<div><dt>${k==='sinal_ini'?'Sinal no ponto de acesso':'Sinal no ponto de derivação'}</dt><dd>${esc(a.medicoes['ext:'+k+':dbm'])} dBm</dd></div>`).join('')}</dl>`:''}`:''}
     ${tl.length?`<h3 class="lsub">Registro de tempos</h3><dl class="dl">${tl.map(([l,v])=>`<div><dt>${l}</dt><dd>${hm(v)}</dd></div>`).join('')}</dl>`:''}
@@ -1950,11 +1981,11 @@ const ACT={
     ui.agDia=F.data;ui.agSel=null;ui.agForm={};render();toast(unico?`${etq}: 1 atividade com ${dias.length} dias para ${tecN(F.tec)}, de ${dBR(dias[0])} a ${dBR(dias[dias.length-1])} (${fz.map(k=>FCURTO[k]).join(' + ')}).`:`${etq}: ${dias.length} agendamento(s) para ${tecN(F.tec)}${dias.length>1?` de ${dBR(dias[0])} a ${dBR(dias[dias.length-1])}`:` em ${dBR(dias[0])}`} (${fz.map(k=>FCURTO[k]).join(' + ')}).`)},
   cancelar:el=>{if(!pode('a_cancelar')&&semPerm())return;const a=getAg(el.dataset.id);if(confirm(`Cancelar o agendamento de ${a.etiqueta}?`)){a.status='cancelada';save();closeModal();render();toast('Agendamento cancelado.')}},
   cF:el=>{ui.cF=el.dataset.t;render()},
-  abrir:el=>{ui.campoSel=el.dataset.id;ui.tAcc={};render();window.scrollTo(0,0)},
+  abrir:el=>{ui.campoSel=el.dataset.id;ui.tAcc={};render();window.scrollTo(0,0);prepararDestino(getAg(el.dataset.id))},
   voltar:()=>{ui.campoSel=null;render()},
   go:el=>{const a=getAg(el.dataset.id),n=Date.now();if(a.status==='agendada'){const bl=emAndamento(a.tec,a.id);if(bl){toast(`Encerre a atividade em andamento (${bl.etiqueta}) antes de iniciar outra.`,'bad');return}}
-    if(a.status==='agendada'){a.ts.desloc=n;delete a.ts.eta;delete a.ts.perto;delete a.rota;delete a.rotaErro;a.status='deslocamento';setTimeout(()=>calcRota(a,true),50)}
-    else if(a.status==='deslocamento'){a.ts.chegada=n;a.status='no_local'}
+    if(a.status==='agendada'){a.ts.desloc=n;delete a.ts.eta;delete a.ts.perto;delete a.rota;delete a.rota0;delete a.rotaErro;delete a.geoSuspeito;if(a.geoCli&&!a.geoCli.ok)delete a.geoCli;a.status='deslocamento';setTimeout(()=>{calcRota(a,true);vigiarTrajeto()},50)}
+    else if(a.status==='deslocamento'){a.ts.chegada=n;a.status='no_local';setTimeout(vigiarTrajeto,50)}
     else if(a.status==='no_local'){a.ts.inicio=n;a.status='execucao'}
     else if(a.status==='execucao'){openModal(`<h3>Concluir atividade</h3><p class="muted">Marque as fases que ficaram finalizadas nesta atividade. Se alguma fase continua em outro dia, deixe desmarcada.</p><div class="fchk" style="margin-top:12px">${fasesOf(a).map(k=>`<label><input type="checkbox" class="fzFin" value="${k}" checked><span>${faseN(k)}</span></label>`).join('')}</div><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="concluirOk" data-id="${a.id}">Concluir atividade</button></div>`);return}
     save();render()},
