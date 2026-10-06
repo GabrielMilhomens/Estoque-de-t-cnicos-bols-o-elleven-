@@ -40,7 +40,7 @@ Sistema web de gestão das atividades de campo da área de Implantação e Infra
 | Arquivo | Função |
 |---|---|
 | `agenda.html` | Aplicação principal (todas as telas da gestão e dos técnicos). Aproximadamente 350 KB. |
-| `relatorio-ativacao.html` | Relatório de Entrega de Circuito (ativação). Abre na mesma janela a partir da agenda, gera o PDF, envia ao Storage e retorna para a atividade. |
+| `relatorio-ativacao.html` | Relatório de Entrega de Circuito (ativação). Abre na mesma janela a partir da agenda, com o mesmo visual das telas do técnico (barra "Voltar para a atividade", cartão do cliente, seções numa única página e progresso de itens preenchidos). Gera o PDF no modelo original, envia ao Storage e retorna para a atividade. Nenhum item é obrigatório. |
 | `sw.js` | Service worker: recebe e exibe as notificações push e abre a atividade ao tocar. Não faz cache de páginas. |
 | `manifest.webmanifest` | Manifesto PWA (nome, ícones, cores, `id` do app). Permite instalar no celular e no computador. |
 | `icon-192.png`, `icon-512.png` | Ícones do app (símbolo da Net Turbo). |
@@ -245,6 +245,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 06/10/2026 | Relatório de Entrega de Circuito no layout da agenda: seções numa única página, redundância e tipo de link em botões, campos de IP estático ou PPPoE conforme o tipo, progresso de itens preenchidos e envio no fim da página. O PDF segue o mesmo modelo; sem link redundante, o bloco passa a se chamar "Link". | `relatorio-ativacao.html` |
 | 06/10/2026 | Painel do dia no grupo Operação (somente leitura, para outros setores e TV), perfil Visualização e atualizações do andamento enviadas pelo técnico durante a execução. | `agenda.html`, `agenda_ajuste_10` |
 | 06/10/2026 | Novo preenchimento da LPU pelo técnico: tela própria em 3 passos (serviços, conferência e assinatura), busca sem acento, filtro por classe, itens incluídos um a um com quantidade e condição, aviso da metragem do relatório, observação para a gestão (exibida na aprovação) e declaração obrigatória na assinatura. Correção do nome da classe "Improdutividade". | `agenda.html` |
 | 05/10/2026 | Atividades com execução em vários dias (diário por dia, encerramento do dia, conclusão antecipada); pergunta "Você termina hoje?" e pedido de prazo à gestão; relatório da não conclusão antes da LPU parcial. | `agenda.html`, `agenda-lembretes.ts` (deploy), `agenda_ajuste_09` |

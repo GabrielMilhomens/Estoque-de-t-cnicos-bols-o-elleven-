@@ -205,8 +205,79 @@ textarea.cap{font-size:12.5px;resize:vertical;min-height:32px}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style id="layout-agenda">
+/* ── Layout no padrão da Agenda de Implantação (só a tela; o PDF continua igual) ── */
+:root{--ag-bg:#F2F4F0;--ag-ink:#1D2620;--ag-muted:#4E5A52;--ag-line:#D8DED4;--ag-brand:#8CBF3F;--ag-brand-ink:#2E5410;--ag-brand-soft:#E6F1D5;--ag-info:#245F80}
+body{font-family:Barlow,'Segoe UI',sans-serif;background:var(--ag-bg);color:var(--ag-ink);font-size:15px;padding:0 0 40px}
+.agtop{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--ag-line)}
+.agtop a{display:flex;align-items:center;gap:6px;min-height:44px;padding:0 6px;color:var(--ag-ink);text-decoration:none;font-weight:600;font-size:15px}
+.agwrap{max-width:640px;margin:0 auto;padding:14px 16px 0}
+.agcard{background:#fff;border:1px solid var(--ag-line);border-radius:14px;overflow:hidden;margin-bottom:12px}
+.agcard .agc1{padding:14px 14px 12px;display:flex;flex-direction:column;gap:6px}
+.agcard .agcli{font:700 23px/1.1 'Barlow Condensed',sans-serif}
+.agcard .agetq{align-self:flex-start;font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:.04em;background:var(--ag-brand-soft);padding:3px 10px;border-radius:6px}
+.agcard .agband{background:#4F3A86;color:#fff;padding:11px 14px;display:flex;flex-direction:column;gap:1px}
+.agcard .agband span{font-size:12px;font-weight:600;letter-spacing:.06em;opacity:.92}
+.agcard .agband b{font:700 22px/1.1 'Barlow Condensed',sans-serif}
+.agcard .agprog{padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.agcard .agprog div:first-child{display:flex;justify-content:space-between;font-size:14px}
+.agbar{height:8px;background:#E3E8DF;border-radius:4px;overflow:hidden}.agbar i{display:block;height:100%;width:0;background:var(--ag-brand-ink);transition:width .3s}
+.shell{max-width:640px;margin:0 auto;background:none;box-shadow:none;border-radius:0;padding:0 16px}
+.fhd,.progress-bar{display:none!important}
+.fb{padding:0}
+.wizard-section{display:block!important;background:#fff;border:1px solid var(--ag-line);border-radius:14px;padding:14px;margin-bottom:12px}
+.sec{font:700 20px/1.1 'Barlow Condensed',sans-serif;letter-spacing:0;text-transform:none;color:var(--ag-ink);border:0;padding:0;margin:0 0 12px}
+.g2,.lw{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px 12px}
+.s2{grid-column:1/-1!important}
+.lw{grid-template-columns:1fr!important}
+.fld{min-width:0}
+.fld label,.pul,.phc label{font-size:13px;font-weight:600;color:var(--ag-muted);text-transform:none;letter-spacing:0}
+input[type="text"],input[type="date"],select,textarea{min-height:44px;padding:9px 11px;border:1px solid var(--ag-line);border-radius:8px;font-size:16px!important;font-family:inherit;color:var(--ag-ink)}
+textarea{min-height:60px}
+input:focus,select:focus,textarea:focus{border-color:var(--ag-brand);box-shadow:0 0 0 3px rgba(140,191,63,.2)}
+.trow{background:none;border:0;padding:0;margin:14px 0 0;flex-direction:column;align-items:stretch;gap:6px}
+.trow span{color:var(--ag-muted);font-size:13px;font-weight:600;text-align:left}
+.agseg{display:flex;border:1px solid var(--ag-line);border-radius:10px;overflow:hidden}
+.agseg button{flex:1;min-height:44px;border:0;background:#fff;color:var(--ag-muted);font:600 14.5px Barlow,sans-serif;cursor:pointer}
+.agseg button+button{border-left:1px solid var(--ag-line)}
+.agseg button.on{background:var(--ag-ink);color:#fff}
+.agsel{display:none!important}
+.lc{border:1px solid #E1E6DD;border-radius:12px}
+.lch{background:none;color:var(--ag-ink);font:600 15px Barlow,sans-serif;letter-spacing:0;text-transform:none;padding:12px 12px 0}
+.lcb{padding:10px 12px 12px;gap:10px}
+#lk1,#lk2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#lk1:empty,#lk2:empty{display:none}
+.pug{gap:10px}
+.puc,.phc{background:#fff;border:1px solid var(--ag-line);border-radius:12px;padding:12px;gap:8px}
+.puz{border:1px solid var(--ag-line);border-radius:10px;padding:12px;min-height:46px}
+.puz svg{display:none}.puzt{font:600 15px Barlow,sans-serif;color:var(--ag-ink)}
+.puz.ok{border-color:var(--ag-brand);background:var(--ag-brand-soft)}.puz.ok .puzt{color:var(--ag-brand-ink)}
+.phg{grid-template-columns:1fr!important;gap:10px}
+.photo-btns{flex-direction:row!important;gap:8px}
+.photo-btns .pickb,.pickb{flex:1;justify-content:center;min-height:46px;border:1px solid var(--ag-line);border-radius:10px;font:600 15px Barlow,sans-serif;color:var(--ag-ink);padding:0 10px}
+.pickb svg{width:18px;height:18px}
+.pimg{border-radius:10px;max-height:300px}
+.cat-hint{background:none;border:0;padding:0;margin:0 0 8px;color:var(--ag-muted);font-size:13.5px}.cat-hint svg{display:none}
+.add-ph-btn{min-height:46px;border:1px solid var(--ag-line);border-radius:10px;background:#fff;color:var(--ag-ink);font:600 15px Barlow,sans-serif}
+.sw{border-radius:12px;border:2px dashed #B9C2B5;background:#FAFBF8}
+.sb{background:none;border-bottom:0;font-size:13px;font-weight:600;color:var(--ag-muted);padding:8px 12px}
+.sig-name-input{min-height:44px;border-radius:8px;margin-bottom:0}
+.nav-buttons{display:none!important}
+.agenv{display:flex;flex-direction:column;gap:8px;margin:4px 0 0}
+.agenv .agbig{min-height:60px;border:0;border-radius:12px;background:var(--ag-brand);color:#1B3209;font:700 22px 'Barlow Condensed',sans-serif;cursor:pointer}
+.agenv .agsec{min-height:46px;border:1px solid var(--ag-line);border-radius:10px;background:#fff;color:var(--ag-ink);font:600 15px Barlow,sans-serif;cursor:pointer}
+.agenv p{font-size:13.5px;color:var(--ag-muted);margin:0}
+.bbar{display:none!important}
+.btnp{background:var(--ag-brand);color:#1B3209}
+@media (max-width:768px){body{padding:0 0 40px}.shell{border-radius:0}.g2{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+</style>
 </head>
 <body>
+<header class="agtop"><a href="#" id="agVoltar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Voltar para a atividade</a></header>
+<div class="agwrap"><article class="agcard"><div class="agc1"><span class="agcli" id="agCli">Relatório de entrega</span><span class="agetq" id="agEtq" hidden></span></div>
+<div class="agband"><span>RELATÓRIO DE ENTREGA DE CIRCUITO</span><b>Ativação</b></div>
+<div class="agprog"><div><span>Itens preenchidos</span><b id="agProgT">0 de 0</b></div><div class="agbar"><i id="agProgB"></i></div></div></article></div>
 
 <div class="shell">
   <div class="fhd">
@@ -736,7 +807,7 @@ function buildDocElement() {
     }
     box.appendChild(tbl); return box;
   }
-  lkRow.appendChild(buildLinkBox('lk1','f-banda1','Link 1 — Principal'));
+  lkRow.appendChild(buildLinkBox('lk1','f-banda1',hasR?'Link 1 — Principal':'Link'));
   if (hasR) lkRow.appendChild(buildLinkBox('lk2','f-banda2','Link 2 — Redundante'));
   body.appendChild(lkRow);
 
@@ -1089,7 +1160,7 @@ document.getElementById('modal').addEventListener('click', e => {
   var VOLTA='agenda.html?ag='+encodeURIComponent(ag);
   // botão para voltar à agenda sem gerar o relatório
   function botaoVoltar(){var b=document.createElement('a');b.href=VOLTA;b.textContent='← Voltar para a agenda';b.style.cssText='position:fixed;top:10px;left:10px;z-index:10002;background:#2d3444;color:#fff;padding:9px 14px;border-radius:20px;font:600 13px Segoe UI,Arial,sans-serif;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25)';document.body.appendChild(b)}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',botaoVoltar);else botaoVoltar();
+  window.__voltaAgenda=VOLTA;
   function enviar(art,tentativa){tentativa=tentativa||1;
     var nome=(art.nomeArquivo||'relatorio-entrega.pdf').replace(/[^\w.\-]+/g,'_');
     sb.storage.from('agenda').upload('relatorios/'+ag+'/'+Date.now()+'-'+nome,art.blob,{contentType:'application/pdf',upsert:false}).then(function(r){
@@ -1097,6 +1168,44 @@ document.getElementById('modal').addEventListener('click', e => {
     }).catch(function(e){if(tentativa<3){setTimeout(function(){enviar(art,tentativa+1)},tentativa*3000);return}
       var m=(e&&(e.message||e.error||e.statusCode))||'erro desconhecido';aviso('O PDF foi salvo no celular, mas não chegou à agenda ('+m+')'+(/jwt|auth|session/i.test(String(m))?'. Faça login na agenda neste aparelho':'')+'. Gere o PDF novamente.','#c0392b')})}
   window.__sincronizarRelatorioAtivacao=function(){var a=window.__ultimoRelatorioAtivacao;if(a&&a.blob)enviar(a)};
+})();
+</script>
+<script id="layout-agenda-js">
+(function(){
+  var P=new URLSearchParams(location.search);
+  function $(i){return document.getElementById(i)}
+  var cli=P.get('cliente'),etq=P.get('etiqueta');if(cli)$('agCli').textContent=cli;if(etq){$('agEtq').textContent=etq;$('agEtq').hidden=false}
+  $('agVoltar').addEventListener('click',function(e){e.preventDefault();if(window.__voltaAgenda)location.href=window.__voltaAgenda;else history.back()});
+  // títulos das seções sem a numeração antiga
+  document.querySelectorAll('.wizard-section .sec').forEach(function(el){el.textContent=el.textContent.replace(/^\s*\d+\.\s*/,'')});
+  // troca um <select> por botões lado a lado, mantendo o select (que o gerador do PDF usa)
+  function segmento(sel,depois){var box=document.createElement('div');box.className='agseg';box.setAttribute('role','group');
+    [].forEach.call(sel.options,function(o){var b=document.createElement('button');b.type='button';b.textContent=o.textContent;b.dataset.v=o.value;b.onclick=function(){sel.value=o.value;sel.dispatchEvent(new Event('change'));marca()};box.appendChild(b)});
+    function marca(){[].forEach.call(box.children,function(b){var on=b.dataset.v===sel.value;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});if(depois)depois()}
+    sel.classList.add('agsel');sel.parentNode.insertBefore(box,sel.nextSibling);marca();return marca}
+  var lch1=document.querySelector('#step-2 .lc .lch');
+  function titulos(){var r=$('hasRedund').value==='sim';if(lch1)lch1.textContent=r?'Link 1, principal':'Link';var l2=document.querySelector('#card-lk2 .lch');if(l2)l2.textContent='Link 2, redundante'}
+  segmento($('hasRedund'),titulos);
+  document.querySelectorAll('#step-2 .lcb select').forEach(function(s){segmento(s)});
+  // mostra os campos do tipo já escolhido (IP estático por padrão)
+  ['lk1','lk2'].forEach(function(id){if(!$(id).children.length&&typeof renderLink==='function')renderLink('IP',id)});
+  // envio no fim da página
+  var s8=$('step-8');var env=document.createElement('div');env.className='agenv';
+  env.innerHTML='<button type="button" class="agbig">Gerar PDF e enviar relatório</button><button type="button" class="agsec">Visualizar o PDF antes de enviar</button><p>Nenhum item é obrigatório. Ao gerar, o PDF é baixado no celular, guardado na atividade e você volta para a agenda.</p>';
+  env.children[0].onclick=function(){doPDF()};env.children[1].onclick=function(){doPreview()};
+  s8.appendChild(env);
+  // a assinatura precisa do tamanho real do quadro, agora sempre visível
+  setTimeout(function(){try{resizeSig()}catch(e){}},300);
+  // progresso: itens preenchidos
+  function vis(el){return !el.closest('.hidden')}
+  function prog(){var tot=0,ok=0;
+    document.querySelectorAll('.phc').forEach(function(c){if(!vis(c))return;tot++;var im=c.querySelector('img.pimg');if(im&&im.getAttribute('src')&&im.style.display!=='none')ok++});
+    ['zbanda','zlatencia'].forEach(function(z){tot++;if($(z)&&$(z).classList.contains('ok'))ok++});
+    tot++;if(($('f-banda1')||{}).value)ok++;
+    if($('hasRedund').value==='sim'){tot++;if(($('f-banda2')||{}).value)ok++}
+    tot++;try{if(($('f-sig-nome')||{}).value&&!sigPad.isEmpty())ok++}catch(e){}
+    $('agProgT').textContent=ok+' de '+tot;$('agProgB').style.width=(tot?Math.round(ok/tot*100):0)+'%'}
+  prog();setInterval(prog,1500);
 })();
 </script>
 </body>
