@@ -55,6 +55,7 @@ Sistema web de gestão das atividades de campo da área de Implantação e Infra
 | `agenda-lembretes.ts` | Código da Edge Function de notificações (pode ficar em repositório privado). |
 | `agenda-rota.ts` | Código da Edge Function `agenda-rota` (rota, previsão de chegada e endereço das fotos pelo OpenRouteService). |
 | `NAO_SUBIR_NO_GITHUB_segredos_notificacoes.txt` | Segredos da Edge Function (ver seção 6). |
+| `agenda_zerar_dados_de_teste.sql` | Script usado uma vez para apagar atividades, LPUs e avisos de teste antes da operação, com cópia de segurança no banco. |
 
 ---
 
@@ -135,6 +136,7 @@ Os arquivos são abertos por URL assinada temporária. As fotos são reduzidas n
 10. `agenda_ajuste_09_varios_dias_e_prazo.sql` — avisos de pedido de prazo e atividades de vários dias
 11. `agenda_ajuste_10_painel_do_dia.sql` — papel Visualização, função `ag_painel_dia` e Painel do dia no padrão de supervisor e encarregado
 12. `agenda_ajuste_11_aviso_lpu.sql` — aviso imediato ao técnico quando a LPU é aprovada, reprovada ou devolvida para ajuste
+13. `agenda_ajuste_12_empresa_terceira.sql` — funcionários de empresas terceiras: empresa do funcionário, LPU em conferência pelo administrador, permissões de leitura e gravação dos PDFs da equipe e avisos de LPU para conferir
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -150,7 +152,8 @@ Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create 
 | Supply Chain | Somente publicação da planilha diária do bolsão (SAP). |
 | Visualização | Somente o Painel do dia (outros setores, TV da sala). Não acessa as tabelas da agenda: lê os dados pela função `ag_painel_dia`, sem valores, endereços ou telefones. |
 | Técnico CLT | Minhas atividades, Meu estoque e Meu histórico. |
-| Técnico terceiro | Igual ao CLT, mais Gestão financeira (LPUs e totais). |
+| Técnico terceiro (administrador da empresa) | Igual ao CLT, mais Gestão financeira (LPUs e totais) da empresa inteira, incluindo a aba **Para conferir**, com as LPUs dos funcionários. |
+| Funcionário de empresa terceira | Igual ao CLT, sem Gestão financeira. Suas LPUs vão para a conferência do administrador da empresa (`agenda_papeis.empresa`), que corrige se precisar e envia para a aprovação do O&M. |
 
 A coordenação pode personalizar, por usuário, as telas e ações da gestão em **Usuários e acessos → Permissões**. Usuários novos de gestão começam sem nenhuma tela. As ações sensíveis (aprovar LPU, definir budget, importar estoque, saldo base) também são validadas no banco por `ag_pode()`.
 
@@ -184,7 +187,7 @@ O login é por e-mail e senha no Supabase Auth; novos cadastros ficam pendentes 
 | Atividade em aberto | Técnico | Atividade não encerrada após 18h |
 | Técnico sem resposta | Encarregados | 60 minutos após um aviso sem reação |
 
-**Avisos imediatos (via trigger):** atividade nova, remarcada, transferida e cancelada (técnico); pedido de prazo (coordenador e encarregados); resposta ao pedido (técnico); LPU aprovada, reprovada ou devolvida para ajuste, com quem decidiu e o motivo (técnico).
+**Avisos imediatos (via trigger):** atividade nova, remarcada, transferida e cancelada (técnico); pedido de prazo (coordenador e encarregados); resposta ao pedido (técnico); LPU aprovada, reprovada ou devolvida para ajuste, com quem decidiu e o motivo (técnico e, se for funcionário de terceira, também o administrador da empresa); LPU para conferir (administrador da empresa terceira).
 
 Cada aviso é enviado uma única vez por atividade e por dia (`ag_notificacoes`). No iPhone, as notificações exigem que o app seja adicionado à Tela de Início.
 
@@ -256,6 +259,8 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 06/10/2026 | Funcionários de empresas terceiras: novo acesso "Funcionário de empresa terceira" ligado ao administrador da empresa. O funcionário faz a LPU normalmente, sem gestão financeira; a LPU vai para a aba "Para conferir" do administrador, que corrige se precisar e envia ao O&M. A aprovação mostra quem conferiu e quem executou. Avisos para o administrador. | `agenda.html`, `agenda-lembretes.ts` (deploy), `agenda_ajuste_12` |
+| 06/10/2026 | Início da operação: dados de teste apagados (atividades, LPUs e avisos), mantendo projetos, complementos, anexos, budget, usuários e estoque; arquivos de teste removidos do Storage. | `agenda_zerar_dados_de_teste.sql` |
 | 06/10/2026 | Volta da previsão de chegada informada pelo técnico ao iniciar o deslocamento (o cálculo automático pela localização foi retirado por demora e erros de destino). O Painel do dia mantém o aviso "Chegando em cerca de 5 minutos" pela previsão informada, e o carimbo das fotos continua igual. Campo de coordenadas do cliente retirado dos dados complementares. | `agenda.html` |
 | 06/10/2026 | Previsão de chegada mais rápida e precisa: uma chamada só para destino e rota, localização rápida antes da precisa, busca do endereço com cidade e UF e adiantada ao abrir a atividade, aviso "Confira o destino" com link do mapa quando o endereço cai fora da cidade, ajuste de trânsito aprendido com as chegadas reais e recálculo por deslocamento de 400 m. | `agenda.html`, `agenda-rota.ts` (deploy) |
 | 06/10/2026 | PDF da LPU com a aprovação eletrônica (nome de quem aprovou, data e hora): gerado e guardado no momento da aprovação, mantendo o PDF original do envio; LPUs aprovadas antes disso geram a versão com o aprovador ao abrir. Botão "Abrir PDF da LPU" na atividade do técnico e correção da abertura do PDF no celular (o navegador bloqueava a janela). | `agenda.html` |
