@@ -134,6 +134,7 @@ Os arquivos são abertos por URL assinada temporária. As fotos são reduzidas n
 9. `agenda_ajuste_08_permissoes.sql` — permissões por usuário (`ag_pode`)
 10. `agenda_ajuste_09_varios_dias_e_prazo.sql` — avisos de pedido de prazo e atividades de vários dias
 11. `agenda_ajuste_10_painel_do_dia.sql` — papel Visualização, função `ag_painel_dia` e Painel do dia no padrão de supervisor e encarregado
+12. `agenda_ajuste_11_aviso_lpu.sql` — aviso imediato ao técnico quando a LPU é aprovada, reprovada ou devolvida para ajuste
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -183,7 +184,7 @@ O login é por e-mail e senha no Supabase Auth; novos cadastros ficam pendentes 
 | Atividade em aberto | Técnico | Atividade não encerrada após 18h |
 | Técnico sem resposta | Encarregados | 60 minutos após um aviso sem reação |
 
-**Avisos imediatos (via trigger):** atividade nova, remarcada, transferida e cancelada (técnico); pedido de prazo (coordenador e encarregados); resposta ao pedido (técnico).
+**Avisos imediatos (via trigger):** atividade nova, remarcada, transferida e cancelada (técnico); pedido de prazo (coordenador e encarregados); resposta ao pedido (técnico); LPU aprovada, reprovada ou devolvida para ajuste, com quem decidiu e o motivo (técnico).
 
 Cada aviso é enviado uma única vez por atividade e por dia (`ag_notificacoes`). No iPhone, as notificações exigem que o app seja adicionado à Tela de Início.
 
@@ -258,6 +259,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 06/10/2026 | Notificação ao técnico quando a LPU é aprovada, reprovada ou devolvida para ajuste (com quem decidiu e o motivo); tocar na notificação abre a atividade. | `agenda-lembretes.ts` (deploy), `agenda_ajuste_11` |
 | 06/10/2026 | LPU do técnico: correção da busca e do filtro por classe no celular (os itens filtrados continuavam visíveis), descritivo técnico volta a abrir só no "o que é?", observação para a gestão sem texto de exemplo. LPU aprovada mostra "Aprovada por [nome] em [data e hora]" para a gestão e para o técnico. | `agenda.html` |
 | 06/10/2026 | Previsão de chegada calculada automaticamente pela localização do técnico (sem digitar o horário), aviso "Chegando em cerca de 5 minutos" no Painel do dia, coordenadas opcionais do cliente nos dados complementares e carimbo de horário, data, endereço, coordenadas e código nas fotos (agenda e relatório de entrega). | `agenda.html`, `relatorio-ativacao.html`, nova Edge Function `agenda-rota` (deploy) e segredo `ORS_API_KEY` |
 | 06/10/2026 | Relatório de Entrega de Circuito no layout da agenda: seções numa única página, redundância e tipo de link em botões, campos de IP estático ou PPPoE conforme o tipo, progresso de itens preenchidos e envio no fim da página. O PDF segue o mesmo modelo; sem link redundante, o bloco passa a se chamar "Link". | `relatorio-ativacao.html` |
