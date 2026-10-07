@@ -439,6 +439,12 @@ details summary{cursor:pointer;font-weight:600}
 .chatc{position:sticky;bottom:0;background:var(--bg);padding:8px 0;display:flex;flex-direction:column;gap:8px}
 .chatc textarea{width:100%}.chatfoto{display:inline-flex;align-items:center;cursor:pointer}
 @media(max-width:900px){.gdet,.grel{grid-template-columns:1fr}.g2c{grid-template-columns:1fr}.chatl{max-height:calc(100vh - 300px)}}
+.msgnova{display:inline-flex;align-items:center;gap:3px;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--bad);color:#fff;font:700 12.5px/22px Barlow,sans-serif;white-space:nowrap;animation:msgpulse 1.6s ease-in-out 3}
+.msgbtn{border:0;background:none;padding:0;cursor:pointer;margin-left:auto}.pdh .msgnova{margin-left:auto}.pdh .msgbtn+.chip,.pdh .msgnova+.chip{margin-left:6px}
+@keyframes msgpulse{50%{transform:scale(1.15)}}
+.chatdica{font-size:12px}@media (pointer:coarse){.chatdica{display:none}}
+.chatfoto svg{margin-right:4px;vertical-align:-3px}
+.grtab td:nth-child(1),.grtab td:nth-child(2),.grtab td:nth-child(5),.grtab td:nth-child(6){white-space:nowrap}.grtab td:nth-child(3){min-width:220px}
 </style>
 </head>
 <body>
@@ -672,20 +678,20 @@ const PERM_T=[
   ['Operação',[['painelDia','Painel do dia','t'],['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar e editar atividades','a'],['a_anexos','Enviar e apagar anexos','a']]],['relat','Relatórios','t']]],
   ['Estoque',[['estoque','Estoque dos técnicos','t'],['estAtual','Atualizar estoque','t',[['a_bolsao','Publicar planilha do bolsão (SAP)','a'],['a_elleven','Importar movimentações do Elleven','a'],['a_base','Saldo base e data-base do Elleven','a']]],['estHist','Movimentações','t']]],
   ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['sim','Simulação de entrega','t'],['kanban','Backlog de projetos','t']]],
-  ['GTD Manutenção',[['gPainel','Painel de KPIs do GTD','t'],['gCham','Chamados (Kanban)','t',[['a_gDespachar','Despachar chamados para o técnico','a'],['a_gEditar','Agendar, editar e cancelar chamados','a'],['a_gValidar','Acesso NOC: validar chamados','a']]],['gAgenda','Agenda do GTD','t'],['gNovo','Criar chamado','t'],['gRel','Relatórios do GTD (histórico por cliente)','t'],['gAprov','Aprovação de LPU do GTD','t',[['a_gAprovar','Aprovar, reprovar e devolver LPUs do GTD','a']]]]]];
+  ['GTD Manutenção',[['gPainel','Painel de KPIs do GTD','t',[['g_fin','Financeiro do GTD','t',[['gf_budget','Budget e consumo da manutenção (definir o budget usa a mesma permissão da Implantação)','t'],['gf_det','Detalhamento das LPUs do GTD','t'],['gAprov','Aprovação de LPU do GTD','t',[['a_gAprovar','Aprovar, reprovar e devolver LPUs do GTD','a']]]]]]],['gCham','Chamados (Kanban)','t',[['a_gDespachar','Despachar chamados para o técnico','a'],['a_gEditar','Agendar, editar e cancelar chamados','a'],['a_gValidar','Acesso NOC: validar chamados','a']]],['gAgenda','Agenda do GTD','t'],['gNovo','Criar chamado','t'],['gRel','Relatórios do GTD (histórico por cliente)','t']]]];
 const PERM_ALL=(()=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));return o})();
 const _sem=l=>PERM_ALL.filter(k=>!l.includes(k));
 const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto','a_gValidar']),
-  encarregado:_sem(['painel','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','gAprov','a_gAprovar']),
+  encarregado:_sem(['painel','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','g_fin','gf_budget','gf_det','gAprov','a_gAprovar']),
   supply:['estAtual','a_bolsao'],delivery:['painelDia','agenda']};
 const permDe=(papel,perm)=>Array.isArray(perm)?perm:(PERM_PAD[papel]||[]);
 const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc','func'].includes(ui.perfil))return false;if(ui.perfil==='noc')return NOC_PERM.includes(k);if(ui.perfil==='deliv'&&GTD_KEYS.includes(k))return false;return permDe(ME.papel,ME.perm).includes(k)};
-const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel','gAprov'];
+const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel'];
 const tabsDe=()=>['coord','clt','terc','func','visu','noc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs:G_TABS.filter(pode);
 const PSEC_K={geral:'p_geral',entregas:'p_entregas',rede:'p_rede',exec:'p_exec',equipes:'p_equipes',fin:'p_fin'},FSUB_K={budget:'f_budget',det:'f_det',aprov:'f_aprov'};
 const secsOk=()=>PSEC.filter(([k])=>pode(PSEC_K[k])),subsOk=()=>FSUB.filter(([k])=>pode(FSUB_K[k]));
 const semPerm=()=>{toast('Seu usuário não tem permissão para esta ação. Fale com a coordenação.','bad');return true};
-const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','campo','usuarios','painelDia','gPainel','gCham','gAgenda','gNovo','gRel','gAprov']},noc:{n:'NOC',tabs:['gCham','gAgenda','gNovo','gRel']},deliv:{n:'Delivery'},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']},visu:{n:'Visualização',tabs:['painelDia']},func:{n:'Funcionário de terceiro',tabs:['campo','meuEst','meuHist']}};
+const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','campo','usuarios','painelDia','gPainel','gCham','gAgenda','gNovo','gRel']},noc:{n:'NOC',tabs:['gCham','gAgenda','gNovo','gRel']},deliv:{n:'Delivery'},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']},visu:{n:'Visualização',tabs:['painelDia']},func:{n:'Funcionário de terceiro',tabs:['campo','meuEst','meuHist']}};
 const ST={agendada:['Agendada',''],deslocamento:['Em deslocamento','info'],no_local:['No local','info'],execucao:['Em execução','info'],relatorios:['Relatórios pendentes','warn'],lpu:['LPU pendente','warn'],concluida:['Concluída','ok'],nao_concluida:['Não concluída','bad'],cancelada:['Cancelada','']};
 const LST={conferencia:['Em conferência no prestador','info'],aguardando:['Aguardando aprovação','warn'],aprovada:['Aprovada','ok'],reprovada:['Reprovada','bad'],ajuste:['Devolvida para ajuste','info']};
 const FIM=['concluida','nao_concluida'];
@@ -772,8 +778,8 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span>${['supply','visu'].includes(ui.perfil)?'':'<button class="wic sino" data-act="avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gAprov','painel','agenda','painelDia','relat','estoque','estAtual','estHist','base','prev','sim','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',gAprov:'Financeiro',painelDia:'Operação',usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
-  const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;else if(t==='gAprov')n=pode('a_gAprovar')?G.lpus.filter(l=>l.status==='aguardando').length:0;return n?`<span class="nbadge">${n}</span>`:''};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','painel','agenda','painelDia','relat','estoque','estAtual','estHist','base','prev','sim','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
+  const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
   const nAprov=S.lpus.filter(l=>l.status==='aguardando').length,bAp=nAprov&&pode('f_aprov')?`<span class="nbadge">${nAprov}</span>`:'';
@@ -781,7 +787,7 @@ function render(){
   grupos.forEach(g=>{const its=vis.filter(t=>GRP[t]===g),aberto=grupos.length===1||!!ui.grpOpen[g];
     h+=grupos.length===1?`<div class="ngb so"><span class="nic">${ICN[g]||''}</span><span class="nt">${g}</span></div>`:`<button class="ngb" data-act="grp" data-g="${g}" aria-expanded="${aberto}"><span class="nic">${ICN[g]||''}</span><span class="nt">${g}</span>${chev(aberto)}</button>`;
     if(!aberto)return;h+='<div class="nlv">';
-    its.forEach(t=>{const pOpen=t==='painel'&&ui.tab==='painel'&&!ui.pFech,cur=t===ui.tab;
+    its.forEach(t=>{if(t==='gPainel'){h+=gNavPainel();return}const pOpen=t==='painel'&&ui.tab==='painel'&&!ui.pFech,cur=t===ui.tab;
       h+=`<button class="nit ${pOpen?'pai':''}" data-act="tab" data-t="${t}" aria-current="${cur&&!pOpen}"><span class="nt">${tabLabel(t)}</span>${t==='painel'?(pOpen?'':bAp)+chev(pOpen):badge(t)}</button>`;
       if(pOpen){const sec=ui.pSec||'geral',sub=ui.finSub||'budget';h+='<div class="nlv">';secsOk().forEach(([k,n])=>{const on=sec===k,fOpen=on&&k==='fin'&&!ui.fFech;
         h+=`<button class="nit ${fOpen?'pai':''}" data-act="pSec" data-v="${k}" aria-current="${on&&!fOpen}"><span class="nt">${n}</span>${k==='fin'?(fOpen?'':bAp)+chev(fOpen):''}</button>`;
@@ -811,7 +817,7 @@ function viewPainelDia(){const T=hoje(),loc=ui.perfil!=='visu';if(!loc&&!PD.rows
   const fz=r=>(r.fases||[]).map(k=>FCURTO[k]||k).join(' + ')+(r.dias&&r.dias.length>1?`, dia ${r.dias.indexOf(T)+1} de ${r.dias.length}`:'');
   const info=r=>{const t=r.ts||{};if(encDia(r)){const x=diaFeito(r);return `Dia encerrado às ${hm(x.ts&&x.ts.fimDia)}${r.aguardaPrazo?', aguardando a gestão decidir o pedido de prazo':`, continua em ${dBR(r.data).slice(0,5)}`}${x.resumo?'. '+x.resumo:''}`}if(r.status==='agendada')return r.janela?'Janela '+r.janela:'Aguardando início';if(r.status==='deslocamento')return `Saiu às ${hm(t.desloc)}${t.eta?`, chegada prevista ${hm(t.eta)}`:''}`;if(r.status==='no_local')return `Chegou às ${hm(t.chegada)}`;if(r.status==='execucao')return `Em execução desde ${hm(t.inicio)} (${dur(t.inicio)})`;if(r.status==='nao_concluida')return 'Não concluída: '+(r.motivo||'');return `Concluída às ${hm(t.conclusao||t.encerramento)}${entregue(r)?', circuito entregue':''}`};
   const card=r=>{const ups=(r.atualizacoes||[]).slice(-2).reverse(),ch=encDia(r)?`<span class="chip warn">${r.aguardaPrazo?'Aguardando prazo':r.data===addD(T,1)?'Continua amanhã':'Continua em '+dBR(r.data).slice(0,5)}</span>`:r.status==='nao_concluida'?'<span class="chip bad">Não concluída</span>':entregue(r)?'<span class="chip pdent">Circuito entregue</span>':conc(r)?'<span class="chip ok">Concluída</span>':'';
-    return `<article class="pdc ${r.status==='nao_concluida'?'nao':entregue(r)?'ent':''}"><div class="pdh"><b>${esc(r.cliente||r.etiqueta)}</b>${ch}</div><span><b>${esc(fz(r))}</b>${r.cidade?', '+esc(r.cidade):''}</span><small>${esc(r.etiqueta)}, ${esc(r.tecnico)}</small><span class="pdi">${esc(info(r))}</span>
+    return `<article class="pdc ${r.status==='nao_concluida'?'nao':entregue(r)?'ent':''}"><div class="pdh"><b>${esc(r.cliente||r.etiqueta)}</b>${gPdMsg(r)}${ch}</div><span><b>${esc(fz(r))}</b>${r.cidade?', '+esc(r.cidade):''}</span><small>${esc(r.etiqueta)}, ${esc(r.tecnico)}</small><span class="pdi">${esc(info(r))}</span>
       ${r.status==='deslocamento'&&(r.ts||{}).eta&&((r.ts||{}).perto||Date.now()>=r.ts.eta-300000)?`<div class="pdperto"><b>Chegando em cerca de 5 minutos</b><span>Pela previsão de chegada informada pelo técnico</span></div>`:''}
       ${ups.length&&grupo(r)!=='fim'?`<div class="pdu"><span>ATUALIZAÇÕES DO TÉCNICO</span>${ups.map(u=>`<div><b>${hm(u.em)}</b><span>${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}</span></div>`).join('')}</div>`:''}</article>`};
   const COL=[['ag','Aguardando início'],['cam','A caminho'],['exec','Em execução'],['fim','Encerradas']];
@@ -2464,7 +2470,7 @@ const GTD_CAUSA=['Equipamento com defeito','Fonte / energia','Conector ou cordã
 const GTD_H=3600000,GTD_DIA=864e5;
 const GST={aberto:['Não despachado','warn'],desp:['Despachado',''],desloc:['Em deslocamento','info'],local:['No local','info'],atend:['Em atividade','info'],valid:['Aguardando validação','warn'],rfo:['Validado · RFO pendente','ok'],lpu:['Validado · LPU pendente','ok'],aprov:['Encerrado · LPU em aprovação','ok'],concl:['Encerrado','ok'],cancelado:['Cancelado','']};
 const GLST={registrada:['LPU registrada (CLT)','ok'],conferencia:['LPU em conferência no prestador','info'],aguardando:['LPU aguardando aprovação','warn'],ajuste:['LPU devolvida para ajuste','info'],aprovada:['LPU aprovada','ok'],reprovada:['LPU reprovada','bad']};
-const G={ch:[],lpus:[],tecs:[],nMsg:{},msgs:{},msgBus:{},fotos:{},avisos:[],ok:false,erro:''};
+const G={ch:[],lpus:[],tecs:[],nMsg:{},nNova:{},msgs:{},msgBus:{},fotos:{},avisos:[],ok:false,erro:'',vista:true};
 
 /* ---------- regras e formatação ---------- */
 const gCatDe=t=>GTD_T.includes(t)?'gtd':'impl';
@@ -2490,8 +2496,11 @@ const gMesmoEnd=c=>c.endereco?G.ch.filter(x=>x.id!==c.id&&GTD_ABERTOS.includes(x
 const gTecN=id=>{if(!id)return 'Não despachado';const t=G.tecs.find(x=>x.id===id)||TEC.find(x=>x.id===id);return t?t.nome:(ME&&id===ME.id?ME.nome:'Técnico')};
 const gTecV=id=>{const t=G.tecs.find(x=>x.id===id);if(t)return t.vinculo==='terceiro'?'Terceiro':'CLT';const u=TEC.find(x=>x.id===id);return u?(u.tipo==='TERC'?'Terceiro':'CLT'):''};
 const gLpuDe=c=>G.lpus.filter(l=>l.chamado===c.id).sort((a,b)=>((b.hist||[])[0]||{em:0}).em-((a.hist||[])[0]||{em:0}).em)[0]||null;
-const gNMsg=(t,id)=>G.nMsg[t+':'+id]||0;
+const gNMsg=(t,id)=>G.nMsg[t+':'+id]||0,gNNova=(t,id)=>G.nNova[t+':'+id]||0;
+/* selo de mensagem nova do técnico (some quando qualquer pessoa abre a conversa) */
+const gSeloMsg=(t,id,n)=>{n=n==null?gNNova(t,id):n;return n?`<span class="msgnova" title="${n} ${n>1?'mensagens novas':'mensagem nova'} do técnico" aria-label="${n} ${n>1?'mensagens novas':'mensagem nova'} do técnico">${_sv('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',14)}${n}</span>`:''};
 const gMsgBtn=(t,id,cls)=>{const n=gNMsg(t,id);return `<button class="btn ${cls||'primary'} sm" data-act="chatAbrir" data-t="${t}" data-id="${id}">Mensagens${n?` (${n})`:''}</button>`};
+const gPdMsg=r=>{const n=ui.perfil==='visu'?(+r.msgsNovas||0):gNNova('a',r.id);if(!n)return '';const s=gSeloMsg('a',r.id,n);return ui.perfil==='visu'?s:`<button class='msgbtn' data-act='chatAbrir' data-t='a' data-id='${r.id}' title='Abrir as mensagens'>${s}</button>`};
 const gErroBox=()=>`<div class="result warn" style="margin-top:8px"><b>GTD Manutenção indisponível.</b> ${esc(G.erro)}</div>`;
 
 function gRfoTexto(c){const r=c.rfo||{},ini=(c.ts&&c.ts.inicio)||gIni(c),fim=c.validadoEm||(c.ts&&c.ts.validado)||Date.now(),L='━━━━━━━━━━━━━━';
@@ -2516,8 +2525,10 @@ async function gCarregar(){
       G.ch=ch.map(gDeRow);G.lpus=lp.map(gLpuDeRow);G.tecs=tcs;G.erro=''}
     catch(e){console.warn('GTD',e);G.ch=[];G.lpus=[];G.erro=/ag_chamados|chamado|does not exist|schema cache|relation/i.test(String(e.message||e))?'Rode o script agenda_ajuste_14_gtd_manutencao.sql no Supabase para ativar os chamados do GTD.':'Não foi possível carregar os chamados: '+(e.message||e)}}
   else{G.ch=[];G.lpus=[]}
-  try{const[ms,av]=await Promise.all([sb.from('ag_mensagens').select('id,chamado,agendamento').gte('em',new Date(Date.now()-120*GTD_DIA).toISOString()).limit(10000),sb.from('ag_avisos').select('*').order('em',{ascending:false}).limit(100)]);
-    if(!ms.error){G.nMsg={};(ms.data||[]).forEach(m=>{const k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;G.nMsg[k]=(G.nMsg[k]||0)+1})}if(!av.error)G.avisos=av.data||[]}catch(e){}
+  try{const desde=new Date(Date.now()-120*GTD_DIA).toISOString(),q=cols=>sb.from('ag_mensagens').select(cols).gte('em',desde).limit(10000);
+    let[ms,av]=await Promise.all([q(G.vista?'id,chamado,agendamento,papel,vista_em':'id,chamado,agendamento'),sb.from('ag_avisos').select('*').order('em',{ascending:false}).limit(100)]);
+    if(ms.error&&G.vista){G.vista=false;ms=await q('id,chamado,agendamento')}   /* sem o ajuste 15 ainda: só o total */
+    if(!ms.error){G.nMsg={};G.nNova={};(ms.data||[]).forEach(m=>{const k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;G.nMsg[k]=(G.nMsg[k]||0)+1;if(G.vista&&m.papel==='Técnico'&&!m.vista_em)G.nNova[k]=(G.nNova[k]||0)+1})}if(!av.error)G.avisos=av.data||[]}catch(e){}
   G.ok=true}
 async function gAcao(id,fn,msg){let c;
   try{const r=await sb.from('ag_chamados').select('*').eq('id',id).maybeSingle();if(r.error)throw r.error;if(!r.data){toast('Chamado não encontrado.','bad');return false}c=gDeRow(r.data)}
@@ -2532,7 +2543,7 @@ const gHist=(c,acao,extra)=>{c.hist=(c.hist||[]).concat([Object.assign({acao,por
 
 /* ---------- KANBAN (gestão e NOC) ---------- */
 function gCard(c){const sla=gSla(c),re=gReinc(c).length,me=gMesmoEnd(c).length,n=gNMsg('g',c.id),mt=gMttr(c);
-  return `<button class="kc" data-act="gAbrir" data-id="${c.id}"><span class="kch"><b>O&amp;M ${esc(c.pom||'—')}</b>${n?`<span class="chip info">${n} msg</span>`:''}</span><span class="kcc">${esc(c.cliente||'Cliente')}</span>
+  return `<button class="kc" data-act="gAbrir" data-id="${c.id}"><span class="kch"><b>O&amp;M ${esc(c.pom||'—')}</b>${gNNova('g',c.id)?gSeloMsg('g',c.id):n?`<span class="chip info">${n} msg</span>`:''}</span><span class="kcc">${esc(c.cliente||'Cliente')}</span>
    <span class="kct"><span class="chip">${esc(c.categoria||'Sem categoria')}</span>${c.agendaEm?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:''}${c.prioridade&&c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${re?'<span class="chip bad">Reincidente</span>':''}${me?'<span class="chip info">Mesmo endereço</span>':''}${c.naoVal&&c.naoVal.length&&GTD_ABERTOS.includes(c.status)?'<span class="chip bad">Não validado</span>':''}</span>
    ${c.status==='desloc'&&c.ts&&c.ts.eta?`<span class="kceta">Chega por volta das ${hm(c.ts.eta)}</span>`:''}<small>${esc(gTecN(c.tec))}${c.tec?' ('+gTecV(c.tec)+')':''} · ${esc(c.cidade||'—')}</small><small>${mt.l}: ${mt.v}</small></button>`}
 function viewGCham(){if(G.erro)return `<h2>Chamados · GTD Manutenção</h2>${gErroBox()}`;
@@ -2562,7 +2573,7 @@ function gDetalhe(c){const sla=gSla(c),mt=gMttr(c),re=gReinc(c),me=gMesmoEnd(c),
   const agBox=(gPodeEditar()||ui.perfil==='noc')&&ab?`<section class="gbox ag"><b>Agendamento</b><div class="tools"><label class="f inline"><span>Data</span><input type="date" class="inp" id="gAgD" value="${c.agendaEm?isoD(new Date(c.agendaEm)):''}"></label><label class="f inline"><span>Horário</span><input type="time" class="inp" id="gAgH" value="${c.agendaEm?hm(c.agendaEm):'08:00'}"></label><button class="btn primary sm" data-act="gAgSalvar" data-id="${c.id}">Salvar</button>${c.agendaEm?`<button class="btn sm" data-act="gAgTirar" data-id="${c.id}">Atender hoje (sem agendamento)</button>`:''}</div><small class="muted">O MTTR e o SLA começam no horário agendado.</small></section>`:'';
   const desp=gPodeDesp()&&ab?`<section class="gbox desp"><label class="f" style="margin:0"><span>${c.tec?'Trocar técnico':'Despachar para'}</span><span class="tools"><select class="inp" id="gDespTec"><option value="">Escolha o técnico…</option>${gTecOpts(c.tec)}</select><button class="btn primary" data-act="gDespachar" data-id="${c.id}">${c.tec?'Trocar':'Despachar'}</button></span></label><small class="muted">O técnico recebe o aviso no celular.</small></section>`:'';
   const val=c.status==='valid'?(gPodeValidar()?`<section class="gbox val"><b>O técnico pediu validação</b><span class="muted">Confira o link. Ao validar, o MTTR para e o técnico segue para o RFO e a LPU.</span><div class="tools"><button class="btn primary" data-act="gValidar" data-id="${c.id}">Validado</button><input class="inp" id="gNvMot" placeholder="Motivo, se não validado" value="${esc((ui.gNv||{})[c.id]||'')}" data-in="gNv" data-id="${c.id}"><button class="btn danger" data-act="gNaoValidar" data-id="${c.id}">Não validado</button></div></section>`:'<div class="result warn">O técnico pediu validação. Aguardando o NOC validar; o MTTR continua contando.</div>'):'';
-  const lpuBox=l?`<section class="gbox"><b>LPU do chamado</b><div class="tools">${`<span class="chip ${(GLST[l.status]||['',''])[1]}">${(GLST[l.status]||[l.status])[0]}</span>`}${verValor()&&l.status!=='registrada'?`<b>${brl(l.total)}</b>`:''}<span class="muted">${(l.itens||[]).length} serviço(s)</span><button class="btn sm" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'&&pode('gAprov')?'<button class="btn sm" data-act="tab" data-t="gAprov">Ir para a aprovação</button>':''}</div></section>`:'';
+  const lpuBox=l?`<section class="gbox"><b>LPU do chamado</b><div class="tools">${`<span class="chip ${(GLST[l.status]||['',''])[1]}">${(GLST[l.status]||[l.status])[0]}</span>`}${verValor()&&l.status!=='registrada'?`<b>${brl(l.total)}</b>`:''}<span class="muted">${(l.itens||[]).length} serviço(s)</span><button class="btn sm" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'&&pode('gAprov')&&pode('g_fin')?'<button class="btn sm" data-act="gIrAprov">Ir para a aprovação</button>':''}</div></section>`:'';
   const acoes=gPodeEditar()&&c.status!=='cancelado'?`<div class="actions" style="justify-content:flex-start">${GTD_ABERTOS.includes(c.status)?`<button class="btn sm" data-act="gEditar" data-id="${c.id}">Editar dados</button><button class="btn sm" data-act="gCancelar" data-id="${c.id}">Cancelar chamado</button>`:''}</div>`:'';
   return `<button class="back" data-act="gFechar">‹ Chamados</button>
   <div class="gdet"><div class="stack">
@@ -2627,7 +2638,25 @@ function viewGAgenda(){if(G.erro)return `<h2>Agenda · GTD Manutenção</h2>${gE
 
 /* ---------- PAINEL DE KPIs DO GTD ---------- */
 function gBarras(L,tot){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([n,q,ex])=>`<div class="gbar"><span>${esc(n)}</span><div><i style="width:${Math.round(q/mx*100)}%"></i></div><b>${q}</b>${ex!==undefined?`<small>${ex}</small>`:''}</div>`).join('')||'<p class="muted">Sem dados no período.</p>'}
+const GSEC=[['geral','Visão geral'],['fin','Financeiro']],GFSUB=[['budget','Budget e consumo','gf_budget'],['det','Detalhamento das LPUs','gf_det'],['aprov','Aprovação de LPU','gAprov']];
+const gSubsOk=()=>GFSUB.filter(x=>pode(x[2])),gSecsOk=()=>GSEC.filter(([k])=>k==='geral'||(pode('g_fin')&&gSubsOk().length));
+const gNAprov=()=>pode('a_gAprovar')?G.lpus.filter(l=>l.status==='aguardando').length:0;
+/* item "Painel de KPIs" do menu do GTD, com Visão geral e Financeiro (Budget, Detalhamento, Aprovação), como na Implantação */
+function gNavPainel(){const open=ui.tab==='gPainel'&&!ui.gpFech,n=gNAprov(),bAp=n?`<span class="nbadge">${n}</span>`:'',ch=o=>`<span class="nch">${o?ICN.up:ICN.dn}</span>`;
+  let h=`<button class="nit ${open?'pai':''}" data-act="tab" data-t="gPainel" aria-current="${ui.tab==='gPainel'&&!open}"><span class="nt">Painel de KPIs</span>${(open?'':bAp)+ch(open)}</button>`;
+  if(open){const sec=gSecsOk().some(x=>x[0]===ui.gSec)?ui.gSec:'geral',sub=ui.gFinSub||'budget';h+='<div class="nlv">';
+    gSecsOk().forEach(([k,nm])=>{const on=sec===k,fo=on&&k==='fin'&&!ui.gfFech;h+=`<button class="nit ${fo?'pai':''}" data-act="gpSec" data-v="${k}" aria-current="${on&&!fo}"><span class="nt">${nm}</span>${k==='fin'?(fo?'':bAp)+ch(fo):''}</button>`;
+      if(k==='fin'&&fo){h+='<div class="nlv">';gSubsOk().forEach(([sk,sn])=>{h+=`<button class="nit" data-act="gpSec" data-v="fin" data-s="${sk}" aria-current="${sub===sk}"><span class="nt">${sn}</span>${sk==='aprov'?bAp:''}</button>`});h+='</div>'}});h+='</div>'}
+  return h}
 function viewGPainel(){if(G.erro)return `<h2>Painel de KPIs · GTD Manutenção</h2>${gErroBox()}`;
+  const sec=gSecsOk().some(x=>x[0]===ui.gSec)?ui.gSec:'geral';ui.gSec=sec;
+  if(sec==='fin'){const subs=gSubsOk(),sub=subs.some(x=>x[0]===ui.gFinSub)?ui.gFinSub:subs[0][0];ui.gFinSub=sub;
+    const ajuda={budget:'Budget do mês da conta 3.1.1.2.05.0006 (Manutenção cliente), consumido pelas LPUs aprovadas no mês da aprovação.',det:'Itens mais usados e valor das LPUs do GTD no período.',aprov:'Fila da supervisão. Só LPUs de terceiros passam por aqui; todas usam a conta 3.1.1.2.05.0006 (Manutenção cliente).'}[sub];
+    return `<div class="toolbar"><div><h2>Financeiro · GTD Manutenção</h2><p class="muted">${ajuda}</p></div>${sub==='det'?`<div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ui.gpIni||hoje().slice(0,8)+'01'}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${ui.gpFim||hoje()}"></label></div>`:''}</div>
+     ${subs.length>1?`<div class="views" style="margin-bottom:14px">${subs.map(([k,n])=>`<button data-act="gpSec" data-v="fin" data-s="${k}" aria-current="${k===sub}">${n}${k==='aprov'&&gNAprov()?` (${gNAprov()})`:''}</button>`).join('')}</div>`:''}
+     ${sub==='budget'?gFinBudget():sub==='det'?gFinDet():viewGAprov(true)}`}
+  return gPainelGeral()}
+function gPainelGeral(){
   const ini=ui.gpIni||hoje().slice(0,8)+'01',fim=ui.gpFim||hoje();ui.gpIni=ini;ui.gpFim=fim;
   const P=G.ch.filter(c=>c.status!=='cancelado'&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim),V=P.filter(c=>c.validadoEm),med=L=>L.length?L.reduce((s,x)=>s+x,0)/L.length:null;
   const mttr=med(V.map(c=>c.validadoEm-gIni(c))),desp=med(P.filter(c=>c.ts&&c.ts.despacho).map(c=>c.ts.despacho-gIni(c)).filter(x=>x>=0)),ind=V.filter(c=>c.categoria==='Indisponibilidade'),indOk=ind.filter(c=>gSla(c)&&gSla(c).ok).length;
@@ -2648,26 +2677,58 @@ function viewGPainel(){if(G.erro)return `<h2>Painel de KPIs · GTD Manutenção<
     <section class="panel"><h3>Por desfecho</h3>${gBarras(grp(c=>c.desfecho).filter(([k])=>k!=='—').map(([k,L])=>[k,L.length]))}</section>
     <section class="panel"><h3>CLT x terceiros</h3>${gBarras([['Equipe própria (CLT)',P.filter(c=>c.tec&&gTecV(c.tec)==='CLT').length],['Terceiros',P.filter(c=>c.tec&&gTecV(c.tec)==='Terceiro').length],['Não despachados',P.filter(c=>!c.tec).length]])}</section></div>`}
 
+/* ---------- FINANCEIRO DO GTD: budget e detalhamento ---------- */
+const gSoma=L=>L.reduce((s,l)=>s+(+l.total||0),0);
+function gFinBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&pode('a_budget'),B=(S.budget||{})[mes]||{},orc=+B[GTD_CONTA]||0;ui.bMes=mes;
+  const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes,ap=G.lpus.filter(doMes),pe=G.lpus.filter(l=>l.status==='aguardando'||l.status==='ajuste'),
+    impl=S.lpus.filter(l=>l.conta===GTD_CONTA&&doMes(l)&&tecT(l.tec)==='TERC'),reg=G.lpus.filter(l=>l.status==='registrada'&&String(l.data||'').slice(0,7)===mes);
+  const uso=gSoma(ap)+gSoma(impl),comp=gSoma(pe),disp=orc-uso,p=orc?Math.round(uso/orc*100):0,tot=Math.max(orc,uso+comp)||1,cor=p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)';
+  const meses=[];for(let k=-12;k<=2;k++){const d=new Date(hoje().slice(0,4),+hoje().slice(5,7)-1+k,1);meses.push(d.getFullYear()+'-'+pad(d.getMonth()+1))}
+  const chOf=l=>G.ch.find(c=>c.id===l.chamado)||{},grp=(L,fn)=>{const m={};L.forEach(l=>{const k=fn(l)||'—';(m[k]=m[k]||[]).push(l)});return Object.entries(m).sort((a,b)=>gSoma(b[1])-gSoma(a[1]))};
+  const porCat=grp(ap,l=>l.categoria||chOf(l).categoria),porPres=grp(ap.concat(pe),l=>l.prestador||l.tec);
+  return `<section class="panel"><div class="secth"><div><h3>Budget de mão de obra terceirizada · Manutenção cliente</h3><span class="muted">${esc(GTD_CONTA)}</span></div>
+    <div class="tools"><label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${meses.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>${pode('a_budget')?(ed?'<button class="btn primary" data-act="gbSalvar">Salvar budget</button><button class="btn" data-act="bEdit">Cancelar</button>':'<button class="btn" data-act="bEdit">Definir budget do mês</button>'):''}</div></div>
+   ${ed?`<label class="f inline" style="margin:8px 0"><span>Budget de ${mesNome(mes)} (R$)</span><input class="inp r" type="number" min="0" step="100" id="gBud" value="${orc||''}" placeholder="0"></label>`:''}
+   <div class="kpis" style="margin:10px 0">${kp(brl(orc),'Budget do mês')}${kp(brl(uso),`Consumido: ${p}% (${ap.length+impl.length===1?'1 LPU aprovada':(ap.length+impl.length)+' LPUs aprovadas'})`,'ok')}${kp(brl(disp),'Disponível',disp<0?'bad':'')}${kp(brl(comp),`Aguardando aprovação (${pe.length} ${pe.length===1?'LPU':'LPUs'})`,'warn')}</div>
+   <div class="bbar"><i style="width:${uso/tot*100}%"></i><b style="width:${comp/tot*100}%"></b></div><small style="color:${cor};font-weight:600">${orc?p+'% consumido':'sem budget definido'}${orc&&uso+comp>orc?' · passa do budget se aprovar tudo':''}</small>
+   ${impl.length?`<p class="muted" style="font-size:13px;margin:8px 0 0">Inclui ${brl(gSoma(impl))} de ${impl.length} LPU(s) da Implantação lançadas nessa conta.</p>`:''}
+   <p class="muted" style="font-size:13px;margin:6px 0 0">Equipe própria (CLT): ${reg.length} ${reg.length===1?'LPU registrada':'LPUs registradas'} no mês, sem aprovação e sem consumo de budget.</p></section>
+  <div class="grid2 even" style="margin-top:16px"><section class="panel"><div class="secth"><h3>Aprovado no mês por categoria</h3></div><div class="tablewrap"><table><thead><tr><th>Categoria</th><th class="r">LPUs</th><th class="r">Valor</th><th class="r">Médio por chamado</th></tr></thead><tbody>${porCat.map(([k,L])=>`<tr><td>${esc(k)}</td><td class="r">${L.length}</td><td class="r">${brl(gSoma(L))}</td><td class="r">${brl(gSoma(L)/L.length)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nenhuma LPU aprovada no mês.</td></tr>'}</tbody></table></div></section>
+   <section class="panel"><div class="secth"><h3>Por prestador</h3></div><div class="tablewrap"><table><thead><tr><th>Prestador</th><th class="r">Aprovado no mês</th><th class="r">Aguardando</th></tr></thead><tbody>${porPres.map(([k,L])=>`<tr><td>${esc(gTecN(k))}</td><td class="r">${brl(gSoma(L.filter(doMes)))}</td><td class="r">${brl(gSoma(L.filter(l=>l.status!=='aprovada')))}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nenhuma LPU.</td></tr>'}</tbody></table></div></section></div>`}
+function gFinDet(){const sit=ui.gdSit||'ap',pres=ui.gdPres||'',cls=ui.gdClasse||'',ini=ui.gpIni||hoje().slice(0,8)+'01',fim=ui.gpFim||hoje();
+  const noP=t=>{if(!t)return false;const d=isoD(new Date(t));return d>=ini&&d<=fim},ok={ap:l=>l.status==='aprovada'&&noP(aprovEm(l)),pe:l=>l.status==='aguardando'||l.status==='ajuste',reg:l=>l.status==='registrada'&&l.data>=ini&&l.data<=fim};
+  const L=G.lpus.filter(l=>(sit==='todas'?ok.ap(l)||ok.pe(l)||ok.reg(l):ok[sit](l))&&(!pres||l.tec===pres||l.prestador===pres));
+  const M={};L.forEach(l=>(l.itens||[]).forEach(i=>{const r=M[i.cod]=M[i.cod]||{cod:i.cod,desc:i.desc,classe:i.classe||'Sem classe',med:i.medida||'',ref:(itemOf(i.cod)||{}).valor,qtd:0,val:0,ls:new Set()};r.qtd+=+i.qtd||0;r.val+=(+i.unit||0)*(+i.qtd||0);r.ls.add(l.id)}));
+  const I=Object.values(M).sort((a,b)=>b.ls.size-a.ls.size||b.val-a.val),tot=L.reduce((s,l)=>s+l.total,0),C={};I.forEach(i=>{C[i.classe]=C[i.classe]||{n:i.classe,v:0,k:0};C[i.classe].v+=i.val;C[i.classe].k++});
+  const Cs=Object.values(C).sort((a,b)=>b.v-a.v),mxC=Cs.length?Cs[0].v:1,mxU=I.length?I[0].ls.size:1,F=cls?I.filter(i=>i.classe===cls):I,num=v=>(+v).toLocaleString('pt-BR',{maximumFractionDigits:2});
+  const tecs=[...new Set(G.lpus.map(l=>l.tec))].map(id=>({id,nome:gTecN(id)})).sort((a,b)=>a.nome.localeCompare(b.nome));
+  return `<div class="tools" style="margin-bottom:12px"><label class="f inline"><span>Técnico ou prestador</span><select class="inp" data-ch="gdPres"><option value="">Todos</option>${tecs.map(t=>`<option value="${t.id}" ${t.id===pres?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></label>
+   <label class="f inline"><span>Situação</span><select class="inp" data-ch="gdSit">${[['ap','Aprovadas no período (terceiros)'],['pe','Aguardando aprovação'],['reg','Registradas pela equipe própria (CLT)'],['todas','Todas']].map(([k,n])=>`<option value="${k}" ${k===sit?'selected':''}>${n}</option>`).join('')}</select></label></div>
+  <div class="kpis">${kp(brl(tot),sit==='reg'?'Valor de referência (CLT)':'Valor das LPUs','ok')}${kp(L.length,'LPUs')}${kp(I.length,'Serviços diferentes lançados')}${kp(L.length?brl(tot/L.length):'—','Valor médio por LPU')}</div>
+  <div class="grid2 even" style="margin-top:16px"><section class="panel"><div class="secth"><h3>Valor por classe</h3></div>${Cs.map(c=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:10px;font-size:14px"><span><b>${esc(c.n)}</b> <span class="muted">${c.k} ${c.k===1?'serviço':'serviços'}</span></span><span style="white-space:nowrap"><b>${brl(c.v)}</b> <span class="muted">${pct(c.v,tot)}%</span></span></div><div class="bbar"><i style="width:${c.v/mxC*100}%;background:var(--brand)"></i></div></div>`).join('')||'<p class="muted">Nenhuma LPU com esses filtros.</p>'}</section>
+   <section class="panel"><div class="secth"><h3>10 itens mais usados</h3><span class="muted">em quantas LPUs aparecem</span></div>${I.slice(0,10).map((i,k)=>`<div class="topi"><span class="tpn">${k+1}</span><div><span class="tpd"><b>${esc(i.cod)}</b> ${esc(i.desc)}</span><div class="bbar thin"><i style="width:${i.ls.size/mxU*100}%"></i></div></div><b>${i.ls.size}×</b></div>`).join('')||'<p class="muted">Nenhuma LPU com esses filtros.</p>'}</section></div>
+  <section style="margin-top:16px"><div class="secth"><h3>Quantidade e valor por item</h3><label class="f inline"><span>Classe</span><select class="inp" data-ch="gdClasse"><option value="">Todas as classes</option>${Cs.map(c=>`<option ${c.n===cls?'selected':''}>${esc(c.n)}</option>`).join('')}</select></label></div>
+   <div class="tablewrap"><table><thead><tr><th>Código</th><th>Serviço</th><th>Classe</th><th class="r">Quantidade</th><th class="r">Valor unit. (comum)</th><th class="r">Valor acumulado</th><th class="r">Em quantas LPUs</th></tr></thead><tbody>${F.map(i=>`<tr><td><b style="color:var(--brand-ink)">${esc(i.cod)}</b></td><td>${esc(i.desc)}</td><td>${esc(i.classe)}</td><td class="r">${num(i.qtd)} ${esc(String(i.med).toLowerCase())}</td><td class="r">${i.ref!=null?brl(i.ref):'—'}</td><td class="r"><b>${brl(i.val)}</b></td><td class="r">${i.ls.size}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">Nenhum item com esses filtros.</td></tr>'}${F.length?`<tr><td colspan="5"><b>Total ${cls?'da '+esc(cls):'geral'}</b></td><td class="r"><b>${brl(F.reduce((s,i)=>s+i.val,0))}</b></td><td></td></tr>`:''}</tbody></table></div>
+   <p class="muted" style="font-size:13px;margin-top:6px">Na equipe própria (CLT) o valor é só de referência: a LPU é registrada sem aprovação e não consome budget.</p></section>`}
+
 /* ---------- RELATÓRIOS: histórico por cliente ---------- */
 function viewGRel(){if(G.erro)return `<h2>Relatórios · GTD Manutenção</h2>${gErroBox()}`;
-  const cliK=c=>c.etiqueta||normK(c.cliente||''),m={};G.ch.filter(c=>c.status!=='cancelado').forEach(c=>{(m[cliK(c)]=m[cliK(c)]||[]).push(c)});
-  const q=normK(ui.grQ||''),cl=Object.entries(m).map(([k,L])=>({k,L:L.sort((a,b)=>b.criadoEm-a.criadoEm)})).filter(x=>!q||x.L.some(c=>normK([c.cliente,c.etiqueta,c.pom,c.pnoc].join(' ')).includes(q))).sort((a,b)=>b.L[0].criadoEm-a.L[0].criadoEm);
-  const sel=ui.grSel&&m[ui.grSel]?m[ui.grSel].slice().sort((a,b)=>b.criadoEm-a.criadoEm):null;
-  const lista=`<section class="panel grl"><label class="f"><span>Buscar cliente, etiqueta ou protocolo</span><input class="inp" type="search" id="grQ" data-in="grQ" value="${esc(ui.grQ||'')}" placeholder="Ex.: nome do cliente, etiqueta, 147223" autocomplete="off"></label>
-   <div class="grlist">${cl.slice(0,200).map(x=>{const c=x.L[0],r30=x.L.filter(y=>Date.now()-y.criadoEm<=30*GTD_DIA).length;return `<button class="row ${ui.grSel===x.k?'on':''}" data-act="grSel" data-k="${esc(x.k)}"><b>${esc(c.cliente||'Cliente')}</b><small>${esc(c.etiqueta||'sem etiqueta')} · ${esc(c.cidade||'—')} · último ${dBR(isoD(new Date(c.criadoEm)))}</small><span class="tools"><span class="chip">${x.L.length} chamado${x.L.length>1?'s':''}</span>${r30>1?'<span class="chip bad">Reincidente</span>':''}</span></button>`}).join('')||'<p class="muted">Nenhum cliente encontrado.</p>'}</div></section>`;
-  let hist='<div class="panel muted">Escolha um cliente na lista para ver o histórico completo, com o RFO de cada atendimento.</div>';
-  if(sel){const c0=sel[0],V=sel.filter(c=>c.validadoEm),mt=V.length?V.reduce((s,c)=>s+(c.validadoEm-gIni(c)),0)/V.length:null;
-    hist=`<section class="panel"><h3>${esc(c0.cliente)}</h3><p class="muted" style="margin:2px 0 8px">Etiqueta ${esc(c0.etiqueta||'—')} · ${esc(c0.endereco||c0.cidade||'')}</p>${c0.mapa?`<a class="btn sm" href="${esc(c0.mapa)}" target="_blank" rel="noopener">Abrir localização no mapa</a>`:''}
-     <div class="kpis" style="margin-top:10px">${kp(sel.length,'Chamados')}${kp(sel.filter(c=>Date.now()-c.criadoEm<=30*GTD_DIA).length,'Últimos 30 dias')}${kp(mt==null?'—':gDur(mt),'MTTR médio')}${kp(sel.filter(c=>c.desfecho==='Improdutivo').length,'Improdutivos')}</div></section>
-     ${sel.map(c=>{const l=gLpuDe(c),sla=gSla(c);return `<article class="panel"><div class="ah"><div><b style="font-size:16px">O&amp;M ${esc(c.pom||'—')}</b> <small class="muted">NOC ${esc(c.pnoc||'—')} · aberto ${dBR(isoD(new Date(c.criadoEm)))}</small></div><button class="btn sm" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button></div>
-      <div class="tools" style="margin:6px 0">${gChip(c)}<span class="chip">${esc(c.categoria)}</span>${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}</div><p style="margin:4px 0"><b>Motivo:</b> ${esc(c.motivo||'—')}</p>
-      <dl class="dl"><div><dt>Técnico</dt><dd>${esc(gTecN(c.tec))}</dd></div><div><dt>Desfecho</dt><dd>${esc(c.desfecho?c.desfecho+(c.encEquipe?' para '+c.encEquipe:''):'—')}</dd></div><div><dt>MTTR</dt><dd>${c.validadoEm?gDur(c.validadoEm-gIni(c)):'em aberto'}</dd></div><div><dt>LPU</dt><dd>${l?(GLST[l.status]||[l.status])[0]+(verValor()&&l.status!=='registrada'?', '+brl(l.total):''):'—'}</dd></div></dl>
-      ${c.rfo?`<p style="margin:8px 0 0"><b>Causa:</b> ${esc(c.rfo.causa||'—')} · <b>Solução:</b> ${esc(c.rfo.solucao||'—')}</p>`:''}
-      ${c.rfoTxt?`<details style="margin-top:8px"><summary>Ver RFO completo</summary><pre class="rfo">${esc(c.rfoTxt)}</pre></details>`:'<p class="muted" style="margin:8px 0 0">RFO ainda não preenchido.</p>'}</article>`}).join('')}`}
-  return `<div class="toolbar"><div><h2>Relatórios · GTD Manutenção</h2><p class="muted">Escolha o cliente para ver todo o histórico de chamados, com o RFO de cada atendimento.</p></div></div><div class="grel">${lista}<div class="stack">${hist}</div></div>`}
+  const q=normK(ui.grQ||''),cat=ui.grCat||'',tec=ui.grTec||'',ini=ui.grIni||addD(hoje(),-30),fim=ui.grFim||hoje();ui.grOpen=ui.grOpen||{};
+  const L=G.ch.filter(c=>c.status!=='cancelado'&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim&&(!cat||c.categoria===cat)&&(!tec||c.tec===tec)&&(!q||normK([c.cliente,c.etiqueta,c.pom,c.pnoc].join(' ')).includes(q)));
+  const M={};L.forEach(c=>{const k=c.etiqueta||normK(c.cliente||'');(M[k]=M[k]||[]).push(c)});
+  const cls=Object.values(M).map(x=>x.sort((a,b)=>gIni(b)-gIni(a))).sort((a,b)=>String(a[0].cliente).localeCompare(String(b[0].cliente)));
+  const tecs=G.tecs.length?G.tecs:[];
+  return `<div class="toolbar"><div><h2>Relatórios · GTD Manutenção</h2><p class="muted">Chamados atendidos, com RFO, desfecho, MTTR e LPU, organizados por cliente.</p></div></div>
+  <div class="tools" style="margin-bottom:12px"><input class="inp" type="search" id="grQ" placeholder="Buscar cliente, etiqueta ou protocolo" data-in="grQ" value="${esc(ui.grQ||'')}" autocomplete="off">
+   <select class="inp" data-ch="grCat"><option value="">Todas as categorias</option>${GTD_CATS.map(x=>`<option ${x===cat?'selected':''}>${esc(x)}</option>`).join('')}</select>
+   <select class="inp" data-ch="grTec"><option value="">Todos os técnicos</option>${tecs.map(t=>`<option value="${t.id}" ${t.id===tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</select>
+   <label class="f inline"><span>De</span><input type="date" class="inp" data-ch="grIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="grFim" value="${fim}"></label></div>
+  ${cls.map(Lc=>{const c0=Lc[0],k=c0.etiqueta||normK(c0.cliente||''),o=ui.grOpen[k]!==undefined?ui.grOpen[k]:cls.length===1,re=G.ch.filter(x=>x.status!=='cancelado'&&(x.etiqueta||normK(x.cliente||''))===k&&Date.now()-x.criadoEm<=30*GTD_DIA).length>1;
+    return `<section class="lcard"><button class="lhead" data-act="grOpen" data-k="${esc(k)}" aria-expanded="${o}"><div><b style="font:700 20px 'Barlow Condensed',sans-serif">${esc(c0.cliente||'Cliente')}</b><small>${esc(c0.etiqueta||'sem etiqueta')}${c0.cidade?', '+esc(c0.cidade):''}</small></div><span style="display:flex;gap:8px;align-items:center">${re?'<span class="chip bad">Reincidente</span>':''}<span class="chip">${Lc.length} ${Lc.length>1?'chamados':'chamado'}</span><span class="muted">${o?'▴':'▾'}</span></span></button>
+     ${o?`<div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table class="grtab"><thead><tr><th>Data</th><th>Chamado</th><th>Categoria e motivo</th><th>Técnico</th><th>Desfecho</th><th>MTTR</th><th>LPU</th><th></th></tr></thead><tbody>${Lc.map(c=>{const l=gLpuDe(c);return `<tr><td>${dBR(gDiaDe(c))}</td><td><b>O&amp;M ${esc(c.pom||'—')}</b><br><small class="muted">NOC ${esc(c.pnoc||'—')}</small></td><td>${esc(c.categoria)}<br><small class="muted">${esc(String(c.motivo||'').slice(0,90))}</small></td><td>${esc(gTecN(c.tec))}</td><td>${c.desfecho?esc(c.desfecho+(c.encEquipe?' para '+c.encEquipe:'')):GST[gStK(c)][0]}</td><td>${c.validadoEm?gDur(c.validadoEm-gIni(c)):'em aberto'}</td><td>${l?(GLST[l.status]||[l.status])[0].replace(/^LPU /,'')+(verValor()&&l.status!=='registrada'?'<br><small class="muted">'+brl(l.total)+'</small>':''):'—'}</td><td class="r" style="white-space:nowrap">${c.rfoTxt?`<button class="btn sm" data-act="gRfoVer" data-id="${c.id}">Ver RFO</button> `:''}<button class="btn sm" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button></td></tr>`}).join('')}</tbody></table></div>`:''}</section>`}).join('')||'<p class="muted pad">Nenhum chamado com esses filtros.</p>'}`}
 
 /* ---------- APROVAÇÃO DE LPU DO GTD (mesmo layout da Implantação) ---------- */
-function viewGAprov(){if(G.erro)return `<h2>Aprovação de LPU · GTD</h2>${gErroBox()}`;
+function viewGAprov(emb){if(G.erro)return `<h2>Aprovação de LPU · GTD</h2>${gErroBox()}`;
   const tabs=[['aguardando','Aguardando'],['ajuste','Em ajuste'],['aprovada','Aprovadas'],['reprovada','Reprovadas']],tab=tabs.some(x=>x[0]===ui.gaTab)?ui.gaTab:'aguardando';
   const tot=s=>G.lpus.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0),cnt=s=>G.lpus.filter(l=>l.status===s).length;
   const rows=G.lpus.filter(l=>l.status===tab).sort((a,b)=>String(b.data).localeCompare(String(a.data)));
@@ -2680,17 +2741,20 @@ function viewGAprov(){if(G.erro)return `<h2>Aprovação de LPU · GTD</h2>${gErr
      ${c.rfoTxt?`<details style="margin-top:10px"><summary>Ver RFO</summary><pre class="rfo">${esc(c.rfoTxt)}</pre></details>`:''}
      <div class="hist">${(l.hist||[]).map(h=>`<div>${esc(h.acao)} por ${esc(h.por)} em ${dtBR(h.em)}${h.motivo?`: ${esc(h.motivo)}`:''}</div>`).join('')}</div>
      <div class="actions">${c.id?`<button class="btn" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button>`:''}<button class="btn" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'&&pode('a_gAprovar')?`<button class="btn" data-act="gDecidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="gDecidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="gAprovar" data-id="${l.id}">Aprovar</button>`:''}</div></div>`:''}</div>`};
-  return `<div class="toolbar"><div><h2>Aprovação de LPU · GTD Manutenção</h2><p class="muted">Fila da supervisão. Só LPUs de terceiros passam por aqui; todas usam a conta 3.1.1.2.05.0006 (Manutenção cliente), que consome o budget dessa conta.</p></div></div>
+  return `${emb?'':`<div class="toolbar"><div><h2>Aprovação de LPU · GTD Manutenção</h2><p class="muted">Fila da supervisão. Só LPUs de terceiros passam por aqui; todas usam a conta 3.1.1.2.05.0006 (Manutenção cliente), que consome o budget dessa conta.</p></div></div>`}
    <div class="kpis" style="margin-bottom:14px">${tabs.map(([k,n])=>`<div class="kpi ${k==='aprovada'?'ok':k==='reprovada'?'bad':k==='aguardando'?'warn':''}"><b>${brl(tot(k))}</b><span>${n} (${cnt(k)})</span></div>`).join('')}</div>
    <div class="chips">${tabs.map(([k,n])=>`<button data-act="gaTab" data-t="${k}" aria-current="${tab===k}">${n} (${cnt(k)})</button>`).join('')}</div>
    ${rows.map(card).join('')||'<p class="muted pad">Nenhuma LPU nesta situação.</p>'}`}
 
 /* ---------- TÉCNICO: chamados em "Minhas atividades" ---------- */
 const gTecSel=()=>ui.gSel&&G.ch.find(c=>c.id===ui.gSel&&c.tec===ui.tec);
-function gTecLista(){if(G.erro)return '';const meus=G.ch.filter(c=>c.tec===ui.tec&&!['concl','cancelado'].includes(c.status)&&!(c.status==='aprov'&&(gLpuDe(c)||{}).status!=='ajuste')).sort((a,b)=>gIni(a)-gIni(b));
-  const enc=G.ch.filter(c=>c.tec===ui.tec&&c.status==='concl').length;if(!meus.length&&!enc)return '';
-  return `<section class="gtec"><h3 class="lsub">GTD Manutenção</h3>${meus.map(c=>{const sla=gSla(c),n=gNMsg('g',c.id),l=gLpuDe(c);return `<button class="row" data-act="gTecAbrir" data-id="${c.id}"><span class="tools">${gChip(c)}${c.agendaEm?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:''}${c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${n?`<span class="chip info">${n} msg</span>`:''}${l&&l.status==='ajuste'?'<span class="chip bad">LPU para ajuste</span>':''}</span><b>${esc(c.cliente)}</b><small>O&amp;M ${esc(c.pom)} · ${esc(c.categoria)} · ${esc(c.cidade||'—')}</small></button>`}).join('')||'<p class="muted">Nenhum chamado em aberto.</p>'}
-   <small class="muted">Chamados encerrados: ${enc}</small><h3 class="lsub">Implantação</h3></section>`}
+const gTecPend=c=>GTD_ABERTOS.includes(c.status)||['rfo','lpu'].includes(c.status)||(c.status==='aprov'&&(gLpuDe(c)||{}).status==='ajuste');
+function gTecLista(){if(G.erro)return '';const T=hoje(),mine=G.ch.filter(c=>c.tec===ui.tec&&c.status!=='cancelado');if(!mine.length)return '';
+  const g={hoje:mine.filter(c=>gTecPend(c)&&gDiaDe(c)<=T).sort((a,b)=>gIni(a)-gIni(b)),prox:mine.filter(c=>gTecPend(c)&&gDiaDe(c)>T).sort((a,b)=>gIni(a)-gIni(b)),enc:mine.filter(c=>!gTecPend(c)).sort((a,b)=>(b.validadoEm||b.criadoEm)-(a.validadoEm||a.criadoEm))};
+  const f=ui.gcF&&g[ui.gcF]?ui.gcF:'hoje',lab={hoje:'Hoje',prox:'Próximas',enc:'Encerradas'};
+  const card=c=>{const sla=gTecPend(c)?gSla(c):null,n=gNMsg('g',c.id),l=gLpuDe(c);return `<button class="row" data-act="gTecAbrir" data-id="${c.id}"><span class="tools">${gChip(c)}${c.agendaEm&&gTecPend(c)?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:''}${c.prioridade!=='Normal'&&gTecPend(c)?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${n?`<span class="chip info">${n} msg</span>`:''}${l&&l.status==='ajuste'?'<span class="chip bad">LPU para ajuste</span>':''}</span><b>${esc(c.cliente)}</b><small>O&amp;M ${esc(c.pom)} · ${esc(c.categoria)} · ${esc(c.cidade||'—')}${f==='enc'&&c.validadoEm?' · validado '+dBR(isoD(new Date(c.validadoEm))):''}</small></button>`};
+  return `<section class="gtec"><h3 class="lsub">GTD Manutenção</h3><div class="chips">${Object.keys(lab).map(k=>`<button data-act="gcF" data-t="${k}" aria-current="${f===k}">${lab[k]} (${g[k].length})</button>`).join('')}</div>
+   ${g[f].map(card).join('')||`<p class="muted pad">${f==='enc'?'Nenhum chamado encerrado.':'Nenhum chamado aqui.'}</p>`}<h3 class="lsub">Implantação</h3></section>`}
 function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
   const t=c.ts||{},sla=gSla(c),mt=gMttr(c),l=gLpuDe(c),nv=(c.naoVal||[]).slice(-1)[0],R=(ui.gRfo=ui.gRfo||{})[c.id]||(ui.gRfo[c.id]={desfecho:'',encEquipe:'',local:'',causa:'',detalhes:'',materiais:c.levar||'',serialRet:'',serialInst:'',patrimonio:'',solucao:'',melhoria:''});
   const fut=c.agendaEm&&isoD(new Date(c.agendaEm))>hoje();
@@ -2768,11 +2832,18 @@ function gOpenAjuste(lid){const l=G.lpus.find(x=>x.id===lid),k='GL:'+lid;if(!l)r
 
 /* ---------- MENSAGENS (tela cheia) ---------- */
 const gChatK=()=>ui.chat?ui.chat.t+':'+ui.chat.id:'';
-async function gChatCarregar(){const k=gChatK(),ch=ui.chat;if(!ch||G.msgBus[k])return;G.msgBus[k]=true;
+async function gChatCarregar(quieto){const k=gChatK(),ch=ui.chat;if(!ch||G.msgBus[k])return;G.msgBus[k]=true;const antes=(G.msgs[k]||[]).length;
   try{const r=await sb.from('ag_mensagens').select('*').eq(ch.t==='g'?'chamado':'agendamento',ch.id).order('em');if(r.error)throw r.error;G.msgs[k]=r.data||[];G.nMsg[k]=G.msgs[k].length;
     await Promise.all(G.msgs[k].filter(m=>m.foto&&!G.fotos[m.foto]).map(async m=>{const s=await sb.storage.from('agenda').createSignedUrl(m.foto,3600);if(!s.error)G.fotos[m.foto]=s.data.signedUrl}))}
-  catch(e){G.msgs[k]=G.msgs[k]||[];toast('Não foi possível carregar as mensagens: '+(e.message||e),'bad')}
-  G.msgBus[k]=false;if(gChatK()===k){if($('chatList'))gChatPintar();else render()}}
+  catch(e){G.msgs[k]=G.msgs[k]||[];if(!quieto)toast('Não foi possível carregar as mensagens: '+(e.message||e),'bad')}
+  G.msgBus[k]=false;if(gChatK()===k){if($('chatList')){if(!quieto||(G.msgs[k]||[]).length!==antes)gChatPintar()}else render();gChatVistas()}}
+/* quem abre a conversa marca as mensagens dos outros como vistas: o selo some para todos */
+async function gChatVistas(){const ch=ui.chat;if(!ch)return;const k=gChatK();
+  const ids=G.avisos.filter(a=>!a.lida&&a.ref===ch.id&&/^Mensagem/.test(a.titulo)).map(a=>a.id);if(ids.length){G.avisos.forEach(a=>{if(ids.includes(a.id))a.lida=true});gSinoAtualizar();sb.from('ag_avisos').update({lida:true}).in('id',ids).then(()=>{})}
+  if(!G.vista||!(G.msgs[k]||[]).some(m=>ME&&m.autor!==ME.id&&!m.vista_em))return;G.nNova[k]=0;
+  try{const r=await sb.rpc('ag_marcar_vistas',{p_chamado:ch.t==='g'?ch.id:null,p_ag:ch.t==='a'?ch.id:null});if(!r.error)(G.msgs[k]||[]).forEach(m=>{if(ME&&m.autor!==ME.id&&!m.vista_em)m.vista_em=new Date().toISOString()})}catch(e){}}
+/* com a conversa aberta, confere novas mensagens a cada 5 s (além do tempo real) */
+setInterval(()=>{if(ME&&ui.chat&&document.visibilityState==='visible')gChatCarregar(true)},5000);
 function gChatLista(){const k=gChatK(),L=G.msgs[k];if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
   return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}</small>${m.texto?`<p>${esc(m.texto)}</p>`:''}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:'<small class="muted">Foto</small>'):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
 function gChatPintar(){const el=$('chatList');if(!el)return;const fim=el.scrollHeight-el.scrollTop-el.clientHeight<80;el.innerHTML=gChatLista();if(fim)el.scrollTop=el.scrollHeight}
@@ -2782,7 +2853,10 @@ function viewChat(){const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setT
   return `<div class="chatv"><div class="chath"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><div><b>Mensagens · ${esc(tit)}</b><small class="muted">${esc(sub)} · ${quem}</small></div></div>
    <div class="chatl" id="chatList" aria-live="polite">${gChatLista()}</div>
    <div class="chatc"><textarea class="inp" id="chatTxt" rows="2" data-in="chatTxt" placeholder="Escreva uma mensagem" aria-label="Mensagem">${esc(ui.chatTxt||'')}</textarea>
-    <div class="tools"><label class="btn sm chatfoto">Galeria ou câmera<input type="file" accept="image/*" data-ch="chatFoto" hidden></label><button class="btn primary" data-act="chatEnviar">Enviar</button></div></div></div>`}
+    <div class="tools"><label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} Câmera<input type="file" accept="image/*" capture="environment" data-ch="chatFoto" hidden></label><label class="btn sm chatfoto">${_sv('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',16)} Galeria<input type="file" accept="image/*" data-ch="chatFoto" hidden></label><button class="btn primary" data-act="chatEnviar">Enviar</button></div>
+    <small class="muted chatdica">Enter envia; Shift + Enter pula linha.</small></div></div>`}
+/* no computador, Enter envia e Shift + Enter pula linha (como no WhatsApp Web); no celular, o Enter do teclado pula linha */
+document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatTxt'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&matchMedia('(pointer:fine)').matches){e.preventDefault();const b=document.querySelector('[data-act="chatEnviar"]');if(b&&!b.disabled)ACT.chatEnviar(b)}});
 function gReduz(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(fr.error);fr.onload=()=>{const img=new Image();img.onerror=()=>rej(new Error('arquivo de imagem inválido'));img.onload=()=>{const M=1280,r=Math.min(1,M/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=Math.round(img.width*r);cv.height=Math.round(img.height*r);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);cv.toBlob(b=>b?res(b):rej(new Error('falha ao reduzir a foto')),'image/jpeg',.6)};img.src=fr.result};fr.readAsDataURL(file)})}
 async function gChatEnviar(texto,foto){const ch=ui.chat;if(!ch)return false;const row={texto:texto||null};row[ch.t==='g'?'chamado':'agendamento']=ch.id;
   if(foto){try{const b=await gReduz(foto),path=`chat/${ch.t}/${ch.id}/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(up.error)throw up.error;row.foto=path}catch(e){toast('Não foi possível enviar a foto: '+(e.message||e),'bad');return false}}
@@ -2801,22 +2875,30 @@ function gIr(url){let q;try{q=new URL(url||'',location.href).searchParams}catch(
   ui.chatTxt='';render();window.scrollTo(0,0)}
 
 /* ---------- tempo real do GTD (canal separado: não interfere na Implantação) ---------- */
-let RTG=null,gRecT=null;
-const gEmTela=()=>ui.chat||ui.cat==='gtd'||(ui.tab==='campo'&&!ui.campoSel);
+let RTG=null;const gRecT={};
+const gEmTela=()=>ui.chat||ui.cat==='gtd'||(ui.tab==='campo'&&!ui.campoSel)||ui.tab==='painelDia';
 const gDigitando=()=>{const ae=document.activeElement;return !!(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)&&$('app').contains(ae))};
-function gRec(tipo,p){clearTimeout(gRecT);gRecT=setTimeout(async()=>{
-  if(tipo==='msg'&&p&&p.new){const m=p.new,k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;if(G.msgs[k]&&!G.msgs[k].some(x=>x.id===m.id)){G.msgs[k].push(m);G.nMsg[k]=G.msgs[k].length;if(m.foto&&!G.fotos[m.foto]){const s=await sb.storage.from('agenda').createSignedUrl(m.foto,3600);if(!s.error)G.fotos[m.foto]=s.data.signedUrl}}else if(!G.msgs[k])G.nMsg[k]=(G.nMsg[k]||0)+1;if(gChatK()===k){gChatPintar();return}}
+function gRec(tipo,p){tipo=tipo||'ch';clearTimeout(gRecT[tipo]);gRecT[tipo]=setTimeout(async()=>{
+  if(tipo==='msg'&&p&&p.new&&p.new.id){const m=p.new,k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;
+    if(gChatK()===k){if(G.msgs[k]&&!G.msgs[k].some(x=>x.id===m.id)){G.msgs[k].push(m);G.nMsg[k]=G.msgs[k].length;if(m.foto&&!G.fotos[m.foto]){const s=await sb.storage.from('agenda').createSignedUrl(m.foto,3600);if(!s.error)G.fotos[m.foto]=s.data.signedUrl}gChatPintar()}gChatCarregar(true);return}}
   if(SYNC_PEND||$('modal').classList.contains('open')){gSinoAtualizar();return}
-  await gCarregar();gSinoAtualizar();if(!gEmTela()||ui.chat)return;if(gDigitando()){setTimeout(()=>gRec(),2500);return}if(ui.lpuTela&&String(ui.lpuTela).startsWith('G:'))return;render()},tipo==='msg'?150:700)}
+  await gCarregar();gSinoAtualizar();if(ui.chat||!gEmTela())return;if(gDigitando()){setTimeout(()=>gRec(tipo),2500);return}if(ui.lpuTela&&String(ui.lpuTela).startsWith('G:'))return;render()},tipo==='msg'?150:700)}
 function gLigarTempoReal(){if(RTG){sb.removeChannel(RTG);RTG=null}if(G.erro||!ME)return;
-  RTG=sb.channel('gtd').on('postgres_changes',{event:'*',schema:'public',table:'ag_chamados'},()=>gRec('ch')).on('postgres_changes',{event:'INSERT',schema:'public',table:'ag_mensagens'},p=>gRec('msg',p)).on('postgres_changes',{event:'*',schema:'public',table:'ag_avisos'},()=>gRec('av')).subscribe()}
+  RTG=sb.channel('gtd').on('postgres_changes',{event:'*',schema:'public',table:'ag_chamados'},()=>gRec('ch')).on('postgres_changes',{event:'*',schema:'public',table:'ag_mensagens'},p=>gRec('msg',p)).on('postgres_changes',{event:'*',schema:'public',table:'ag_avisos'},()=>gRec('av')).subscribe()}
 setInterval(()=>{if(!ME||ui.chat||ui.cat!=='gtd'||!['gCham','gPainel'].includes(ui.tab)||ui.gSel&&ui.tab!=='gCham')return;if(gDigitando()||$('modal').classList.contains('open'))return;render()},60000);
 
 /* ---------- ações ---------- */
 Object.assign(ACT,{
+  gpSec:el=>{const v=el.dataset.v,sb2=el.dataset.s;if(v==='fin'&&!sb2&&ui.gSec==='fin'){ui.gfFech=!ui.gfFech;render();return}if(v==='fin')ui.gfFech=false;ui.tab='gPainel';ui.gSec=v;if(sb2)ui.gFinSub=sb2;ui.bEdit=false;if(v!=='fin'||sb2)document.body.classList.remove('menu');render();window.scrollTo(0,0)},
+  gIrAprov:()=>{ui.tab='gPainel';ui.gpFech=false;ui.gSec='fin';ui.gfFech=false;ui.gFinSub='aprov';ui.gSel=null;render();window.scrollTo(0,0)},
+  gbSalvar:async()=>{const mes=ui.bMes||hoje().slice(0,7),valor=parseFloat((($('gBud')||{}).value||'0').replace(',','.'))||0;const r=await sb.from('ag_budget').upsert([{mes,conta:GTD_CONTA,valor}],{onConflict:'mes,conta'});if(r.error){toast('Não foi possível salvar o budget: '+r.error.message,'bad');return}
+    S.budget=S.budget||{};S.budget[mes]=S.budget[mes]||{};S.budget[mes][GTD_CONTA]=valor;ui.bEdit=false;render();toast('Budget da manutenção de '+mesNome(mes)+' salvo.')},
+  gcF:el=>{ui.gcF=el.dataset.t;render()},
+  grOpen:el=>{const k=el.dataset.k;ui.grOpen=ui.grOpen||{};const atual=ui.grOpen[k]!==undefined?ui.grOpen[k]:document.querySelectorAll('.lcard').length===1;ui.grOpen[k]=!atual;render()},
+  gRfoVer:el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(!c)return;openModal(`<div class="ah"><h3>RFO · O&amp;M ${esc(c.pom)}</h3><button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></div><pre class="rfo">${esc(c.rfoTxt||'')}</pre><div class="actions"><button class="btn" data-act="close">Fechar</button><button class="btn primary" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button></div>`,'wide')},
   gCat:el=>{ui.cat=el.dataset.v;ui.gSel=null;ui.chat=null;ui.campoSel=null;ui.tab=ui.cat==='gtd'&&tabsDe().includes('gCham')?'gCham':'';render();window.scrollTo(0,0)},
   gAbrir:el=>{ui.gSel=el.dataset.id;if(ui.tab!=='gCham'){ui.tab='gCham'}render();window.scrollTo(0,0)},
-  gAbrirRel:el=>{ui.gSel=el.dataset.id;ui.tab='gCham';render();window.scrollTo(0,0)},
+  gAbrirRel:el=>{closeModal();ui.gSel=el.dataset.id;ui.tab='gCham';render();window.scrollTo(0,0)},
   gFechar:()=>{ui.gSel=null;ui.lpuTela=null;render();window.scrollTo(0,0)},
   gTecAbrir:el=>{ui.gSel=el.dataset.id;ui.campoSel=null;render();window.scrollTo(0,0)},
   gDespachar:async el=>{if(!gPodeDesp()&&semPerm())return;const v=($('gDespTec')||{}).value;if(!v){toast('Escolha o técnico.','bad');return}const nome=gTecN(v);
@@ -2850,7 +2932,6 @@ Object.assign(ACT,{
   gDiaN:el=>{const n=+el.dataset.n,v=ui.gView||'dia',D=ui.gDia||hoje();if(v==='mes'){const d=new Date(D+'T12:00:00');d.setMonth(d.getMonth()+n,1);ui.gDia=isoD(d)}else ui.gDia=addD(D,v==='semana'?7*n:n);render()},
   gHoje:()=>{ui.gDia=hoje();render()},
   gGoDia:el=>{ui.gDia=el.dataset.d;ui.gView='dia';render()},
-  grSel:el=>{ui.grSel=el.dataset.k;render()},
   gaTab:el=>{ui.gaTab=el.dataset.t;ui.gaOpen=null;render()},
   gaOpen:el=>{ui.gaOpen=ui.gaOpen===el.dataset.id?null:el.dataset.id;render()},
   gAprovar:async el=>{if(!pode('a_gAprovar')&&semPerm())return;const l=G.lpus.find(x=>x.id===el.dataset.id);if(!l)return;const hist=(l.hist||[]).concat([{acao:'Aprovada',por:meNome(),em:Date.now()}]);
@@ -2894,6 +2975,8 @@ Object.assign(CH,{
   gDia:el=>{if(el.value){ui.gDia=el.value;render()}},
   gTecF:el=>{ui.gTecF=el.value;render()},
   gpIni:el=>{ui.gpIni=el.value||ui.gpIni;render()},gpFim:el=>{ui.gpFim=el.value||ui.gpFim;render()},
+  gdSit:el=>{ui.gdSit=el.value;render()},gdPres:el=>{ui.gdPres=el.value;render()},gdClasse:el=>{ui.gdClasse=el.value;render()},
+  grCat:el=>{ui.grCat=el.value;render()},grTec:el=>{ui.grTec=el.value;render()},grIni:el=>{ui.grIni=el.value||ui.grIni;render()},grFim:el=>{ui.grFim=el.value||ui.grFim;render()},
   gRfoSel:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;R[el.dataset.k]=el.value;if(el.dataset.k==='desfecho'){const y=window.scrollY;render();window.scrollTo(0,y)}},
   chatFoto:async el=>{const f=el.files&&el.files[0];if(!f)return;toast('Enviando a foto…');const ok=await gChatEnviar((($('chatTxt')||{}).value||'').trim(),f);if(ok){ui.chatTxt='';const i=$('chatTxt');if(i)i.value='';toast('Foto enviada.')}el.value=''}
 });
@@ -2911,7 +2994,7 @@ Object.assign(IN,{
 {const _sgOk=ACT.sgOk,_confVoltar=ACT.confVoltar;
   ACT.sgOk=async()=>{const g=ui.sign;if(g&&(g.tipo==='gtd'||g.tipo==='gajuste'))return gSgOk();return _sgOk()};
   ACT.confVoltar=()=>{const g=ui.sign;if(g&&g.tipo==='gajuste'){closeModal();gOpenAjuste(g.id);return}return _confVoltar()};
-  const _tab=ACT.tab;ACT.tab=el=>{ui.chat=null;ui.gSel=null;if(ui.lpuTela&&String(ui.lpuTela).startsWith('G:'))ui.lpuTela=null;return _tab(el)};
+  const _tab=ACT.tab;ACT.tab=el=>{ui.chat=null;ui.gSel=null;if(el.dataset.t==='gPainel'){if(ui.tab==='gPainel'){ui.gpFech=!ui.gpFech;render();return}ui.gpFech=false}if(ui.lpuTela&&String(ui.lpuTela).startsWith('G:'))ui.lpuTela=null;return _tab(el)};
   const _voltar=ACT.voltar;ACT.voltar=()=>{ui.gSel=null;return _voltar()};
   const _abrir=ACT.abrir;ACT.abrir=el=>{ui.gSel=null;return _abrir(el)};}
 /* carregar() da Implantação + dados do GTD, mensagens e avisos */
