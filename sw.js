@@ -1,11 +1,11 @@
-// Agenda de Implantação — service worker (somente notificações)
+// Ferramenta de Gestão O&M — service worker (somente notificações)
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 
 self.addEventListener('push', e => {
   let d = {};
   try { d = e.data.json(); } catch (x) { d = { body: e.data ? e.data.text() : '' }; }
-  e.waitUntil(self.registration.showNotification(d.title || 'Agenda de Implantação', {
+  e.waitUntil(self.registration.showNotification(d.title || 'Ferramenta de Gestão O&M', {
     body: d.body || '',
     icon: 'icon-192.png',
     badge: 'icon-192.png',

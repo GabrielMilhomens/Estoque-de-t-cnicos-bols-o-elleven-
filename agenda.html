@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Agenda de Implantação | Net Turbo</title>
+<title>Ferramenta de Gestão O&amp;M | Net Turbo</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#8CBF3F">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -373,12 +373,78 @@ footer{max-width:1480px;margin:8px auto 24px;padding:0 16px;display:flex;gap:12p
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:11px 16px;border-radius:10px;font-weight:600;z-index:30;max-width:calc(100% - 32px);display:none;box-shadow:0 6px 24px rgba(0,0,0,.25)}
 #toast.bad{background:var(--bad);color:#fff}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ---------- GTD Manutenção, categorias, mensagens e sino ---------- */
+.catsw{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:6px}
+.catsw button{border:0;background:none;border-radius:7px;min-height:38px;padding:4px 6px;font:600 14px Barlow,sans-serif;color:var(--muted);cursor:pointer;justify-content:center;text-align:center}
+nav.tabs .catsw button{justify-content:center;text-align:center;padding:4px 6px}
+.catsw button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand)}
+.catlbl{font:600 13px Barlow,sans-serif;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;padding:2px 10px 4px}
+.sino{position:relative}.who .wic{width:34px}
+.sinon{position:absolute;top:2px;right:0;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--warn);color:#fff;font:700 11px/18px Barlow,sans-serif;text-align:center}
+.mbar .sino{margin-left:auto;width:42px;height:42px;display:grid;place-items:center;border:0;background:none;color:var(--ink);cursor:pointer;border-radius:8px}
+.avl{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.avi{display:flex;flex-direction:column;gap:2px;text-align:left;border:0;border-bottom:1px solid var(--line);background:var(--surface);padding:10px 12px;cursor:pointer;color:var(--ink)}
+.avi:last-child{border-bottom:0}.avi small{color:var(--muted);font-size:12.5px}.avi span{font-size:14px;color:var(--muted)}
+.avi.nova{background:var(--brand-soft)}.avi.nova span{color:var(--ink)}
+.kbwrap{overflow-x:auto;padding-bottom:6px}
+.kb{display:grid;grid-template-columns:repeat(6,minmax(185px,1fr));gap:8px;min-width:1150px}
+.gkcol{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:380px}
+.kcolh{display:flex;justify-content:space-between;align-items:baseline;gap:6px}.kcolh h3{font-size:17px}
+.gkcol>small{margin-top:-6px}.kvz{font-size:13px;padding:6px 2px}
+.kc{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--ink)}
+.kc:hover{border-color:var(--brand)}.kc small{color:var(--muted);font-size:13px}
+.kch{display:flex;justify-content:space-between;gap:6px;align-items:baseline}.kcc{font-weight:600;font-size:14px}
+.kct{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0}.kceta{font-size:13px;font-weight:600;color:var(--info)}
+.chip.ag{background:#EAE4F6;color:#4A3880;border-color:transparent}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.ag{background:#2C2540;color:#C9BCF0}}
+:root[data-theme="dark"] .chip.ag{background:#2C2540;color:#C9BCF0}
+.gdet{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:16px;align-items:start}
+.gdet .ah,.panel .ah{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.gnums{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:12px}.gnums small{display:block;color:var(--muted);font-size:13px}
+.gnums b{font:700 30px/1.1 "Barlow Condensed",sans-serif}
+.gbox{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.gbox.desp{border:2px solid var(--brand)}.gbox.val{border:2px solid var(--warn);background:var(--warn-soft)}.gbox.ag{background:var(--bg)}
+.gbox .tools .inp{flex:1 1 200px}
+.result.info{background:var(--info-soft);color:var(--info)}
+.gtl{display:flex;flex-direction:column;gap:6px}
+.tlk{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:baseline;font-size:14px;color:var(--muted)}
+.tlk i{width:9px;height:9px;border-radius:50%;background:var(--line);display:block}
+.tlk.on{color:var(--ink)}.tlk.on i{background:var(--brand)}.tlk.bad{color:var(--bad)}.tlk.bad i{background:var(--bad)}
+.tlk small{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.gkv{display:grid;grid-template-columns:minmax(110px,150px) minmax(0,1fr);gap:6px 12px;margin:0;font-size:14px}
+.gkv div{display:contents}.gkv dt{color:var(--muted)}.gkv dd{margin:0;white-space:pre-line;word-break:break-word}
+pre.rfo{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;margin:8px 0 0;max-height:440px;overflow:auto}
+.ggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 12px}.ggrid .inp,.gdet .inp{width:100%}
+.gtxt{width:100%;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace}
+.gai{width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;cursor:pointer;color:inherit}
+.g2c{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px}
+.gbar{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 34px auto;gap:10px;align-items:center;font-size:14px;margin:6px 0}
+.gbar div{background:var(--bg);border-radius:5px;height:10px;overflow:hidden}.gbar i{display:block;height:10px;background:var(--brand);border-radius:5px}
+.gbar b{text-align:right}.gbar small{color:var(--muted);min-width:56px;text-align:right}
+.grel{display:grid;grid-template-columns:minmax(260px,380px) minmax(0,1fr);gap:16px;align-items:start}
+.grlist{display:flex;flex-direction:column;gap:6px;max-height:660px;overflow-y:auto}
+.row{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--ink);margin-bottom:6px}
+.row small{color:var(--muted);font-size:13px}.row.on{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}.row .tools{gap:4px}
+.gtec{margin-bottom:4px}
+details summary{cursor:pointer;font-weight:600}
+.chatv{display:flex;flex-direction:column;gap:10px;max-width:820px;margin:0 auto;min-height:calc(100vh - 120px)}
+.chath{display:flex;gap:12px;align-items:center;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:2}
+.chath>div{display:flex;flex-direction:column;min-width:0}.chath .btn{flex:none}
+.chatl{flex:1;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:calc(100vh - 290px);padding:4px 2px}
+.lado{display:flex}.lado.eu{justify-content:flex-end}
+.msg{max-width:85%;background:var(--surface);border:1px solid var(--line);border-radius:12px 12px 12px 4px;padding:8px 10px;font-size:14.5px}
+.msg.eu{background:var(--brand-soft);border-color:transparent;border-radius:12px 12px 4px 12px}
+.msg small{color:var(--muted);font-size:12px}.msg p{margin:4px 0 0;white-space:pre-wrap;word-break:break-word}
+.msg img{display:block;max-width:100%;max-height:300px;border-radius:8px;margin-top:6px}
+.chatc{position:sticky;bottom:0;background:var(--bg);padding:8px 0;display:flex;flex-direction:column;gap:8px}
+.chatc textarea{width:100%}.chatfoto{display:inline-flex;align-items:center;cursor:pointer}
+@media(max-width:900px){.gdet,.grel{grid-template-columns:1fr}.g2c{grid-template-columns:1fr}.chatl{max-height:calc(100vh - 300px)}}
 </style>
 </head>
 <body>
-<div id="vLoad" class="authv"><div class="acard"><div class="brand"><span class="logo" role="img" aria-label="Net Turbo Telecom"></span><small>Agenda de Implantação</small></div><p class="muted" id="loadMsg" style="margin-top:14px">Carregando…</p></div></div>
+<div id="vLoad" class="authv"><div class="acard"><div class="brand"><span class="logo" role="img" aria-label="Net Turbo Telecom"></span><small>Ferramenta de Gestão O&amp;M</small></div><p class="muted" id="loadMsg" style="margin-top:14px">Carregando…</p></div></div>
 <div id="vAuth" class="authv hidden">
- <div class="acard" id="cLogin"><div class="brand"><span class="logo" role="img" aria-label="Net Turbo Telecom"></span><small>Agenda de Implantação. Mesmo login do Estoque de Materiais</small></div>
+ <div class="acard" id="cLogin"><div class="brand"><span class="logo" role="img" aria-label="Net Turbo Telecom"></span><small>Ferramenta de Gestão O&amp;M. Mesmo login do Estoque de Materiais</small></div>
   <label class="f" style="margin-top:16px"><span>E-mail</span><input class="inp" id="lgEmail" type="email" autocomplete="username"></label>
   <label class="f"><span>Senha</span><input class="inp" id="lgSenha" type="password" autocomplete="current-password"></label>
   <p class="aerr hidden" id="lgErr"></p><button class="btn primary wide" data-act="login">Entrar</button>
@@ -402,13 +468,13 @@ footer{max-width:1480px;margin:8px auto 24px;padding:0 16px;display:flex;gap:12p
  <div class="acard hidden" id="cPend"><h3>Acesso pendente</h3><p class="muted" id="pendMsg"></p><div class="alinks"><button class="link" data-act="logout">Sair</button></div></div>
 </div>
 <aside class="side" id="side" aria-label="Menu">
-  <div class="brand"><span class="logo" role="img" aria-label="Net Turbo Telecom"></span><small>Agenda de Implantação</small></div>
+  <div class="brand"><span class="logo" role="img" aria-label="Net Turbo Telecom"></span><small>Ferramenta de Gestão O&amp;M</small></div>
   <nav class="tabs" id="tabs" aria-label="Seções"></nav>
   <div class="who" id="whoBox"></div><select id="perfilSel" hidden></select>
 </aside>
 <div class="scrim" data-act="menu"></div>
 <div class="shell">
-<header class="mbar"><button class="icon" data-act="menu" aria-label="Abrir menu">☰</button><strong id="mTitle"></strong></header>
+<header class="mbar"><button class="icon" data-act="menu" aria-label="Abrir menu">☰</button><strong id="mTitle"></strong><button class="sino" data-act="avisos" aria-label="Avisos" hidden></button></header>
 <main id="app"></main>
 <footer><span id="syncSt">Conectado</span></footer>
 </div>
@@ -605,20 +671,21 @@ const PERM_T=[
     ['p_fin','Financeiro','t',[['f_budget','Budget e ROI','t',[['a_budget','Definir o budget do mês','a']]],['f_det','Detalhamento das LPUs','t'],['f_aprov','Aprovação de LPU','t',[['a_aprovar','Aprovar, reprovar e devolver LPUs','a']]]]]]]]],
   ['Operação',[['painelDia','Painel do dia','t'],['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar e editar atividades','a'],['a_anexos','Enviar e apagar anexos','a']]],['relat','Relatórios','t']]],
   ['Estoque',[['estoque','Estoque dos técnicos','t'],['estAtual','Atualizar estoque','t',[['a_bolsao','Publicar planilha do bolsão (SAP)','a'],['a_elleven','Importar movimentações do Elleven','a'],['a_base','Saldo base e data-base do Elleven','a']]],['estHist','Movimentações','t']]],
-  ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['sim','Simulação de entrega','t'],['kanban','Backlog de projetos','t']]]];
+  ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['sim','Simulação de entrega','t'],['kanban','Backlog de projetos','t']]],
+  ['GTD Manutenção',[['gPainel','Painel de KPIs do GTD','t'],['gCham','Chamados (Kanban)','t',[['a_gDespachar','Despachar chamados para o técnico','a'],['a_gEditar','Agendar, editar e cancelar chamados','a'],['a_gValidar','Acesso NOC: validar chamados','a']]],['gAgenda','Agenda do GTD','t'],['gNovo','Criar chamado','t'],['gRel','Relatórios do GTD (histórico por cliente)','t'],['gAprov','Aprovação de LPU do GTD','t',[['a_gAprovar','Aprovar, reprovar e devolver LPUs do GTD','a']]]]]];
 const PERM_ALL=(()=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));return o})();
 const _sem=l=>PERM_ALL.filter(k=>!l.includes(k));
-const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto']),
-  encarregado:_sem(['painel','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto']),
-  supply:['estAtual','a_bolsao']};
+const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto','a_gValidar']),
+  encarregado:_sem(['painel','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','gAprov','a_gAprovar']),
+  supply:['estAtual','a_bolsao'],delivery:['painelDia','agenda']};
 const permDe=(papel,perm)=>Array.isArray(perm)?perm:(PERM_PAD[papel]||[]);
-const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc','func'].includes(ui.perfil))return false;return permDe(ME.papel,ME.perm).includes(k)};
-const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','painelDia'];
-const tabsDe=()=>['coord','clt','terc','func','visu'].includes(ui.perfil)?PERFIS[ui.perfil].tabs:G_TABS.filter(pode);
+const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc','func'].includes(ui.perfil))return false;if(ui.perfil==='noc')return NOC_PERM.includes(k);if(ui.perfil==='deliv'&&GTD_KEYS.includes(k))return false;return permDe(ME.papel,ME.perm).includes(k)};
+const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel','gAprov'];
+const tabsDe=()=>['coord','clt','terc','func','visu','noc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs:G_TABS.filter(pode);
 const PSEC_K={geral:'p_geral',entregas:'p_entregas',rede:'p_rede',exec:'p_exec',equipes:'p_equipes',fin:'p_fin'},FSUB_K={budget:'f_budget',det:'f_det',aprov:'f_aprov'};
 const secsOk=()=>PSEC.filter(([k])=>pode(PSEC_K[k])),subsOk=()=>FSUB.filter(([k])=>pode(FSUB_K[k]));
 const semPerm=()=>{toast('Seu usuário não tem permissão para esta ação. Fale com a coordenação.','bad');return true};
-const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','campo','usuarios','painelDia']},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']},visu:{n:'Visualização',tabs:['painelDia']},func:{n:'Funcionário de terceiro',tabs:['campo','meuEst','meuHist']}};
+const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','campo','usuarios','painelDia','gPainel','gCham','gAgenda','gNovo','gRel','gAprov']},noc:{n:'NOC',tabs:['gCham','gAgenda','gNovo','gRel']},deliv:{n:'Delivery'},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']},visu:{n:'Visualização',tabs:['painelDia']},func:{n:'Funcionário de terceiro',tabs:['campo','meuEst','meuHist']}};
 const ST={agendada:['Agendada',''],deslocamento:['Em deslocamento','info'],no_local:['No local','info'],execucao:['Em execução','info'],relatorios:['Relatórios pendentes','warn'],lpu:['LPU pendente','warn'],concluida:['Concluída','ok'],nao_concluida:['Não concluída','bad'],cancelada:['Cancelada','']};
 const LST={conferencia:['Em conferência no prestador','info'],aguardando:['Aguardando aprovação','warn'],aprovada:['Aprovada','ok'],reprovada:['Reprovada','bad'],ajuste:['Devolvida para ajuste','info']};
 const FIM=['concluida','nao_concluida'];
@@ -692,7 +759,7 @@ function progLabel(e){const p=pPor(e);if(faseFim(e,'ativ'))return '<span class="
   const falta=fasesProj(p).filter(f=>!faseFim(e,f.k)).map(f=>FSTATUS[f.k]);
   return `<span class="chip ${falta.length===1&&liberado(p)?'go':'warn'}" style="white-space:normal">Falta${falta.length>1?'m':''}: ${falta.join(', ')}</span>`}
 function nextFase(e){const p=pPor(e);const f=fasesProj(p).find(f=>!faseFim(e,f.k));return f?f.k:'ativ'}
-const tabLabel=t=>({painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',painelDia:'Painel do dia',estoque:'Estoque dos técnicos',estAtual:'Atualizar estoque',estHist:'Movimentações',meuEst:'Meu estoque',meuHist:'Meu histórico',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
+const tabLabel=t=>({gPainel:'Painel de KPIs',gCham:'Chamados',gAgenda:'Agenda',gNovo:'Criar chamado',gRel:'Relatórios',gAprov:'Aprovação de LPU',painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',painelDia:'Painel do dia',estoque:'Estoque dos técnicos',estAtual:'Atualizar estoque',estHist:'Movimentações',meuEst:'Meu estoque',meuHist:'Meu histórico',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
 
 const _sv=(d,w)=>`<svg width="${w||19}" height="${w||19}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w?2.2:1.9}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICN={'Acompanhamento':_sv('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>'),'Operação':_sv('<path d="M8 2v4M16 2v4M3 9h18"/><rect x="3" y="4" width="18" height="18" rx="2"/>'),'Projetos':_sv('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
@@ -701,11 +768,12 @@ const ICN={'Acompanhamento':_sv('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-
   gear:_sv('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>'),sair:_sv('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'),
   dn:_sv('<path d="M6 9l6 6 6-6"/>',16),up:_sv('<path d="M6 15l6-6 6 6"/>',16)};
 function render(){
-  const P={tabs:tabsDe()};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
+  const TT=tabsDe(),cats=[...new Set(TT.map(gCatDe))];if(!cats.includes(ui.cat))ui.cat=cats.includes(gCatDe(ui.tab))?gCatDe(ui.tab):(cats[0]||'impl');
+  const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
-  $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span><button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
-  const ORD=['painel','agenda','painelDia','relat','estoque','estAtual','estHist','base','prev','sim','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={painelDia:'Operação',usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
-  const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;return n?`<span class="nbadge">${n}</span>`:''};
+  $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span>${['supply','visu'].includes(ui.perfil)?'':'<button class="wic sino" data-act="avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gAprov','painel','agenda','painelDia','relat','estoque','estAtual','estHist','base','prev','sim','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',gAprov:'Financeiro',painelDia:'Operação',usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
+  const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;else if(t==='gAprov')n=pode('a_gAprovar')?G.lpus.filter(l=>l.status==='aguardando').length:0;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
   const nAprov=S.lpus.filter(l=>l.status==='aguardando').length,bAp=nAprov&&pode('f_aprov')?`<span class="nbadge">${nAprov}</span>`:'';
@@ -719,8 +787,11 @@ function render(){
         h+=`<button class="nit ${fOpen?'pai':''}" data-act="pSec" data-v="${k}" aria-current="${on&&!fOpen}"><span class="nt">${n}</span>${k==='fin'?(fOpen?'':bAp)+chev(fOpen):''}</button>`;
         if(k==='fin'&&fOpen){h+='<div class="nlv">';subsOk().forEach(([sk,sn])=>{h+=`<button class="nit" data-act="pSec" data-v="fin" data-s="${sk}" aria-current="${sub===sk}"><span class="nt">${sn}</span>${sk==='aprov'?bAp:''}</button>`});h+='</div>'}});h+='</div>'}});
     h+='</div>'});
-  $('tabs').innerHTML=h;$('mTitle').textContent=tabLabel(ui.tab)||'Agenda de Implantação';
-  $('app').innerHTML=pushBanner()+({painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,painelDia:viewPainelDia,semAcesso:()=>'<div class="toolbar"><div><h2>Nenhuma tela liberada</h2><p class="muted">Seu acesso à agenda está ativo, mas a coordenação ainda não liberou nenhuma tela para o seu usuário.</p></div></div>',usuarios:viewUsuarios,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]();
+  if(cats.length>1)h=`<div class="catsw" role="group" aria-label="Categoria"><button data-act="gCat" data-v="impl" aria-pressed="${ui.cat==='impl'}">Implantação</button><button data-act="gCat" data-v="gtd" aria-pressed="${ui.cat==='gtd'}">GTD Manutenção</button></div>`+h;else if(ui.cat==='gtd')h='<div class="catlbl">GTD Manutenção</div>'+h;
+  $('tabs').innerHTML=h;$('mTitle').textContent=ui.chat?'Mensagens':(tabLabel(ui.tab)||'Ferramenta de Gestão O&M');
+  const mb=document.querySelector('.mbar .sino');if(mb)mb.hidden=['supply','visu'].includes(ui.perfil);
+  $('app').innerHTML=pushBanner()+(ui.chat?viewChat():({gPainel:viewGPainel,gCham:viewGCham,gAgenda:viewGAgenda,gNovo:viewGNovo,gRel:viewGRel,gAprov:viewGAprov,painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,painelDia:viewPainelDia,semAcesso:()=>'<div class="toolbar"><div><h2>Nenhuma tela liberada</h2><p class="muted">Seu acesso à agenda está ativo, mas a coordenação ainda não liberou nenhuma tela para o seu usuário.</p></div></div>',usuarios:viewUsuarios,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]());gSinoAtualizar();
+  if(ui.chat)return;
   if(ui.tab==='agenda')renderSug();
   if(ui.lpuTela){if(ui.lpuP===3&&$('sgPad')){ui.sgDraw=false;iniciarPad()}if((ui.lpuP||1)===1)lpuFiltro2()}
 }
@@ -838,7 +909,7 @@ function pEquipes(){const b=pBase(),F=ui.eqF||'all',tecs=TEC.filter(t=>F==='all'
   <section><div class="secth"><h3>Produtividade por técnico</h3></div><div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Não concl.</th><th class="r">Taxa de conclusão</th><th class="r">Dias de execução</th><th class="r">Execução média</th></tr></thead><tbody>${tecR||'<tr><td colspan="9" class="muted">Sem atividades no período.</td></tr>'}</tbody></table></div></section>
   <section><div class="secth"><h3>Equipe própria x terceiros</h3></div><div class="tablewrap"><table><thead><tr><th>Equipe</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Taxa de conclusão</th><th class="r">Concl. por técnico/dia</th></tr></thead><tbody>${eqR}</tbody></table></div></section>`}
 function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&pode('a_budget'),B=(S.budget||{})[mes]||{};
-  const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC'),ap=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes),pe=LT.filter(l=>l.status==='aguardando'||l.status==='ajuste');
+  const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC').concat(G.lpus.filter(l=>l.status!=='registrada'&&l.status!=='conferencia')),ap=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes),pe=LT.filter(l=>l.status==='aguardando'||l.status==='ajuste');
   const contas=LPU_CONTAS.filter(c=>ed||+B[c]>0||ap.some(l=>l.conta===c)||pe.some(l=>l.conta===c));
   const cod=c=>c.split(' - ')[0],nome=c=>c.split(' - ').slice(1).join(' - ').replace(/^Serviços de /,'');
   const rows=contas.map(c=>{const orc=+B[c]||0,A=ap.filter(l=>l.conta===c),P=pe.filter(l=>l.conta===c),uso=A.reduce((s,l)=>s+l.total,0),comp=P.reduce((s,l)=>s+l.total,0),disp=orc-uso,p=orc?Math.round(uso/orc*100):0,tot=Math.max(orc,uso+comp)||1;return{c,orc,A,P,uso,comp,disp,p,wU:uso/tot*100,wC:comp/tot*100,est:orc&&uso+comp>orc}});
@@ -1266,6 +1337,7 @@ function viewCampo(){
   const sel=tecSelect(tecsPerfil(),ui.perfil==='coord'?'Ver como':'Técnico logado');
   const a=ui.campoSel&&S.ags.find(x=>x.id===ui.campoSel&&x.tec===ui.tec);
   if(a)return `<div class="campo">${ui.rf&&ui.rf.ag===a.id?fotoView(a):ui.lpuTela===a.id&&a.status==='lpu'?lpuView(a):detalhe(a)}</div>`;
+  const gc=gTecSel();if(gc)return `<div class="campo">${gTecView(gc)}</div>`;
   const terc=tecT(ui.tec)==='TERC',nAj=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;
   const sw=terc&&ui.perfil==='coord'?`<div class="views" style="margin:4px 0 2px"><button data-act="cSec" data-v="at" aria-current="${ui.campoSec!=='fin'}">Atividades</button><button data-act="cSec" data-v="fin" aria-current="${ui.campoSec==='fin'}">Gestão financeira${nAj?` (${nAj} para ajuste)`:''}</button></div>`:'';
   if(terc&&ui.perfil==='coord'&&ui.campoSec==='fin')return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${viewMinhas(true)}</div>`;
@@ -1278,7 +1350,7 @@ function viewCampo(){
     <div class="tcb">${c.endereco?`<div class="tcend">${IC.pin}<span>${esc(endCurto(c.endereco))}</span></div>`:''}${andamentoHtml(x)}
      <div class="tcbt">${rotaLigar(c)}</div><button class="tcopen" data-act="abrir" data-id="${x.id}">Abrir atividade</button></div>`:''}</article>`};
   const lab={hoje:'Hoje',prox:'Próximas',enc:'Encerradas'};
-  return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}
+  return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${gTecLista()}
    <div class="chips">${Object.keys(lab).map(k=>`<button data-act="cF" data-t="${k}" aria-current="${ui.cF===k}">${lab[k]} (${g[k].length})</button>`).join('')}</div>
    ${g[ui.cF].map(card).join('')||'<p class="muted pad">Nenhuma atividade aqui.</p>'}</div>`;
 }
@@ -1447,7 +1519,7 @@ function detalhe(a){
    <div class="tanx"><span class="tck2">ANEXOS</span>${anx.length?anx.map(x=>anxLinha(x,0)).join(''):'<p class="muted" style="margin:4px 0 0">Nenhum anexo.</p>'}</div>`;
   const resumoMat=[nm?nm+(nm===1?' item':' itens'):'sem materiais',a.obs?'1 observação do agendamento':''].filter(Boolean).join(', ');
   const resumoTec=[p.topologia,+p.metros?(+p.metros)+' m':'',anx.length?anx.length+(anx.length===1?' anexo':' anexos'):''].filter(Boolean).join(', ');
-  return `<button class="back" data-act="voltar">‹ Minhas atividades</button>
+  return `<div class="tools" style="justify-content:space-between"><button class="back" data-act="voltar">‹ Minhas atividades</button>${gMsgBtn('a',a.id)}</div>
   <article class="tcard">${tcTopo(a,'')}<div class="tcb">${etapas}<div class="tact2">${act}</div>${andamentoHtml(a)}</div></article>
   ${ac('mat',IC.mat,'Materiais e observações',esc(resumoMat),matBody)}
   ${ac('end',IC.pin,'Endereço e contato',esc(endCurto(c.endereco||'Endereço não informado')),endBody)}
@@ -1504,7 +1576,7 @@ function iniciarPad(){const c=$('sgPad');if(!c||c.dataset.ok)return;c.dataset.ok
   c.onpointerup=c.onpointercancel=()=>{on=false}}
 function lpuEditor(key){const d=lpuDraft(key),L=lpuDaConta(d.conta),n=lpuSel(d).length,vv=verValor();
   return `<div class="lpu" data-lk="${esc(key)}">
-   <label class="f"><span>Descrição contábil</span><select class="inp" data-ch="lpuConta" data-k="${esc(key)}">${LPU_CONTAS.map(c=>`<option value="${esc(c)}" ${c===d.conta?'selected':''}>${esc(c)}</option>`).join('')}</select></label>
+   <label class="f"><span>Descrição contábil${d.fixa?' (fixa no GTD Manutenção)':''}</span>${d.fixa?`<b>${esc(d.conta)}</b>`:`<select class="inp" data-ch="lpuConta" data-k="${esc(key)}">${LPU_CONTAS.map(c=>`<option value="${esc(c)}" ${c===d.conta?'selected':''}>${esc(c)}</option>`).join('')}</select>`}</label>
    <input class="inp" type="search" placeholder="Buscar serviço por código ou descrição" data-in="lpuBusca" data-k="${esc(key)}" style="margin-bottom:6px">
    <label class="chk" style="margin-bottom:8px"><input type="checkbox" data-ch="lpuSo"> Mostrar só os serviços preenchidos</label>
    <div class="lpul">${L.map(it=>{const v=d.q[it.cod]||{};return `<div class="lpi ${+v.qtd>0?'on':''}" data-busca="${esc(normK(it.cod+' '+it.desc))}">
@@ -1521,7 +1593,7 @@ function encerrar(a){a.status='concluida';a.ts.encerramento=Date.now();a.noDia=h
 /* ---------- MINHAS LPUs ---------- */
 function viewMinhas(emb){
   const sel=emb?'':tecSelect(TEC.filter(t=>t.tipo==='TERC'),'Prestador logado');
-  const all=S.lpus.filter(l=>(l.tec===ui.tec||l.prestador===ui.tec)&&l.data>=ui.mIni&&l.data<=ui.mFim),eq=all.some(l=>l.prestador===ui.tec);
+  const all=S.lpus.concat(G.lpus.filter(l=>l.status!=='registrada')).filter(l=>(l.tec===ui.tec||l.prestador===ui.tec)&&l.data>=ui.mIni&&l.data<=ui.mFim),eq=all.some(l=>l.prestador===ui.tec);
   const tot=s=>all.filter(l=>s.includes(l.status)).reduce((x,l)=>x+l.total,0),cnt=s=>all.filter(l=>l.status===s).length;
   const tabs=(eq||cnt('conferencia')?[['conferencia','Para conferir']]:[]).concat([['aguardando','Aguardando'],['aprovada','Aprovadas'],['reprovada','Reprovadas'],['ajuste','Para ajuste']]);
   const rows=all.filter(l=>l.status===ui.mTab).sort((a,b)=>b.data.localeCompare(a.data));
@@ -1530,7 +1602,7 @@ function viewMinhas(emb){
    <div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="mIni" value="${ui.mIni}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="mFim" value="${ui.mFim}"></label></div>
    <div class="sum3"><div><span>Aguardando aprovação</span><b>${brl(tot(['conferencia','aguardando','ajuste']))}</b></div><div><span>Aprovado</span><b>${brl(tot(['aprovada']))}</b></div><div><span>Reprovado</span><b>${brl(tot(['reprovada']))}</b></div></div>
    <div class="chips">${tabs.map(([k,n])=>`<button data-act="mTab" data-t="${k}" aria-current="${ui.mTab===k}">${n} (${cnt(k)})</button>`).join('')}</div>
-   <div class="mlist">${rows.map(l=>{const m=(last(l)||{}).motivo;return `<div class="mcard"><div class="ah"><b>${esc(l.etiqueta)}</b><span class="val">${brl(l.total)}</span></div><span>${esc(l.cliente||cliN(l.etiqueta))}</span><small>${fasesN(l)}, ${dBR(l.data)}${l.tec!==ui.tec?`, enviada por ${esc(l.tecNome||tecN(l.tec))}`:''}</small>${aprovPor(l)?`<small class="aprovp">${aprovPor(l)}</small>`:''}${m&&(ui.mTab==='reprovada'||ui.mTab==='ajuste')?`<p class="note" style="margin:8px 0 0">${esc(m)}</p>`:''}<div class="actions" style="margin-top:8px">${l.pdf_path?`<button class="btn sm" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>`:''}${ui.mTab==='ajuste'?`<button class="btn sm primary" data-act="ajuste" data-id="${l.id}">Corrigir e reenviar</button>`:''}${ui.mTab==='conferencia'?`<button class="btn sm" data-act="ajuste" data-id="${l.id}">Corrigir</button><button class="btn sm primary" data-act="lpuConfEnviar" data-id="${l.id}">Enviar para o O&amp;M</button>`:''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma LPU nesta situação no período.</p>'}</div>
+   <div class="mlist">${rows.map(l=>{const m=(last(l)||{}).motivo;return `<div class="mcard"><div class="ah"><b>${esc(l.etiqueta)}</b><span class="val">${brl(l.total)}</span></div><span>${esc(l.cliente||cliN(l.etiqueta))}</span><small>${l.chamado?'GTD Manutenção, O&amp;M '+esc(l.pom||''):fasesN(l)}, ${dBR(l.data)}${l.tec!==ui.tec?`, enviada por ${esc(l.tecNome||tecN(l.tec))}`:''}</small>${aprovPor(l)?`<small class="aprovp">${aprovPor(l)}</small>`:''}${m&&(ui.mTab==='reprovada'||ui.mTab==='ajuste')?`<p class="note" style="margin:8px 0 0">${esc(m)}</p>`:''}<div class="actions" style="margin-top:8px">${l.pdf_path?`<button class="btn sm" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>`:''}${ui.mTab==='ajuste'?`<button class="btn sm primary" data-act="${l.chamado?'gLpuCorrigir':'ajuste'}" data-id="${l.id}">Corrigir e reenviar</button>`:''}${ui.mTab==='conferencia'?`<button class="btn sm" data-act="${l.chamado?'gLpuCorrigir':'ajuste'}" data-id="${l.id}">Corrigir</button><button class="btn sm primary" data-act="${l.chamado?'gLpuConfEnviar':'lpuConfEnviar'}" data-id="${l.id}">Enviar para o O&amp;M</button>`:''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma LPU nesta situação no período.</p>'}</div>
    <p class="muted" style="margin-top:8px">Total da aba: <b>${brl(rows.reduce((x,l)=>x+l.total,0))}</b></p></div>`;
 }
 function openAjuste(lid){const l=S.lpus.find(x=>x.id===lid),k='L:'+lid;if(!ui.draft[k]){const q={};l.itens.forEach(i=>{q[i.cod]={qtd:i.qtd,fator:i.fator==='Crítico'?'critico':'comum',unit:i.unit}});ui.draft[k]={conta:l.conta||LPU_CONTAS[0],q}}const m=(l.hist||[]).slice().reverse().find(h=>h.motivo);
@@ -1877,7 +1949,7 @@ const ACT={
     ${anxDe(a.etiqueta).length?`<h3 class="lsub">Anexos</h3>${anxDe(a.etiqueta).map(x=>anxLinha(x,0)).join('')}`:''}
     ${a.pendReag?`<p class="note" style="margin-top:10px">${canReag()?'Aguardando reagendamento.':'Aguardando o encarregado reagendar.'}</p>`:''}
     ${ed?`<h3 class="lsub">Alterar agendamento</h3><div class="grid2 even" style="gap:0 12px"><label class="f"><span>Data${canReag()?'':' (somente o encarregado altera)'}</span><input type="date" class="inp" id="eData" value="${a.data}" ${canReag()?'':'disabled'}></label><label class="f"><span>Técnico</span><select class="inp" id="eTec">${TEC.map(x=>`<option value="${x.id}" ${x.id===a.tec?'selected':''}>${esc(x.nome)}</option>`).join('')}</select></label></div>`:''}
-    <div class="actions"><button class="btn" data-act="close">Fechar</button>${ed&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button><button class="btn primary" data-act="agEdit" data-id="${a.id}">Salvar alterações</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button></div>`)},
+    <div class="actions"><button class="btn" data-act="close">Fechar</button>${ed&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button><button class="btn primary" data-act="agEdit" data-id="${a.id}">Salvar alterações</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button></div>`)},
   replicar:el=>{if(!pode('a_agendar')&&semPerm())return;const a=getAg(el.dataset.id),p=pPor(a.etiqueta),ini=addD(a.data<hoje()?hoje():a.data,1);ui.rp={id:a.id,data:ini,dataFim:ini,uteis:true,tec:a.tec,fases:fasesOf(a).filter(k=>!faseFim(a.etiqueta,k))};renderRep()},
   agEdit:el=>{const a=getAg(el.dataset.id),d=$('eData').value,t=$('eTec').value;if(!d){toast('Informe a data.','bad');return}if(d!==a.data&&!canReag()){toast('Somente o encarregado reagenda.','bad');return}a.data=d;a.tec=t;save();closeModal();render();toast(`Agendamento atualizado: ${dBR(d)}, ${tecN(t)}.`)},
   verProj:el=>{closeModal();ui.agSel=el.dataset.etq;ui.fTab='proj';ui.agForm={};render();window.scrollTo(0,0)},
@@ -1978,7 +2050,7 @@ const ACT={
     try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-aprovada-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;l.pdf_envio=l.pdf_envio||l.pdf_path;l.pdf_path=path;l.pdfAprov=true;save()}catch(e){toast('LPU aprovada, mas a versão do PDF com o aprovador não foi salva: '+(e.message||e),'bad')}},
   decidir:el=>{if(!pode('a_aprovar')&&semPerm())return;const t=el.dataset.t;openModal(`<h3>${t==='ajuste'?'Devolver para ajuste':'Reprovar LPU'}</h3><label class="f" style="margin-top:12px"><span>Motivo *</span><textarea id="dMot" class="inp" rows="4" placeholder="${t==='ajuste'?'O que o prestador precisa corrigir':'Por que a LPU foi reprovada'}"></textarea></label><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn ${t==='ajuste'?'primary':'danger'}" data-act="decOk" data-t="${t}" data-id="${el.dataset.id}">${t==='ajuste'?'Devolver para ajuste':'Reprovar'}</button></div>`)},
   decOk:el=>{const m=$('dMot').value.trim();if(!m){toast('Informe o motivo.','bad');return}const l=S.lpus.find(x=>x.id===el.dataset.id),t=el.dataset.t;l.status=t;l.hist.push({acao:t==='ajuste'?'Devolvida para ajuste':'Reprovada',por:meNome(),em:Date.now(),motivo:m});ui.aOpen=null;save();closeModal();render();toast(t==='ajuste'?'LPU devolvida ao prestador.':'LPU reprovada.')},
-  pdfArq:async el=>{const l=S.lpus.find(x=>x.id===el.dataset.id);if(!l)return;const w=window.open('','_blank');const abre=u=>{if(w&&!w.closed)w.location.href=u;else location.href=u};
+  pdfArq:async el=>{const l=S.lpus.find(x=>x.id===el.dataset.id)||G.lpus.find(x=>x.id===el.dataset.id);if(!l)return;const w=window.open('','_blank');const abre=u=>{if(w&&!w.closed)w.location.href=u;else location.href=u};
     if(l.status==='aprovada'&&!l.pdfAprov||!l.pdf_path){try{abre(URL.createObjectURL(gerarPdfLpu(l)))}catch(e){if(w)w.close();toast('Não foi possível gerar o PDF: '+(e.message||e),'bad')}return}
     const r=await sb.storage.from('agenda').createSignedUrl(l.pdf_path,300);if(r.error){if(w)w.close();toast('Não foi possível abrir o PDF: '+r.error.message,'bad');return}abre(r.data.signedUrl)},
   pdf:el=>{const l=S.lpus.find(x=>x.id===el.dataset.id),p=S.previsao.find(x=>x.etiqueta===l.etiqueta)||{};openModal(`<div class="doc"><div class="dochead"><span class="mark">NT</span><div><b>LPU de serviço executado</b><small>Net Turbo Telecom</small></div></div><dl class="dl"><div><dt>Prestador</dt><dd>${esc(tecN(l.tec))}</dd></div><div><dt>Cliente</dt><dd>${esc(p.cliente||'')}</dd></div><div><dt>Etiqueta</dt><dd>${esc(l.etiqueta)}</dd></div><div><dt>Protocolo</dt><dd>${esc(p.protocolo||'')}</dd></div><div><dt>Fases</dt><dd>${fasesN(l)}</dd></div><div><dt>Data</dt><dd>${dBR(l.data)}</dd></div><div style="grid-column:1/-1"><dt>Descrição contábil</dt><dd>${esc(l.conta||'')}</dd></div></dl><div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd</th><th class="r">Unit.</th><th class="r">Total</th></tr></thead><tbody>${l.itens.map(i=>`<tr><td>${i.cod}</td><td>${esc(i.desc)}</td><td>${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.unit*i.qtd)}</td></tr>`).join('')}</tbody></table></div><div class="ltotal"><span>Total</span><b>${brl(l.total)}</b></div>
@@ -2128,8 +2200,8 @@ async function syncAgora(){SYNC_PEND=false;const r=curRows();
   catch(e){console.error(e);setSt('Erro ao salvar',1);toast('Não foi possível salvar: '+(e.message||e)+'. Os dados foram recarregados.','bad');await carregar();render()}}
 async function todas(q){let out=[],de=0;for(;;){const r=await q().range(de,de+999);if(r.error)throw r.error;out=out.concat(r.data||[]);if(!r.data||r.data.length<1000)break;de+=1000}return out}
 async function carregar(){
-  if(ui.perfil==='supply'||ui.perfil==='visu'){TEC.length=0;S.previsao=[];S.comp={};S.ags=[];S.lpus=[];S.anexos=[];S.anexosLog=[];S.budget={};S.estoque={};snapAll();setSt('Tudo salvo');return}
-  const g=['coord','sup','enc'].includes(ui.perfil);
+  if(ui.perfil==='supply'||ui.perfil==='visu'||ui.perfil==='noc'){TEC.length=0;S.previsao=[];S.comp={};S.ags=[];S.lpus=[];S.anexos=[];S.anexosLog=[];S.budget={};S.estoque={};snapAll();setSt('Tudo salvo');return}
+  const g=['coord','sup','enc','deliv'].includes(ui.perfil);
   // técnicos
   const novos=[];
   if(g){const pap=await todas(()=>sb.from('agenda_papeis').select('user_id,papel,vinculo,ativo').eq('papel','tecnico').eq('ativo',true));
@@ -2142,7 +2214,7 @@ async function carregar(){
   S.semValor=g&&!pode('a_valor');if(S.semValor)S.previsao.forEach(p=>{delete p.valor;if(p.roi&&p.roi.fin)delete p.roi.fin});
   S.comp={};co.forEach(r=>S.comp[r.etiqueta]=r.dados||{});
   S.ags=ag.map(r=>Object.assign({ts:{},rel:{}},r.dados,{id:r.id,etiqueta:r.etiqueta,tec:r.tecnico,data:r.data,status:r.status,fases:r.fases,fase:(r.fases||[])[0]}));
-  S.lpus=lp.map(r=>Object.assign({},r.dados,{id:r.id,ag:r.agendamento,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total,pdf_path:r.pdf_path,prestador:r.prestador||undefined}));
+  S.lpus=lp.filter(r=>!r.chamado).map(r=>Object.assign({},r.dados,{id:r.id,ag:r.agendamento,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total,pdf_path:r.pdf_path,prestador:r.prestador||undefined}));
   S.anexos=an.map(r=>({id:r.id,etiqueta:r.etiqueta,tipo:r.tipo,fase:r.fase,nome:r.nome,tam:r.tamanho,em:new Date(r.enviado_em).getTime(),por:'',path:r.path}));
   S.anexosLog=lg.map(r=>({etiqueta:r.etiqueta,nome:r.nome,tipo:r.tipo,em:new Date(r.excluido_em).getTime()}));
   S.budget={};if(g){try{const bd=await todas(()=>sb.from('ag_budget').select('*'));bd.forEach(r=>{(S.budget[r.mes]=S.budget[r.mes]||{})[r.conta]=+r.valor||0})}catch(e){console.warn('budget',e)}}
@@ -2154,12 +2226,12 @@ async function carregar(){
 }
 async function checarRelatorio(a){const r=await sb.storage.from('agenda').list('relatorios/'+a.id);const f=(r.data||[]).filter(x=>/\.pdf$/i.test(x.name)&&!x.name.includes('/'));if(!f.length)return false;a.rel=a.rel||{};a.rel.entrega={path:'relatorios/'+a.id+'/'+f[f.length-1].name,em:Date.now()};save();return true}
 async function subirPdfLpu(l){try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-${Date.now()}.pdf`;const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;l.pdf_path=path}catch(e){console.error(e);toast('A LPU será enviada, mas o PDF não foi gerado: '+(e.message||e),'bad')}}
-function gerarPdfLpu(l){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m=15,W=210,H=297,p=pPor(l.etiqueta);
+function gerarPdfLpu(l){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m=15,W=210,H=297,p=l.chamado?{cliente:l.cliente||'',protocolo:'O&M '+(l.pom||''),cidade:l.cidade||''}:pPor(l.etiqueta);
   doc.setFontSize(16);doc.setFont('helvetica','bold');doc.setTextColor(61,61,61);doc.text('Relatório de Prestação de Serviços (LPU)',m,20);
   doc.setDrawColor(140,191,63);doc.setLineWidth(.8);doc.line(m,25,W-m,25);
   const lb=t=>({content:t,styles:{fontStyle:'bold',fillColor:[244,249,236],textColor:[107,117,133],fontSize:7}});
   doc.autoTable({startY:29,theme:'grid',styles:{cellPadding:2.5,lineColor:[212,221,216],lineWidth:.3,fontSize:9},margin:{left:m,right:m},columnStyles:{0:{cellWidth:28},2:{cellWidth:28}},
-    body:[[lb('Prestador'),tecN(l.tec),lb('CNPJ'),(TEC.find(t=>t.id===l.tec)||{}).doc||''],[lb('Cliente'),p.cliente||'',lb('Etiqueta'),l.etiqueta],[lb('Protocolo'),p.protocolo||'',lb('Cidade'),p.cidade||''],[lb('Fases'),fasesN(l),lb('Data'),dBR(l.data)],[lb('Descrição contábil'),{content:l.conta||'',colSpan:3,styles:{fontStyle:'bold',textColor:[110,150,40],fontSize:8}}]]});
+    body:[[lb('Prestador'),tecN(l.tec),lb('CNPJ'),(TEC.find(t=>t.id===l.tec)||{}).doc||''],[lb('Cliente'),p.cliente||'',lb('Etiqueta'),l.etiqueta],[lb('Protocolo'),p.protocolo||'',lb('Cidade'),p.cidade||''],[lb(l.chamado?'Atendimento':'Fases'),l.chamado?'GTD Manutenção, '+(l.categoria||''):fasesN(l),lb('Data'),dBR(l.data)],[lb('Descrição contábil'),{content:l.conta||'',colSpan:3,styles:{fontStyle:'bold',textColor:[110,150,40],fontSize:8}}]]});
   let y=doc.lastAutoTable.finalY+6;const cls=[...new Set(l.itens.map(i=>i.classe))];
   cls.forEach(c=>{const it=l.itens.filter(i=>i.classe===c),sub=it.reduce((s,i)=>s+i.unit*i.qtd,0);
     doc.autoTable({startY:y,theme:'grid',margin:{left:m,right:m},head:[['Cód.','Descrição','Fator','Med.','V. Unit','Qtd','Total']],body:it.map(i=>[i.cod,i.desc,i.fator||'Comum',i.medida||'',brl(i.unit),String(i.qtd).replace('.',','),brl(i.unit*i.qtd)]),
@@ -2168,7 +2240,7 @@ function gerarPdfLpu(l){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m
   if(y+40>H-20){doc.addPage();y=30}
   if(l.assinatura){try{doc.addImage(l.assinatura.img,'PNG',m+5,y,70,24)}catch(e){}}
   y+=27;const ap=l.status==='aprovada'?(l.hist||[]).slice().reverse().find(h=>/^Aprovada/.test(h.acao)):null;
-  if(ap){doc.setFont('helvetica','bolditalic');doc.setFontSize(13);doc.setTextColor(40,40,40);doc.text(String(ap.por||''),157.5,y-9,{align:'center'});doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(90,130,30);doc.text('Aprovado eletronicamente na Agenda de Implantação',157.5,y-3,{align:'center'})}
+  if(ap){doc.setFont('helvetica','bolditalic');doc.setFontSize(13);doc.setTextColor(40,40,40);doc.text(String(ap.por||''),157.5,y-9,{align:'center'});doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(90,130,30);doc.text('Aprovado eletronicamente na Ferramenta de Gestão O&M',157.5,y-3,{align:'center'})}
   doc.setDrawColor(0);doc.setLineWidth(.3);doc.line(m,y,90,y);doc.line(120,y,W-m,y);doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(107,117,133);
   doc.text(l.assinatura?`${l.assinatura.nome}, ${dtBR(l.assinatura.em)}`:'Assinatura prestador',52.5,y+5,{align:'center'});doc.text(ap?`Aprovador: ${ap.por}, ${dtBR(ap.em)}`:'Aprovador',157.5,y+5,{align:'center'});
   const n=doc.internal.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(170);doc.text('Net Turbo Telecom, LPU '+l.etiqueta,m,H-8);doc.text(`Página ${i} de ${n}`,W-m,H-8,{align:'right'})}
@@ -2176,15 +2248,15 @@ function gerarPdfLpu(l){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m
 // ---- usuários e acessos (coordenador)
 let USR=null;
 async function carregarUsuarios(){const[pf,pp]=await Promise.all([todas(()=>sb.from('perfis').select('id,nome,tipo,cnpj,status,equipe').order('nome')),todas(()=>sb.from('agenda_papeis').select('*'))]);USR={pf,pp}}
-const PAPEIS=[['','Sem acesso à agenda'],['coordenador','Coordenador'],['supervisor','Supervisor'],['encarregado','Encarregado'],['tecnico:clt','Técnico próprio (CLT)'],['tecnico:terceiro','Técnico terceiro (administrador da empresa)'],['tecnico:func','Funcionário de empresa terceira'],['supply','Supply Chain (só planilha do bolsão)'],['visualizacao','Visualização (só painel do dia)']];
+const PAPEIS=[['','Sem acesso à agenda'],['coordenador','Coordenador'],['supervisor','Supervisor'],['encarregado','Encarregado'],['tecnico:clt','Técnico próprio (CLT)'],['tecnico:terceiro','Técnico terceiro (administrador da empresa)'],['tecnico:func','Funcionário de empresa terceira'],['noc','NOC (só GTD Manutenção: cria, acompanha e valida chamados)'],['delivery','Delivery (só Implantação, telas liberadas pela coordenação)'],['supply','Supply Chain (só planilha do bolsão)'],['visualizacao','Visualização (só painel do dia)']];
 function viewPermissoes(){const id=ui.permSel,pf=USR.pf.find(x=>x.id===id),pp=USR.pp.find(x=>x.user_id===id);if(!pf||!pp){ui.permSel=null;return viewUsuarios()}
   ui.permEd=ui.permEd&&ui.permEd.id===id?ui.permEd:{id,set:permDe(pp.papel,pp.permissoes).slice()};const P=new Set(ui.permEd.set),pad=PERM_PAD[pp.papel]||[],igual=pad.length===P.size&&pad.every(k=>P.has(k));
-  const papN={supervisor:'Supervisor',encarregado:'Encarregado',supply:'Supply Chain'}[pp.papel];
-  const grupos=PERM_T.map(([gn,nos])=>{let h='';const tl=[];const w=(L,niv,ok)=>L.forEach(n=>{const[k,nome,tp,fi]=n,on=P.has(k)&&ok;if(tp==='t')tl.push(k);
+  const papN={supervisor:'Supervisor',encarregado:'Encarregado',supply:'Supply Chain',delivery:'Delivery'}[pp.papel];const PT=pp.papel==='delivery'?PERM_T.filter(([gn])=>gn!=='GTD Manutenção'):PERM_T;
+  const grupos=PT.map(([gn,nos])=>{let h='';const tl=[];const w=(L,niv,ok)=>L.forEach(n=>{const[k,nome,tp,fi]=n,on=P.has(k)&&ok;if(tp==='t')tl.push(k);
       h+=`<label class="prow ${ok?'':'off'}" style="padding-left:${8+niv*26}px"><input type="checkbox" data-ch="permTog" value="${k}" ${on?'checked':''} ${ok?'':'disabled'}><span class="${tp==='t'&&!niv?'pt0':''}">${nome}</span><em class="${tp==='a'?'acao':''}">${tp==='a'?'Ação':'Tela'}</em></label>`;if(fi)w(fi,niv+1,on)});
     w(nos,0,true);return `<section class="pgrp"><div class="pgh"><b>${gn}</b><span class="muted">${tl.filter(k=>P.has(k)).length} de ${tl.length} telas</span></div>${h}</section>`}).join('');
-  const menu=PERM_T.map(([gn,nos])=>{const it=[];const w=(L,niv,ok)=>L.forEach(n=>{if(n[2]!=='t')return;const on=ok&&P.has(n[0]);if(on)it.push(`<span style="padding-left:${niv*12}px">${n[1]}</span>`);if(n[3])w(n[3],niv+1,on)});w(nos,0,true);return it.length?`<div class="pmg"><b>${gn}</b><div class="nlv">${it.join('')}</div></div>`:''}).join('');
-  const outros=USR.pp.filter(x=>x.user_id!==id&&['supervisor','encarregado','supply'].includes(x.papel)&&x.ativo);
+  const menu=PT.map(([gn,nos])=>{const it=[];const w=(L,niv,ok)=>L.forEach(n=>{if(n[2]!=='t')return;const on=ok&&P.has(n[0]);if(on)it.push(`<span style="padding-left:${niv*12}px">${n[1]}</span>`);if(n[3])w(n[3],niv+1,on)});w(nos,0,true);return it.length?`<div class="pmg"><b>${gn}</b><div class="nlv">${it.join('')}</div></div>`:''}).join('');
+  const outros=USR.pp.filter(x=>x.user_id!==id&&['supervisor','encarregado','supply','delivery'].includes(x.papel)&&x.ativo);
   return `<button class="back" data-act="permFechar">‹ Usuários e acessos</button>
   <div class="toolbar"><div><h2>Permissões de ${esc(pf.nome)}</h2><p class="muted">${papN}. Marque o que ele vê e o que pode fazer na agenda. ${igual?'<span class="chip ok">Padrão do papel</span>':'<span class="chip warn">Personalizado</span>'}</p></div>
    <div class="tools"><button class="btn" data-act="permPadrao">Restaurar padrão do papel</button><select class="inp" data-ch="permCopia"><option value="">Copiar de…</option>${outros.map(x=>{const n=(USR.pf.find(y=>y.id===x.user_id)||{}).nome||'';return `<option value="${x.user_id}">${esc(n)}</option>`}).join('')}</select></div></div>
@@ -2194,10 +2266,10 @@ function viewUsuarios(){if(USR&&ui.permSel)return viewPermissoes();if(!USR){carr
   const pap=id=>{const x=USR.pp.find(p=>p.user_id===id&&p.ativo);return x?(x.papel==='tecnico'?(x.vinculo==='terceiro'&&x.empresa?'tecnico:func':'tecnico:'+x.vinculo):x.papel):''};
   const adms=USR.pp.filter(x=>x.papel==='tecnico'&&x.vinculo==='terceiro'&&!x.empresa&&x.ativo).map(x=>USR.pf.find(p=>p.id===x.user_id)).filter(Boolean);
   const pend=USR.pf.filter(p=>p.status==='pendente'),q=normK(ui.uQ||''),apr=USR.pf.filter(p=>p.status==='aprovado'&&(!q||normK(p.nome+' '+(p.equipe||'')).includes(q))&&(!ui.uSo||pap(p.id)||(p.equipe||'').toLowerCase().includes('implanta')));
-  return `<div class="toolbar"><div><h2>Usuários e acessos</h2><p class="muted">Os cadastros são os mesmos do Estoque de Materiais. Aqui você aprova cadastros novos e define quem acessa a agenda e com qual papel.</p></div>${ui.perfil==='coord'?'<a class="btn sm" href="armazenamento.html">Espaço de armazenamento</a>':''}</div>
+  return `<div class="toolbar"><div><h2>Usuários e acessos</h2><p class="muted">Os cadastros são os mesmos do Estoque de Materiais. Aqui você aprova cadastros novos e define quem acessa a ferramenta (Implantação e GTD Manutenção) e com qual papel.</p></div>${ui.perfil==='coord'?'<a class="btn sm" href="armazenamento.html">Espaço de armazenamento</a>':''}</div>
    ${pend.length?`<section class="panel" style="margin-bottom:14px"><h3>Cadastros aguardando aprovação</h3>${pend.map(p=>`<div class="item"><div><b>${esc(p.nome)}</b><small>${p.tipo==='tecnico'?'Técnico, '+esc(p.cnpj||''):'Gestão'}</small></div><div class="right"><button class="btn sm" data-act="uRej" data-id="${p.id}">Recusar</button><button class="btn sm primary" data-act="uApr" data-id="${p.id}">Aprovar</button></div></div>`).join('')}</section>`:''}
    <div class="tools" style="margin-bottom:10px"><input class="inp" type="search" id="uQ" placeholder="Buscar nome ou equipe" data-in="uQ" value="${esc(ui.uQ||'')}"><label class="chk" style="margin:0"><input type="checkbox" data-ch="uSo" ${ui.uSo?'checked':''}> Só Implantação e quem já tem acesso</label></div>
-   <div class="tablewrap"><table><thead><tr><th>Nome</th><th>Cadastro</th><th>Equipe</th><th>Acesso à agenda</th><th>Permissões</th></tr></thead><tbody>${apr.map(p=>`<tr><td><b>${esc(p.nome)}</b>${p.cnpj?`<br><small class="muted">${esc(p.cnpj)}</small>`:''}</td><td>${p.tipo==='tecnico'?'Técnico':p.tipo==='om'?'Gestão O&M':p.tipo==='supply'?'Supply Chain':esc(p.tipo)}</td><td>${esc(p.equipe||'—')}</td><td><select class="inp" style="min-width:190px" data-ch="uPapel" data-id="${p.id}" ${p.id===ME.id?'disabled':''}>${PAPEIS.map(([v,n])=>`<option value="${v}" ${pap(p.id)===v?'selected':''}>${n}</option>`).join('')}</select>${pap(p.id)==='tecnico:func'?(()=>{const x=USR.pp.find(y=>y.user_id===p.id);return `<select class="inp" style="min-width:190px;margin-top:6px" data-ch="uEmpresa" data-id="${p.id}" aria-label="Empresa do funcionário"><option value="">Escolha a empresa…</option>${adms.map(a=>`<option value="${a.id}" ${x.empresa===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`})():''}</td><td>${['supervisor','encarregado','supply'].includes(pap(p.id))?(()=>{const x=USR.pp.find(y=>y.user_id===p.id),L=permDe(x.papel,x.permissoes),nt=L.filter(k=>!k.startsWith('a_')).length;return `<button class="btn sm" data-act="permAbrir" data-id="${p.id}">Definir</button><br><small class="muted">${x.permissoes==null?'Padrão do papel':nt+(nt===1?' tela':' telas')}</small>`})():pap(p.id)==='coordenador'?'<small class="muted">Acesso total</small>':'<small class="muted">—</small>'}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Nenhum usuário encontrado.</td></tr>'}</tbody></table></div>`}
+   <div class="tablewrap"><table><thead><tr><th>Nome</th><th>Cadastro</th><th>Equipe</th><th>Acesso à agenda</th><th>Permissões</th></tr></thead><tbody>${apr.map(p=>`<tr><td><b>${esc(p.nome)}</b>${p.cnpj?`<br><small class="muted">${esc(p.cnpj)}</small>`:''}</td><td>${p.tipo==='tecnico'?'Técnico':p.tipo==='om'?'Gestão O&M':p.tipo==='supply'?'Supply Chain':esc(p.tipo)}</td><td>${esc(p.equipe||'—')}</td><td><select class="inp" style="min-width:190px" data-ch="uPapel" data-id="${p.id}" ${p.id===ME.id?'disabled':''}>${PAPEIS.map(([v,n])=>`<option value="${v}" ${pap(p.id)===v?'selected':''}>${n}</option>`).join('')}</select>${pap(p.id)==='tecnico:func'?(()=>{const x=USR.pp.find(y=>y.user_id===p.id);return `<select class="inp" style="min-width:190px;margin-top:6px" data-ch="uEmpresa" data-id="${p.id}" aria-label="Empresa do funcionário"><option value="">Escolha a empresa…</option>${adms.map(a=>`<option value="${a.id}" ${x.empresa===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`})():''}</td><td>${['supervisor','encarregado','supply','delivery'].includes(pap(p.id))?(()=>{const x=USR.pp.find(y=>y.user_id===p.id),L=permDe(x.papel,x.permissoes),nt=L.filter(k=>!k.startsWith('a_')).length;return `<button class="btn sm" data-act="permAbrir" data-id="${p.id}">Definir</button><br><small class="muted">${x.permissoes==null?'Padrão do papel':nt+(nt===1?' tela':' telas')}</small>`})():pap(p.id)==='coordenador'?'<small class="muted">Acesso total</small>':'<small class="muted">—</small>'}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Nenhum usuário encontrado.</td></tr>'}</tbody></table></div>`}
 // ---- sessão
 let RECUP=/type=recovery/.test(location.hash),NP_OPEN=RECUP,BOOT_UID=null;
 async function checarSessao(){if(NP_OPEN)return;
@@ -2208,13 +2280,14 @@ async function checarSessao(){if(NP_OPEN)return;
   if(!pf){showAuth('cPend');$('pendMsg').textContent='Seu cadastro não foi encontrado. Crie a conta novamente ou fale com a coordenação.';return}
   if(pf.status!=='aprovado'){showAuth('cPend');$('pendMsg').textContent=pf.status==='rejeitado'?'Seu cadastro foi recusado. Fale com a coordenação.':'Seu cadastro está aguardando aprovação da coordenação.';return}
   const{data:pp}=await sb.from('agenda_papeis').select('*').eq('user_id',session.user.id).eq('ativo',true).maybeSingle();
-  if(!pp){showAuth('cPend');$('pendMsg').textContent='Seu cadastro está aprovado, mas o acesso à Agenda de Implantação ainda não foi liberado pela coordenação.';return}
+  if(!pp){showAuth('cPend');$('pendMsg').textContent='Seu cadastro está aprovado, mas o acesso à Ferramenta de Gestão O&M ainda não foi liberado pela coordenação.';return}
   ME={id:session.user.id,nome:pf.nome,cnpj:pf.cnpj,papel:pp.papel,vinculo:pp.vinculo,perm:pp.permissoes,empresa:pp.empresa||null};
-  ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',supply:'supply',visualizacao:'visu',tecnico:pp.vinculo==='terceiro'?(pp.empresa?'func':'terc'):'clt'}[pp.papel];if(!ui.perfil){showAuth('cPend');$('pendMsg').textContent='Seu perfil de acesso à agenda não é reconhecido. Fale com a coordenação.';return}ui.tab=tabsDe()[0]||'semAcesso';ui.tec=ME.id;
+  ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',supply:'supply',visualizacao:'visu',noc:'noc',delivery:'deliv',tecnico:pp.vinculo==='terceiro'?(pp.empresa?'func':'terc'):'clt'}[pp.papel];if(!ui.perfil){showAuth('cPend');$('pendMsg').textContent='Seu perfil de acesso à ferramenta não é reconhecido. Fale com a coordenação.';return}ui.tab=tabsDe()[0]||'semAcesso';ui.tec=ME.id;
   try{await carregar()}catch(e){$('loadMsg').textContent='Erro ao carregar os dados: '+(e.message||e);return}
   BOOT_UID=session.user.id;document.body.classList.add('app-on');
   const qs=new URLSearchParams(location.search),agLink=qs.get('ag'),relVolta=qs.get('rel');if(qs.get('tab')==='minhas'&&ui.perfil==='terc'){history.replaceState(null,'',location.pathname);ui.tab='minhas';ui.mTab='conferencia'}if(agLink){history.replaceState(null,'',location.pathname);const a=getAg(agLink);if(a){if(['clt','terc','func'].includes(ui.perfil)){ui.tab='campo';ui.campoSel=a.id}else ui.tab='agenda'}}
-  render();ligarTempoReal();if(agLink&&getAg(agLink)&&!['clt','terc','func'].includes(ui.perfil))ACT.agOpen({dataset:{id:agLink}});
+  const gtdLink=qs.get('gtd'),chatQ=qs.get('chat')==='1';if(gtdLink){history.replaceState(null,'',location.pathname);gIr('?gtd='+encodeURIComponent(gtdLink)+(chatQ?'&chat=1':''))}else if(agLink&&chatQ&&getAg(agLink))ui.chat={t:'a',id:agLink};
+  render();ligarTempoReal();if(agLink&&getAg(agLink)&&!ui.chat&&!['clt','terc','func'].includes(ui.perfil))ACT.agOpen({dataset:{id:agLink}});
   if(relVolta&&agLink&&getAg(agLink)){const a=getAg(agLink);checarRelatorio(a).then(ok=>{render();toast(ok?'Relatório recebido. Agora é só encerrar a atividade.':'O PDF ainda não chegou à agenda. Toque em "Verificar relatório" em alguns segundos.',ok?'':'bad')})}
   if(pushOk()&&Notification.permission==='granted')assinarPush().catch(()=>{});
 }
@@ -2247,11 +2320,604 @@ Object.assign(CH,{
     if(func&&!el.dataset.emp){const adms=USR.pp.filter(x=>x.papel==='tecnico'&&x.vinculo==='terceiro'&&!x.empresa&&x.ativo&&x.user_id!==id).map(x=>USR.pf.find(p=>p.id===x.user_id)).filter(Boolean);
       if(!adms.length){toast('Cadastre primeiro o administrador da empresa como "Técnico terceiro (administrador da empresa)".','bad');render();return}
       openModal(`<h3>Funcionário de empresa terceira</h3><p class="muted">As LPUs dele vão para a conferência do administrador da empresa, que envia para o O&amp;M. Ele não terá gestão financeira.</p><label class="f" style="margin-top:12px"><span>Empresa (administrador) *</span><select class="inp" id="fEmp"><option value="">Escolha…</option>${adms.map(a=>`<option value="${a.id}">${esc(a.nome)}</option>`).join('')}</select></label><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="funcOk" data-id="${id}">Liberar acesso</button></div>`);render();return}
-    if(!papel)r=await sb.from('agenda_papeis').delete().eq('user_id',id);else{const ant=USR.pp.find(x=>x.user_id===id),novo=!ant||ant.papel!==papel;const row={user_id:id,papel,vinculo:vinculo||null,ativo:true};if(papel==='tecnico')row.empresa=func?(el.dataset.emp||null):null;if(['supervisor','encarregado','supply'].includes(papel)){if(novo)row.permissoes=[]}else row.permissoes=null;r=await sb.from('agenda_papeis').upsert(row,{onConflict:'user_id'})}
-    if(r.error){toast('Erro: '+r.error.message,'bad');await carregarUsuarios();render();return}toast(['supervisor','encarregado','supply'].includes(papel)&&(()=>{const a=USR.pp.find(x=>x.user_id===id);return !a||a.papel!==papel})()?'Acesso liberado sem nenhuma tela. Toque em Definir, na coluna Permissões, para escolher o que ele vê.':'Acesso atualizado.');await carregarUsuarios();if(papel==='tecnico'||!papel){await carregar()}render()}
+    if(!papel)r=await sb.from('agenda_papeis').delete().eq('user_id',id);else{const ant=USR.pp.find(x=>x.user_id===id),novo=!ant||ant.papel!==papel;const row={user_id:id,papel,vinculo:vinculo||null,ativo:true};if(papel==='tecnico')row.empresa=func?(el.dataset.emp||null):null;if(['supervisor','encarregado','supply','delivery'].includes(papel)){if(novo)row.permissoes=[]}else row.permissoes=null;r=await sb.from('agenda_papeis').upsert(row,{onConflict:'user_id'})}
+    if(r.error){toast('Erro: '+r.error.message,'bad');await carregarUsuarios();render();return}toast(['supervisor','encarregado','supply','delivery'].includes(papel)&&(()=>{const a=USR.pp.find(x=>x.user_id===id);return !a||a.papel!==papel})()?'Acesso liberado sem nenhuma tela. Toque em Definir, na coluna Permissões, para escolher o que ele vê.':'Acesso atualizado.');await carregarUsuarios();if(papel==='tecnico'||!papel){await carregar()}render()}
 });
 Object.assign(IN,{uQ:el=>{ui.uQ=el.value;render();const i=$('uQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.body.classList.contains('app-on')){if(!$('cLogin').classList.contains('hidden'))ACT.login()}});
+/* =====================================================================
+   GTD MANUTENÇÃO (chamados do NOC), MENSAGENS (CHAT) E SINO DE AVISOS
+   Dados próprios: ag_chamados, ag_mensagens, ag_avisos e as LPUs do chamado
+   em ag_lpus (coluna "chamado"). NÃO passam pelo salvamento automático da
+   Implantação (S/SNAP): cada ação do GTD grava direto no banco.
+   ===================================================================== */
+/* leitura do texto "Solicitação de deslocamento" do NOC (testada com os chamados reais) */
+var GTD_CATS = ['Indisponibilidade', 'Verificação / qualidade do link', 'Troca de equipamento', 'Equipamento / energia', 'Wi-Fi', 'Gerência', 'Instalação / last mile'];
+var GTD_CIDADES = ['São Paulo', 'Campinas', 'Valinhos', 'Vinhedo', 'Paulínia', 'Araras', 'Amparo', 'Cubatão', 'Jaguariúna', 'Indaiatuba', 'Sumaré', 'Hortolândia', 'Americana', 'Limeira', 'Piracicaba', 'Santos', 'Jundiaí', 'Itatiba', 'Mogi Mirim', 'Monte Mor', 'Nova Odessa', 'Santa Bárbara d’Oeste', 'Holambra', 'Pedreira', 'Itupeva', 'Louveira', 'Rio Claro', 'Leme', 'Mogi Guaçu', 'Guarujá', 'São Vicente', 'Praia Grande'];
+function gtdNorm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+var GTD_ROT = [
+  ['motivo', /^motivo\b/],
+  ['cliente', /^cliente\b/],
+  ['endereco', /^endereco\b/],
+  ['localizacao', /^localizacao\b/],
+  ['datahora', /^data\s*\/\s*hor/],
+  ['data', /^data\b/],
+  ['horario', /^horario\b/],
+  ['protos', /^protocolo\s+noc\s*\/+\s*o/],
+  ['pnoc', /^protocolo\s+noc\b/],
+  ['pom', /^protocolo\s+o\s*&?\s*m\b|^protocolo\s+oem\b/],
+  ['equipamento', /^equipamento\b/],
+  ['modelo', /^modelo\b/],
+  ['serial', /^serial\b/],
+  ['portacli', /^porta cliente\b/],
+  ['porta', /^porta\b/],
+  ['banda', /^banda\b/],
+  ['dados', /^dados\b/],
+  ['entrega', /^tipo de entrega\b|^modo bridge/],
+  ['etiqueta', /^etiq[a-z]*\b/],
+  ['loopback', /^ip loopback\b/],
+  ['failover', /^fail-?over\b/],
+  ['obs', /^obs\b|^observacao\b|^observacoes\b/]
+];
+function gtdCidade(end) {
+  var n = gtdNorm(end).replace(/cep[\s\S]*$/, '').replace(/estado de sao paulo/g, ''), best = '', pos = -1;
+  GTD_CIDADES.forEach(function (c) { var i = n.lastIndexOf(gtdNorm(c)); if (i > pos) { pos = i; best = c; } });
+  if (best) return best;
+  var s = String(end || '').replace(/cep[\s\S]*$/i, '').replace(/\([^)]*\)/g, ' ');
+  var seg = s.split(/,|\||\s-\s/).map(function (x) { return x.replace(/[-\/\s]+sp\.?$/i, '').replace(/^munic[ií]pio de\s*/i, '').trim(); })
+    .filter(function (x) { return x && /[a-z]/i.test(x) && !/^sp$/i.test(x) && !/^estado de/i.test(x); });
+  return seg.length ? seg[seg.length - 1] : '';
+}
+function gtdTitulo(s) { return String(s || '').toLowerCase().replace(/(^|\s)([a-zà-ú])/g, function (m, a, b) { return a + b.toUpperCase(); }); }
+function gtdSugerir(motivo, obs) {
+  var regras = [
+    ['Indisponibilidade', /indisponi|inoperante|link down|sem link|link caiu|fora do ar/],
+    ['Wi-Fi', /wi-?fi|ssid/],
+    ['Gerência', /gerencia/],
+    ['Instalação / last mile', /last mile|instalar/],
+    ['Troca de equipamento', /troca/],
+    ['Equipamento / energia', /integridade do equipamento|verificar equipamento|energia|eletric|fonte|dgi/],
+    ['Verificação / qualidade do link', /queda|losi|integridade do link|valid|verific|lent|perda|atenua/]
+  ];
+  var alvos = [gtdNorm(motivo), gtdNorm(obs)];
+  for (var a = 0; a < alvos.length; a++) for (var i = 0; i < regras.length; i++) if (regras[i][1].test(alvos[a])) return regras[i][0];
+  return 'Verificação / qualidade do link';
+}
+function gtdLerChamado(txt) {
+  var r = { motivo: '', cliente: '', etiqueta: '', parceiro: '', endereco: '', cidade: '', lat: null, lng: null, mapa: '', data: '', janela: '', pnoc: '', pom: '', equipamento: '', porta: '', olt: '', banda: '', dados: '', entrega: '', obs: '', extras: [], levar: '', contato: '' };
+  var atual = null, extras = {};
+  String(txt || '').split(/\r?\n/).forEach(function (linha) {
+    var l = linha.replace(/ /g, ' ').trim();
+    if (!l) return;
+    var n = gtdNorm(l);
+    if (/^solicitacao de deslocamento/.test(n) || /^google maps$/.test(n) || /^encontre empresas/.test(n)) { atual = null; return; }
+    var achou = null;
+    var m = l.match(/^([^:]{2,40}):\s*([\s\S]*)$/);
+    if (m) {
+      var rot = gtdNorm(m[1]).replace(/\s+/g, ' ').trim();
+      for (var i = 0; i < GTD_ROT.length; i++) if (GTD_ROT[i][1].test(rot)) { achou = GTD_ROT[i][0]; break; }
+      if (!achou && /^ip cpe/.test(rot)) achou = 'ipcpe';
+      if (achou === 'porta' && /^ip cpe\s*:/i.test(m[2])) { achou = 'ipcpe'; m[2] = m[2].replace(/^ip cpe\s*:\s*/i, ''); }
+    }
+    if (achou) { atual = achou; var v = m[2].trim(); extras[achou] = extras[achou] ? extras[achou] + (achou === 'obs' ? ' | ' : '\n') + v : v; if (!v) extras[achou] = extras[achou] || ''; return; }
+    if (atual) extras[atual] = (extras[atual] ? extras[atual] + (atual === 'obs' ? ' ' : '\n') : '') + l;
+  });
+  var g = function (k) { return (extras[k] || '').trim(); };
+  r.motivo = g('motivo');
+  var cli = g('cliente').replace(/\s+/g, ' ');
+  var pm = cli.match(/\(\s*([^)]*?)\s*\)\s*$/);
+  if (pm) { var ps = pm[1].split('/').map(function (x) { return x.trim(); }).filter(Boolean); r.etiqueta = ps[0] || ''; r.parceiro = ps[1] || ''; cli = cli.slice(0, pm.index); }
+  else {
+    var im = cli.match(/\s+ID\s*:?\s*([A-Z0-9]+)\s*$/i) || cli.match(/\s+-\s*([A-Z0-9]{6,10})\s*$/) || cli.match(/\s([0-9]{6,8})\s*$/);
+    if (im) { r.etiqueta = im[1]; cli = cli.slice(0, im.index); }
+  }
+  r.cliente = cli.replace(/[\s\-–]+$/, '').trim();
+  if (!r.etiqueta && g('etiqueta')) r.etiqueta = g('etiqueta').split(/\s|\//)[0];
+  r.endereco = g('endereco').replace(/\s+/g, ' ');
+  r.cidade = gtdTitulo(gtdCidade(r.endereco));
+  var loc = g('localizacao').match(/(-?\d{1,3}\.\d+)[+, ]+(-?\d{1,3}\.\d+)/);
+  if (loc) { r.lat = +loc[1]; r.lng = +loc[2]; r.mapa = 'https://www.google.com/maps/place/' + loc[1] + '+' + loc[2]; }
+  var dh = [g('datahora'), g('data'), g('horario')].filter(Boolean).join(' ').replace(/\s*\|\s*/g, ' ').replace(/\s+/g, ' ').trim();
+  var dm = dh.match(/(\d{1,2})\/(\d{1,2})/);
+  if (dm) r.data = ('0' + dm[1]).slice(-2) + '/' + ('0' + dm[2]).slice(-2);
+  r.janela = dh.replace(/(\d{1,2})\/(\d{1,2})/, '').replace(/^[\s\-–,]+|[\s\-–,]+$/g, '').trim();
+  var pr = g('protos').match(/\d{5,}/g) || [];
+  r.pnoc = (g('pnoc').match(/\d{5,}/) || [pr[0] || ''])[0];
+  r.pom = (g('pom').match(/\d{5,}/) || [pr[1] || ''])[0];
+  var eq = g('equipamento'), porta = g('porta');
+  if (!porta && /olt/i.test(eq)) {
+    var pe = eq.split(/\s+-\s+/);
+    porta = pe.filter(function (x) { return /olt|gpon|onu/i.test(x); }).join(' ');
+    eq = pe.filter(function (x) { return !/olt|gpon|onu/i.test(x); }).join(' ');
+  }
+  if (!eq && g('modelo')) eq = g('modelo');
+  r.equipamento = eq.trim();
+  r.porta = porta.replace(/#\s*(sh(ow)?\s+int(erface)?\s*)?/i, ' ').replace(/\s+/g, ' ').trim();
+  var om = r.porta.match(/[A-Z]{2,}(?:-[A-Z0-9]+)*-OLT-\d+/i);
+  r.olt = om ? om[0].toUpperCase().replace(/^AC-BR-/, '') : '';
+  r.banda = g('banda');
+  r.dados = g('dados');
+  r.entrega = g('entrega');
+  r.obs = g('obs');
+  [['serial', 'Serial'], ['ipcpe', 'IP da CPE'], ['loopback', 'IP de loopback'], ['portacli', 'Porta do cliente'], ['failover', 'Fail-over']].forEach(function (p) { if (g(p[0])) r.extras.push(p[1] + ': ' + g(p[0])); });
+  if (g('modelo') && r.equipamento !== g('modelo')) r.extras.push('Modelo: ' + g('modelo'));
+  var lv = r.obs.match(/lev(?:ar|e)\s+([^|,]+)/i); if (lv) r.levar = lv[1].trim().replace(/[.\s]+$/, '').replace(/\s+para\s+(poss\S*\s+)?trocas?$/i, '').replace(/\s+para\s+testar[\s\S]*$/i, '').replace(/^(outr[ao]|uma?)\s+/i, '');
+  var ct = (r.obs + ' | ' + dh).match(/procurar\s+(?:por|pelo|pela)?\s*([^|,]+)/i); if (ct) r.contato = ct[1].trim().replace(/\.+$/, '');
+  r.janela = r.janela.replace(/,?\s*procurar[\s\S]*$/i, '').trim();
+  r.categoria = gtdSugerir(r.motivo, r.obs);
+  var tudo = gtdNorm(r.motivo + ' ' + r.obs);
+  r.prioridade = /escalonad|risco de cancelamento/.test(tudo) ? 'Escalonado' : (r.categoria === 'Indisponibilidade' ? 'Alta' : 'Normal');
+  r.possivelImprodutiva = /improdutiv/.test(tudo);
+  var falta = [];
+  if (!r.motivo) falta.push('motivo'); if (!r.cliente) falta.push('cliente'); if (!r.etiqueta) falta.push('etiqueta');
+  if (!r.endereco) falta.push('endereço'); if (!r.pom) falta.push('protocolo O&M');
+  r.faltando = falta;
+  return r;
+}
+const GTD_CONTA='3.1.1.2.05.0006 - Serviços de Manutenção CLIENTE - REPARO EMERGENCIAL EM CLIENTES (MANUTENÇÃO)';
+const GTD_T=['gPainel','gCham','gAgenda','gNovo','gRel','gAprov'];
+const GTD_KEYS=['gPainel','gCham','a_gDespachar','a_gEditar','gAgenda','gNovo','gRel','gAprov','a_gAprovar','a_gValidar'];
+const NOC_PERM=['gCham','gAgenda','gNovo','gRel','a_gValidar'];
+const GTD_ABERTOS=['aberto','desloc','local','atend','valid'];
+const GTD_LOCAL=['Equipamento do cliente','Rede interna do cliente','Rede externa','POP / OLT'];
+const GTD_CAUSA=['Equipamento com defeito','Fonte / energia','Conector ou cordão','Configuração','Fibra atenuada ou rompida','Sem defeito encontrado','Outra'];
+const GTD_H=3600000,GTD_DIA=864e5;
+const GST={aberto:['Não despachado','warn'],desp:['Despachado',''],desloc:['Em deslocamento','info'],local:['No local','info'],atend:['Em atividade','info'],valid:['Aguardando validação','warn'],rfo:['Validado · RFO pendente','ok'],lpu:['Validado · LPU pendente','ok'],aprov:['Encerrado · LPU em aprovação','ok'],concl:['Encerrado','ok'],cancelado:['Cancelado','']};
+const GLST={registrada:['LPU registrada (CLT)','ok'],conferencia:['LPU em conferência no prestador','info'],aguardando:['LPU aguardando aprovação','warn'],ajuste:['LPU devolvida para ajuste','info'],aprovada:['LPU aprovada','ok'],reprovada:['LPU reprovada','bad']};
+const G={ch:[],lpus:[],tecs:[],nMsg:{},msgs:{},msgBus:{},fotos:{},avisos:[],ok:false,erro:''};
+
+/* ---------- regras e formatação ---------- */
+const gCatDe=t=>GTD_T.includes(t)?'gtd':'impl';
+const gGest=()=>['coord','sup','enc'].includes(ui.perfil);
+const gVeGtd=()=>gGest()||ui.perfil==='noc';
+const gTecPerfil=()=>['clt','terc','func'].includes(ui.perfil);
+const gPodeValidar=()=>ui.perfil==='noc'||ui.perfil==='coord'||(gGest()&&pode('a_gValidar'));
+const gPodeDesp=()=>gGest()&&pode('a_gDespachar');
+const gPodeEditar=()=>gGest()&&pode('a_gEditar');
+const gStK=c=>c.status==='aberto'&&c.tec?'desp':c.status;
+const gChip=c=>{const x=GST[gStK(c)]||[c.status,''];return `<span class="chip ${x[1]}">${x[0]}</span>`};
+const gT=v=>v?new Date(v).getTime():null;
+const gIni=c=>c.agendaEm&&c.agendaEm>c.criadoEm?c.agendaEm:c.criadoEm;
+const gDur=ms=>{const m=Math.max(0,Math.round(ms/60000)),h=Math.floor(m/60),r=m%60;if(h>=24)return Math.floor(h/24)+'d '+(h%24)+'h';return h?h+'h'+pad(r):r+' min'};
+const gHHMM=ms=>{const m=Math.max(0,Math.round(ms/60000));return pad(Math.floor(m/60))+':'+pad(m%60)};
+const gQuando=t=>t?(isoD(new Date(t))===hoje()?'hoje ':dBR(isoD(new Date(t))).slice(0,5)+' ')+hm(t):'';
+function gMttr(c){if(c.status==='cancelado')return{l:'MTTR',v:'—'};const ini=gIni(c);if(!c.validadoEm&&ini>Date.now())return{l:'MTTR começa',v:gQuando(ini)};const fim=c.validadoEm||Date.now();return{l:c.validadoEm?'MTTR':'MTTR (contando)',v:gDur(fim-ini),ms:fim-ini}}
+function gSla(c){if(c.categoria!=='Indisponibilidade'||c.status==='cancelado')return null;const ini=gIni(c),lim=ini+4*GTD_H;if(!c.validadoEm&&ini>Date.now())return{t:'SLA 4h',cls:''};
+  if(c.validadoEm)return lim-c.validadoEm>=0?{t:'Dentro do SLA',cls:'ok',ok:true}:{t:'SLA estourado',cls:'bad',ok:false};const d=lim-Date.now();return d>=0?{t:'SLA: faltam '+gDur(d),cls:d<GTD_H?'warn':'info'}:{t:'SLA estourado há '+gDur(-d),cls:'bad'}}
+const gEndKey=e=>{const p=gtdNorm(e).split(',');return (p[0]+','+(p[1]||'')).replace(/[^a-z0-9,]/g,'')};
+const gReinc=c=>c.etiqueta?G.ch.filter(x=>x.id!==c.id&&x.status!=='cancelado'&&x.etiqueta===c.etiqueta&&x.criadoEm<=c.criadoEm&&c.criadoEm-x.criadoEm<=30*GTD_DIA):[];
+const gMesmoEnd=c=>c.endereco?G.ch.filter(x=>x.id!==c.id&&GTD_ABERTOS.includes(x.status)&&x.endereco&&gEndKey(x.endereco)===gEndKey(c.endereco)):[];
+const gTecN=id=>{if(!id)return 'Não despachado';const t=G.tecs.find(x=>x.id===id)||TEC.find(x=>x.id===id);return t?t.nome:(ME&&id===ME.id?ME.nome:'Técnico')};
+const gTecV=id=>{const t=G.tecs.find(x=>x.id===id);if(t)return t.vinculo==='terceiro'?'Terceiro':'CLT';const u=TEC.find(x=>x.id===id);return u?(u.tipo==='TERC'?'Terceiro':'CLT'):''};
+const gLpuDe=c=>G.lpus.filter(l=>l.chamado===c.id).sort((a,b)=>((b.hist||[])[0]||{em:0}).em-((a.hist||[])[0]||{em:0}).em)[0]||null;
+const gNMsg=(t,id)=>G.nMsg[t+':'+id]||0;
+const gMsgBtn=(t,id,cls)=>{const n=gNMsg(t,id);return `<button class="btn ${cls||'primary'} sm" data-act="chatAbrir" data-t="${t}" data-id="${id}">Mensagens${n?` (${n})`:''}</button>`};
+const gErroBox=()=>`<div class="result warn" style="margin-top:8px"><b>GTD Manutenção indisponível.</b> ${esc(G.erro)}</div>`;
+
+function gRfoTexto(c){const r=c.rfo||{},ini=(c.ts&&c.ts.inicio)||gIni(c),fim=c.validadoEm||(c.ts&&c.ts.validado)||Date.now(),L='━━━━━━━━━━━━━━';
+  const mats=r.materiais?r.materiais.split(/\s*[+,;]\s*|\s+e\s+/i).filter(Boolean).map(x=>'• '+x).join('\n'):'• Nenhum material utilizado';
+  const serial=r.serialRet||r.serialInst?'Retirado: '+(r.serialRet||'---')+'\nInstalado: '+(r.serialInst||'---'):'---';
+  const sol=(r.solucao||'---')+(c.desfecho&&c.desfecho!=='Resolvido'?'\nDesfecho: '+c.desfecho+(c.encEquipe?' para '+c.encEquipe:''):'');
+  return ['📋 RFO - NETTURBO - O&M','',L,'🔎 IDENTIFICAÇÃO',L,'🏢 Empresa: NetTurbo','👨‍🔧 Técnico: '+gTecN(c.tec),'🎫 Protocolo: '+(c.pom||'---'),'📍 Cidade: '+(c.cidade||'---'),
+    '📅 Data: '+isoD(new Date(fim)),'⏰ Horário: '+hm(ini)+' às '+hm(fim),'⌛ MTTR: '+gHHMM(fim-gIni(c)),'','🏷️ Etiqueta: '+(c.etiqueta||'---'),'👤 Cliente: '+(c.cliente||'---'),'📌 Localização: '+(r.local||'---'),'',
+    L,'⚠️ CAUSA',L,r.causa||'---','','📝 Detalhes:',r.detalhes||'---','',L,'🛠️ MATERIAIS',L,mats,'','🔢 Serial Number:',serial,'','🏷️ Patrimônio:',r.patrimonio||'---','',
+    L,'✅ SOLUÇÃO',L,sol,'','🚀 Melhoria de Rede:',r.melhoria||'---'].join('\n')}
+
+/* ---------- banco ---------- */
+const G_COLS=['id','pom','pnoc','etiqueta','cliente','cidade','categoria','prioridade','status','tec','agendaEm','validadoEm','criadoEm'];
+function gDeRow(r){const d=r.dados||{};return Object.assign({ts:{},naoVal:[],hist:[]},d,{id:r.id,pom:r.pom||'',pnoc:r.pnoc||'',etiqueta:r.etiqueta||'',cliente:r.cliente||'',cidade:r.cidade||'',categoria:r.categoria||'',prioridade:r.prioridade||'Normal',status:r.status,tec:r.tecnico||null,agendaEm:gT(r.agenda_em),validadoEm:gT(r.validado_em),criadoEm:gT(r.criado_em)||Date.now()})}
+function gParaRow(c){const d={};Object.keys(c).forEach(k=>{if(!G_COLS.includes(k)&&c[k]!==undefined)d[k]=c[k]});return{pom:c.pom||null,pnoc:c.pnoc||null,etiqueta:c.etiqueta||null,cliente:c.cliente||null,cidade:c.cidade||null,categoria:c.categoria||null,prioridade:c.prioridade||'Normal',status:c.status,tecnico:c.tec||null,agenda_em:c.agendaEm?new Date(c.agendaEm).toISOString():null,dados:d}}
+function gLpuDeRow(r){return Object.assign({hist:[],itens:[]},r.dados,{id:r.id,chamado:r.chamado,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total||0,pdf_path:r.pdf_path,prestador:r.prestador||undefined})}
+function gLpuRow(l){const{id,chamado,etiqueta,tec,status,total,pdf_path,prestador,...d}=l;return{id,chamado,agendamento:null,etiqueta,tecnico:tec,status,total:Math.round((+total||0)*100)/100,pdf_path:pdf_path||null,prestador:prestador||null,dados:d}}
+async function gCarregar(){
+  if(!ME||['supply','visu'].includes(ui.perfil)){G.ok=true;return}
+  const ve=gVeGtd(),tc=gTecPerfil()||ui.perfil==='coord';
+  if(ve||tc){try{const[ch,lp,tcs]=await Promise.all([todas(()=>sb.from('ag_chamados').select('*').order('criado_em',{ascending:false})),todas(()=>sb.from('ag_lpus').select('*').not('chamado','is',null)),ve?sb.rpc('ag_tecnicos_lista').then(r=>r.error?[]:r.data||[]):Promise.resolve([])]);
+      G.ch=ch.map(gDeRow);G.lpus=lp.map(gLpuDeRow);G.tecs=tcs;G.erro=''}
+    catch(e){console.warn('GTD',e);G.ch=[];G.lpus=[];G.erro=/ag_chamados|chamado|does not exist|schema cache|relation/i.test(String(e.message||e))?'Rode o script agenda_ajuste_14_gtd_manutencao.sql no Supabase para ativar os chamados do GTD.':'Não foi possível carregar os chamados: '+(e.message||e)}}
+  else{G.ch=[];G.lpus=[]}
+  try{const[ms,av]=await Promise.all([sb.from('ag_mensagens').select('id,chamado,agendamento').gte('em',new Date(Date.now()-120*GTD_DIA).toISOString()).limit(10000),sb.from('ag_avisos').select('*').order('em',{ascending:false}).limit(100)]);
+    if(!ms.error){G.nMsg={};(ms.data||[]).forEach(m=>{const k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;G.nMsg[k]=(G.nMsg[k]||0)+1})}if(!av.error)G.avisos=av.data||[]}catch(e){}
+  G.ok=true}
+async function gAcao(id,fn,msg){let c;
+  try{const r=await sb.from('ag_chamados').select('*').eq('id',id).maybeSingle();if(r.error)throw r.error;if(!r.data){toast('Chamado não encontrado.','bad');return false}c=gDeRow(r.data)}
+  catch(e){toast('Sem conexão com o banco: '+(e.message||e),'bad');return false}
+  c.ts=c.ts||{};c.hist=c.hist||[];c.naoVal=c.naoVal||[];
+  if(fn(c)===false){gTroca(c);render();return false}
+  const r=await sb.from('ag_chamados').update(gParaRow(c)).eq('id',id).select().maybeSingle();
+  if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');await gCarregar();render();return false}
+  const nv=r.data?gDeRow(r.data):c;gTroca(nv);render();if(msg)toast(msg);return nv}
+function gTroca(c){const i=G.ch.findIndex(x=>x.id===c.id);if(i>=0)G.ch[i]=c;else G.ch.unshift(c)}
+const gHist=(c,acao,extra)=>{c.hist=(c.hist||[]).concat([Object.assign({acao,por:meNome(),em:Date.now()},extra||{})])};
+
+/* ---------- KANBAN (gestão e NOC) ---------- */
+function gCard(c){const sla=gSla(c),re=gReinc(c).length,me=gMesmoEnd(c).length,n=gNMsg('g',c.id),mt=gMttr(c);
+  return `<button class="kc" data-act="gAbrir" data-id="${c.id}"><span class="kch"><b>O&amp;M ${esc(c.pom||'—')}</b>${n?`<span class="chip info">${n} msg</span>`:''}</span><span class="kcc">${esc(c.cliente||'Cliente')}</span>
+   <span class="kct"><span class="chip">${esc(c.categoria||'Sem categoria')}</span>${c.agendaEm?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:''}${c.prioridade&&c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${re?'<span class="chip bad">Reincidente</span>':''}${me?'<span class="chip info">Mesmo endereço</span>':''}${c.naoVal&&c.naoVal.length&&GTD_ABERTOS.includes(c.status)?'<span class="chip bad">Não validado</span>':''}</span>
+   ${c.status==='desloc'&&c.ts&&c.ts.eta?`<span class="kceta">Chega por volta das ${hm(c.ts.eta)}</span>`:''}<small>${esc(gTecN(c.tec))}${c.tec?' ('+gTecV(c.tec)+')':''} · ${esc(c.cidade||'—')}</small><small>${mt.l}: ${mt.v}</small></button>`}
+function viewGCham(){if(G.erro)return `<h2>Chamados · GTD Manutenção</h2>${gErroBox()}`;
+  if(ui.gSel){const c=G.ch.find(x=>x.id===ui.gSel);if(c)return gDetalhe(c);ui.gSel=null}
+  const T=hoje(),q=normK(ui.gQ||''),f=c=>!q||normK([c.pom,c.pnoc,c.cliente,c.etiqueta,c.cidade,gTecN(c.tec),c.categoria].join(' ')).includes(q),L=G.ch.filter(c=>c.status!=='cancelado'&&f(c));
+  const cols=[['Não despachados','Aguardando a gestão escolher o técnico',c=>c.status==='aberto'&&!c.tec],['Despachados','Técnico avisado; ainda não saiu',c=>c.status==='aberto'&&c.tec],['Em deslocamento','Com a previsão de chegada',c=>c.status==='desloc'],['No local · em atividade','Chegou ou já está atendendo',c=>c.status==='local'||c.status==='atend'],['Aguardando validação','O NOC confere; o MTTR continua',c=>c.status==='valid'],['Encerrados hoje','Validados hoje pelo NOC',c=>!GTD_ABERTOS.includes(c.status)&&c.validadoEm&&isoD(new Date(c.validadoEm))===T]];
+  const pend=G.ch.filter(c=>['rfo','lpu'].includes(c.status)&&c.validadoEm&&isoD(new Date(c.validadoEm))<T).length;
+  return `<div class="toolbar"><div><h2>Chamados · GTD Manutenção</h2><p class="muted">${ui.perfil==='noc'?'Acompanhe os chamados, converse com o técnico e valide o atendimento. O despacho é feito pela gestão do GTD.':'Toque no chamado para despachar, acompanhar e ver a linha do tempo.'}</p></div>
+   <div class="tools"><input class="inp" type="search" id="gQ" data-in="gQ" placeholder="Buscar O&amp;M, cliente, etiqueta ou técnico" value="${esc(ui.gQ||'')}" autocomplete="off">${pode('gAgenda')?'<button class="btn" data-act="tab" data-t="gAgenda">Ver agenda</button>':''}${pode('gNovo')?'<button class="btn primary" data-act="tab" data-t="gNovo">Criar chamado</button>':''}</div></div>
+   ${pend?`<p class="note">${pend} ${pend===1?'chamado validado em dias anteriores ainda está':'chamados validados em dias anteriores ainda estão'} com RFO ou LPU pendente. Veja em Relatórios.</p>`:''}
+   <div class="kbwrap"><div class="kb">${cols.map(([n,aj,fn])=>{const cs=L.filter(fn).sort((a,b)=>gIni(a)-gIni(b));return `<section class="gkcol" aria-label="${n}"><div class="kcolh"><h3>${n}</h3><b>${cs.length}</b></div><small class="muted">${aj}</small>${cs.map(gCard).join('')||'<span class="muted kvz">Nenhum chamado.</span>'}</section>`}).join('')}</div></div>`}
+
+function gTimeline(c){const t=c.ts||{},ev=[['Chamado criado'+(c.criadoPorNome?' por '+c.criadoPorNome+(c.criadoPapel?' ('+c.criadoPapel+')':''):''),c.criadoEm]];
+  if(c.agendaEm)ev.push(['Agendado para '+gQuando(c.agendaEm)+' (início do MTTR)',c.agendaEm<=Date.now()?c.agendaEm:null]);
+  ev.push(['Despachado'+(c.tec?' para '+gTecN(c.tec):''),t.despacho],['Deslocamento iniciado'+(t.eta?' · previsão '+hm(t.eta):''),t.desloc],['Chegada no cliente',t.chegada],['Atendimento iniciado',t.inicio]);
+  (c.naoVal||[]).forEach(n=>ev.push(['Não validado: '+n.motivo+(n.por?' ('+n.por+')':''),n.em,1]));
+  ev.push(['Validação pedida ao NOC',t.pedido],['Validado pelo NOC'+(c.validadoPor?' ('+c.validadoPor+')':'')+' · fim do MTTR',c.validadoEm]);
+  if(c.status==='cancelado')ev.push(['Chamado cancelado'+(c.motivoCancel?': '+c.motivoCancel:''),t.cancelado,1]);
+  if(c.rfoTxt)ev.push(['RFO · desfecho '+c.desfecho+(c.encEquipe?' para '+c.encEquipe:''),t.rfo]);
+  const l=gLpuDe(c);if(l)ev.push([(GLST[l.status]||[l.status])[0],((l.hist||[]).slice(-1)[0]||{}).em]);
+  const feitos=ev.filter(x=>x[1]).sort((a,b)=>a[1]-b[1]),falta=ev.filter(x=>!x[1]&&!x[2]);
+  return `<div class="gtl">${feitos.map(x=>`<div class="tlk on ${x[2]?'bad':''}"><i></i><span>${esc(x[0])}</span><small>${gQuando(x[1])}</small></div>`).join('')}${c.status==='cancelado'?'':falta.map(x=>`<div class="tlk"><i></i><span>${esc(x[0])}</span><small>—</small></div>`).join('')}</div>`}
+function gKv(c){const kv=[['Motivo',c.motivo],['Endereço',c.endereco],['Janela informada',c.janela],['Procurar por',c.contato],['Equipamento',c.equipamento],['Porta',c.porta],['OLT',c.olt],['Banda',c.banda],['Dados IP / PPPoE',c.ip],['Tipo de entrega',c.entrega],['Observações',c.obs],['Dados extras',(c.extras||[]).join('\n')],['Protocolo NOC',c.pnoc]].filter(x=>x[1]);
+  return `<dl class="gkv">${kv.map(([k,v])=>`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>${c.mapa?`<a class="btn sm" href="${esc(c.mapa)}" target="_blank" rel="noopener" style="margin-top:8px">Abrir localização no mapa</a>`:''}`}
+const gTecOpts=sel=>{const L=G.tecs.length?G.tecs:TEC.map(t=>({id:t.id,nome:t.nome,vinculo:t.tipo==='TERC'?'terceiro':'clt'}));const o=v=>L.filter(t=>(t.vinculo==='terceiro')===v).map(t=>`<option value="${t.id}" ${t.id===sel?'selected':''}>${esc(t.nome)}</option>`).join('');return `<optgroup label="Equipe própria (CLT)">${o(false)}</optgroup><optgroup label="Terceiros">${o(true)}</optgroup>`};
+function gDetalhe(c){const sla=gSla(c),mt=gMttr(c),re=gReinc(c),me=gMesmoEnd(c),l=gLpuDe(c),t=c.ts||{},ab=c.status==='aberto';
+  const agBox=(gPodeEditar()||ui.perfil==='noc')&&ab?`<section class="gbox ag"><b>Agendamento</b><div class="tools"><label class="f inline"><span>Data</span><input type="date" class="inp" id="gAgD" value="${c.agendaEm?isoD(new Date(c.agendaEm)):''}"></label><label class="f inline"><span>Horário</span><input type="time" class="inp" id="gAgH" value="${c.agendaEm?hm(c.agendaEm):'08:00'}"></label><button class="btn primary sm" data-act="gAgSalvar" data-id="${c.id}">Salvar</button>${c.agendaEm?`<button class="btn sm" data-act="gAgTirar" data-id="${c.id}">Atender hoje (sem agendamento)</button>`:''}</div><small class="muted">O MTTR e o SLA começam no horário agendado.</small></section>`:'';
+  const desp=gPodeDesp()&&ab?`<section class="gbox desp"><label class="f" style="margin:0"><span>${c.tec?'Trocar técnico':'Despachar para'}</span><span class="tools"><select class="inp" id="gDespTec"><option value="">Escolha o técnico…</option>${gTecOpts(c.tec)}</select><button class="btn primary" data-act="gDespachar" data-id="${c.id}">${c.tec?'Trocar':'Despachar'}</button></span></label><small class="muted">O técnico recebe o aviso no celular.</small></section>`:'';
+  const val=c.status==='valid'?(gPodeValidar()?`<section class="gbox val"><b>O técnico pediu validação</b><span class="muted">Confira o link. Ao validar, o MTTR para e o técnico segue para o RFO e a LPU.</span><div class="tools"><button class="btn primary" data-act="gValidar" data-id="${c.id}">Validado</button><input class="inp" id="gNvMot" placeholder="Motivo, se não validado" value="${esc((ui.gNv||{})[c.id]||'')}" data-in="gNv" data-id="${c.id}"><button class="btn danger" data-act="gNaoValidar" data-id="${c.id}">Não validado</button></div></section>`:'<div class="result warn">O técnico pediu validação. Aguardando o NOC validar; o MTTR continua contando.</div>'):'';
+  const lpuBox=l?`<section class="gbox"><b>LPU do chamado</b><div class="tools">${`<span class="chip ${(GLST[l.status]||['',''])[1]}">${(GLST[l.status]||[l.status])[0]}</span>`}${verValor()&&l.status!=='registrada'?`<b>${brl(l.total)}</b>`:''}<span class="muted">${(l.itens||[]).length} serviço(s)</span><button class="btn sm" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'&&pode('gAprov')?'<button class="btn sm" data-act="tab" data-t="gAprov">Ir para a aprovação</button>':''}</div></section>`:'';
+  const acoes=gPodeEditar()&&c.status!=='cancelado'?`<div class="actions" style="justify-content:flex-start">${GTD_ABERTOS.includes(c.status)?`<button class="btn sm" data-act="gEditar" data-id="${c.id}">Editar dados</button><button class="btn sm" data-act="gCancelar" data-id="${c.id}">Cancelar chamado</button>`:''}</div>`:'';
+  return `<button class="back" data-act="gFechar">‹ Chamados</button>
+  <div class="gdet"><div class="stack">
+   <section class="panel"><div class="ah"><div><h2>O&amp;M ${esc(c.pom||'—')}</h2><small class="muted">NOC ${esc(c.pnoc||'—')} · criado ${gQuando(c.criadoEm)}</small></div>${gMsgBtn('g',c.id)}</div>
+    <p style="margin:8px 0 2px;font-weight:600;font-size:17px">${esc(c.cliente||'Cliente')}</p><p class="muted" style="margin:0">Etiqueta ${esc(c.etiqueta||'—')}${c.parceiro?' · parceiro '+esc(c.parceiro):''} · ${esc(c.cidade||'—')}</p>
+    <div class="tools" style="margin-top:8px">${gChip(c)}<span class="chip">${esc(c.categoria||'')}</span><span class="chip ${c.prioridade==='Escalonado'?'bad':c.prioridade==='Alta'?'warn':''}">${esc(c.prioridade||'Normal')}</span>${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}</div>
+    <div class="gnums"><div><small>${mt.l}</small><b>${mt.v}</b></div><div><small>Técnico</small><span>${esc(gTecN(c.tec))}${c.tec?' ('+gTecV(c.tec)+')':''}</span></div><div><small>Quando</small><span>${c.agendaEm?'Agendado '+gQuando(c.agendaEm):'Atendimento hoje'}</span></div></div></section>
+   ${c.status==='desloc'&&t.eta?`<div class="result info"><b>Em deslocamento: chega por volta das ${hm(t.eta)}.</b></div>`:''}
+   ${re.length?`<div class="result bad"><b>Reincidente:</b> ${re.length} outro(s) chamado(s) desta etiqueta nos últimos 30 dias (${re.map(x=>'O&M '+esc(x.pom)+' em '+dBR(isoD(new Date(x.criadoEm)))).join(', ')}).</div>`:''}
+   ${me.length?`<div class="result info">Mesmo endereço de outro chamado em aberto: ${me.map(x=>'O&M '+esc(x.pom)+' ('+esc(x.cliente)+')').join(', ')}.</div>`:''}
+   ${c.possivelImprodutiva?'<div class="result warn">Possível improdutiva sinalizada pelo NOC.</div>':''}${c.levar?`<div class="result ok"><b>Levar:</b> ${esc(c.levar)}</div>`:''}
+   ${ui.perfil==='noc'&&ab&&!c.tec?'<div class="result warn">Aguardando o despacho pela gestão do GTD.</div>':''}
+   ${desp}${agBox}${val}${lpuBox}
+   ${c.rfoTxt?`<section class="panel"><div class="ah"><h3>RFO</h3><button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></div><pre class="rfo">${esc(c.rfoTxt)}</pre></section>`:''}
+   ${acoes}</div>
+   <div class="stack"><section class="panel"><h3 class="lsub" style="margin-top:0">Linha do tempo</h3>${gTimeline(c)}</section><section class="panel"><h3 class="lsub" style="margin-top:0">Dados do chamado</h3>${gKv(c)}</section></div></div>`}
+
+/* ---------- CRIAR CHAMADO ---------- */
+function gAgendaDe(p){if(!p.data)return null;const[dd,mm]=p.data.split('/'),h=(String(p.janela||'').match(/(\d{1,2})\s*(?:h|:)/i)||[])[1],d=new Date(new Date().getFullYear(),+mm-1,+dd,h?+h:8,0,0,0),z=new Date();z.setHours(0,0,0,0);return d.getTime()>=z.getTime()?d.getTime():null}
+function viewGNovo(){if(G.erro)return `<h2>Criar chamado</h2>${gErroBox()}`;const F=ui.gF;
+  let form='';if(F){const fake=Object.assign({},F,{id:'_novo',criadoEm:Date.now()}),re=gReinc(fake),me=gMesmoEnd(fake),dup=F.pom&&G.ch.filter(x=>x.pom===F.pom&&x.status!=='cancelado');
+    const cur=(k,l)=>`<label class="f"><span>${l}</span><input class="inp" data-in="gF" data-k="${k}" value="${esc(F[k]||'')}"></label>`,lon=(k,l)=>`<label class="f"><span>${l}</span><textarea class="inp" rows="2" data-in="gF" data-k="${k}">${esc(F[k]||'')}</textarea></label>`;
+    form=`<section class="panel" style="margin-top:14px"><h3>Confira os dados lidos</h3>
+     ${dup&&dup.length?`<div class="result bad" style="margin-top:8px">Já existe chamado com o protocolo O&amp;M ${esc(F.pom)} (${dup.map(x=>GST[gStK(x)][0].toLowerCase()).join(', ')}).</div>`:''}
+     ${re.length?`<div class="result bad" style="margin-top:8px"><b>Reincidência:</b> a etiqueta ${esc(F.etiqueta)} teve ${re.length} chamado(s) nos últimos 30 dias (${re.map(x=>'O&M '+esc(x.pom)+', '+dBR(isoD(new Date(x.criadoEm)))).join('; ')}).</div>`:''}
+     ${me.length?`<div class="result info" style="margin-top:8px">Mesmo endereço de chamado em aberto: ${me.map(x=>'O&M '+esc(x.pom)+' ('+esc(x.cliente)+')').join(', ')}.</div>`:''}
+     ${(F.faltando||[]).length?`<div class="result warn" style="margin-top:8px">Não encontrado no texto: ${F.faltando.join(', ')}. Preencha abaixo, se tiver.</div>`:''}
+     ${F.possivelImprodutiva?'<div class="result warn" style="margin-top:8px">Possível improdutiva sinalizada no texto.</div>':''}
+     <div class="gbox ag" style="margin-top:12px"><div class="tools"><label class="f inline"><span>Quando atender</span><select class="inp" data-ch="gFsel" data-k="modo"><option value="hoje" ${F.modo!=='agendado'?'selected':''}>Atendimento hoje</option><option value="agendado" ${F.modo==='agendado'?'selected':''}>Agendado</option></select></label>
+      ${F.modo==='agendado'?`<label class="f inline"><span>Data</span><input type="date" class="inp" data-in="gF" data-k="agD" value="${esc(F.agD||'')}"></label><label class="f inline"><span>Horário</span><input type="time" class="inp" data-in="gF" data-k="agH" value="${esc(F.agH||'08:00')}"></label>`:''}</div>
+      <small class="muted">${F.modo==='agendado'?'O MTTR e o SLA começam no horário agendado. O chamado aparece na Agenda.':'O MTTR começa agora, na criação do chamado.'}</small></div>
+     <div class="ggrid" style="margin-top:12px">${cur('cliente','Cliente *')}${cur('etiqueta','Etiqueta')}${cur('cidade','Cidade')}${cur('pnoc','Protocolo NOC')}${cur('pom','Protocolo O&M')}${cur('equipamento','Equipamento')}${cur('porta','Porta')}${cur('banda','Banda')}${cur('entrega','Tipo de entrega')}${cur('levar','Material a levar')}${cur('contato','Contato no local')}${cur('janela','Janela informada pelo NOC')}</div>
+     ${lon('motivo','Motivo * (por enquanto texto livre; depois vira lista)')}${lon('endereco','Endereço')}${lon('ip','Dados IP / PPPoE')}${lon('obs','Observações (técnico autorizado, horário do cliente, avisos)')}
+     ${F.mapa?`<p><a href="${esc(F.mapa)}" target="_blank" rel="noopener">Localização lida do link</a></p>`:''}${(F.extras||[]).length?`<p class="muted">Dados técnicos extras: ${esc(F.extras.join(' · '))}</p>`:''}
+     <div class="ggrid"><label class="f"><span>Categoria</span><select class="inp" data-ch="gFsel" data-k="categoria">${GTD_CATS.map(x=>`<option ${x===F.categoria?'selected':''}>${x}</option>`).join('')}</select><small class="muted">Sugerida pelo motivo: ${esc(gtdSugerir(F.motivo,F.obs))}</small></label>
+      <label class="f"><span>Prioridade</span><select class="inp" data-ch="gFsel" data-k="prioridade">${['Normal','Alta','Escalonado'].map(x=>`<option ${x===F.prioridade?'selected':''}>${x}</option>`).join('')}</select></label></div>
+     <div class="actions" style="justify-content:flex-start;align-items:center"><button class="btn primary" data-act="gCriar">Criar chamado</button><span class="muted">Vai para Não despachados e avisa a gestão do GTD. Indisponibilidade tem SLA de 4 horas.</span></div></section>`}
+  return `<div class="toolbar"><div><h2>Criar chamado · GTD Manutenção</h2><p class="muted">Cole a solicitação de deslocamento do NOC. O chamado entra em Não despachados; o despacho é feito pela gestão do GTD.</p></div></div>
+   <section class="panel"><label class="f"><span>Solicitação de deslocamento</span><textarea class="inp gtxt" rows="9" id="gTxt" data-in="gTxt" placeholder="Solicitação de deslocamento:&#10;Motivo: …&#10;Cliente: …">${esc(ui.gTxt||'')}</textarea></label>
+    <div class="tools"><button class="btn primary" data-act="gLer">Ler chamado</button><button class="btn" data-act="gManual">Preencher sem texto</button>${F||ui.gTxt?'<button class="btn" data-act="gLimpar">Limpar</button>':''}</div></section>${form}`}
+
+/* ---------- AGENDA DO GTD ---------- */
+const gDiaDe=c=>isoD(new Date(gIni(c)));
+const gEvCls=c=>c.status==='cancelado'?'x':['aberto','valid'].includes(c.status)?'warn':['desloc','local','atend'].includes(c.status)?'info':'ok';
+const gFiltT=c=>c.status!=='cancelado'&&(!ui.gTecF||ui.gTecF==='all'||(ui.gTecF==='sem'?!c.tec:c.tec===ui.gTecF));
+const gEv=c=>`<button class="ev ${gEvCls(c)}" data-act="gAbrir" data-id="${c.id}" title="${esc('O&M '+c.pom+' '+c.cliente+', '+gTecN(c.tec))}"><b>${hm(gIni(c))} · ${esc(c.pom||'—')}</b><small>${esc(c.cliente)}</small><small>${esc(gTecN(c.tec))}</small></button>`;
+function viewGAgenda(){if(G.erro)return `<h2>Agenda · GTD Manutenção</h2>${gErroBox()}`;
+  const T=hoje(),v=ui.gView||'dia',D=ui.gDia||T;ui.gView=v;ui.gDia=D;let titulo='',corpo='',qtd=0;const doDia=x=>G.ch.filter(c=>gFiltT(c)&&gDiaDe(c)===x).sort((a,b)=>gIni(a)-gIni(b));
+  if(v==='dia'){const L=doDia(D),atr=D===T?G.ch.filter(c=>gFiltT(c)&&c.status==='aberto'&&gDiaDe(c)<T):[];qtd=L.length;const d=new Date(D+'T12:00:00');titulo=`${DSEM[d.getDay()]}, ${dBR(D)}`;
+    const it=c=>`<button class="item gai" data-act="gAbrir" data-id="${c.id}"><div><b>${hm(gIni(c))}</b> <b>O&amp;M ${esc(c.pom||'—')}</b> ${esc(c.cliente)}<small>${esc(c.categoria)} · ${esc(gTecN(c.tec))} · ${esc(c.cidade||'—')}${c.agendaEm?'':' · atendimento hoje'}</small></div><div class="right">${gChip(c)}</div></button>`;
+    corpo=`${atr.length?`<div class="result bad" style="margin-bottom:10px"><b>De dias anteriores e ainda sem deslocamento</b>${atr.map(it).join('')}</div>`:''}${L.map(it).join('')||'<p class="muted pad">Nenhum chamado nesta data.</p>'}`}
+  else if(v==='semana'){const ini=semanaIni(D),dias=[...Array(7)].map((_,k)=>addD(ini,k));titulo=`Semana de ${dBR(dias[0]).slice(0,5)} a ${dBR(dias[6])}`;
+    corpo=`<div class="calw">${dias.map(x=>{const L=doDia(x);qtd+=L.length;const d=new Date(x+'T12:00:00');return `<div class="dcol"><button class="dh ${x===T?'today':''}" data-act="gGoDia" data-d="${x}">${DSEM[d.getDay()]} ${dBR(x).slice(0,5)}</button><div class="db">${L.map(gEv).join('')}</div></div>`}).join('')}</div>`}
+  else{const d=new Date(D+'T12:00:00'),m1=isoD(new Date(d.getFullYear(),d.getMonth(),1)),ini=semanaIni(m1),mes=m1.slice(0,7);titulo=`${MES[d.getMonth()]} de ${d.getFullYear()}`;
+    corpo=`<div class="calm">${['seg','ter','qua','qui','sex','sáb','dom'].map(w=>`<div class="wd">${w}</div>`).join('')}${[...Array(42)].map((_,k)=>addD(ini,k)).map(x=>{const L=doDia(x);if(x.slice(0,7)===mes)qtd+=L.length;return `<div class="mc ${x.slice(0,7)===mes?'':'out'}"><button class="mn ${x===T?'today':''}" data-act="gGoDia" data-d="${x}">${+x.slice(8)}</button>${L.slice(0,3).map(gEv).join('')}${L.length>3?`<button class="more" data-act="gGoDia" data-d="${x}">+${L.length-3} mais</button>`:''}</div>`}).join('')}</div>`}
+  const tecs=G.tecs.length?G.tecs:[];
+  return `<section class="panel"><div class="secth"><h2>Agenda · GTD Manutenção</h2><div class="tools"><div class="views">${[['dia','Dia'],['semana','Semana'],['mes','Mês']].map(([k,n])=>`<button data-act="gView" data-v="${k}" aria-current="${v===k}">${n}</button>`).join('')}</div>${pode('gNovo')?'<button class="btn primary" data-act="tab" data-t="gNovo">Criar chamado</button>':''}</div></div>
+   <div class="dayhead"><button class="btn" data-act="gDiaN" data-n="-1" aria-label="Anterior">‹</button><button class="btn" data-act="gHoje">Hoje</button><button class="btn" data-act="gDiaN" data-n="1" aria-label="Próximo">›</button><input type="date" class="inp" data-ch="gDia" value="${D}" aria-label="Data">
+    <select class="inp" data-ch="gTecF" aria-label="Técnico"><option value="all">Todos os técnicos</option><option value="sem" ${ui.gTecF==='sem'?'selected':''}>Não despachados</option><optgroup label="Equipe própria (CLT)">${tecs.filter(t=>t.vinculo!=='terceiro').map(t=>`<option value="${t.id}" ${ui.gTecF===t.id?'selected':''}>${esc(t.nome)}</option>`).join('')}</optgroup><optgroup label="Terceiros">${tecs.filter(t=>t.vinculo==='terceiro').map(t=>`<option value="${t.id}" ${ui.gTecF===t.id?'selected':''}>${esc(t.nome)}</option>`).join('')}</optgroup></select></div>
+   <div class="secth" style="margin-top:12px"><h3 style="text-transform:none">${titulo.charAt(0).toUpperCase()+titulo.slice(1)}</h3><span class="muted">${qtd} chamado(s)</span></div>${corpo}
+   <p class="muted" style="font-size:13px;margin-top:10px">Atendimento hoje aparece no dia da criação; agendados, no dia e horário marcados. Borda laranja: não despachado ou aguardando validação; azul: em andamento; verde: validado.</p></section>`}
+
+/* ---------- PAINEL DE KPIs DO GTD ---------- */
+function gBarras(L,tot){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([n,q,ex])=>`<div class="gbar"><span>${esc(n)}</span><div><i style="width:${Math.round(q/mx*100)}%"></i></div><b>${q}</b>${ex!==undefined?`<small>${ex}</small>`:''}</div>`).join('')||'<p class="muted">Sem dados no período.</p>'}
+function viewGPainel(){if(G.erro)return `<h2>Painel de KPIs · GTD Manutenção</h2>${gErroBox()}`;
+  const ini=ui.gpIni||hoje().slice(0,8)+'01',fim=ui.gpFim||hoje();ui.gpIni=ini;ui.gpFim=fim;
+  const P=G.ch.filter(c=>c.status!=='cancelado'&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim),V=P.filter(c=>c.validadoEm),med=L=>L.length?L.reduce((s,x)=>s+x,0)/L.length:null;
+  const mttr=med(V.map(c=>c.validadoEm-gIni(c))),desp=med(P.filter(c=>c.ts&&c.ts.despacho).map(c=>c.ts.despacho-gIni(c)).filter(x=>x>=0)),ind=V.filter(c=>c.categoria==='Indisponibilidade'),indOk=ind.filter(c=>gSla(c)&&gSla(c).ok).length;
+  const reinc=P.filter(c=>gReinc(c).length).length,cnt=f=>P.filter(f).length;
+  const cards=[[String(P.length),'Chamados no período',''],[String(cnt(c=>GTD_ABERTOS.includes(c.status))),'Em aberto','warn'],[mttr==null?'—':gDur(mttr),'MTTR médio (validados)',''],[desp==null?'—':gDur(desp),'Tempo médio até o despacho',''],[ind.length?pct(indOk,ind.length)+'%':'—',`SLA indisponibilidade (${indOk} de ${ind.length} em até 4h)`,ind.length&&indOk<ind.length?'bad':'ok'],[String(reinc),'Reincidências (30 dias)',reinc?'bad':''],[String(cnt(c=>c.desfecho==='Improdutivo')),'Improdutivos',''],[String(cnt(c=>c.desfecho==='Encaminhado')),'Encaminhados para outra equipe','']];
+  const grp=(fn)=>{const m={};P.forEach(c=>{const k=fn(c)||'—';(m[k]=m[k]||[]).push(c)});return Object.entries(m).sort((a,b)=>b[1].length-a[1].length)};
+  const porCat=grp(c=>c.categoria).map(([k,L])=>{const v=L.filter(c=>c.validadoEm),m=med(v.map(c=>c.validadoEm-gIni(c)));return[k,L.length,m==null?'—':gDur(m)]});
+  const porTec=grp(c=>c.tec||'').filter(([k])=>k!=='—');
+  const ab=G.ch.filter(c=>c.categoria==='Indisponibilidade'&&GTD_ABERTOS.includes(c.status));
+  return `<div class="toolbar"><div><h2>Painel de KPIs · GTD Manutenção</h2><p class="muted">Chamados pelo dia de início (criação ou horário agendado). MTTR: do início até a validação do NOC.</p></div>
+   <div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${fim}"></label></div></div>
+   <div class="kpis" style="margin-bottom:14px">${cards.map(([v,l,c])=>kp(v,l,c)).join('')}</div>
+   ${ab.length?`<section class="panel" style="margin-bottom:14px"><h3>Indisponibilidades em andamento (SLA 4h)</h3>${ab.map(c=>{const s=gSla(c);return `<button class="item gai" data-act="gAbrir" data-id="${c.id}"><div><b>O&amp;M ${esc(c.pom)}</b> ${esc(c.cliente)}<small>${esc(gTecN(c.tec))} · ${GST[gStK(c)][0]}</small></div><div class="right">${s?`<span class="chip ${s.cls}">${s.t}</span>`:''}</div></button>`}).join('')}</section>`:''}
+   <div class="g2c"><section class="panel"><h3>Chamados por categoria</h3>${gBarras(porCat)}<small class="muted">Ao lado: MTTR médio dos validados.</small></section>
+    <section class="panel"><h3>Chamados por técnico</h3><div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Chamados</th><th class="r">Em aberto</th><th class="r">Resolvidos</th><th class="r">Improd.</th><th class="r">MTTR médio</th></tr></thead><tbody>${porTec.map(([id,L])=>{const v=L.filter(c=>c.validadoEm),m=med(v.map(c=>c.validadoEm-gIni(c)));return `<tr><td>${esc(gTecN(id))}</td><td>${gTecV(id)}</td><td class="r">${L.length}</td><td class="r">${L.filter(c=>GTD_ABERTOS.includes(c.status)).length}</td><td class="r">${L.filter(c=>c.desfecho==='Resolvido').length}</td><td class="r">${L.filter(c=>c.desfecho==='Improdutivo').length}</td><td class="r">${m==null?'—':gDur(m)}</td></tr>`}).join('')||'<tr><td colspan="7" class="muted">Nenhum chamado despachado no período.</td></tr>'}</tbody></table></div></section>
+    <section class="panel"><h3>Por cidade</h3>${gBarras(grp(c=>c.cidade).slice(0,10).map(([k,L])=>[k,L.length]))}</section>
+    <section class="panel"><h3>Por OLT</h3>${gBarras(grp(c=>c.olt).filter(([k])=>k!=='—').slice(0,10).map(([k,L])=>[k,L.length]))}</section>
+    <section class="panel"><h3>Por desfecho</h3>${gBarras(grp(c=>c.desfecho).filter(([k])=>k!=='—').map(([k,L])=>[k,L.length]))}</section>
+    <section class="panel"><h3>CLT x terceiros</h3>${gBarras([['Equipe própria (CLT)',P.filter(c=>c.tec&&gTecV(c.tec)==='CLT').length],['Terceiros',P.filter(c=>c.tec&&gTecV(c.tec)==='Terceiro').length],['Não despachados',P.filter(c=>!c.tec).length]])}</section></div>`}
+
+/* ---------- RELATÓRIOS: histórico por cliente ---------- */
+function viewGRel(){if(G.erro)return `<h2>Relatórios · GTD Manutenção</h2>${gErroBox()}`;
+  const cliK=c=>c.etiqueta||normK(c.cliente||''),m={};G.ch.filter(c=>c.status!=='cancelado').forEach(c=>{(m[cliK(c)]=m[cliK(c)]||[]).push(c)});
+  const q=normK(ui.grQ||''),cl=Object.entries(m).map(([k,L])=>({k,L:L.sort((a,b)=>b.criadoEm-a.criadoEm)})).filter(x=>!q||x.L.some(c=>normK([c.cliente,c.etiqueta,c.pom,c.pnoc].join(' ')).includes(q))).sort((a,b)=>b.L[0].criadoEm-a.L[0].criadoEm);
+  const sel=ui.grSel&&m[ui.grSel]?m[ui.grSel].slice().sort((a,b)=>b.criadoEm-a.criadoEm):null;
+  const lista=`<section class="panel grl"><label class="f"><span>Buscar cliente, etiqueta ou protocolo</span><input class="inp" type="search" id="grQ" data-in="grQ" value="${esc(ui.grQ||'')}" placeholder="Ex.: nome do cliente, etiqueta, 147223" autocomplete="off"></label>
+   <div class="grlist">${cl.slice(0,200).map(x=>{const c=x.L[0],r30=x.L.filter(y=>Date.now()-y.criadoEm<=30*GTD_DIA).length;return `<button class="row ${ui.grSel===x.k?'on':''}" data-act="grSel" data-k="${esc(x.k)}"><b>${esc(c.cliente||'Cliente')}</b><small>${esc(c.etiqueta||'sem etiqueta')} · ${esc(c.cidade||'—')} · último ${dBR(isoD(new Date(c.criadoEm)))}</small><span class="tools"><span class="chip">${x.L.length} chamado${x.L.length>1?'s':''}</span>${r30>1?'<span class="chip bad">Reincidente</span>':''}</span></button>`}).join('')||'<p class="muted">Nenhum cliente encontrado.</p>'}</div></section>`;
+  let hist='<div class="panel muted">Escolha um cliente na lista para ver o histórico completo, com o RFO de cada atendimento.</div>';
+  if(sel){const c0=sel[0],V=sel.filter(c=>c.validadoEm),mt=V.length?V.reduce((s,c)=>s+(c.validadoEm-gIni(c)),0)/V.length:null;
+    hist=`<section class="panel"><h3>${esc(c0.cliente)}</h3><p class="muted" style="margin:2px 0 8px">Etiqueta ${esc(c0.etiqueta||'—')} · ${esc(c0.endereco||c0.cidade||'')}</p>${c0.mapa?`<a class="btn sm" href="${esc(c0.mapa)}" target="_blank" rel="noopener">Abrir localização no mapa</a>`:''}
+     <div class="kpis" style="margin-top:10px">${kp(sel.length,'Chamados')}${kp(sel.filter(c=>Date.now()-c.criadoEm<=30*GTD_DIA).length,'Últimos 30 dias')}${kp(mt==null?'—':gDur(mt),'MTTR médio')}${kp(sel.filter(c=>c.desfecho==='Improdutivo').length,'Improdutivos')}</div></section>
+     ${sel.map(c=>{const l=gLpuDe(c),sla=gSla(c);return `<article class="panel"><div class="ah"><div><b style="font-size:16px">O&amp;M ${esc(c.pom||'—')}</b> <small class="muted">NOC ${esc(c.pnoc||'—')} · aberto ${dBR(isoD(new Date(c.criadoEm)))}</small></div><button class="btn sm" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button></div>
+      <div class="tools" style="margin:6px 0">${gChip(c)}<span class="chip">${esc(c.categoria)}</span>${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}</div><p style="margin:4px 0"><b>Motivo:</b> ${esc(c.motivo||'—')}</p>
+      <dl class="dl"><div><dt>Técnico</dt><dd>${esc(gTecN(c.tec))}</dd></div><div><dt>Desfecho</dt><dd>${esc(c.desfecho?c.desfecho+(c.encEquipe?' para '+c.encEquipe:''):'—')}</dd></div><div><dt>MTTR</dt><dd>${c.validadoEm?gDur(c.validadoEm-gIni(c)):'em aberto'}</dd></div><div><dt>LPU</dt><dd>${l?(GLST[l.status]||[l.status])[0]+(verValor()&&l.status!=='registrada'?', '+brl(l.total):''):'—'}</dd></div></dl>
+      ${c.rfo?`<p style="margin:8px 0 0"><b>Causa:</b> ${esc(c.rfo.causa||'—')} · <b>Solução:</b> ${esc(c.rfo.solucao||'—')}</p>`:''}
+      ${c.rfoTxt?`<details style="margin-top:8px"><summary>Ver RFO completo</summary><pre class="rfo">${esc(c.rfoTxt)}</pre></details>`:'<p class="muted" style="margin:8px 0 0">RFO ainda não preenchido.</p>'}</article>`}).join('')}`}
+  return `<div class="toolbar"><div><h2>Relatórios · GTD Manutenção</h2><p class="muted">Escolha o cliente para ver todo o histórico de chamados, com o RFO de cada atendimento.</p></div></div><div class="grel">${lista}<div class="stack">${hist}</div></div>`}
+
+/* ---------- APROVAÇÃO DE LPU DO GTD (mesmo layout da Implantação) ---------- */
+function viewGAprov(){if(G.erro)return `<h2>Aprovação de LPU · GTD</h2>${gErroBox()}`;
+  const tabs=[['aguardando','Aguardando'],['ajuste','Em ajuste'],['aprovada','Aprovadas'],['reprovada','Reprovadas']],tab=tabs.some(x=>x[0]===ui.gaTab)?ui.gaTab:'aguardando';
+  const tot=s=>G.lpus.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0),cnt=s=>G.lpus.filter(l=>l.status===s).length;
+  const rows=G.lpus.filter(l=>l.status===tab).sort((a,b)=>String(b.data).localeCompare(String(a.data)));
+  const card=l=>{const c=G.ch.find(x=>x.id===l.chamado)||{ts:{}},op=ui.gaOpen===l.id,t=c.ts||{};
+    return `<div class="lcard"><button class="lhead" data-act="gaOpen" data-id="${l.id}" aria-expanded="${op}"><div><b>O&amp;M ${esc(l.pom||c.pom||'')}</b> <span>${esc(l.cliente||c.cliente||'')}</span>${c.desfecho==='Improdutivo'?' <span class="chip warn">Improdutivo</span>':''}<small>${esc(gTecN(l.tec))} (${gTecV(l.tec)||'terceiro'}), ${esc(l.categoria||c.categoria||'')}, ${dBR(l.data)}</small>${aprovPor(l)?`<small class="aprovp">${aprovPor(l)}</small>`:''}</div><span class="val">${brl(l.total)}</span></button>
+    ${op?`<div class="lbody">${(()=>{const h=(l.hist||[]).slice().reverse().find(x=>/pelo prestador/.test(x.acao));return h?`<div class="note" style="margin-top:12px"><b>Conferida pelo prestador:</b> ${esc(h.por)} em ${dtBR(h.em)}. Executada por ${esc(l.tecNome||gTecN(l.tec))}.</div>`:''})()}${l.obs?`<div class="note" style="margin-top:12px"><b>Observação do técnico:</b> ${esc(l.obs)}</div>`:''}
+     <p class="note" style="margin-top:12px"><b>Conta contábil (fixa no GTD):</b> ${esc(GTD_CONTA)}</p>
+     <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd</th><th class="r">Unitário</th><th class="r">Subtotal</th></tr></thead><tbody>${(l.itens||[]).map(i=>`<tr><td>${i.cod}</td><td>${esc(i.desc)}</td><td>${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.unit*i.qtd)}</td></tr>`).join('')}</tbody></table></div>
+     <dl class="dl" style="margin-top:12px"><div><dt>Categoria</dt><dd>${esc(c.categoria||'—')}</dd></div><div><dt>Desfecho</dt><dd>${esc(c.desfecho?c.desfecho+(c.encEquipe?' para '+c.encEquipe:''):'—')}</dd></div><div><dt>MTTR</dt><dd>${c.validadoEm?gDur(c.validadoEm-gIni(c)):'—'}</dd></div><div><dt>Deslocamento</dt><dd>${fdur(dur(t.desloc,t.chegada))}</dd></div><div><dt>Atendimento</dt><dd>${fdur(dur(t.inicio,c.validadoEm))}</dd></div><div><dt>Situação</dt><dd>${lchip(l.status)}</dd></div></dl>
+     ${c.rfoTxt?`<details style="margin-top:10px"><summary>Ver RFO</summary><pre class="rfo">${esc(c.rfoTxt)}</pre></details>`:''}
+     <div class="hist">${(l.hist||[]).map(h=>`<div>${esc(h.acao)} por ${esc(h.por)} em ${dtBR(h.em)}${h.motivo?`: ${esc(h.motivo)}`:''}</div>`).join('')}</div>
+     <div class="actions">${c.id?`<button class="btn" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button>`:''}<button class="btn" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'&&pode('a_gAprovar')?`<button class="btn" data-act="gDecidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="gDecidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="gAprovar" data-id="${l.id}">Aprovar</button>`:''}</div></div>`:''}</div>`};
+  return `<div class="toolbar"><div><h2>Aprovação de LPU · GTD Manutenção</h2><p class="muted">Fila da supervisão. Só LPUs de terceiros passam por aqui; todas usam a conta 3.1.1.2.05.0006 (Manutenção cliente), que consome o budget dessa conta.</p></div></div>
+   <div class="kpis" style="margin-bottom:14px">${tabs.map(([k,n])=>`<div class="kpi ${k==='aprovada'?'ok':k==='reprovada'?'bad':k==='aguardando'?'warn':''}"><b>${brl(tot(k))}</b><span>${n} (${cnt(k)})</span></div>`).join('')}</div>
+   <div class="chips">${tabs.map(([k,n])=>`<button data-act="gaTab" data-t="${k}" aria-current="${tab===k}">${n} (${cnt(k)})</button>`).join('')}</div>
+   ${rows.map(card).join('')||'<p class="muted pad">Nenhuma LPU nesta situação.</p>'}`}
+
+/* ---------- TÉCNICO: chamados em "Minhas atividades" ---------- */
+const gTecSel=()=>ui.gSel&&G.ch.find(c=>c.id===ui.gSel&&c.tec===ui.tec);
+function gTecLista(){if(G.erro)return '';const meus=G.ch.filter(c=>c.tec===ui.tec&&!['concl','cancelado'].includes(c.status)&&!(c.status==='aprov'&&(gLpuDe(c)||{}).status!=='ajuste')).sort((a,b)=>gIni(a)-gIni(b));
+  const enc=G.ch.filter(c=>c.tec===ui.tec&&c.status==='concl').length;if(!meus.length&&!enc)return '';
+  return `<section class="gtec"><h3 class="lsub">GTD Manutenção</h3>${meus.map(c=>{const sla=gSla(c),n=gNMsg('g',c.id),l=gLpuDe(c);return `<button class="row" data-act="gTecAbrir" data-id="${c.id}"><span class="tools">${gChip(c)}${c.agendaEm?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:''}${c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${n?`<span class="chip info">${n} msg</span>`:''}${l&&l.status==='ajuste'?'<span class="chip bad">LPU para ajuste</span>':''}</span><b>${esc(c.cliente)}</b><small>O&amp;M ${esc(c.pom)} · ${esc(c.categoria)} · ${esc(c.cidade||'—')}</small></button>`}).join('')||'<p class="muted">Nenhum chamado em aberto.</p>'}
+   <small class="muted">Chamados encerrados: ${enc}</small><h3 class="lsub">Implantação</h3></section>`}
+function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
+  const t=c.ts||{},sla=gSla(c),mt=gMttr(c),l=gLpuDe(c),nv=(c.naoVal||[]).slice(-1)[0],R=(ui.gRfo=ui.gRfo||{})[c.id]||(ui.gRfo[c.id]={desfecho:'',encEquipe:'',local:'',causa:'',detalhes:'',materiais:c.levar||'',serialRet:'',serialInst:'',patrimonio:'',solucao:'',melhoria:''});
+  const fut=c.agendaEm&&isoD(new Date(c.agendaEm))>hoje();
+  let acao='';
+  if(c.status==='aberto')acao=`<section class="tbox">${fut?`<div class="result info">Agendado para ${gQuando(c.agendaEm)}.</div>`:''}<label class="f" style="margin:0"><span>Previsão de chegada *</span><input class="inp" type="time" id="gEta" data-in="gEta" data-id="${c.id}" value="${esc((ui.gEta||{})[c.id]||'')}"></label><button class="bigbtn" data-act="gTecPasso" data-p="desloc" data-id="${c.id}">Iniciar deslocamento</button></section>`;
+  else if(c.status==='desloc')acao=`<button class="bigbtn" data-act="gTecPasso" data-p="local" data-id="${c.id}">Cheguei no cliente</button>`;
+  else if(c.status==='local')acao=`<button class="bigbtn" data-act="gTecPasso" data-p="atend" data-id="${c.id}">Iniciar atendimento</button>`;
+  else if(c.status==='atend')acao=`<section class="tbox"><span>Terminou o atendimento? Peça a validação ao NOC. O desfecho é informado depois, no RFO.</span><button class="bigbtn" data-act="gTecPasso" data-p="valid" data-id="${c.id}">Pedir validação ao NOC</button><small class="muted">O MTTR só para quando o NOC validar.</small></section>`;
+  else if(c.status==='valid')acao='<div class="result warn">Aguardando a validação do NOC. O MTTR continua contando.</div>';
+  else if(c.status==='rfo'){const sel=(k,l,L)=>`<label class="f"><span>${l} *</span><select class="inp" data-ch="gRfoSel" data-id="${c.id}" data-k="${k}"><option value="">Escolha…</option>${L.map(x=>{const v=Array.isArray(x)?x[0]:x,n=Array.isArray(x)?x[1]:x;return `<option value="${esc(v)}" ${R[k]===v?'selected':''}>${esc(n)}</option>`}).join('')}</select></label>`,inp=(k,l)=>`<label class="f"><span>${l}</span><input class="inp" data-in="gRfo" data-id="${c.id}" data-k="${k}" value="${esc(R[k]||'')}"></label>`,ta=(k,l)=>`<label class="f"><span>${l}</span><textarea class="inp" rows="2" data-in="gRfo" data-id="${c.id}" data-k="${k}">${esc(R[k]||'')}</textarea></label>`;
+    acao=`<section class="tbox"><h3>RFO</h3><div class="result ok" style="margin:0">Validado pelo NOC. Preencha o RFO e depois a LPU.</div>${sel('desfecho','Desfecho do atendimento',[['Resolvido','Resolvido'],['Improdutivo','Improdutivo'],['Encaminhado','Encaminhado para outra equipe']])}${R.desfecho==='Encaminhado'?inp('encEquipe','Encaminhado para qual equipe *'):''}${sel('local','Localização da falha',GTD_LOCAL)}${sel('causa','Causa',GTD_CAUSA)}
+     ${ta('detalhes','Detalhes')}${inp('materiais','Materiais utilizados (separe por vírgula)')}<div class="grid2 even" style="gap:0 12px">${inp('serialRet','Serial retirado')}${inp('serialInst','Serial instalado')}</div>${inp('patrimonio','Patrimônio')}${ta('solucao','Solução *')}${ta('melhoria','Melhoria de rede')}
+     <button class="bigbtn" data-act="gRfoGerar" data-id="${c.id}">Gerar RFO e seguir para a LPU</button></section>`}
+  else{const rfo=c.rfoTxt?`<section class="tbox"><div class="ah"><b>RFO</b><button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></div><pre class="rfo">${esc(c.rfoTxt)}</pre></section>`:'';
+    if(c.status==='lpu')acao=`${rfo}<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU</button>`;
+    else if(l&&l.status==='ajuste'){const m=(l.hist||[]).slice().reverse().find(h=>h.motivo);acao=`<div class="result bad"><b>LPU devolvida para ajuste.</b> ${esc(m?m.motivo:'')}</div><button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}" data-aj="${l.id}">Corrigir a LPU</button>${rfo}`}
+    else acao=`${l?`<div class="result ${l.status==='reprovada'?'bad':'ok'}">${(GLST[l.status]||[l.status])[0]}.</div>`:''}${rfo}`}
+  return `<div class="tools" style="justify-content:space-between"><button class="back" data-act="gFechar">‹ Minhas atividades</button>${gMsgBtn('g',c.id)}</div>
+  <article class="tcard"><div class="tcb" style="display:flex;flex-direction:column;gap:6px">
+   <span class="tck2">GTD MANUTENÇÃO · O&amp;M ${esc(c.pom||'—')} · ${esc(c.categoria)}</span><b class="lpt">${esc(c.cliente)}</b><span class="muted">Etiqueta ${esc(c.etiqueta||'—')}</span>
+   <div class="tools">${gChip(c)}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}</div>
+   ${c.agendaEm?`<div class="result info" style="margin:0"><b>Agendado para ${gQuando(c.agendaEm)}</b></div>`:''}
+   <div class="tgrid"><div style="grid-column:1/-1"><span>Motivo</span>${esc(c.motivo||'—')}</div><div style="grid-column:1/-1"><span>Endereço</span>${esc(c.endereco||'—')}</div>${c.janela?`<div><span>Janela</span>${esc(c.janela)}</div>`:''}${c.contato?`<div><span>Procurar por</span>${esc(c.contato)}</div>`:''}${c.equipamento?`<div><span>Equipamento</span>${esc(c.equipamento)}</div>`:''}${c.porta?`<div><span>Porta</span>${esc(c.porta)}</div>`:''}${c.ip?`<div style="grid-column:1/-1"><span>Dados IP / PPPoE</span><span style="white-space:pre-line">${esc(c.ip)}</span></div>`:''}${c.obs?`<div style="grid-column:1/-1"><span>Observações</span>${esc(c.obs)}</div>`:''}</div>
+   ${c.mapa||c.endereco?`<div class="tcbt"><a class="btn" href="${esc(c.mapa||('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.endereco)))}" target="_blank" rel="noopener">Abrir no mapa</a></div>`:''}
+   ${c.levar?`<div class="result ok" style="margin:0"><b>Levar:</b> ${esc(c.levar)}</div>`:''}${nv&&GTD_ABERTOS.includes(c.status)?`<div class="result bad" style="margin:0"><b>Não validado pelo NOC:</b> ${esc(nv.motivo)}</div>`:''}
+   <span class="muted">${mt.l}: <b style="color:var(--ink)">${mt.v}</b></span></div></article>${acao}`}
+
+/* LPU do chamado: mesma tela de 3 passos da Implantação, com a conta fixa */
+function gLpuView(c){const key='G:'+c.id,d=lpuDraft(key),P=ui.lpuP||1,L=lpuDaConta(GTD_CONTA),pas=['Serviços','Conferência','Assinatura'];d.conta=GTD_CONTA;d.fixa=true;
+  const barra=`<div class="lpst">${pas.map((n,i)=>`<div class="${i+1<P?'ok':i+1===P?'now':''}"><i></i><span>${i+1}. ${n}</span></div>`).join('')}</div>`;
+  const topo=`<section class="tbox"><span class="tck2">LPU DO CHAMADO, PASSO ${P} DE 3</span><b class="lpt">${esc(c.cliente)}</b><span class="muted" style="font-size:14px">O&amp;M ${esc(c.pom)} · ${esc(c.categoria)}${c.desfecho?' · '+esc(c.desfecho):''}</span>${barra}${ui.gLpuAj?'<div class="result warn" style="margin:0">Corrigindo a LPU devolvida para ajuste.</div>':''}</section>`;
+  if(P===1){const inc=lpuInc(d),cls=[...new Set(L.map(i=>i.classe))];
+    return `<button class="back" data-act="gLpuFechar">‹ Voltar para o chamado</button>${topo}
+    <section class="tbox"><div class="lpconta"><span><small>Conta contábil (fixa no GTD Manutenção)</small><b>${esc(GTD_CONTA.split(' - ')[0])}, ${esc(GTD_CONTA.split(' - ').slice(1).join(' - ').replace(/^Serviços de /,''))}</b></span></div>
+      <input class="inp" type="search" id="lpuQ" placeholder="Buscar por código ou descrição (acento opcional)" aria-label="Buscar serviço" data-in="lpuQ2" value="${esc(ui.lpuQ||'')}" autocomplete="off">
+      <div class="lpcls">${['',...cls].map(x=>`<button class="${(ui.lpuCls||'')===x?'on':''}" data-act="lpuCls" data-v="${esc(x)}" aria-pressed="${(ui.lpuCls||'')===x}">${x?esc(x):'Todas'}</button>`).join('')}</div></section>
+    <div class="lpn">${L.map(it=>{const v=d.q[it.cod],on=!!(v&&(v.inc||+v.qtd>0)),crit=on&&v.fator==='critico',un=/metro/i.test(it.medida)?'m':/hora/i.test(it.medida)?'h':'un';
+      return `<article class="lpc2 ${on?'on':''}" data-cl="${esc(it.classe)}" data-busca="${esc(normK(it.cod+' '+it.desc+' '+it.classe))}"><div class="lph"><div><span class="lpcod">${it.cod}</span><b>${esc(it.desc)}</b><small>${esc(it.classe)}, por ${esc(String(it.medida).toLowerCase())}${it.tec?` <button class="link" data-act="lpuInfo2" aria-label="Ver descritivo técnico">o que é?</button>`:''}</small>${it.tec?`<span class="ltec" hidden>${esc(it.tec)}</span>`:''}</div>
+        ${on?`<button class="icon lprem" data-act="lpuRem" data-c="${it.cod}" aria-label="Remover ${it.cod}">✕</button>`:`<button class="btn primary sm" data-act="lpuInc" data-c="${it.cod}">Incluir</button>`}</div>
+        ${on?`${it.valor==null?`<label class="lprow"><span>Valor (R$)</span><input class="inp" type="text" inputmode="decimal" autocomplete="off" placeholder="Valor do reembolso" value="${v.unit||''}" data-in="lpuUnit" data-k="${esc(key)}" data-c="${it.cod}"></label>`:''}<label class="lprow"><span>Quantidade</span><input class="inp lpq" type="text" inputmode="decimal" autocomplete="off" value="${v.qtd?String(v.qtd).replace('.',','):''}" data-in="lpuQ3" data-c="${it.cod}" aria-label="Quantidade de ${it.cod}"><em>${un}</em></label>
+        ${it.valor!=null&&it.valorCritico!=null?`<div class="lprow"><span>Condição</span><div class="lpseg" role="group" aria-label="Condição"><button class="${crit?'':'on'}" data-act="lpuCond" data-c="${it.cod}" data-v="comum" aria-pressed="${!crit}">Comum</button><button class="${crit?'on':''}" data-act="lpuCond" data-c="${it.cod}" data-v="critico" aria-pressed="${crit}">Crítica</button></div></div>`:''}`:''}</article>`}).join('')}<p class="muted lpvazio" hidden>Nenhum serviço encontrado.</p></div>
+    <div class="lpbar"><b id="lpuCnt">${inc.length===1?'1 serviço incluído':inc.length+' serviços incluídos'}</b><button class="btn primary" data-act="gLpuRevisar">Revisar</button></div>`}
+  const itens=draftItens(key);
+  if(P===2)return `<button class="back" data-act="gLpuPasso" data-p="1">‹ Voltar e corrigir</button>${topo}
+    <section class="tcard" style="margin-bottom:12px"><div class="lpch"><b>${itens.length} ${itens.length===1?'serviço':'serviços'}, conta ${esc(GTD_CONTA.split(' - ')[0])}</b><button class="link" data-act="gLpuPasso" data-p="1">Editar</button></div>
+     ${itens.map(i=>`<div class="lpcr"><span><span class="lpcod">${i.cod}</span><span>${esc(i.desc)}</span><small class="muted">Condição ${i.fator==='Crítico'?'crítica':'comum'}</small></span><b>${String(i.qtd).replace('.',',')} ${/metro/i.test(i.medida)?'m':/hora/i.test(i.medida)?'h':'un'}</b></div>`).join('')}</section>
+    <div class="result warn">Confira as quantidades com o que foi executado. ${gLpuStatusNovo(c)==='registrada'?'Equipe própria: a LPU fica registrada, sem aprovação.':'Depois de assinar, só a gestão pode devolver a LPU para ajuste.'}</div>
+    <label class="f"><span>Observação para a gestão (opcional)</span><textarea class="inp" rows="3" data-in="lpuObs">${esc(d.obs||'')}</textarea></label>
+    <button class="bigbtn" data-act="gLpuPasso" data-p="3">Ir para a assinatura</button>`;
+  return `<button class="back" data-act="gLpuPasso" data-p="2">‹ Voltar para a conferência</button>${topo}
+    <section class="tbox"><b class="lpt" style="font-size:19px">Resumo</b><span style="font-size:14.5px">${itens.length} ${itens.length===1?'serviço':'serviços'}: ${itens.map(i=>esc(i.desc.split(' ').slice(0,4).join(' '))+' '+String(i.qtd).replace('.',',')).join('; ')}</span></section>
+    <section class="tbox"><b class="lpt" style="font-size:19px">Assinatura do técnico</b>
+     <label class="f" style="margin:0"><span>Nome completo *</span><input class="inp" id="sgNome" value="${esc(gTecN(c.tec))}"></label>
+     <div class="f" style="margin:0"><span style="display:flex;justify-content:space-between;align-items:center">Assine com o dedo no espaço abaixo *<button class="btn sm" data-act="sgLimpar">Limpar</button></span><canvas id="sgPad" class="sig" aria-label="Quadro de assinatura"></canvas></div>
+     <label class="chk" style="margin:0;align-items:flex-start"><input type="checkbox" id="sgDecl" style="margin-top:3px"><span>Declaro que os serviços desta LPU foram executados por mim neste chamado, nas quantidades informadas.</span></label>
+     <small class="muted">Data e hora da assinatura são registradas automaticamente ao enviar.</small></section>
+    <button class="bigbtn" data-act="sgOk">${gLpuStatusNovo(c)==='registrada'?'Registrar LPU':'Enviar LPU'}</button>`}
+function gLpuStatusNovo(c){if(ui.perfil==='func'&&ME.empresa)return 'conferencia';if(ui.perfil==='clt')return 'registrada';if(ui.perfil==='terc')return 'aguardando';return gTecV(c.tec)==='CLT'?'registrada':'aguardando'}
+async function gSgOk(){const g=ui.sign,nome=(($('sgNome')||{}).value||'').trim();if(!nome){toast('Informe o nome do responsável.','bad');return}if(!ui.sgDraw){toast('Faça a assinatura no quadro.','bad');return}if($('sgDecl')&&!$('sgDecl').checked){toast('Marque a declaração para enviar.','bad');return}
+  const ass={img:$('sgPad').toDataURL('image/png'),nome,em:Date.now()},itens=draftItens(g.key),d=lpuDraft(g.key),total=itens.reduce((s,i)=>s+i.unit*i.qtd,0);closeModal();
+  if(g.tipo==='gtd'){const c=G.ch.find(x=>x.id===g.id);if(!c)return;const aj=ui.gLpuAj&&G.lpus.find(x=>x.id===ui.gLpuAj);toast('Gerando o PDF da LPU…');
+    if(aj){const tmp=Object.assign({},aj,{itens,total,assinatura:ass,obs:(d.obs||'').trim()||aj.obs});await subirPdfLpu(tmp);const hist=(aj.hist||[]).concat([{acao:'Reenviada e assinada após ajuste',por:nome,em:Date.now()}]);
+      const r=await sb.from('ag_lpus').update(gLpuRow(Object.assign({},tmp,{status:'aguardando',hist}))).eq('id',aj.id);if(r.error){toast('Não foi possível reenviar: '+r.error.message,'bad');return}
+      Object.assign(aj,tmp,{status:'aguardando',hist});ui.gLpuAj=null}
+    else{const st=gLpuStatusNovo(c),emp=st==='conferencia'?ME.empresa:null;
+      const l={id:uid(),chamado:c.id,etiqueta:c.etiqueta||('OM-'+(c.pom||c.id.slice(0,8))),tec:c.tec,status:st,total,conta:GTD_CONTA,itens,data:hoje(),tecNome:gTecN(c.tec),cliente:c.cliente,pom:c.pom,cidade:c.cidade,categoria:c.categoria,desfecho:c.desfecho,obs:(d.obs||'').trim()||undefined,assinatura:ass,prestador:emp||undefined,hist:[{acao:st==='registrada'?'Registrada e assinada (equipe própria)':'Enviada e assinada',por:nome,em:Date.now()}]};
+      await subirPdfLpu(l);const r=await sb.from('ag_lpus').insert(gLpuRow(l));if(r.error){toast('Não foi possível enviar a LPU: '+r.error.message,'bad');return}G.lpus.push(l);
+      await gAcao(c.id,x=>{x.status=st==='registrada'?'concl':'aprov';x.lpu=l.id;x.ts.lpu=Date.now();gHist(x,st==='registrada'?'LPU registrada':'LPU enviada para '+(st==='conferencia'?'conferência do prestador':'aprovação'))})}
+    delete ui.draft[g.key];ui.lpuTela=null;ui.lpuP=1;render();window.scrollTo(0,0);toast(ui.perfil==='clt'?'LPU registrada. Chamado encerrado.':'LPU assinada e enviada.');return}
+  if(g.tipo==='gajuste'){const l=G.lpus.find(x=>x.id===g.id);if(!l)return;toast('Gerando o PDF da LPU…');const tmp=Object.assign({},l,{itens,total,assinatura:ass});await subirPdfLpu(tmp);const conf=l.status==='conferencia',hist=(l.hist||[]).concat([{acao:conf?'Corrigida, assinada e enviada pelo prestador':'Reenviada e assinada após ajuste',por:nome,em:Date.now()}]);
+    const r=await sb.from('ag_lpus').update(gLpuRow(Object.assign({},tmp,{status:'aguardando',hist}))).eq('id',l.id);if(r.error){toast('Não foi possível reenviar: '+r.error.message,'bad');return}
+    Object.assign(l,tmp,{status:'aguardando',hist});delete ui.draft[g.key];render();toast('LPU corrigida, assinada e reenviada.')}}
+function gOpenAjuste(lid){const l=G.lpus.find(x=>x.id===lid),k='GL:'+lid;if(!l)return;if(!ui.draft[k]){const q={};(l.itens||[]).forEach(i=>{q[i.cod]={qtd:i.qtd,fator:i.fator==='Crítico'?'critico':'comum',unit:i.unit}});ui.draft[k]={conta:GTD_CONTA,fixa:true,q}}const m=(l.hist||[]).slice().reverse().find(h=>h.motivo);
+  openModal(`<h3>Corrigir LPU do O&amp;M ${esc(l.pom||'')}</h3>${l.status==='conferencia'?`<p class="muted" style="margin-top:6px">Enviada por ${esc(l.tecNome||gTecN(l.tec))}. Ao assinar, a LPU corrigida segue para a aprovação do O&amp;M.</p>`:''}${m?`<p class="note" style="margin-top:8px">Motivo da devolução: ${esc(m.motivo)}</p>`:''}${lpuEditor(k)}<div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="gReenviar" data-id="${lid}">${l.status==='conferencia'?'Assinar e enviar para o O&amp;M':'Reenviar para aprovação'}</button></div>`)}
+
+/* ---------- MENSAGENS (tela cheia) ---------- */
+const gChatK=()=>ui.chat?ui.chat.t+':'+ui.chat.id:'';
+async function gChatCarregar(){const k=gChatK(),ch=ui.chat;if(!ch||G.msgBus[k])return;G.msgBus[k]=true;
+  try{const r=await sb.from('ag_mensagens').select('*').eq(ch.t==='g'?'chamado':'agendamento',ch.id).order('em');if(r.error)throw r.error;G.msgs[k]=r.data||[];G.nMsg[k]=G.msgs[k].length;
+    await Promise.all(G.msgs[k].filter(m=>m.foto&&!G.fotos[m.foto]).map(async m=>{const s=await sb.storage.from('agenda').createSignedUrl(m.foto,3600);if(!s.error)G.fotos[m.foto]=s.data.signedUrl}))}
+  catch(e){G.msgs[k]=G.msgs[k]||[];toast('Não foi possível carregar as mensagens: '+(e.message||e),'bad')}
+  G.msgBus[k]=false;if(gChatK()===k){if($('chatList'))gChatPintar();else render()}}
+function gChatLista(){const k=gChatK(),L=G.msgs[k];if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
+  return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}</small>${m.texto?`<p>${esc(m.texto)}</p>`:''}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:'<small class="muted">Foto</small>'):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
+function gChatPintar(){const el=$('chatList');if(!el)return;const fim=el.scrollHeight-el.scrollTop-el.clientHeight<80;el.innerHTML=gChatLista();if(fim)el.scrollTop=el.scrollHeight}
+function viewChat(){const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);
+  let tit='',sub='',quem='';if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};tit='O&M '+(c.pom||'');sub=c.cliente||'';quem='Técnico, NOC e O&M'}else{const a=getAg(ch.id)||{};tit=a.etiqueta||'Atividade';sub=cliN(a.etiqueta||'')+(a.fases?' · '+fasesN(a):'');quem='Técnico, Delivery e O&M'}
+  setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
+  return `<div class="chatv"><div class="chath"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><div><b>Mensagens · ${esc(tit)}</b><small class="muted">${esc(sub)} · ${quem}</small></div></div>
+   <div class="chatl" id="chatList" aria-live="polite">${gChatLista()}</div>
+   <div class="chatc"><textarea class="inp" id="chatTxt" rows="2" data-in="chatTxt" placeholder="Escreva uma mensagem" aria-label="Mensagem">${esc(ui.chatTxt||'')}</textarea>
+    <div class="tools"><label class="btn sm chatfoto">Galeria ou câmera<input type="file" accept="image/*" data-ch="chatFoto" hidden></label><button class="btn primary" data-act="chatEnviar">Enviar</button></div></div></div>`}
+function gReduz(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(fr.error);fr.onload=()=>{const img=new Image();img.onerror=()=>rej(new Error('arquivo de imagem inválido'));img.onload=()=>{const M=1280,r=Math.min(1,M/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=Math.round(img.width*r);cv.height=Math.round(img.height*r);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);cv.toBlob(b=>b?res(b):rej(new Error('falha ao reduzir a foto')),'image/jpeg',.6)};img.src=fr.result};fr.readAsDataURL(file)})}
+async function gChatEnviar(texto,foto){const ch=ui.chat;if(!ch)return false;const row={texto:texto||null};row[ch.t==='g'?'chamado':'agendamento']=ch.id;
+  if(foto){try{const b=await gReduz(foto),path=`chat/${ch.t}/${ch.id}/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(up.error)throw up.error;row.foto=path}catch(e){toast('Não foi possível enviar a foto: '+(e.message||e),'bad');return false}}
+  const r=await sb.from('ag_mensagens').insert(row).select().maybeSingle();if(r.error){toast('Não foi possível enviar: '+r.error.message,'bad');return false}
+  const k=gChatK();if(r.data){G.msgs[k]=(G.msgs[k]||[]).concat([r.data]);G.nMsg[k]=G.msgs[k].length;if(r.data.foto){const s=await sb.storage.from('agenda').createSignedUrl(r.data.foto,3600);if(!s.error)G.fotos[r.data.foto]=s.data.signedUrl}}gChatPintar();return true}
+
+/* ---------- SINO DE AVISOS ---------- */
+const gNaoLidas=()=>G.avisos.filter(a=>!a.lida).length;
+const gSinoHtml=()=>{const n=gNaoLidas();return `${_sv('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>')}${n?`<span class="sinon">${n>99?'99+':n}</span>`:''}`};
+function gSinoAtualizar(){document.querySelectorAll('[data-act="avisos"]').forEach(b=>{b.innerHTML=gSinoHtml();b.setAttribute('aria-label',`Avisos${gNaoLidas()?`, ${gNaoLidas()} não lidos`:''}`)})}
+function gAvisosModal(){const L=G.avisos;openModal(`<div class="ah"><h3>Avisos</h3>${gNaoLidas()?'<button class="btn sm" data-act="avLidas">Marcar todos como lidos</button>':''}</div><p class="muted" style="margin:4px 0 10px">Os mesmos avisos chegam no celular quando as notificações estão ativas.</p>
+  <div class="avl">${L.map(a=>`<button class="avi ${a.lida?'':'nova'}" data-act="avAbrir" data-id="${a.id}"><small>${a.cat==='gtd'?'GTD Manutenção':'Implantação'} · ${gQuando(new Date(a.em).getTime())}</small><b>${esc(a.titulo)}</b><span>${esc(a.texto)}</span></button>`).join('')||'<p class="muted pad">Nenhum aviso.</p>'}</div><div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)}
+function gIr(url){let q;try{q=new URL(url||'',location.href).searchParams}catch(e){return}const gt=q.get('gtd'),ag=q.get('ag'),chat=q.get('chat')==='1',tc=gTecPerfil();
+  ui.chat=null;if(gt){if(tc){ui.tab='campo';ui.campoSel=null;ui.gSel=gt}else if(gVeGtd()){ui.cat='gtd';ui.tab='gCham';ui.gSel=gt}if(chat)ui.chat={t:'g',id:gt}}
+  else if(ag){if(tc){ui.tab='campo';ui.campoSel=ag;ui.gSel=null}else{ui.cat='impl';ui.tab=tabsDe().includes('agenda')?'agenda':ui.tab}if(chat)ui.chat={t:'a',id:ag}}
+  ui.chatTxt='';render();window.scrollTo(0,0)}
+
+/* ---------- tempo real do GTD (canal separado: não interfere na Implantação) ---------- */
+let RTG=null,gRecT=null;
+const gEmTela=()=>ui.chat||ui.cat==='gtd'||(ui.tab==='campo'&&!ui.campoSel);
+const gDigitando=()=>{const ae=document.activeElement;return !!(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)&&$('app').contains(ae))};
+function gRec(tipo,p){clearTimeout(gRecT);gRecT=setTimeout(async()=>{
+  if(tipo==='msg'&&p&&p.new){const m=p.new,k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;if(G.msgs[k]&&!G.msgs[k].some(x=>x.id===m.id)){G.msgs[k].push(m);G.nMsg[k]=G.msgs[k].length;if(m.foto&&!G.fotos[m.foto]){const s=await sb.storage.from('agenda').createSignedUrl(m.foto,3600);if(!s.error)G.fotos[m.foto]=s.data.signedUrl}}else if(!G.msgs[k])G.nMsg[k]=(G.nMsg[k]||0)+1;if(gChatK()===k){gChatPintar();return}}
+  if(SYNC_PEND||$('modal').classList.contains('open')){gSinoAtualizar();return}
+  await gCarregar();gSinoAtualizar();if(!gEmTela()||ui.chat)return;if(gDigitando()){setTimeout(()=>gRec(),2500);return}if(ui.lpuTela&&String(ui.lpuTela).startsWith('G:'))return;render()},tipo==='msg'?150:700)}
+function gLigarTempoReal(){if(RTG){sb.removeChannel(RTG);RTG=null}if(G.erro||!ME)return;
+  RTG=sb.channel('gtd').on('postgres_changes',{event:'*',schema:'public',table:'ag_chamados'},()=>gRec('ch')).on('postgres_changes',{event:'INSERT',schema:'public',table:'ag_mensagens'},p=>gRec('msg',p)).on('postgres_changes',{event:'*',schema:'public',table:'ag_avisos'},()=>gRec('av')).subscribe()}
+setInterval(()=>{if(!ME||ui.chat||ui.cat!=='gtd'||!['gCham','gPainel'].includes(ui.tab)||ui.gSel&&ui.tab!=='gCham')return;if(gDigitando()||$('modal').classList.contains('open'))return;render()},60000);
+
+/* ---------- ações ---------- */
+Object.assign(ACT,{
+  gCat:el=>{ui.cat=el.dataset.v;ui.gSel=null;ui.chat=null;ui.campoSel=null;ui.tab=ui.cat==='gtd'&&tabsDe().includes('gCham')?'gCham':'';render();window.scrollTo(0,0)},
+  gAbrir:el=>{ui.gSel=el.dataset.id;if(ui.tab!=='gCham'){ui.tab='gCham'}render();window.scrollTo(0,0)},
+  gAbrirRel:el=>{ui.gSel=el.dataset.id;ui.tab='gCham';render();window.scrollTo(0,0)},
+  gFechar:()=>{ui.gSel=null;ui.lpuTela=null;render();window.scrollTo(0,0)},
+  gTecAbrir:el=>{ui.gSel=el.dataset.id;ui.campoSel=null;render();window.scrollTo(0,0)},
+  gDespachar:async el=>{if(!gPodeDesp()&&semPerm())return;const v=($('gDespTec')||{}).value;if(!v){toast('Escolha o técnico.','bad');return}const nome=gTecN(v);
+    await gAcao(el.dataset.id,c=>{if(c.status!=='aberto'){toast('O técnico já iniciou este chamado.','bad');return false}const troca=c.tec&&c.tec!==v;c.tec=v;c.ts.despacho=Date.now();c.despachadoPor=meNome();gHist(c,(troca?'Técnico trocado para ':'Despachado para ')+nome)},`Chamado despachado para ${nome}.`)},
+  gAgSalvar:async el=>{const d=($('gAgD')||{}).value,h=($('gAgH')||{}).value||'08:00';if(!d){toast('Escolha a data.','bad');return}const t=new Date(d+'T'+h+':00').getTime();
+    await gAcao(el.dataset.id,c=>{c.agendaEm=t;c.quando='agendado';gHist(c,'Agendado para '+dBR(d)+' '+h)},'Agendamento salvo.')},
+  gAgTirar:async el=>{await gAcao(el.dataset.id,c=>{c.agendaEm=null;c.quando='hoje';gHist(c,'Agendamento retirado: atendimento hoje')},'Chamado passou para atendimento hoje.')},
+  gValidar:async el=>{if(!gPodeValidar()&&semPerm())return;await gAcao(el.dataset.id,c=>{if(c.status!=='valid'){toast('Este chamado não está aguardando validação.','bad');return false}c.status='rfo';c.ts.validado=Date.now();c.validadoPor=meNome();gHist(c,'Validado pelo NOC')},'Chamado validado. O MTTR parou.')},
+  gNaoValidar:async el=>{if(!gPodeValidar()&&semPerm())return;const m=(($('gNvMot')||{}).value||'').trim();if(!m){toast('Informe o motivo da não validação.','bad');return}
+    await gAcao(el.dataset.id,c=>{if(c.status!=='valid'){toast('Este chamado não está aguardando validação.','bad');return false}c.status='atend';c.naoVal=(c.naoVal||[]).concat([{motivo:m,por:meNome(),em:Date.now()}]);gHist(c,'Não validado pelo NOC',{motivo:m})},'Devolvido ao técnico. O MTTR continua.');if(ui.gNv)delete ui.gNv[el.dataset.id]},
+  gCopiar:el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(!c||!c.rfoTxt)return;const ok=()=>toast('RFO copiado. É só colar no WhatsApp.');if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(c.rfoTxt).then(ok,()=>toast('Não foi possível copiar automaticamente. Selecione o texto e copie.','bad'));else toast('Selecione o texto do RFO e copie.','bad')},
+  gEditar:el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(!c)return;const f=(k,l)=>`<label class="f"><span>${l}</span><input class="inp" id="ge_${k}" value="${esc(c[k]||'')}"></label>`;
+    openModal(`<h3>Editar chamado O&amp;M ${esc(c.pom)}</h3><div class="ggrid" style="margin-top:10px">${f('cliente','Cliente')}${f('etiqueta','Etiqueta')}${f('cidade','Cidade')}${f('pom','Protocolo O&M')}${f('pnoc','Protocolo NOC')}${f('levar','Material a levar')}</div>
+     <label class="f"><span>Motivo</span><textarea class="inp" id="ge_motivo" rows="2">${esc(c.motivo||'')}</textarea></label><label class="f"><span>Endereço</span><textarea class="inp" id="ge_endereco" rows="2">${esc(c.endereco||'')}</textarea></label><label class="f"><span>Observações</span><textarea class="inp" id="ge_obs" rows="2">${esc(c.obs||'')}</textarea></label>
+     <div class="ggrid"><label class="f"><span>Categoria</span><select class="inp" id="ge_categoria">${GTD_CATS.map(x=>`<option ${x===c.categoria?'selected':''}>${x}</option>`).join('')}</select></label><label class="f"><span>Prioridade</span><select class="inp" id="ge_prioridade">${['Normal','Alta','Escalonado'].map(x=>`<option ${x===c.prioridade?'selected':''}>${x}</option>`).join('')}</select></label></div>
+     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="gEditarOk" data-id="${c.id}">Salvar</button></div>`)},
+  gEditarOk:async el=>{const v={};['cliente','etiqueta','cidade','pom','pnoc','levar','motivo','endereco','obs','categoria','prioridade'].forEach(k=>{const e=$('ge_'+k);if(e)v[k]=e.value.trim()});closeModal();await gAcao(el.dataset.id,c=>{Object.assign(c,v);gHist(c,'Dados do chamado editados')},'Chamado atualizado.')},
+  gCancelar:el=>{openModal(`<h3>Cancelar chamado</h3><label class="f" style="margin-top:12px"><span>Motivo *</span><textarea id="gcMot" class="inp" rows="3"></textarea></label><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="gCancelarOk" data-id="${el.dataset.id}">Cancelar chamado</button></div>`)},
+  gCancelarOk:async el=>{const m=$('gcMot').value.trim();if(!m){toast('Informe o motivo.','bad');return}closeModal();await gAcao(el.dataset.id,c=>{c.status='cancelado';c.ts.cancelado=Date.now();c.motivoCancel=m;gHist(c,'Chamado cancelado',{motivo:m})},'Chamado cancelado.');ui.gSel=null;render()},
+  gLer:()=>{const txt=(($('gTxt')||{}).value||ui.gTxt||'').trim();if(!txt){toast('Cole o texto da solicitação de deslocamento.','bad');return}ui.gTxt=txt;const p=gtdLerChamado(txt),ag=gAgendaDe(p);
+    p.ip=p.dados;delete p.dados;ui.gF=Object.assign(p,{modo:ag?'agendado':'hoje',agD:ag?isoD(new Date(ag)):hoje(),agH:ag?hm(ag):'08:00'});render()},
+  gManual:()=>{ui.gF={motivo:'',cliente:'',etiqueta:'',endereco:'',cidade:'',pnoc:'',pom:'',equipamento:'',porta:'',banda:'',ip:'',entrega:'',obs:'',levar:'',contato:'',janela:'',extras:[],faltando:[],categoria:GTD_CATS[0],prioridade:'Normal',modo:'hoje',agD:hoje(),agH:'08:00'};render()},
+  gLimpar:()=>{ui.gF=null;ui.gTxt='';render()},
+  gCriar:async el=>{const F=ui.gF;if(!F)return;if(!String(F.cliente||'').trim()||!String(F.motivo||'').trim()){toast('Preencha o cliente e o motivo.','bad');return}
+    let ag=null;if(F.modo==='agendado'){if(!F.agD){toast('Escolha a data do agendamento.','bad');return}ag=new Date(F.agD+'T'+(F.agH||'08:00')+':00').getTime()}
+    const{modo,agD,agH,faltando,data,...dados}=F,c=Object.assign({},dados,{status:'aberto',tec:null,agendaEm:ag,quando:ag?'agendado':'hoje',ts:{},naoVal:[],criadoPorNome:meNome(),criadoPapel:ui.perfil==='noc'?'NOC':'O&M',hist:[{acao:'Chamado criado',por:meNome(),em:Date.now()}]});
+    ['cliente','etiqueta','cidade','pom','pnoc'].forEach(k=>c[k]=String(c[k]||'').trim());el.disabled=true;
+    const r=await sb.from('ag_chamados').insert(gParaRow(c)).select().maybeSingle();el.disabled=false;if(r.error){toast('Não foi possível criar: '+r.error.message,'bad');return}
+    const nv=r.data?gDeRow(r.data):null;if(nv)gTroca(nv);ui.gF=null;ui.gTxt='';ui.tab='gCham';ui.gSel=nv?nv.id:null;render();window.scrollTo(0,0);toast('Chamado criado em Não despachados. A gestão do GTD foi avisada.')},
+  gView:el=>{ui.gView=el.dataset.v;render()},
+  gDiaN:el=>{const n=+el.dataset.n,v=ui.gView||'dia',D=ui.gDia||hoje();if(v==='mes'){const d=new Date(D+'T12:00:00');d.setMonth(d.getMonth()+n,1);ui.gDia=isoD(d)}else ui.gDia=addD(D,v==='semana'?7*n:n);render()},
+  gHoje:()=>{ui.gDia=hoje();render()},
+  gGoDia:el=>{ui.gDia=el.dataset.d;ui.gView='dia';render()},
+  grSel:el=>{ui.grSel=el.dataset.k;render()},
+  gaTab:el=>{ui.gaTab=el.dataset.t;ui.gaOpen=null;render()},
+  gaOpen:el=>{ui.gaOpen=ui.gaOpen===el.dataset.id?null:el.dataset.id;render()},
+  gAprovar:async el=>{if(!pode('a_gAprovar')&&semPerm())return;const l=G.lpus.find(x=>x.id===el.dataset.id);if(!l)return;const hist=(l.hist||[]).concat([{acao:'Aprovada',por:meNome(),em:Date.now()}]);
+    const r=await sb.from('ag_lpus').update({status:'aprovada',dados:gLpuRow(Object.assign({},l,{hist})).dados}).eq('id',l.id);if(r.error){toast('Não foi possível aprovar: '+r.error.message,'bad');return}
+    l.status='aprovada';l.hist=hist;ui.gaOpen=null;if(l.chamado)await gAcao(l.chamado,c=>{c.status='concl';gHist(c,'LPU aprovada')});render();toast(`LPU de ${brl(l.total)} aprovada.`);
+    try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-aprovada-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;l.pdf_envio=l.pdf_envio||l.pdf_path;l.pdf_path=path;l.pdfAprov=true;await sb.from('ag_lpus').update({pdf_path:path,dados:gLpuRow(l).dados}).eq('id',l.id)}catch(e){toast('LPU aprovada, mas a versão do PDF com o aprovador não foi salva: '+(e.message||e),'bad')}},
+  gDecidir:el=>{if(!pode('a_gAprovar')&&semPerm())return;const t=el.dataset.t;openModal(`<h3>${t==='ajuste'?'Devolver para ajuste':'Reprovar LPU'}</h3><label class="f" style="margin-top:12px"><span>Motivo *</span><textarea id="dMot" class="inp" rows="4" placeholder="${t==='ajuste'?'O que o prestador precisa corrigir':'Por que a LPU foi reprovada'}"></textarea></label><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn ${t==='ajuste'?'primary':'danger'}" data-act="gDecOk" data-t="${t}" data-id="${el.dataset.id}">${t==='ajuste'?'Devolver para ajuste':'Reprovar'}</button></div>`)},
+  gDecOk:async el=>{const m=$('dMot').value.trim();if(!m){toast('Informe o motivo.','bad');return}const l=G.lpus.find(x=>x.id===el.dataset.id),t=el.dataset.t;if(!l)return;const hist=(l.hist||[]).concat([{acao:t==='ajuste'?'Devolvida para ajuste':'Reprovada',por:meNome(),em:Date.now(),motivo:m}]);
+    const r=await sb.from('ag_lpus').update({status:t,dados:gLpuRow(Object.assign({},l,{hist})).dados}).eq('id',l.id);if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return}
+    l.status=t;l.hist=hist;ui.gaOpen=null;closeModal();if(t==='reprovada'&&l.chamado)await gAcao(l.chamado,c=>{c.status='concl';gHist(c,'LPU reprovada',{motivo:m})});render();toast(t==='ajuste'?'LPU devolvida ao prestador.':'LPU reprovada.')},
+  gTecPasso:async el=>{const p=el.dataset.p,id=el.dataset.id;let eta=null;
+    if(p==='desloc'){const v=((ui.gEta||{})[id]||($('gEta')||{}).value||'').trim();if(!v){toast('Informe a previsão de chegada.','bad');return}eta=new Date(hoje()+'T'+v+':00').getTime();if(eta<Date.now()-5*60000){toast('A previsão de chegada precisa ser depois de agora.','bad');return}}
+    const prev={desloc:'aberto',local:'desloc',atend:'local',valid:'atend'}[p];
+    await gAcao(id,c=>{if(c.status!==prev){toast('O chamado já mudou de etapa. Tela atualizada.','bad');return false}c.status=p;const T=Date.now();
+      if(p==='desloc'){c.ts.desloc=T;c.ts.eta=eta;gHist(c,'Deslocamento iniciado, previsão '+hm(eta))}else if(p==='local'){c.ts.chegada=T;gHist(c,'Chegada no cliente')}else if(p==='atend'){c.ts.inicio=c.ts.inicio||T;gHist(c,'Atendimento iniciado')}else{c.ts.pedido=T;gHist(c,'Validação pedida ao NOC')}},
+      {desloc:'Deslocamento iniciado. O NOC e a gestão foram avisados.',local:'Chegada registrada.',atend:'Atendimento iniciado.',valid:'Validação pedida ao NOC. Aguarde.'}[p]);window.scrollTo(0,0)},
+  gRfoGerar:async el=>{const id=el.dataset.id,R=(ui.gRfo||{})[id];if(!R)return;if(!R.desfecho){toast('Escolha o desfecho do atendimento.','bad');return}if(R.desfecho==='Encaminhado'&&!String(R.encEquipe||'').trim()){toast('Informe para qual equipe foi encaminhado.','bad');return}
+    if(!R.local||!R.causa){toast('Escolha a localização da falha e a causa.','bad');return}if(!String(R.solucao||'').trim()){toast('Descreva a solução.','bad');return}
+    const nv=await gAcao(id,c=>{if(c.status!=='rfo'){toast('O RFO já foi gerado.','bad');return false}c.desfecho=R.desfecho;c.encEquipe=R.desfecho==='Encaminhado'?String(R.encEquipe).trim():'';c.rfo=Object.assign({},R);c.rfoTxt=gRfoTexto(c);c.status='lpu';c.ts.rfo=Date.now();gHist(c,'RFO gerado ('+R.desfecho+')')},'RFO gerado. Agora preencha a LPU.');
+    if(nv){delete ui.gRfo[id];ACT.gLpuAbrir({dataset:{id}})}},
+  gLpuAbrir:el=>{const id=el.dataset.id,aj=el.dataset.aj||null,key='G:'+id;ui.gLpuAj=aj;if(aj){const l=G.lpus.find(x=>x.id===aj);if(l){const q={};(l.itens||[]).forEach(i=>{q[i.cod]={qtd:i.qtd,fator:i.fator==='Crítico'?'critico':'comum',unit:i.unit,inc:true}});ui.draft[key]={conta:GTD_CONTA,fixa:true,q,obs:l.obs||''}}}else if(!ui.draft[key])ui.draft[key]={conta:GTD_CONTA,fixa:true,q:{}};
+    ui.lpuTela=key;ui.lpuP=1;ui.lpuQ='';ui.lpuCls='';render();window.scrollTo(0,0)},
+  gLpuFechar:()=>{ui.lpuTela=null;ui.gLpuAj=null;render();window.scrollTo(0,0)},
+  gLpuRevisar:()=>{const d=lpuDraft(ui.lpuTela),inc=lpuInc(d),semQ=inc.filter(([c,v])=>!(+v.qtd>0));if(!inc.length){toast('Inclua pelo menos um serviço executado.','bad');return}if(semQ.length){toast('Informe a quantidade de '+semQ.map(([c])=>c).join(', ')+'.','bad');return}
+    const sv=inc.filter(([c,v])=>itemOf(c).valor==null&&!(+v.unit>0));if(sv.length){toast('Informe o valor do reembolso em '+sv.map(([c])=>c).join(', ')+'.','bad');return}ui.lpuP=2;render();window.scrollTo(0,0)},
+  gLpuPasso:el=>{const p=+el.dataset.p,id=String(ui.lpuTela||'').slice(2),c=G.ch.find(x=>x.id===id);if(p===3&&c)ui.sign={tipo:'gtd',id:c.id,key:ui.lpuTela,tec:c.tec};ui.lpuP=p;render();window.scrollTo(0,0)},
+  gLpuCorrigir:el=>gOpenAjuste(el.dataset.id),
+  gReenviar:el=>{const l=G.lpus.find(x=>x.id===el.dataset.id),k='GL:'+el.dataset.id;if(!l)return;if(!draftItens(k).length){toast('Informe a quantidade de pelo menos um serviço.','bad');return}ui.sign={tipo:'gajuste',id:l.id,key:k,tec:l.tec};conferirModal()},
+  gLpuConfEnviar:async el=>{const l=G.lpus.find(x=>x.id===el.dataset.id);if(!l||l.status!=='conferencia')return;if(!confirm(`Enviar a LPU do O&M ${l.pom} (${brl(l.total)}) para a aprovação do O&M?`))return;const hist=(l.hist||[]).concat([{acao:'Conferida e enviada pelo prestador',por:meNome(),em:Date.now()}]);
+    const r=await sb.from('ag_lpus').update({status:'aguardando',dados:gLpuRow(Object.assign({},l,{hist})).dados}).eq('id',l.id);if(r.error){toast('Não foi possível enviar: '+r.error.message,'bad');return}l.status='aguardando';l.hist=hist;render();toast('LPU conferida e enviada para a aprovação do O&M.')},
+  chatAbrir:el=>{ui.chat={t:el.dataset.t,id:el.dataset.id};ui.chatTxt='';closeModal();document.body.classList.remove('menu');render();window.scrollTo(0,0);gChatCarregar()},
+  chatFechar:()=>{ui.chat=null;ui.chatTxt='';render();window.scrollTo(0,0)},
+  chatEnviar:async el=>{const t=(($('chatTxt')||{}).value||'').trim();if(!t){toast('Escreva a mensagem ou envie uma foto.','bad');return}el.disabled=true;const ok=await gChatEnviar(t,null);el.disabled=false;if(ok){ui.chatTxt='';const i=$('chatTxt');if(i){i.value='';i.focus()}}},
+  avisos:()=>{gAvisosModal()},
+  avLidas:async()=>{const ids=G.avisos.filter(a=>!a.lida).map(a=>a.id);G.avisos.forEach(a=>a.lida=true);gSinoAtualizar();gAvisosModal();if(ids.length)await sb.from('ag_avisos').update({lida:true}).in('id',ids)},
+  avAbrir:async el=>{const a=G.avisos.find(x=>x.id===el.dataset.id);if(!a)return;closeModal();if(!a.lida){a.lida=true;sb.from('ag_avisos').update({lida:true}).eq('id',a.id).then(()=>{})}gSinoAtualizar();
+    if(a.url&&/[?&]ag=/.test(a.url)&&!gTecPerfil()&&!/chat=1/.test(a.url)){const id=new URL(a.url,location.href).searchParams.get('ag');ui.cat='impl';ui.tab='agenda';ui.chat=null;render();if(getAg(id))ACT.agOpen({dataset:{id}});return}gIr(a.url)}
+});
+Object.assign(CH,{
+  gFsel:el=>{if(!ui.gF)return;ui.gF[el.dataset.k]=el.value;render()},
+  gDia:el=>{if(el.value){ui.gDia=el.value;render()}},
+  gTecF:el=>{ui.gTecF=el.value;render()},
+  gpIni:el=>{ui.gpIni=el.value||ui.gpIni;render()},gpFim:el=>{ui.gpFim=el.value||ui.gpFim;render()},
+  gRfoSel:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;R[el.dataset.k]=el.value;if(el.dataset.k==='desfecho'){const y=window.scrollY;render();window.scrollTo(0,y)}},
+  chatFoto:async el=>{const f=el.files&&el.files[0];if(!f)return;toast('Enviando a foto…');const ok=await gChatEnviar((($('chatTxt')||{}).value||'').trim(),f);if(ok){ui.chatTxt='';const i=$('chatTxt');if(i)i.value='';toast('Foto enviada.')}el.value=''}
+});
+Object.assign(IN,{
+  gQ:el=>{ui.gQ=el.value;render();const i=$('gQ');if(i){i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}}},
+  grQ:el=>{ui.grQ=el.value;render();const i=$('grQ');if(i){i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}}},
+  gTxt:el=>{ui.gTxt=el.value},
+  gF:el=>{if(ui.gF)ui.gF[el.dataset.k]=el.value},
+  gNv:el=>{(ui.gNv=ui.gNv||{})[el.dataset.id]=el.value},
+  gEta:el=>{(ui.gEta=ui.gEta||{})[el.dataset.id]=el.value},
+  gRfo:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(R)R[el.dataset.k]=el.value},
+  chatTxt:el=>{ui.chatTxt=el.value}
+});
+/* a mesma tela de assinatura e conferência da Implantação atende as LPUs do GTD */
+{const _sgOk=ACT.sgOk,_confVoltar=ACT.confVoltar;
+  ACT.sgOk=async()=>{const g=ui.sign;if(g&&(g.tipo==='gtd'||g.tipo==='gajuste'))return gSgOk();return _sgOk()};
+  ACT.confVoltar=()=>{const g=ui.sign;if(g&&g.tipo==='gajuste'){closeModal();gOpenAjuste(g.id);return}return _confVoltar()};
+  const _tab=ACT.tab;ACT.tab=el=>{ui.chat=null;ui.gSel=null;if(ui.lpuTela&&String(ui.lpuTela).startsWith('G:'))ui.lpuTela=null;return _tab(el)};
+  const _voltar=ACT.voltar;ACT.voltar=()=>{ui.gSel=null;return _voltar()};
+  const _abrir=ACT.abrir;ACT.abrir=el=>{ui.gSel=null;return _abrir(el)};}
+/* carregar() da Implantação + dados do GTD, mensagens e avisos */
+{const _carregar=carregar;carregar=async function(){await _carregar();await gCarregar()}}
+{const _ligar=ligarTempoReal;ligarTempoReal=function(){_ligar();gLigarTempoReal()}}
+
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});

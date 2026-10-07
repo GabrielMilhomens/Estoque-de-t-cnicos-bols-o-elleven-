@@ -1,6 +1,8 @@
-# Agenda de Implantação — Net Turbo Telecom
+# Ferramenta de Gestão O&M — Net Turbo Telecom
 
-Sistema web de gestão das atividades de campo da área de Implantação e Infraestrutura: agendamento das fases de construção de circuitos, execução pelos técnicos no celular, relatórios fotográficos, LPU (lista de preços unitários) com assinatura digital, aprovação financeira, controle de estoque dos técnicos e indicadores de desempenho.
+(Antes chamada **Agenda de Implantação**. O arquivo principal continua `agenda.html`, para não mudar o endereço nem o app já instalado nos celulares.)
+
+Sistema web de gestão das atividades de campo de O&M em duas categorias: **Implantação** e **GTD Manutenção** (chamados do NOC para equipamentos em clientes). Na Implantação: agendamento das fases de construção de circuitos, execução pelos técnicos no celular, relatórios fotográficos, LPU (lista de preços unitários) com assinatura digital, aprovação financeira, controle de estoque dos técnicos e indicadores de desempenho. No GTD Manutenção: chamados criados a partir do texto do NOC, Kanban, agenda, despacho, validação pelo NOC, MTTR e SLA, RFO, LPU com conta fixa de Manutenção cliente, relatórios por cliente e KPIs. As duas categorias têm mensagens (chat com fotos) e o sino de avisos.
 
 - **Responsável funcional:** Gabriel Milhomens, Coordenador de Implantação e Infraestrutura
 - **Endereço atual (piloto):** `https://gabrielmilhomens.github.io/Estoque-de-t-cnicos-bols-o-elleven-/agenda.html`
@@ -18,12 +20,12 @@ Sistema web de gestão das atividades de campo da área de Implantação e Infra
         ▼
  Supabase
    ├─ Auth ............ login por e-mail e senha (mesmo login do antigo Estoque de Materiais)
-   ├─ Postgres ........ tabelas ag_*, estoque, permissões, com Row Level Security (RLS)
+   ├─ Postgres ........ tabelas ag_* (Implantação, GTD, mensagens, avisos), estoque, permissões, com RLS
    ├─ Storage ......... bucket privado "agenda" (anexos, PDFs de LPU, relatórios, fotos)
    ├─ Realtime ........ atualização ao vivo das telas
    ├─ Edge Function ... "agenda-lembretes" (Deno): notificações push
    ├─ pg_cron ......... dispara a função a cada 10 minutos
-   └─ pg_net + triggers  avisos imediatos (atividade nova, remarcada, pedido de prazo...)
+   └─ pg_net + triggers  avisos imediatos (atividade nova, remarcada, pedido de prazo, chamados do GTD, mensagens)
         │
         ▼
  Web Push (VAPID) → navegadores dos usuários
@@ -39,7 +41,7 @@ Sistema web de gestão das atividades de campo da área de Implantação e Infra
 
 | Arquivo | Função |
 |---|---|
-| `agenda.html` | Aplicação principal (todas as telas da gestão e dos técnicos). Aproximadamente 350 KB. |
+| `agenda.html` | Aplicação principal, a Ferramenta de Gestão O&M (todas as telas da gestão, do NOC, do Delivery e dos técnicos, nas categorias Implantação e GTD Manutenção). Aproximadamente 490 KB. |
 | `relatorio-ativacao.html` | Relatório de Entrega de Circuito (ativação). Abre na mesma janela a partir da agenda, com o mesmo visual das telas do técnico (barra "Voltar para a atividade", cartão do cliente, seções numa única página e progresso de itens preenchidos). Gera o PDF no modelo original, envia ao Storage e retorna para a atividade. Nenhum item é obrigatório. |
 | `sw.js` | Service worker: recebe e exibe as notificações push e abre a atividade ao tocar. Não faz cache de páginas. |
 | `manifest.webmanifest` | Manifesto PWA (nome, ícones, cores, `id` do app). Permite instalar no celular e no computador. |
@@ -52,7 +54,7 @@ Sistema web de gestão das atividades de campo da área de Implantação e Infra
 
 | Arquivo | Onde vai |
 |---|---|
-| `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `14` | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
+| `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `14` (o 14 é o do GTD Manutenção) | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
 | `agenda-lembretes.ts` | Código da Edge Function de notificações (pode ficar em repositório privado). |
 | `limpeza-arquivos.ts` e `preventivas_retencao_arquivos.sql` | Retenção de 30 dias no **outro projeto** Supabase da organização (preventivas e agendamentos), seção 6.2. O SQL contém o segredo da rotina. |
 | `agenda-rota.ts` | Código da Edge Function `agenda-rota` (rota, previsão de chegada e endereço das fotos pelo OpenRouteService). |
@@ -88,11 +90,14 @@ Para um ambiente interno sem acesso à internet pública, essas bibliotecas prec
 | `ag_projetos` | Base de previsão: um projeto por etiqueta (cliente, protocolo, valor mensal, topologia, metragem, dias previstos por fase, dados extraídos do ROI). Dados variáveis em `dados jsonb`. |
 | `ag_complementos` | Endereço, contato, telefone, janela de atendimento, acesso e observações do projeto. |
 | `ag_agendamentos` | Atividades: etiqueta, técnico, data, status, fases e `dados jsonb` (tempos, materiais, fotos exigidas, relatórios, medições, dias de execução, diário por dia, pedido de prazo, motivo de não conclusão). |
-| `ag_lpus` | LPUs enviadas pelos técnicos: itens, total, conta contábil, status, histórico de aprovação, caminho do PDF assinado. |
+| `ag_lpus` | LPUs enviadas pelos técnicos: itens, total, conta contábil, status, histórico de aprovação, caminho do PDF assinado. A coluna `chamado` liga a LPU a um chamado do GTD (vazia na Implantação); a situação `registrada` é a LPU do CLT no GTD, que não passa por aprovação. |
+| `ag_chamados` | Chamados do GTD Manutenção: protocolos O&M e NOC, etiqueta, cliente, cidade, categoria, prioridade, situação, técnico, `agenda_em` (agendado: início do MTTR e do SLA), `validado_em` (gravado pelo banco quando o NOC valida: fim do MTTR) e `dados jsonb` (motivo, endereço, dados técnicos lidos do texto do NOC, tempos, não validações, RFO, histórico). |
+| `ag_mensagens` | Mensagens do chat: por chamado (técnico, NOC e O&M) ou por atividade da Implantação (técnico, Delivery e O&M). Autor, nome e papel são gravados pelo banco. Fotos no Storage em `chat/`. |
+| `ag_avisos` | Sino de avisos de cada usuário (lido ou não). Cada aviso novo também é enviado ao celular pela Edge Function. Avisos com mais de 60 dias são apagados. |
 | `ag_anexos`, `ag_anexos_log` | Anexos dos projetos (KMZ e outros) e log das exclusões automáticas. |
 | `ag_budget` | Budget mensal de mão de obra terceirizada por conta contábil. |
 | `ag_push`, `ag_notificacoes` | Aparelhos registrados para notificação e controle de avisos já enviados (evita repetição). |
-| `agenda_papeis` | Papel de cada usuário na agenda (`coordenador`, `supervisor`, `encarregado`, `tecnico`, `supply`), vínculo (`clt` ou `terceiro`) e permissões personalizadas (`permissoes jsonb`). |
+| `agenda_papeis` | Papel de cada usuário na ferramenta (`coordenador`, `supervisor`, `encarregado`, `tecnico`, `supply`, `visualizacao`, `noc`, `delivery`), vínculo (`clt` ou `terceiro`) e permissões personalizadas (`permissoes jsonb`). |
 
 ### 4.2 Tabelas do antigo sistema de Estoque (reaproveitadas)
 
@@ -111,6 +116,10 @@ Para um ambiente interno sem acesso à internet pública, essas bibliotecas prec
 | `ag_registrar_push()` | Registra o aparelho para notificações. |
 | `ag_chamar_avisos()`, `ag_aviso_insert()`, `ag_aviso_update()` | Triggers que chamam a Edge Function na hora (atividade nova, remarcada, transferida, cancelada, pedido de prazo e resposta). |
 | `ag_touch()`, `ag_agendamento_guard()`, `ag_tecnico_no_projeto()` | Carimbo de atualização e proteções de gravação. |
+| `ag_gtd()`, `ag_valida_gtd()`, `ag_pode_de(usuário, chave)` | Quem enxerga o GTD (coordenador, supervisor, encarregado e NOC; o Delivery não), quem valida chamado (NOC, coordenador e quem tem "Acesso NOC") e permissão de outro usuário (usada para escolher quem recebe cada aviso). |
+| `ag_chamado_guard()` | Regras do chamado no banco: o NOC não despacha; o técnico só avança nas etapas dele e não muda despacho, agendamento ou dados; só quem valida tira o chamado de "Aguardando validação"; `validado_em` é gravado pelo banco. |
+| `ag_tecnicos_lista()` | Nome e vínculo dos técnicos para o despacho e os filtros do GTD (o NOC não lê `agenda_papeis`). |
+| `ag_avisar()`, `ag_destinos()`, `ag_chamado_avisos()`, `ag_mensagem_avisos()`, `ag_lpu_gtd_avisos()`, `ag_avisos_push()` | Geram os avisos do sino a cada evento do GTD, mensagem ou LPU do GTD e mandam para o celular (evento `avisos` da `agenda-lembretes`). |
 
 ### 4.4 Storage (bucket privado `agenda`)
 
@@ -120,6 +129,8 @@ lpus/<id do técnico>/...                  PDFs das LPUs assinadas
 relatorios/<id da atividade>/...          PDF do relatório de entrega (ativação)
 relatorios/<id da atividade>/fotografico/ PDFs dos relatórios fotográficos e de não conclusão
 relatorios/<id da atividade>/dias/        fotos do resumo de cada dia (atividades de vários dias)
+chat/g/<id do chamado>/...                fotos do chat do GTD Manutenção (o Delivery não lê)
+chat/a/<id da atividade>/...              fotos do chat da Implantação
 ```
 
 Os arquivos são abertos por URL assinada temporária. As fotos são reduzidas no próprio celular antes do envio (agenda: 1280 px no lado maior, JPEG 60%; relatório de entrega: 1200 px, JPEG 62%), ficando em torno de 150 a 300 KB cada. Limite por arquivo: 50 MB.
@@ -144,6 +155,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 12. `agenda_ajuste_11_aviso_lpu.sql` — aviso imediato ao técnico quando a LPU é aprovada, reprovada ou devolvida para ajuste
 13. `agenda_ajuste_12_empresa_terceira.sql` — funcionários de empresas terceiras: empresa do funcionário, LPU em conferência pelo administrador, permissões de leitura e gravação dos PDFs da equipe e avisos de LPU para conferir
 14. `agenda_ajuste_13_armazenamento.sql` — tela de espaço de armazenamento: funções `ag_sou_coordenador`, `ag_uso_armazenamento` e `ag_arquivos`, e permissão do coordenador para ler, regravar e apagar arquivos do bucket `agenda`
+15. `agenda_ajuste_14_gtd_manutencao.sql` — GTD Manutenção: papéis NOC e Delivery, tabelas `ag_chamados`, `ag_mensagens` e `ag_avisos`, coluna `ag_lpus.chamado` e situação `registrada`, regras de validação, avisos do sino e push, pastas `chat/` no Storage e tempo real das tabelas novas. Usa a função `ag_chamar_avisos` do ajuste 03 (não repete o segredo).
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -161,8 +173,14 @@ Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create 
 | Técnico CLT | Minhas atividades, Meu estoque e Meu histórico. |
 | Técnico terceiro (administrador da empresa) | Igual ao CLT, mais Gestão financeira (LPUs e totais) da empresa inteira, incluindo a aba **Para conferir**, com as LPUs dos funcionários. |
 | Funcionário de empresa terceira | Igual ao CLT, sem Gestão financeira. Suas LPUs vão para a conferência do administrador da empresa (`agenda_papeis.empresa`), que corrige se precisar e envia para a aprovação do O&M. |
+| NOC | Só GTD Manutenção: Chamados (Kanban), Agenda, Criar chamado e Relatórios. Cria chamados, conversa com o técnico e **valida** o atendimento. Não despacha. Recebe avisos de despacho, saída, chegada e pedido de validação. |
+| Delivery | Só Implantação, com as telas e ações que a coordenação liberar em Permissões (padrão: Painel do dia e Agenda), como encarregado e supervisor. Conversa com o técnico pelo chat da atividade. **Nunca vê o GTD Manutenção** (regra também no banco). |
 
-A coordenação pode personalizar, por usuário, as telas e ações da gestão em **Usuários e acessos → Permissões**. Usuários novos de gestão começam sem nenhuma tela. As ações sensíveis (aprovar LPU, definir budget, importar estoque, saldo base) também são validadas no banco por `ag_pode()`.
+**Categorias:** quem tem telas da Implantação e do GTD vê no topo do menu a troca **Implantação | GTD Manutenção**; os grupos do menu (Acompanhamento, Operação, Financeiro) mostram as telas da categoria escolhida. O técnico vê os chamados do GTD e as atividades da Implantação juntos em Minhas atividades.
+
+**GTD na matriz de permissões (supervisor e encarregado):** Painel de KPIs do GTD, Chamados (ações: despachar; agendar, editar e cancelar; **Acesso NOC: validar chamados**), Agenda do GTD, Criar chamado, Relatórios do GTD e Aprovação de LPU do GTD (ação: aprovar). Padrão do supervisor: tudo, menos validar. Padrão do encarregado: chamados, despacho, edição, agenda, criar, relatórios e validar (sem painel e sem aprovação). A coordenação define quem tem o Acesso NOC.
+
+A coordenação pode personalizar, por usuário, as telas e ações da gestão em **Usuários e acessos → Permissões**. Usuários novos de gestão (inclusive Delivery) começam sem nenhuma tela. As ações sensíveis (aprovar LPU, definir budget, importar estoque, saldo base) também são validadas no banco por `ag_pode()`.
 
 O login é por e-mail e senha no Supabase Auth; novos cadastros ficam pendentes até a coordenação aprovar e atribuir um papel.
 
@@ -170,7 +188,9 @@ O login é por e-mail e senha no Supabase Auth; novos cadastros ficam pendentes 
 
 ## 6. Notificações push (Edge Function `agenda-lembretes`)
 
-**Implantação:** Supabase → Edge Functions → `agenda-lembretes` → colar o conteúdo de `agenda-lembretes.ts` → Deploy. A verificação de JWT ("Enforce JWT Verification") fica **desligada**; a função valida o usuário (teste) ou o segredo da rotina (`x-cron-secret`).
+**Implantação:** Supabase → Edge Functions → `agenda-lembretes` → colar o conteúdo de `agenda-lembretes.ts` → Deploy.
+
+**Avisos do sino (ajuste 14):** cada linha nova de `ag_avisos` chama a função com o evento `avisos`, que envia a notificação ao celular do destinatário (chamado novo, despacho, saída, chegada, pedido de validação, validado ou não validado, agendamento alterado, LPU do GTD para aprovar, mensagens). A notificação da decisão da LPU do GTD abre o chamado. Depois de rodar o ajuste 14, refazer o deploy da função com o `agenda-lembretes.ts` novo. A verificação de JWT ("Enforce JWT Verification") fica **desligada**; a função valida o usuário (teste) ou o segredo da rotina (`x-cron-secret`).
 
 **Segredos (Edge Functions → Secrets):**
 
@@ -239,6 +259,21 @@ Não faz parte do projeto da agenda: roda no **outro projeto** Supabase da organ
 - **Painel do dia (grupo Operação):** visão somente leitura das atividades de hoje, para outros setores e para TV: números do dia, filtro por cidade e colunas Aguardando início, A caminho, Em execução e Encerradas, com as últimas atualizações enviadas pelo técnico e o selo de circuito entregue. Atividades de vários dias aparecem em cada dia com "dia X de Y"; quando o técnico encerra o dia, o card vai para Encerradas com "Continua amanhã" (ou "Aguardando prazo") e o resumo do dia. Atualiza sozinho a cada minuto.
 - **Atualizações do andamento:** durante a execução, o técnico envia quantas atualizações quiser (situação, metragem, comentário e foto), exibidas no Painel do dia e no card da atividade.
 - **Painel de KPIs:** visão geral, entregas, rede executada (cabo, cordoalha, reaberturas de CEO, extensão de fibra), execução em campo, equipes e financeiro.
+- **Mensagens (as duas categorias):** botão **Mensagens (n)** no chamado e na atividade abre o chat em tela cheia, com "Voltar". GTD: técnico, NOC e O&M; Implantação: técnico, Delivery e O&M. Texto e foto ("Galeria ou câmera", reduzida para 1280 px, JPEG 60%). Cada mensagem avisa os outros participantes.
+- **Sino de avisos (as duas categorias):** no menu e na barra do celular, com o número de não lidos; tocar no aviso abre o chamado, a atividade ou a conversa. Os mesmos avisos chegam no celular como notificação.
+
+### 7.1 GTD Manutenção
+
+- **Criar chamado (NOC e gestão):** colar a "Solicitação de deslocamento" do NOC e tocar em **Ler chamado**; o texto preenche cliente, etiqueta, cidade, protocolos, equipamento, porta, OLT, banda, dados IP/PPPoE, tipo de entrega, material a levar, contato, janela, localização e observações (senhas ficam só no chamado). **Quando atender:** Atendimento hoje ou Agendado (data e horário). Categoria em lista (com a sugerida pelo motivo): Indisponibilidade, Verificação / qualidade do link, Troca de equipamento, Equipamento / energia, Wi-Fi, Gerência, Instalação / last mile. Prioridade: Normal, Alta ou Escalonado. Motivo em texto livre por enquanto. Alertas de protocolo O&M repetido, reincidência (mesma etiqueta em 30 dias), mesmo endereço de chamado aberto, campos não encontrados e possível improdutiva. O chamado entra em **Não despachados** e avisa a gestão.
+- **Kanban:** Não despachados, Despachados, Em deslocamento (com "chega por volta das"), No local · em atividade, Aguardando validação e Encerrados hoje. Busca por O&M, cliente, etiqueta ou técnico. O cartão mostra categoria, agendamento, prioridade, SLA, reincidência, mesmo endereço, técnico, cidade e MTTR.
+- **Chamado (gestão e NOC):** despacho por lista (CLT e terceiros) e botão **Despachar** (só gestão), agendamento, validação (**Validado** ou **Não validado** com motivo, só NOC e quem tem Acesso NOC), linha do tempo, dados do chamado, RFO com **Copiar para o WhatsApp**, LPU, editar e cancelar.
+- **Técnico:** previsão de chegada e **Iniciar deslocamento**, **Cheguei no cliente**, **Iniciar atendimento**, **Pedir validação ao NOC** (sem desfecho). Não validado volta para o técnico com o motivo e o MTTR continua. Depois da validação: **RFO** (desfecho Resolvido, Improdutivo ou Encaminhado com a equipe; localização da falha; causa; detalhes; materiais; serial retirado e instalado; patrimônio; solução; melhoria de rede), que gera o texto no formato do WhatsApp, e a **LPU** na mesma tela de 3 passos da Implantação, com a conta **fixa** 3.1.1.2.05.0006 (Manutenção cliente, sem opção de troca) e os itens dessa conta. CLT: LPU registrada, sem valores, sem aprovação e sem gestão financeira; o chamado encerra. Terceiro: LPU com valores para a aprovação e na Gestão financeira; funcionário de terceiro passa pela conferência do administrador.
+- **MTTR e SLA:** contam da criação (Atendimento hoje) ou do horário agendado até a validação do NOC. SLA de 4 horas para Indisponibilidade (demais categorias a definir).
+- **Agenda:** Dia, Semana e Mês, ‹ Hoje ›, data e filtro de técnico (inclui Não despachados), como na Implantação.
+- **Aprovação de LPU do GTD:** mesmo layout da Implantação (totais, abas, cartões com itens, dados do chamado, RFO, histórico, Reprovar, Devolver para ajuste e Aprovar com motivo). Aprovada ou reprovada, o chamado encerra. As LPUs aprovadas consomem o budget da conta Manutenção cliente.
+- **Relatórios (gestão e NOC):** lista de clientes (busca por cliente, etiqueta ou protocolo, total de chamados e selo de reincidente) e histórico completo do cliente, com RFO, desfecho, MTTR e LPU de cada chamado e o botão Abrir chamado.
+- **Painel de KPIs:** chamados, em aberto, MTTR médio, tempo até o despacho, SLA de indisponibilidade, reincidências, improdutivos e encaminhados; por categoria (com MTTR), por técnico, por cidade, por OLT, por desfecho, CLT x terceiros e indisponibilidades em andamento.
+- **Isolamento da Implantação:** os dados do GTD ficam em tabelas próprias e são gravados direto, ação a ação; não entram no salvamento automático da Implantação. Se o ajuste 14 ainda não tiver sido rodado, as telas do GTD mostram o aviso e a Implantação continua normal.
 
 ---
 
@@ -264,18 +299,20 @@ Não faz parte do projeto da agenda: roda no **outro projeto** Supabase da organ
 - **Chave pública no front-end:** a chave `anon` é pública por natureza; a proteção dos dados depende das políticas RLS, que precisam ser preservadas em qualquer migração.
 - **LPU em nome de outro usuário:** por regra de segurança, o banco só aceita LPU enviada pelo próprio técnico. Testes feitos pela "Visão do técnico" da coordenação não geram LPU.
 - **Dependência de CDNs:** ver seção 3.
+- **Volume do GTD:** a tela carrega todos os chamados (o histórico por cliente precisa deles). Com alguns milhares de chamados, avaliar carregar só o último ano e buscar o histórico do cliente sob demanda. A contagem de mensagens considera os últimos 120 dias.
 - **Chave do OpenRouteService:** fica só nos segredos do Supabase. Se a chave for exposta, gere outra no painel do OpenRouteService e atualize o segredo.
 
 ---
 
 ## 10. Teste rápido após publicar
 
-1. Entrar como coordenador e conferir o menu (Acompanhamento, Operação, Estoque, Projetos, Campo, Administração).
+1. Entrar como coordenador e conferir o menu (Acompanhamento, Operação, Estoque, Projetos, Campo, Administração) e a troca Implantação | GTD Manutenção.
 2. Cadastrar um projeto de teste, agendar uma fase para um técnico de teste e confirmar a notificação de "Nova atividade".
 3. No celular do técnico: iniciar deslocamento, chegar, iniciar, concluir, enviar o relatório fotográfico e a LPU.
 4. Na gestão: abrir **Financeiro → Aprovação de LPU**, conferir os relatórios e aprovar.
 5. Em **Estoque → Atualizar estoque**, publicar uma planilha do bolsão e conferir em **Movimentações**.
 6. Em Supabase → Edge Functions → `agenda-lembretes` → **Logs**, confirmar as execuções a cada 10 minutos.
+7. GTD: com um usuário NOC, criar um chamado colando o texto do NOC; na gestão, despachar; no celular do técnico, seguir até pedir validação e mandar uma mensagem com foto; no NOC, validar; no técnico, gerar o RFO e a LPU. Conferir os avisos no sino e no celular.
 
 ---
 
@@ -285,6 +322,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 07/10/2026 | **GTD Manutenção em produção** e novo nome do programa: **Ferramenta de Gestão O&M**. Categorias Implantação e GTD Manutenção; papéis NOC (cria, acompanha e valida chamados, não despacha) e Delivery (só Implantação, telas liberadas pela coordenação, nunca vê o GTD); criar chamado colando o texto do NOC; Kanban, agenda, despacho, validação só pelo NOC (e por quem tem Acesso NOC), MTTR e SLA, RFO no formato do WhatsApp, LPU com conta fixa de Manutenção cliente (CLT registrada sem aprovação; terceiro com aprovação no mesmo layout e budget da conta), relatórios por cliente e painel de KPIs. Mensagens com foto e sino de avisos nas duas categorias, com push. Implantação conferida tela a tela com a versão anterior (mesmo conteúdo, só com o botão Mensagens) e mesmas gravações no banco. | `agenda.html`, `sw.js`, `manifest.webmanifest`, `index.html`, `agenda-lembretes.ts` (deploy), `agenda_ajuste_14` |
 | 07/10/2026 | Retenção automática de 30 dias nos buckets `agendamento-fotos` e `preventivas-pdfs` do **projeto de preventivas e agendamentos** (outro projeto da mesma organização, que divide a cota de 1 GB): todo dia às 03:07 os arquivos com mais de 30 dias são apagados; prazo configurável por bucket. A tela Espaço de armazenamento passa a tratar só o bucket da agenda e avisa que a cota é da organização. | `armazenamento.html`, `agenda_ajuste_13` (só bucket `agenda`); no outro projeto: `preventivas_retencao_arquivos.sql` e Edge Function `limpeza-arquivos` (deploy, JWT desligado, segredo `CRON_SECRET` próprio) |
 | 06/10/2026 | Cota do plano gratuito do Supabase: fotos novas menores (agenda 1280 px e JPEG 60%, antes 1600 px e 72%; relatório de entrega JPEG 62%, antes 82%) e nova tela **Espaço de armazenamento** para o coordenador ver o uso, compactar as fotos já enviadas sem mudar os links e apagar pastas do bucket antigo `agendamento-fotos`. | `agenda.html`, `relatorio-ativacao.html`, novo `armazenamento.html`, `agenda_ajuste_13` |
 | 06/10/2026 | Funcionários de empresas terceiras: novo acesso "Funcionário de empresa terceira" ligado ao administrador da empresa. O funcionário faz a LPU normalmente, sem gestão financeira; a LPU vai para a aba "Para conferir" do administrador, que corrige se precisar e envia ao O&M. A aprovação mostra quem conferiu e quem executou. Avisos para o administrador. | `agenda.html`, `agenda-lembretes.ts` (deploy), `agenda_ajuste_12` |

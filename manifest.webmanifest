@@ -1,7 +1,7 @@
 {
   "id": "agenda-implantacao-netturbo",
-  "name": "Agenda de Implantação - Net Turbo",
-  "short_name": "Agenda NT",
+  "name": "Ferramenta de Gestão O&M - Net Turbo",
+  "short_name": "Gestão O&M",
   "start_url": "agenda.html",
   "scope": "./",
   "display": "standalone",
