@@ -445,6 +445,18 @@ details summary{cursor:pointer;font-weight:600}
 .chatdica{font-size:12px}@media (pointer:coarse){.chatdica{display:none}}
 .chatfoto svg{margin-right:4px;vertical-align:-3px}
 .grtab td:nth-child(1),.grtab td:nth-child(2),.grtab td:nth-child(5),.grtab td:nth-child(6){white-space:nowrap}.grtab td:nth-child(3){min-width:220px}
+.kch{align-items:center}.kcc{line-height:1.3}
+.kcat{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);letter-spacing:.01em}
+.kcat i{width:8px;height:8px;border-radius:50%;flex:none}
+.kmsg{display:inline-flex;align-items:center;gap:4px;flex:none;height:22px;padding:0 8px;border-radius:999px;background:var(--info-soft);color:var(--info);font:700 12px/22px Barlow,sans-serif;white-space:nowrap}
+.kc .chip{white-space:nowrap}
+.tbox.aceite{border:2px solid var(--warn);background:var(--warn-soft)}
+.rfof{border:1px dashed var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.rfog{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.rfog figure{margin:0;position:relative;display:flex;flex-direction:column;gap:4px}
+.rfog img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+.rfog .inp{width:100%;min-width:0;font-size:13px;min-height:34px;padding:5px 8px}
+.rfox{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:28px;height:28px;padding:0;font-size:13px}
 </style>
 </head>
 <body>
@@ -2481,6 +2493,12 @@ const gPodeValidar=()=>ui.perfil==='noc'||ui.perfil==='coord'||(gGest()&&pode('a
 const gPodeDesp=()=>gGest()&&pode('a_gDespachar');
 const gPodeEditar=()=>gGest()&&pode('a_gEditar');
 const gStK=c=>c.status==='aberto'&&c.tec?'desp':c.status;
+const gAceito=c=>!!(c.tec&&c.aceite&&c.aceite.tec===c.tec);
+const gRecusa=c=>!c.tec&&c.status==='aberto'?(c.recusas||[]).slice(-1)[0]||null:null;
+const GCAT_COR={'Indisponibilidade':'#C0392B','Verificação / qualidade do link':'#245F80','Troca de equipamento':'#B7791F','Equipamento / energia':'#C2410C','Wi-Fi':'#6D4FB3','Gerência':'#0F766E','Instalação / last mile':'#4D7C0F'};
+const gCatTag=c=>`<span class="kcat"><i style="background:${GCAT_COR[c.categoria]||'var(--muted)'}"></i>${esc(c.categoria||'Sem categoria')}</span>`;
+const gMsgIco=(t,id)=>{const n=gNMsg(t,id);if(gNNova(t,id))return gSeloMsg(t,id);return n?`<span class="kmsg" title="${n} ${n>1?'mensagens':'mensagem'}">${_sv('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',13)}${n}</span>`:''};
+const gAceiteChip=c=>c.status!=='aberto'||!c.tec?'':gAceito(c)?`<span class="chip ok">Aceito ${gQuando(c.aceite.em)}</span>`:'<span class="chip warn">Aguardando aceite</span>';
 const gChip=c=>{const x=GST[gStK(c)]||[c.status,''];return `<span class="chip ${x[1]}">${x[0]}</span>`};
 const gT=v=>v?new Date(v).getTime():null;
 const gIni=c=>c.agendaEm&&c.agendaEm>c.criadoEm?c.agendaEm:c.criadoEm;
@@ -2542,14 +2560,14 @@ function gTroca(c){const i=G.ch.findIndex(x=>x.id===c.id);if(i>=0)G.ch[i]=c;else
 const gHist=(c,acao,extra)=>{c.hist=(c.hist||[]).concat([Object.assign({acao,por:meNome(),em:Date.now()},extra||{})])};
 
 /* ---------- KANBAN (gestão e NOC) ---------- */
-function gCard(c){const sla=gSla(c),re=gReinc(c).length,me=gMesmoEnd(c).length,n=gNMsg('g',c.id),mt=gMttr(c);
-  return `<button class="kc" data-act="gAbrir" data-id="${c.id}"><span class="kch"><b>O&amp;M ${esc(c.pom||'—')}</b>${gNNova('g',c.id)?gSeloMsg('g',c.id):n?`<span class="chip info">${n} msg</span>`:''}</span><span class="kcc">${esc(c.cliente||'Cliente')}</span>
-   <span class="kct"><span class="chip">${esc(c.categoria||'Sem categoria')}</span>${c.agendaEm?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:''}${c.prioridade&&c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${re?'<span class="chip bad">Reincidente</span>':''}${me?'<span class="chip info">Mesmo endereço</span>':''}${c.naoVal&&c.naoVal.length&&GTD_ABERTOS.includes(c.status)?'<span class="chip bad">Não validado</span>':''}</span>
-   ${c.status==='desloc'&&c.ts&&c.ts.eta?`<span class="kceta">Chega por volta das ${hm(c.ts.eta)}</span>`:''}<small>${esc(gTecN(c.tec))}${c.tec?' ('+gTecV(c.tec)+')':''} · ${esc(c.cidade||'—')}</small><small>${mt.l}: ${mt.v}</small></button>`}
+function gCard(c){const sla=gSla(c),re=gReinc(c).length,me=gMesmoEnd(c).length,mt=gMttr(c),rc=gRecusa(c);
+  const tags=[c.agendaEm?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:'',c.prioridade&&c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:'',sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:'',re?'<span class="chip bad">Reincidente</span>':'',me?'<span class="chip info">Mesmo endereço</span>':'',c.naoVal&&c.naoVal.length&&GTD_ABERTOS.includes(c.status)?'<span class="chip bad">Não validado</span>':'',gAceiteChip(c),rc?`<span class="chip bad">Recusado por ${esc(String(rc.nome||'técnico').split(' ')[0])}</span>`:''].filter(Boolean).join('');
+  return `<button class="kc" data-act="gAbrir" data-id="${c.id}"><span class="kch"><b>O&amp;M ${esc(c.pom||'—')}</b>${gMsgIco('g',c.id)}</span><span class="kcc">${esc(c.cliente||'Cliente')}</span>${gCatTag(c)}
+   ${tags?`<span class="kct">${tags}</span>`:''}${c.status==='desloc'&&c.ts&&c.ts.eta?`<span class="kceta">Chega por volta das ${hm(c.ts.eta)}</span>`:''}<small>${esc(gTecN(c.tec))}${c.tec?' ('+gTecV(c.tec)+')':''} · ${esc(c.cidade||'—')}</small><small>${mt.l}: ${mt.v}</small></button>`}
 function viewGCham(){if(G.erro)return `<h2>Chamados · GTD Manutenção</h2>${gErroBox()}`;
   if(ui.gSel){const c=G.ch.find(x=>x.id===ui.gSel);if(c)return gDetalhe(c);ui.gSel=null}
   const T=hoje(),q=normK(ui.gQ||''),f=c=>!q||normK([c.pom,c.pnoc,c.cliente,c.etiqueta,c.cidade,gTecN(c.tec),c.categoria].join(' ')).includes(q),L=G.ch.filter(c=>c.status!=='cancelado'&&f(c));
-  const cols=[['Não despachados','Aguardando a gestão escolher o técnico',c=>c.status==='aberto'&&!c.tec],['Despachados','Técnico avisado; ainda não saiu',c=>c.status==='aberto'&&c.tec],['Em deslocamento','Com a previsão de chegada',c=>c.status==='desloc'],['No local · em atividade','Chegou ou já está atendendo',c=>c.status==='local'||c.status==='atend'],['Aguardando validação','O NOC confere; o MTTR continua',c=>c.status==='valid'],['Encerrados hoje','Validados hoje pelo NOC',c=>!GTD_ABERTOS.includes(c.status)&&c.validadoEm&&isoD(new Date(c.validadoEm))===T]];
+  const cols=[['Não despachados','Aguardando a gestão escolher o técnico',c=>c.status==='aberto'&&!c.tec],['Despachados','Aguardando aceite ou aceito, antes de sair',c=>c.status==='aberto'&&c.tec],['Em deslocamento','Com a previsão de chegada',c=>c.status==='desloc'],['No local · em atividade','Chegou ou já está atendendo',c=>c.status==='local'||c.status==='atend'],['Aguardando validação','O NOC confere; o MTTR continua',c=>c.status==='valid'],['Encerrados hoje','Validados hoje pelo NOC',c=>!GTD_ABERTOS.includes(c.status)&&c.validadoEm&&isoD(new Date(c.validadoEm))===T]];
   const pend=G.ch.filter(c=>['rfo','lpu'].includes(c.status)&&c.validadoEm&&isoD(new Date(c.validadoEm))<T).length;
   return `<div class="toolbar"><div><h2>Chamados · GTD Manutenção</h2><p class="muted">${ui.perfil==='noc'?'Acompanhe os chamados, converse com o técnico e valide o atendimento. O despacho é feito pela gestão do GTD.':'Toque no chamado para despachar, acompanhar e ver a linha do tempo.'}</p></div>
    <div class="tools"><input class="inp" type="search" id="gQ" data-in="gQ" placeholder="Buscar O&amp;M, cliente, etiqueta ou técnico" value="${esc(ui.gQ||'')}" autocomplete="off">${pode('gAgenda')?'<button class="btn" data-act="tab" data-t="gAgenda">Ver agenda</button>':''}${pode('gNovo')?'<button class="btn primary" data-act="tab" data-t="gNovo">Criar chamado</button>':''}</div></div>
@@ -2558,7 +2576,8 @@ function viewGCham(){if(G.erro)return `<h2>Chamados · GTD Manutenção</h2>${gE
 
 function gTimeline(c){const t=c.ts||{},ev=[['Chamado criado'+(c.criadoPorNome?' por '+c.criadoPorNome+(c.criadoPapel?' ('+c.criadoPapel+')':''):''),c.criadoEm]];
   if(c.agendaEm)ev.push(['Agendado para '+gQuando(c.agendaEm)+' (início do MTTR)',c.agendaEm<=Date.now()?c.agendaEm:null]);
-  ev.push(['Despachado'+(c.tec?' para '+gTecN(c.tec):''),t.despacho],['Deslocamento iniciado'+(t.eta?' · previsão '+hm(t.eta):''),t.desloc],['Chegada no cliente',t.chegada],['Atendimento iniciado',t.inicio]);
+  (c.recusas||[]).forEach(r=>ev.push(['Recusado por '+(r.nome||'técnico')+': '+(r.motivo||''),r.em,1]));
+  ev.push(['Despachado'+(c.tec?' para '+gTecN(c.tec):''),t.despacho],['Aceito pelo técnico',gAceito(c)?c.aceite.em:null],['Deslocamento iniciado'+(t.eta?' · previsão '+hm(t.eta):''),t.desloc],['Chegada no cliente',t.chegada],['Atendimento iniciado',t.inicio]);
   (c.naoVal||[]).forEach(n=>ev.push(['Não validado: '+n.motivo+(n.por?' ('+n.por+')':''),n.em,1]));
   ev.push(['Validação pedida ao NOC',t.pedido],['Validado pelo NOC'+(c.validadoPor?' ('+c.validadoPor+')':'')+' · fim do MTTR',c.validadoEm]);
   if(c.status==='cancelado')ev.push(['Chamado cancelado'+(c.motivoCancel?': '+c.motivoCancel:''),t.cancelado,1]);
@@ -2586,8 +2605,10 @@ function gDetalhe(c){const sla=gSla(c),mt=gMttr(c),re=gReinc(c),me=gMesmoEnd(c),
    ${me.length?`<div class="result info">Mesmo endereço de outro chamado em aberto: ${me.map(x=>'O&M '+esc(x.pom)+' ('+esc(x.cliente)+')').join(', ')}.</div>`:''}
    ${c.possivelImprodutiva?'<div class="result warn">Possível improdutiva sinalizada pelo NOC.</div>':''}${c.levar?`<div class="result ok"><b>Levar:</b> ${esc(c.levar)}</div>`:''}
    ${ui.perfil==='noc'&&ab&&!c.tec?'<div class="result warn">Aguardando o despacho pela gestão do GTD.</div>':''}
+   ${ab&&c.tec?(gAceito(c)?`<div class="result ok">Aceito pelo técnico ${gQuando(c.aceite.em)}. Aguardando o início do deslocamento.</div>`:'<div class="result warn">Despachado. Aguardando o técnico aceitar.</div>'):''}
+   ${gRecusa(c)?`<div class="result bad"><b>Recusado por ${esc(gRecusa(c).nome||'técnico')}</b> ${gQuando(gRecusa(c).em)}: ${esc(gRecusa(c).motivo||'')}. Escolha outro técnico.</div>`:''}
    ${desp}${agBox}${val}${lpuBox}
-   ${c.rfoTxt?`<section class="panel"><div class="ah"><h3>RFO</h3><button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></div><pre class="rfo">${esc(c.rfoTxt)}</pre></section>`:''}
+   ${c.rfoTxt?`<section class="panel"><div class="ah"><h3>RFO</h3><span class="tools">${c.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(c.rfoPdf)}">Relatório do atendimento (PDF${(c.rfoFotos||[]).length?', '+c.rfoFotos.length+' foto'+(c.rfoFotos.length>1?'s':''):''})</button>`:''}<button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></span></div><pre class="rfo">${esc(c.rfoTxt)}</pre></section>`:''}
    ${acoes}</div>
    <div class="stack"><section class="panel"><h3 class="lsub" style="margin-top:0">Linha do tempo</h3>${gTimeline(c)}</section><section class="panel"><h3 class="lsub" style="margin-top:0">Dados do chamado</h3>${gKv(c)}</section></div></div>`}
 
@@ -2725,7 +2746,7 @@ function viewGRel(){if(G.erro)return `<h2>Relatórios · GTD Manutenção</h2>${
    <label class="f inline"><span>De</span><input type="date" class="inp" data-ch="grIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="grFim" value="${fim}"></label></div>
   ${cls.map(Lc=>{const c0=Lc[0],k=c0.etiqueta||normK(c0.cliente||''),o=ui.grOpen[k]!==undefined?ui.grOpen[k]:cls.length===1,re=G.ch.filter(x=>x.status!=='cancelado'&&(x.etiqueta||normK(x.cliente||''))===k&&Date.now()-x.criadoEm<=30*GTD_DIA).length>1;
     return `<section class="lcard"><button class="lhead" data-act="grOpen" data-k="${esc(k)}" aria-expanded="${o}"><div><b style="font:700 20px 'Barlow Condensed',sans-serif">${esc(c0.cliente||'Cliente')}</b><small>${esc(c0.etiqueta||'sem etiqueta')}${c0.cidade?', '+esc(c0.cidade):''}</small></div><span style="display:flex;gap:8px;align-items:center">${re?'<span class="chip bad">Reincidente</span>':''}<span class="chip">${Lc.length} ${Lc.length>1?'chamados':'chamado'}</span><span class="muted">${o?'▴':'▾'}</span></span></button>
-     ${o?`<div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table class="grtab"><thead><tr><th>Data</th><th>Chamado</th><th>Categoria e motivo</th><th>Técnico</th><th>Desfecho</th><th>MTTR</th><th>LPU</th><th></th></tr></thead><tbody>${Lc.map(c=>{const l=gLpuDe(c);return `<tr><td>${dBR(gDiaDe(c))}</td><td><b>O&amp;M ${esc(c.pom||'—')}</b><br><small class="muted">NOC ${esc(c.pnoc||'—')}</small></td><td>${esc(c.categoria)}<br><small class="muted">${esc(String(c.motivo||'').slice(0,90))}</small></td><td>${esc(gTecN(c.tec))}</td><td>${c.desfecho?esc(c.desfecho+(c.encEquipe?' para '+c.encEquipe:'')):GST[gStK(c)][0]}</td><td>${c.validadoEm?gDur(c.validadoEm-gIni(c)):'em aberto'}</td><td>${l?(GLST[l.status]||[l.status])[0].replace(/^LPU /,'')+(verValor()&&l.status!=='registrada'?'<br><small class="muted">'+brl(l.total)+'</small>':''):'—'}</td><td class="r" style="white-space:nowrap">${c.rfoTxt?`<button class="btn sm" data-act="gRfoVer" data-id="${c.id}">Ver RFO</button> `:''}<button class="btn sm" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button></td></tr>`}).join('')}</tbody></table></div>`:''}</section>`}).join('')||'<p class="muted pad">Nenhum chamado com esses filtros.</p>'}`}
+     ${o?`<div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table class="grtab"><thead><tr><th>Data</th><th>Chamado</th><th>Categoria e motivo</th><th>Técnico</th><th>Desfecho</th><th>MTTR</th><th>LPU</th><th></th></tr></thead><tbody>${Lc.map(c=>{const l=gLpuDe(c);return `<tr><td>${dBR(gDiaDe(c))}</td><td><b>O&amp;M ${esc(c.pom||'—')}</b><br><small class="muted">NOC ${esc(c.pnoc||'—')}</small></td><td>${esc(c.categoria)}<br><small class="muted">${esc(String(c.motivo||'').slice(0,90))}</small></td><td>${esc(gTecN(c.tec))}</td><td>${c.desfecho?esc(c.desfecho+(c.encEquipe?' para '+c.encEquipe:'')):GST[gStK(c)][0]}</td><td>${c.validadoEm?gDur(c.validadoEm-gIni(c)):'em aberto'}</td><td>${l?(GLST[l.status]||[l.status])[0].replace(/^LPU /,'')+(verValor()&&l.status!=='registrada'?'<br><small class="muted">'+brl(l.total)+'</small>':''):'—'}</td><td class="r" style="white-space:nowrap">${c.rfoTxt?`<button class="btn sm" data-act="gRfoVer" data-id="${c.id}">Ver RFO</button> `:''}${c.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(c.rfoPdf)}">PDF</button> `:''}<button class="btn sm" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button></td></tr>`}).join('')}</tbody></table></div>`:''}</section>`}).join('')||'<p class="muted pad">Nenhum chamado com esses filtros.</p>'}`}
 
 /* ---------- APROVAÇÃO DE LPU DO GTD (mesmo layout da Implantação) ---------- */
 function viewGAprov(emb){if(G.erro)return `<h2>Aprovação de LPU · GTD</h2>${gErroBox()}`;
@@ -2738,7 +2759,7 @@ function viewGAprov(emb){if(G.erro)return `<h2>Aprovação de LPU · GTD</h2>${g
      <p class="note" style="margin-top:12px"><b>Conta contábil (fixa no GTD):</b> ${esc(GTD_CONTA)}</p>
      <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd</th><th class="r">Unitário</th><th class="r">Subtotal</th></tr></thead><tbody>${(l.itens||[]).map(i=>`<tr><td>${i.cod}</td><td>${esc(i.desc)}</td><td>${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.unit*i.qtd)}</td></tr>`).join('')}</tbody></table></div>
      <dl class="dl" style="margin-top:12px"><div><dt>Categoria</dt><dd>${esc(c.categoria||'—')}</dd></div><div><dt>Desfecho</dt><dd>${esc(c.desfecho?c.desfecho+(c.encEquipe?' para '+c.encEquipe:''):'—')}</dd></div><div><dt>MTTR</dt><dd>${c.validadoEm?gDur(c.validadoEm-gIni(c)):'—'}</dd></div><div><dt>Deslocamento</dt><dd>${fdur(dur(t.desloc,t.chegada))}</dd></div><div><dt>Atendimento</dt><dd>${fdur(dur(t.inicio,c.validadoEm))}</dd></div><div><dt>Situação</dt><dd>${lchip(l.status)}</dd></div></dl>
-     ${c.rfoTxt?`<details style="margin-top:10px"><summary>Ver RFO</summary><pre class="rfo">${esc(c.rfoTxt)}</pre></details>`:''}
+     ${c.rfoTxt?`<details style="margin-top:10px"><summary>Ver RFO</summary><pre class="rfo">${esc(c.rfoTxt)}</pre></details>`:''}${c.rfoPdf?`<div class="tools" style="margin-top:8px"><button class="btn sm" data-act="relVer" data-p="${esc(c.rfoPdf)}">Relatório do atendimento (PDF${(c.rfoFotos||[]).length?', '+c.rfoFotos.length+' foto(s)':''})</button></div>`:''}
      <div class="hist">${(l.hist||[]).map(h=>`<div>${esc(h.acao)} por ${esc(h.por)} em ${dtBR(h.em)}${h.motivo?`: ${esc(h.motivo)}`:''}</div>`).join('')}</div>
      <div class="actions">${c.id?`<button class="btn" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button>`:''}<button class="btn" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'&&pode('a_gAprovar')?`<button class="btn" data-act="gDecidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="gDecidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="gAprovar" data-id="${l.id}">Aprovar</button>`:''}</div></div>`:''}</div>`};
   return `${emb?'':`<div class="toolbar"><div><h2>Aprovação de LPU · GTD Manutenção</h2><p class="muted">Fila da supervisão. Só LPUs de terceiros passam por aqui; todas usam a conta 3.1.1.2.05.0006 (Manutenção cliente), que consome o budget dessa conta.</p></div></div>`}
@@ -2752,14 +2773,16 @@ const gTecPend=c=>GTD_ABERTOS.includes(c.status)||['rfo','lpu'].includes(c.statu
 function gTecLista(){if(G.erro)return '';const T=hoje(),mine=G.ch.filter(c=>c.tec===ui.tec&&c.status!=='cancelado');if(!mine.length)return '';
   const g={hoje:mine.filter(c=>gTecPend(c)&&gDiaDe(c)<=T).sort((a,b)=>gIni(a)-gIni(b)),prox:mine.filter(c=>gTecPend(c)&&gDiaDe(c)>T).sort((a,b)=>gIni(a)-gIni(b)),enc:mine.filter(c=>!gTecPend(c)).sort((a,b)=>(b.validadoEm||b.criadoEm)-(a.validadoEm||a.criadoEm))};
   const f=ui.gcF&&g[ui.gcF]?ui.gcF:'hoje',lab={hoje:'Hoje',prox:'Próximas',enc:'Encerradas'};
-  const card=c=>{const sla=gTecPend(c)?gSla(c):null,n=gNMsg('g',c.id),l=gLpuDe(c);return `<button class="row" data-act="gTecAbrir" data-id="${c.id}"><span class="tools">${gChip(c)}${c.agendaEm&&gTecPend(c)?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:''}${c.prioridade!=='Normal'&&gTecPend(c)?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${n?`<span class="chip info">${n} msg</span>`:''}${l&&l.status==='ajuste'?'<span class="chip bad">LPU para ajuste</span>':''}</span><b>${esc(c.cliente)}</b><small>O&amp;M ${esc(c.pom)} · ${esc(c.categoria)} · ${esc(c.cidade||'—')}${f==='enc'&&c.validadoEm?' · validado '+dBR(isoD(new Date(c.validadoEm))):''}</small></button>`};
+  const card=c=>{const sla=gTecPend(c)?gSla(c):null,n=gNMsg('g',c.id),l=gLpuDe(c);return `<button class="row" data-act="gTecAbrir" data-id="${c.id}"><span class="tools">${c.status==='aberto'&&!gAceito(c)?'<span class="chip bad">Aguardando seu aceite</span>':gChip(c)}${c.agendaEm&&gTecPend(c)?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:''}${c.prioridade!=='Normal'&&gTecPend(c)?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${n?`<span class="chip info">${n} msg</span>`:''}${l&&l.status==='ajuste'?'<span class="chip bad">LPU para ajuste</span>':''}</span><b>${esc(c.cliente)}</b><small>O&amp;M ${esc(c.pom)} · ${esc(c.categoria)} · ${esc(c.cidade||'—')}${f==='enc'&&c.validadoEm?' · validado '+dBR(isoD(new Date(c.validadoEm))):''}</small></button>`};
   return `<section class="gtec"><h3 class="lsub">GTD Manutenção</h3><div class="chips">${Object.keys(lab).map(k=>`<button data-act="gcF" data-t="${k}" aria-current="${f===k}">${lab[k]} (${g[k].length})</button>`).join('')}</div>
    ${g[f].map(card).join('')||`<p class="muted pad">${f==='enc'?'Nenhum chamado encerrado.':'Nenhum chamado aqui.'}</p>`}<h3 class="lsub">Implantação</h3></section>`}
 function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
+  if(c.status==='rfo'&&!(ui.gRfo||{})[c.id]&&!(ui.gRfoIdb||{})[c.id]){(ui.gRfoIdb=ui.gRfoIdb||{})[c.id]=1;IDB.get('gr:'+c.id).then(v=>{if(v&&v.desfecho!==undefined){(ui.gRfo=ui.gRfo||{})[c.id]=v;render()}}).catch(()=>{})}
   const t=c.ts||{},sla=gSla(c),mt=gMttr(c),l=gLpuDe(c),nv=(c.naoVal||[]).slice(-1)[0],R=(ui.gRfo=ui.gRfo||{})[c.id]||(ui.gRfo[c.id]={desfecho:'',encEquipe:'',local:'',causa:'',detalhes:'',materiais:c.levar||'',serialRet:'',serialInst:'',patrimonio:'',solucao:'',melhoria:''});
   const fut=c.agendaEm&&isoD(new Date(c.agendaEm))>hoje();
   let acao='';
-  if(c.status==='aberto')acao=`<section class="tbox">${fut?`<div class="result info">Agendado para ${gQuando(c.agendaEm)}.</div>`:''}<label class="f" style="margin:0"><span>Previsão de chegada *</span><input class="inp" type="time" id="gEta" data-in="gEta" data-id="${c.id}" value="${esc((ui.gEta||{})[c.id]||'')}"></label><button class="bigbtn" data-act="gTecPasso" data-p="desloc" data-id="${c.id}">Iniciar deslocamento</button></section>`;
+  if(c.status==='aberto'&&!gAceito(c))acao=`<section class="tbox aceite"><b class="lpt" style="font-size:20px">Chamado despachado para você</b><span>Aceite para assumir o atendimento. Se não puder atender, recuse e informe o motivo: o chamado volta para a gestão despachar para outro técnico.</span>${fut?`<div class="result info" style="margin:0">Agendado para ${gQuando(c.agendaEm)}.</div>`:''}<div class="grid2 even" style="gap:10px"><button class="btn danger" data-act="gRecusar" data-id="${c.id}">Recusar</button><button class="btn primary" data-act="gAceitar" data-id="${c.id}">Aceitar</button></div></section>`;
+  else if(c.status==='aberto')acao=`<section class="tbox"><div class="result ok" style="margin:0">Você aceitou este chamado ${gQuando(c.aceite.em)}.</div>${fut?`<div class="result info">Agendado para ${gQuando(c.agendaEm)}.</div>`:''}<label class="f" style="margin:0"><span>Previsão de chegada *</span><input class="inp" type="time" id="gEta" data-in="gEta" data-id="${c.id}" value="${esc((ui.gEta||{})[c.id]||'')}"></label><button class="bigbtn" data-act="gTecPasso" data-p="desloc" data-id="${c.id}">Iniciar deslocamento</button></section>`;
   else if(c.status==='desloc')acao=`<button class="bigbtn" data-act="gTecPasso" data-p="local" data-id="${c.id}">Cheguei no cliente</button>`;
   else if(c.status==='local')acao=`<button class="bigbtn" data-act="gTecPasso" data-p="atend" data-id="${c.id}">Iniciar atendimento</button>`;
   else if(c.status==='atend')acao=`<section class="tbox"><span>Terminou o atendimento? Peça a validação ao NOC. O desfecho é informado depois, no RFO.</span><button class="bigbtn" data-act="gTecPasso" data-p="valid" data-id="${c.id}">Pedir validação ao NOC</button><small class="muted">O MTTR só para quando o NOC validar.</small></section>`;
@@ -2767,8 +2790,9 @@ function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
   else if(c.status==='rfo'){const sel=(k,l,L)=>`<label class="f"><span>${l} *</span><select class="inp" data-ch="gRfoSel" data-id="${c.id}" data-k="${k}"><option value="">Escolha…</option>${L.map(x=>{const v=Array.isArray(x)?x[0]:x,n=Array.isArray(x)?x[1]:x;return `<option value="${esc(v)}" ${R[k]===v?'selected':''}>${esc(n)}</option>`}).join('')}</select></label>`,inp=(k,l)=>`<label class="f"><span>${l}</span><input class="inp" data-in="gRfo" data-id="${c.id}" data-k="${k}" value="${esc(R[k]||'')}"></label>`,ta=(k,l)=>`<label class="f"><span>${l}</span><textarea class="inp" rows="2" data-in="gRfo" data-id="${c.id}" data-k="${k}">${esc(R[k]||'')}</textarea></label>`;
     acao=`<section class="tbox"><h3>RFO</h3><div class="result ok" style="margin:0">Validado pelo NOC. Preencha o RFO e depois a LPU.</div>${sel('desfecho','Desfecho do atendimento',[['Resolvido','Resolvido'],['Improdutivo','Improdutivo'],['Encaminhado','Encaminhado para outra equipe']])}${R.desfecho==='Encaminhado'?inp('encEquipe','Encaminhado para qual equipe *'):''}${sel('local','Localização da falha',GTD_LOCAL)}${sel('causa','Causa',GTD_CAUSA)}
      ${ta('detalhes','Detalhes')}${inp('materiais','Materiais utilizados (separe por vírgula)')}<div class="grid2 even" style="gap:0 12px">${inp('serialRet','Serial retirado')}${inp('serialInst','Serial instalado')}</div>${inp('patrimonio','Patrimônio')}${ta('solucao','Solução *')}${ta('melhoria','Melhoria de rede')}
+     ${gRfoFotosHtml(c,R)}
      <button class="bigbtn" data-act="gRfoGerar" data-id="${c.id}">Gerar RFO e seguir para a LPU</button></section>`}
-  else{const rfo=c.rfoTxt?`<section class="tbox"><div class="ah"><b>RFO</b><button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></div><pre class="rfo">${esc(c.rfoTxt)}</pre></section>`:'';
+  else{const rfo=c.rfoTxt?`<section class="tbox"><div class="ah"><b>RFO</b><span class="tools">${c.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(c.rfoPdf)}">Relatório (PDF)</button>`:''}<button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></span></div><pre class="rfo">${esc(c.rfoTxt)}</pre></section>`:'';
     if(c.status==='lpu')acao=`${rfo}<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU</button>`;
     else if(l&&l.status==='ajuste'){const m=(l.hist||[]).slice().reverse().find(h=>h.motivo);acao=`<div class="result bad"><b>LPU devolvida para ajuste.</b> ${esc(m?m.motivo:'')}</div><button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}" data-aj="${l.id}">Corrigir a LPU</button>${rfo}`}
     else acao=`${l?`<div class="result ${l.status==='reprovada'?'bad':'ok'}">${(GLST[l.status]||[l.status])[0]}.</div>`:''}${rfo}`}
@@ -2781,6 +2805,29 @@ function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
    ${c.mapa||c.endereco?`<div class="tcbt"><a class="btn" href="${esc(c.mapa||('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.endereco)))}" target="_blank" rel="noopener">Abrir no mapa</a></div>`:''}
    ${c.levar?`<div class="result ok" style="margin:0"><b>Levar:</b> ${esc(c.levar)}</div>`:''}${nv&&GTD_ABERTOS.includes(c.status)?`<div class="result bad" style="margin:0"><b>Não validado pelo NOC:</b> ${esc(nv.motivo)}</div>`:''}
    <span class="muted">${mt.l}: <b style="color:var(--ink)">${mt.v}</b></span></div></article>${acao}`}
+
+/* ---------- fotos do atendimento e relatório (PDF) do RFO ---------- */
+const gRfoSalvar=id=>{const R=(ui.gRfo||{})[id];if(R)IDB.put('gr:'+id,JSON.parse(JSON.stringify(R))).catch(()=>{})};
+function gRfoFotosHtml(c,R){const F=R.fotos||[];return `<div class="rfof"><div class="ah"><b>Fotos do atendimento</b><span class="muted" style="font-size:13px">${F.length?F.length+(F.length>1?' fotos':' foto'):'opcional, quantas precisar'}</span></div>
+   <div class="rfog">${F.map((f,k)=>`<figure><img src="${esc(f.data||G.fotos[f.path]||'')}" alt="Foto ${k+1} do atendimento"><button class="icon rfox" data-act="gRfoFotoRem" data-id="${c.id}" data-k="${k}" aria-label="Remover foto ${k+1}">✕</button><input class="inp" placeholder="Legenda (ex.: ONU retirada)" data-in="gRfoLeg" data-id="${c.id}" data-k="${k}" value="${esc(f.leg||'')}"></figure>`).join('')}</div>
+   <div class="tools"><label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} Câmera<input type="file" accept="image/*" capture="environment" data-ch="gRfoFoto" data-id="${c.id}" data-cam="1" hidden></label><label class="btn sm chatfoto">${_sv('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',16)} Galeria<input type="file" accept="image/*" multiple data-ch="gRfoFoto" data-id="${c.id}" hidden></label></div>
+   <small class="muted">As fotos saem com data, hora e local, como no relatório da Implantação, e entram no relatório do atendimento (PDF) gerado com o RFO.</small></div>`}
+async function gImgData(f){if(f.data)return f.data;try{let u=G.fotos[f.path];if(!u){const s=await sb.storage.from('agenda').createSignedUrl(f.path,600);if(s.error)return null;u=s.data.signedUrl}const b=await (await fetch(u)).blob();return await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.onerror=()=>r(null);fr.readAsDataURL(b)})}catch(e){return null}}
+async function gRfoPdf(c,fotos){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m=14,W=210,H=297,r=c.rfo||{};let y=18;
+  doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(40);doc.text('Relatório do atendimento (RFO)',m,y);doc.setDrawColor(140,191,63);doc.setLineWidth(.8);doc.line(m,y+3,W-m,y+3);
+  const ini=(c.ts&&c.ts.inicio)||gIni(c),fim=c.validadoEm||(c.ts&&c.ts.validado)||Date.now();
+  doc.autoTable({startY:y+7,theme:'grid',styles:{fontSize:8.5,cellPadding:2},margin:{left:m,right:m},columnStyles:{0:{cellWidth:32,fontStyle:'bold',fillColor:[244,249,236]},2:{cellWidth:32,fontStyle:'bold',fillColor:[244,249,236]}},
+    body:[['Cliente',c.cliente||'','Etiqueta',c.etiqueta||''],['Protocolo O&M',c.pom||'','Protocolo NOC',c.pnoc||''],['Técnico',gTecN(c.tec),'Cidade',c.cidade||''],['Categoria',c.categoria||'','Data',dBR(isoD(new Date(fim)))],['Horário',hm(ini)+' às '+hm(fim),'MTTR',gHHMM(fim-gIni(c))],['Desfecho',(c.desfecho||'')+(c.encEquipe?' para '+c.encEquipe:''),'Localização',r.local||'']]});
+  y=doc.lastAutoTable.finalY+5;
+  doc.autoTable({startY:y,theme:'grid',head:[['RFO','']],headStyles:{fillColor:[140,191,63],fontSize:8.5},styles:{fontSize:8.5,cellPadding:2},columnStyles:{0:{cellWidth:38,fontStyle:'bold'}},margin:{left:m,right:m},
+    body:[['Motivo do chamado',c.motivo||'—'],['Causa',r.causa||'—'],['Detalhes',r.detalhes||'—'],['Materiais',r.materiais||'Nenhum material utilizado'],['Serial retirado',r.serialRet||'—'],['Serial instalado',r.serialInst||'—'],['Patrimônio',r.patrimonio||'—'],['Solução',r.solucao||'—'],['Melhoria de rede',r.melhoria||'—']]});
+  y=doc.lastAutoTable.finalY+7;
+  if(fotos.length){if(y+20>H-12){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(40);doc.text('Fotos do atendimento',m,y);y+=4}
+  const fw=(W-2*m-6)/2,fh=fw*0.75;let col=0;
+  fotos.forEach((f,k)=>{if(y+fh+10>H-12){doc.addPage();y=16;col=0}const xx=m+col*(fw+6);try{const pr=doc.getImageProperties(f.data),q=Math.min(fw/pr.width,fh/pr.height),w=pr.width*q,h=pr.height*q;doc.addImage(f.data,'JPEG',xx+(fw-w)/2,y+(fh-h)/2,w,h)}catch(e){}
+    doc.setDrawColor(212,221,216);doc.setLineWidth(.3);doc.rect(xx,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`Foto ${k+1}${f.leg?': '+f.leg:''}`,xx,y+fh+4,{maxWidth:fw});col++;if(col===2){col=0;y+=fh+10}});
+  const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, RFO O&M ${c.pom||''}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
+  return doc.output('blob')}
 
 /* LPU do chamado: mesma tela de 3 passos da Implantação, com a conta fixa */
 function gLpuView(c){const key='G:'+c.id,d=lpuDraft(key),P=ui.lpuP||1,L=lpuDaConta(GTD_CONTA),pas=['Serviços','Conferência','Assinatura'];d.conta=GTD_CONTA;d.fixa=true;
@@ -2902,7 +2949,7 @@ Object.assign(ACT,{
   gFechar:()=>{ui.gSel=null;ui.lpuTela=null;render();window.scrollTo(0,0)},
   gTecAbrir:el=>{ui.gSel=el.dataset.id;ui.campoSel=null;render();window.scrollTo(0,0)},
   gDespachar:async el=>{if(!gPodeDesp()&&semPerm())return;const v=($('gDespTec')||{}).value;if(!v){toast('Escolha o técnico.','bad');return}const nome=gTecN(v);
-    await gAcao(el.dataset.id,c=>{if(c.status!=='aberto'){toast('O técnico já iniciou este chamado.','bad');return false}const troca=c.tec&&c.tec!==v;c.tec=v;c.ts.despacho=Date.now();c.despachadoPor=meNome();gHist(c,(troca?'Técnico trocado para ':'Despachado para ')+nome)},`Chamado despachado para ${nome}.`)},
+    await gAcao(el.dataset.id,c=>{if(c.status!=='aberto'){toast('O técnico já iniciou este chamado.','bad');return false}const troca=c.tec&&c.tec!==v;c.tec=v;c.aceite=null;c.ts.despacho=Date.now();c.despachadoPor=meNome();gHist(c,(troca?'Técnico trocado para ':'Despachado para ')+nome)},`Chamado despachado para ${nome}.`)},
   gAgSalvar:async el=>{const d=($('gAgD')||{}).value,h=($('gAgH')||{}).value||'08:00';if(!d){toast('Escolha a data.','bad');return}const t=new Date(d+'T'+h+':00').getTime();
     await gAcao(el.dataset.id,c=>{c.agendaEm=t;c.quando='agendado';gHist(c,'Agendado para '+dBR(d)+' '+h)},'Agendamento salvo.')},
   gAgTirar:async el=>{await gAcao(el.dataset.id,c=>{c.agendaEm=null;c.quando='hoje';gHist(c,'Agendamento retirado: atendimento hoje')},'Chamado passou para atendimento hoje.')},
@@ -2945,13 +2992,24 @@ Object.assign(ACT,{
   gTecPasso:async el=>{const p=el.dataset.p,id=el.dataset.id;let eta=null;
     if(p==='desloc'){const v=((ui.gEta||{})[id]||($('gEta')||{}).value||'').trim();if(!v){toast('Informe a previsão de chegada.','bad');return}eta=new Date(hoje()+'T'+v+':00').getTime();if(eta<Date.now()-5*60000){toast('A previsão de chegada precisa ser depois de agora.','bad');return}}
     const prev={desloc:'aberto',local:'desloc',atend:'local',valid:'atend'}[p];
-    await gAcao(id,c=>{if(c.status!==prev){toast('O chamado já mudou de etapa. Tela atualizada.','bad');return false}c.status=p;const T=Date.now();
+    await gAcao(id,c=>{if(c.status!==prev){toast('O chamado já mudou de etapa. Tela atualizada.','bad');return false}if(p==='desloc'&&!gAceito(c)){toast('Aceite o chamado antes de sair.','bad');return false}c.status=p;const T=Date.now();
       if(p==='desloc'){c.ts.desloc=T;c.ts.eta=eta;gHist(c,'Deslocamento iniciado, previsão '+hm(eta))}else if(p==='local'){c.ts.chegada=T;gHist(c,'Chegada no cliente')}else if(p==='atend'){c.ts.inicio=c.ts.inicio||T;gHist(c,'Atendimento iniciado')}else{c.ts.pedido=T;gHist(c,'Validação pedida ao NOC')}},
       {desloc:'Deslocamento iniciado. O NOC e a gestão foram avisados.',local:'Chegada registrada.',atend:'Atendimento iniciado.',valid:'Validação pedida ao NOC. Aguarde.'}[p]);window.scrollTo(0,0)},
   gRfoGerar:async el=>{const id=el.dataset.id,R=(ui.gRfo||{})[id];if(!R)return;if(!R.desfecho){toast('Escolha o desfecho do atendimento.','bad');return}if(R.desfecho==='Encaminhado'&&!String(R.encEquipe||'').trim()){toast('Informe para qual equipe foi encaminhado.','bad');return}
     if(!R.local||!R.causa){toast('Escolha a localização da falha e a causa.','bad');return}if(!String(R.solucao||'').trim()){toast('Descreva a solução.','bad');return}
-    const nv=await gAcao(id,c=>{if(c.status!=='rfo'){toast('O RFO já foi gerado.','bad');return false}c.desfecho=R.desfecho;c.encEquipe=R.desfecho==='Encaminhado'?String(R.encEquipe).trim():'';c.rfo=Object.assign({},R);c.rfoTxt=gRfoTexto(c);c.status='lpu';c.ts.rfo=Date.now();gHist(c,'RFO gerado ('+R.desfecho+')')},'RFO gerado. Agora preencha a LPU.');
-    if(nv){delete ui.gRfo[id];ACT.gLpuAbrir({dataset:{id}})}},
+    const F=(R.fotos||[]).filter(f=>f.path);if((R.fotos||[]).some(f=>!f.path)){toast('Aguarde o envio das fotos terminar.','bad');return}el.disabled=true;
+    let pdf=null;try{toast('Gerando o relatório do atendimento…');const c0=Object.assign({},G.ch.find(x=>x.id===id)||{},{desfecho:R.desfecho,encEquipe:R.desfecho==='Encaminhado'?String(R.encEquipe).trim():'',rfo:R});
+      const fotos=[];for(const f of F){const d=await gImgData(f);if(d)fotos.push({data:d,leg:f.leg||''})}
+      const blob=await gRfoPdf(c0,fotos),path=`chat/g/${id}/rfo/relatorio-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
+    catch(e){toast('O RFO será gravado, mas o PDF do relatório não foi gerado: '+(e.message||e),'bad')}
+    const nv=await gAcao(id,c=>{if(c.status!=='rfo'){toast('O RFO já foi gerado.','bad');return false}c.desfecho=R.desfecho;c.encEquipe=R.desfecho==='Encaminhado'?String(R.encEquipe).trim():'';const{fotos,...rr}=R;c.rfo=rr;c.rfoFotos=F.map(f=>({path:f.path,leg:f.leg||''}));if(pdf)c.rfoPdf=pdf;c.rfoTxt=gRfoTexto(c);c.status='lpu';c.ts.rfo=Date.now();gHist(c,'RFO gerado ('+R.desfecho+')'+(F.length?', '+F.length+' foto(s)':''))},'RFO gerado. Agora preencha a LPU.');
+    el.disabled=false;if(nv){delete ui.gRfo[id];IDB.del('gr:'+id).catch(()=>{});ACT.gLpuAbrir({dataset:{id}})}},
+  gRfoFotoRem:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R||!R.fotos)return;R.fotos.splice(+el.dataset.k,1);gRfoSalvar(el.dataset.id);const y=window.scrollY;render();window.scrollTo(0,y)},
+  gAceitar:async el=>{await gAcao(el.dataset.id,c=>{if(c.status!=='aberto'||c.tec!==ME.id&&ui.perfil!=='coord'){toast('Este chamado não está mais com você.','bad');return false}c.aceite={tec:c.tec,em:Date.now(),por:meNome()};gHist(c,'Aceito pelo técnico')},'Chamado aceito. Informe a previsão de chegada ao sair.');window.scrollTo(0,0)},
+  gRecusar:el=>{openModal(`<h3>Recusar o chamado</h3><p class="muted">O chamado volta para Não despachados e a gestão do GTD é avisada.</p><label class="f" style="margin-top:12px"><span>Motivo *</span><select class="inp" id="grMot"><option value="">Escolha…</option>${['Estou em outro atendimento','Fora da minha região','Sem material ou equipamento necessário','Fora do meu horário','Outro'].map(x=>`<option>${x}</option>`).join('')}</select></label><label class="f"><span>Detalhes</span><textarea class="inp" id="grObs" rows="3" placeholder="Explique para a gestão"></textarea></label><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="gRecusarOk" data-id="${el.dataset.id}">Recusar chamado</button></div>`)},
+  gRecusarOk:async el=>{const m=$('grMot').value,o=$('grObs').value.trim();if(!m){toast('Escolha o motivo.','bad');return}if(m==='Outro'&&!o){toast('Explique o motivo nos detalhes.','bad');return}el.disabled=true;
+    const r=await sb.rpc('ag_recusar_chamado',{p_id:el.dataset.id,p_motivo:m+(o?': '+o:'')});el.disabled=false;if(r.error){toast('Não foi possível recusar: '+r.error.message,'bad');return}
+    closeModal();G.ch=G.ch.filter(x=>x.id!==el.dataset.id);ui.gSel=null;await gCarregar();render();window.scrollTo(0,0);toast('Chamado recusado. A gestão foi avisada.')},
   gLpuAbrir:el=>{const id=el.dataset.id,aj=el.dataset.aj||null,key='G:'+id;ui.gLpuAj=aj;if(aj){const l=G.lpus.find(x=>x.id===aj);if(l){const q={};(l.itens||[]).forEach(i=>{q[i.cod]={qtd:i.qtd,fator:i.fator==='Crítico'?'critico':'comum',unit:i.unit,inc:true}});ui.draft[key]={conta:GTD_CONTA,fixa:true,q,obs:l.obs||''}}}else if(!ui.draft[key])ui.draft[key]={conta:GTD_CONTA,fixa:true,q:{}};
     ui.lpuTela=key;ui.lpuP=1;ui.lpuQ='';ui.lpuCls='';render();window.scrollTo(0,0)},
   gLpuFechar:()=>{ui.lpuTela=null;ui.gLpuAj=null;render();window.scrollTo(0,0)},
@@ -2977,7 +3035,12 @@ Object.assign(CH,{
   gpIni:el=>{ui.gpIni=el.value||ui.gpIni;render()},gpFim:el=>{ui.gpFim=el.value||ui.gpFim;render()},
   gdSit:el=>{ui.gdSit=el.value;render()},gdPres:el=>{ui.gdPres=el.value;render()},gdClasse:el=>{ui.gdClasse=el.value;render()},
   grCat:el=>{ui.grCat=el.value;render()},grTec:el=>{ui.grTec=el.value;render()},grIni:el=>{ui.grIni=el.value||ui.grIni;render()},grFim:el=>{ui.grFim=el.value||ui.grFim;render()},
-  gRfoSel:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;R[el.dataset.k]=el.value;if(el.dataset.k==='desfecho'){const y=window.scrollY;render();window.scrollTo(0,y)}},
+  gRfoFoto:async el=>{const id=el.dataset.id,R=(ui.gRfo||{})[id],fs=[...(el.files||[])].slice(0,12);if(!R||!fs.length)return;const c=G.ch.find(x=>x.id===id)||{};R.fotos=R.fotos||[];toast(fs.length>1?'Enviando '+fs.length+' fotos…':'Enviando a foto…');
+    for(const f of fs){try{const d=await reduzirFoto(f,{etq:'OM'+(c.pom||''),cam:!!el.dataset.cam}),it={data:d,leg:''};R.fotos.push(it);const y=window.scrollY;render();window.scrollTo(0,y);
+      const b=await (await fetch(d)).blob(),path=`chat/g/${id}/rfo/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(up.error)throw up.error;it.path=path;gRfoSalvar(id)}
+     catch(e){R.fotos=R.fotos.filter(x=>x.path);toast('Não foi possível enviar a foto: '+(e.message||e),'bad')}}
+    el.value='';const y=window.scrollY;render();window.scrollTo(0,y);toast('Fotos prontas. Elas entram no relatório do RFO.')},
+  gRfoSel:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;R[el.dataset.k]=el.value;gRfoSalvar(el.dataset.id);if(el.dataset.k==='desfecho'){const y=window.scrollY;render();window.scrollTo(0,y)}},
   chatFoto:async el=>{const f=el.files&&el.files[0];if(!f)return;toast('Enviando a foto…');const ok=await gChatEnviar((($('chatTxt')||{}).value||'').trim(),f);if(ok){ui.chatTxt='';const i=$('chatTxt');if(i)i.value='';toast('Foto enviada.')}el.value=''}
 });
 Object.assign(IN,{
@@ -2987,7 +3050,8 @@ Object.assign(IN,{
   gF:el=>{if(ui.gF)ui.gF[el.dataset.k]=el.value},
   gNv:el=>{(ui.gNv=ui.gNv||{})[el.dataset.id]=el.value},
   gEta:el=>{(ui.gEta=ui.gEta||{})[el.dataset.id]=el.value},
-  gRfo:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(R)R[el.dataset.k]=el.value},
+  gRfo:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(R){R[el.dataset.k]=el.value;clearTimeout(ui.gRfoT);ui.gRfoT=setTimeout(()=>gRfoSalvar(el.dataset.id),600)}},
+  gRfoLeg:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(R&&R.fotos&&R.fotos[+el.dataset.k]){R.fotos[+el.dataset.k].leg=el.value;clearTimeout(ui.gRfoT);ui.gRfoT=setTimeout(()=>gRfoSalvar(el.dataset.id),600)}},
   chatTxt:el=>{ui.chatTxt=el.value}
 });
 /* a mesma tela de assinatura e conferência da Implantação atende as LPUs do GTD */
