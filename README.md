@@ -44,7 +44,7 @@ Sistema web de gestão das atividades de campo da área de Implantação e Infra
 | `sw.js` | Service worker: recebe e exibe as notificações push e abre a atividade ao tocar. Não faz cache de páginas. |
 | `manifest.webmanifest` | Manifesto PWA (nome, ícones, cores, `id` do app). Permite instalar no celular e no computador. |
 | `icon-192.png`, `icon-512.png` | Ícones do app (símbolo da Net Turbo). |
-| `armazenamento.html` | Espaço de armazenamento (só coordenador, aberto por **Usuários e acessos → Espaço de armazenamento**): uso de arquivos e banco frente ao plano gratuito, tamanho por bucket e pasta, compactação das fotos já enviadas (regrava no mesmo caminho, 1280 px, JPEG 60%) e exclusão de pastas do bucket antigo `agendamento-fotos`. |
+| `armazenamento.html` | Espaço de armazenamento do projeto da agenda (só coordenador, aberto por **Usuários e acessos → Espaço de armazenamento**): uso de arquivos e banco frente ao plano gratuito, tamanho por pasta e compactação das fotos já enviadas pela agenda (regrava no mesmo caminho, 1280 px, JPEG 60%). |
 | `index.html` | Redirecionamento do endereço antigo do Estoque de Materiais para `agenda.html` (aplicar só depois de desligar o sistema antigo). |
 | `README.md` | Este documento. |
 
@@ -52,8 +52,9 @@ Sistema web de gestão das atividades de campo da área de Implantação e Infra
 
 | Arquivo | Onde vai |
 |---|---|
-| `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `13` | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
+| `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `14` | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
 | `agenda-lembretes.ts` | Código da Edge Function de notificações (pode ficar em repositório privado). |
+| `limpeza-arquivos.ts` e `preventivas_retencao_arquivos.sql` | Retenção de 30 dias no **outro projeto** Supabase da organização (preventivas e agendamentos), seção 6.2. O SQL contém o segredo da rotina. |
 | `agenda-rota.ts` | Código da Edge Function `agenda-rota` (rota, previsão de chegada e endereço das fotos pelo OpenRouteService). |
 | `NAO_SUBIR_NO_GITHUB_segredos_notificacoes.txt` | Segredos da Edge Function (ver seção 6). |
 | `agenda_zerar_dados_de_teste.sql` | Script usado uma vez para apagar atividades, LPUs e avisos de teste antes da operação, com cópia de segurança no banco. |
@@ -123,7 +124,9 @@ relatorios/<id da atividade>/dias/        fotos do resumo de cada dia (atividade
 
 Os arquivos são abertos por URL assinada temporária. As fotos são reduzidas no próprio celular antes do envio (agenda: 1280 px no lado maior, JPEG 60%; relatório de entrega: 1200 px, JPEG 62%), ficando em torno de 150 a 300 KB cada. Limite por arquivo: 50 MB.
 
-O bucket `agendamento-fotos` é do sistema antigo de agendamento e não é usado pela agenda, mas ocupa a mesma cota do projeto. O coordenador acompanha e reduz o uso pela tela `armazenamento.html` (seção 9).
+A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`estoque de materiais`) com o projeto de preventivas e agendamentos (buckets `agendamento-fotos`, `preventivas-pdfs`, `agendamento-pdfs` e de expansão). O coordenador acompanha e reduz o uso da agenda pela tela `armazenamento.html` (seção 9).
+
+**Retenção de 30 dias (outro projeto):** nos buckets `agendamento-fotos` e `preventivas-pdfs` do projeto de preventivas e agendamentos ficam só os arquivos enviados nos últimos 30 dias; o que passa do prazo é apagado todo dia às 03:07 (seção 6.2). Os registros desses sistemas que apontam para arquivos apagados ficam sem a foto ou o PDF. Os buckets da agenda não entram na retenção.
 
 ### 4.5 Ordem de execução dos scripts SQL (ambiente novo)
 
@@ -140,7 +143,7 @@ O bucket `agendamento-fotos` é do sistema antigo de agendamento e não é usado
 11. `agenda_ajuste_10_painel_do_dia.sql` — papel Visualização, função `ag_painel_dia` e Painel do dia no padrão de supervisor e encarregado
 12. `agenda_ajuste_11_aviso_lpu.sql` — aviso imediato ao técnico quando a LPU é aprovada, reprovada ou devolvida para ajuste
 13. `agenda_ajuste_12_empresa_terceira.sql` — funcionários de empresas terceiras: empresa do funcionário, LPU em conferência pelo administrador, permissões de leitura e gravação dos PDFs da equipe e avisos de LPU para conferir
-14. `agenda_ajuste_13_armazenamento.sql` — tela de espaço de armazenamento: funções `ag_sou_coordenador`, `ag_uso_armazenamento` e `ag_arquivos`, e permissão do coordenador para ler, regravar e apagar arquivos dos buckets `agenda` e `agendamento-fotos`
+14. `agenda_ajuste_13_armazenamento.sql` — tela de espaço de armazenamento: funções `ag_sou_coordenador`, `ag_uso_armazenamento` e `ag_arquivos`, e permissão do coordenador para ler, regravar e apagar arquivos do bucket `agenda`
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -205,6 +208,25 @@ Cada aviso é enviado uma única vez por atividade e por dia (`ag_notificacoes`)
 
 **Carimbo das fotos:** toda foto enviada pela agenda e pelo relatório de entrega recebe, na própria imagem, horário, data e dia da semana, endereço, coordenadas e um código (etiqueta, data, hora e sequência). Fotos da galeria usam a data e o local gravados pelo celular; sem essas informações, o carimbo indica "Foto da galeria, sem localização".
 
+---
+
+## 6.2 Retenção de arquivos no projeto de preventivas e agendamentos
+
+Não faz parte do projeto da agenda: roda no **outro projeto** Supabase da organização (o de `agendamento-fotos` e `preventivas-pdfs`), mas fica documentado aqui porque divide a mesma cota de 1 GB.
+
+**Implantação (tudo nesse outro projeto):**
+1. SQL Editor → rodar `preventivas_retencao_arquivos.sql` (tabela `arq_retencao`, função `arq_vencidos` só para a chave de serviço, rotina diária `limpeza-arquivos` no pg_cron e, no fim, a prévia do que será apagado e do que fica). Conferir antes se o código do projeto na linha `url` é o mesmo do endereço do navegador.
+2. Edge Functions → Secrets → cadastrar `CRON_SECRET` com o valor do arquivo de segredos (é diferente do segredo do projeto da agenda).
+3. Edge Functions → criar `limpeza-arquivos` → colar `limpeza-arquivos.ts` → Deploy **com a verificação de JWT desligada**. Nada é apagado antes deste passo.
+
+**Funcionamento:** o pg_cron chama a função todo dia às 06:07 UTC (03:07 de Brasília). Para cada linha ativa de `public.arq_retencao`, a função lista os arquivos com `created_at` mais antigo que o prazo e apaga pela API do Storage em lotes de 100. O resultado fica em Edge Functions → `limpeza-arquivos` → Logs. Chamada com corpo `{"simular": true}` só conta, sem apagar.
+
+**Mudar o prazo ou desligar:** no SQL Editor desse projeto, `update public.arq_retencao set dias = 60 where bucket = 'preventivas-pdfs';` ou `set ativo = false`. Para incluir outro bucket, inserir uma linha na tabela.
+
+**Compactação:** a retenção não reduz o tamanho das fotos dos últimos 30 dias. Isso depende do sistema que envia as fotos para `agendamento-fotos` reduzi-las no envio, como a agenda já faz. PDFs não são compactados.
+
+---
+
 ## 7. Módulos funcionais
 
 - **Base de previsão:** cadastro de projetos em 3 etapas (leitura automática do PDF do ROI, endereço e dados técnicos), status por fase e regras por topologia (Firewall e Last mile sem lançamento liberam a ativação direto).
@@ -237,7 +259,7 @@ Cada aviso é enviado uma única vez por atividade e por dia (`ag_notificacoes`)
 
 ## 9. Pontos de atenção
 
-- **Cota do plano gratuito do Supabase:** 1 GB de arquivos, 500 MB de banco e 5 GB de tráfego por mês, sem backup automático; o projeto pausa após 1 semana sem uso. A operação segue no plano gratuito. Para ficar dentro da cota: fotos novas já saem reduzidas (seção 4.4) e o coordenador usa `armazenamento.html` para compactar as fotos antigas (a compactação baixa cada foto uma vez, o que conta no tráfego do mês) e, se o sistema antigo não precisar mais, apagar pastas do bucket `agendamento-fotos`. O painel do Supabase atualiza o uso com algumas horas de atraso. Se o volume voltar a passar de 1 GB, avaliar o plano Pro (US$ 25/mês, 100 GB de arquivos e backup diário).
+- **Cota do plano gratuito do Supabase:** 1 GB de arquivos, 500 MB de banco e 5 GB de tráfego por mês, sem backup automático; o projeto pausa após 1 semana sem uso. A operação segue no plano gratuito. Para ficar dentro da cota: fotos novas já saem reduzidas (seção 4.4) e o coordenador usa `armazenamento.html` para compactar as fotos antigas da agenda (a compactação baixa cada foto uma vez, o que conta no tráfego do mês). A cota é da organização: soma este projeto com o de preventivas e agendamentos, onde a retenção automática de 30 dias (seção 6.2) mantém `agendamento-fotos` e `preventivas-pdfs` limitados ao último mês. O painel do Supabase atualiza o uso com algumas horas de atraso. Se o volume voltar a passar de 1 GB, avaliar o plano Pro (US$ 25/mês, 100 GB de arquivos e backup diário).
 - **Segredos nos scripts:** os ajustes 02 e 03 gravam o `CRON_SECRET` dentro de funções do banco. Em produção, a recomendação é migrar esse valor para o Supabase Vault.
 - **Chave pública no front-end:** a chave `anon` é pública por natureza; a proteção dos dados depende das políticas RLS, que precisam ser preservadas em qualquer migração.
 - **LPU em nome de outro usuário:** por regra de segurança, o banco só aceita LPU enviada pelo próprio técnico. Testes feitos pela "Visão do técnico" da coordenação não geram LPU.
@@ -263,6 +285,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 07/10/2026 | Retenção automática de 30 dias nos buckets `agendamento-fotos` e `preventivas-pdfs` do **projeto de preventivas e agendamentos** (outro projeto da mesma organização, que divide a cota de 1 GB): todo dia às 03:07 os arquivos com mais de 30 dias são apagados; prazo configurável por bucket. A tela Espaço de armazenamento passa a tratar só o bucket da agenda e avisa que a cota é da organização. | `armazenamento.html`, `agenda_ajuste_13` (só bucket `agenda`); no outro projeto: `preventivas_retencao_arquivos.sql` e Edge Function `limpeza-arquivos` (deploy, JWT desligado, segredo `CRON_SECRET` próprio) |
 | 06/10/2026 | Cota do plano gratuito do Supabase: fotos novas menores (agenda 1280 px e JPEG 60%, antes 1600 px e 72%; relatório de entrega JPEG 62%, antes 82%) e nova tela **Espaço de armazenamento** para o coordenador ver o uso, compactar as fotos já enviadas sem mudar os links e apagar pastas do bucket antigo `agendamento-fotos`. | `agenda.html`, `relatorio-ativacao.html`, novo `armazenamento.html`, `agenda_ajuste_13` |
 | 06/10/2026 | Funcionários de empresas terceiras: novo acesso "Funcionário de empresa terceira" ligado ao administrador da empresa. O funcionário faz a LPU normalmente, sem gestão financeira; a LPU vai para a aba "Para conferir" do administrador, que corrige se precisar e envia ao O&M. A aprovação mostra quem conferiu e quem executou. Avisos para o administrador. | `agenda.html`, `agenda-lembretes.ts` (deploy), `agenda_ajuste_12` |
 | 06/10/2026 | Início da operação: dados de teste apagados (atividades, LPUs e avisos), mantendo projetos, complementos, anexos, budget, usuários e estoque; arquivos de teste removidos do Storage. | `agenda_zerar_dados_de_teste.sql` |

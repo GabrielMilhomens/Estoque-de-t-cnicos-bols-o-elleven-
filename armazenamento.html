@@ -22,7 +22,7 @@ h2{font-size:16px;margin:0 0 8px}
 .bar.alto i{background:var(--bad)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 table{width:100%;border-collapse:collapse;font-size:14px}
-td,th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
+td,th{padding:7px 4px;word-break:break-word;border-bottom:1px solid var(--line);text-align:left}
 td.n,th.n{text-align:right;white-space:nowrap}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
 .btn.primary{background:var(--brand);border-color:var(--brand);color:#1B3209}
@@ -73,13 +73,13 @@ function desenhar() {
   const falta = total - LIM_ARQ;
   $('app').innerHTML = `
   <section class="panel">
-    <h2>Uso do plano gratuito</h2>
+    <h2>Uso do plano gratuito — projeto estoque de materiais</h2>
     <div class="grid">
       <div><b>Arquivos</b> <span class="muted">${fmt(total)} de 1 GB</span>${barra(total, LIM_ARQ)}</div>
       <div><b>Banco de dados</b> <span class="muted">${fmt(banco)} de 500 MB</span>${barra(banco, LIM_BANCO)}</div>
     </div>
-    ${falta > 0 ? `<div class="aviso">Acima do limite em ${fmt(falta)}. Compacte as fotos abaixo (os arquivos continuam no mesmo lugar, só ficam menores).</div>` : `<div class="ok">Dentro do limite. Restam ${fmt(-falta)}.</div>`}
-    <p class="muted" style="margin:0">O painel do Supabase atualiza o número com algumas horas de atraso.</p>
+    ${falta > 0 ? `<div class="aviso">Só este projeto já passa do limite em ${fmt(falta)}. Compacte as fotos abaixo (os arquivos continuam no mesmo lugar, só ficam menores).</div>` : `<div class="ok">Este projeto ocupa ${fmt(total)}.</div>`}
+    <p class="muted" style="margin:0">O limite de 1 GB é da organização Netturbo inteira: soma este projeto e o projeto de preventivas e agendamentos (agendamento-fotos, preventivas-pdfs), que tem retenção automática de 30 dias. O painel do Supabase atualiza o número com algumas horas de atraso.</p>
   </section>
   <section class="panel">
     <h2>Onde está o espaço</h2>
@@ -89,21 +89,15 @@ function desenhar() {
   </section>
   <section class="panel">
     <h2>Compactar fotos</h2>
-    <p class="muted">Cada foto acima de ${fmt(MIN_BYTES)} é baixada, reduzida para ${MAXPX} px no lado maior e regravada no mesmo caminho. Os links e relatórios continuam funcionando. PDFs não são alterados. A foto só é trocada se ficar pelo menos 20% menor.</p>
+    <p class="muted">Cada foto acima de ${fmt(MIN_BYTES)} é baixada, reduzida para ${MAXPX} px no lado maior e regravada no mesmo caminho. Os links e relatórios da agenda continuam funcionando. PDFs não são alterados. A foto só é trocada se ficar pelo menos 20% menor.</p>
     <div class="row">
-      ${Object.keys(porBucket).filter(b => ['agenda', 'agendamento-fotos'].includes(b)).map(b => `<label class="chk"><input type="checkbox" class="bk" value="${esc(b)}" checked> ${esc(b)} (${fmt(porBucket[b].bytes)})</label>`).join('')}
+      ${Object.keys(porBucket).filter(b => b === 'agenda').map(b => `<label class="chk"><input type="checkbox" class="bk" value="${esc(b)}" checked> ${esc(b)} (${fmt(porBucket[b].bytes)})</label>`).join('')}
     </div>
     <div class="row" style="margin-top:10px"><button class="btn primary" id="bComp">Compactar</button><button class="btn" id="bParar" hidden>Parar</button></div>
     <div id="prog" hidden><div class="bar"><i id="pBar" style="width:0"></i></div><p id="pTxt" class="muted"></p></div>
-  </section>
-  <section class="panel">
-    <h2>Apagar pasta do sistema antigo</h2>
-    <p class="muted">Só para o bucket <b>agendamento-fotos</b>. Use apenas se essas fotos não forem mais necessárias. Não há como desfazer.</p>
-    ${porBucket['agendamento-fotos'] ? `<div class="row"><select id="selPasta">${porBucket['agendamento-fotos'].pastas.map(p => `<option value="${esc(p.pasta)}">${esc(p.pasta)} — ${p.arquivos} arquivos, ${fmt(Number(p.bytes))}</option>`).join('')}</select><button class="btn bad" id="bApagar">Apagar pasta</button></div><p id="aTxt" class="muted"></p>` : '<p class="muted">O bucket agendamento-fotos não tem arquivos.</p>'}
   </section>`;
   $('bComp').onclick = compactar;
   $('bParar').onclick = () => { PARAR = true; $('bParar').disabled = true };
-  if ($('bApagar')) $('bApagar').onclick = apagarPasta;
 }
 
 function reduzir(blob) {
@@ -159,23 +153,6 @@ async function compactar() {
   const txt = $('pTxt').textContent;
   await carregar();
   $('prog').hidden = false; $('pBar').style.width = '100%'; $('pTxt').textContent = txt;
-}
-
-async function apagarPasta() {
-  const pasta = $('selPasta').value;
-  const conf = prompt(`Isto apaga todos os arquivos da pasta "${pasta}" do bucket agendamento-fotos, sem volta.\nDigite APAGAR para confirmar.`);
-  if (conf !== 'APAGAR') return;
-  $('bApagar').disabled = true;
-  const { data, error } = await sb.rpc('ag_arquivos', { p_bucket: 'agendamento-fotos', p_min: 0 });
-  if (error) { $('aTxt').textContent = 'Erro: ' + error.message; $('bApagar').disabled = false; return; }
-  const nomes = (data || []).map(f => f.nome).filter(n => pasta === '(raiz)' ? !n.includes('/') : n.startsWith(pasta + '/'));
-  let ok = 0;
-  for (let k = 0; k < nomes.length; k += 100) {
-    const { error: e2 } = await sb.storage.from('agendamento-fotos').remove(nomes.slice(k, k + 100));
-    if (e2) { $('aTxt').textContent = 'Erro: ' + e2.message; break }
-    ok += Math.min(100, nomes.length - k); $('aTxt').textContent = `${ok} de ${nomes.length} apagados`;
-  }
-  await carregar();
 }
 
 iniciar();
