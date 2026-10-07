@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Espaço de armazenamento</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#F2F4F0;--surface:#FFFFFF;--ink:#1D2620;--muted:#5D6A61;--line:#D8DED4;--brand:#8CBF3F;--brand-ink:#2E5410;--brand-soft:#E6F1D5;--warn:#9A6414;--warn-soft:#FBEFD9;--bad:#A8352B;--bad-soft:#F8E0DC}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--surface);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:12px;align-items:center}
+header a{color:var(--brand-ink);font-weight:600;text-decoration:none}
+main{max-width:920px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0}
+h2{font-size:16px;margin:0 0 8px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.muted{color:var(--muted)}
+.bar{height:12px;background:#E9ECE6;border-radius:6px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;background:var(--brand)}
+.bar.alto i{background:var(--bad)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
+td.n,th.n{text-align:right;white-space:nowrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#1B3209}
+.btn.bad{color:var(--bad);border-color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.aviso{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:10px 12px;margin:8px 0}
+.erro{background:var(--bad-soft);color:var(--bad);border-radius:8px;padding:10px 12px;margin:8px 0}
+.ok{background:var(--brand-soft);color:var(--brand-ink);border-radius:8px;padding:10px 12px;margin:8px 0}
+label.chk{display:flex;gap:6px;align-items:center}
+select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><a href="agenda.html">← Voltar para a agenda</a><h1>Espaço de armazenamento</h1></header>
+<main id="app"><p class="muted">Carregando…</p></main>
+<script>
+const sb = supabase.createClient('https://ksatofcjlqziqhblpwul.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzYXRvZmNqbHF6aXFoYmxwd3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTA3NTIsImV4cCI6MjEwNTMyNjc1Mn0.IOAHnOcxVdrP1gBD7nCoQ6wq1mB-dEYVJQIM_WiJaqc');
+const LIM_ARQ = 1024 ** 3, LIM_BANCO = 500 * 1024 ** 2;   // plano gratuito: 1 GB de arquivos, 500 MB de banco
+const MAXPX = 1280, QUAL = 0.6, MIN_BYTES = 350 * 1024;    // mesmo padrão das fotos novas da agenda
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = b => b >= 1024 ** 3 ? (b / 1024 ** 3).toFixed(2) + ' GB' : b >= 1024 ** 2 ? (b / 1024 ** 2).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB';
+let USO = [], RODANDO = false, PARAR = false;
+
+async function iniciar() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { $('app').innerHTML = '<div class="panel"><p>Entre na agenda com o seu usuário e volte para esta tela.</p><a class="btn primary" href="agenda.html">Abrir a agenda</a></div>'; return; }
+  await carregar();
+}
+
+async function carregar() {
+  const { data, error } = await sb.rpc('ag_uso_armazenamento');
+  if (error) {
+    $('app').innerHTML = `<div class="panel"><div class="erro">${/Somente/.test(error.message) ? 'Esta tela é só do coordenador.' : 'Não foi possível ler o uso: ' + esc(error.message) + '. Confira se o ajuste 13 foi rodado no Supabase.'}</div></div>`;
+    return;
+  }
+  USO = data || [];
+  desenhar();
+}
+
+function desenhar() {
+  const total = USO.reduce((s, r) => s + Number(r.bytes), 0), banco = Number(USO[0]?.banco || 0);
+  const porBucket = {};
+  USO.forEach(r => { (porBucket[r.bucket] = porBucket[r.bucket] || { arquivos: 0, bytes: 0, pastas: [] }); porBucket[r.bucket].arquivos += Number(r.arquivos); porBucket[r.bucket].bytes += Number(r.bytes); porBucket[r.bucket].pastas.push(r) });
+  const barra = (v, lim) => `<div class="bar ${v > lim * .9 ? 'alto' : ''}"><i style="width:${Math.min(100, v / lim * 100).toFixed(1)}%"></i></div>`;
+  const falta = total - LIM_ARQ;
+  $('app').innerHTML = `
+  <section class="panel">
+    <h2>Uso do plano gratuito</h2>
+    <div class="grid">
+      <div><b>Arquivos</b> <span class="muted">${fmt(total)} de 1 GB</span>${barra(total, LIM_ARQ)}</div>
+      <div><b>Banco de dados</b> <span class="muted">${fmt(banco)} de 500 MB</span>${barra(banco, LIM_BANCO)}</div>
+    </div>
+    ${falta > 0 ? `<div class="aviso">Acima do limite em ${fmt(falta)}. Compacte as fotos abaixo (os arquivos continuam no mesmo lugar, só ficam menores).</div>` : `<div class="ok">Dentro do limite. Restam ${fmt(-falta)}.</div>`}
+    <p class="muted" style="margin:0">O painel do Supabase atualiza o número com algumas horas de atraso.</p>
+  </section>
+  <section class="panel">
+    <h2>Onde está o espaço</h2>
+    <table><thead><tr><th>Bucket</th><th>Pasta</th><th class="n">Arquivos</th><th class="n">Tamanho</th></tr></thead><tbody>
+    ${USO.map(r => `<tr><td>${esc(r.bucket)}</td><td>${esc(r.pasta)}</td><td class="n">${r.arquivos}</td><td class="n">${fmt(Number(r.bytes))}</td></tr>`).join('')}
+    </tbody></table>
+  </section>
+  <section class="panel">
+    <h2>Compactar fotos</h2>
+    <p class="muted">Cada foto acima de ${fmt(MIN_BYTES)} é baixada, reduzida para ${MAXPX} px no lado maior e regravada no mesmo caminho. Os links e relatórios continuam funcionando. PDFs não são alterados. A foto só é trocada se ficar pelo menos 20% menor.</p>
+    <div class="row">
+      ${Object.keys(porBucket).filter(b => ['agenda', 'agendamento-fotos'].includes(b)).map(b => `<label class="chk"><input type="checkbox" class="bk" value="${esc(b)}" checked> ${esc(b)} (${fmt(porBucket[b].bytes)})</label>`).join('')}
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn primary" id="bComp">Compactar</button><button class="btn" id="bParar" hidden>Parar</button></div>
+    <div id="prog" hidden><div class="bar"><i id="pBar" style="width:0"></i></div><p id="pTxt" class="muted"></p></div>
+  </section>
+  <section class="panel">
+    <h2>Apagar pasta do sistema antigo</h2>
+    <p class="muted">Só para o bucket <b>agendamento-fotos</b>. Use apenas se essas fotos não forem mais necessárias. Não há como desfazer.</p>
+    ${porBucket['agendamento-fotos'] ? `<div class="row"><select id="selPasta">${porBucket['agendamento-fotos'].pastas.map(p => `<option value="${esc(p.pasta)}">${esc(p.pasta)} — ${p.arquivos} arquivos, ${fmt(Number(p.bytes))}</option>`).join('')}</select><button class="btn bad" id="bApagar">Apagar pasta</button></div><p id="aTxt" class="muted"></p>` : '<p class="muted">O bucket agendamento-fotos não tem arquivos.</p>'}
+  </section>`;
+  $('bComp').onclick = compactar;
+  $('bParar').onclick = () => { PARAR = true; $('bParar').disabled = true };
+  if ($('bApagar')) $('bApagar').onclick = apagarPasta;
+}
+
+function reduzir(blob) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(blob), img = new Image();
+    img.onload = () => {
+      const r = Math.min(1, MAXPX / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * r); c.height = Math.round(img.height * r);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(b => b ? res(b) : rej(new Error('falha ao gerar a imagem')), 'image/jpeg', QUAL);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('imagem inválida')) };
+    img.src = url;
+  });
+}
+
+async function compactar() {
+  if (RODANDO) return;
+  const buckets = [...document.querySelectorAll('.bk:checked')].map(x => x.value);
+  if (!buckets.length) return;
+  RODANDO = true; PARAR = false;
+  $('bComp').disabled = true; $('bParar').hidden = false; $('bParar').disabled = false; $('prog').hidden = false;
+  const lista = [];
+  for (const b of buckets) {
+    const { data, error } = await sb.rpc('ag_arquivos', { p_bucket: b, p_min: MIN_BYTES });
+    if (error) { $('pTxt').textContent = 'Erro ao listar ' + b + ': ' + error.message; RODANDO = false; $('bComp').disabled = false; return; }
+    (data || []).filter(f => /^image\//.test(f.tipo || '') || /\.(jpe?g|png|webp)$/i.test(f.nome)).forEach(f => lista.push({ bucket: b, ...f }));
+  }
+  let feitos = 0, trocados = 0, liberado = 0, erros = 0;
+  const atualiza = () => { $('pBar').style.width = (lista.length ? feitos / lista.length * 100 : 100) + '%'; $('pTxt').textContent = `${feitos} de ${lista.length} fotos verificadas · ${trocados} compactadas · ${fmt(liberado)} liberados${erros ? ' · ' + erros + ' com erro' : ''}` };
+  atualiza();
+  let i = 0;
+  const trabalhador = async () => {
+    while (i < lista.length && !PARAR) {
+      const f = lista[i++];
+      try {
+        const { data: blob, error } = await sb.storage.from(f.bucket).download(f.nome);
+        if (error) throw error;
+        const nova = await reduzir(blob);
+        if (nova.size < blob.size * 0.8) {
+          const { error: e2 } = await sb.storage.from(f.bucket).upload(f.nome, nova, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' });
+          if (e2) throw e2;
+          trocados++; liberado += blob.size - nova.size;
+        }
+      } catch (e) { erros++; console.warn(f.nome, e) }
+      feitos++; atualiza();
+    }
+  };
+  await Promise.all([trabalhador(), trabalhador(), trabalhador()]);
+  RODANDO = false;
+  $('pTxt').textContent += PARAR ? ' · interrompido' : ' · concluído';
+  const txt = $('pTxt').textContent;
+  await carregar();
+  $('prog').hidden = false; $('pBar').style.width = '100%'; $('pTxt').textContent = txt;
+}
+
+async function apagarPasta() {
+  const pasta = $('selPasta').value;
+  const conf = prompt(`Isto apaga todos os arquivos da pasta "${pasta}" do bucket agendamento-fotos, sem volta.\nDigite APAGAR para confirmar.`);
+  if (conf !== 'APAGAR') return;
+  $('bApagar').disabled = true;
+  const { data, error } = await sb.rpc('ag_arquivos', { p_bucket: 'agendamento-fotos', p_min: 0 });
+  if (error) { $('aTxt').textContent = 'Erro: ' + error.message; $('bApagar').disabled = false; return; }
+  const nomes = (data || []).map(f => f.nome).filter(n => pasta === '(raiz)' ? !n.includes('/') : n.startsWith(pasta + '/'));
+  let ok = 0;
+  for (let k = 0; k < nomes.length; k += 100) {
+    const { error: e2 } = await sb.storage.from('agendamento-fotos').remove(nomes.slice(k, k + 100));
+    if (e2) { $('aTxt').textContent = 'Erro: ' + e2.message; break }
+    ok += Math.min(100, nomes.length - k); $('aTxt').textContent = `${ok} de ${nomes.length} apagados`;
+  }
+  await carregar();
+}
+
+iniciar();
+</script>
+</body>
+</html>

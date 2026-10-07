@@ -710,7 +710,7 @@ function compressImage(file, maxSize, quality, o) {
 
 async function prevPhoto(input, imgId) {
   if (!input.files[0]) return;
-  const dataUrl = await compressImage(input.files[0], 1200, 0.82, { etq: (document.getElementById('f-etiqueta') || {}).value || '', cam: input.hasAttribute('capture') });
+  const dataUrl = await compressImage(input.files[0], 1200, 0.62, { etq: (document.getElementById('f-etiqueta') || {}).value || '', cam: input.hasAttribute('capture') });
   const img = document.getElementById(imgId);
   img.src = dataUrl; img.style.display = 'block';
   img.closest('.phc').dataset.has = '1';

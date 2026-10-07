@@ -44,6 +44,7 @@ Sistema web de gestão das atividades de campo da área de Implantação e Infra
 | `sw.js` | Service worker: recebe e exibe as notificações push e abre a atividade ao tocar. Não faz cache de páginas. |
 | `manifest.webmanifest` | Manifesto PWA (nome, ícones, cores, `id` do app). Permite instalar no celular e no computador. |
 | `icon-192.png`, `icon-512.png` | Ícones do app (símbolo da Net Turbo). |
+| `armazenamento.html` | Espaço de armazenamento (só coordenador, aberto por **Usuários e acessos → Espaço de armazenamento**): uso de arquivos e banco frente ao plano gratuito, tamanho por bucket e pasta, compactação das fotos já enviadas (regrava no mesmo caminho, 1280 px, JPEG 60%) e exclusão de pastas do bucket antigo `agendamento-fotos`. |
 | `index.html` | Redirecionamento do endereço antigo do Estoque de Materiais para `agenda.html` (aplicar só depois de desligar o sistema antigo). |
 | `README.md` | Este documento. |
 
@@ -51,7 +52,7 @@ Sistema web de gestão das atividades de campo da área de Implantação e Infra
 
 | Arquivo | Onde vai |
 |---|---|
-| `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `09` | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
+| `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `13` | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
 | `agenda-lembretes.ts` | Código da Edge Function de notificações (pode ficar em repositório privado). |
 | `agenda-rota.ts` | Código da Edge Function `agenda-rota` (rota, previsão de chegada e endereço das fotos pelo OpenRouteService). |
 | `NAO_SUBIR_NO_GITHUB_segredos_notificacoes.txt` | Segredos da Edge Function (ver seção 6). |
@@ -120,7 +121,9 @@ relatorios/<id da atividade>/fotografico/ PDFs dos relatórios fotográficos e d
 relatorios/<id da atividade>/dias/        fotos do resumo de cada dia (atividades de vários dias)
 ```
 
-Os arquivos são abertos por URL assinada temporária. As fotos são reduzidas no próprio celular (cerca de 1600 px, JPEG 70%) antes do envio. Limite por arquivo: 50 MB.
+Os arquivos são abertos por URL assinada temporária. As fotos são reduzidas no próprio celular antes do envio (agenda: 1280 px no lado maior, JPEG 60%; relatório de entrega: 1200 px, JPEG 62%), ficando em torno de 150 a 300 KB cada. Limite por arquivo: 50 MB.
+
+O bucket `agendamento-fotos` é do sistema antigo de agendamento e não é usado pela agenda, mas ocupa a mesma cota do projeto. O coordenador acompanha e reduz o uso pela tela `armazenamento.html` (seção 9).
 
 ### 4.5 Ordem de execução dos scripts SQL (ambiente novo)
 
@@ -137,6 +140,7 @@ Os arquivos são abertos por URL assinada temporária. As fotos são reduzidas n
 11. `agenda_ajuste_10_painel_do_dia.sql` — papel Visualização, função `ag_painel_dia` e Painel do dia no padrão de supervisor e encarregado
 12. `agenda_ajuste_11_aviso_lpu.sql` — aviso imediato ao técnico quando a LPU é aprovada, reprovada ou devolvida para ajuste
 13. `agenda_ajuste_12_empresa_terceira.sql` — funcionários de empresas terceiras: empresa do funcionário, LPU em conferência pelo administrador, permissões de leitura e gravação dos PDFs da equipe e avisos de LPU para conferir
+14. `agenda_ajuste_13_armazenamento.sql` — tela de espaço de armazenamento: funções `ag_sou_coordenador`, `ag_uso_armazenamento` e `ag_arquivos`, e permissão do coordenador para ler, regravar e apagar arquivos dos buckets `agenda` e `agendamento-fotos`
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -233,7 +237,7 @@ Cada aviso é enviado uma única vez por atividade e por dia (`ag_notificacoes`)
 
 ## 9. Pontos de atenção
 
-- **Cota do plano gratuito do Supabase:** o limite de armazenamento é de 1 GB por organização. As fotos já são reduzidas no envio, mas o volume de relatórios cresce com o uso; recomenda-se plano pago ou uma política de retenção para a produção interna.
+- **Cota do plano gratuito do Supabase:** 1 GB de arquivos, 500 MB de banco e 5 GB de tráfego por mês, sem backup automático; o projeto pausa após 1 semana sem uso. A operação segue no plano gratuito. Para ficar dentro da cota: fotos novas já saem reduzidas (seção 4.4) e o coordenador usa `armazenamento.html` para compactar as fotos antigas (a compactação baixa cada foto uma vez, o que conta no tráfego do mês) e, se o sistema antigo não precisar mais, apagar pastas do bucket `agendamento-fotos`. O painel do Supabase atualiza o uso com algumas horas de atraso. Se o volume voltar a passar de 1 GB, avaliar o plano Pro (US$ 25/mês, 100 GB de arquivos e backup diário).
 - **Segredos nos scripts:** os ajustes 02 e 03 gravam o `CRON_SECRET` dentro de funções do banco. Em produção, a recomendação é migrar esse valor para o Supabase Vault.
 - **Chave pública no front-end:** a chave `anon` é pública por natureza; a proteção dos dados depende das políticas RLS, que precisam ser preservadas em qualquer migração.
 - **LPU em nome de outro usuário:** por regra de segurança, o banco só aceita LPU enviada pelo próprio técnico. Testes feitos pela "Visão do técnico" da coordenação não geram LPU.
@@ -259,6 +263,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 06/10/2026 | Cota do plano gratuito do Supabase: fotos novas menores (agenda 1280 px e JPEG 60%, antes 1600 px e 72%; relatório de entrega JPEG 62%, antes 82%) e nova tela **Espaço de armazenamento** para o coordenador ver o uso, compactar as fotos já enviadas sem mudar os links e apagar pastas do bucket antigo `agendamento-fotos`. | `agenda.html`, `relatorio-ativacao.html`, novo `armazenamento.html`, `agenda_ajuste_13` |
 | 06/10/2026 | Funcionários de empresas terceiras: novo acesso "Funcionário de empresa terceira" ligado ao administrador da empresa. O funcionário faz a LPU normalmente, sem gestão financeira; a LPU vai para a aba "Para conferir" do administrador, que corrige se precisar e envia ao O&M. A aprovação mostra quem conferiu e quem executou. Avisos para o administrador. | `agenda.html`, `agenda-lembretes.ts` (deploy), `agenda_ajuste_12` |
 | 06/10/2026 | Início da operação: dados de teste apagados (atividades, LPUs e avisos), mantendo projetos, complementos, anexos, budget, usuários e estoque; arquivos de teste removidos do Storage. | `agenda_zerar_dados_de_teste.sql` |
 | 06/10/2026 | Volta da previsão de chegada informada pelo técnico ao iniciar o deslocamento (o cálculo automático pela localização foi retirado por demora e erros de destino). O Painel do dia mantém o aviso "Chegando em cerca de 5 minutos" pela previsão informada, e o carimbo das fotos continua igual. Campo de coordenadas do cliente retirado dos dados complementares. | `agenda.html` |
