@@ -457,6 +457,31 @@ details summary{cursor:pointer;font-weight:600}
 .rfog img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
 .rfog .inp{width:100%;min-width:0;font-size:13px;min-height:34px;padding:5px 8px}
 .rfox{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:28px;height:28px;padding:0;font-size:13px}
+/* ---------- Tempos de atendimento ---------- */
+.tpfil{display:grid;grid-template-columns:minmax(150px,200px) minmax(170px,240px) minmax(200px,1fr) auto;gap:10px;align-items:end;margin-bottom:12px}
+.tpfil .f{margin:0}.tpfil .inp{width:100%}
+.tpstack{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--bg);min-width:80px}
+.tpstack.alto{height:34px;border-radius:8px;margin:6px 0 10px}.tpstack.vazio{opacity:.5}
+.tpstack i{display:flex;align-items:center;justify-content:center;min-width:2px}
+.tpstack i+i{border-left:2px solid var(--surface)}
+.tpstack span{font:700 13px Barlow,sans-serif}
+.tpleg{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px}
+.tpdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.tptab td{vertical-align:top}.tptab td.tpw{color:var(--warn);font-weight:700;cursor:help}.tptab td.tpx{color:var(--muted)}
+.tptab tr.tpoff td{color:var(--muted)}
+.pdfz{margin-top:0}
+@media(max-width:900px){.tpfil{grid-template-columns:1fr 1fr}.tpfil .tpq{grid-column:1/-1}}
+.tptab tfoot td{border-top:2px solid var(--line);background:var(--bg)}
+.tptab td:first-child{white-space:nowrap}
+:root{--tp-rel:#7B5A9E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--tp-rel:#B9A0D8}}
+:root[data-theme="dark"]{--tp-rel:#B9A0D8}
+:root{--tp-noc:#0F766E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--tp-noc:#5CC4B4}}
+:root[data-theme="dark"]{--tp-noc:#5CC4B4}
+.tpwrap{display:flex;flex-direction:column;gap:14px}.tpwrap>*{margin-top:0;margin-bottom:0}.tpwrap .tpfil{margin-bottom:0}
+.tpkm{grid-template-columns:repeat(var(--n),minmax(0,1fr))}.tpkm .tpdot{width:10px;height:10px;vertical-align:4px}
+@media(max-width:900px){.tpkm{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -685,22 +710,22 @@ const REGRA_FOTO={unica:'Obrigatória',opcional:'Se houver; várias fotos',multi
    Árvore igual ao menu: [chave, nome, 't' tela | 'a' ação, filhos]. O coordenador pode tudo.
    permissoes = null (agenda_papeis) → padrão do papel, que reproduz o acesso que cada papel já tinha. */
 const PERM_T=[
-  ['Acompanhamento',[['painel','Painel de KPIs','t',[['p_geral','Visão geral','t'],['p_entregas','Entregas','t'],['p_rede','Rede executada','t'],['p_exec','Execução em campo','t'],['p_equipes','Equipes','t'],
+  ['Acompanhamento',[['painel','Painel de KPIs','t',[['p_geral','Visão geral','t'],['p_entregas','Entregas','t'],['p_rede','Rede executada','t'],['p_exec','Execução em campo','t'],['p_tempos','Tempos de atendimento','t',[['a_expurgo','Expurgar tempos das atividades','a']]],['p_equipes','Equipes','t'],
     ['p_fin','Financeiro','t',[['f_budget','Budget e ROI','t',[['a_budget','Definir o budget do mês','a']]],['f_det','Detalhamento das LPUs','t'],['f_aprov','Aprovação de LPU','t',[['a_aprovar','Aprovar, reprovar e devolver LPUs','a']]]]]]]]],
   ['Operação',[['painelDia','Painel do dia','t'],['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar e editar atividades','a'],['a_anexos','Enviar e apagar anexos','a']]],['relat','Relatórios','t']]],
   ['Estoque',[['estoque','Estoque dos técnicos','t'],['estAtual','Atualizar estoque','t',[['a_bolsao','Publicar planilha do bolsão (SAP)','a'],['a_elleven','Importar movimentações do Elleven','a'],['a_base','Saldo base e data-base do Elleven','a']]],['estHist','Movimentações','t']]],
   ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['sim','Simulação de entrega','t'],['kanban','Backlog de projetos','t']]],
-  ['GTD Manutenção',[['gPainel','Painel de KPIs do GTD','t',[['g_fin','Financeiro do GTD','t',[['gf_budget','Budget e consumo da manutenção (definir o budget usa a mesma permissão da Implantação)','t'],['gf_det','Detalhamento das LPUs do GTD','t'],['gAprov','Aprovação de LPU do GTD','t',[['a_gAprovar','Aprovar, reprovar e devolver LPUs do GTD','a']]]]]]],['gCham','Chamados (Kanban)','t',[['a_gDespachar','Despachar chamados para o técnico','a'],['a_gEditar','Agendar, editar e cancelar chamados','a'],['a_gValidar','Acesso NOC: validar chamados','a']]],['gAgenda','Agenda do GTD','t'],['gNovo','Criar chamado','t'],['gRel','Relatórios do GTD (histórico por cliente)','t']]]];
+  ['GTD Manutenção',[['gPainel','Painel de KPIs do GTD','t',[['g_tempos','Tempos de atendimento do GTD','t',[['a_gExpurgo','Expurgar tempos dos chamados','a']]],['g_fin','Financeiro do GTD','t',[['gf_budget','Budget e consumo da manutenção (definir o budget usa a mesma permissão da Implantação)','t'],['gf_det','Detalhamento das LPUs do GTD','t'],['gAprov','Aprovação de LPU do GTD','t',[['a_gAprovar','Aprovar, reprovar e devolver LPUs do GTD','a']]]]]]],['gCham','Chamados (Kanban)','t',[['a_gDespachar','Despachar chamados para o técnico','a'],['a_gEditar','Agendar, editar e cancelar chamados','a'],['a_gValidar','Acesso NOC: validar chamados','a']]],['gAgenda','Agenda do GTD','t'],['gNovo','Criar chamado','t'],['gRel','Relatórios do GTD (histórico por cliente)','t']]]];
 const PERM_ALL=(()=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));return o})();
 const _sem=l=>PERM_ALL.filter(k=>!l.includes(k));
 const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto','a_gValidar']),
-  encarregado:_sem(['painel','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','g_fin','gf_budget','gf_det','gAprov','a_gAprovar']),
+  encarregado:_sem(['painel','p_tempos','a_expurgo','g_tempos','a_gExpurgo','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','g_fin','gf_budget','gf_det','gAprov','a_gAprovar']),
   supply:['estAtual','a_bolsao'],delivery:['painelDia','agenda']};
 const permDe=(papel,perm)=>Array.isArray(perm)?perm:(PERM_PAD[papel]||[]);
 const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc','func'].includes(ui.perfil))return false;if(ui.perfil==='noc')return NOC_PERM.includes(k);if(ui.perfil==='deliv'&&GTD_KEYS.includes(k))return false;return permDe(ME.papel,ME.perm).includes(k)};
 const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel'];
 const tabsDe=()=>['coord','clt','terc','func','visu','noc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs:G_TABS.filter(pode);
-const PSEC_K={geral:'p_geral',entregas:'p_entregas',rede:'p_rede',exec:'p_exec',equipes:'p_equipes',fin:'p_fin'},FSUB_K={budget:'f_budget',det:'f_det',aprov:'f_aprov'};
+const PSEC_K={geral:'p_geral',entregas:'p_entregas',rede:'p_rede',exec:'p_exec',tempos:'p_tempos',equipes:'p_equipes',fin:'p_fin'},FSUB_K={budget:'f_budget',det:'f_det',aprov:'f_aprov'};
 const secsOk=()=>PSEC.filter(([k])=>pode(PSEC_K[k])),subsOk=()=>FSUB.filter(([k])=>pode(FSUB_K[k]));
 const semPerm=()=>{toast('Seu usuário não tem permissão para esta ação. Fale com a coordenação.','bad');return true};
 const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','campo','usuarios','painelDia','gPainel','gCham','gAgenda','gNovo','gRel']},noc:{n:'NOC',tabs:['gCham','gAgenda','gNovo','gRel']},deliv:{n:'Delivery'},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']},visu:{n:'Visualização',tabs:['painelDia']},func:{n:'Funcionário de terceiro',tabs:['campo','meuEst','meuHist']}};
@@ -820,7 +845,7 @@ function pdLinhasLocais(d){return S.ags.filter(a=>a.status!=='cancelada'&&naData
 async function pdCarregar(){if(PD.bus)return;PD.bus=true;try{const r=await sb.rpc('ag_painel_dia',{p_data:hoje()});if(r.error)throw r.error;PD.rows=(r.data||[]).map(x=>x.ag_painel_dia||x);PD.em=Date.now();PD.err=''}catch(e){PD.err=e.message||String(e)}PD.bus=false;if(ui.tab==='painelDia')render()}
 setInterval(()=>{if(!ME||ui.tab!=='painelDia')return;const ae=document.activeElement;if(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;if(ui.perfil==='visu')pdCarregar();else render()},60000);
 function viewPainelDia(){const T=hoje(),loc=ui.perfil!=='visu';if(!loc&&!PD.rows&&!PD.bus)pdCarregar();
-  const all=(loc?pdLinhasLocais(T):(PD.rows||[]));const cids=[...new Set(all.map(r=>r.cidade).filter(Boolean))].sort(),cid=ui.pdCid||'';const L=all.filter(r=>!cid||r.cidade===cid);
+  const all=(loc?pdLinhasLocais(T):(PD.rows||[]));const cids=[...new Set(all.map(r=>r.cidade).filter(Boolean))].sort(),cid=ui.pdCid||'';const fzP=ui.pdFase||'',Lc=all.filter(r=>!cid||r.cidade===cid),L=Lc.filter(r=>!fzP||(r.fases||[]).includes(fzP));
   const hm=v=>v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
   const dur=v=>{const m=Math.max(0,Math.round((Date.now()-v)/60000));return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')};
   const diaFeito=r=>(r.diario||[]).find(x=>x.data===T),encDia=r=>!!diaFeito(r)&&(r.data>T||r.aguardaPrazo);
@@ -838,6 +863,7 @@ function viewPainelDia(){const T=hoje(),loc=ui.perfil!=='visu';if(!loc&&!PD.rows
   ${PD.err&&!loc?`<div class="result bad" style="margin-bottom:12px">Não foi possível atualizar o painel: ${esc(PD.err)}</div>`:''}
   <div class="kpis">${kp(L.length,'Programadas hoje')}${kp(n('cam'),'A caminho')}${kp(n('exec'),'Em execução','ok')}${kp(L.filter(conc).length,'Concluídas','ok')}${kp(L.filter(entregue).length,'Circuitos entregues','ok')}${kp(L.filter(r=>r.status==='nao_concluida').length,'Não concluídas','bad')}</div>
   ${cids.length>1?`<div class="chips" role="group" aria-label="Filtrar por cidade">${['',...cids].map(c=>`<button data-act="pdCid" data-v="${esc(c)}" aria-current="${cid===c}">${c?esc(c):'Todas'}</button>`).join('')}</div>`:''}
+  ${all.length?`<div class="chips pdfz${cids.length>1?'':' pdfz1'}" role="group" aria-label="Filtrar por fase">${[['','Todas as fases'],...FASES.map(f=>[f.k,f.n])].map(([k,n])=>{const c=k?Lc.filter(r=>(r.fases||[]).includes(k)).length:Lc.length;return (k&&!c&&fzP!==k)?'':`<button data-act="pdFase" data-v="${k}" aria-current="${fzP===k}">${n} (${c})</button>`}).join('')}</div>`:''}
   ${!loc&&!PD.rows?'<p class="muted pad">Carregando…</p>':`<div class="pdcols">${COL.map(([k,nm])=>{const it=L.filter(r=>grupo(r)===k);return `<section class="pdcol ${k}"><div class="pdct"><b>${nm}</b><b>${it.length}</b></div>${it.map(card).join('')||'<span class="muted">Nenhuma atividade.</span>'}</section>`}).join('')}</div>`}
   <p class="muted" style="font-size:13px;margin-top:10px">Somente leitura. Não mostra valores, endereços nem telefones dos clientes.</p>`}
 
@@ -854,7 +880,7 @@ function dentroPrev(a){const p=pPor(a.etiqueta),lim=a.ts&&a.ts.conclusao?isoD(ne
   return fasesOf(a).every(k=>{const f=FASES.find(x=>x.k===k),pv=+p[f.p]||0;return !pv||realAte(a.etiqueta,k,lim)<=pv})}
 const aprovEm=l=>{const h=(l.hist||[]).filter(x=>x.acao==='Aprovada').pop();return h?h.em:null};
 const kp=(v,l,c='')=>`<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`;
-const PSEC=[['geral','Visão geral','Como estamos? O resumo para bater o olho ou levar à gerência.'],['entregas','Entregas','O que entregamos e quanto tempo de campo cada circuito consumiu?'],['rede','Rede executada','Quanto de rede foi construído no período: cabo, cordoalha, CEOs reabertas e extensão de fibra.'],['exec','Execução em campo','A operação está fluindo? Conclusões dentro e fora da previsão, não conclusões e tempos.'],['equipes','Equipes','Quem está produzindo e como? Técnico a técnico, própria x terceiros.'],['fin','Financeiro','']];
+const PSEC=[['geral','Visão geral','Como estamos? O resumo para bater o olho ou levar à gerência.'],['entregas','Entregas','O que entregamos e quanto tempo de campo cada circuito consumiu?'],['rede','Rede executada','Quanto de rede foi construído no período: cabo, cordoalha, CEOs reabertas e extensão de fibra.'],['tempos','Tempos de atendimento','Quanto tempo leva cada parte do atendimento: deslocamento, espera no cliente, atividade e relatório. Pesquise por cliente ou técnico e expurgue registros que não refletem o trabalho real.'],['exec','Execução em campo','A operação está fluindo? Conclusões dentro e fora da previsão, não conclusões e tempos.'],['equipes','Equipes','Quem está produzindo e como? Técnico a técnico, própria x terceiros.'],['fin','Financeiro','']];
 const FSUB=[['budget','Budget e ROI','Quanto do budget de mão de obra terceirizada já foi consumido, e como a LPU executada se compara ao ROI?'],['det','Detalhamento das LPUs','Em quais serviços e classes o valor das LPUs está concentrado?'],['aprov','Aprovação de LPU','Fila da supervisão: confira itens, tempos e histórico de cada LPU antes de aprovar, devolver ou reprovar.']];
 function viewPainel(){
   const SO=secsOk(),FO=subsOk();if(!SO.length)return '<div class="toolbar"><div><h2>Painel de KPIs</h2><p class="muted">Nenhuma seção do painel liberada para o seu usuário.</p></div></div>';
@@ -864,7 +890,7 @@ function viewPainel(){
     if(k==='fin')h+=FSUB.map(([sk,sn])=>`<button class="pni sub ${on&&sub===sk?'on':''}" data-act="pSec" data-v="fin" data-s="${sk}">${sn}</button>`).join('');return h}).join('');
   const titulo=sec==='fin'?'Financeiro: '+FSUB.find(x=>x[0]===sub)[1].toLowerCase():PSEC.find(x=>x[0]===sec)[1];
   const perg=sec==='fin'?FSUB.find(x=>x[0]===sub)[2]:PSEC.find(x=>x[0]===sec)[2];
-  const corpo=sec==='geral'?pGeral():sec==='entregas'?pEntregas():sec==='rede'?pRede():sec==='exec'?pExec():sec==='equipes'?pEquipes():sub==='det'?pDetalhe():sub==='aprov'?viewAprov(true):pBudget();
+  const corpo=sec==='geral'?pGeral():sec==='entregas'?pEntregas():sec==='rede'?pRede():sec==='exec'?pExec():sec==='tempos'?pTempos():sec==='equipes'?pEquipes():sub==='det'?pDetalhe():sub==='aprov'?viewAprov(true):pBudget();
   const periodo=!(sec==='fin'&&(sub==='budget'||sub==='aprov'));
   return `<div class="toolbar"><div><h2>Painel de KPIs</h2></div>${periodo?`<div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="pIni" value="${ui.pIni}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="pFim" value="${ui.pFim}"></label></div>`:''}</div>
   <div class="pbody"><div class="phd"><h3>${titulo}</h3><p class="muted">${perg}</p></div>${corpo}</div>`;
@@ -1956,7 +1982,7 @@ const ACT={
      <div class="actions"><button class="btn" data-act="diaVer" data-d="${d}">Ver na visão de dia</button><button class="btn primary" data-act="close">Fechar</button></div>`,'wide')},
   diaVer:el=>{closeModal();ui.agDia=el.dataset.d;ui.agView='dia';render()},
   agOpen:el=>{const a=getAg(el.dataset.id),p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},t=a.ts,ed=a.status==='agendada';
-    const tl=[['Deslocamento',t.desloc],['Chegada',t.chegada],['Início',t.inicio],['Conclusão',t.conclusao],['Encerramento',t.encerramento]].filter(x=>x[1]);
+    const tl=[['Deslocamento',t.desloc],['Chegada',t.chegada],['Início',t.inicio],['Conclusão',t.conclusao],['Relatórios enviados',t.relatorios],['Encerramento',t.encerramento]].filter(x=>x[1]);
     const hm=v=>v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'--:--';
     const diasHtml=a.dias&&a.dias.length>1||(a.diario||[]).length?`<h3 class="lsub">Execução por dia</h3>${(a.diario||[]).map((x,i)=>`<div class="dcard"><div class="dch"><b>Dia ${i+1}${a.dias?' de '+a.dias.length:''}, ${dBR(x.data)}</b><span class="chip ok">Dia encerrado</span></div><div class="dts"><span>Deslocamento <b>${hm(x.ts.desloc)}</b></span><span>Chegada <b>${hm(x.ts.chegada)}</b></span><span>Início <b>${hm(x.ts.inicio)}</b></span><span>Fim do dia <b>${hm(x.ts.fimDia)}</b></span></div><p style="margin:6px 0 0">${esc(x.resumo||'')}</p>${x.m?`<small class="muted">Metragem no fim do dia: ${esc(x.m)} m${x.lote?', lote '+esc(x.lote):''}</small>`:''}${(x.fotos||[]).length?`<div class="tools" style="margin-top:6px">${x.fotos.map((p0,k)=>`<button class="btn sm" data-act="relVer" data-p="${esc(p0)}">Foto ${k+1}</button>`).join('')}</div>`:''}</div>`).join('')}
       ${a.status!=='cancelada'?`<div class="dcard"><div class="dch"><b>${a.dias?diaIdx(a,a.data):'Dia atual'}, ${dBR(a.data)}</b>${chip(a.status)}</div><div class="dts"><span>Deslocamento <b>${hm(t.desloc)}</b></span><span>Chegada <b>${hm(t.chegada)}</b></span><span>Início <b>${hm(t.inicio)}</b></span><span>Conclusão <b>${hm(t.conclusao)}</b></span></div></div>`:''}`:'';
@@ -2050,7 +2076,7 @@ const ACT={
     const q=new URLSearchParams({ag:a.id,cliente:p.cliente||'',etiqueta:a.etiqueta,cidade:p.cidade||'',uf:i.uf||'',endereco:c.endereco||'',tecnico:tecN(a.tec),data:hoje()});
     toast('Abrindo o relatório…');await flushSync();location.href='relatorio-ativacao.html?'+q.toString()},
   relOk:async el=>{const a=getAg(el.dataset.id),ok=await checarRelatorio(a);if(ok){closeModal();render();toast('Relatório recebido. Agora é só encerrar a atividade.')}else toast('O PDF ainda não chegou. Gere o PDF no relatório e tente de novo.','bad')},
-  relEnviar:el=>{const a=getAg(el.dataset.id);a.status='lpu';save();render()},
+  relEnviar:el=>{const a=getAg(el.dataset.id);a.status='lpu';a.ts=a.ts||{};a.ts.relatorios=Date.now();save();render()},
   lpuEnviar:el=>{const a=getAg(el.dataset.id),itens=draftItens(a.id);if(!itens.length){toast('Informe a quantidade de pelo menos um serviço.','bad');return}ui.sign={tipo:'novo',id:a.id,key:a.id,tec:a.tec};conferirModal()},
   confOk:()=>assinarModal(),
   sgLimpar:()=>{const c=$('sgPad');c.getContext('2d').clearRect(0,0,c.width,c.height);ui.sgDraw=false},
@@ -2250,6 +2276,8 @@ async function carregar(){
   S.lpus=lp.filter(r=>!r.chamado).map(r=>Object.assign({},r.dados,{id:r.id,ag:r.agendamento,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total,pdf_path:r.pdf_path,prestador:r.prestador||undefined}));
   S.anexos=an.map(r=>({id:r.id,etiqueta:r.etiqueta,tipo:r.tipo,fase:r.fase,nome:r.nome,tam:r.tamanho,em:new Date(r.enviado_em).getTime(),por:'',path:r.path}));
   S.anexosLog=lg.map(r=>({etiqueta:r.etiqueta,nome:r.nome,tipo:r.tipo,em:new Date(r.excluido_em).getTime()}));
+  S.expurgosG={};S.expurgosGErr='';if(g&&pode('g_tempos')){try{const ex=await todas(()=>sb.from('ag_expurgos_gtd').select('*'));ex.forEach(r=>S.expurgosG[r.chamado]=r)}catch(e){S.expurgosGErr=e.message||String(e);console.warn('expurgos GTD',e)}}
+  S.expurgos={};S.expurgosErr='';if(g){try{const ex=await todas(()=>sb.from('ag_expurgos').select('*'));ex.forEach(r=>S.expurgos[r.agendamento]=r)}catch(e){S.expurgosErr=e.message||String(e);console.warn('expurgos',e)}}
   S.budget={};if(g){try{const bd=await todas(()=>sb.from('ag_budget').select('*'));bd.forEach(r=>{(S.budget[r.mes]=S.budget[r.mes]||{})[r.conta]=+r.valor||0})}catch(e){console.warn('budget',e)}}
   // estoque (sistema de estoque)
   S.estoque={};const porDoc={};TEC.forEach(t=>{if(t.doc)porDoc[docN(t.doc)]=t.id});const docs=Object.keys(porDoc);
@@ -2358,6 +2386,134 @@ Object.assign(CH,{
 });
 Object.assign(IN,{uQ:el=>{ui.uQ=el.value;render();const i=$('uQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.body.classList.contains('app-on')){if(!$('cLogin').classList.contains('hidden'))ACT.login()}});
+
+/* ---------- TEMPOS DE ATENDIMENTO (Implantação e GTD Manutenção) ----------
+   Implantação: Deslocamento = saída → chegada; Espera no cliente = chegada → início; Atividade = início → conclusão
+     (vários dias: soma os dias, início → fim do dia); Relatório = conclusão → relatórios enviados (ts.relatorios, gravado desde 08/10/2026).
+   GTD: Deslocamento = saída → chegada; Espera no cliente = chegada → início do atendimento; Atendimento = início → validação pedida;
+     Validação do NOC = pedido → validado; RFO = validado → RFO gerado.
+   Expurgo por etapa em tabelas próprias (ag_expurgos e ag_expurgos_gtd, ajuste 18), fora do salvamento automático,
+   para o técnico nunca sobrescrever a decisão da gestão. */
+const TP_REL_DESDE='08/10/2026';
+const TP_MOT=['Etapa não registrada na hora (horário não confere)','Técnico esqueceu de avançar a etapa','Atividade interrompida por fator externo (cliente, acesso, energia)','Registro de teste ou indevido','Outro'];
+const TP={
+  impl:{nome:'Implantação',item:'atividade',itens:'Atividades',cons:'Atividades consideradas',
+    et:[['desloc','Deslocamento','Deslocamento médio'],['espera','Espera no cliente','Espera média no cliente'],['exec','Atividade','Atividade média'],['rel','Relatório','Relatório médio']],
+    campo:['desloc','espera','exec'],cor:{desloc:'var(--info)',espera:'var(--warn)',exec:'var(--brand)',rel:'var(--tp-rel)'},forte:'exec',
+    lim:{desloc:{max:240,min:1},espera:{max:180,min:null},exec:{max:720,min:5},rel:{max:1440,min:null}},
+    perm:'a_expurgo',tabela:'ag_expurgos',fk:'agendamento',script:'agenda_ajuste_18',
+    ex:()=>S.expurgos||(S.expurgos={}),err:()=>S.expurgosErr,per:()=>[ui.pIni,ui.pFim],perCh:null,
+    filtro:{rot:'Fase',pad:'ativ',ops:()=>[['ativ','Ativação'],...FASES.filter(f=>f.k!=='ativ').map(f=>[f.k,f.n]),['all','Todas as fases']]},
+    grupos:[['Técnico',r=>r.tecNome,0],['Cliente',r=>r.cli,10]],
+    tecs:()=>TEC.filter(t=>S.ags.some(a=>a.tec===t.id)).map(t=>[t.id,t.nome]),
+    linhas(st,ini,fim){return S.ags.filter(a=>a.data>=ini&&a.data<=fim&&['relatorios','lpu','concluida'].includes(a.status)&&(st.f==='all'||fasesOf(a).includes(st.f))&&(!st.tec||a.tec===st.tec)).map(a=>{const p=pPor(a.etiqueta)||{},c=tpCalcImpl(a);
+      return Object.assign(c,{id:a.id,data:a.data,cli:p.cliente||a.etiqueta,sub:a.etiqueta,tag:fasesOf(a).map(k=>FCURTO[k]).join(' + '),busca:(p.cliente||'')+' '+a.etiqueta+' '+(p.protocolo||''),tecId:a.tec,tecNome:tecN(a.tec),vinc:tecT(a.tec)==='TERC'?'Terceiro':'CLT'})})},
+    nota:`Considera atividades concluídas (inclusive com relatórios ou LPU pendentes) com data no período. Deslocamento: saída até a chegada. Espera no cliente: chegada até o início. Atividade: início até a conclusão; em atividades de vários dias, soma os dias. Relatório: da conclusão até o envio dos relatórios (gravado a partir de ${TP_REL_DESDE}; atividades anteriores aparecem como sem registro e não entram na média do relatório).`},
+  gtd:{nome:'GTD Manutenção',item:'chamado',itens:'Chamados',cons:'Chamados considerados',
+    et:[['desloc','Deslocamento','Deslocamento médio'],['espera','Espera no cliente','Espera média no cliente'],['atend','Atendimento','Atendimento médio'],['valid','Validação do NOC','Validação média do NOC'],['rfo','RFO','RFO médio']],
+    campo:['desloc','espera','atend'],cor:{desloc:'var(--info)',espera:'var(--warn)',atend:'var(--brand)',valid:'var(--tp-noc)',rfo:'var(--tp-rel)'},forte:'atend',
+    lim:{desloc:{max:240,min:1},espera:{max:180,min:null},atend:{max:600,min:3},valid:{max:240,min:null},rfo:{max:1440,min:null}},
+    perm:'a_gExpurgo',tabela:'ag_expurgos_gtd',fk:'chamado',script:'agenda_ajuste_18',
+    ex:()=>S.expurgosG||(S.expurgosG={}),err:()=>S.expurgosGErr,per:()=>{ui.gpIni=ui.gpIni||hoje().slice(0,8)+'01';ui.gpFim=ui.gpFim||hoje();return[ui.gpIni,ui.gpFim]},perCh:['gpIni','gpFim'],
+    filtro:{rot:'Categoria',pad:'all',ops:()=>[['all','Todas as categorias'],...GTD_CATS.map(c=>[c,c])]},
+    grupos:[['Técnico',r=>r.tecNome,0],['Cliente',r=>r.cli,10],['Categoria',r=>r.tag||'—',0]],
+    tecs:()=>{const m={};G.ch.forEach(c=>{if(c.tec)m[c.tec]=gTecN(c.tec)});return Object.entries(m).sort((a,b)=>a[1].localeCompare(b[1]))},
+    linhas(st,ini,fim){return G.ch.filter(c=>['rfo','lpu','aprov','concl'].includes(c.status)&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim&&(st.f==='all'||c.categoria===st.f)&&(!st.tec||c.tec===st.tec)).map(c=>{const k=tpCalcGtd(c);
+      return Object.assign(k,{id:c.id,data:gDiaDe(c),cli:c.cliente||c.etiqueta||'—',sub:'O&M '+c.pom+(c.etiqueta?' · '+c.etiqueta:''),tag:c.categoria||'',busca:[c.cliente,c.etiqueta,c.pom,c.pnoc,c.cidade].join(' '),tecId:c.tec,tecNome:gTecN(c.tec),vinc:gTecV(c.tec)})})},
+    nota:'Considera chamados validados pelo NOC (RFO, LPU, aprovação ou concluídos) com abertura no período. Deslocamento: saída até a chegada. Espera no cliente: chegada até o início do atendimento. Atendimento: início até o pedido de validação (se o NOC não validou e o técnico voltou ao atendimento, conta até o último pedido). Validação do NOC: pedido até a validação. RFO: validação até o RFO gerado.'}};
+function tpTrechos(a){const L=(a.diario||[]).map(x=>Object.assign({},x.ts||{},{fim:(x.ts||{}).fimDia}));const t=a.ts||{};if(t.desloc||t.chegada||t.inicio)L.push(Object.assign({},t,{fim:t.conclusao}));return L}
+function tpCalcImpl(a){const tr=tpTrechos(a),f={desloc:t=>dur(t.desloc,t.chegada),espera:t=>dur(t.chegada,t.inicio),exec:t=>dur(t.inicio,t.fim)},v={},inc={},nota={};
+  TP.impl.campo.forEach(k=>{let s=0,ok=false;tr.forEach(t=>{const m=f[k](t);if(m==null)inc[k]=true;else{s+=m;ok=true}});v[k]=ok?s:null;if(!tr.length)inc[k]=true});
+  // relatório: só depois da conclusão final; antes de 08/10/2026 o envio dos relatórios não era gravado
+  const t=a.ts||{};v.rel=null;if(!relsDe(a).length)nota.rel='não exige';else if(a.status==='relatorios')nota.rel='pendente';else if(!t.relatorios||!t.conclusao)nota.rel='sem registro';else v.rel=dur(t.conclusao,t.relatorios);
+  return{v,inc,nota,dias:tr.length}}
+function tpCalcGtd(c){const t=c.ts||{},vd=t.validado||c.validadoEm,v={},inc={},nota={};
+  v.desloc=dur(t.desloc,t.chegada);v.espera=dur(t.chegada,t.inicio);v.atend=dur(t.inicio,t.pedido);TP.gtd.campo.forEach(k=>{if(v[k]==null)inc[k]=true});
+  v.valid=dur(t.pedido,vd);if(v.valid==null)nota.valid='sem registro';
+  v.rfo=null;if(c.status==='rfo')nota.rfo='pendente';else if(!t.rfo||!vd)nota.rfo='sem registro';else v.rfo=dur(vd,t.rfo);
+  return{v,inc,nota,dias:1}}
+const tpMed=arr=>{if(!arr.length)return null;const s=arr.slice().sort((a,b)=>a-b),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const tpSt=K=>{const k='tp_'+K;if(!ui[k])ui[k]={f:TP[K].filtro.pad,tec:'',q:'',sit:'todas',lim:60,cliTodos:false};return ui[k]};
+function tpBase(K){const C=TP[K],st=tpSt(K),q=normK(st.q||''),[ini,fim]=C.per(),EX=C.ex();
+  const R=C.linhas(st,ini,fim).filter(r=>!q||normK(r.busca).includes(q)).map(r=>{const x=EX[r.id]||null,ex=x?(x.etapas||[]):[];return Object.assign(r,{x,ex,todoEx:C.campo.every(k=>ex.includes(k)),use:k=>r.v[k]!=null&&!ex.includes(k)})});
+  // fora do padrão: incompleto, muito curto, acima do limite ou acima de 3x a mediana da etapa
+  const med={};C.et.forEach(([k])=>{const L=R.filter(r=>r.use(k)).map(r=>r.v[k]);med[k]=L.length>=5?tpMed(L):null});
+  R.forEach(r=>{r.alerta={};C.et.forEach(([k])=>{const v=r.v[k],L=C.lim[k];if(r.ex.includes(k)||r.nota[k])return;
+    if(v==null||r.inc[k])r.alerta[k]='Etapa sem registro completo';
+    else if(L.min!=null&&v<=L.min)r.alerta[k]=`Registrada em ${v} min: provavelmente o técnico avançou a etapa depois`;
+    else if(v>L.max)r.alerta[k]=`Acima de ${fdur(L.max)}`;
+    else if(med[k]!=null&&v>Math.max(3*med[k],30))r.alerta[k]=`Mais de 3x a mediana (${fdur(Math.round(med[k]))})`});r.fora=Object.keys(r.alerta).length>0;
+    r.tot=C.campo.every(k=>r.use(k))?C.et.reduce((s,[k])=>s+(r.use(k)?r.v[k]:0),0):null});
+  return{R,med}}
+function tpResumo(K,L){const o={n:L.length,soma:0};TP[K].et.forEach(([k])=>{const v=L.filter(r=>r.use(k)).map(r=>r.v[k]);o[k]=v.length?Math.round(v.reduce((s,x)=>s+x,0)/v.length):null;o['n_'+k]=v.length;o['s_'+k]=v.reduce((s,x)=>s+x,0);o.soma+=o['s_'+k]});
+  const t=L.filter(r=>r.tot!=null).map(r=>r.tot);o.tot=t.length?Math.round(t.reduce((s,x)=>s+x,0)/t.length):null;o.n_tot=t.length;return o}
+const tpH=m=>m==null?'—':(m>=60?Math.floor(m/60)+'h'+pad(Math.round(m%60)):Math.round(m)+' min');
+const tpHoras=m=>(m/60).toLocaleString('pt-BR',{maximumFractionDigits:1})+' h';
+function tpComp(K,o,alto){const C=TP[K],s=C.et.reduce((x,[k])=>x+(o[k]||0),0);if(!s)return '<div class="tpstack vazio"></div>';
+  return `<div class="tpstack${alto?' alto':''}" role="img" aria-label="${C.et.map(([k,n])=>n+' '+tpH(o[k])).join(', ')}">${C.et.map(([k,n])=>o[k]?`<i style="width:${o[k]/s*100}%;background:${C.cor[k]}" title="${n}: ${tpH(o[k])} (${Math.round(o[k]/s*100)}%)">${alto&&o[k]/s>.1?`<span style="color:${k===C.forte?'var(--on-brand)':'var(--surface)'}">${Math.round(o[k]/s*100)}%</span>`:''}</i>`:'').join('')}</div>`}
+function tpGrupo(K,R,chave,rot,max){const C=TP[K],m={};R.forEach(r=>{const k=chave(r);(m[k]=m[k]||[]).push(r)});
+  const L=Object.entries(m).map(([k,x])=>({k,x,o:tpResumo(K,x)})).sort((a,b)=>b.o.n-a.o.n||a.k.localeCompare(b.k));
+  const tg=tpResumo(K,R),mais=max&&L.length>max?L.length-max:0,LV=mais?L.slice(0,max):L,nc=C.et.length+5;
+  return `<div class="tablewrap"><table class="tptab"><thead><tr><th>${rot}</th><th class="r">${C.itens}</th>${C.et.map(([k,n])=>`<th class="r"><i class="tpdot" style="background:${C.cor[k]}"></i>${n}</th>`).join('')}<th class="r">Total por ${C.item}</th><th class="r">Horas somadas</th><th style="min-width:120px">Composição</th></tr></thead>
+  <tbody>${LV.map(({k,o})=>`<tr><td><b>${esc(k)}</b></td><td class="r">${o.n}</td>${C.et.map(([e])=>`<td class="r">${tpH(o[e])}</td>`).join('')}<td class="r"><b>${tpH(o.tot)}</b></td><td class="r">${tpHoras(o.soma)}</td><td>${tpComp(K,o)}</td></tr>`).join('')||`<tr><td colspan="${nc}" class="muted">Nenhum registro.</td></tr>`}</tbody>${L.length>1?`<tfoot><tr><td><b>Total (${L.length})</b></td><td class="r"><b>${tg.n}</b></td>${C.et.map(([e])=>`<td class="r"><b>${tpH(tg[e])}</b></td>`).join('')}<td class="r"><b>${tpH(tg.tot)}</b></td><td class="r"><b>${tpHoras(tg.soma)}</b></td><td>${tpComp(K,tg)}</td></tr></tfoot>`:''}</table></div>${mais?`<button class="btn wide" style="margin-top:8px" data-act="tpCliTodos" data-k="${K}">Ver todos (mais ${mais})</button>`:''}`}
+function pTempos(K){K=K||'impl';const C=TP[K],st=tpSt(K),{R}=tpBase(K),ok=R.filter(r=>!r.todoEx),o=tpResumo(K,ok),fora=R.filter(r=>r.fora),exp=R.filter(r=>r.ex.length),[ini,fim]=C.per(),podeEx=pode(C.perm);
+  const L=(st.sit==='fora'?fora:st.sit==='exp'?exp:R).slice().sort((a,b)=>(b.data>a.data?1:b.data<a.data?-1:0)),lim=st.lim||60,nc=C.et.length+6;
+  const cel=(r,k)=>{const v=r.v[k];if(r.nota[k]&&v==null)return `<td class="r"${r.nota[k]==='sem registro'&&k==='rel'?` title="O envio dos relatórios passou a ser gravado em ${TP_REL_DESDE}"`:''}><small class="muted">${r.nota[k]}</small></td>`;
+    if(r.ex.includes(k))return `<td class="r tpx" title="Expurgado: ${esc(r.x.motivo||'')}"><s>${tpH(v)}</s></td>`;if(r.alerta[k])return `<td class="r tpw" title="${esc(r.alerta[k])}">${tpH(v)} <span aria-hidden="true">!</span></td>`;return `<td class="r">${tpH(v)}</td>`};
+  const sit=r=>r.ex.length?`<span class="chip">${r.todoEx?'Expurgado':'Expurgo parcial'}</span>`:r.fora?'<span class="chip warn">Fora do padrão</span>':'<span class="chip ok">Considerado</span>';
+  const linha=r=>`<tr class="${r.todoEx?'tpoff':''}"><td>${dBR(r.data)}${r.dias>1?`<br><small class="muted">${r.dias} dias</small>`:''}</td><td><b>${esc(r.cli)}</b><br><small class="muted">${esc(r.sub)}${(K==='gtd'||st.f==='all')&&r.tag?' · '+esc(r.tag):''}</small></td><td>${esc(r.tecNome)}</td>${C.et.map(([k])=>cel(r,k)).join('')}<td class="r"><b>${tpH(r.tot)}</b></td><td>${sit(r)}${r.x?`<br><small class="muted">${esc(r.x.motivo)}${r.x.por_nome?' · '+esc(r.x.por_nome):''}</small>`:''}</td>
+    ${podeEx?`<td class="r">${r.x?`<button class="btn sm" data-act="tpDesfazer" data-k="${K}" data-id="${r.id}">Desfazer</button>`:`<button class="btn sm" data-act="tpExpurgar" data-k="${K}" data-id="${r.id}">Expurgar</button>`}</td>`:''}</tr>`;
+  return `<div class="tpwrap">${C.perCh?`<div class="toolbar"><div><h2>Tempos de atendimento · ${C.nome}</h2><p class="muted">Quanto tempo leva cada parte do chamado: deslocamento, espera no cliente, atendimento, validação do NOC e RFO. Pesquise por cliente, técnico ou categoria e expurgue registros que não refletem o trabalho real.</p></div><div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="${C.perCh[0]}" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="${C.perCh[1]}" value="${fim}"></label></div></div>`:''}
+  <div class="tpfil">
+    <label class="f"><span>${C.filtro.rot}</span><select class="inp" data-ch="tpF" data-k="${K}">${C.filtro.ops().map(([v,n])=>`<option value="${esc(v)}" ${st.f===v?'selected':''}>${esc(n)}</option>`).join('')}</select></label>
+    <label class="f"><span>Técnico</span><select class="inp" data-ch="tpTec" data-k="${K}"><option value="">Todos os técnicos</option>${C.tecs().map(([id,n])=>`<option value="${id}" ${st.tec===id?'selected':''}>${esc(n)}</option>`).join('')}</select></label>
+    <label class="f tpq"><span>Cliente</span><input class="inp" type="search" id="tpQ_${K}" data-in="tpQ" data-k="${K}" placeholder="${K==='gtd'?'Cliente, etiqueta, protocolo O&amp;M ou NOC':'Nome do cliente, etiqueta ou protocolo'}" value="${esc(st.q||'')}"></label>
+    <button class="btn" data-act="tpXlsx" data-k="${K}">Baixar planilha</button></div>
+  ${C.err()?`<div class="result bad" style="margin:8px 0">Expurgos indisponíveis: rode o script ${C.script} no Supabase (${esc(C.err())}).</div>`:''}
+  <div class="kpis">${kp(ok.length,C.cons)}${kp(tpH(o.tot),'Total médio por '+C.item,'ok')}${kp(tpHoras(o.soma),'Horas somadas','ok')}</div>
+  <div class="kpis tpkm" style="--n:${C.et.length}">${C.et.map(([k,,m])=>`<div class="kpi"><b><i class="tpdot" style="background:${C.cor[k]}"></i>${tpH(o[k])}</b><span>${m}</span></div>`).join('')}</div>
+  <section class="panel"><div class="secth"><h3>Para onde vai o tempo</h3><span class="muted">Média por ${C.item}, sem os expurgos</span></div>${tpComp(K,o,true)}
+    <div class="tpleg">${C.et.map(([k,n])=>`<span><i class="tpdot" style="background:${C.cor[k]}"></i>${n} <b>${tpH(o[k])}</b><small class="muted"> (${o['n_'+k]} registros, ${tpHoras(o['s_'+k])}${k==='rel'?`, medido desde ${TP_REL_DESDE}`:''})</small></span>`).join('')}</div></section>
+  ${C.grupos.map(([rot,fn,mx])=>`<section><div class="secth"><h3>Por ${rot.toLowerCase()}</h3></div>${tpGrupo(K,ok,fn,rot,st.cliTodos||st.q?0:mx)}</section>`).join('')}
+  <section><div class="secth"><h3>${C.itens}</h3><div class="chips" style="margin:0">${[['todas','Todos',R.length],['fora','Fora do padrão',fora.length],['exp','Expurgados',exp.length]].map(([k,n,c])=>`<button data-act="tpSit" data-k="${K}" data-v="${k}" aria-current="${st.sit===k}">${n} (${c})</button>`).join('')}</div></div>
+   <div class="tablewrap"><table class="tptab"><thead><tr><th>Data</th><th>Cliente</th><th>Técnico</th>${C.et.map(([k,n])=>`<th class="r"><i class="tpdot" style="background:${C.cor[k]}"></i>${n}</th>`).join('')}<th class="r">Total</th><th>Situação</th>${podeEx?'<th></th>':''}</tr></thead>
+   <tbody>${L.slice(0,lim).map(linha).join('')||`<tr><td colspan="${nc}" class="muted">Nenhum registro no período com esses filtros.</td></tr>`}</tbody></table></div>
+   ${L.length>lim?`<button class="btn wide" style="margin-top:8px" data-act="tpMais" data-k="${K}">Mostrar mais (${L.length-lim} restantes)</button>`:''}</section>
+  <p class="muted" style="font-size:13px">${C.nota} O total por ${C.item} soma as etapas consideradas e só é calculado quando deslocamento, espera e ${C.et.find(x=>x[0]===C.forte)[1].toLowerCase()} estão válidos. Etapas marcadas com ! estão fora do padrão (sem registro, curtas demais, acima do limite ou acima de 3 vezes a mediana); confira e, se não refletirem o trabalho real, expurgue. Etapas expurgadas ficam riscadas e saem de médias e somas.</p></div>`}
+function tpModal(K,id){const C=TP[K],r=tpBase(K).R.find(x=>x.id===id);if(!r)return;
+  openModal(`<h3>Expurgar tempos</h3><p class="muted">${esc(r.cli)}, ${esc(r.sub)}. ${esc(r.tecNome)}, ${dBR(r.data)}.</p>
+   <p style="margin:12px 0 6px;font-weight:600">Quais etapas saem das médias?</p><div class="fchk">${C.et.filter(([k])=>r.v[k]!=null||C.campo.includes(k)).map(([k,n])=>`<label><input type="checkbox" class="tpEt" value="${k}" ${r.alerta[k]?'checked':''}><span>${n}: ${tpH(r.v[k])}${r.alerta[k]?`<small>${esc(r.alerta[k])}</small>`:''}</span></label>`).join('')}</div>
+   <label class="f" style="margin-top:12px"><span>Motivo *</span><select class="inp" id="tpMot">${TP_MOT.map(m=>`<option>${esc(m)}</option>`).join('')}</select></label>
+   <label class="f"><span>Observação</span><textarea class="inp" id="tpObs" rows="2" placeholder="Opcional"></textarea></label>
+   <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="tpSalvar" data-k="${K}" data-id="${id}">Expurgar</button></div>`)}
+const tpK=el=>TP[el.dataset.k]?el.dataset.k:'impl';
+Object.assign(ACT,{
+  tpSit:el=>{const s=tpSt(tpK(el));s.sit=el.dataset.v;s.lim=60;render()},
+  tpCliTodos:el=>{tpSt(tpK(el)).cliTodos=true;render()},
+  tpMais:el=>{const s=tpSt(tpK(el));s.lim=(s.lim||60)+100;render()},
+  tpExpurgar:el=>{const K=tpK(el);if(!pode(TP[K].perm))return semPerm();tpModal(K,el.dataset.id)},
+  tpSalvar:async el=>{const K=tpK(el),C=TP[K];if(!pode(C.perm))return semPerm();const et=[...document.querySelectorAll('.tpEt:checked')].map(x=>x.value);if(!et.length){toast('Marque ao menos uma etapa.','bad');return}
+    const row={[C.fk]:el.dataset.id,etapas:et,motivo:$('tpMot').value,obs:($('tpObs').value||'').trim()||null,por_nome:ME.nome||''};el.disabled=true;
+    let r;try{r=await sb.from(C.tabela).upsert(row,{onConflict:C.fk}).select()}catch(e){r={error:e}}
+    if(r.error){el.disabled=false;toast('Não foi possível expurgar: '+(r.error.message||r.error),'bad');return}
+    C.ex()[el.dataset.id]=Object.assign({em:new Date().toISOString()},(r.data||[])[0]||row);closeModal();render();toast(C.campo.every(k=>et.includes(k))?'Registro expurgado dos tempos.':'Etapa(s) expurgada(s) dos tempos.')},
+  tpDesfazer:el=>{const K=tpK(el);if(!pode(TP[K].perm))return semPerm();openModal(`<h3>Desfazer o expurgo?</h3><p class="muted">Os tempos voltam a contar nas médias e somas.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="tpDesfazerOk" data-k="${K}" data-id="${el.dataset.id}">Desfazer expurgo</button></div>`)},
+  tpDesfazerOk:async el=>{const K=tpK(el),C=TP[K];if(!pode(C.perm))return semPerm();el.disabled=true;
+    let r;try{r=await sb.from(C.tabela).delete().eq(C.fk,el.dataset.id)}catch(e){r={error:e}}
+    if(r.error){el.disabled=false;toast('Não foi possível desfazer: '+(r.error.message||r.error),'bad');return}delete C.ex()[el.dataset.id];closeModal();render();toast('Expurgo desfeito.')},
+  tpXlsx:el=>{const K=tpK(el),C=TP[K],{R}=tpBase(K),[ini,fim]=C.per();if(!R.length){toast('Nada para exportar com esses filtros.','bad');return}
+    const nm=k=>C.et.find(x=>x[0]===k)[1];
+    const L=R.map(r=>{const o={Data:dBR(r.data),Cliente:r.cli,'Referência':r.sub,[C.filtro.rot]:r.tag,'Técnico':r.tecNome,'Vínculo':r.vinc};if(K==='impl')o.Dias=r.dias;
+      C.et.forEach(([k,n])=>{o[n+' (min)']=r.v[k];if(r.nota[k])o[n+' (situação)']=r.nota[k]});
+      return Object.assign(o,{'Total (min)':r.tot,'Fora do padrão':Object.entries(r.alerta).map(([k,m])=>nm(k)+': '+m).join('; '),'Etapas expurgadas':r.ex.map(nm).join(', '),'Motivo do expurgo':r.x?r.x.motivo+(r.x.obs?' ('+r.x.obs+')':''):'','Expurgado por':r.x?r.x.por_nome||'':''})});
+    const arq=`tempos_${K==='gtd'?'gtd':'implantacao'}_${ini}_a_${fim}`;
+    try{const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(L),'Tempos');XLSX.writeFile(wb,arq+'.xlsx')}
+    catch(e){const cols=[...new Set(L.flatMap(Object.keys))],csv='﻿'+[cols.join(';')].concat(L.map(x=>cols.map(c=>`"${String(x[c]??'').replace(/"/g,'""')}"`).join(';'))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=arq+'.csv';a.click()}},
+  pdFase:el=>{ui.pdFase=el.dataset.v;render()}
+});
+Object.assign(CH,{tpF:el=>{const s=tpSt(tpK(el));s.f=el.value;s.lim=60;render()},tpTec:el=>{const s=tpSt(tpK(el));s.tec=el.value;s.lim=60;render()}});
+Object.assign(IN,{tpQ:el=>{const K=tpK(el),s=tpSt(K);s.q=el.value;s.lim=60;render();const i=$('tpQ_'+K);if(i){i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}}}});
+
 /* =====================================================================
    GTD MANUTENÇÃO (chamados do NOC), MENSAGENS (CHAT) E SINO DE AVISOS
    Dados próprios: ag_chamados, ag_mensagens, ag_avisos e as LPUs do chamado
@@ -2489,7 +2645,7 @@ function gtdLerChamado(txt) {
 }
 const GTD_CONTA='3.1.1.2.05.0006 - Serviços de Manutenção CLIENTE - REPARO EMERGENCIAL EM CLIENTES (MANUTENÇÃO)';
 const GTD_T=['gPainel','gCham','gAgenda','gNovo','gRel','gAprov'];
-const GTD_KEYS=['gPainel','gCham','a_gDespachar','a_gEditar','gAgenda','gNovo','gRel','gAprov','a_gAprovar','a_gValidar'];
+const GTD_KEYS=['gPainel','g_tempos','a_gExpurgo','gCham','a_gDespachar','a_gEditar','gAgenda','gNovo','gRel','gAprov','a_gAprovar','a_gValidar'];
 const NOC_PERM=['gCham','gAgenda','gNovo','gRel','a_gValidar'];
 const GTD_ABERTOS=['aberto','desloc','local','atend','valid'];
 const GTD_LOCAL=['Equipamento do cliente','Rede interna do cliente','Rede externa','POP / OLT'];
@@ -2674,8 +2830,8 @@ function viewGAgenda(){if(G.erro)return `<h2>Agenda · GTD Manutenção</h2>${gE
 
 /* ---------- PAINEL DE KPIs DO GTD ---------- */
 function gBarras(L,tot){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([n,q,ex])=>`<div class="gbar"><span>${esc(n)}</span><div><i style="width:${Math.round(q/mx*100)}%"></i></div><b>${q}</b>${ex!==undefined?`<small>${ex}</small>`:''}</div>`).join('')||'<p class="muted">Sem dados no período.</p>'}
-const GSEC=[['geral','Visão geral'],['fin','Financeiro']],GFSUB=[['budget','Budget e consumo','gf_budget'],['det','Detalhamento das LPUs','gf_det'],['aprov','Aprovação de LPU','gAprov']];
-const gSubsOk=()=>GFSUB.filter(x=>pode(x[2])),gSecsOk=()=>GSEC.filter(([k])=>k==='geral'||(pode('g_fin')&&gSubsOk().length));
+const GSEC=[['geral','Visão geral'],['tempos','Tempos de atendimento'],['fin','Financeiro']],GFSUB=[['budget','Budget e consumo','gf_budget'],['det','Detalhamento das LPUs','gf_det'],['aprov','Aprovação de LPU','gAprov']];
+const gSubsOk=()=>GFSUB.filter(x=>pode(x[2])),gSecsOk=()=>GSEC.filter(([k])=>k==='geral'||(k==='tempos'&&pode('g_tempos'))||k==='fin'&&(pode('g_fin')&&gSubsOk().length));
 const gNAprov=()=>pode('a_gAprovar')?G.lpus.filter(l=>l.status==='aguardando').length:0;
 /* item "Painel de KPIs" do menu do GTD, com Visão geral e Financeiro (Budget, Detalhamento, Aprovação), como na Implantação */
 function gNavPainel(){const open=ui.tab==='gPainel'&&!ui.gpFech,n=gNAprov(),bAp=n?`<span class="nbadge">${n}</span>`:'',ch=o=>`<span class="nch">${o?ICN.up:ICN.dn}</span>`;
@@ -2685,7 +2841,7 @@ function gNavPainel(){const open=ui.tab==='gPainel'&&!ui.gpFech,n=gNAprov(),bAp=
       if(k==='fin'&&fo){h+='<div class="nlv">';gSubsOk().forEach(([sk,sn])=>{h+=`<button class="nit" data-act="gpSec" data-v="fin" data-s="${sk}" aria-current="${sub===sk}"><span class="nt">${sn}</span>${sk==='aprov'?bAp:''}</button>`});h+='</div>'}});h+='</div>'}
   return h}
 function viewGPainel(){if(G.erro)return `<h2>Painel de KPIs · GTD Manutenção</h2>${gErroBox()}`;
-  const sec=gSecsOk().some(x=>x[0]===ui.gSec)?ui.gSec:'geral';ui.gSec=sec;
+  const sec=gSecsOk().some(x=>x[0]===ui.gSec)?ui.gSec:'geral';ui.gSec=sec;if(sec==='tempos')return pTempos('gtd');
   if(sec==='fin'){const subs=gSubsOk(),sub=subs.some(x=>x[0]===ui.gFinSub)?ui.gFinSub:subs[0][0];ui.gFinSub=sub;
     const ajuda={budget:'Budget do mês da conta 3.1.1.2.05.0006 (Manutenção cliente), consumido pelas LPUs aprovadas no mês da aprovação.',det:'Itens mais usados e valor das LPUs do GTD no período.',aprov:'Fila da supervisão. Só LPUs de terceiros passam por aqui; todas usam a conta 3.1.1.2.05.0006 (Manutenção cliente).'}[sub];
     return `<div class="toolbar"><div><h2>Financeiro · GTD Manutenção</h2><p class="muted">${ajuda}</p></div>${sub==='det'?`<div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ui.gpIni||hoje().slice(0,8)+'01'}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${ui.gpFim||hoje()}"></label></div>`:''}</div>
