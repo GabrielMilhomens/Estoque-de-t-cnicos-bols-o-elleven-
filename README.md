@@ -54,7 +54,7 @@ Sistema web de gestão das atividades de campo de O&M em duas categorias: **Impl
 
 | Arquivo | Onde vai |
 |---|---|
-| `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `16` (14: GTD Manutenção; 15: mensagens vistas; 16: aceite do despacho) | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
+| `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `17` (14: GTD Manutenção; 15: mensagens vistas; 16: aceite do despacho; 17: fases feitas por outro técnico) | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
 | `agenda-lembretes.ts` | Código da Edge Function de notificações (pode ficar em repositório privado). |
 | `limpeza-arquivos.ts` e `preventivas_retencao_arquivos.sql` | Retenção de 30 dias no **outro projeto** Supabase da organização (preventivas e agendamentos), seção 6.2. O SQL contém o segredo da rotina. |
 | `agenda-rota.ts` | Código da Edge Function `agenda-rota` (rota, previsão de chegada e endereço das fotos pelo OpenRouteService). |
@@ -120,6 +120,7 @@ Para um ambiente interno sem acesso à internet pública, essas bibliotecas prec
 | `ag_chamado_guard()` | Regras do chamado no banco: o NOC não despacha; o técnico só avança nas etapas dele e não muda despacho, agendamento ou dados; só quem valida tira o chamado de "Aguardando validação"; `validado_em` é gravado pelo banco. |
 | `ag_tecnicos_lista()` | Nome e vínculo dos técnicos para o despacho e os filtros do GTD (o NOC não lê `agenda_papeis`). |
 | `ag_recusar_chamado(chamado, motivo)` | Recusa do despacho pelo próprio técnico, antes de sair: tira o técnico, guarda o motivo em `dados.recusas` e avisa a gestão (ajuste 16). |
+| `ag_fases_outros_tecnicos()` | Para o técnico: atividades concluídas por outros técnicos nos projetos em que ele tem atividade, só com data, fases finalizadas e nome de quem finalizou (sem valores, relatórios ou LPU). Permite liberar a Ativação quando rua e interno foram feitos por outro técnico (ajuste 17). |
 | `ag_marcar_vistas(chamado, atividade)` | Marca como vistas as mensagens dos outros participantes ao abrir a conversa (ajuste 15). |
 | `ag_avisar()`, `ag_destinos()`, `ag_chamado_avisos()`, `ag_mensagem_avisos()`, `ag_lpu_gtd_avisos()`, `ag_avisos_push()` | Geram os avisos do sino a cada evento do GTD, mensagem ou LPU do GTD e mandam para o celular (evento `avisos` da `agenda-lembretes`). |
 
@@ -161,6 +162,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 15. `agenda_ajuste_14_gtd_manutencao.sql` — GTD Manutenção: papéis NOC e Delivery, tabelas `ag_chamados`, `ag_mensagens` e `ag_avisos`, coluna `ag_lpus.chamado` e situação `registrada`, regras de validação, avisos do sino e push, pastas `chat/` no Storage e tempo real das tabelas novas. Usa a função `ag_chamar_avisos` do ajuste 03 (não repete o segredo).
 16. `agenda_ajuste_15_mensagens_vistas.sql` — mensagens vistas (`vista_em`), função `ag_marcar_vistas` e `ag_painel_dia` com a contagem de mensagens novas do técnico (selo no Painel do dia).
 17. `agenda_ajuste_16_aceite_despacho.sql` — aceite e recusa do despacho no GTD: função `ag_recusar_chamado` (o técnico sai do chamado, que volta para Não despachados com o motivo), regra no `ag_chamado_guard` e aviso "Chamado recusado pelo técnico" para a gestão.
+18. `agenda_ajuste_17_fases_outros_tecnicos.sql` — função `ag_fases_outros_tecnicos`: o técnico passa a enxergar as fases já finalizadas por outro técnico no mesmo projeto (só leitura), para não ter a Ativação bloqueada.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -310,6 +312,7 @@ Não faz parte do projeto da agenda: roda no **outro projeto** Supabase da organ
 - **Segredos nos scripts:** os ajustes 02 e 03 gravam o `CRON_SECRET` dentro de funções do banco. Em produção, a recomendação é migrar esse valor para o Supabase Vault.
 - **Chave pública no front-end:** a chave `anon` é pública por natureza; a proteção dos dados depende das políticas RLS, que precisam ser preservadas em qualquer migração.
 - **Alteração que não chega ao banco:** sem login válido, o banco ignora a alteração sem devolver erro (regra de segurança RLS). O app confere se a atividade foi de fato gravada e avisa o técnico. Para conferir no banco: `select status, dados->'ts', atualizado_em from ag_agendamentos where etiqueta = 'ETIQUETA';`.
+- **Fases feitas por técnicos diferentes:** o técnico só lê as próprias atividades; as fases finalizadas por outro técnico no mesmo projeto chegam pela função `ag_fases_outros_tecnicos` (ajuste 17). Sem esse script no banco, a Ativação fica bloqueada para quem não fez rua e interno. Para conferir as fases de um projeto: `select tecnico, status, dados->'fasesFin', dados->'ts'->'conclusao' from ag_agendamentos where etiqueta = 'ETIQUETA';`.
 - **Envio da LPU:** a LPU é gravada direto no banco, com confirmação, antes de encerrar a atividade (as demais alterações continuam no salvamento automático, alguns décimos de segundo depois). Para conferir se uma LPU chegou: `select id, status, criado_em from ag_lpus where etiqueta = 'ETIQUETA';`.
 - **LPU em nome de outro usuário:** por regra de segurança, o banco só aceita LPU enviada pelo próprio técnico. Testes feitos pela "Visão do técnico" da coordenação não geram LPU.
 - **Dependência de CDNs:** ver seção 3.
@@ -336,6 +339,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 08/10/2026 | Ativação bloqueada quando as fases anteriores foram feitas por outro técnico: o celular de quem ia ativar só conhecia as próprias atividades e mostrava "A ativação só pode ser finalizada depois de: rua, interno", embora a gestão visse as fases finalizadas. O app do técnico passa a consultar as fases finalizadas por outros técnicos no mesmo projeto (com o nome de quem finalizou). Caso de origem: etiqueta 5Q2QBSYX, rua e interno finalizados por RHIKELMY SOARES MACEDO. | `agenda.html`, `agenda_ajuste_17` |
 | 08/10/2026 | Salvamento das atividades: quando o banco não aplica uma alteração do técnico (login expirado no navegador ou sem permissão), o app agora tenta renovar o login e gravar de novo; se não conseguir, avisa "o banco não aceitou a alteração… saia e entre de novo" em vez de seguir como se tivesse salvo. A gestão passa a recarregar o Painel do dia, a Agenda, o Painel e os Relatórios a cada 2 minutos, como reserva do tempo real. | `agenda.html` |
 | 08/10/2026 | Correção do envio da LPU (Implantação): a LPU passa a ser gravada direto no banco e a atividade só é encerrada depois que o banco confirma. Se a internet cair ou o app fechar, aparece "A LPU NÃO foi enviada" e o técnico toca em Enviar LPU de novo. Atividade concluída sem LPU no sistema mostra o aviso e o botão **Enviar a LPU**; atividade com a LPU já gravada e não encerrada mostra **Encerrar a atividade** (evita LPU em dobro). Caso de origem: LPU do terceiro na etiqueta 2TDWFQ5A, com a atividade concluída e a LPU ausente no banco. | `agenda.html` |
 | 07/10/2026 | GTD Manutenção, 3ª rodada: aceite ou recusa do despacho pelo técnico (recusa com motivo volta o chamado para Não despachados e avisa a gestão; marcas Aguardando aceite, Aceito e Recusado no Kanban); fotos no RFO com carimbo e Relatório do atendimento em PDF; cartão do Kanban redesenhado (categoria com cor e contador de mensagens compacto). | `agenda.html`, `agenda_ajuste_16` |

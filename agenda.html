@@ -730,7 +730,7 @@ const FCURTO={rua:'Rua',interno:'Interno',ext:'Extensão',ativ:'Ativação'};
 const fasesN=o=>fasesOf(o).map(k=>faseN(k)).join(' + ');
 const fasesC=o=>fasesOf(o).map(k=>FCURTO[k]).join(' + ');
 const faseN=k=>(FASES.find(f=>f.k===k)||{n:k}).n;
-const tecN=id=>(TEC.find(t=>t.id===id)||{nome:'—'}).nome;
+const tecN=id=>(TEC.find(t=>t.id===id)||(S.tecExt&&S.tecExt[id]?{nome:S.tecExt[id]}:null)||{nome:'—'}).nome;
 const tecT=id=>(TEC.find(t=>t.id===id)||{}).tipo;
 const cliN=e=>(S.previsao.find(p=>p.etiqueta===e)||{cliente:''}).cliente;
 const chip=(st)=>{const x=ST[st]||[st,''];return `<span class="chip ${x[1]}">${x[0]}</span>`};
@@ -749,7 +749,7 @@ const diaExec=a=>a.ts&&a.ts.inicio?isoD(new Date(a.ts.inicio)):null;
 const diasExecAg=a=>{const L=(a.diario||[]).filter(x=>x.ts&&x.ts.inicio).map(x=>isoD(new Date(x.ts.inicio)));const d=diaExec(a);if(d&&!L.includes(d))L.push(d);return L};
 const diasExec=(e,filtro)=>new Set(S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&(!filtro||filtro(a))).flatMap(diasExecAg)).size;
 const realDias=(e,f)=>diasExec(e,a=>fasesOf(a).includes(f));
-const faseFim=(e,f)=>S.ags.filter(a=>a.etiqueta===e&&a.ts&&a.ts.conclusao&&!['nao_concluida','cancelada'].includes(a.status)&&(a.fasesFin||[]).includes(f)).sort((a,b)=>a.ts.conclusao-b.ts.conclusao)[0]||null;
+const faseFim=(e,f)=>(S.agsExt&&S.agsExt.length?S.ags.concat(S.agsExt):S.ags).filter(a=>a.etiqueta===e&&a.ts&&a.ts.conclusao&&!['nao_concluida','cancelada'].includes(a.status)&&(a.fasesFin||[]).includes(f)).sort((a,b)=>a.ts.conclusao-b.ts.conclusao)[0]||null;
 const pPor=e=>S.previsao.find(x=>x.etiqueta===e)||{};
 // Fases que precisam ser feitas antes da ativação:
 //  * Firewall: nenhuma (ativa direto)
@@ -2243,6 +2243,10 @@ async function carregar(){
   S.semValor=g&&!pode('a_valor');if(S.semValor)S.previsao.forEach(p=>{delete p.valor;if(p.roi&&p.roi.fin)delete p.roi.fin});
   S.comp={};co.forEach(r=>S.comp[r.etiqueta]=r.dados||{});
   S.ags=ag.map(r=>Object.assign({ts:{},rel:{}},r.dados,{id:r.id,etiqueta:r.etiqueta,tec:r.tecnico,data:r.data,status:r.status,fases:r.fases,fase:(r.fases||[])[0]}));
+  /* técnico só lê as próprias atividades; as fases que OUTRO técnico já finalizou no mesmo projeto vêm desta consulta (só leitura, fora do salvamento) */
+  S.agsExt=[];S.tecExt={};if(!g){try{const r=await sb.rpc('ag_fases_outros_tecnicos');if(r.error)throw r.error;const meus=new Set(S.ags.map(a=>a.id));
+    (r.data||[]).filter(x=>!meus.has(x.id)).forEach(x=>{S.agsExt.push({id:x.id,etiqueta:x.etiqueta,tec:x.tecnico,data:x.data,status:x.status,fases:x.fases,fase:(x.fases||[])[0],ts:x.ts||{},fasesFin:Array.isArray(x.fases_fin)?x.fases_fin:[],ext:true});if(x.tecnico_nome)S.tecExt[x.tecnico]=x.tecnico_nome})}
+    catch(e){console.warn('fases de outros técnicos (rode o agenda_ajuste_17 no Supabase)',e)}}
   S.lpus=lp.filter(r=>!r.chamado).map(r=>Object.assign({},r.dados,{id:r.id,ag:r.agendamento,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total,pdf_path:r.pdf_path,prestador:r.prestador||undefined}));
   S.anexos=an.map(r=>({id:r.id,etiqueta:r.etiqueta,tipo:r.tipo,fase:r.fase,nome:r.nome,tam:r.tamanho,em:new Date(r.enviado_em).getTime(),por:'',path:r.path}));
   S.anexosLog=lg.map(r=>({etiqueta:r.etiqueta,nome:r.nome,tipo:r.tipo,em:new Date(r.excluido_em).getTime()}));
