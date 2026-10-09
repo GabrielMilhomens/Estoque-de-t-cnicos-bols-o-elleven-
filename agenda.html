@@ -531,6 +531,8 @@ details summary{cursor:pointer;font-weight:600}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const FASES=[{k:'rua',n:'Lançamento na rua',p:'dRua'},{k:'interno',n:'Lançamento interno',p:'dInterno'},{k:'ext',n:'Extensão de sinal',p:'dExt'},{k:'ativ',n:'Ativação',p:'dAtiv'}];
+/* outras atividades: agendadas como as fases, mas não contam como fase do projeto (não liberam nem finalizam etapas) */
+const EXTRAS=[{k:'vist',n:'Vistoria de lançamento'},{k:'vlink',n:'Validação de link'},{k:'equip',n:'Entrega de equipamento'},{k:'integ',n:'Integração'}],ALLF=FASES.concat(EXTRAS),isExtra=k=>EXTRAS.some(x=>x.k===k);
 const TOPO=['GPON','Ponto a ponto','Last mile','Voz','Firewall'];
 const TEC=[];
 const MAT=[['INS000095','CABO ÓPTICO DROP SM - 01FO'],['INS000995','CABO OPTICO DROP FIG8 4FO'],['INS000044','PLAQUETA DE IDENTIFICAÇÃO DE FO - NETTURBO'],['ATN000500','ONU DM986-416 AX27'],['ATN000259','ONU DM 986-100'],['INS000192','EXTENSÃO ÓPTICA SC-APC 1,25m'],['INS000138','TERMINADOR ÓPTICO 02 FIBRAS'],['INS000086','PATCH CORD - U/UTP CAT.5E. - 1,5M'],['INS000017','BANDEJA PARA RACK'],['INS000494','PORCA GAIOLA PARA RACK'],['INS000346','CORDOALHA DIELÉTRICA'],['INS000002','ABRAÇADEIRA BAP TIPO 3'],['INS000825','SUPORTE PARA BAP'],['INS000967','MINI CAIXA DE EMENDA ÓPTICA 48FO - VERDE']];
@@ -751,10 +753,10 @@ const uid=()=>(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xx
 const num=v=>{if(typeof v==='number')return v;let s=String(v??'').replace(/[^\d,.\-]/g,'');if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');const n=parseFloat(s);return isNaN(n)?0:n};
 const pct=(a,b)=>b?Math.round(a/b*100):0;
 const fasesOf=o=>o.fases||[o.fase];
-const FCURTO={rua:'Rua',interno:'Interno',ext:'Extensão',ativ:'Ativação'};
+const FCURTO={rua:'Rua',interno:'Interno',ext:'Extensão',ativ:'Ativação',vist:'Vistoria',vlink:'Validação de link',equip:'Entrega de equipamento',integ:'Integração'};
 const fasesN=o=>fasesOf(o).map(k=>faseN(k)).join(' + ');
 const fasesC=o=>fasesOf(o).map(k=>FCURTO[k]).join(' + ');
-const faseN=k=>(FASES.find(f=>f.k===k)||{n:k}).n;
+const faseN=k=>(ALLF.find(f=>f.k===k)||{n:k}).n;
 const tecN=id=>(TEC.find(t=>t.id===id)||(S.tecExt&&S.tecExt[id]?{nome:S.tecExt[id]}:null)||{nome:'—'}).nome;
 const tecT=id=>(TEC.find(t=>t.id===id)||{}).tipo;
 const cliN=e=>(S.previsao.find(p=>p.etiqueta===e)||{cliente:''}).cliente;
@@ -780,7 +782,7 @@ const pPor=e=>S.previsao.find(x=>x.etiqueta===e)||{};
 //  * Firewall: nenhuma (ativa direto)
 //  * Last mile: só as fases com dias previstos na base (todas zeradas = ativa direto)
 //  * Demais topologias: rua, interno e extensão (extensão sai quando não há extensão de sinal)
-const fasesReq=p=>{const t=normK(p.topologia||'');if(t==='firewall')return [];const base=FASES.filter(f=>f.k!=='ativ'&&!(f.k==='ext'&&p.semExt));return t==='last mile'?base.filter(f=>(+p[f.p]||0)>0):base};
+const fasesReq=p=>{const t=normK(p.topologia||'');if(t==='firewall')return [];const base=FASES.filter(f=>f.k!=='ativ'&&!(f.k==='ext'&&p.semExt)&&!(f.k==='rua'&&p.semRua));return t==='last mile'?base.filter(f=>(+p[f.p]||0)>0):base};
 const fasesProj=p=>FASES.filter(f=>f.k==='ativ'||fasesReq(p).some(x=>x.k===f.k));
 const naoAplica=(p,k)=>k!=='ativ'&&!fasesReq(p).some(x=>x.k===k);
 const liberado=p=>!faseFim(p.etiqueta,'ativ')&&fasesReq(p).every(f=>faseFim(p.etiqueta,f.k));
@@ -789,7 +791,7 @@ const ativOk=(p,fz)=>!fz.includes('ativ')||!pendReq(p,fz).length;
 const canReag=()=>pode('a_reagendar');
 const vinc=t=>tecT(t)==='CLT'?'equipe própria':'terceiro';
 function faseFlags(p,gestao){const L=fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);
-    if(fin)return gestao?`<div class="ff ok"><b>✓ ${f.n}</b><span>Finalizada por ${esc(tecN(fin.tec))} (${vinc(fin.tec)}) em ${dBR(fin.data)}</span></div>`:`<span class="chip ok">✓ ${FCURTO[f.k]}</span>`;
+    if(fin)return gestao?`<div class="ff ok"><b>✓ ${f.n}</b><span>Finalizada por ${esc(tecN(fin.tec))} (${vinc(fin.tec)}) em ${dBR(fin.data)}</span>${f.k==='ativ'&&(fin.ativSemFases||[]).length?`<span style="color:var(--warn);font-weight:600">Finalizada sem ${fin.ativSemFases.map(k=>FCURTO[k].toLowerCase()).join(', ')}</span>`:''}</div>`:`<span class="chip ok">✓ ${FCURTO[f.k]}</span>`;
     if(f.k==='ativ'&&liberado(p))return gestao?`<div class="ff go"><b>${f.n}</b><span>Liberado para ativar o cliente</span></div>`:`<span class="chip go">Liberado para ativar</span>`;
     const ab=S.ags.find(a=>a.etiqueta===p.etiqueta&&fasesOf(a).includes(f.k)&&!FIM.includes(a.status)&&a.status!=='cancelada');
     return gestao?`<div class="ff"><b>${f.n}</b><span>${ab?`${ST[ab.status][0]} para ${dBR(ab.data)}, ${esc(tecN(ab.tec))}`:'Pendente'}</span></div>`:''}).join('');
@@ -863,7 +865,7 @@ function viewPainelDia(){const T=hoje(),loc=ui.perfil!=='visu';if(!loc&&!PD.rows
   ${PD.err&&!loc?`<div class="result bad" style="margin-bottom:12px">Não foi possível atualizar o painel: ${esc(PD.err)}</div>`:''}
   <div class="kpis">${kp(L.length,'Programadas hoje')}${kp(n('cam'),'A caminho')}${kp(n('exec'),'Em execução','ok')}${kp(L.filter(conc).length,'Concluídas','ok')}${kp(L.filter(entregue).length,'Circuitos entregues','ok')}${kp(L.filter(r=>r.status==='nao_concluida').length,'Não concluídas','bad')}</div>
   ${cids.length>1?`<div class="chips" role="group" aria-label="Filtrar por cidade">${['',...cids].map(c=>`<button data-act="pdCid" data-v="${esc(c)}" aria-current="${cid===c}">${c?esc(c):'Todas'}</button>`).join('')}</div>`:''}
-  ${all.length?`<div class="chips pdfz${cids.length>1?'':' pdfz1'}" role="group" aria-label="Filtrar por fase">${[['','Todas as fases'],...FASES.map(f=>[f.k,f.n])].map(([k,n])=>{const c=k?Lc.filter(r=>(r.fases||[]).includes(k)).length:Lc.length;return (k&&!c&&fzP!==k)?'':`<button data-act="pdFase" data-v="${k}" aria-current="${fzP===k}">${n} (${c})</button>`}).join('')}</div>`:''}
+  ${all.length?`<div class="chips pdfz${cids.length>1?'':' pdfz1'}" role="group" aria-label="Filtrar por fase">${[['','Todas as fases'],...ALLF.map(f=>[f.k,f.n])].map(([k,n])=>{const c=k?Lc.filter(r=>(r.fases||[]).includes(k)).length:Lc.length;return (k&&!c&&fzP!==k)?'':`<button data-act="pdFase" data-v="${k}" aria-current="${fzP===k}">${n} (${c})</button>`}).join('')}</div>`:''}
   ${!loc&&!PD.rows?'<p class="muted pad">Carregando…</p>':`<div class="pdcols">${COL.map(([k,nm])=>{const it=L.filter(r=>grupo(r)===k);return `<section class="pdcol ${k}"><div class="pdct"><b>${nm}</b><b>${it.length}</b></div>${it.map(card).join('')||'<span class="muted">Nenhuma atividade.</span>'}</section>`}).join('')}</div>`}
   <p class="muted" style="font-size:13px;margin-top:10px">Somente leitura. Não mostra valores, endereços nem telefones dos clientes.</p>`}
 
@@ -877,7 +879,7 @@ const mesNome=m=>{const[a,b]=m.split('-');return MESES[+b-1].charAt(0).toUpperCa
 const realAte=(e,f,lim)=>new Set(S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&fasesOf(a).includes(f)).flatMap(diasExecAg).filter(d=>d<=lim)).size;
 // atividade concluída dentro da previsão de dias de todas as suas fases (fases sem previsão não contam)
 function dentroPrev(a){const p=pPor(a.etiqueta),lim=a.ts&&a.ts.conclusao?isoD(new Date(a.ts.conclusao)):a.data;
-  return fasesOf(a).every(k=>{const f=FASES.find(x=>x.k===k),pv=+p[f.p]||0;return !pv||realAte(a.etiqueta,k,lim)<=pv})}
+  return fasesOf(a).every(k=>{const f=FASES.find(x=>x.k===k);if(!f)return true;const pv=+p[f.p]||0;return !pv||realAte(a.etiqueta,k,lim)<=pv})}
 const aprovEm=l=>{const h=(l.hist||[]).filter(x=>x.acao==='Aprovada').pop();return h?h.em:null};
 const kp=(v,l,c='')=>`<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`;
 const PSEC=[['geral','Visão geral','Como estamos? O resumo para bater o olho ou levar à gerência.'],['entregas','Entregas','O que entregamos e quanto tempo de campo cada circuito consumiu?'],['rede','Rede executada','Quanto de rede foi construído no período: cabo, cordoalha, CEOs reabertas e extensão de fibra.'],['tempos','Tempos de atendimento','Quanto tempo leva cada parte do atendimento: deslocamento, espera no cliente, atividade e relatório. Pesquise por cliente ou técnico e expurgue registros que não refletem o trabalho real.'],['exec','Execução em campo','A operação está fluindo? Conclusões dentro e fora da previsão, não conclusões e tempos.'],['equipes','Equipes','Quem está produzindo e como? Técnico a técnico, própria x terceiros.'],['fin','Financeiro','']];
@@ -1017,13 +1019,14 @@ function viewBase(){
   const cell=(p,c)=>{const[f,l,t]=c,v=p[f]??'';
     if(p.semExt&&f==='caixas')return `<td class="ro r" title="Sem extensão de sinal: direto do splitter">1</td>`;
     if(p.semExt&&f==='dExt')return `<td class="ro r" title="Sem extensão de sinal">N/A</td>`;
+    if(p.semRua&&f==='dRua')return `<td class="ro r" title="Sem lançamento na rua: lançamento todo interno">N/A</td>`;
     if(!ed)return `<td class="ro ${t==='n'?'r':''}">${f==='valor'?brl(v):esc(v)}</td>`;
     if(t==='s')return `<td><select data-ch="cell" data-id="${p.id}" data-f="${f}" aria-label="${l}">${TOPO.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select></td>`;
     return `<td><input ${t==='n'?'type="number" min="0" step="any" inputmode="decimal" class="r"':'type="text"'} data-ch="cell" data-id="${p.id}" data-f="${f}" value="${esc(v)}" aria-label="${l}"></td>`};
   return `<div class="toolbar"><div><h2>Base de previsão</h2><p class="muted">${S.previsao.length} projetos. ${ed?'Use Incluir novo projeto: ROI, endereço de instalação e informações técnicas em sequência. Depois complete a previsão de dias por fase.':'Somente leitura para o seu perfil.'}</p></div>
    <div class="tools"><input class="inp" type="search" id="baseQ" placeholder="Buscar etiqueta, protocolo ou cliente" data-in="baseQ" value="${esc(ui.baseQ)}">${ed?'<button class="btn" data-act="addRow">Adicionar manualmente</button><button class="btn primary" data-act="wiz" data-id="">Incluir novo projeto</button>':''}</div></div>
    <div class="tablewrap sheet"><table><thead><tr>${COLS.map(c=>`<th>${c[1]}</th>`).join('')}<th>Cadastro</th><th>Status</th>${ed?'<th></th>':''}</tr></thead>
-   <tbody>${rows.map(p=>`<tr>${COLS.map(c=>cell(p,c)).join('')}<td class="ro"><button class="btn sm" data-act="wiz" data-id="${p.id}">Editar cadastro</button>${[!p.roi&&'Sem ROI',!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos'].filter(Boolean).map(x=>` <span class="chip warn">${x}</span>`).join('')}${p.semExt?' <span class="chip">Sem extensão</span>':''}</td><td class="ro">${progLabel(p.etiqueta)}</td>${ed?`<td class="ro"><button class="icon" data-act="delRow" data-id="${p.id}" aria-label="Excluir linha">✕</button></td>`:''}</tr>`).join('')||'<tr><td class="ro" colspan="17">Nenhum projeto encontrado.</td></tr>'}</tbody></table></div>`;
+   <tbody>${rows.map(p=>`<tr>${COLS.map(c=>cell(p,c)).join('')}<td class="ro"><button class="btn sm" data-act="wiz" data-id="${p.id}">Editar cadastro</button>${[!p.roi&&'Sem ROI',!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos'].filter(Boolean).map(x=>` <span class="chip warn">${x}</span>`).join('')}${p.semRua?' <span class="chip">Sem rua</span>':''}${p.semExt?' <span class="chip">Sem extensão</span>':''}</td><td class="ro">${progLabel(p.etiqueta)}</td>${ed?`<td class="ro"><button class="icon" data-act="delRow" data-id="${p.id}" aria-label="Excluir linha">✕</button></td>`:''}</tr>`).join('')||'<tr><td class="ro" colspan="17">Nenhum projeto encontrado.</td></tr>'}</tbody></table></div>`;
 }
 
 /* ---------- PREVISÃO DOS PROJETOS ---------- */
@@ -1109,12 +1112,12 @@ function viewKanban(){
   const card=(p,k)=>{const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');const meta=[];let linha='';
     const flg=k==='backlog'?'':fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);return fin?`<small>✓ ${FCURTO[f.k]}: ${esc(tecN(fin.tec))}</small>`:''}).join('');
     if(k==='backlog'){const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);falta.forEach(t=>meta.push(`<span class="chip warn">${t}</span>`));linha=falta.length?'Cadastro incompleto':'Pronto para agendar'}
-    else if(k==='entregue'){const a=faseFim(p.etiqueta,'ativ');linha=`Ativado em ${dBR(a.data)} por ${tecN(a.tec)}`;
+    else if(k==='entregue'){const a=faseFim(p.etiqueta,'ativ');linha=`Ativado em ${dBR(a.data)} por ${tecN(a.tec)}`+((a.ativSemFases||[]).length?`, sem ${a.ativSemFases.map(k=>FCURTO[k].toLowerCase()).join(', ')}`:'');
       const tot=diasExec(p.etiqueta),prev=fasesAplic(p).reduce((s,f)=>s+(+p[f.p]||0),0);meta.push(`<span class="chip ${tot>prev?'bad':'ok'}">${tot} / ${prev} dias de campo</span>`)}
     else{const f=FASES.find(f=>f.k===k),r=realDias(p.etiqueta,k),pv=+p[f.p]||0,ab=x.filter(a=>fasesOf(a).includes(k)&&!FIM.includes(a.status)).sort((a,b)=>a.data.localeCompare(b.data))[0];
       linha=ab?`${ST[ab.status][0]}: ${dBR(ab.data)}, ${tecN(ab.tec)}`:'Aguardando agendamento';
       meta.push(`<span class="chip ${r>pv?'bad':''}">${r} / ${pv} dias</span>`);if(r>pv)meta.push('<span class="chip bad">Acima do previsto</span>');if(ab&&ab.data<hoje())meta.push('<span class="chip warn">Atrasada</span>');if(k==='ativ'&&liberado(p))meta.unshift('<span class="chip go">Liberado para ativar</span>')}
-    return `<button class="kcard" data-act="kOpen" data-etq="${esc(p.etiqueta)}" data-k="${k}"><b>${esc(p.etiqueta)}</b><span>${esc(p.cliente)}</span><small>${esc([p.cidade,p.topologia].filter(Boolean).join(', '))}${p.semExt?', sem extensão':''}</small><small>${esc(linha)}</small>${flg}<div class="kmeta">${meta.join('')}</div></button>`};
+    return `<button class="kcard" data-act="kOpen" data-etq="${esc(p.etiqueta)}" data-k="${k}"><b>${esc(p.etiqueta)}</b><span>${esc(p.cliente)}</span><small>${esc([p.cidade,p.topologia].filter(Boolean).join(', '))}${p.semRua?', sem rua':''}${p.semExt?', sem extensão':''}</small><small>${esc(linha)}</small>${flg}<div class="kmeta">${meta.join('')}</div></button>`};
   return `<div class="toolbar"><div><h2>Backlog de projetos</h2><p class="muted">${L.length} projetos. Os cards mudam de coluna sozinhos, conforme os técnicos finalizam cada fase. Toque em um card para abrir na agenda.</p></div>
    <div class="tools"><input class="inp" type="search" id="kQ" placeholder="Buscar etiqueta, cliente ou POP" data-in="kQ" value="${esc(ui.kQ)}"><select class="inp" data-ch="kCid"><option value="">Todas as cidades</option>${cids.map(c=>`<option ${c===ui.kCid?'selected':''}>${esc(c)}</option>`).join('')}</select></div></div>
    <div class="kanban">${KCOLS.map(([k,n])=>{const v=g[k].reduce((s,p)=>s+(+p.valor||0),0);return `<section class="kcol ${k==='backlog'?'':k==='entregue'?'fim':'fase'}"><div class="khead"><h3>${n}<span class="chip">${g[k].length}</span></h3><small>${brl(v)} mensais</small></div><div class="kbody">${g[k].map(p=>card(p,k)).join('')||'<p class="kempty">Nenhum projeto aqui.</p>'}</div></section>`}).join('')}</div>`;
@@ -1122,10 +1125,12 @@ function viewKanban(){
 
 /* ---------- ESTOQUE / MATERIAL ---------- */
 const pontaItem=i=>{const t=(i.tipo||'').toUpperCase();if(t.includes('PONTA A'))return 'A';if(t.includes('PONTA B'))return 'B';return CABO_RE.test(i.desc||'')?'A':'B'};
+const INT_ITEM=i=>/terminador|extensao\s*optica/.test(normK(i.desc||''));
 const pontaUsada=(g,fases)=>g==='A'?fases.some(k=>k==='rua'||k==='interno'||k==='ext'):fases.includes('ativ');
 const estDe=(tec,it)=>{const E=S.estoque[tec]||{};if(it.cod&&E[it.cod])return E[it.cod];return Object.values(E).find(x=>normK(x.desc)===normK(it.desc))||null};
 function necessidade(p,fases){if(!p||!p.roi)return [];const need={};
-  p.roi.itens.filter(i=>!isMO(i)&&pontaUsada(pontaItem(i),fases)).forEach(i=>{const k=i.cod||'d:'+normK(i.desc);need[k]=need[k]||{cod:i.cod,desc:i.desc,qtd:0,ponta:pontaItem(i)};need[k].qtd+=+i.qtd||0});return Object.values(need)}
+  const temInt=fasesReq(p).some(f=>f.k==='interno'),noInt=i=>temInt&&INT_ITEM(i);
+  p.roi.itens.filter(i=>!isMO(i)&&(noInt(i)?fases.includes('interno'):pontaUsada(pontaItem(i),fases))).forEach(i=>{const k=i.cod||'d:'+normK(i.desc);need[k]=need[k]||{cod:i.cod,desc:i.desc,qtd:0,ponta:pontaItem(i)+(noInt(i)?', vai no lançamento interno':'')};need[k].qtd+=+i.qtd||0});return Object.values(need)}
 function comprometido(tec,exceto){const por={};S.ags.filter(a=>a.tec===tec&&a.etiqueta!==exceto&&['agendada','deslocamento','no_local','execucao'].includes(a.status)).forEach(a=>{const g=por[a.etiqueta]=por[a.etiqueta]||{fs:new Set(),mats:null};fasesOf(a).forEach(k=>g.fs.add(k));if(a.materiais){g.mats=g.mats||{};a.materiais.forEach(m=>{const k=mKey(m);g.mats[k]=Math.max(g.mats[k]||0,+m.qtd||0)})}});
   const out={};Object.entries(por).forEach(([e,g])=>{if(g.mats)Object.entries(g.mats).forEach(([k,q])=>{out[k]=(out[k]||0)+q});else necessidade(pPor(e),[...g.fs]).forEach(n=>{const k=mKey(n);out[k]=(out[k]||0)+n.qtd})});return out}
 const mKey=n=>n.cod||'d:'+normK(n.desc);
@@ -1266,7 +1271,7 @@ function viewAgenda(){
     const dd=(l,v)=>`<div><dt>${l}</dt><dd>${v}</dd></div>`;
     const fld=(k,l,t)=>`<label class="f"><span>${l}</span>${t==='area'?`<textarea class="inp" rows="3" data-in="comp" data-f="${k}">${esc(c[k])}</textarea>`:`<input class="inp" type="${t||'text'}" data-in="comp" data-f="${k}" value="${esc(c[k])}">`}</label>`;
     let body='';
-    if(ui.fTab==='proj')body=`<dl class="dl">${dd('Cliente',esc(p.cliente))}${dd('Protocolo',esc(p.protocolo))}${dd('Etiqueta',esc(p.etiqueta))}${dd('Valor mensal',brl(p.valor))}${dd('Topologia',esc(p.topologia))}${dd('Lançamento',(+p.metros||0)+' m')}${dd('Caixas de emenda',caixasTxt(p))}${dd('Cidade',esc(p.cidade||'—'))}${dd('POP',esc(p.pop||'—'))}${dd('Equipamento de acesso',esc(p.equip||'—'))}${p.inst&&p.inst.porta?dd('Porta',esc(p.inst.porta)):''}${p.inst&&p.inst.pa?dd('Ponto de acesso',esc(p.inst.pa)):''}${p.inst&&p.inst.pd?dd('Ponto de derivação',esc(p.inst.pd)):''}${dd('Extensão de sinal',p.semExt?'Não se aplica':'Prevista')}${dd('Lista de ROI',p.roi?`${esc(p.roi.nome)} (${p.roi.itens.length} itens)`:'Não enviada')}${p.roi&&p.roi.fin?FIN.filter(([k])=>p.roi.fin[k]!==undefined).map(([k,l,m])=>dd(l,m?brl(p.roi.fin[k]):String(p.roi.fin[k]).replace('.',','))).join(''):''}${dd('Status',progLabel(p.etiqueta))}</dl>
+    if(ui.fTab==='proj')body=`<dl class="dl">${dd('Cliente',esc(p.cliente))}${dd('Protocolo',esc(p.protocolo))}${dd('Etiqueta',esc(p.etiqueta))}${dd('Valor mensal',brl(p.valor))}${dd('Topologia',esc(p.topologia))}${dd('Lançamento',(+p.metros||0)+' m')}${dd('Caixas de emenda',caixasTxt(p))}${dd('Cidade',esc(p.cidade||'—'))}${dd('POP',esc(p.pop||'—'))}${dd('Equipamento de acesso',esc(p.equip||'—'))}${p.inst&&p.inst.porta?dd('Porta',esc(p.inst.porta)):''}${p.inst&&p.inst.pa?dd('Ponto de acesso',esc(p.inst.pa)):''}${p.inst&&p.inst.pd?dd('Ponto de derivação',esc(p.inst.pd)):''}${dd('Lançamento na rua',p.semRua?'Não tem (lançamento todo interno)':'Previsto')}${dd('Extensão de sinal',p.semExt?'Não se aplica':'Prevista')}${dd('Lista de ROI',p.roi?`${esc(p.roi.nome)} (${p.roi.itens.length} itens)`:'Não enviada')}${p.roi&&p.roi.fin?FIN.filter(([k])=>p.roi.fin[k]!==undefined).map(([k,l,m])=>dd(l,m?brl(p.roi.fin[k]):String(p.roi.fin[k]).replace('.',','))).join(''):''}${dd('Status',progLabel(p.etiqueta))}</dl>
       <h3 class="lsub">Fases do projeto</h3>${faseFlags(p,1)}
       <h3 class="lsub">Dias realizados / previstos</h3><div class="phases">${fasesProj(p).map(f=>`<div><span>${f.n}</span><b>${realDias(p.etiqueta,f.k)} / ${+p[f.p]||0}</b></div>`).join('')}</div>`;
     else if(ui.fTab==='comp')body=`<button class="btn sm" style="margin-bottom:12px" data-act="wiz" data-n="2" data-id="${p.id}">Editar endereço e dados técnicos</button>${usado&&c.endereco?'<p class="note">Dados gravados nesta etiqueta em agendamento anterior. Revise antes de agendar.</p>':''}${fld('endereco','Endereço completo *')}${fld('contato','Contato no local *')}${fld('telefone','Telefone do contato *','tel')}${fld('janela','Horário ou janela de atendimento')}${fld('acesso','Condições de acesso (portaria, autorização, chave)')}${fld('obs','Observações técnicas','area')}`;
@@ -1309,7 +1314,7 @@ function calendario(){
   }
   return `<div class="secth"><h2>Agenda</h2><div class="views">${[['dia','Dia'],['semana','Semana'],['mes','Mês']].map(([k,n])=>`<button data-act="agView" data-v="${k}" aria-current="${ui.agView===k}">${n}</button>`).join('')}</div></div>
   <div class="dayhead"><button class="btn" data-act="dia" data-n="-1" aria-label="Anterior">‹</button><button class="btn" data-act="hoje">Hoje</button><button class="btn" data-act="dia" data-n="1" aria-label="Próximo">›</button><input type="date" class="inp" data-ch="agDia" value="${ui.agDia}">
-   <select class="inp" data-ch="agFase"><option value="all">Todas as fases</option>${FASES.map(f=>`<option value="${f.k}" ${ui.agFase===f.k?'selected':''}>${f.n}</option>`).join('')}</select>
+   <select class="inp" data-ch="agFase"><option value="all">Todas as fases e atividades</option>${ALLF.map(f=>`<option value="${f.k}" ${ui.agFase===f.k?'selected':''}>${f.n}</option>`).join('')}</select>
    <select class="inp" data-ch="agTec"><option value="all">Todos os técnicos</option><option value="CLT" ${ui.agTec==='CLT'?'selected':''}>Toda a equipe própria (CLT)</option><option value="TERC" ${ui.agTec==='TERC'?'selected':''}>Todos os terceiros</option><optgroup label="Equipe própria (CLT)">${TEC.filter(t=>t.tipo==='CLT').map(t=>`<option value="${t.id}" ${ui.agTec===t.id?'selected':''}>${esc(t.nome)}</option>`).join('')}</optgroup><optgroup label="Terceiros">${TEC.filter(t=>t.tipo==='TERC').map(t=>`<option value="${t.id}" ${ui.agTec===t.id?'selected':''}>${esc(t.nome)}</option>`).join('')}</optgroup></select>
    ${ui.agFase!=='all'||ui.agTec!=='all'?'<button class="btn" data-act="limparFiltros">Limpar filtros</button>':''}</div>
   <div class="secth"><h3 style="text-transform:none">${titulo.charAt(0).toUpperCase()+titulo.slice(1)}</h3><span class="muted">${qtd} atividade(s)</span></div>${corpo}`;
@@ -1324,14 +1329,14 @@ const prazoPergunta=a=>a.status==='execucao'&&ultimoDia(a)&&a.ts&&a.ts.inicio&&(
 const prazoHoje=a=>a.prazo&&a.prazo.data===hoje()?a.prazo:null;
 const MOT_PRAZO=['Volume maior que o previsto','Infraestrutura parcialmente obstruída','Falta de material','Chuva ou condição climática','Acesso ao cliente restrito','Outro motivo'];
 function diasRange(ini,fim,uteis){const out=[];if(!ini)return out;fim=fim&&fim>=ini?fim:ini;if(fim===ini)return [ini];let d=ini;while(d<=fim&&out.length<62){const w=new Date(d+'T12:00:00').getDay();if(!uteis||(w!==0&&w!==6))out.push(d);d=addD(d,1)}return out}
-function criarAgs(etq,fases,tec,dias,por,extra){const g=uid(),fz=FASES.map(f=>f.k).filter(k=>fases.includes(k));dias.forEach(d=>S.ags.push(Object.assign({id:uid(),etiqueta:etq,fase:fz[0],fases:fz,data:d,tec,status:'agendada',ts:{},rel:{},criadoPor:por,grupo:g},extra||{})));return fz}
+function criarAgs(etq,fases,tec,dias,por,extra){const g=uid(),fz=ALLF.map(f=>f.k).filter(k=>fases.includes(k));dias.forEach(d=>S.ags.push(Object.assign({id:uid(),etiqueta:etq,fase:fz[0],fases:fz,data:d,tec,status:'agendada',ts:{},rel:{},criadoPor:por,grupo:g},extra||{})));return fz}
 const rangeHtml=(pre,ini,fim,uteis)=>`<div class="grid2 even" style="gap:0 12px"><label class="f"><span>Data de início</span><input type="date" class="inp" id="${pre}Ini" data-ch="${pre==='ag'?'agF':'rpR'}" data-f="data" value="${ini}"></label><label class="f"><span>Data de fim</span><input type="date" class="inp" id="${pre}Fim" data-ch="${pre==='ag'?'agF':'rpR'}" data-f="dataFim" value="${fim}" min="${ini}"></label></div>
   <label class="chk" style="margin-top:-4px"><input type="checkbox" id="${pre}Ut" data-ch="${pre==='ag'?'agF':'rpR'}" data-f="uteis" ${uteis?'checked':''}> Somente dias úteis</label><p class="muted" id="${pre}Cnt" style="margin:-6px 0 12px;font-size:13.5px">${diasTxt(diasRange(ini,fim,uteis))}</p>`;
 const diasTxt=L=>!L.length?'Nenhum dia no intervalo.':L.length===1?`1 dia: ${dBR(L[0])}.`:`${L.length} dias, de ${dBR(L[0])} a ${dBR(L[L.length-1])}.`;
 function renderRep(){const R=ui.rp,a=getAg(R.id),p=pPor(a.etiqueta);
   const rg=R.modo==='reag';
   openModal(`<h3>${rg?'Reagendar atividade':'Replicar agendamento'}</h3>${rg&&a.motivo?`<p class="note" style="margin-top:6px">Não concluída: ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}</p>`:''}<p class="muted">${esc(a.etiqueta)}, ${esc(p.cliente||'')}. Original: ${fasesN(a)} em ${dBR(a.data)} com ${esc(tecN(a.tec))}.</p>
-   <div class="f" style="margin-top:12px"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Fases *</span><div class="fchk">${fasesProj(p).map(f=>{const fin=faseFim(a.etiqueta,f.k);const blq=f.k==='ativ'&&!fin&&pendReq(p,R.fases).length;return `<label class="${fin||blq?'dis':''}"><input type="checkbox" data-ch="rpFz" value="${f.k}" ${R.fases.includes(f.k)&&!blq?'checked':''} ${fin||blq?'disabled':''}><span>${f.n}${fin?'<small>Finalizada</small>':blq?`<small>Bloqueada até finalizar ${pendReq(p,R.fases).map(k=>FCURTO[k].toLowerCase()).join(', ')}</small>`:''}</span></label>`}).join('')}</div></div>
+   <div class="f" style="margin-top:12px"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Fases *</span><div class="fchk">${fasesProj(p).map(f=>{const fin=faseFim(a.etiqueta,f.k);const blq=false,av=f.k==='ativ'&&!fin&&pendReq(p,R.fases).length;return `<label class="${fin||blq?'dis':''}"><input type="checkbox" data-ch="rpFz" value="${f.k}" ${R.fases.includes(f.k)&&!blq?'checked':''} ${fin||blq?'disabled':''}><span>${f.n}${fin?'<small>Finalizada</small>':av?`<small style="color:var(--warn)">Atenção: falta finalizar ${pendReq(p,R.fases).map(k=>FCURTO[k].toLowerCase()).join(', ')}</small>`:''}</span></label>`}).join('')}${EXTRAS.map(x=>`<label><input type="checkbox" data-ch="rpFz" value="${x.k}" ${R.fases.includes(x.k)?'checked':''}><span>${x.n}<small>Outra atividade</small></span></label>`).join('')}</div></div>
    ${rangeHtml('rp',R.data,R.dataFim,R.uteis)}
    <label class="f"><span>Técnico</span><select class="inp" data-ch="rpR" data-f="tec">${TEC.map(t=>`<option value="${t.id}" ${t.id===R.tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></label>
    <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="repOk">${rg?'Reagendar':'Replicar agendamento'}</button></div>`)}
@@ -1353,13 +1358,14 @@ function matEditor(p,F){if(!p.roi)return '<p class="note">Projeto sem ROI: não 
    ${R.length?`<div class="mrow" style="background:var(--bg)"><small style="color:var(--muted)">Removidos: ${R.map(n=>esc(n.desc)).join(', ')}. </small><button class="link" data-act="matRest">Restaurar todos</button></div>`:''}</div>`}
 function agendForm(p){
   const F=ui.agForm;if(F.etq!==p.etiqueta){F.etq=p.etiqueta;const nf=nextFase(p.etiqueta);F.fases=faseFim(p.etiqueta,nf)?[]:[nf];F.data=hoje();F.dataFim=hoje();F.uteis=true;F.tec='';F.rem=[];F.obs='';F.fOff=[]}
-  if(!ativOk(p,F.fases))F.fases=F.fases.filter(k=>k!=='ativ');
+  
   const opt=tp=>TEC.filter(t=>t.tipo===tp).map(t=>`<option value="${t.id}" ${t.id===F.tec?'selected':''}>${esc(t.nome)}</option>`).join('');
   const dias=diasRange(F.data,F.dataFim,F.uteis),carga=F.tec?S.ags.filter(a=>a.tec===F.tec&&dias.includes(a.data)&&a.status!=='cancelada').length:0;
   const fs=fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);let sub='';
-    let blq=false;if(fin)sub=`Finalizada por ${esc(tecN(fin.tec))} em ${dBR(fin.data)}`;else if(f.k==='ativ'){const pr=pendReq(p,F.fases);blq=!!pr.length;sub=liberado(p)?'<b style="color:var(--brand-ink)">Liberado para ativar o cliente</b>':pr.length?`Bloqueada até finalizar ${pr.map(k=>FCURTO[k].toLowerCase()).join(', ')}. Para ativar na mesma visita, selecione essas fases também.`:'Liberada junto com as fases selecionadas neste agendamento'}
+    let blq=false;if(fin)sub=`Finalizada por ${esc(tecN(fin.tec))} em ${dBR(fin.data)}`;else if(f.k==='ativ'){const pr=pendReq(p,F.fases);blq=false;sub=liberado(p)?'<b style="color:var(--brand-ink)">Liberado para ativar o cliente</b>':pr.length?`<span style="color:var(--warn)">Atenção: ainda falta finalizar ${pr.map(k=>FCURTO[k].toLowerCase()).join(', ')}. Dá para agendar a ativação mesmo assim.</span>`:'Liberada junto com as fases selecionadas neste agendamento'}
     return `<label class="${fin||blq?'dis':''}"><input type="checkbox" data-ch="agFz" value="${f.k}" ${F.fases.includes(f.k)&&!blq?'checked':''} ${fin||blq?'disabled':''}><span>${f.n}${sub?`<small>${sub}</small>`:''}</span></label>`}).join('');
-  return `<div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Fases que o técnico vai realizar *</span><div class="fchk">${fs}</div></div>
+  return `<div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Fases do projeto</span><div class="fchk">${fs}</div></div>
+    <div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Outras atividades</span><div class="fchk">${EXTRAS.map(x=>`<label><input type="checkbox" data-ch="agFz" value="${x.k}" ${F.fases.includes(x.k)?'checked':''}><span>${x.n}<small>Não conta como fase do projeto</small></span></label>`).join('')}</div></div>
    ${(()=>{const L=anxDe(p.etiqueta),w=[];if(+p.metros>0&&F.fases.some(k=>k==='rua'||k==='interno')&&!L.some(x=>x.tipo==='kmzL'))w.push('KMZ de lançamento');if(temExt(p)&&F.fases.includes('ext')&&!L.some(x=>x.tipo==='kmzA'))w.push('KMZ de ativação');return w.length?`<p class="note">Ainda sem ${w.join(' e ')}. <button class="link" data-act="fTab" data-t="anx">Anexar agora</button></p>`:''})()}
    ${rangeHtml('ag',F.data,F.dataFim,F.uteis)}
    <label class="f"><span>Técnico</span><select class="inp" data-ch="agF" data-f="tec"><option value="">Selecione</option><optgroup label="Equipe própria (CLT)">${opt('CLT')}</optgroup><optgroup label="Terceiros">${opt('TERC')}</optgroup></select></label>
@@ -1405,9 +1411,9 @@ const IC={pin:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
   doc:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
   dn:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
   up:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>'};
-const COR_FASE={rua:'#245F80',interno:'#2E6B3A',ext:'#7A4E0C',ativ:'#4F3A86'};
+const COR_FASE={rua:'#245F80',interno:'#2E6B3A',ext:'#7A4E0C',ativ:'#4F3A86',extra:'#35505E'};
 const endCurto=e=>String(e||'').replace(/,?\s*CEP\s*[\d.\-]+\s*$/i,'');
-const corFase=a=>{const f=fasesOf(a),k=['ativ','ext','interno','rua'].find(x=>f.includes(x))||'rua';return COR_FASE[k]};
+const corFase=a=>{const f=fasesOf(a),k=['ativ','ext','interno','rua'].find(x=>f.includes(x))||(f.some(isExtra)?'extra':'rua');return COR_FASE[k]};
 function apoioTxt(a){const c=S.comp[a.etiqueta]||{},T=hoje(),p=pPor(a.etiqueta),L=[];if(a.dias&&a.dias.length>1)L.push(diaIdx(a,a.data)+`, de ${dBR(a.dias[0]).slice(0,5)} a ${dBR(a.dias[a.dias.length-1]).slice(0,5)}`);
   L.push(a.data===T?'Hoje':a.data<T&&!FIM.includes(a.status)?`Atrasada, era para ${dBR(a.data).slice(0,5)}`:dBR(a.data).slice(0,5));
   if(c.janela)L.push('janela '+c.janela);if(fasesOf(a).includes('ativ')&&!faseFim(a.etiqueta,'ativ')&&ativOk(p,fasesOf(a)))L.push('liberado para ativar');return L.join(', ')}
@@ -1801,7 +1807,7 @@ function roiPreview(r,target){
 }
 
 /* ---------- CADASTRO EM ETAPAS ---------- */
-function wizFrom(p){const i=(p&&p.inst)||{};return{e:{cep:i.cep||'',logradouro:i.logradouro||'',numero:i.numero||'',bairro:i.bairro||'',cidade:(p&&p.cidade)||'',uf:i.uf||''},t:{pop:(p&&p.pop)||'',equip:(p&&p.equip)||'',porta:i.porta||'',pa:i.pa||'',locPa:i.locPa||'',pd:i.pd||'',locPd:i.locPd||'',notas:(i.notas||[]).join('. ')}}}
+function wizFrom(p){const i=(p&&p.inst)||{};return{e:{cep:i.cep||'',logradouro:i.logradouro||'',numero:i.numero||'',bairro:i.bairro||'',cidade:(p&&p.cidade)||'',uf:i.uf||''},t:{pop:(p&&p.pop)||'',equip:(p&&p.equip)||'',porta:i.porta||'',pa:i.pa||'',locPa:i.locPa||'',pd:i.pd||'',locPd:i.locPd||'',notas:(i.notas||[]).join('. '),semRua:p&&p.semRua?'1':''}}}
 function wizOpen(id,step){const p=id?S.previsao.find(x=>x.id===id):null;
   ui.roiTmp=p?Object.assign({nome:p.roi?p.roi.nome:'',itens:p.roi?p.roi.itens:[],achados:p.roi?p.roi.achados||[]:[],cabos:[],protocolo:p.protocolo,etiqueta:p.etiqueta,cliente:p.cliente,valor:p.valor,topologia:p.topologia,metros:p.metros},(p.roi&&p.roi.fin)||{}):null;
   ui.roiTarget=id||'';ui.wiz=Object.assign({step:step||1,id:id||''},wizFrom(p));renderWiz()}
@@ -1816,7 +1822,7 @@ function renderWiz(){
     foot=`<button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="wizGo" data-n="2">Avançar</button>`}
   else if(W.step===2){body=paste('Colar bloco de endereço')+`<div class="grid2 even" style="gap:0 12px">${fl('e','cep','CEP')}${fl('e','logradouro','Logradouro')}${fl('e','numero','Número')}${fl('e','bairro','Bairro')}${fl('e','cidade','Cidade')}${fl('e','uf','Estado (UF)')}</div>`;
     foot=`<button class="btn" data-act="wizGo" data-n="1">Voltar</button><button class="btn primary" data-act="wizGo" data-n="3">Avançar</button>`}
-  else{body=paste('Colar bloco de dados do projeto')+`<div class="grid2 even" style="gap:0 12px">${fl('t','pop','POP')}${fl('t','equip','Equipamento de acesso')}${fl('t','porta','Porta')}<span></span>${fl('t','pa','Ponto de acesso')}${fl('t','locPa','Localização do ponto de acesso')}${fl('t','pd','Ponto de derivação na rede externa')}${fl('t','locPd','Localização do ponto de derivação')}</div>${fl('t','notas','Observações técnicas',1)}<div id="wzExt">${extNote(W.t)}</div>`;
+  else{body=paste('Colar bloco de dados do projeto')+`<div class="grid2 even" style="gap:0 12px">${fl('t','pop','POP')}${fl('t','equip','Equipamento de acesso')}${fl('t','porta','Porta')}<span></span>${fl('t','pa','Ponto de acesso')}${fl('t','locPa','Localização do ponto de acesso')}${fl('t','pd','Ponto de derivação na rede externa')}${fl('t','locPd','Localização do ponto de derivação')}</div><label class="f"><span>Lançamento na rua</span><select class="inp" id="wzRua" data-in="wz" data-s="t" data-f="semRua"><option value="" ${!W.t.semRua?'selected':''}>Tem lançamento na rua</option><option value="1" ${W.t.semRua?'selected':''}>Não tem: lançamento todo interno (galpão, condomínio, prédio)</option></select></label>${fl('t','notas','Observações técnicas',1)}<div id="wzExt">${extNote(W.t)}</div>`;
     foot=`<button class="btn" data-act="wizGo" data-n="2">Voltar</button><button class="btn primary" data-act="wizSave">Salvar projeto</button>`}
   openModal(head+body+`<div class="actions">${foot}</div>`);
 }
@@ -1962,7 +1968,7 @@ const ACT={
     S.budget=S.budget||{};S.budget[mes]={};rows.forEach(x=>{S.budget[mes][x.conta]=x.valor});ui.bEdit=false;render();toast('Budget de '+mesNome(mes)+' salvo.')},
   lpuInfo:el=>{const t=el.parentElement.querySelector('.ltec');if(t)t.hidden=!t.hidden},
   cSec:el=>{ui.campoSec=el.dataset.v;render()},
-  repOk:()=>{const R=ui.rp,a=getAg(R.id);if(!R.fases.length){toast('Selecione ao menos uma fase.','bad');return}if(!ativOk(pPor(a.etiqueta),R.fases)){toast('A ativação está bloqueada até as fases anteriores serem finalizadas.','bad');return}const dias=diasRange(R.data,R.dataFim,R.uteis);if(!dias.length){toast('O intervalo escolhido não tem dias válidos.','bad');return}
+  repOk:()=>{const R=ui.rp,a=getAg(R.id);if(!R.fases.length){toast('Selecione ao menos uma fase ou atividade.','bad');return}const dias=diasRange(R.data,R.dataFim,R.uteis);if(!dias.length){toast('O intervalo escolhido não tem dias válidos.','bad');return}
     if(R.modo==='reag'){if(!canReag()){toast('Somente o encarregado reagenda.','bad');return}const fz=criarAgs(a.etiqueta,R.fases,R.tec,dias,meNome(),Object.assign({origem:a.id},a.materiais?{materiais:a.materiais}:{},a.obs?{obs:a.obs}:{},a.fotosReq?{fotosReq:a.fotosReq.filter(k=>R.fases.includes(k.split(':')[0]))}:{}));a.reag=dias[0];a.pendReag=false;a.reagPor=meNome();save();closeModal();render();toast(`Reagendado: ${a.etiqueta} para ${dBR(dias[0])} com ${tecN(R.tec)} (${fz.map(k=>FCURTO[k]).join(' + ')}).`);return}
     const fz=criarAgs(a.etiqueta,R.fases,R.tec,dias,meNome(),Object.assign({replicaDe:a.id},a.materiais?{materiais:a.materiais}:{},a.obs?{obs:a.obs}:{},a.fotosReq?{fotosReq:a.fotosReq.filter(k=>R.fases.includes(k.split(':')[0]))}:{}));save();closeModal();render();toast(`Replicado: ${dias.length} agendamento(s) de ${a.etiqueta} para ${tecN(R.tec)} (${fz.map(k=>FCURTO[k]).join(' + ')}).`)},
   reag:el=>{if(!canReag()){semPerm();return}const a=getAg(el.dataset.id),ini=addD(hoje(),1);ui.rp={modo:'reag',id:a.id,data:ini,dataFim:ini,uteis:true,tec:a.tec,fases:fasesOf(a).filter(k=>!faseFim(a.etiqueta,k))};renderRep()},
@@ -2016,6 +2022,7 @@ const ACT={
     const e=W.e,t=W.t;p.cidade=e.cidade.trim();p.pop=t.pop.trim();p.equip=t.equip.trim();
     p.inst={cep:e.cep,logradouro:e.logradouro,numero:e.numero,bairro:e.bairro,uf:e.uf,porta:t.porta,pa:t.pa,locPa:t.locPa,pd:t.pd,locPd:t.locPd,notas:t.notas?[t.notas]:[]};
     const se=semExtOf(t);if(se!==null){p.semExt=se;if(se){p.dExt=0;p.caixas=1}}
+    p.semRua=!!t.semRua;if(p.semRua)p.dRua=0;
     const end=buildEnd(e),c=S.comp[etq]=S.comp[etq]||{};if(end)c.endereco=end;if(t.notas&&!(c.obs||'').includes(t.notas))c.obs=[c.obs,t.notas].filter(Boolean).join('. ');
     ui.baseQ='';save();closeModal();render();toast(novo?`Projeto ${etq} incluído. Complete a previsão de dias por fase.`:`Cadastro de ${etq} atualizado.`)},
   roi:el=>{const id=el.dataset.id||'',p=id&&S.previsao.find(x=>x.id===id);ui.roiTmp=null;ui.roiTarget=id;
@@ -2054,7 +2061,7 @@ const ACT={
   dia:el=>{const n=+el.dataset.n;if(ui.agView==='semana')ui.agDia=addD(ui.agDia,7*n);else if(ui.agView==='mes'){const d=new Date(ui.agDia+'T12:00:00');ui.agDia=isoD(new Date(d.getFullYear(),d.getMonth()+n,1))}else ui.agDia=addD(ui.agDia,n);render()},
   agendar:()=>{if(!pode('a_agendar')&&semPerm())return;const F=ui.agForm,c=S.comp[ui.agSel]||{},falta=[];if(!(c.endereco||'').trim())falta.push('endereço');if(!(c.contato||'').trim())falta.push('contato');if(!(c.telefone||'').trim())falta.push('telefone');
     if(falta.length){ui.fTab='comp';render();toast('Preencha '+falta.join(', ')+' em Dados complementares para agendar.','bad');return}
-    if(!F.fases||!F.fases.length){toast('Selecione ao menos uma fase.','bad');return}if(!ativOk(pPor(ui.agSel),F.fases)){toast('A ativação está bloqueada até as fases anteriores serem finalizadas.','bad');return}if(!F.data){toast('Informe a data.','bad');return}if(!F.tec){toast('Selecione o técnico.','bad');return}
+    if(!F.fases||!F.fases.length){toast('Selecione ao menos uma fase ou atividade.','bad');return}if(!F.data){toast('Informe a data.','bad');return}if(!F.tec){toast('Selecione o técnico.','bad');return}
     const dias=diasRange(F.data,F.dataFim,F.uteis);if(!dias.length){toast('O intervalo escolhido não tem dias válidos.','bad');return}
     const etq=ui.agSel,pp=pPor(etq),lista=pp.roi?matLista(pp,F).map(n=>({cod:n.cod,desc:n.desc,qtd:n.qtd,ponta:n.ponta})):null,mc=lista?matCheck(pp,F.tec,F.fases,lista):null,unico=dias.length>1&&(F.modo||'unico')==='unico',fz=criarAgs(etq,F.fases,F.tec,unico?[dias[0]]:dias,meNome(),Object.assign(unico?{dias:dias.slice()}:{},lista?{materiais:lista}:{},(F.obs||'').trim()?{obs:F.obs.trim()}:{},fotosReqDe(F).length?{fotosReq:fotosReqDe(F)}:{}));save();
     const fm=mc?mc.filter(x=>x.st!=='ok').length:0;if(mc)setTimeout(()=>toast(fm?`Atenção: ${tecN(F.tec)} não tem todo o material (${fm} item(ns) em falta).`:`${tecN(F.tec)} tem todo o material do ROI para estas fases.`,fm?'bad':''),3300);
@@ -2069,8 +2076,10 @@ const ACT={
     else if(a.status==='no_local'){a.ts.inicio=n;a.status='execucao'}
     else if(a.status==='execucao'){openModal(`<h3>Concluir atividade</h3><p class="muted">Marque as fases que ficaram finalizadas nesta atividade. Se alguma fase continua em outro dia, deixe desmarcada.</p><div class="fchk" style="margin-top:12px">${fasesOf(a).map(k=>`<label><input type="checkbox" class="fzFin" value="${k}" checked><span>${faseN(k)}</span></label>`).join('')}</div><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="concluirOk" data-id="${a.id}">Concluir atividade</button></div>`);return}
     save();render()},
-  concluirOk:el=>{const a=getAg(el.dataset.id),ff=[...document.querySelectorAll('.fzFin:checked')].map(x=>x.value);if(ff.includes('ativ')&&pendReq(pPor(a.etiqueta),ff).length){toast(`A ativação só pode ser finalizada depois de: ${pendReq(pPor(a.etiqueta),ff).map(k=>FCURTO[k].toLowerCase()).join(', ')}.`,'bad');return}a.fasesFin=ff;a.ts.conclusao=Date.now();a.status='relatorios';if(a.dias)a.dias=a.dias.filter(d=>d<=a.data);if(!relsDe(a).length)a.status='lpu';const rem=limparAnexos(a.etiqueta);save();closeModal();render();
-    const p=pPor(a.etiqueta);if(rem.length)setTimeout(()=>toast(`${rem.length} anexo(s) excluído(s) automaticamente: ${rem.map(x=>x.nome).join(', ')}.`),3300);toast(a.fasesFin.length?`Fase(s) finalizada(s): ${a.fasesFin.map(k=>FCURTO[k]).join(', ')}.${liberado(p)?' Cliente liberado para ativação.':''}`:'Atividade concluída, fases seguem em andamento.')},
+  concluirOk:el=>{const a=getAg(el.dataset.id),ff=el.dataset.ff!==undefined?el.dataset.ff.split(',').filter(Boolean):[...document.querySelectorAll('.fzFin:checked')].map(x=>x.value),pr=ff.includes('ativ')?pendReq(pPor(a.etiqueta),ff):[];
+    if(pr.length&&!el.dataset.forca){openModal(`<h3>Finalizar a ativação?</h3><div class="result warn">Ainda não foram finalizadas no sistema: <b>${pr.map(k=>faseN(k).toLowerCase()).join(', ')}</b>.</div><p class="muted" style="margin-top:10px">Se essas etapas já foram feitas ou não vão acontecer, você pode finalizar a ativação mesmo assim. A gestão verá que a ativação foi finalizada sem elas.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="concluirOk" data-id="${a.id}" data-ff="${ff.join(',')}" data-forca="1">Finalizar mesmo assim</button></div>`);return}
+    if(pr.length)a.ativSemFases=pr;a.fasesFin=ff;a.ts.conclusao=Date.now();a.status='relatorios';if(a.dias)a.dias=a.dias.filter(d=>d<=a.data);if(!relsDe(a).length)a.status='lpu';const rem=limparAnexos(a.etiqueta);save();closeModal();render();
+    const p=pPor(a.etiqueta);if(rem.length)setTimeout(()=>toast(`${rem.length} anexo(s) excluído(s) automaticamente: ${rem.map(x=>x.nome).join(', ')}.`),3300);toast(a.fasesFin.length&&a.fasesFin.every(isExtra)?`Atividade concluída: ${a.fasesFin.map(k=>FCURTO[k]).join(', ')}.`:a.fasesFin.length?`Fase(s) finalizada(s): ${a.fasesFin.map(k=>FCURTO[k]).join(', ')}.${liberado(p)?' Cliente liberado para ativação.':''}`:'Atividade concluída, fases seguem em andamento.')},
   rel:async el=>{if(el.dataset.r==='foto'||el.dataset.r==='parcial'){const id=el.dataset.id;let d=null;try{d=await IDB.get('rf:'+id)}catch(e){}ui.rf=Object.assign({ag:id,fotos:{},campos:{},nao:false},d||{});ui.rf.ag=id;render();window.scrollTo(0,0);return}
     const a=getAg(el.dataset.id),p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},i=p.inst||{};
     const q=new URLSearchParams({ag:a.id,cliente:p.cliente||'',etiqueta:a.etiqueta,cidade:p.cidade||'',uf:i.uf||'',endereco:c.endereco||'',tecnico:tecN(a.tec),data:hoje()});
@@ -2129,7 +2138,7 @@ const CH={
   est:el=>{const E=S.estoque[el.dataset.t]=S.estoque[el.dataset.t]||{};E[el.dataset.c][el.dataset.k]=parseFloat(el.value)||0;save();render()},
   eTec:el=>{ui.eTec=el.value;render()},
   rpR:el=>{const R=ui.rp,k=el.dataset.f;R[k]=el.type==='checkbox'?el.checked:el.value;if(k==='data'&&(!R.dataFim||R.dataFim<R.data))R.dataFim=R.data;renderRep()},
-  rpFz:el=>{const R=ui.rp;R.fases=el.checked?[...new Set(R.fases.concat(el.value))]:R.fases.filter(k=>k!==el.value);const p=pPor(getAg(R.id).etiqueta);if(!ativOk(p,R.fases))R.fases=R.fases.filter(k=>k!=='ativ');renderRep()},
+  rpFz:el=>{const R=ui.rp;R.fases=el.checked?[...new Set(R.fases.concat(el.value))]:R.fases.filter(k=>k!==el.value);const p=pPor(getAg(R.id).etiqueta);renderRep()},
   anexo:async el=>{if(!pode('a_anexos')){el.value='';semPerm();return}const fs=[...(el.files||[])],tipo=el.dataset.tipo,e=ui.agSel;if(!fs.length||!e)return;
     if(tipo!=='outro'&&!/\.km[lz]$/i.test(fs[0].name)){toast('Envie um arquivo .kmz ou .kml.','bad');el.value='';return}
     await flushSync();toast('Enviando arquivo…');let ok=0;
@@ -2403,7 +2412,7 @@ const TP={
     lim:{desloc:{max:240,min:1},espera:{max:180,min:null},exec:{max:720,min:5},rel:{max:1440,min:null}},
     perm:'a_expurgo',tabela:'ag_expurgos',fk:'agendamento',script:'agenda_ajuste_18',
     ex:()=>S.expurgos||(S.expurgos={}),err:()=>S.expurgosErr,per:()=>[ui.pIni,ui.pFim],perCh:null,
-    filtro:{rot:'Fase',pad:'ativ',ops:()=>[['ativ','Ativação'],...FASES.filter(f=>f.k!=='ativ').map(f=>[f.k,f.n]),['all','Todas as fases']]},
+    filtro:{rot:'Fase',pad:'ativ',ops:()=>[['ativ','Ativação'],...FASES.filter(f=>f.k!=='ativ').map(f=>[f.k,f.n]),...EXTRAS.map(f=>[f.k,f.n]),['all','Todas as fases e atividades']]},
     grupos:[['Técnico',r=>r.tecNome,0],['Cliente',r=>r.cli,10]],
     tecs:()=>TEC.filter(t=>S.ags.some(a=>a.tec===t.id)).map(t=>[t.id,t.nome]),
     linhas(st,ini,fim){return S.ags.filter(a=>a.data>=ini&&a.data<=fim&&['relatorios','lpu','concluida'].includes(a.status)&&(st.f==='all'||fasesOf(a).includes(st.f))&&(!st.tec||a.tec===st.tec)).map(a=>{const p=pPor(a.etiqueta)||{},c=tpCalcImpl(a);
