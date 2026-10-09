@@ -42,7 +42,7 @@ select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-ra
 <main id="app"><p class="muted">Carregando…</p></main>
 <script>
 const sb = supabase.createClient('https://ksatofcjlqziqhblpwul.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzYXRvZmNqbHF6aXFoYmxwd3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTA3NTIsImV4cCI6MjEwNTMyNjc1Mn0.IOAHnOcxVdrP1gBD7nCoQ6wq1mB-dEYVJQIM_WiJaqc');
-const LIM_ARQ = 1024 ** 3, LIM_BANCO = 500 * 1024 ** 2;   // plano gratuito: 1 GB de arquivos, 500 MB de banco
+const LIM_ARQ = 100 * 1024 ** 3, LIM_BANCO = 8 * 1024 ** 3;   // plano Pro: 100 GB de arquivos (organização), 8 GB de banco por projeto
 const MAXPX = 1280, QUAL = 0.6, MIN_BYTES = 350 * 1024;    // mesmo padrão das fotos novas da agenda
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -73,13 +73,13 @@ function desenhar() {
   const falta = total - LIM_ARQ;
   $('app').innerHTML = `
   <section class="panel">
-    <h2>Uso do plano gratuito — projeto estoque de materiais</h2>
+    <h2>Uso do plano Pro — projeto estoque de materiais</h2>
     <div class="grid">
-      <div><b>Arquivos</b> <span class="muted">${fmt(total)} de 1 GB</span>${barra(total, LIM_ARQ)}</div>
-      <div><b>Banco de dados</b> <span class="muted">${fmt(banco)} de 500 MB</span>${barra(banco, LIM_BANCO)}</div>
+      <div><b>Arquivos</b> <span class="muted">${fmt(total)} de 100 GB</span>${barra(total, LIM_ARQ)}</div>
+      <div><b>Banco de dados</b> <span class="muted">${fmt(banco)} de 8 GB</span>${barra(banco, LIM_BANCO)}</div>
     </div>
     ${falta > 0 ? `<div class="aviso">Só este projeto já passa do limite em ${fmt(falta)}. Compacte as fotos abaixo (os arquivos continuam no mesmo lugar, só ficam menores).</div>` : `<div class="ok">Este projeto ocupa ${fmt(total)}.</div>`}
-    <p class="muted" style="margin:0">O limite de 1 GB é da organização Netturbo inteira: soma este projeto e o projeto de preventivas e agendamentos (agendamento-fotos, preventivas-pdfs), que tem retenção automática de 30 dias. O painel do Supabase atualiza o número com algumas horas de atraso.</p>
+    <p class="muted" style="margin:0">Os 100 GB de arquivos são da organização Netturbo inteira: somam este projeto e o projeto de preventivas e agendamentos (agendamento-fotos, preventivas-pdfs), que tem retenção automática de 30 dias. Acima disso o Supabase cobra por GB excedente, se o limite de gastos estiver desligado. O painel do Supabase atualiza o número com algumas horas de atraso.</p>
   </section>
   <section class="panel">
     <h2>Onde está o espaço</h2>

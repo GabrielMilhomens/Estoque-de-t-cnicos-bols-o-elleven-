@@ -46,7 +46,7 @@ Sistema web de gestão das atividades de campo de O&M em duas categorias: **Impl
 | `sw.js` | Service worker: recebe e exibe as notificações push e abre a atividade ao tocar. Não faz cache de páginas. |
 | `manifest.webmanifest` | Manifesto PWA (nome, ícones, cores, `id` do app). Permite instalar no celular e no computador. |
 | `icon-192.png`, `icon-512.png` | Ícones do app (símbolo da Net Turbo). |
-| `armazenamento.html` | Espaço de armazenamento do projeto da agenda (só coordenador, aberto por **Usuários e acessos → Espaço de armazenamento**): uso de arquivos e banco frente ao plano gratuito, tamanho por pasta e compactação das fotos já enviadas pela agenda (regrava no mesmo caminho, 1280 px, JPEG 60%). |
+| `armazenamento.html` | Espaço de armazenamento do projeto da agenda (só coordenador, aberto por **Usuários e acessos → Espaço de armazenamento**): uso de arquivos e banco frente ao plano Pro (100 GB de arquivos, 8 GB de banco), tamanho por pasta e compactação das fotos já enviadas pela agenda (regrava no mesmo caminho, 1280 px, JPEG 60%). |
 | `index.html` | Redirecionamento do endereço antigo do Estoque de Materiais para `agenda.html` (aplicar só depois de desligar o sistema antigo). |
 | `README.md` | Este documento. |
 
@@ -61,6 +61,7 @@ Sistema web de gestão das atividades de campo de O&M em duas categorias: **Impl
 | `NAO_SUBIR_NO_GITHUB_segredos_notificacoes.txt` | Segredos da Edge Function (ver seção 6). |
 | `agenda_zerar_dados_de_teste.sql` | Script usado uma vez para apagar atividades, LPUs e avisos de teste antes da operação, com cópia de segurança no banco. |
 | `agenda_limpar_testes_por_tecnico.sql` | Apaga as atividades e LPUs da Implantação só dos técnicos escolhidos pelo nome (e dos funcionários das empresas escolhidas), com as mensagens, avisos e expurgos dessas atividades, guardando cópia em `bkp_limpeza_ag_agendamentos` e `bkp_limpeza_ag_lpus`. Rodar por partes; a Parte 3 mostra a lista do que será apagado. Não mexe no GTD, nos projetos nem no estoque. |
+| `gtd_limpar_testes_por_tecnico.sql` | O mesmo para o GTD Manutenção: apaga os chamados despachados para os técnicos escolhidos, as LPUs desses chamados (apagadas antes do chamado, para não virarem LPU solta da Implantação), mensagens, avisos e expurgos, com cópia em `bkp_limpeza_ag_chamados` e `bkp_limpeza_ag_lpus_gtd`. Não mexe na Implantação nem nos chamados não despachados. |
 
 ---
 
@@ -321,7 +322,7 @@ Não faz parte do projeto da agenda: roda no **outro projeto** Supabase da organ
 
 ## 9. Pontos de atenção
 
-- **Cota do plano gratuito do Supabase:** 1 GB de arquivos, 500 MB de banco e 5 GB de tráfego por mês, sem backup automático; o projeto pausa após 1 semana sem uso. A operação segue no plano gratuito. Para ficar dentro da cota: fotos novas já saem reduzidas (seção 4.4) e o coordenador usa `armazenamento.html` para compactar as fotos antigas da agenda (a compactação baixa cada foto uma vez, o que conta no tráfego do mês). A cota é da organização: soma este projeto com o de preventivas e agendamentos, onde a retenção automática de 30 dias (seção 6.2) mantém `agendamento-fotos` e `preventivas-pdfs` limitados ao último mês. O painel do Supabase atualiza o uso com algumas horas de atraso. Se o volume voltar a passar de 1 GB, avaliar o plano Pro (US$ 25/mês, 100 GB de arquivos e backup diário).
+- **Plano do Supabase (Pro, desde 08/10/2026):** 100 GB de arquivos para a organização, 8 GB de banco por projeto, 250 GB de tráfego por mês, backup diário guardado por 7 dias e sem pausa por inatividade. Custa a partir de US$ 25/mês; cada projeto além do primeiro custa a partir de US$ 10/mês (a organização tem dois: este e o de preventivas e agendamentos). O limite de gastos vem ligado: ao chegar no incluído, o Supabase não cobra a mais. As medidas de economia continuam valendo e não precisam ser desfeitas: fotos novas reduzidas (seção 4.4), compactação em `armazenamento.html` e retenção de 30 dias no projeto de preventivas (seção 6.2).
 - **Segredos nos scripts:** os ajustes 02 e 03 gravam o `CRON_SECRET` dentro de funções do banco. Em produção, a recomendação é migrar esse valor para o Supabase Vault.
 - **Chave pública no front-end:** a chave `anon` é pública por natureza; a proteção dos dados depende das políticas RLS, que precisam ser preservadas em qualquer migração.
 - **Alteração que não chega ao banco:** sem login válido, o banco ignora a alteração sem devolver erro (regra de segurança RLS). O app confere se a atividade foi de fato gravada e avisa o técnico. Para conferir no banco: `select status, dados->'ts', atualizado_em from ag_agendamentos where etiqueta = 'ETIQUETA';`.
@@ -353,6 +354,8 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 08/10/2026 | Organização no plano Pro do Supabase: tela de espaço de armazenamento passa a medir contra 100 GB de arquivos e 8 GB de banco. | `armazenamento.html` |
+| 08/10/2026 | Script para apagar os testes do GTD Manutenção de técnicos escolhidos. | `gtd_limpar_testes_por_tecnico.sql` |
 | 08/10/2026 | Base de previsão sem a coluna Status e com layout novo (cabeçalho agrupado, etiqueta fixa, total de dias, cadastro compacto, filtro de cadastro incompleto); Previsão dos projetos com coluna Projeto, cartões coloridos por situação da fase, entrega destacada, legenda e filtros. | `agenda.html` |
 | 08/10/2026 | Backlog de projetos refeito: só projetos não entregues, colunas Lançamento externo, Lançamento interno e Ativação (com a situação das fases anteriores), e quantidade de trabalho nos cards (cabo a lançar, caixas de extensão, previsão de dias por fase) e no topo. | `agenda.html` |
 | 08/10/2026 | Implantação: ativação sem trava (aviso das fases que faltam no agendamento e na conclusão, com registro de "finalizada sem"); outras atividades agendáveis (vistoria de lançamento, validação de link, entrega de equipamento, integração); projeto sem lançamento na rua no cadastro; terminador e extensão óptica nos materiais do lançamento interno. | `agenda.html`, `agenda-lembretes.ts` |
