@@ -1515,7 +1515,10 @@ function andamentoHtml(a){const p=pPor(a.etiqueta),fs=fasesProj(p);
 function rotaLigar(c){const tel=(c.telefone||'').replace(/\D/g,''),nome=String(c.contato||'').split(/[\s(]/)[0];
   return `${c.endereco?`<a class="tcbtn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank" rel="noopener">${IC.rota}Rota</a>`:''}${tel?`<a class="tcbtn" href="tel:${tel}">${IC.tel}${nome?'Ligar para '+esc(nome):'Ligar'}</a>`:''}`}
 const ANDAM=['deslocamento','no_local','execucao','relatorios','lpu'];
-const emAndamento=(tec,exceto)=>S.ags.find(x=>x.tec===tec&&x.id!==exceto&&ANDAM.includes(x.status));
+/* só trava quem está em campo (deslocamento, no local ou em execução); relatório e LPU pendentes não travam a próxima atividade */
+const EM_CAMPO=['deslocamento','no_local','execucao'];
+const emAndamento=(tec,exceto)=>S.ags.find(x=>x.tec===tec&&x.id!==exceto&&EM_CAMPO.includes(x.status));
+const pendDoc=(tec,exceto)=>S.ags.filter(x=>x.tec===tec&&x.id!==exceto&&['relatorios','lpu'].includes(x.status));
 const UPD_TIPOS=['Andamento normal','Parado: aguardando cliente','Parado: aguardando material','Parado: chuva','Parado: infraestrutura','Finalizando'];
 function updHtml(a){const U=a.atualizacoes||[],ult=U.length?U[U.length-1]:null,F=(ui.upd||{})[a.id],hm=v=>new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   return `<section class="upd"><b>Atualizar o andamento</b><small class="muted">${ult?`Última atualização às ${hm(ult.em)}.`:'Nenhuma atualização enviada ainda.'} A gestão e os outros setores veem no painel do dia.</small>
@@ -1541,7 +1544,7 @@ function blocoAcao(a){
   const go=l=>`<button class="bigbtn" data-act="go" data-id="${a.id}">${l}</button>`;
   let act='';
   switch(a.status){
-    case 'agendada':{if(a.aguardaPrazo){act=`<div class="result warn"><b>Aguardando a gestão.</b> Você pediu mais ${a.prazo&&a.prazo.dias>1?a.prazo.dias+' dias':'1 dia'} para concluir. Assim que a gestão decidir, você recebe uma notificação.</div>`;break}const bl=emAndamento(a.tec,a.id);if(bl){act=`<div class="result warn"><b>Atividade bloqueada.</b> Você tem uma atividade em andamento: ${esc(bl.etiqueta)} (${fasesN(bl)}). Encerre-a para iniciar esta.</div><button class="btn wide" data-act="abrir" data-id="${bl.id}">Ir para a atividade em andamento</button>`;break}act=`<label class="f" style="margin:0"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta" style="font-size:17px;min-height:48px"></label><button class="bigbtn" data-act="go" data-id="${a.id}" id="goBtn" disabled>Iniciar deslocamento</button><p class="muted" id="etaHint" style="margin:-4px 0 0;font-size:13.5px">Informe a previsão de chegada para liberar o deslocamento.</p>`;break}
+    case 'agendada':{if(a.aguardaPrazo){act=`<div class="result warn"><b>Aguardando a gestão.</b> Você pediu mais ${a.prazo&&a.prazo.dias>1?a.prazo.dias+' dias':'1 dia'} para concluir. Assim que a gestão decidir, você recebe uma notificação.</div>`;break}const bl=emAndamento(a.tec,a.id);if(bl){act=`<div class="result warn"><b>Atividade bloqueada.</b> Você está em campo em outra atividade: ${esc(bl.etiqueta)} (${fasesN(bl)}). Conclua a execução dela para iniciar esta. Relatórios e LPU podem ficar para depois.</div><button class="btn wide" data-act="abrir" data-id="${bl.id}">Ir para a atividade em andamento</button>`;break}const pd=pendDoc(a.tec,a.id);act=`${pd.length?`<div class="result warn" style="margin:0"><b>Pendências de envio:</b> ${pd.map(x=>`${esc(x.etiqueta)} (${x.status==='lpu'?'LPU':'relatórios'})`).join(', ')}. Você pode iniciar esta atividade e enviar depois.</div>`:''}<label class="f" style="margin:0"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta" style="font-size:17px;min-height:48px"></label><button class="bigbtn" data-act="go" data-id="${a.id}" id="goBtn" disabled>Iniciar deslocamento</button><p class="muted" id="etaHint" style="margin:-4px 0 0;font-size:13.5px">Informe a previsão de chegada para liberar o deslocamento.</p>`;break}
     case 'deslocamento':act=etaBox(a)+go('Cheguei no local')+nok;break;
     case 'no_local':act=go('Iniciar atividade')+nok;break;
     case 'execucao':{const ph=prazoHoje(a);let pz='';
@@ -2162,7 +2165,7 @@ const ACT={
   cF:el=>{ui.cF=el.dataset.t;render()},
   abrir:el=>{ui.campoSel=el.dataset.id;ui.tAcc={};render();window.scrollTo(0,0)},
   voltar:()=>{ui.campoSel=null;render()},
-  go:el=>{const a=getAg(el.dataset.id),n=Date.now();if(a.status==='agendada'){const bl=emAndamento(a.tec,a.id);if(bl){toast(`Encerre a atividade em andamento (${bl.etiqueta}) antes de iniciar outra.`,'bad');return}}
+  go:el=>{const a=getAg(el.dataset.id),n=Date.now();if(a.status==='agendada'){const bl=emAndamento(a.tec,a.id);if(bl){toast(`Conclua a execução da atividade em campo (${bl.etiqueta}) antes de iniciar outra.`,'bad');return}}
     if(a.status==='agendada'){const v=$('eta').value;if(!v){toast('Informe a previsão de chegada antes de iniciar o deslocamento.','bad');$('eta').focus();return}a.ts.desloc=n;a.ts.eta=ts(hoje(),v);delete a.ts.perto;a.status='deslocamento'}
     else if(a.status==='deslocamento'){a.ts.chegada=n;a.status='no_local'}
     else if(a.status==='no_local'){a.ts.inicio=n;a.status='execucao'}
