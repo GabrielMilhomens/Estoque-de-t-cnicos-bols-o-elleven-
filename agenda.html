@@ -498,6 +498,45 @@ details summary{cursor:pointer;font-weight:600}
 .kant.ok{background:var(--brand-soft);color:var(--brand-ink)}.kant.warn{background:var(--warn-soft);color:var(--warn)}
 .kcard .klin{display:block;margin-top:2px}
 .kcard .kd b{font-size:12px}
+/* ---------- Base de previsão e Previsão dos projetos ---------- */
+.basev table{table-layout:fixed;border-collapse:separate;border-spacing:0}
+.basev th{font-size:12.5px;line-height:1.25;vertical-align:bottom;white-space:normal}
+.basev tr.bgrp th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--bg);text-align:left;border-bottom:1px solid var(--line);padding:6px 8px}
+.basev td,.basev th{border-bottom:1px solid var(--line)}
+.basev tbody tr:nth-child(even) td{background:var(--bg)}
+.basev tbody tr:hover td{background:var(--brand-soft)}
+.basev .stk{position:sticky;left:0;z-index:2;background:var(--surface);box-shadow:inset -1px 0 0 var(--line)}
+.basev thead .stk{z-index:3}
+.basev tbody tr:nth-child(even) td.stk{background:var(--bg)}.basev tbody tr:hover td.stk{background:var(--brand-soft)}
+.basev td.stk input{font-weight:700}
+.basev td input{text-overflow:ellipsis}
+.basev .gs{border-left:2px solid var(--line)}
+.basev td.na{color:var(--muted)}
+.basev td.tot{font-weight:700}
+.bcad{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.bcad .chip{margin:0}
+.prevw .prevt{table-layout:fixed;border-collapse:separate;border-spacing:0;min-width:1026px}
+.prevt td{vertical-align:top;padding:8px}
+.prevt .stk{position:sticky;left:0;z-index:2;background:var(--surface);box-shadow:inset -1px 0 0 var(--line)}
+.prevt thead .stk{z-index:3}
+.pproj{display:flex;flex-direction:column;gap:1px;min-width:0}.pproj b{font-size:15px}.pproj span{font-size:14px}
+.pproj small{color:var(--muted);font-size:12.5px}.pproj .pval{color:var(--ink);font-weight:600}
+.pc,.pent{border-radius:8px;padding:7px 9px;border:1px solid var(--line);border-left:4px solid var(--line);display:flex;flex-direction:column;gap:1px;min-height:62px}
+.pc b,.pent b{font-size:15px;font-variant-numeric:tabular-nums}
+.pc small,.pent small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.pcs{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.pc.ok,.pent.ok{border-left-color:var(--brand);background:var(--brand-soft)}.pc.ok b,.pc.ok .pcs,.pent.ok b,.pent.ok .pcs{color:var(--brand-ink)}
+.pc.ag{border-left-color:var(--info);background:var(--info-soft)}.pc.ag .pcs,.pc.ag b{color:var(--info)}
+.pc.warn{border-left-color:var(--warn);background:var(--warn-soft)}.pc.warn .pcs,.pc.warn b{color:var(--warn)}
+.pc.sem,.pent.sem{border-style:dashed;border-left-style:solid;border-left-color:var(--muted)}
+.pc.na{border-color:transparent;border-left-color:var(--line);background:none;opacity:.7}.pc.na b{color:var(--muted)}
+.pent.mes{border-left-color:var(--brand);border-color:var(--brand)}.pent.mes .pcs{color:var(--brand-ink)}
+.pleg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin:0 0 10px}
+.pleg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid var(--line);border-left:4px solid var(--line)}
+.pleg i.ok{background:var(--brand-soft);border-left-color:var(--brand)}.pleg i.ag{background:var(--info-soft);border-left-color:var(--info)}.pleg i.warn{background:var(--warn-soft);border-left-color:var(--warn)}.pleg i.sem{border-style:dashed;border-left-style:solid;border-left-color:var(--muted)}.pleg i.na{opacity:.6}
+.bcad{flex-wrap:nowrap;min-width:0}.bcad .btn{flex:none}
+.bfalta{font-size:12.5px;color:var(--warn);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.bok{font-size:12.5px;color:var(--brand-ink);font-weight:600}
+@media(max-width:600px){.prevt .stk{position:static;box-shadow:none}}
 </style>
 </head>
 <body>
@@ -1028,21 +1067,33 @@ function viewRelat(){const q=normK(ui.rQ||''),tipo=ui.rTipo||'',tec=ui.rTec||'',
      ${o?`<div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table><thead><tr><th>Data</th><th>Relatório</th><th>Etiqueta e fases</th><th>Técnico</th><th>Medições</th><th></th></tr></thead><tbody>${L.map(x=>`<tr><td>${dBR(x.a.data)}</td><td><b>${x.k==='foto'?'Fotográfico':x.k==='parcial'?'Não conclusão':'Entrega de circuito'}</b></td><td>${esc(x.a.etiqueta)}<br><small class="muted">${fasesN(x.a)}</small></td><td>${esc(tecN(x.a.tec))}</td><td>${x.k==='foto'||x.k==='parcial'?esc(med(x.a)):'Circuito entregue'}</td><td class="r"><button class="btn sm" data-act="relVer" data-p="${esc(x.path)}">Abrir PDF</button></td></tr>`).join('')}</tbody></table></div>`:''}</section>`}).join('')||'<p class="muted pad">Nenhum relatório com esses filtros.</p>'}`}
 
 /* ---------- BASE ---------- */
-const COLS=[['protocolo','Protocolo principal','t'],['etiqueta','Etiqueta','t'],['cliente','Cliente (razão social)','t'],['valor','Valor mensal (R$)','n'],['cidade','Cidade','t'],['pop','POP','t'],['equip','Equipamento de acesso','t'],['topologia','Topologia','s'],['metros','Metros de cabo','n'],['caixas','Caixas de emenda','n'],['dRua','Dias lanç. rua','n'],['dInterno','Dias lanç. interno','n'],['dExt','Dias extensão','n'],['dAtiv','Dias ativação','n']];
+// colunas agrupadas: [campo, rótulo completo, tipo, rótulo curto, largura px]
+const COLS=[['etiqueta','Etiqueta','t','Etiqueta',118],['cliente','Cliente (razão social)','t','Cliente (razão social)',220],['protocolo','Protocolo principal','t','Protocolo',96],['valor','Valor mensal (R$)','n','Valor mensal',104],
+  ['cidade','Cidade','t','Cidade',112],['pop','POP','t','POP',124],['equip','Equipamento de acesso','t','Equipamento de acesso',150],['topologia','Topologia','s','Topologia',124],
+  ['metros','Metros de cabo','n','Cabo (m)',88],['caixas','Caixas de emenda','n','Caixas',74],
+  ['dRua','Dias lanç. rua','n','Rua',66],['dInterno','Dias lanç. interno','n','Interno',72],['dExt','Dias extensão','n','Extensão',80],['dAtiv','Dias ativação','n','Ativação',80]];
+const BGRUPOS=[['',1],['Projeto',3],['Local e rede',4],['Quantidades',2],['Previsão de dias por fase',5]];
+const baseFalta=p=>[!p.roi&&'Sem ROI',!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
 function viewBase(){
-  const ed=pode('a_projeto')&&pode('a_valor'),q=ui.baseQ.toLowerCase();
-  const rows=S.previsao.filter(p=>!q||[p.protocolo,p.etiqueta,p.cliente,p.topologia].join(' ').toLowerCase().includes(q));
-  const cell=(p,c)=>{const[f,l,t]=c,v=p[f]??'';
-    if(p.semExt&&f==='caixas')return `<td class="ro r" title="Sem extensão de sinal: direto do splitter">1</td>`;
-    if(p.semExt&&f==='dExt')return `<td class="ro r" title="Sem extensão de sinal">N/A</td>`;
-    if(p.semRua&&f==='dRua')return `<td class="ro r" title="Sem lançamento na rua: lançamento todo interno">N/A</td>`;
-    if(!ed)return `<td class="ro ${t==='n'?'r':''}">${f==='valor'?brl(v):esc(v)}</td>`;
-    if(t==='s')return `<td><select data-ch="cell" data-id="${p.id}" data-f="${f}" aria-label="${l}">${TOPO.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select></td>`;
-    return `<td><input ${t==='n'?'type="number" min="0" step="any" inputmode="decimal" class="r"':'type="text"'} data-ch="cell" data-id="${p.id}" data-f="${f}" value="${esc(v)}" aria-label="${l}"></td>`};
-  return `<div class="toolbar"><div><h2>Base de previsão</h2><p class="muted">${S.previsao.length} projetos. ${ed?'Use Incluir novo projeto: ROI, endereço de instalação e informações técnicas em sequência. Depois complete a previsão de dias por fase.':'Somente leitura para o seu perfil.'}</p></div>
-   <div class="tools"><input class="inp" type="search" id="baseQ" placeholder="Buscar etiqueta, protocolo ou cliente" data-in="baseQ" value="${esc(ui.baseQ)}">${ed?'<button class="btn" data-act="addRow">Adicionar manualmente</button><button class="btn primary" data-act="wiz" data-id="">Incluir novo projeto</button>':''}</div></div>
-   <div class="tablewrap sheet"><table><thead><tr>${COLS.map(c=>`<th>${c[1]}</th>`).join('')}<th>Cadastro</th><th>Status</th>${ed?'<th></th>':''}</tr></thead>
-   <tbody>${rows.map(p=>`<tr>${COLS.map(c=>cell(p,c)).join('')}<td class="ro"><button class="btn sm" data-act="wiz" data-id="${p.id}">Editar cadastro</button>${[!p.roi&&'Sem ROI',!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos'].filter(Boolean).map(x=>` <span class="chip warn">${x}</span>`).join('')}${p.semRua?' <span class="chip">Sem rua</span>':''}${p.semExt?' <span class="chip">Sem extensão</span>':''}</td><td class="ro">${progLabel(p.etiqueta)}</td>${ed?`<td class="ro"><button class="icon" data-act="delRow" data-id="${p.id}" aria-label="Excluir linha">✕</button></td>`:''}</tr>`).join('')||'<tr><td class="ro" colspan="17">Nenhum projeto encontrado.</td></tr>'}</tbody></table></div>`;
+  const ed=pode('a_projeto')&&pode('a_valor'),q=ui.baseQ.toLowerCase(),F=ui.baseF||'todos';
+  const all=S.previsao.filter(p=>!q||[p.protocolo,p.etiqueta,p.cliente,p.topologia,p.cidade].join(' ').toLowerCase().includes(q));
+  const inc=all.filter(p=>baseFalta(p).length),rows=F==='inc'?inc:all;
+  const cell=(p,c)=>{const[f,l,t]=c,v=p[f]??'',cls=(f==='etiqueta'?'stk ':'')+(['cidade','metros','dRua'].includes(f)?'gs ':'');
+    if(p.semExt&&f==='caixas')return `<td class="ro r ${cls}" title="Sem extensão de sinal: direto do splitter">1</td>`;
+    if(p.semExt&&f==='dExt')return `<td class="ro r na ${cls}" title="Sem extensão de sinal">N/A</td>`;
+    if(p.semRua&&f==='dRua')return `<td class="ro r na ${cls}" title="Sem lançamento na rua: lançamento todo interno">N/A</td>`;
+    if(!ed)return `<td class="ro ${t==='n'?'r':''} ${cls}">${f==='valor'?brl(v):f==='etiqueta'?`<b>${esc(v)}</b>`:esc(v)}</td>`;
+    if(t==='s')return `<td class="${cls}"><select data-ch="cell" data-id="${p.id}" data-f="${f}" aria-label="${l}">${TOPO.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select></td>`;
+    return `<td class="${cls}"><input ${t==='n'?'type="number" min="0" step="any" inputmode="decimal" class="r"':'type="text"'} data-ch="cell" data-id="${p.id}" data-f="${f}" value="${esc(v)}" aria-label="${l}" title="${esc(v)}"></td>`};
+  const tot=p=>fasesProj(p).reduce((s,f)=>s+(+p[f.p]||0),0);
+  const larg=COLS.reduce((s,c)=>s+c[4],0)+70+250+(ed?44:0);
+  return `<div class="toolbar"><div><h2>Base de previsão</h2><p class="muted">${ed?'Use Incluir novo projeto: ROI, endereço de instalação e informações técnicas em sequência. Depois complete a previsão de dias por fase. As células podem ser editadas direto na tabela.':'Somente leitura para o seu perfil.'}</p></div>
+   <div class="tools"><input class="inp" type="search" id="baseQ" placeholder="Buscar etiqueta, protocolo, cliente ou cidade" data-in="baseQ" value="${esc(ui.baseQ)}">${ed?'<button class="btn" data-act="addRow">Adicionar manualmente</button><button class="btn primary" data-act="wiz" data-id="">Incluir novo projeto</button>':''}</div></div>
+   <div class="chips" role="group" aria-label="Filtrar projetos" style="margin-top:0"><button data-act="baseF" data-v="todos" aria-current="${F==='todos'}">Todos (${all.length})</button><button data-act="baseF" data-v="inc" aria-current="${F==='inc'}">Cadastro incompleto (${inc.length})</button></div>
+   <div class="tablewrap sheet basev"><table style="min-width:${larg}px"><colgroup>${COLS.map(c=>`<col style="width:${c[4]}px">`).join('')}<col style="width:70px"><col style="width:250px">${ed?'<col style="width:44px">':''}</colgroup>
+   <thead><tr class="bgrp">${BGRUPOS.map(([n,k],i)=>`<th colspan="${k}" class="${i===0?'stk':i>1?'gs':''}">${n}</th>`).join('')}<th class="gs"></th>${ed?'<th></th>':''}</tr>
+   <tr>${COLS.map(c=>`<th class="${c[0]==='etiqueta'?'stk':''} ${['cidade','metros','dRua'].includes(c[0])?'gs':''} ${c[2]==='n'?'r':''}" title="${c[1]}">${c[3]}</th>`).join('')}<th class="r">Total</th><th class="gs">Cadastro</th>${ed?'<th></th>':''}</tr></thead>
+   <tbody>${rows.map(p=>{const fl=baseFalta(p);return `<tr>${COLS.map(c=>cell(p,c)).join('')}<td class="ro r tot">${tot(p)}</td><td class="ro gs"><div class="bcad"><button class="btn sm" data-act="wiz" data-id="${p.id}">Editar</button>${fl.length?`<span class="bfalta" title="${esc(fl.join(', '))}">Falta: ${esc(fl.map(x=>x.replace(/^Sem /,'').replace('previsão de dias','dias')).join(', '))}</span>`:'<span class="bok">Completo</span>'}</div></td>${ed?`<td class="ro"><button class="icon" data-act="delRow" data-id="${p.id}" aria-label="Excluir linha">✕</button></td>`:''}</tr>`}).join('')||`<tr><td class="ro" colspan="${COLS.length+3}">Nenhum projeto encontrado.</td></tr>`}</tbody></table></div>`;
 }
 
 /* ---------- PREVISÃO DOS PROJETOS ---------- */
@@ -1065,24 +1116,29 @@ function previsao(p){
 }
 function prevCell(c){const per=(a,b)=>a===b?dBR(a).slice(0,5):`${dBR(a).slice(0,5)} a ${dBR(b).slice(0,5)}`;
   switch(c.tipo){
-    case 'na':return '<div class="pc na"><b>N/A</b><small>não se aplica</small></div>';
-    case 'sem':return '<div class="pc na"><b>Sem previsão</b><small>informe os dias</small></div>';
-    case 'ok':return `<div class="pc ok"><b>✓ ${dBR(c.fim).slice(0,5)}</b><small>${c.real} / ${c.pv} dias, ${esc(tecN(c.tec))}</small></div>`;
-    case 'ag':return `<div class="pc"><b>${per(c.ini,c.fim)}</b><small>agendada, ${c.pv} dia(s), ${esc(tecN(c.tec))}</small></div>`;
-    case 'atr':return `<div class="pc warn"><b>${per(c.ini,c.fim)}</b><small>atrasada desde ${dBR(c.ini).slice(0,5)}</small></div>`;
-    default:return `<div class="pc na"><b>Sem agendamento</b><small>previsão de ${c.pv||1} dia(s)</small></div>`}}
+    case 'na':return '<div class="pc na"><b>—</b><small>Não se aplica</small></div>';
+    case 'sem':return '<div class="pc sem"><b>Sem previsão</b><small>Informe os dias na base</small></div>';
+    case 'ok':return `<div class="pc ok"><span class="pcs">Finalizada</span><b>✓ ${dBR(c.fim).slice(0,5)}</b><small>${c.real} de ${c.pv} dia(s) · ${esc(tecN(c.tec))}</small></div>`;
+    case 'ag':return `<div class="pc ag"><span class="pcs">Agendada</span><b>${per(c.ini,c.fim)}</b><small>${c.pv} dia(s) · ${esc(tecN(c.tec))}</small></div>`;
+    case 'atr':return `<div class="pc warn"><span class="pcs">Atrasada</span><b>${per(c.ini,c.fim)}</b><small>desde ${dBR(c.ini).slice(0,5)} · ${esc(tecN(c.tec))}</small></div>`;
+    default:return `<div class="pc sem"><span class="pcs">A agendar</span><b>${c.pv||1} dia(s)</b><small>previstos na base</small></div>`}}
 function viewPrev(){
-  const q=ui.vQ.toLowerCase(),cids=[...new Set(S.previsao.map(p=>p.cidade).filter(Boolean))].sort();
+  const q=ui.vQ.toLowerCase(),cids=[...new Set(S.previsao.map(p=>p.cidade).filter(Boolean))].sort(),Fv=ui.vF||'abertos';
   let L=S.previsao.filter(p=>p.etiqueta&&(!q||[p.etiqueta,p.protocolo,p.cliente].join(' ').toLowerCase().includes(q))&&(!ui.vCid||p.cidade===ui.vCid)).map(p=>({p,v:previsao(p)}));
   if(ui.vOrd==='entrega')L.sort((a,b)=>(a.v.entregue-b.v.entregue)||((!a.v.entrega)-(!b.v.entrega))||(a.v.entrega||'').localeCompare(b.v.entrega||''));else if(ui.vOrd==='valor')L.sort((a,b)=>(+b.p.valor||0)-(+a.p.valor||0));else L.sort((a,b)=>a.p.cliente.localeCompare(b.p.cliente));
-  const T=hoje(),mes=T.slice(0,7),abertos=L.filter(x=>!x.v.entregue),noMes=abertos.filter(x=>x.v.entrega&&x.v.entrega.slice(0,7)===mes);
+  const T=hoje(),mes=T.slice(0,7),abertos=L.filter(x=>!x.v.entregue),noMes=abertos.filter(x=>x.v.entrega&&x.v.entrega.slice(0,7)===mes),atr=abertos.filter(x=>Object.values(x.v).some(c=>c&&c.tipo==='atr')),ent=L.filter(x=>x.v.entregue);
+  const V=Fv==='abertos'?abertos:Fv==='mes'?noMes:Fv==='atr'?atr:Fv==='ent'?ent:L;
   const soma=a=>a.reduce((s,x)=>s+(+x.p.valor||0),0);
-  return `<div class="toolbar"><div><h2>Previsão dos projetos</h2><p class="muted">As datas aparecem só para fases agendadas ou finalizadas. Fases sem agendamento mostram os dias previstos na base.</p></div>
+  const entCell=v=>v.entregue?`<div class="pent ok"><span class="pcs">Entregue</span><b>${dBR(v.entrega)}</b></div>`:v.entrega?`<div class="pent ${v.entrega.slice(0,7)===mes?'mes':''}"><span class="pcs">${v.entrega.slice(0,7)===mes?'Neste mês':'Prevista'}</span><b>${dBR(v.entrega)}</b></div>`:'<div class="pent sem"><span class="pcs">Sem data</span><small>Ativação ainda sem agendamento</small></div>';
+  return `<div class="toolbar"><div><h2>Previsão dos projetos</h2><p class="muted">Situação de cada fase e data prevista de entrega. Datas aparecem para fases agendadas ou finalizadas; as demais mostram os dias previstos na base.</p></div>
    <div class="tools"><input class="inp" type="search" id="vQ" placeholder="Buscar etiqueta, protocolo ou cliente" data-in="vQ" value="${esc(ui.vQ)}"><select class="inp" data-ch="vCid"><option value="">Todas as cidades</option>${cids.map(c=>`<option ${c===ui.vCid?'selected':''}>${esc(c)}</option>`).join('')}</select>
    <select class="inp" data-ch="vOrd"><option value="entrega" ${ui.vOrd==='entrega'?'selected':''}>Ordenar por previsão de entrega</option><option value="valor" ${ui.vOrd==='valor'?'selected':''}>Ordenar por valor</option><option value="nome" ${ui.vOrd==='nome'?'selected':''}>Ordenar por nome</option></select></div></div>
-   <div class="kpis" style="margin-bottom:14px"><div class="kpi"><b>${abertos.length}</b><span>Projetos em aberto (${brl(soma(abertos))} mensais)</span></div><div class="kpi ok"><b>${noMes.length}</b><span>Entregas previstas neste mês (${brl(soma(noMes))} mensais)</span></div><div class="kpi warn"><b>${abertos.filter(x=>Object.values(x.v).some(c=>c&&c.tipo==='atr')).length}</b><span>Com fase atrasada</span></div></div>
-   <div class="tablewrap"><table class="prevt"><thead><tr><th>Protocolo</th><th>Etiqueta</th><th>Cliente</th><th>Cidade</th><th class="r">Valor mensal</th>${FASES.map(f=>`<th>${f.k==='rua'?'Lançamento externo':f.n}</th>`).join('')}<th>Previsão de entrega</th></tr></thead>
-   <tbody>${L.map(({p,v})=>`<tr><td>${esc(p.protocolo)}</td><td><b>${esc(p.etiqueta)}</b></td><td>${esc(p.cliente)}</td><td>${esc(p.cidade||'—')}</td><td class="r">${brl(p.valor)}</td>${FASES.map(f=>`<td>${prevCell(v[f.k])}</td>`).join('')}<td>${v.entregue?`<span class="chip ok">Entregue ${dBR(v.entrega).slice(0,5)}</span>`:(v.entrega?`<b>${dBR(v.entrega)}</b>${v.entrega.slice(0,7)===mes?'<br><span class="chip ok">neste mês</span>':''}`:'<span class="muted">Ativação sem agendamento</span>')}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">Nenhum projeto encontrado.</td></tr>'}</tbody></table></div>`;
+   <div class="kpis" style="margin-bottom:12px"><div class="kpi"><b>${abertos.length}</b><span>Projetos em aberto${S.semValor?'':` (${brl(soma(abertos))} mensais)`}</span></div><div class="kpi ok"><b>${noMes.length}</b><span>Entregas previstas neste mês${S.semValor?'':` (${brl(soma(noMes))} mensais)`}</span></div><div class="kpi warn"><b>${atr.length}</b><span>Com fase atrasada</span></div><div class="kpi"><b>${ent.length}</b><span>Entregues</span></div></div>
+   <div class="chips" role="group" aria-label="Filtrar projetos" style="margin-top:0">${[['abertos','Em aberto',abertos.length],['mes','Entrega neste mês',noMes.length],['atr','Com fase atrasada',atr.length],['ent','Entregues',ent.length],['todos','Todos',L.length]].map(([k,n,c])=>`<button data-act="vF" data-v="${k}" aria-current="${Fv===k}">${n} (${c})</button>`).join('')}</div>
+   <div class="pleg"><span><i class="ok"></i>Finalizada</span><span><i class="ag"></i>Agendada</span><span><i class="warn"></i>Atrasada</span><span><i class="sem"></i>A agendar</span><span><i class="na"></i>Não se aplica</span></div>
+   <div class="tablewrap prevw"><table class="prevt"><colgroup><col style="width:236px">${FASES.map(()=>'<col style="width:160px">').join('')}<col style="width:150px"></colgroup>
+   <thead><tr><th class="stk">Projeto</th>${FASES.map(f=>`<th>${f.k==='rua'?'Lançamento externo':f.n}</th>`).join('')}<th>Previsão de entrega</th></tr></thead>
+   <tbody>${V.map(({p,v})=>`<tr><td class="stk"><div class="pproj"><b>${esc(p.etiqueta)}</b><span>${esc(p.cliente)}</span><small>${esc([p.cidade,p.protocolo?'Prot. '+p.protocolo:'',p.topologia].filter(Boolean).join(' · '))}</small>${S.semValor?'':`<small class="pval">${brl(p.valor)} mensais</small>`}</div></td>${FASES.map(f=>`<td>${prevCell(v[f.k])}</td>`).join('')}<td>${entCell(v)}</td></tr>`).join('')||`<tr><td colspan="${FASES.length+2}" class="muted">Nenhum projeto com esses filtros.</td></tr>`}</tbody></table></div>`;
 }
 
 /* ---------- SIMULAÇÃO DE ENTREGA ---------- */
@@ -2090,6 +2146,7 @@ const ACT={
   delRow:el=>{const p=S.previsao.find(x=>x.id===el.dataset.id);if(S.ags.some(a=>a.etiqueta===p.etiqueta&&p.etiqueta)){toast('Esta etiqueta já tem agendamentos e não pode ser excluída.','bad');return}if(confirm('Excluir esta linha da base?')){S.previsao=S.previsao.filter(x=>x!==p);save();render()}},
   colar:()=>openModal(`<h3>Colar linhas do Excel</h3><p class="muted">Copie as linhas na planilha, na ordem das colunas da base (protocolo, etiqueta, cliente, valor, topologia, metros, caixas, dias rua, dias interno, dias extensão, dias ativação) e cole aqui.</p><textarea id="pasteTxt" rows="8" class="inp" style="margin-top:10px"></textarea><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="colarOk">Importar linhas</button></div>`),
   colarOk:()=>{let ok=0,dup=0;$('pasteTxt').value.split(/\r?\n/).forEach(l=>{if(!l.trim())return;const c=l.split('\t'),e=(c[1]||'').trim();if(!e||/etiqueta/i.test(e))return;if(S.previsao.some(x=>x.etiqueta.toLowerCase()===e.toLowerCase())){dup++;return}const tp=TOPO.find(o=>o.toLowerCase()===(c[4]||'').trim().toLowerCase())||'GPON';S.previsao.push({id:uid(),protocolo:(c[0]||'').trim(),etiqueta:e,cliente:(c[2]||'').trim(),valor:num(c[3]),topologia:tp,metros:num(c[5]),caixas:num(c[6]),dRua:num(c[7]),dInterno:num(c[8]),dExt:num(c[9]),dAtiv:num(c[10])});ok++});save();closeModal();render();toast(`${ok} linha(s) importada(s)${dup?`, ${dup} etiqueta(s) repetida(s) ignorada(s)`:''}.`)},
+  baseF:el=>{ui.baseF=el.dataset.v;render()},vF:el=>{ui.vF=el.dataset.v;render()},
   pick:el=>{ui.agSel=el.dataset.etq;ui.q='';ui.fTab='proj';ui.agForm={};render()},
   unpick:()=>{ui.agSel=null;render()},
   fTab:el=>{ui.fTab=el.dataset.t;render()},
