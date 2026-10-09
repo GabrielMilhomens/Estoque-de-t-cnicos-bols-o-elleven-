@@ -482,6 +482,22 @@ details summary{cursor:pointer;font-weight:600}
 .tpwrap{display:flex;flex-direction:column;gap:14px}.tpwrap>*{margin-top:0;margin-bottom:0}.tpwrap .tpfil{margin-bottom:0}
 .tpkm{grid-template-columns:repeat(var(--n),minmax(0,1fr))}.tpkm .tpdot{width:10px;height:10px;vertical-align:4px}
 @media(max-width:900px){.tpkm{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* ---------- Backlog de projetos ---------- */
+.kanban.k3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:760px){.kanban.k3{grid-template-columns:1fr}}
+.kcard .ktrab{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0 6px}
+.ktrab>div{background:var(--bg);border-radius:6px;padding:6px 8px;display:flex;flex-direction:column;min-width:0}
+.ktrab span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.ktrab b{font:700 17px/1.2 "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums}
+.ktrab small{font-size:12px;color:var(--muted)}
+.kdias{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.kd{font-size:12px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.kd b{font-variant-numeric:tabular-nums}.kd.cur{border-color:var(--brand);color:var(--ink)}
+.kd.fin{background:var(--brand-soft);border-color:transparent;color:var(--brand-ink)}.kd.over{border-color:var(--bad);color:var(--bad)}
+.kant{font-size:12.5px;font-weight:600;padding:4px 8px;border-radius:6px;margin-bottom:6px}
+.kant.ok{background:var(--brand-soft);color:var(--brand-ink)}.kant.warn{background:var(--warn-soft);color:var(--warn)}
+.kcard .klin{display:block;margin-top:2px}
+.kcard .kd b{font-size:12px}
 </style>
 </head>
 <body>
@@ -1099,28 +1115,47 @@ function viewSim(){
    <section class="panel"><div class="secth"><h3>Simulação de entrega por mês</h3></div>${tab}</section></div>`;
 }
 
-/* ---------- BACKLOG (KANBAN) ---------- */
-const KCOLS=[['backlog','Backlog'],['rua','Lançamento externo'],['interno','Lançamento interno'],['ext','Extensão de sinal'],['ativ','Ativação'],['entregue','Circuitos entregues']];
+/* ---------- BACKLOG (KANBAN) ----------
+   Só projetos da base ainda não entregues (sem ativação finalizada), em três colunas: Lançamento externo,
+   Lançamento interno e Ativação. Cada projeto fica na primeira dessas fases que falta; a extensão de sinal
+   aparece no card e na coluna Ativação como etapa anterior. Entregues saem do backlog. */
+const KCOLS=[['rua','Lançamento externo'],['interno','Lançamento interno'],['ativ','Ativação']];
 const fasesAplic=p=>fasesProj(p);
-function etapa(p){if(!p||!p.etiqueta)return 'backlog';const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');
-  if(faseFim(p.etiqueta,'ativ'))return 'entregue';if(!x.length)return 'backlog';
-  const f=fasesProj(p).find(f=>!faseFim(p.etiqueta,f.k));return f?f.k:'ativ'}
+function etapa(p){if(!p||!p.etiqueta)return 'rua';if(faseFim(p.etiqueta,'ativ'))return 'entregue';
+  const req=fasesReq(p).map(f=>f.k);return ['rua','interno'].find(k=>req.includes(k)&&!faseFim(p.etiqueta,k))||'ativ'}
+const kLancado=e=>S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada').reduce((s,a)=>s+(metrosAg(a)||0),0);
+function kTrab(p){const req=fasesReq(p).map(f=>f.k),pend=k=>req.includes(k)&&!faseFim(p.etiqueta,k),temCabo=pend('rua')||pend('interno');
+  const metros=+p.metros||0,lanc=kLancado(p.etiqueta),falta=temCabo?Math.max(0,metros-lanc):0,ext=req.includes('ext'),cx=ext?(+p.caixas||0):0;
+  const dias=fasesProj(p).map(f=>({k:f.k,pv:+p[f.p]||0,r:realDias(p.etiqueta,f.k),fin:!!faseFim(p.etiqueta,f.k)}));
+  return{metros,lanc,falta,temCabo,ext,cx,cxPend:ext&&pend('ext')?cx:0,dias,diasPend:dias.filter(d=>!d.fin).reduce((s,d)=>s+Math.max(0,d.pv-d.r),0)}}
+const kM=v=>(+v||0).toLocaleString('pt-BR');
 function viewKanban(){
   const q=ui.kQ.toLowerCase(),cids=[...new Set(S.previsao.map(p=>p.cidade).filter(Boolean))].sort();
-  const L=S.previsao.filter(p=>p.etiqueta&&(!q||[p.etiqueta,p.protocolo,p.cliente,p.pop].join(' ').toLowerCase().includes(q))&&(!ui.kCid||p.cidade===ui.kCid));
-  const g={};KCOLS.forEach(([k])=>g[k]=[]);L.forEach(p=>g[etapa(p)].push(p));
-  const card=(p,k)=>{const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');const meta=[];let linha='';
-    const flg=k==='backlog'?'':fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);return fin?`<small>✓ ${FCURTO[f.k]}: ${esc(tecN(fin.tec))}</small>`:''}).join('');
-    if(k==='backlog'){const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);falta.forEach(t=>meta.push(`<span class="chip warn">${t}</span>`));linha=falta.length?'Cadastro incompleto':'Pronto para agendar'}
-    else if(k==='entregue'){const a=faseFim(p.etiqueta,'ativ');linha=`Ativado em ${dBR(a.data)} por ${tecN(a.tec)}`+((a.ativSemFases||[]).length?`, sem ${a.ativSemFases.map(k=>FCURTO[k].toLowerCase()).join(', ')}`:'');
-      const tot=diasExec(p.etiqueta),prev=fasesAplic(p).reduce((s,f)=>s+(+p[f.p]||0),0);meta.push(`<span class="chip ${tot>prev?'bad':'ok'}">${tot} / ${prev} dias de campo</span>`)}
-    else{const f=FASES.find(f=>f.k===k),r=realDias(p.etiqueta,k),pv=+p[f.p]||0,ab=x.filter(a=>fasesOf(a).includes(k)&&!FIM.includes(a.status)).sort((a,b)=>a.data.localeCompare(b.data))[0];
-      linha=ab?`${ST[ab.status][0]}: ${dBR(ab.data)}, ${tecN(ab.tec)}`:'Aguardando agendamento';
-      meta.push(`<span class="chip ${r>pv?'bad':''}">${r} / ${pv} dias</span>`);if(r>pv)meta.push('<span class="chip bad">Acima do previsto</span>');if(ab&&ab.data<hoje())meta.push('<span class="chip warn">Atrasada</span>');if(k==='ativ'&&liberado(p))meta.unshift('<span class="chip go">Liberado para ativar</span>')}
-    return `<button class="kcard" data-act="kOpen" data-etq="${esc(p.etiqueta)}" data-k="${k}"><b>${esc(p.etiqueta)}</b><span>${esc(p.cliente)}</span><small>${esc([p.cidade,p.topologia].filter(Boolean).join(', '))}${p.semRua?', sem rua':''}${p.semExt?', sem extensão':''}</small><small>${esc(linha)}</small>${flg}<div class="kmeta">${meta.join('')}</div></button>`};
-  return `<div class="toolbar"><div><h2>Backlog de projetos</h2><p class="muted">${L.length} projetos. Os cards mudam de coluna sozinhos, conforme os técnicos finalizam cada fase. Toque em um card para abrir na agenda.</p></div>
+  const L=S.previsao.filter(p=>p.etiqueta&&etapa(p)!=='entregue'&&(!q||[p.etiqueta,p.protocolo,p.cliente,p.pop].join(' ').toLowerCase().includes(q))&&(!ui.kCid||p.cidade===ui.kCid));
+  const g={};KCOLS.forEach(([k])=>g[k]=[]);const T={};L.forEach(p=>{const k=etapa(p);g[k].push(p);T[p.id]=kTrab(p)});
+  const card=(p,k)=>{const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada'),t=T[p.id],meta=[];
+    const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>a.data.localeCompare(b.data))[0];
+    const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
+    let linha=ab?`${ST[ab.status][0]}: ${fasesC(ab)}, ${dBR(ab.data)}, ${tecN(ab.tec)}`:x.length?'Aguardando agendamento da próxima fase':falta.length?'Cadastro incompleto':'Pronto para agendar';
+    if(!x.length)falta.forEach(f=>meta.push(`<span class="chip warn">${f}</span>`));if(ab&&ab.data<hoje())meta.push('<span class="chip warn">Atrasada</span>');
+    const atual=t.dias.find(d=>d.k===k);if(atual&&atual.r>atual.pv)meta.push('<span class="chip bad">Acima do previsto</span>');
+    // fases anteriores na coluna Ativação
+    let ant='';if(k==='ativ'){const prev=t.dias.filter(d=>d.k!=='ativ'),pend=prev.filter(d=>!d.fin);
+      ant=prev.length?`<div class="kant ${pend.length?'warn':'ok'}">${pend.length?`Fases pendentes: ${pend.map(d=>FCURTO[d.k].toLowerCase()).join(', ')}`:'Fases anteriores concluídas'}</div>`:'<div class="kant ok">Sem fases anteriores (ativa direto)</div>';
+      if(liberado(p))meta.unshift('<span class="chip go">Liberado para ativar</span>')}
+    const temLanc=t.dias.some(d=>d.k==='rua'||d.k==='interno');
+    const trab=[t.temCabo?`<div><span>Cabo</span><b>${kM(t.falta)} m</b>${t.lanc?`<small>de ${kM(t.metros)} m, ${kM(t.lanc)} m lançados</small>`:`<small>a lançar</small>`}</div>`:`<div><span>Cabo</span><b>—</b><small>${temLanc?'lançamento concluído':'sem lançamento'}</small></div>`,
+      t.ext?`<div><span>Extensão</span><b>${t.cx} ${t.cx===1?'caixa':'caixas'}</b><small>${t.cxPend?'a fazer':'concluída'}</small></div>`:'<div><span>Extensão</span><b>—</b><small>sem extensão</small></div>'].join('');
+    const dias=t.dias.map(d=>`<span class="kd ${d.fin?'fin':d.k===k?'cur':''}${d.r>d.pv&&d.pv?' over':''}" title="${faseN(d.k)}: ${d.r} de ${d.pv} dia(s) previstos${d.fin?', finalizada':''}">${d.fin?'✓ ':''}${FCURTO[d.k]} <b>${d.fin||d.r?d.r+'/':''}${d.pv}d</b></span>`).join('');
+    return `<button class="kcard" data-act="kOpen" data-etq="${esc(p.etiqueta)}" data-k="${k}"><b>${esc(p.etiqueta)}</b><span>${esc(p.cliente)}</span><small>${esc([p.cidade,p.topologia].filter(Boolean).join(', '))}${p.semRua?', sem rua':''}${p.semExt?', sem extensão':''}</small>
+      <div class="ktrab">${trab}</div><div class="kdias">${dias}</div>${ant}<small class="klin">${esc(linha)}</small>${meta.length?`<div class="kmeta">${meta.join('')}</div>`:''}</button>`};
+  const tot=L.map(p=>T[p.id]),soma=f=>tot.reduce((s,t)=>s+f(t),0);
+  const colInfo=k=>{const P=g[k].map(p=>T[p.id]);if(k==='ativ'){const d=g[k].reduce((s,p)=>s+Math.max(0,(+p.dAtiv||0)-realDias(p.etiqueta,'ativ')),0);return `${d} ${d===1?'dia previsto':'dias previstos'} de ativação`}
+    const m=P.reduce((s,t)=>s+t.falta,0),d=g[k].reduce((s,p)=>{const f=FASES.find(x=>x.k===k);return s+Math.max(0,(+p[f.p]||0)-realDias(p.etiqueta,k))},0);return `${kM(m)} m de cabo, ${d} ${d===1?'dia previsto':'dias previstos'}`};
+  return `<div class="toolbar"><div><h2>Backlog de projetos</h2><p class="muted">O que falta fazer: ${L.length} projeto(s) da base ainda não entregues. Cada projeto fica na próxima fase a executar e sai do backlog quando a ativação é finalizada. Toque em um card para abrir na agenda.</p></div>
    <div class="tools"><input class="inp" type="search" id="kQ" placeholder="Buscar etiqueta, cliente ou POP" data-in="kQ" value="${esc(ui.kQ)}"><select class="inp" data-ch="kCid"><option value="">Todas as cidades</option>${cids.map(c=>`<option ${c===ui.kCid?'selected':''}>${esc(c)}</option>`).join('')}</select></div></div>
-   <div class="kanban">${KCOLS.map(([k,n])=>{const v=g[k].reduce((s,p)=>s+(+p.valor||0),0);return `<section class="kcol ${k==='backlog'?'':k==='entregue'?'fim':'fase'}"><div class="khead"><h3>${n}<span class="chip">${g[k].length}</span></h3><small>${brl(v)} mensais</small></div><div class="kbody">${g[k].map(p=>card(p,k)).join('')||'<p class="kempty">Nenhum projeto aqui.</p>'}</div></section>`}).join('')}</div>`;
+   <div class="kpis" style="margin-bottom:12px">${kp(L.length,'Projetos a entregar')}${kp(kM(soma(t=>t.falta))+' m','Cabo a lançar')}${kp(soma(t=>t.cxPend),'Caixas de extensão a fazer')}${kp(soma(t=>t.diasPend),'Dias de campo previstos (restantes)')}</div>
+   <div class="kanban k3">${KCOLS.map(([k,n])=>`<section class="kcol fase"><div class="khead"><h3>${n}<span class="chip">${g[k].length}</span></h3><small>${colInfo(k)}</small></div><div class="kbody">${g[k].map(p=>card(p,k)).join('')||'<p class="kempty">Nenhum projeto aqui.</p>'}</div></section>`).join('')}</div>`;
 }
 
 /* ---------- ESTOQUE / MATERIAL ---------- */
