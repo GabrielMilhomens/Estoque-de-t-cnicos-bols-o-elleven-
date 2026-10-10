@@ -613,6 +613,29 @@ details summary{cursor:pointer;font-weight:600}
 .lper{flex-wrap:wrap;align-items:flex-end;margin:0 0 10px}.lper .sp{flex:1}
 @media(max-width:600px){.lper .sp{display:none}}
 .lhead .chip{display:inline-flex;width:auto}
+/* etapa 4: KMZ da extensão */
+.kmsel{margin-top:-6px;margin-bottom:4px}
+.kmres{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:10px}
+.kmmapa{margin:10px 0 0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.kmmapa svg{display:block;width:100%;height:auto;background:var(--bg)}
+.kmrede{fill:none;stroke:var(--muted);stroke-opacity:.45;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.kmrota{fill:none;stroke:var(--brand);stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.kmpt circle{fill:var(--surface);stroke:var(--muted);stroke-width:1.5}.kmpt.on circle{fill:var(--warn);stroke:var(--surface);stroke-width:2}
+.kmpt text,.kmab text{font:700 10px Barlow,sans-serif;text-anchor:middle;fill:#fff}
+.kmab circle{fill:var(--ink);stroke:var(--surface);stroke-width:2}.kmab text{font-size:11px;fill:var(--surface)}
+.kmesc line{stroke:var(--ink);stroke-width:2}.kmesc text{font:600 11px Barlow,sans-serif;fill:var(--ink)}
+.kmmapa figcaption{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 10px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+.kmmapa figcaption span{display:inline-flex;align-items:center;gap:6px}
+.kml{display:inline-block;width:18px;height:4px;border-radius:2px}.kml.r{background:var(--brand)}.kml.n{background:var(--muted);opacity:.5}
+.kmc{display:inline-block;width:10px;height:10px;border-radius:50%;border:1.5px solid var(--muted);background:var(--surface)}.kmc.on{background:var(--warn);border-color:var(--warn)}
+.kmpts{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:6px}
+.kmp{display:flex;gap:8px;align-items:flex-start;padding:4px 6px;border-radius:6px;cursor:pointer}.kmp:hover{background:var(--bg)}
+.kmp span{display:flex;flex-direction:column}.kmp small{color:var(--muted);font-size:12px}.kmp input{margin-top:3px}
+.wsteps button[disabled]{opacity:.45;cursor:not-allowed}
+.wsteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible}
+.wsteps button{white-space:normal;text-align:left;line-height:1.2;font-size:13.5px;min-width:0}
+@media(max-width:600px){.wsteps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ktrab .kkm{grid-column:1/-1}
 </style>
 </head>
 <body>
@@ -1133,9 +1156,9 @@ function viewRelat(){const q=normK(ui.rQ||''),tipo=ui.rTipo||'',tec=ui.rTec||'',
 // colunas agrupadas: [campo, rótulo completo, tipo, rótulo curto, largura px]
 const COLS=[['etiqueta','Etiqueta','t','Etiqueta',118],['cliente','Cliente (razão social)','t','Cliente (razão social)',220],['protocolo','Protocolo principal','t','Protocolo',96],['valor','Valor mensal (R$)','n','Valor mensal',104],
   ['cidade','Cidade','t','Cidade',112],['pop','POP','t','POP',124],['equip','Equipamento de acesso','t','Equipamento de acesso',150],['topologia','Topologia','s','Topologia',124],
-  ['metros','Metros de cabo','n','Cabo (m)',88],['caixas','Caixas de emenda','n','Caixas',74],
+  ['metros','Metros de cabo','n','Cabo (m)',88],['caixas','Caixas de emenda','n','Caixas',74],['kmFibra','KM de fibra (metros da rota do KMZ de extensão)','n','KM de fibra',92],
   ['dRua','Dias lanç. rua','n','Rua',66],['dInterno','Dias lanç. interno','n','Interno',72],['dExt','Dias extensão','n','Extensão',80],['dAtiv','Dias ativação','n','Ativação',80]];
-const BGRUPOS=[['',1],['Projeto',3],['Local e rede',4],['Quantidades',2],['Previsão de dias por fase',5]];
+const BGRUPOS=[['',1],['Projeto',3],['Local e rede',4],['Quantidades',3],['Previsão de dias por fase',5]];
 const baseFalta=p=>[!p.roi&&'Sem ROI',!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
 function viewBase(){
   const ed=pode('a_projeto')&&pode('a_valor'),q=ui.baseQ.toLowerCase(),F=ui.baseF||'todos';
@@ -1144,6 +1167,7 @@ function viewBase(){
   const cell=(p,c)=>{const[f,l,t]=c,v=p[f]??'',cls=(f==='etiqueta'?'stk ':'')+(['cidade','metros','dRua'].includes(f)?'gs ':'');
     if(isFWA(p)&&FWA_ZERA.includes(f))return `<td class="ro r na ${cls}" title="FWA: só ativação">N/A</td>`;
     if(p.semExt&&f==='caixas')return `<td class="ro r ${cls}" title="Sem extensão de sinal: direto do splitter">1</td>`;
+    if(p.semExt&&f==='kmFibra')return `<td class="ro r na ${cls}" title="Sem extensão de sinal">N/A</td>`;
     if(p.semExt&&f==='dExt')return `<td class="ro r na ${cls}" title="Sem extensão de sinal">N/A</td>`;
     if(p.semRua&&f==='dRua')return `<td class="ro r na ${cls}" title="Sem lançamento na rua: lançamento todo interno">N/A</td>`;
     if(!ed)return `<td class="ro ${t==='n'?'r':''} ${cls}">${f==='valor'?brl(v):f==='etiqueta'?`<b>${esc(v)}</b>`:esc(v)}</td>`;
@@ -1247,12 +1271,16 @@ const kLancado=e=>S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada').reduce
 function kTrab(p){const req=fasesReq(p).map(f=>f.k),pend=k=>req.includes(k)&&!faseFim(p.etiqueta,k),temCabo=pend('rua')||pend('interno');
   const metros=+p.metros||0,lanc=kLancado(p.etiqueta),falta=temCabo?Math.max(0,metros-lanc):0,ext=req.includes('ext'),cx=ext?(+p.caixas||0):0;
   const dias=fasesProj(p).map(f=>({k:f.k,pv:+p[f.p]||0,r:realDias(p.etiqueta,f.k),fin:!!faseFim(p.etiqueta,f.k)}));
-  return{metros,lanc,falta,temCabo,ext,cx,cxPend:ext&&pend('ext')?cx:0,dias,diasPend:dias.filter(d=>!d.fin).reduce((s,d)=>s+Math.max(0,d.pv-d.r),0)}}
+  const km=ext?(+p.kmFibra||0):0;return{metros,lanc,falta,temCabo,ext,cx,cxPend:ext&&pend('ext')?cx:0,km,kmPend:ext&&pend('ext')?km:0,extFeita:ext&&!pend('ext'),dias,diasPend:dias.filter(d=>!d.fin).reduce((s,d)=>s+Math.max(0,d.pv-d.r),0)}}
 const kM=v=>(+v||0).toLocaleString('pt-BR');
-function viewKanban(){
-  const q=ui.kQ.toLowerCase(),cids=[...new Set(S.previsao.map(p=>p.cidade).filter(Boolean))].sort();
+/* filtros pelos números do topo */
+const KSF={cabo:t=>t.falta>0,cx:t=>t.cxPend>0,km:t=>t.kmPend>0,dias:t=>t.diasPend>0},KSN={cabo:'Cabo a lançar',cx:'Caixas de extensão a fazer',km:'KM de fibra a estender',dias:'Dias de campo previstos (restantes)'};
+function kBase(){const q=ui.kQ.toLowerCase();
   const L=S.previsao.filter(p=>p.etiqueta&&etapa(p)!=='entregue'&&(!q||[p.etiqueta,p.protocolo,p.cliente,p.pop].join(' ').toLowerCase().includes(q))&&(!ui.kCid||p.cidade===ui.kCid));
-  const g={};KCOLS.forEach(([k])=>g[k]=[]);const T={};L.forEach(p=>{const k=etapa(p);g[k].push(p);T[p.id]=kTrab(p)});
+  const T={};L.forEach(p=>{T[p.id]=kTrab(p)});const sit=KSF[ui.kSit]?ui.kSit:'',LF=sit?L.filter(p=>KSF[sit](T[p.id])):L;return{L,LF,T,sit}}
+function viewKanban(){
+  const cids=[...new Set(S.previsao.map(p=>p.cidade).filter(Boolean))].sort(),{L,LF,T,sit}=kBase();
+  const g={};KCOLS.forEach(([k])=>g[k]=[]);LF.forEach(p=>{g[etapa(p)].push(p)});
   const card=(p,k)=>{const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada'),t=T[p.id],meta=[];
     const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>a.data.localeCompare(b.data))[0];
     const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
@@ -1265,7 +1293,8 @@ function viewKanban(){
       if(liberado(p))meta.unshift('<span class="chip go">Liberado para ativar</span>')}
     const temLanc=t.dias.some(d=>d.k==='rua'||d.k==='interno');
     const trab=[t.temCabo?`<div><span>Cabo</span><b>${kM(t.falta)} m</b>${t.lanc?`<small>de ${kM(t.metros)} m, ${kM(t.lanc)} m lançados</small>`:`<small>a lançar</small>`}</div>`:`<div><span>Cabo</span><b>—</b><small>${temLanc?'lançamento concluído':'sem lançamento'}</small></div>`,
-      t.ext?`<div><span>Extensão</span><b>${t.cx} ${t.cx===1?'caixa':'caixas'}</b><small>${t.cxPend?'a fazer':'concluída'}</small></div>`:'<div><span>Extensão</span><b>—</b><small>sem extensão</small></div>'].join('');
+      t.ext?`<div><span>Extensão</span><b>${t.cx} ${t.cx===1?'caixa':'caixas'}</b><small>${t.cxPend?'a fazer':'concluída'}</small></div>`:'<div><span>Extensão</span><b>—</b><small>sem extensão</small></div>',
+      t.ext?`<div class="kkm"><span>KM de fibra</span><b>${t.km?kM(t.km)+' m':'—'}</b><small>${!t.km?'sem KMZ de extensão no cadastro':t.extFeita?'extensão concluída':'a estender'}</small></div>`:''].join('');
     const dias=t.dias.map(d=>`<span class="kd ${d.fin?'fin':d.k===k?'cur':''}${d.r>d.pv&&d.pv?' over':''}" title="${faseN(d.k)}: ${d.r} de ${d.pv} dia(s) previstos${d.fin?', finalizada':''}">${d.fin?'✓ ':''}${FCURTO[d.k]} <b>${d.fin||d.r?d.r+'/':''}${d.pv}d</b></span>`).join('');
     return `<button class="kcard" data-act="kOpen" data-etq="${esc(p.etiqueta)}" data-k="${k}"><b>${esc(p.etiqueta)}</b><span>${esc(p.cliente)}</span><small>${esc([p.cidade,p.topologia].filter(Boolean).join(', '))}${p.semRua?', sem rua':''}${p.semExt?', sem extensão':''}</small>
       <div class="ktrab">${trab}</div><div class="kdias">${dias}</div>${ant}<small class="klin">${esc(linha)}</small>${meta.length?`<div class="kmeta">${meta.join('')}</div>`:''}</button>`};
@@ -1273,10 +1302,13 @@ function viewKanban(){
   const colInfo=k=>{const P=g[k].map(p=>T[p.id]);if(k==='ativ'){const d=g[k].reduce((s,p)=>s+Math.max(0,(+p.dAtiv||0)-realDias(p.etiqueta,'ativ')),0);return `${d} ${d===1?'dia previsto':'dias previstos'} de ativação`}
     const m=P.reduce((s,t)=>s+t.falta,0),d=g[k].reduce((s,p)=>{const f=FASES.find(x=>x.k===k);return s+Math.max(0,(+p[f.p]||0)-realDias(p.etiqueta,k))},0);return `${kM(m)} m de cabo, ${d} ${d===1?'dia previsto':'dias previstos'}`};
   return `<div class="toolbar"><div><h2>Backlog de projetos</h2><p class="muted">O que falta fazer: ${L.length} projeto(s) da base ainda não entregues. Cada projeto fica na próxima fase a executar e sai do backlog quando a ativação é finalizada. Toque em um card para abrir na agenda.</p></div>
-   <div class="tools"><input class="inp" type="search" id="kQ" placeholder="Buscar etiqueta, cliente ou POP" data-in="kQ" value="${esc(ui.kQ)}"><select class="inp" data-ch="kCid"><option value="">Todas as cidades</option>${cids.map(c=>`<option ${c===ui.kCid?'selected':''}>${esc(c)}</option>`).join('')}</select></div></div>
-   <div class="kpis" style="margin-bottom:12px">${kp(L.length,'Projetos a entregar')}${kp(kM(soma(t=>t.falta))+' m','Cabo a lançar')}${kp(soma(t=>t.cxPend),'Caixas de extensão a fazer')}${kp(soma(t=>t.diasPend),'Dias de campo previstos (restantes)')}</div>
+   <div class="tools"><input class="inp" type="search" id="kQ" placeholder="Buscar etiqueta, cliente ou POP" data-in="kQ" value="${esc(ui.kQ)}"><select class="inp" data-ch="kCid"><option value="">Todas as cidades</option>${cids.map(c=>`<option ${c===ui.kCid?'selected':''}>${esc(c)}</option>`).join('')}</select><button class="btn" data-act="kXlsx" title="Projetos da lista, como estão filtrados">Baixar planilha</button></div></div>
+   ${(()=>{const kb=(v,lab,k)=>`<button type="button" class="kpi kbtn" data-act="kSit" data-v="${k}" aria-pressed="${sit===k}" title="${k?'Mostrar só os projetos com '+lab.toLowerCase():'Mostrar todos'}"><b>${v}</b><span>${lab}</span></button>`;
+     return `<div class="kpis" role="group" aria-label="Resumo do backlog (toque para filtrar)" style="margin-bottom:6px">${kb(L.length,'Projetos a entregar','')}${kb(kM(soma(t=>t.falta))+' m','Cabo a lançar','cabo')}${kb(soma(t=>t.cxPend),'Caixas de extensão a fazer','cx')}${kb(kM(soma(t=>t.kmPend))+' m','KM de fibra a estender','km')}${kb(soma(t=>t.diasPend),'Dias de campo previstos (restantes)','dias')}</div>
+     <p class="muted" style="margin:0 0 12px;font-size:13px">${sit?`Mostrando só os projetos com <b>${KSN[sit].toLowerCase()}</b> (${LF.length} de ${L.length}). <button type="button" class="linkbtn" data-act="kSit" data-v="">Mostrar todos</button>`:'Toque em um número para ver só os projetos que têm aquele trabalho pendente.'}</p>`})()}
    <div class="kanban k3">${KCOLS.map(([k,n])=>`<section class="kcol fase"><div class="khead"><h3>${n}<span class="chip">${g[k].length}</span></h3><small>${colInfo(k)}</small></div><div class="kbody">${g[k].map(p=>card(p,k)).join('')||'<p class="kempty">Nenhum projeto aqui.</p>'}</div></section>`).join('')}</div>`;
 }
+
 
 /* ---------- ESTOQUE / MATERIAL ---------- */
 const pontaItem=i=>{const t=(i.tipo||'').toUpperCase();if(t.includes('PONTA A'))return 'A';if(t.includes('PONTA B'))return 'B';return CABO_RE.test(i.desc||'')?'A':'B'};
@@ -1395,10 +1427,11 @@ function viewMeuEst(){const doc=meuDoc();
 const IDB={p:null,open(){if(!this.p)this.p=new Promise((res,rej)=>{try{const r=indexedDB.open('impl_anexos',1);r.onupgradeneeded=()=>r.result.createObjectStore('f');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});return this.p},
   async tx(mode,fn){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('f',mode),st=t.objectStore('f'),rq=fn(st);t.oncomplete=()=>res(rq&&rq.result);t.onerror=()=>rej(t.error)})},
   put(k,v){return this.tx('readwrite',s=>s.put(v,k))},get(k){return this.tx('readonly',s=>s.get(k))},del(k){return this.tx('readwrite',s=>s.delete(k))}};
-const ANX={kmzL:'KMZ de lançamento',kmzA:'KMZ de ativação',outro:'Anexo'};
+const ANX={kmzL:'KMZ de lançamento',kmzA:'KMZ de extensão',outro:'Anexo'};
 const temExt=p=>p.semExt===false||(p.semExt===undefined&&+p.dExt>0);
 const anxDe=e=>S.anexos.filter(x=>x.etiqueta===e);
-const anxFases=x=>x.tipo==='kmzL'?['rua','interno']:x.tipo==='kmzA'?['ext']:[x.fase||'ativ'];
+/* os KMZ (lançamento e extensão) ficam até a ativação ser concluída */
+const anxFases=x=>x.tipo==='kmzL'||x.tipo==='kmzA'?['ativ']:[x.fase||'ativ'];
 const anxRegra=x=>{const fs=anxFases(x);return `excluído ao finalizar ${fs.map(k=>FCURTO[k].toLowerCase()).join(' e ')}`};
 function limparAnexos(e){const rem=S.anexos.filter(x=>x.etiqueta===e&&anxFases(x).every(k=>faseFim(e,k)));if(!rem.length)return [];
   S.anexos=S.anexos.filter(x=>!rem.includes(x));S.anexosLog=S.anexosLog||[];
@@ -1411,10 +1444,10 @@ function anexosEdit(p){const L=anxDe(p.etiqueta),slot=(tipo,titulo,sub)=>{const 
     return `<div class="slot ${x?'ok':''}"><h4>${titulo}</h4><p class="muted">${sub}</p>${x?anxLinha(x,1):''}<span class="upl btn sm" style="margin-top:8px">${x?'Substituir arquivo':'Selecionar arquivo .kmz'}<input type="file" accept=".kmz,.kml" data-ch="anexo" data-tipo="${tipo}"></span></div>`};
   const outros=L.filter(a=>a.tipo==='outro');
   return `${+p.metros>0?slot('kmzL','KMZ de lançamento',`Projeto com ${(+p.metros).toLocaleString('pt-BR')} m de cabo para lançar.`):''}
-   ${temExt(p)?slot('kmzA','KMZ de ativação','Projeto com extensão de sinal.'):''}
+   ${temExt(p)?slot('kmzA','KMZ de extensão','Projeto com extensão de sinal. Pela etapa 4 do cadastro do projeto, o KMZ também calcula os metros e as caixas de emenda.'):''}
    ${!(+p.metros>0)&&!temExt(p)?'<p class="muted" style="margin-bottom:10px">Este projeto não tem cabo para lançar nem extensão de sinal, então não pede KMZ.</p>':''}
    <div class="slot ${outros.length?'ok':''}"><h4>Outros anexos</h4><p class="muted">Fotos, projetos, autorizações ou qualquer arquivo de apoio.</p>${outros.map(x=>anxLinha(x,1)).join('')}<div class="tools" style="margin-top:8px"><label class="f inline"><span>Vincular à fase</span><select class="inp" id="anxFase">${FASES.filter(f=>!(f.k==='ext'&&!temExt(p))).map(f=>`<option value="${f.k}" ${f.k===(ui.anxFase||'ativ')?'selected':''}>${f.n}</option>`).join('')}</select></label><span class="upl btn sm">Adicionar arquivos<input type="file" multiple data-ch="anexo" data-tipo="outro"></span></div></div>
-   <p class="muted" style="font-size:13px">Os anexos aparecem para o técnico em todas as fases e são excluídos automaticamente quando a fase a que pertencem é finalizada, para liberar espaço.</p>
+   <p class="muted" style="font-size:13px">Os anexos aparecem para o técnico em todas as fases. Para liberar espaço, os KMZ (lançamento e extensão) são excluídos automaticamente quando a ativação é concluída, e os outros anexos quando a fase a que pertencem é finalizada.</p>
    ${(S.anexosLog||[]).filter(x=>x.etiqueta===p.etiqueta).length?`<h3 class="lsub">Excluídos após conclusão</h3>${S.anexosLog.filter(x=>x.etiqueta===p.etiqueta).map(x=>`<div class="anx"><span>${esc(x.nome)}<small>${ANX[x.tipo]}, excluído em ${dtBR(x.em)}</small></span></div>`).join('')}`:''}`}
 function anexosTec(e){const L=anxDe(e);return L.length?`<div><span class="muted">Anexos do projeto</span>${L.map(x=>anxLinha(x,0)).join('')}</div>`:''}
 
@@ -1521,7 +1554,7 @@ function agendForm(p){
     return `<label class="${fin||blq?'dis':''}"><input type="checkbox" data-ch="agFz" value="${f.k}" ${F.fases.includes(f.k)&&!blq?'checked':''} ${fin||blq?'disabled':''}><span>${f.n}${sub?`<small>${sub}</small>`:''}</span></label>`}).join('');
   return `<div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Fases do projeto</span><div class="fchk">${fs}</div></div>
     <div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Outras atividades</span><div class="fchk">${EXTRAS.map(x=>`<label><input type="checkbox" data-ch="agFz" value="${x.k}" ${F.fases.includes(x.k)?'checked':''}><span>${x.n}<small>Não conta como fase do projeto</small></span></label>`).join('')}</div></div>
-   ${(()=>{const L=anxDe(p.etiqueta),w=[];if(+p.metros>0&&F.fases.some(k=>k==='rua'||k==='interno')&&!L.some(x=>x.tipo==='kmzL'))w.push('KMZ de lançamento');if(temExt(p)&&F.fases.includes('ext')&&!L.some(x=>x.tipo==='kmzA'))w.push('KMZ de ativação');return w.length?`<p class="note">Ainda sem ${w.join(' e ')}. <button class="link" data-act="fTab" data-t="anx">Anexar agora</button></p>`:''})()}
+   ${(()=>{const L=anxDe(p.etiqueta),w=[];if(+p.metros>0&&F.fases.some(k=>k==='rua'||k==='interno')&&!L.some(x=>x.tipo==='kmzL'))w.push('KMZ de lançamento');if(temExt(p)&&F.fases.includes('ext')&&!L.some(x=>x.tipo==='kmzA'))w.push('KMZ de extensão');return w.length?`<p class="note">Ainda sem ${w.join(' e ')}. <button class="link" data-act="fTab" data-t="anx">Anexar agora</button></p>`:''})()}
    ${rangeHtml('ag',F.data,F.dataFim,F.uteis)}
    <label class="f"><span>Técnico</span><select class="inp" data-ch="agF" data-f="tec"><option value="">Selecione</option><optgroup label="Equipe própria (CLT)">${opt('CLT')}</optgroup><optgroup label="Terceiros">${opt('TERC')}</optgroup></select></label>
    ${diasRange(F.data,F.dataFim,F.uteis).length>1?(()=>{const n=diasRange(F.data,F.dataFim,F.uteis).length,m=F.modo||'unico';return `<fieldset class="modo"><legend>Como agendar o período</legend>${[['unico','Uma atividade com execução em vários dias',`Cria 1 atividade com ${n} dias. O técnico registra o que fez em cada dia e conclui no último (ou antes, se terminar).`],['separado','Uma atividade separada por dia',`Cria ${n} atividades independentes, uma por dia.`]].map(([k,t,d])=>`<label class="chk ${m===k?'on':''}"><input type="radio" name="agModo" data-ch="agModo" value="${k}" ${m===k?'checked':''}><span><b>${t}</b><small>${d}</small></span></label>`).join('')}</fieldset>`})():''}
@@ -1966,13 +1999,13 @@ function roiPreview(r,target){
 }
 
 /* ---------- CADASTRO EM ETAPAS ---------- */
-function wizFrom(p){const i=(p&&p.inst)||{};return{e:{cep:i.cep||'',logradouro:i.logradouro||'',numero:i.numero||'',bairro:i.bairro||'',cidade:(p&&p.cidade)||'',uf:i.uf||'',coord:(p&&(S.comp[p.etiqueta]||{}).coord)||''},t:{pop:(p&&p.pop)||'',equip:(p&&p.equip)||'',porta:i.porta||'',pa:i.pa||'',locPa:i.locPa||'',pd:i.pd||'',locPd:i.locPd||'',notas:(i.notas||[]).join('. '),semRua:p&&p.semRua?'1':''}}}
+function wizFrom(p){const i=(p&&p.inst)||{};return{e:{cep:i.cep||'',logradouro:i.logradouro||'',numero:i.numero||'',bairro:i.bairro||'',cidade:(p&&p.cidade)||'',uf:i.uf||'',coord:(p&&(S.comp[p.etiqueta]||{}).coord)||''},t:{pop:(p&&p.pop)||'',equip:(p&&p.equip)||'',porta:i.porta||'',pa:i.pa||'',locPa:i.locPa||'',pd:i.pd||'',locPd:i.locPd||'',notas:(i.notas||[]).join('. '),semRua:p&&p.semRua?'1':''},k:kmzDe(p)}}
 function wizOpen(id,step){const p=id?S.previsao.find(x=>x.id===id):null;
   ui.roiTmp=p?Object.assign({nome:p.roi?p.roi.nome:'',itens:p.roi?p.roi.itens:[],achados:p.roi?p.roi.achados||[]:[],cabos:[],protocolo:p.protocolo,etiqueta:p.etiqueta,cliente:p.cliente,valor:p.valor,topologia:p.topologia,metros:p.metros},(p.roi&&p.roi.fin)||{}):null;
   ui.roiTarget=id||'';ui.wiz=Object.assign({step:step||1,id:id||''},wizFrom(p));renderWiz()}
 function renderWiz(){
-  const W=ui.wiz,p=W.id?S.previsao.find(x=>x.id===W.id):null,steps=['ROI','Endereço de instalação','Informações técnicas'];
-  const head=`<h3>${p?'Cadastro de '+esc(p.etiqueta||'projeto'):'Incluir novo projeto'}</h3><div class="wsteps">${steps.map((n,i)=>`<button data-act="wizGo" data-n="${i+1}" class="${i+1===W.step?'cur':(i+1<W.step?'done':'')}"><span>${i+1}</span>${n}</button>`).join('')}</div>`;
+  const W=ui.wiz,p=W.id?S.previsao.find(x=>x.id===W.id):null,steps=['ROI','Endereço de instalação','Informações técnicas','Extensão (KMZ)'],ext4=wizTemExt();
+  const head=`<h3>${p?'Cadastro de '+esc(p.etiqueta||'projeto'):'Incluir novo projeto'}</h3><div class="wsteps">${steps.map((n,i)=>`<button data-act="wizGo" data-n="${i+1}" class="${i+1===W.step?'cur':(i+1<W.step?'done':'')}" ${i===3&&!ext4?'disabled title="Disponível só para projeto com extensão de sinal (pontos de acesso e de derivação diferentes na etapa 3)"':''}><span>${i+1}</span>${n}</button>`).join('')}</div>`;
   const fl=(sc,k,l,area)=>`<label class="f"><span>${l}</span>${area?`<textarea class="inp" rows="3" data-in="wz" data-s="${sc}" data-f="${k}">${esc(W[sc][k])}</textarea>`:`<input class="inp" data-in="wz" data-s="${sc}" data-f="${k}" value="${esc(W[sc][k])}">`}</label>`;
   const paste=(l)=>`<label class="f"><span>${l}</span><textarea id="wzTxt" class="inp" rows="5" data-in="wzTxt" style="font-size:14px" placeholder="Cole aqui o bloco de texto. Os campos abaixo são preenchidos automaticamente.">${esc(W.txt||'')}</textarea></label>`;
   let body='',foot='';
@@ -1981,8 +2014,9 @@ function renderWiz(){
     foot=`<button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="wizGo" data-n="2">Avançar</button>`}
   else if(W.step===2){body=paste('Colar bloco de endereço')+`<div class="grid2 even" style="gap:0 12px">${fl('e','cep','CEP')}${fl('e','logradouro','Logradouro')}${fl('e','numero','Número')}${fl('e','bairro','Bairro')}${fl('e','cidade','Cidade')}${fl('e','uf','Estado (UF)')}</div>${fl('e','coord','Coordenada do cliente (latitude, longitude)')}<p class="muted" style="margin:-6px 0 0;font-size:13px">Ex.: -23.5505, -46.6333 ou o link do Google Maps. O celular do técnico usa a coordenada para traçar a rota até o cliente.</p>`;
     foot=`<button class="btn" data-act="wizGo" data-n="1">Voltar</button><button class="btn primary" data-act="wizGo" data-n="3">Avançar</button>`}
-  else{body=paste('Colar bloco de dados do projeto')+`<div class="grid2 even" style="gap:0 12px">${fl('t','pop','POP')}${fl('t','equip','Equipamento de acesso')}${fl('t','porta','Porta')}<span></span>${fl('t','pa','Ponto de acesso')}${fl('t','locPa','Localização do ponto de acesso')}${fl('t','pd','Ponto de derivação na rede externa')}${fl('t','locPd','Localização do ponto de derivação')}</div><label class="f"><span>Lançamento na rua</span><select class="inp" id="wzRua" data-in="wz" data-s="t" data-f="semRua"><option value="" ${!W.t.semRua?'selected':''}>Tem lançamento na rua</option><option value="1" ${W.t.semRua?'selected':''}>Não tem: lançamento todo interno (galpão, condomínio, prédio)</option></select></label>${fl('t','notas','Observações técnicas',1)}<div id="wzExt">${extNote(W.t)}</div>`;
-    foot=`<button class="btn" data-act="wizGo" data-n="2">Voltar</button><button class="btn primary" data-act="wizSave">Salvar projeto</button>`}
+  else if(W.step===4){const r4=kmzPasso(W,p);body=r4.body;foot=r4.foot}
+  else{body=paste('Colar bloco de dados do projeto')+`<div class="grid2 even" style="gap:0 12px">${fl('t','pop','POP')}${fl('t','equip','Equipamento de acesso')}${fl('t','porta','Porta')}<span></span>${fl('t','pa','Ponto de acesso')}${fl('t','locPa','Localização do ponto de acesso')}${fl('t','pd','Ponto de derivação na rede externa')}${fl('t','locPd','Localização do ponto de derivação')}</div><label class="f"><span>Lançamento na rua</span><select class="inp" id="wzRua" data-in="wz" data-s="t" data-f="semRua"><option value="" ${!W.t.semRua?'selected':''}>Tem lançamento na rua</option><option value="1" ${W.t.semRua?'selected':''}>Não tem: lançamento todo interno (galpão, condomínio, prédio)</option></select></label>${fl('t','notas','Observações técnicas',1)}<div id="wzExt">${extNote(W.t)}</div>${kmzLBloco(W,p)}`;
+    foot=`<button class="btn" data-act="wizGo" data-n="2">Voltar</button><button class="btn" id="wzK4" data-act="wizGo" data-n="4" ${ext4?'':'hidden'}>Avançar: extensão (KMZ)</button><button class="btn primary" data-act="wizSave">Salvar projeto</button>`}
   openModal(head+body+`<div class="actions">${foot}</div>`);
 }
 function wizCap1(){const r=ui.roiTmp;if(!r||!$('rp_etiqueta')){toast('Envie o PDF do ROI primeiro.','bad');return false}
@@ -2171,7 +2205,7 @@ const ACT={
   verProj:el=>{closeModal();ui.agSel=el.dataset.etq;ui.fTab='proj';ui.agForm={};render();window.scrollTo(0,0)},
   kOpen:el=>{ui.tab='agenda';ui.agSel=el.dataset.etq;ui.q='';ui.agForm={};ui.fTab=el.dataset.k==='entregue'?'proj':'ag';render();window.scrollTo(0,0)},
   wiz:el=>wizOpen(el.dataset.id||'',+(el.dataset.n||1)),
-  wizGo:el=>{const n=+el.dataset.n,W=ui.wiz;if(W.step===1&&n>1&&!wizCap1())return;W.step=n;renderWiz()},
+  wizGo:el=>{const n=+el.dataset.n,W=ui.wiz;if(W.step===1&&n>1&&!wizCap1())return;if(n===4&&!wizTemExt()){toast('A etapa 4 é só para projeto com extensão de sinal.','bad');return}if(!W.k)W.k=kmzDe(null);W.step=n;renderWiz()},
 
   wizSave:()=>{const W=ui.wiz,r=ui.roiTmp,etq=r.etiqueta;let p=W.id?S.previsao.find(x=>x.id===W.id):null;const novo=!p;
     if(novo){p={id:uid(),protocolo:'',etiqueta:'',cliente:'',valor:0,topologia:'GPON',metros:0,caixas:0,dRua:0,dInterno:0,dExt:0,dAtiv:0};S.previsao.unshift(p)}
@@ -2182,6 +2216,7 @@ const ACT={
     p.inst={cep:e.cep,logradouro:e.logradouro,numero:e.numero,bairro:e.bairro,uf:e.uf,porta:t.porta,pa:t.pa,locPa:t.locPa,pd:t.pd,locPd:t.locPd,notas:t.notas?[t.notas]:[]};
     const se=semExtOf(t);if(se!==null){p.semExt=se;if(se){p.dExt=0;p.caixas=1}}
     p.semRua=!!t.semRua;if(p.semRua)p.dRua=0;
+    kmzAplica(p,W);kmzLAplica(p,W);
     const end=buildEnd(e),c=S.comp[etq]=S.comp[etq]||{};if(end)c.endereco=end;if((e.coord||'').trim()){const k=coordOf(e.coord);if(!k){toast('Coordenada não reconhecida. Use o formato -23.5505, -46.6333.','bad');return}c.coord=k[0]+', '+k[1]}else if(e.coord==='')delete c.coord;if(t.notas&&!(c.obs||'').includes(t.notas))c.obs=[c.obs,t.notas].filter(Boolean).join('. ');
     ui.baseQ='';save();closeModal();render();toast(novo?`Projeto ${etq} incluído. Complete a previsão de dias por fase.`:`Cadastro de ${etq} atualizado.`)},
   roi:el=>{const id=el.dataset.id||'',p=id&&S.previsao.find(x=>x.id===id);ui.roiTmp=null;ui.roiTarget=id;
@@ -2362,7 +2397,7 @@ const IN={
   kQ:el=>{ui.kQ=el.value;render();const i=$('kQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
   eta:el=>{const b=$('goBtn'),h=$('etaHint');if(b)b.disabled=!el.value;if(h)h.style.display=el.value?'none':''},
   wzTxt:el=>{ui.wiz.txt=el.value;clearTimeout(wzT);wzT=setTimeout(wzApply,450)},
-  wz:el=>{ui.wiz[el.dataset.s][el.dataset.f]=el.value;if(el.dataset.s==='t'&&$('wzExt'))$('wzExt').innerHTML=extNote(ui.wiz.t)},
+  wz:el=>{ui.wiz[el.dataset.s][el.dataset.f]=el.value;if(el.dataset.s==='t'&&$('wzExt'))$('wzExt').innerHTML=extNote(ui.wiz.t);if(el.dataset.s==='t'&&$('wzK4'))$('wzK4').hidden=!wizTemExt()},
   q:el=>{ui.q=el.value;renderSug()},
   roiTxt:el=>{ui.roiTmp=roiFromLines(el.value.split(/\r?\n/),'ROI colado');$('roiPrev').innerHTML=roiPreview(ui.roiTmp,ui.roiTarget)},
   instPrev:el=>{$('instPrev').innerHTML=instPreview(parseInst(el.value))},
@@ -2703,7 +2738,7 @@ Object.assign(IN,{tpQ:el=>{const K=tpK(el),s=tpSt(K);s.q=el.value;s.lim=60;rende
 const coordOf=t=>coords(String(t||'').replace(/(\d),(\d)/g,'$1.$2'));
 const rotaUrl=c=>{const k=coordOf(c&&c.coord);return k?`https://www.google.com/maps/dir/?api=1&destination=${k[0]},${k[1]}`:(c&&c.endereco?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.endereco):'')};
 const isFWA=p=>normK((p&&p.topologia)||'')==='fwa';
-const FWA_ZERA=['metros','caixas','dRua','dInterno','dExt'];
+const FWA_ZERA=['metros','caixas','kmFibra','dRua','dInterno','dExt'];
 function fwaAjusta(p){if(!isFWA(p))return;FWA_ZERA.forEach(k=>p[k]=0);p.semExt=true;p.semRua=true}
 
 /* Rede executada: tudo pelas LPUs (cabo, cordoalha, reaberturas e extensão de fibra) */
@@ -3662,6 +3697,172 @@ Object.assign(ACT,{
 /* ROI x LPU (usado na tela e na planilha) */
 function moCalc(){const inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim;
   return [...new Set(S.lpus.filter(l=>inP(l)&&tecT(l.tec)==='TERC').map(l=>l.etiqueta))].map(e=>{const p=pPor(e),Ls=S.lpus.filter(l=>l.etiqueta===e&&l.status!=='reprovada'&&tecT(l.tec)==='TERC'),a=Ls.filter(l=>l.status==='aprovada').reduce((s,l)=>s+l.total,0),q=Ls.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+l.total,0),roi=p.roi&&p.roi.fin&&p.roi.fin.custoMO!=null?+p.roi.fin.custoMO:null;return{e,p,a,q,tot:a+q,roi,tecs:[...new Set(Ls.map(l=>tecN(l.tec)))].join(', ')}})}
+
+/* ---------- Backlog de projetos: filtro pelos números e planilha ---------- */
+Object.assign(ACT,{
+  kSit:el=>{const v=el.dataset.v||'';ui.kSit=ui.kSit===v?'':v;render()},
+  /* planilha do backlog: os projetos da lista, como estão filtrados */
+  kXlsx:()=>{const{LF,T,sit}=kBase(),SN={rua:'Lançamento externo',interno:'Lançamento interno',ativ:'Ativação'};
+    const R=LF.map(p=>{const t=T[p.id],k=etapa(p),c=S.comp[p.etiqueta]||{},x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');
+      const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>a.data.localeCompare(b.data))[0];
+      const falta=[!c.endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
+      const o={'Coluna':SN[k]||k,'Etiqueta':p.etiqueta,'Cliente':p.cliente||'','Protocolo':p.protocolo||'','Cidade':p.cidade||'','POP':p.pop||'','Topologia':p.topologia||'','Sem rua':p.semRua?'Sim':'Não','Extensão de sinal':t.ext?'Sim':'Não',
+        'Cabo do projeto (m)':t.metros,'Cabo lançado (m)':t.lanc,'Cabo a lançar (m)':t.falta,'Caixas de emenda':t.ext?t.cx:'','Caixas a fazer':t.cxPend,'KM de fibra (m)':t.ext?t.km:'','KM de fibra a estender (m)':t.kmPend,'Extensão':!t.ext?'':t.extFeita?'Concluída':'A fazer'};
+      FASES.forEach(f=>{const d=t.dias.find(x=>x.k===f.k);o[FCURTO[f.k]+': dias previstos']=d?d.pv:'N/A';o[FCURTO[f.k]+': dias realizados']=d?d.r:'N/A';o[FCURTO[f.k]+': finalizada']=d?(d.fin?'Sim':'Não'):'N/A'});
+      Object.assign(o,{'Dias de campo restantes':t.diasPend,'Próximo agendamento':ab?dBR(ab.data):'','Fases agendadas':ab?fasesC(ab):'','Técnico':ab?tecN(ab.tec):'','Situação do agendamento':ab?ST[ab.status][0]:'','Atrasada':ab&&ab.data<hoje()?'Sim':'Não',
+        'Liberado para ativar':k==='ativ'&&liberado(p)?'Sim':'Não','Cadastro':falta.join(', ')||'Completo','KMZ de lançamento':(S.anexos||[]).some(a=>a.etiqueta===p.etiqueta&&a.tipo==='kmzL')?'Anexado':'','KMZ de extensão':(S.anexos||[]).some(a=>a.etiqueta===p.etiqueta&&a.tipo==='kmzA')?'Anexado':''});
+      return o});
+    const sm=f=>LF.reduce((s,p)=>s+f(T[p.id]),0);
+    const K=[['Projetos',LF.length],['Cabo a lançar (m)',sm(t=>t.falta)],['Caixas de extensão a fazer',sm(t=>t.cxPend)],['KM de fibra a estender (m)',sm(t=>t.kmPend)],['Dias de campo previstos (restantes)',sm(t=>t.diasPend)]].concat(KCOLS.map(([k,n])=>['Projetos em '+n,LF.filter(p=>etapa(p)===k).length])).map(([Indicador,Valor])=>({Indicador,Valor}));
+    xlsxBaixar(`backlog_projetos_${hoje()}${sit?'_'+sit:''}`,[['Projetos',R],['Indicadores',K],['Filtros',xFiltros({'Tela':'Backlog de projetos','Busca':ui.kQ||'(todas)','Cidade':ui.kCid||'(todas)','Filtro do resumo':sit?KSN[sit]:'(todos)','Projetos exportados':R.length})]],R.length+(R.length===1?' projeto exportado.':' projetos exportados.'))}});
+
+
+/* ---------- KMZ DA EXTENSÃO: rota entre início e término, metros e caixas de emenda ---------- */
+let _jz=null;
+function kmzLib(){if(window.JSZip)return Promise.resolve(window.JSZip);
+  return _jz||(_jz=new Promise((ok,er)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=()=>window.JSZip?ok(window.JSZip):er(new Error('leitor de KMZ indisponível'));s.onerror=()=>{_jz=null;er(new Error('não foi possível carregar o leitor de KMZ (confira a internet)'))};document.head.appendChild(s)}))}
+/* lê .kmz (zip) ou .kml e devolve o texto do KML principal */
+async function kmzTexto(buf,nome){const u8=new Uint8Array(buf);
+  if(u8[0]===0x50&&u8[1]===0x4b){const Z=await kmzLib(),z=await Z.loadAsync(buf),fs=Object.values(z.files).filter(f=>!f.dir&&/\.kml$/i.test(f.name));
+    if(!fs.length)throw new Error('o KMZ não tem arquivo .kml dentro');const f=fs.find(x=>/(^|\/)doc\.kml$/i.test(x.name))||fs[0];return await f.async('text')}
+  return new TextDecoder('utf-8').decode(u8)}
+/* KML -> linhas e pontos */
+function kmlLer(txt){const doc=new DOMParser().parseFromString(txt,'application/xml');if(doc.getElementsByTagName('parsererror').length)throw new Error('o arquivo não é um KML válido');
+  const kids=(el,n)=>[...el.children].filter(c=>c.localName===n),txt1=(el,n)=>{const c=kids(el,n)[0];return c?c.textContent.trim():''};
+  const all=(el,n)=>[...el.getElementsByTagNameNS('*',n)],crd=s=>s.trim().split(/\s+/).map(t=>t.split(',').map(Number)).filter(a=>a.length>=2&&isFinite(a[0])&&isFinite(a[1])).map(a=>[a[1],a[0]]);
+  const pasta=el=>{const o=[];let x=el.parentElement;while(x){if(x.localName==='Folder'||x.localName==='Document'){const n=txt1(x,'name');if(n)o.unshift(n)}x=x.parentElement}return o.join(' / ')};
+  const L=[],P=[];all(doc,'Placemark').forEach(pm=>{const nome=txt1(pm,'name'),pas=pasta(pm),desc=txt1(pm,'description').replace(/<[^>]+>/g,' ').slice(0,200),est=txt1(pm,'styleUrl');
+    all(pm,'LineString').forEach(ls=>{const c=all(ls,'coordinates')[0];if(c){const k=crd(c.textContent);if(k.length>1)L.push({nome,pasta:pas,c:k})}});
+    all(pm,'Point').forEach(pt=>{const c=all(pt,'coordinates')[0];if(c){const k=crd(c.textContent);if(k.length)P.push({nome:nome||'Ponto',pasta:pas,desc,est,lat:k[0][0],lon:k[0][1]})}})});
+  if(!L.length&&!P.length)throw new Error('não encontrei linhas nem pontos no KML');return{L,P}}
+/* tipo de caixa pelo nome, pasta, descrição ou estilo */
+const KMZ_CX=/(\bceo\b|caixa\s*de\s*emenda|cx\.?\s*(de\s*)?emenda|\bemenda\b|splice|\bce[\s\-_]?\d|\bcx[\s\-_]?\d|fus[aã]o)/i;
+const KMZ_OUT=/(\bcto\b|\bcdo\b|terminal|splitter|\bnap\b)/i;
+const kmzTipo=p=>{const s=[p.nome,p.pasta,p.desc,p.est].join(' ');return KMZ_CX.test(s)?'cx':KMZ_OUT.test(s)?'cto':/poste/i.test(s)?'poste':'outro'};
+/* rede: grafo das linhas do KMZ em metros (projeção local) */
+function kmzRede(K){const R=6371008.8,rd=Math.PI/180,f=K.L[0]?K.L[0].c[0]:[K.P[0].lat,K.P[0].lon],lat0=f[0],lon0=f[1],cs=Math.cos(lat0*rd);
+  const xy=(la,lo)=>[(lo-lon0)*rd*R*cs,(la-lat0)*rd*R],ll=(x,y)=>[lat0+y/(rd*R),lon0+x/(rd*R*cs)];
+  const X=[],Y=[],A=[],G=new Map(),E=[],cel=(x,y)=>Math.round(x/3)+','+Math.round(y/3);
+  const addN=(x,y)=>{X.push(x);Y.push(y);A.push([]);return X.length-1};
+  const snapN=(x,y)=>{const cx=Math.round(x/3),cy=Math.round(y/3);let best=-1,bd=2.5;for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){(G.get((cx+i)+','+(cy+j))||[]).forEach(n=>{const d=Math.hypot(X[n]-x,Y[n]-y);if(d<bd){bd=d;best=n}})}
+    if(best>=0)return best;const n=addN(x,y),k=cel(x,y);(G.get(k)||G.set(k,[]).get(k)).push(n);return n};
+  const addE=(a,b)=>{if(a===b)return;const w=Math.hypot(X[a]-X[b],Y[a]-Y[b]);const e={a,b,w,vivo:true};E.push(e);A[a].push(e);A[b].push(e)};
+  K.L.forEach(l=>{let p=-1;l.c.forEach(([la,lo])=>{const[x,y]=xy(la,lo),n=snapN(x,y);if(p>=0)addE(p,n);p=n})});
+  /* ponto mais próximo da rede (projeção no segmento) */
+  const perto=(x,y,ign)=>{let bd=Infinity,be=null,bt=0;for(const e of E){if(!e.vivo||(ign!=null&&(e.a===ign||e.b===ign)))continue;const ax=X[e.a],ay=Y[e.a],dx=X[e.b]-ax,dy=Y[e.b]-ay,L2=dx*dx+dy*dy;let t=L2?((x-ax)*dx+(y-ay)*dy)/L2:0;t=Math.max(0,Math.min(1,t));const d=Math.hypot(ax+t*dx-x,ay+t*dy-y);if(d<bd){bd=d;be=e;bt=t}}return be?{e:be,t:bt,d:bd}:null};
+  const inserir=(x,y,ign)=>{const r=perto(x,y,ign);if(!r)return null;const e=r.e,px=X[e.a]+r.t*(X[e.b]-X[e.a]),py=Y[e.a]+r.t*(Y[e.b]-Y[e.a]);
+    if(Math.hypot(px-X[e.a],py-Y[e.a])<0.5)return{n:e.a,d:r.d};if(Math.hypot(px-X[e.b],py-Y[e.b])<0.5)return{n:e.b,d:r.d};
+    e.vivo=false;const n=addN(px,py);addE(e.a,n);addE(n,e.b);return{n,d:r.d}};
+  /* liga pontas soltas que terminam no meio de outra linha (até 6 m) */
+  for(let n=0;n<X.length;n++){if(A[n].filter(e=>e.vivo).length!==1)continue;const r=perto(X[n],Y[n],n);if(r&&r.d<=6&&r.d>0.01){const k=inserir(X[n],Y[n],n);if(k&&k.n!==n)addE(n,k.n)}}
+  const total=E.filter(e=>e.vivo).reduce((s,e)=>s+e.w,0);
+  return{X,Y,A,E,xy,ll,inserir,total}}
+/* menor caminho (Dijkstra com fila de prioridade) */
+function kmzCaminho(N,s,t){const n=N.X.length,D=new Float64Array(n).fill(Infinity),Pv=new Int32Array(n).fill(-1),H=[];D[s]=0;H.push([0,s]);
+  const up=i=>{while(i>0){const p=(i-1)>>1;if(H[p][0]<=H[i][0])break;[H[p],H[i]]=[H[i],H[p]];i=p}},dn=i=>{for(;;){let m=i;const l=2*i+1,r=l+1;if(l<H.length&&H[l][0]<H[m][0])m=l;if(r<H.length&&H[r][0]<H[m][0])m=r;if(m===i)break;[H[m],H[i]]=[H[i],H[m]];i=m}};
+  while(H.length){const[d,u]=H[0];const last=H.pop();if(H.length){H[0]=last;dn(0)}if(d>D[u])continue;if(u===t)break;
+    for(const e of N.A[u]){if(!e.vivo)continue;const v=e.a===u?e.b:e.a,nd=d+e.w;if(nd<D[v]){D[v]=nd;Pv[v]=u;H.push([nd,v]);up(H.length-1)}}}
+  if(!isFinite(D[t]))return null;const p=[];for(let v=t;v!==-1;v=Pv[v])p.unshift(v);return{p,m:D[t]}}
+/* cálculo completo: rota, metros, pontos na rota */
+function kmzCalcular(K,ini,fim,tol){tol=tol||15;const a=coordOf(ini),b=coordOf(fim);
+  if(!K.L.length)return{ok:false,msg:'O KMZ não tem a rota (linhas). Só foram encontrados pontos.'};
+  if(!a||!b)return{ok:false,msg:'Informe as localizações de início e de término da extensão (latitude, longitude).'};
+  const N=kmzRede(K),pa=N.xy(a[0],a[1]),pb=N.xy(b[0],b[1]),ia=N.inserir(pa[0],pa[1]),ib=N.inserir(pb[0],pb[1]);
+  if(!ia||!ib)return{ok:false,msg:'Não foi possível ligar os pontos à rota do KMZ.'};
+  const c=ia.n===ib.n?{p:[ia.n],m:0}:kmzCaminho(N,ia.n,ib.n);
+  if(!c)return{ok:false,msg:'Os pontos de início e de término não estão ligados pela rota do KMZ (as linhas não se encontram). Confira o arquivo ou os pontos.',offIni:ia.d,offFim:ib.d,total:N.total};
+  const pts=c.p.map(v=>[N.X[v],N.Y[v]]),cum=[0];for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+  /* pontos do KMZ a até "tol" metros da rota, na ordem do caminho */
+  const naRota=K.P.map((p,ix)=>{const[x,y]=N.xy(p.lat,p.lon);let bd=Infinity,bs=0;
+    if(pts.length===1){bd=Math.hypot(x-pts[0][0],y-pts[0][1])}
+    for(let i=1;i<pts.length;i++){const ax=pts[i-1][0],ay=pts[i-1][1],dx=pts[i][0]-ax,dy=pts[i][1]-ay,L2=dx*dx+dy*dy;let t=L2?((x-ax)*dx+(y-ay)*dy)/L2:0;t=Math.max(0,Math.min(1,t));const d=Math.hypot(ax+t*dx-x,ay+t*dy-y);if(d<bd){bd=d;bs=cum[i-1]+t*Math.sqrt(L2)}}
+    return{ix,nome:p.nome,pasta:p.pasta,tipo:kmzTipo(p),lat:p.lat,lon:p.lon,d:bd,s:bs}}).filter(x=>x.d<=tol).sort((x,y)=>x.s-y.s);
+  /* rota reduzida para guardar e desenhar (até ~300 pontos) */
+  const passo=Math.max(1,Math.ceil(pts.length/300)),rota=pts.filter((_,i)=>i%passo===0||i===pts.length-1).map(([x,y])=>N.ll(x,y).map(v=>+v.toFixed(7)));
+  return{ok:true,metros:Math.round(c.m),offIni:ia.d,offFim:ib.d,pontos:naRota,rota,total:N.total,ini:a,fim:b}}
+
+/* grava o KMZ como anexo do projeto (substitui o anterior do mesmo tipo); aparece para o técnico e é excluído quando a ativação é concluída */
+async function anxGravar(e,tipo,f){await flushSync();const id=uid(),path=`anexos/${e}/${id}-${f.name.replace(/[^\w.\-]+/g,'_')}`;
+  const up=await sb.storage.from('agenda').upload(path,f,{contentType:f.type||'application/octet-stream'});if(up.error)throw up.error;
+  const old=S.anexos.filter(x=>x.etiqueta===e&&x.tipo===tipo);if(old.length){await sb.storage.from('agenda').remove(old.map(x=>x.path));await sb.from('ag_anexos').delete().in('id',old.map(x=>x.id));S.anexos=S.anexos.filter(x=>!old.includes(x))}
+  const ins=await sb.from('ag_anexos').insert({id,etiqueta:e,tipo,fase:null,nome:f.name,tamanho:f.size,path});if(ins.error)throw ins.error;
+  S.anexos.push({id,etiqueta:e,tipo,fase:null,nome:f.name,tam:f.size,em:Date.now(),por:meNome(),path});return path}
+const anxKmz=(e,tipo)=>e?S.anexos.find(x=>x.etiqueta===e&&x.tipo===tipo):null;
+async function anxTexto(x){const r=await sb.storage.from('agenda').createSignedUrl(x.path,120);if(r.error)throw r.error;const b=await (await fetch(r.data.signedUrl)).arrayBuffer();return kmzTexto(b,x.nome)}
+/* ---------- etapa 4 do cadastro ---------- */
+function wizTemExt(){const W=ui.wiz;if(!W)return false;const v=semExtOf(W.t);if(v!==null)return v===false;const p=W.id?S.previsao.find(x=>x.id===W.id):null;return !!(p&&p.semExt===false)}
+function kmzDe(p){const k=(p&&p.kmz)||{},ax=p&&anxKmz(p.etiqueta,'kmzA');return{nome:(ax&&ax.nome)||k.nome||'',path:ax?ax.path:'',anx:ax?ax.id:'',ini:k.ini||'',fim:k.fim||'',metros:p&&p.kmFibra!=null&&p.kmFibra!==''?String(p.kmFibra):'',caixas:k.caixasInf!=null?String(k.caixasInf):'',res:k.rota?{ok:true,metros:k.metros,offIni:k.offIni,offFim:k.offFim,pontos:k.pontos||[],rota:k.rota,salvo:true}:null,sel:k.pontos?Object.fromEntries(k.pontos.map((x,i)=>[i,!!x.cx])):{},K:null,arq:null,msg:''}}
+const kmzN=v=>(+v||0).toLocaleString('pt-BR');
+function kmzRecalc(){const W=ui.wiz,k=W.k;if(!k.K){return}
+  if(!k.ini)k.ini=(W.t.locPd||'').trim();if(!k.fim)k.fim=(W.t.locPa||'').trim();
+  const r=kmzCalcular(k.K,k.ini,k.fim);k.res=r;k.sel={};if(r.ok){r.pontos.forEach((x,i)=>{k.sel[i]=x.tipo==='cx'});k.metros=String(r.metros);k.caixas=String(r.pontos.filter((x,i)=>k.sel[i]).length)}}
+function kmzMapa(k){const r=k.res;if(!r||!r.ok||!r.rota||!r.rota.length)return '';
+  const pts=r.rota.concat((r.pontos||[]).map(p=>[p.lat,p.lon])).concat([r.ini||r.rota[0],r.fim||r.rota[r.rota.length-1]]).filter(Boolean);
+  let la0=Math.min(...pts.map(p=>p[0])),la1=Math.max(...pts.map(p=>p[0])),lo0=Math.min(...pts.map(p=>p[1])),lo1=Math.max(...pts.map(p=>p[1]));
+  const cs=Math.cos((la0+la1)/2*Math.PI/180),mx=Math.max((lo1-lo0)*cs,la1-la0)*0.12+0.0002;la0-=mx;la1+=mx;lo0-=mx/cs;lo1+=mx/cs;
+  const W=640,Hh=Math.max(220,Math.min(460,W*(la1-la0)/((lo1-lo0)*cs))),px=(la,lo)=>[((lo-lo0)/(lo1-lo0)*W).toFixed(1),((la1-la)/(la1-la0)*Hh).toFixed(1)];
+  const linha=c=>c.map(([la,lo])=>px(la,lo).join(',')).join(' ');
+  let rede='';if(k.K){k.K.L.forEach(l=>{if(l.c.some(([la,lo])=>la>=la0&&la<=la1&&lo>=lo0&&lo<=lo1)){const st=Math.max(1,Math.ceil(l.c.length/400));rede+=`<polyline points="${linha(l.c.filter((_,i)=>i%st===0||i===l.c.length-1))}" class="kmrede"/>`}})}
+  const metrosTela=(lo1-lo0)*cs*111320,esc_m=[10,20,50,100,200,500,1000,2000,5000].find(v=>v>=metrosTela/6)||5000,esc_px=esc_m/metrosTela*W;
+  const pp=(r.pontos||[]).map((p,i)=>{const[x,y]=px(p.lat,p.lon),on=!!k.sel[i];return `<g class="kmpt ${on?'on':''}"><circle cx="${x}" cy="${y}" r="${on?7:4}"/>${on?`<text x="${x}" y="${(+y+3.5).toFixed(1)}">${(r.pontos.slice(0,i+1).filter((_,j)=>k.sel[j]).length)}</text>`:''}<title>${esc(p.nome)}</title></g>`}).join('');
+  const AB=(c,l)=>{if(!c)return '';const[x,y]=px(c[0],c[1]);return `<g class="kmab"><circle cx="${x}" cy="${y}" r="9"/><text x="${x}" y="${(+y+4).toFixed(1)}">${l}</text></g>`};
+  return `<figure class="kmmapa"><svg viewBox="0 0 ${W} ${Hh.toFixed(0)}" role="img" aria-label="Mapa da rota da extensão">${rede}<polyline points="${linha(r.rota)}" class="kmrota"/>${pp}${AB(r.ini||r.rota[0],'A')}${AB(r.fim||r.rota[r.rota.length-1],'B')}
+    <g class="kmesc"><line x1="12" y1="${(Hh-14).toFixed(0)}" x2="${(12+esc_px).toFixed(1)}" y2="${(Hh-14).toFixed(0)}"/><text x="12" y="${(Hh-20).toFixed(0)}">${esc_m>=1000?esc_m/1000+' km':esc_m+' m'}</text></g></svg>
+    <figcaption><span><i class="kml r"></i>Rota calculada</span>${k.K?'<span><i class="kml n"></i>Outras linhas do KMZ</span>':''}<span><i class="kmc on"></i>Caixa de emenda contada</span><span><i class="kmc"></i>Outro ponto na rota</span><span><b>A</b> início · <b>B</b> término</span></figcaption></figure>`}
+function kmzPasso(W,p){const k=W.k,r=k.res,pts=k.K?k.K.P:[];
+  const opt=v=>`<option value="">Escolher um ponto do KMZ…</option>${pts.map((x,i)=>`<option value="${i}">${esc(x.nome)}${x.pasta?' · '+esc(x.pasta.split(' / ').pop()):''}</option>`).join('')}`;
+  const campo=(f,l,aj)=>`<label class="f"><span>${l}</span><input class="inp" data-ch="kmzPt" data-f="${f}" value="${esc(k[f]||'')}" placeholder="-22.9056, -47.0608 ou link do Google Maps"></label>${pts.length?`<select class="inp kmsel" data-ch="kmzEsc" data-f="${f}" aria-label="${l}: escolher um ponto do KMZ">${opt()}</select>`:''}<small class="muted">${aj}</small>`;
+  let res='';
+  if(k.msg)res=`<div class="result bad">${esc(k.msg)}</div>`;
+  else if(r&&!r.ok)res=`<div class="result bad">${esc(r.msg)}</div>`;
+  else if(r&&r.ok){const sel=(r.pontos||[]).filter((_,i)=>k.sel[i]).length,av=[];
+    if(r.offIni>30)av.push(`o início está a ${kmzN(Math.round(r.offIni))} m da rota do KMZ`);if(r.offFim>30)av.push(`o término está a ${kmzN(Math.round(r.offFim))} m da rota do KMZ`);
+    res=`<div class="kmres"><div class="kpi ok"><b>${kmzN(r.metros)} m</b><span>Metros para estender (rota de A até B)</span></div><div class="kpi"><b>${sel}</b><span>Caixas de emenda na rota</span></div></div>
+     ${av.length?`<p class="result warn" style="margin-top:8px">Atenção: ${av.join(' e ')}. Confira se as localizações estão certas.</p>`:''}
+     ${kmzMapa(k)}
+     ${(r.pontos||[]).length?`<h4 class="lsub" style="margin:12px 0 4px">Pontos do KMZ na rota (a até 15 m)</h4><p class="muted" style="margin:0 0 6px;font-size:13px">Marque o que é caixa de emenda. As reconhecidas pelo nome (CEO, caixa de emenda, emenda, CE-01…) já vêm marcadas.</p>
+      <div class="kmpts">${r.pontos.map((x,i)=>`<label class="kmp"><input type="checkbox" data-ch="kmzCx" data-i="${i}" ${k.sel[i]?'checked':''}><span><b>${esc(x.nome)}</b><small>${esc(x.pasta||'')}${x.pasta?' · ':''}${kmzN(Math.round(x.s))} m do início${x.tipo==='cto'?' · parece CTO':x.tipo==='poste'?' · poste':''}</small></span></label>`).join('')}</div>`:'<p class="muted" style="margin-top:8px">Nenhum ponto do KMZ a até 15 m da rota. Informe as caixas abaixo, se houver.</p>'}`}
+  const body=`<p class="muted">Envie o KMZ da extensão e informe onde ela começa e termina. A ferramenta segue as linhas do KMZ de A até B, calcula os metros e conta as caixas de emenda no caminho.</p>
+   <label class="f" style="margin-top:10px"><span>KMZ da extensão (.kmz ou .kml)</span><input type="file" class="inp" accept=".kmz,.kml,application/vnd.google-earth.kmz,application/vnd.google-earth.kml+xml" data-ch="kmzArq"></label>
+   ${k.nome?`<p class="muted" style="margin:-4px 0 8px;font-size:13px">Arquivo: <b>${esc(k.nome)}</b>${k.K?` · ${k.K.L.length} ${k.K.L.length===1?'linha':'linhas'} (${kmzN(Math.round(k.K.total||0))} m no total) e ${k.K.P.length} ${k.K.P.length===1?'ponto':'pontos'}`:k.anx?' · anexado ao projeto':k.res&&k.res.salvo?' · arquivo excluído após a ativação (a rota calculada continua salva)':''}${k.anx?` <button class="linkbtn" data-act="anxOpen" data-id="${k.anx}">baixar</button>`:''}</p>`:''}
+   ${k.anx&&!k.K?'<button class="btn sm" data-act="kmzAnexado" style="margin-bottom:8px">Recalcular com o KMZ anexado</button> ':''}
+   ${window.__KMZ_EXEMPLO&&!k.K?'<button class="btn sm" data-act="kmzExemplo" style="margin-bottom:8px">Usar o KMZ de exemplo (demonstração)</button>':''}
+   <div class="grid2 even" style="gap:0 12px"><div>${campo('ini','Início da extensão (A)','Padrão: localização do ponto de derivação (etapa 3).')}</div><div>${campo('fim','Término da extensão (B)','Padrão: localização do ponto de acesso (etapa 3).')}</div></div>
+   ${k.K&&!r?'<p class="muted">Informe o início e o término para calcular.</p>':''}${!k.K&&!r?'<p class="muted" style="margin-top:6px">Envie o KMZ para calcular a rota.</p>':''}
+   ${res}
+   <div class="grid2 even" style="gap:0 12px;margin-top:12px"><label class="f"><span>KM de fibra: metros para estender</span><input class="inp" type="number" min="0" step="1" data-in="kmzM" value="${esc(k.metros)}"></label><label class="f"><span>Caixas de emenda</span><input class="inp" type="number" min="0" step="1" data-in="kmzC" value="${esc(k.caixas)}"></label></div>
+   <p class="muted" style="margin:-4px 0 0;font-size:13px">Os dois valores vão para as colunas <b>KM de fibra</b> e <b>Caixas</b> da Base de previsão. Dá para ajustar à mão.</p>`;
+  return{body,foot:`<button class="btn" data-act="wizGo" data-n="3">Voltar</button><button class="btn primary" data-act="wizSave">Salvar projeto</button>`}}
+/* grava no projeto ao salvar o cadastro */
+function kmzAplica(p,W){const k=W.k;if(!k)return;if(p.semExt){return}
+  const m=k.metros===''?null:Math.round(+k.metros||0),cx=k.caixas===''?null:Math.round(+k.caixas||0);
+  if(m!=null)p.kmFibra=m;if(cx!=null)p.caixas=cx;
+  if(k.res&&k.res.ok){const r=k.res;p.kmz=Object.assign({},p.kmz||{},{nome:k.nome||(p.kmz||{}).nome||'',ini:k.ini,fim:k.fim,metros:r.metros,offIni:Math.round(r.offIni||0),offFim:Math.round(r.offFim||0),rota:r.rota,
+      pontos:(r.pontos||[]).map((x,i)=>({nome:x.nome,pasta:x.pasta,tipo:x.tipo,lat:+(+x.lat).toFixed(7),lon:+(+x.lon).toFixed(7),d:Math.round(x.d),s:Math.round(x.s),cx:!!k.sel[i]})),caixasInf:cx,em:Date.now(),por:ME?ME.nome:''})}
+  else if(p.kmz){p.kmz.caixasInf=cx}
+  if(k.arq){const f=k.arq,etq=p.etiqueta;setTimeout(()=>anxGravar(etq,'kmzA',f).then(()=>{p.kmz=Object.assign(p.kmz||{},{nome:f.name});save();render();toast('KMZ de extensão anexado ao projeto.')}).catch(e=>toast('Projeto salvo, mas o KMZ de extensão não foi anexado: '+(e.message||e),'bad')),0)}}
+/* KMZ de lançamento (etapa 3): só anexa; aparece para o técnico nos agendamentos de lançamento */
+function kmzLAplica(p,W){const kl=W.kL;if(!kl||!kl.arq)return;const f=kl.arq,etq=p.etiqueta;setTimeout(()=>anxGravar(etq,'kmzL',f).then(()=>{render();toast('KMZ de lançamento anexado ao projeto.')}).catch(e=>toast('Projeto salvo, mas o KMZ de lançamento não foi anexado: '+(e.message||e),'bad')),0)}
+function kmzLBloco(W,p){const top=normK((ui.roiTmp&&ui.roiTmp.topologia)||(p&&p.topologia)||'');if(top==='fwa'||top==='firewall')return '';
+  const kl=W.kL||{},ax=p&&anxKmz(p.etiqueta,'kmzL'),roi=+((ui.roiTmp&&ui.roiTmp.metros)||(p&&p.metros)||0);
+  return `<div class="slot kmzl ${ax||kl.arq?'ok':''}"><h4>KMZ de lançamento</h4><p class="muted">Opcional. Fica anexado ao projeto para a equipe de campo nos agendamentos de lançamento e é excluído quando a ativação é concluída.</p>
+   ${ax&&!kl.arq?`<div class="anx"><span><b>${esc(ax.nome)}</b><small>Anexado em ${dtBR(ax.em)}</small></span><span class="bt"><button class="btn sm" data-act="anxOpen" data-id="${ax.id}">Baixar</button></span></div>`:''}
+   ${kl.arq?`<div class="anx"><span><b>${esc(kl.nome)}</b><small>${kl.total!=null?`${kmzN(Math.round(kl.total))} m de linhas no KMZ${roi?` · ROI: ${kmzN(roi)} m`:''}`:'Arquivo lido'} · será anexado ao salvar${ax?' (substitui o atual)':''}</small></span></div>`:''}
+   <span class="upl btn sm" style="margin-top:8px">${ax||kl.arq?'Substituir arquivo':'Selecionar arquivo .kmz'}<input type="file" accept=".kmz,.kml" data-ch="kmzLArq"></span></div>`}
+Object.assign(CH,{
+  kmzLArq:async el=>{const f=el.files&&el.files[0];if(!f)return;if(!/\.km[lz]$/i.test(f.name)){toast('Envie um arquivo .kmz ou .kml.','bad');el.value='';return}const W=ui.wiz;W.kL={arq:f,nome:f.name,total:null};
+    try{const K=kmlLer(await kmzTexto(await f.arrayBuffer(),f.name));W.kL.total=K.L.length?kmzRede(K).total:0}catch(e){toast('O arquivo será anexado, mas não consegui ler as linhas: '+(e.message||e),'bad')}renderWiz()},
+  kmzArq:async el=>{const f=el.files&&el.files[0];if(!f)return;const k=ui.wiz.k;k.msg='';toast('Lendo o KMZ…');
+    try{const t=await kmzTexto(await f.arrayBuffer(),f.name);k.K=kmlLer(t);k.K.total=k.K.L.length?kmzRede(k.K).total:0;k.nome=f.name;k.arq=f;k.path='';kmzRecalc();renderWiz();toast(k.res&&k.res.ok?`Rota calculada: ${kmzN(k.res.metros)} m.`:'KMZ lido. Confira o início e o término.')}
+    catch(e){k.K=null;k.res=null;k.msg='Não foi possível ler o arquivo: '+(e.message||e);renderWiz()}},
+  kmzPt:el=>{const k=ui.wiz.k;k[el.dataset.f]=el.value.trim();if(k.K){kmzRecalc()}else if(k.res&&k.res.salvo){k.res=null}renderWiz()},
+  kmzEsc:el=>{const k=ui.wiz.k,p=k.K&&k.K.P[+el.value];if(!p)return;k[el.dataset.f]=p.lat.toFixed(7)+', '+p.lon.toFixed(7);kmzRecalc();renderWiz()},
+  kmzCx:el=>{const k=ui.wiz.k;k.sel[+el.dataset.i]=el.checked;if(k.res&&k.res.ok)k.caixas=String((k.res.pontos||[]).filter((_,i)=>k.sel[i]).length);renderWiz()}});
+Object.assign(IN,{kmzM:el=>{ui.wiz.k.metros=el.value},kmzC:el=>{ui.wiz.k.caixas=el.value}});
+Object.assign(ACT,{
+  kmzAnexado:async()=>{const k=ui.wiz.k,x=S.anexos.find(a=>a.id===k.anx);if(!x)return;toast('Lendo o KMZ anexado…');try{k.K=kmlLer(await anxTexto(x));k.K.total=k.K.L.length?kmzRede(k.K).total:0;k.msg='';kmzRecalc();renderWiz()}catch(e){toast('Não foi possível ler o KMZ anexado: '+(e.message||e),'bad')}},
+  kmzExemplo:async()=>{const k=ui.wiz.k;try{const b=Uint8Array.from(atob(window.__KMZ_EXEMPLO),c=>c.charCodeAt(0));const t=await kmzTexto(b.buffer,'extensao_exemplo.kmz');k.K=kmlLer(t);k.K.total=k.K.L.length?kmzRede(k.K).total:0;k.nome='extensao_exemplo.kmz';k.arq=null;k.msg='';
+    if(window.__KMZ_EX_PONTAS){if(!k.ini)k.ini=window.__KMZ_EX_PONTAS[0];if(!k.fim)k.fim=window.__KMZ_EX_PONTAS[1]}kmzRecalc();renderWiz()}catch(e){toast('Exemplo indisponível: '+(e.message||e),'bad')}}});
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
