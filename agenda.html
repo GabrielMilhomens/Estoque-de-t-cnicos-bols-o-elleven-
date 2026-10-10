@@ -403,7 +403,7 @@ nav.tabs .catsw button{justify-content:center;text-align:center;padding:4px 6px}
 .gnums{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:12px}.gnums small{display:block;color:var(--muted);font-size:13px}
 .gnums b{font:700 30px/1.1 "Barlow Condensed",sans-serif}
 .gbox{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
-.gbox.desp{border:2px solid var(--brand)}.gbox.val{border:2px solid var(--warn);background:var(--warn-soft)}.gbox.ag{background:var(--bg)}
+.gbox.desp{border:2px solid var(--brand)}.gbox.val,.gbox.gval{border:2px solid var(--warn);background:var(--warn-soft)}.gbox.ag{background:var(--bg)}
 .gbox .tools .inp{flex:1 1 200px}
 .result.info{background:var(--info-soft);color:var(--info)}
 .gtl{display:flex;flex-direction:column;gap:6px}
@@ -538,6 +538,68 @@ details summary{cursor:pointer;font-weight:600}
 .bok{font-size:12.5px;color:var(--brand-ink);font-weight:600}
 @media(max-width:600px){.prevt .stk{position:static;box-shadow:none}}
 .relup{position:relative;cursor:pointer;justify-content:center;text-align:center}
+/* ---------- 10/10 ---------- */
+.kchat{display:inline-flex;align-items:center;gap:4px;flex:none;height:24px;padding:0 9px;border-radius:999px;background:var(--info-soft);color:var(--info);font:700 12px/24px Barlow,sans-serif;white-space:nowrap;cursor:pointer;border:1px solid transparent}
+.kchat:hover,.kchat:focus-visible{border-color:var(--info);outline:none}
+.kchat.nova{background:var(--bad);color:#fff}
+.row .tools .kchat{margin-left:auto}
+.gkgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.gkgrid .panel{margin:0;min-width:0}.gkgrid .gkwide{grid-column:1/-1}
+.gkbar{display:flex;align-items:center;gap:8px}.gkbar i{display:block;height:10px;border-radius:5px;background:var(--brand);min-width:4px}.gkbar b{font-variant-numeric:tabular-nums}
+.gktec td{vertical-align:middle}
+@media(max-width:1000px){.gkgrid{grid-template-columns:1fr}}
+.eqs{margin-bottom:14px;display:flex;flex-direction:column;gap:8px}.eqs .lsub{display:flex;align-items:center;gap:8px}
+.eqc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.eqc.on{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.eqh{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.eqh b{font-size:16px}
+.eqc small{color:var(--muted);font-size:13px}.eqt{font-size:14px}.eqc .bigbtn,.eqc .btn{margin-top:6px}
+.kpis.gk4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:700px){.kpis.gk4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* conversa da gestão do GTD */
+:root{--sala-l:32%;--sala-av:90%;--sala-wall:#EAEFE6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sala-l:74%;--sala-av:26%;--sala-wall:#161C17}}
+:root[data-theme="dark"]{--sala-l:74%;--sala-av:26%;--sala-wall:#161C17}
+.salabtn{position:relative;display:inline-flex;align-items:center;gap:6px}
+.salabtn.nova{border-color:var(--brand);color:var(--brand-ink);background:var(--brand-soft)}
+.salan{background:var(--bad);color:#fff;border-radius:99px;font-size:12px;font-weight:700;min-width:20px;height:20px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;margin-left:2px}
+.salav{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;max-width:1320px;margin:0 auto;height:calc(100vh - 96px);min-height:520px}
+.salam{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.salah{display:flex;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--surface)}
+.salah>div{display:flex;flex-direction:column;min-width:0}.salah small{font-size:12.5px}.salah .btn{flex:none}
+.salaico{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-ink)}
+.salal{flex:1;min-height:0;max-height:none;background:var(--sala-wall);padding:14px 16px;gap:3px}
+.salal .lado{gap:8px;align-items:flex-end;margin-top:8px}.salal .lado.cont{margin-top:0}
+.salal .msg{max-width:72%;box-shadow:0 1px 1px rgba(0,0,0,.06);position:relative;padding-bottom:18px;min-width:120px}
+.salal .lado.cont .msg{border-radius:12px}
+.salaav{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 12px Barlow,sans-serif;background:hsl(var(--h) 45% var(--sala-av));color:hsl(var(--h) 60% var(--sala-l))}
+.salaav.vazio{background:none}
+.salanome{display:block;color:hsl(var(--h) 60% var(--sala-l))!important}.salanome b{font-weight:700}
+.salahr{position:absolute;right:9px;bottom:4px;font-size:11px!important}
+.saladia{display:flex;justify-content:center;margin:12px 0 4px;position:sticky;top:0;z-index:1}
+.saladia span{background:var(--surface);border:1px solid var(--line);color:var(--muted);font-size:12px;font-weight:600;padding:3px 10px;border-radius:8px}
+.salavz{margin:auto;max-width:420px;text-align:center;display:flex;flex-direction:column;gap:6px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+.salavz>b{color:var(--ink)}
+.salaref{display:flex;flex-direction:column;gap:3px;text-align:left;width:100%;margin:6px 0 2px;padding:7px 9px;border:0;border-left:3px solid var(--brand);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.salaref:hover{background:var(--brand-soft)}.salaref:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.salaref.off{cursor:default;color:var(--muted)}
+.salarefh{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.salarefh .chip{font-size:11px;padding:1px 7px}
+.salarefc{color:var(--muted)}
+.salac{position:static;padding:10px 14px;border-top:1px solid var(--line);background:var(--surface)}
+.salac .tools{flex-wrap:wrap}.salasel{max-width:260px;flex:1 1 180px}
+.salacit{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--brand-soft);color:var(--brand-ink);border-left:3px solid var(--brand);border-radius:8px;padding:6px 8px;font-size:13.5px}
+.salaside{display:flex;flex-direction:column;gap:8px;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.salaside .secth{display:flex;justify-content:space-between;align-items:center}.salaside h3{margin:0}.salares{margin:0;font-size:13px}
+.salalst{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.salaitem{display:flex;gap:6px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:8px}
+.salaitem[hidden]{display:none}
+.salaabre{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;border:0;background:none;color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer;padding:0}
+.salaabre:focus-visible{outline:2px solid var(--brand);outline-offset:2px}.salaabre .chip{font-size:11px;padding:1px 7px}
+@media(max-width:1000px){.salav{grid-template-columns:1fr;height:calc(100vh - 130px)}.salaside{display:none}.salal .msg{max-width:86%}}
+@media(max-width:600px){.salah small{display:none}.salal{padding:10px 8px}.salav{height:calc(100vh - 120px)}}
+.salaref .chip,.salaabre .chip,.salarefh .chip{margin:0;display:inline-flex;align-self:flex-start}
+.saladia{pointer-events:none}
+.eqh .chip{margin:0;flex:none;white-space:nowrap}
+.chip.info{margin:0}
 </style>
 </head>
 <body>
@@ -589,7 +651,7 @@ details summary{cursor:pointer;font-weight:600}
 const FASES=[{k:'rua',n:'Lançamento na rua',p:'dRua'},{k:'interno',n:'Lançamento interno',p:'dInterno'},{k:'ext',n:'Extensão de sinal',p:'dExt'},{k:'ativ',n:'Ativação',p:'dAtiv'}];
 /* outras atividades: agendadas como as fases, mas não contam como fase do projeto (não liberam nem finalizam etapas) */
 const EXTRAS=[{k:'vist',n:'Vistoria de lançamento'},{k:'vlink',n:'Validação de link'},{k:'equip',n:'Entrega de equipamento'},{k:'integ',n:'Integração'}],ALLF=FASES.concat(EXTRAS),isExtra=k=>EXTRAS.some(x=>x.k===k);
-const TOPO=['GPON','Ponto a ponto','Last mile','Voz','Firewall'];
+const TOPO=['GPON','Ponto a ponto','Last mile','Voz','Firewall','FWA'];
 const TEC=[];
 const MAT=[['INS000095','CABO ÓPTICO DROP SM - 01FO'],['INS000995','CABO OPTICO DROP FIG8 4FO'],['INS000044','PLAQUETA DE IDENTIFICAÇÃO DE FO - NETTURBO'],['ATN000500','ONU DM986-416 AX27'],['ATN000259','ONU DM 986-100'],['INS000192','EXTENSÃO ÓPTICA SC-APC 1,25m'],['INS000138','TERMINADOR ÓPTICO 02 FIBRAS'],['INS000086','PATCH CORD - U/UTP CAT.5E. - 1,5M'],['INS000017','BANDEJA PARA RACK'],['INS000494','PORCA GAIOLA PARA RACK'],['INS000346','CORDOALHA DIELÉTRICA'],['INS000002','ABRAÇADEIRA BAP TIPO 3'],['INS000825','SUPORTE PARA BAP'],['INS000967','MINI CAIXA DE EMENDA ÓPTICA 48FO - VERDE']];
 const matDesc=c=>(MAT.find(m=>m[0]===c)||[c,c])[1];
@@ -772,7 +834,7 @@ const PERM_T=[
     ['p_fin','Financeiro','t',[['f_budget','Budget e ROI','t',[['a_budget','Definir o budget do mês','a']]],['f_det','Detalhamento das LPUs','t'],['f_aprov','Aprovação de LPU','t',[['a_aprovar','Aprovar, reprovar e devolver LPUs','a']]]]]]]]],
   ['Operação',[['painelDia','Painel do dia','t'],['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar e editar atividades','a'],['a_anexos','Enviar e apagar anexos','a']]],['relat','Relatórios','t']]],
   ['Estoque',[['estoque','Estoque dos técnicos','t'],['estAtual','Atualizar estoque','t',[['a_bolsao','Publicar planilha do bolsão (SAP)','a'],['a_elleven','Importar movimentações do Elleven','a'],['a_base','Saldo base e data-base do Elleven','a']]],['estHist','Movimentações','t']]],
-  ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['sim','Simulação de entrega','t'],['kanban','Backlog de projetos','t']]],
+  ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['kanban','Backlog de projetos','t']]],
   ['GTD Manutenção',[['gPainel','Painel de KPIs do GTD','t',[['g_tempos','Tempos de atendimento do GTD','t',[['a_gExpurgo','Expurgar tempos dos chamados','a']]],['g_fin','Financeiro do GTD','t',[['gf_budget','Budget e consumo da manutenção (definir o budget usa a mesma permissão da Implantação)','t'],['gf_det','Detalhamento das LPUs do GTD','t'],['gAprov','Aprovação de LPU do GTD','t',[['a_gAprovar','Aprovar, reprovar e devolver LPUs do GTD','a']]]]]]],['gCham','Chamados (Kanban)','t',[['a_gDespachar','Despachar chamados para o técnico','a'],['a_gEditar','Agendar, editar e cancelar chamados','a'],['a_gValidar','Acesso NOC: validar chamados','a']]],['gAgenda','Agenda do GTD','t'],['gNovo','Criar chamado','t'],['gRel','Relatórios do GTD (histórico por cliente)','t']]]];
 const PERM_ALL=(()=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));return o})();
 const _sem=l=>PERM_ALL.filter(k=>!l.includes(k));
@@ -781,12 +843,12 @@ const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto','
   supply:['estAtual','a_bolsao'],delivery:['painelDia','agenda']};
 const permDe=(papel,perm)=>Array.isArray(perm)?perm:(PERM_PAD[papel]||[]);
 const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc','func'].includes(ui.perfil))return false;if(ui.perfil==='noc')return NOC_PERM.includes(k);if(ui.perfil==='deliv'&&GTD_KEYS.includes(k))return false;return permDe(ME.papel,ME.perm).includes(k)};
-const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel'];
-const tabsDe=()=>['coord','clt','terc','func','visu','noc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs:G_TABS.filter(pode);
+const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel'];
+const tabsDe=()=>['coord','clt','terc','func','visu','noc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs.filter(t=>t!=='equipe'||(S.equipe||[]).length):G_TABS.filter(pode);
 const PSEC_K={geral:'p_geral',entregas:'p_entregas',rede:'p_rede',exec:'p_exec',tempos:'p_tempos',equipes:'p_equipes',fin:'p_fin'},FSUB_K={budget:'f_budget',det:'f_det',aprov:'f_aprov'};
 const secsOk=()=>PSEC.filter(([k])=>pode(PSEC_K[k])),subsOk=()=>FSUB.filter(([k])=>pode(FSUB_K[k]));
 const semPerm=()=>{toast('Seu usuário não tem permissão para esta ação. Fale com a coordenação.','bad');return true};
-const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban','campo','usuarios','painelDia','gPainel','gCham','gAgenda','gNovo','gRel']},noc:{n:'NOC',tabs:['gCham','gAgenda','gNovo','gRel']},deliv:{n:'Delivery'},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','sim','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','sim','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']},visu:{n:'Visualização',tabs:['painelDia']},func:{n:'Funcionário de terceiro',tabs:['campo','meuEst','meuHist']}};
+const PERFIS={coord:{n:'Coordenador',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','kanban','campo','usuarios','painelDia','gPainel','gCham','gAgenda','gNovo','gRel']},noc:{n:'NOC',tabs:['gCham','gAgenda','gNovo','gRel']},deliv:{n:'Delivery'},sup:{n:'Supervisor',tabs:['painel','agenda','relat','estoque','estAtual','estHist','base','prev','kanban']},enc:{n:'Encarregado',tabs:['agenda','relat','estoque','estHist','base','prev','kanban']},clt:{n:'Técnico CLT',tabs:['campo','meuEst','meuHist']},terc:{n:'Técnico terceiro',tabs:['campo','equipe','meuEst','meuHist','minhas']},supply:{n:'Supply Chain',tabs:['estAtual']},visu:{n:'Visualização',tabs:['painelDia']},func:{n:'Funcionário de terceiro',tabs:['campo','meuEst','meuHist']}};
 const ST={agendada:['Agendada',''],deslocamento:['Em deslocamento','info'],no_local:['No local','info'],execucao:['Em execução','info'],relatorios:['Relatórios pendentes','warn'],lpu:['LPU pendente','warn'],concluida:['Concluída','ok'],nao_concluida:['Não concluída','bad'],cancelada:['Cancelada','']};
 const LST={conferencia:['Em conferência no prestador','info'],aguardando:['Aguardando aprovação','warn'],aprovada:['Aprovada','ok'],reprovada:['Reprovada','bad'],ajuste:['Devolvida para ajuste','info']};
 const FIM=['concluida','nao_concluida'];
@@ -816,7 +878,7 @@ const faseN=k=>(ALLF.find(f=>f.k===k)||{n:k}).n;
 const tecN=id=>(TEC.find(t=>t.id===id)||(S.tecExt&&S.tecExt[id]?{nome:S.tecExt[id]}:null)||{nome:'—'}).nome;
 const tecT=id=>(TEC.find(t=>t.id===id)||{}).tipo;
 const cliN=e=>(S.previsao.find(p=>p.etiqueta===e)||{cliente:''}).cliente;
-const chip=(st)=>{const x=ST[st]||[st,''];return `<span class="chip ${x[1]}">${x[0]}</span>`};
+const chip=(st)=>{if(st==='lpu'&&ui.perfil==='func')return '<span class="chip">Com o administrador</span>';const x=ST[st]||[st,''];return `<span class="chip ${x[1]}">${x[0]}</span>`};
 const aprovPor=l=>{if(!l||l.status!=='aprovada')return '';const h=(l.hist||[]).slice().reverse().find(x=>/^Aprovada/.test(x.acao));return h?`Aprovada por ${esc(h.por||'')} em ${dtBR(h.em)}`:''};
 const lchip=(st)=>{const x=LST[st]||[st,''];return `<span class="chip ${x[1]}">${x[0]}</span>`};
 const itemOf=c=>LPU.find(i=>i.cod===c)||LPU[0];
@@ -838,7 +900,7 @@ const pPor=e=>S.previsao.find(x=>x.etiqueta===e)||{};
 //  * Firewall: nenhuma (ativa direto)
 //  * Last mile: só as fases com dias previstos na base (todas zeradas = ativa direto)
 //  * Demais topologias: rua, interno e extensão (extensão sai quando não há extensão de sinal)
-const fasesReq=p=>{const t=normK(p.topologia||'');if(t==='firewall')return [];const base=FASES.filter(f=>f.k!=='ativ'&&!(f.k==='ext'&&p.semExt)&&!(f.k==='rua'&&p.semRua));return t==='last mile'?base.filter(f=>(+p[f.p]||0)>0):base};
+const fasesReq=p=>{const t=normK(p.topologia||'');if(t==='firewall'||t==='fwa')return [];const base=FASES.filter(f=>f.k!=='ativ'&&!(f.k==='ext'&&p.semExt)&&!(f.k==='rua'&&p.semRua));return t==='last mile'?base.filter(f=>(+p[f.p]||0)>0):base};
 const fasesProj=p=>FASES.filter(f=>f.k==='ativ'||fasesReq(p).some(x=>x.k===f.k));
 const naoAplica=(p,k)=>k!=='ativ'&&!fasesReq(p).some(x=>x.k===k);
 const liberado=p=>!faseFim(p.etiqueta,'ativ')&&fasesReq(p).every(f=>faseFim(p.etiqueta,f.k));
@@ -860,7 +922,7 @@ function progLabel(e){const p=pPor(e);if(faseFim(e,'ativ'))return '<span class="
   const falta=fasesProj(p).filter(f=>!faseFim(e,f.k)).map(f=>FSTATUS[f.k]);
   return `<span class="chip ${falta.length===1&&liberado(p)?'go':'warn'}" style="white-space:normal">Falta${falta.length>1?'m':''}: ${falta.join(', ')}</span>`}
 function nextFase(e){const p=pPor(e);const f=fasesProj(p).find(f=>!faseFim(e,f.k));return f?f.k:'ativ'}
-const tabLabel=t=>({gPainel:'Painel de KPIs',gCham:'Chamados',gAgenda:'Agenda',gNovo:'Criar chamado',gRel:'Relatórios',gAprov:'Aprovação de LPU',painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',painelDia:'Painel do dia',estoque:'Estoque dos técnicos',estAtual:'Atualizar estoque',estHist:'Movimentações',meuEst:'Meu estoque',meuHist:'Meu histórico',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira'})[t];
+const tabLabel=t=>({gPainel:'Painel de KPIs',gCham:'Chamados',gAgenda:'Agenda',gNovo:'Criar chamado',gRel:'Relatórios',gAprov:'Aprovação de LPU',painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',painelDia:'Painel do dia',estoque:'Estoque dos técnicos',estAtual:'Atualizar estoque',estHist:'Movimentações',meuEst:'Meu estoque',meuHist:'Meu histórico',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira',equipe:'Minha equipe'})[t];
 
 const _sv=(d,w)=>`<svg width="${w||19}" height="${w||19}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w?2.2:1.9}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICN={'Acompanhamento':_sv('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>'),'Operação':_sv('<path d="M8 2v4M16 2v4M3 9h18"/><rect x="3" y="4" width="18" height="18" rx="2"/>'),'Projetos':_sv('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
@@ -873,7 +935,7 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span>${['supply','visu'].includes(ui.perfil)?'':'<button class="wic sino" data-act="avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','painel','agenda','painelDia','relat','estoque','estAtual','estHist','base','prev','sim','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo'};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','painel','agenda','painelDia','relat','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo',equipe:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -891,7 +953,7 @@ function render(){
   if(cats.length>1)h=`<div class="catsw" role="group" aria-label="Categoria"><button data-act="gCat" data-v="impl" aria-pressed="${ui.cat==='impl'}">Implantação</button><button data-act="gCat" data-v="gtd" aria-pressed="${ui.cat==='gtd'}">GTD Manutenção</button></div>`+h;else if(ui.cat==='gtd')h='<div class="catlbl">GTD Manutenção</div>'+h;
   $('tabs').innerHTML=h;$('mTitle').textContent=ui.chat?'Mensagens':(tabLabel(ui.tab)||'Ferramenta de Gestão O&M');
   const mb=document.querySelector('.mbar .sino');if(mb)mb.hidden=['supply','visu'].includes(ui.perfil);
-  $('app').innerHTML=pushBanner()+(ui.chat?viewChat():({gPainel:viewGPainel,gCham:viewGCham,gAgenda:viewGAgenda,gNovo:viewGNovo,gRel:viewGRel,gAprov:viewGAprov,painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,painelDia:viewPainelDia,semAcesso:()=>'<div class="toolbar"><div><h2>Nenhuma tela liberada</h2><p class="muted">Seu acesso à agenda está ativo, mas a coordenação ainda não liberou nenhuma tela para o seu usuário.</p></div></div>',usuarios:viewUsuarios,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas})[ui.tab]());gSinoAtualizar();
+  $('app').innerHTML=pushBanner()+(ui.chat?viewChat():({gPainel:viewGPainel,gCham:viewGCham,gAgenda:viewGAgenda,gNovo:viewGNovo,gRel:viewGRel,gAprov:viewGAprov,painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,painelDia:viewPainelDia,semAcesso:()=>'<div class="toolbar"><div><h2>Nenhuma tela liberada</h2><p class="muted">Seu acesso à agenda está ativo, mas a coordenação ainda não liberou nenhuma tela para o seu usuário.</p></div></div>',usuarios:viewUsuarios,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas,equipe:viewEquipe})[ui.tab]());gSinoAtualizar();
   if(ui.chat)return;
   if(ui.tab==='agenda')renderSug();
   if(ui.lpuTela){if(ui.lpuP===3&&$('sgPad')){ui.sgDraw=false;iniciarPad()}if((ui.lpuP||1)===1)lpuFiltro2()}
@@ -962,7 +1024,7 @@ function pBase(){const T=hoje(),inP=a=>a.data>=ui.pIni&&a.data<=ui.pFim,all=S.ag
 function pGeral(){const b=pBase();
   const dias=[];for(let d=ui.pIni;d<=ui.pFim&&dias.length<62;d=addD(d,1))dias.push(d);
   const porDia=dias.map(d=>({d,n:S.ags.filter(a=>a.data===d&&a.status!=='cancelada').length,c:S.ags.filter(a=>a.data===d&&a.status==='concluida').length}));const mxD=Math.max(1,...porDia.map(x=>x.n));
-  return `<div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${kp(S.semValor?'—':brl(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(pct(b.dentro.length,b.conc.length)+'%','Concluídas dentro da previsão')}${kp(f1(b.mTot),'Dias de execução por circuito')}${kp(b.atras.length,'Atividades em atraso','warn')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
+  return `<div class="kpis">${kp(b.ags.length,'Atividades agendadas')}${kp(b.ent.length,'Circuitos entregues','ok')}${kp(S.semValor?'—':brl(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(pct(b.dentro.length,b.conc.length)+'%','Concluídas dentro da previsão')}${kp(f1(b.mTot),'Dias de execução por circuito')}${kp(b.atras.length,'Atividades em atraso','warn')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
   <section class="panel"><div class="secth"><h3>Agendamentos por dia</h3><span class="muted">${porDia.reduce((s,x)=>s+x.n,0)} no período. Verde claro = agendados, verde escuro = concluídos</span></div>
    <div class="dbars">${porDia.map(x=>`<div class="db1 ${x.d===hoje()?'hj':''}" title="${dBR(x.d)}: ${x.n} agendado(s), ${x.c} concluído(s)"><span class="dn">${x.n||''}</span><div class="dbw"><i style="height:${x.n/mxD*100}%"><b style="height:${x.n?x.c/x.n*100:0}%"></b></i></div><small>${dBR(x.d).slice(0,5)}</small><small class="ds">${DSEM[new Date(x.d+'T12:00:00').getDay()]}</small></div>`).join('')}</div></section>`}
 function pEntregas(){const b=pBase();
@@ -976,19 +1038,6 @@ function pEntregas(){const b=pBase();
    <section><div class="secth"><h3>Entregas por ${grpN[ui.pGrp].toLowerCase()}</h3><select class="inp" style="width:auto" data-ch="pGrp">${Object.entries(grpN).map(([k,n])=>`<option value="${k}" ${k===ui.pGrp?'selected':''}>Agrupar por ${n.toLowerCase()}</option>`).join('')}</select></div><div class="tablewrap"><table><thead><tr><th>${grpN[ui.pGrp]}</th><th class="r">Circuitos</th><th class="r">Dias por circuito</th><th class="r">Valor mensal</th></tr></thead><tbody>${grR||'<tr><td colspan="4" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
   </div>
   <section><div class="secth"><h3>Dias de execução e previsto x realizado por circuito</h3><span class="muted">Nas fases: dias realizados / previstos. Fases feitas no mesmo dia contam 1 dia no total.</span></div><div class="tablewrap"><table><thead><tr><th>Circuito</th><th>Entregue em</th><th class="r">Dias (todas)</th><th class="r">Dias (int. + ativ.)</th>${FASES.map(f=>`<th class="r">${f.k==='rua'?'Lanç. rua':f.k==='interno'?'Lanç. interno':f.k==='ext'?'Extensão':'Ativação'}</th>`).join('')}</tr></thead><tbody>${b.efi.map(x=>`<tr><td><b>${esc(x.p.etiqueta)}</b><br><small class="muted">${esc(x.p.cliente)}</small></td><td>${dBR(x.f.data)}</td><td class="r">${x.tot}</td><td class="r">${x.ia}</td>${FASES.map(f=>cel(x.p,f)).join('')}</tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhuma entrega no período. Os projetos em andamento estão em Previsão dos projetos.</td></tr>'}${b.efi.length?`<tr><td colspan="2"><b>Média</b></td><td class="r"><b>${f1(b.mTot)}</b></td><td class="r"><b>${f1(b.mIA)}</b></td><td colspan="4"></td></tr>`:''}</tbody></table></div></section>`}
-function pRede(){const inP=d=>d>=ui.pIni&&d<=ui.pFim,ags=S.ags.filter(a=>inP(a.data)&&a.status!=='cancelada'),L=S.lpus.filter(l=>l.status==='aprovada'&&inP(l.data));
-  const soma=(ls,cods)=>ls.reduce((s,l)=>s+(l.itens||[]).filter(i=>cods.includes(i.cod)).reduce((x,i)=>x+(+i.qtd||0),0),0);
-  const COR=['SEV0009','SEV0010'],REA=['SEV0037'],EXT=['SEV0088'];
-  const cabo=ags.reduce((s,a)=>s+(metrosAg(a)||0),0),n=v=>(+v||0).toLocaleString('pt-BR');
-  const sem=[];for(let d=semanaIni(ui.pIni);d<=ui.pFim&&sem.length<12;d=addD(d,7))sem.push(d);
-  const S2=sem.map(d=>{const f=addD(d,6),x=ags.filter(a=>a.data>=d&&a.data<=f);return{d,f,clt:x.filter(a=>tecT(a.tec)==='CLT').reduce((s,a)=>s+(metrosAg(a)||0),0),ter:x.filter(a=>tecT(a.tec)==='TERC').reduce((s,a)=>s+(metrosAg(a)||0),0)}}),mx=Math.max(1,...S2.map(x=>x.clt+x.ter));
-  const linhas=TEC.map(t=>{const x=ags.filter(a=>a.tec===t.id),lt=L.filter(l=>l.tec===t.id),c=x.reduce((s,a)=>s+(metrosAg(a)||0),0),cl=soma(lt,CABO_LPU);if(!c&&!lt.length)return '';
-    return `<tr><td>${esc(t.nome)}</td><td>${t.tipo==='CLT'?'CLT':'Terceiro'}</td><td class="r">${n(c)} m</td><td class="r" style="${cl!==c&&lt.length?'color:var(--bad);font-weight:600':''}">${lt.length?n(cl)+' m':'—'}</td><td class="r">${n(soma(lt,COR))} m</td><td class="r">${n(soma(lt,REA))}</td><td class="r">${n(soma(lt,EXT))} m</td></tr>`}).join('');
-  return `<div class="kpis">${kp(n(cabo)+' m','Cabo lançado (relatórios)','ok')}${kp(n(soma(L,COR))+' m','Cordoalha lançada (LPUs)')}${kp(n(soma(L,REA)),'Reaberturas e fechamentos de CEO')}${kp(n(soma(L,EXT))+' m','Extensão de fibra')}</div>
-  <section class="panel"><div class="secth"><h3>Cabo lançado por semana</h3><span class="muted">Verde escuro = equipe própria, verde claro = terceiros</span></div>
-   <div class="dbars">${S2.map(x=>`<div class="db1" title="${dBR(x.d)} a ${dBR(x.f)}: ${n(x.clt)} m própria, ${n(x.ter)} m terceiros"><span class="dn">${x.clt+x.ter?n(x.clt+x.ter):''}</span><div class="dbw" style="max-width:70px"><i style="height:${(x.clt+x.ter)/mx*100}%;flex-direction:column;justify-content:flex-end"><b style="height:${x.clt+x.ter?x.clt/(x.clt+x.ter)*100:0}%"></b></i></div><small>${dBR(x.d).slice(0,5)}</small></div>`).join('')}</div></section>
-  <section><div class="secth"><h3>Por técnico ou prestador</h3><span class="muted">Cabo na LPU em vermelho quando diferente do relatório</span></div><div class="tablewrap"><table><thead><tr><th>Técnico ou prestador</th><th>Vínculo</th><th class="r">Cabo lançado (relatório)</th><th class="r">Cabo na LPU</th><th class="r">Cordoalha</th><th class="r">Reaberturas e fechamentos</th><th class="r">Extensão de fibra</th></tr></thead><tbody>${linhas||'<tr><td colspan="7" class="muted">Sem relatórios ou LPUs aprovadas no período.</td></tr>'}</tbody></table></div></section>
-  <p class="muted" style="font-size:13px">Cabo lançado vem dos relatórios fotográficos. Cordoalha, reaberturas e extensão de fibra vêm das LPUs aprovadas, de todos os técnicos. Período pela data da atividade.</p>`}
 function pExec(){const b=pBase(),reag=b.nao.filter(a=>a.reag);
   const comEta=b.ags.filter(a=>a.ts.eta&&a.ts.chegada),noEta=comEta.filter(a=>a.ts.chegada<=a.ts.eta+600000);
   const mot={};b.nao.forEach(a=>{mot[a.motivo]=(mot[a.motivo]||0)+1});const mx=Math.max(1,...Object.values(mot));
@@ -1080,6 +1129,7 @@ function viewBase(){
   const all=S.previsao.filter(p=>!q||[p.protocolo,p.etiqueta,p.cliente,p.topologia,p.cidade].join(' ').toLowerCase().includes(q));
   const inc=all.filter(p=>baseFalta(p).length),rows=F==='inc'?inc:all;
   const cell=(p,c)=>{const[f,l,t]=c,v=p[f]??'',cls=(f==='etiqueta'?'stk ':'')+(['cidade','metros','dRua'].includes(f)?'gs ':'');
+    if(isFWA(p)&&FWA_ZERA.includes(f))return `<td class="ro r na ${cls}" title="FWA: só ativação">N/A</td>`;
     if(p.semExt&&f==='caixas')return `<td class="ro r ${cls}" title="Sem extensão de sinal: direto do splitter">1</td>`;
     if(p.semExt&&f==='dExt')return `<td class="ro r na ${cls}" title="Sem extensão de sinal">N/A</td>`;
     if(p.semRua&&f==='dRua')return `<td class="ro r na ${cls}" title="Sem lançamento na rua: lançamento todo interno">N/A</td>`;
@@ -1366,7 +1416,7 @@ function viewAgenda(){
     if(ui.fTab==='proj')body=`<dl class="dl">${dd('Cliente',esc(p.cliente))}${dd('Protocolo',esc(p.protocolo))}${dd('Etiqueta',esc(p.etiqueta))}${dd('Valor mensal',brl(p.valor))}${dd('Topologia',esc(p.topologia))}${dd('Lançamento',(+p.metros||0)+' m')}${dd('Caixas de emenda',caixasTxt(p))}${dd('Cidade',esc(p.cidade||'—'))}${dd('POP',esc(p.pop||'—'))}${dd('Equipamento de acesso',esc(p.equip||'—'))}${p.inst&&p.inst.porta?dd('Porta',esc(p.inst.porta)):''}${p.inst&&p.inst.pa?dd('Ponto de acesso',esc(p.inst.pa)):''}${p.inst&&p.inst.pd?dd('Ponto de derivação',esc(p.inst.pd)):''}${dd('Lançamento na rua',p.semRua?'Não tem (lançamento todo interno)':'Previsto')}${dd('Extensão de sinal',p.semExt?'Não se aplica':'Prevista')}${dd('Lista de ROI',p.roi?`${esc(p.roi.nome)} (${p.roi.itens.length} itens)`:'Não enviada')}${p.roi&&p.roi.fin?FIN.filter(([k])=>p.roi.fin[k]!==undefined).map(([k,l,m])=>dd(l,m?brl(p.roi.fin[k]):String(p.roi.fin[k]).replace('.',','))).join(''):''}${dd('Status',progLabel(p.etiqueta))}</dl>
       <h3 class="lsub">Fases do projeto</h3>${faseFlags(p,1)}
       <h3 class="lsub">Dias realizados / previstos</h3><div class="phases">${fasesProj(p).map(f=>`<div><span>${f.n}</span><b>${realDias(p.etiqueta,f.k)} / ${+p[f.p]||0}</b></div>`).join('')}</div>`;
-    else if(ui.fTab==='comp')body=`<button class="btn sm" style="margin-bottom:12px" data-act="wiz" data-n="2" data-id="${p.id}">Editar endereço e dados técnicos</button>${usado&&c.endereco?'<p class="note">Dados gravados nesta etiqueta em agendamento anterior. Revise antes de agendar.</p>':''}${fld('endereco','Endereço completo *')}${fld('contato','Contato no local *')}${fld('telefone','Telefone do contato *','tel')}${fld('janela','Horário ou janela de atendimento')}${fld('acesso','Condições de acesso (portaria, autorização, chave)')}${fld('obs','Observações técnicas','area')}`;
+    else if(ui.fTab==='comp')body=`<button class="btn sm" style="margin-bottom:12px" data-act="wiz" data-n="2" data-id="${p.id}">Editar endereço e dados técnicos</button>${usado&&c.endereco?'<p class="note">Dados gravados nesta etiqueta em agendamento anterior. Revise antes de agendar.</p>':''}${fld('endereco','Endereço completo *')}${fld('coord','Coordenada do cliente (latitude, longitude)')}${coordOf(c.coord)?'':(c.coord||'').trim()?'<p class="note" style="margin-top:-6px">Coordenada não reconhecida. Use o formato -23.5505, -46.6333.</p>':''}${fld('contato','Contato no local (obrigatório para lançamento interno e ativação)')}${fld('telefone','Telefone do contato (obrigatório para lançamento interno e ativação)','tel')}${fld('janela','Horário ou janela de atendimento')}${fld('acesso','Condições de acesso (portaria, autorização, chave)')}${fld('obs','Observações técnicas','area')}`;
     else if(ui.fTab==='anx')body=anexosEdit(p);
     else body=agendForm(p);
     ficha=`<div class="ficha"><div class="fhead"><div><b>${esc(p.etiqueta)}</b><span>${esc(p.cliente)}</span></div><button class="icon" data-act="unpick" aria-label="Fechar ficha">✕</button></div>
@@ -1514,7 +1564,7 @@ function tcTopo(a,extra){return `<div class="tchd"><div class="tcl"><span class=
 function andamentoHtml(a){const p=pPor(a.etiqueta),fs=fasesProj(p);
   return `<div class="tcand"><span class="tck2">ANDAMENTO DO CIRCUITO</span><div class="tcbars" style="grid-template-columns:repeat(${fs.length},minmax(0,1fr))">${fs.map(f=>{const ok=!!faseFim(a.etiqueta,f.k),now=!ok&&fasesOf(a).includes(f.k);return `<div><i class="${ok?'ok':now?'now':''}"></i><span class="${ok?'ok':now?'now':''}">${ok?'✓ ':''}${FCURTO[f.k]}</span></div>`}).join('')}</div></div>`}
 function rotaLigar(c){const tel=(c.telefone||'').replace(/\D/g,''),nome=String(c.contato||'').split(/[\s(]/)[0];
-  return `${c.endereco?`<a class="tcbtn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank" rel="noopener">${IC.rota}Rota</a>`:''}${tel?`<a class="tcbtn" href="tel:${tel}">${IC.tel}${nome?'Ligar para '+esc(nome):'Ligar'}</a>`:''}`}
+  return `${rotaUrl(c)?`<a class="tcbtn" href="${esc(rotaUrl(c))}" target="_blank" rel="noopener">${IC.rota}Rota</a>`:''}${tel?`<a class="tcbtn" href="tel:${tel}">${IC.tel}${nome?'Ligar para '+esc(nome):'Ligar'}</a>`:''}`}
 const ANDAM=['deslocamento','no_local','execucao','relatorios','lpu'];
 /* só trava quem está em campo (deslocamento, no local ou em execução); relatório e LPU pendentes não travam a próxima atividade */
 const EM_CAMPO=['deslocamento','no_local','execucao'];
@@ -1560,8 +1610,8 @@ function blocoAcao(a){
         <label class="f" style="margin:0"><span>Explique o que falta *</span><textarea class="inp" id="pzObs" rows="3" placeholder="Ex.: a travessia da avenida precisa de autorização; faltam 180 m"></textarea></label>
         <button class="btn primary wide" data-act="pzEnviar" data-id="${a.id}">Enviar pedido à gestão</button><button class="link" data-act="pzVoltar" data-id="${a.id}">Voltar</button>`}</section>`}
       act=pz+updHtml(a)+go('Concluir atividade')+(proxDia(a)?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (continuo em ${dBR(proxDia(a)).slice(0,5)})</button>`:ph&&ph.status==='pendente'?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (aguardo a gestão)</button>`:'')+nok;break}
-    case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">${a.parcial?'Envie o relatório do que foi feito antes de lançar na LPU.':'Preencha o relatório para encerrar a atividade.'}</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}${relsDe(a).some(r=>r.k==='entrega')&&!a.rel.entrega?`<label class="btn wide relup">Enviar o PDF salvo no celular<input type="file" accept="application/pdf,.pdf" data-ch="relPdfUp" data-id="${a.id}" hidden></label><p class="muted" style="margin:-2px 0 0;font-size:13px">Use se o relatório foi gerado e salvo no celular, mas não chegou à agenda.</p>`:''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${'Enviar relatório e preencher LPU'}</button>`;break}
-    case 'lpu':if(S.lpus.some(x=>x.ag===a.id)){act=`<div class="result ok">A LPU desta atividade já foi enviada.</div><button class="bigbtn" data-act="lpuJaEnviada" data-id="${a.id}">Encerrar a atividade</button>`;break}act=`${a.parcial?`<div class="result warn"><b>Atividade não concluída:</b> ${esc(a.motivo||'')}${a.obsMotivo?'. '+esc(a.obsMotivo):''}<br>Lance na LPU somente o que foi executado nesta visita.</div>`:''}<p class="muted" style="margin:0">Lance os serviços executados nesta visita.</p><button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;break;
+    case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">${a.parcial?'Envie o relatório do que foi feito antes de lançar na LPU.':'Preencha o relatório para encerrar a atividade.'}</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}${relsDe(a).some(r=>r.k==='entrega')&&!a.rel.entrega?`<label class="btn wide relup">Enviar o PDF salvo no celular<input type="file" accept="application/pdf,.pdf" data-ch="relPdfUp" data-id="${a.id}" hidden></label><p class="muted" style="margin:-2px 0 0;font-size:13px">Use se o relatório foi gerado e salvo no celular, mas não chegou à agenda.</p>`:''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${ui.perfil==='func'?'Enviar relatório':'Enviar relatório e preencher LPU'}</button>`;break}
+    case 'lpu':if(ui.perfil==='func'){act=`<div class="result info"><b>Relatórios enviados.</b> A LPU desta atividade é preenchida pelo administrador da sua empresa, que já foi avisado. Para você, a atividade está concluída.</div>`;break}if(S.lpus.some(x=>x.ag===a.id)){act=`<div class="result ok">A LPU desta atividade já foi enviada.</div><button class="bigbtn" data-act="lpuJaEnviada" data-id="${a.id}">Encerrar a atividade</button>`;break}act=`${a.parcial?`<div class="result warn"><b>Atividade não concluída:</b> ${esc(a.motivo||'')}${a.obsMotivo?'. '+esc(a.obsMotivo):''}<br>Lance na LPU somente o que foi executado nesta visita.</div>`:''}<p class="muted" style="margin:0">Lance os serviços executados nesta visita.</p><button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;break;
     case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída em ${dBR(isoD(new Date(t.encerramento||t.conclusao||Date.now())))}.</div>${l?`<div class="result">LPU enviada ${lchip(l.status)}${aprovPor(l)?`<br><small>${aprovPor(l)}</small>`:''}</div><button class="btn wide" data-act="pdfArq" data-id="${l.id}">Abrir PDF da LPU</button>`:['clt','terc','func','coord'].includes(ui.perfil)?`<div class="result bad"><b>A LPU desta atividade não chegou ao sistema.</b> Toque abaixo para preencher e enviar de novo.</div><button class="bigbtn" data-act="lpuRefazer" data-id="${a.id}">Enviar a LPU</button>`:''}`;break}
     case 'nao_concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result bad"><b>Não realizada:</b> ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`<br>Reagendada para ${dBR(a.reag)}.`:a.pendReag?'<br>Aguardando reagendamento pelo encarregado.':''}</div>${l?`<div class="result">LPU do que foi feito enviada ${lchip(l.status)}${aprovPor(l)?`<br><small>${aprovPor(l)}</small>`:''}</div><button class="btn wide" data-act="pdfArq" data-id="${l.id}">Abrir PDF da LPU</button>`:t.chegada?`<button class="btn wide" data-act="lpuParcial" data-id="${a.id}">Fiz parte do serviço: lançar na LPU</button>`:''}`;break}
   }
@@ -1821,7 +1871,7 @@ function instPreview(r){
 }
 
 /* ---------- LISTA DE ROI ---------- */
-const TOPO_RULES=[['GPON','ONU',/\bONU\b/i],['Ponto a ponto','GBIC',/\bGBIC\b/i],['Firewall','Fortinet/Fortigate',/\bf[o0]r?t[iy]?\s*-?\s*(net|gate)/i],['Voz','Telefone',/telefon/i]];
+const TOPO_RULES=[['FWA','FWA',/\bFWA\b/i],['GPON','ONU',/\bONU\b/i],['Ponto a ponto','GBIC',/\bGBIC\b/i],['Firewall','Fortinet/Fortigate',/\bf[o0]r?t[iy]?\s*-?\s*(net|gate)/i],['Voz','Telefone',/telefon/i]];
 const RB_RE=/\bRB[\s\-]?\d|\bRB\b|routerboard/;
 const CABO_RE=/\bcabo\b|\bdrop\b/i,CABO_EXC=/patch|\butp\b|cat\.?\s?\d|\brede\b|energia|for[cç]a|cord[aã]o|manobra|hdmi|usb|aterramento|el[eé]tric/i;
 const caixasTxt=p=>p.semExt?'1 (direto do splitter)':String(+p.caixas||0);
@@ -1902,7 +1952,7 @@ function roiPreview(r,target){
 }
 
 /* ---------- CADASTRO EM ETAPAS ---------- */
-function wizFrom(p){const i=(p&&p.inst)||{};return{e:{cep:i.cep||'',logradouro:i.logradouro||'',numero:i.numero||'',bairro:i.bairro||'',cidade:(p&&p.cidade)||'',uf:i.uf||''},t:{pop:(p&&p.pop)||'',equip:(p&&p.equip)||'',porta:i.porta||'',pa:i.pa||'',locPa:i.locPa||'',pd:i.pd||'',locPd:i.locPd||'',notas:(i.notas||[]).join('. '),semRua:p&&p.semRua?'1':''}}}
+function wizFrom(p){const i=(p&&p.inst)||{};return{e:{cep:i.cep||'',logradouro:i.logradouro||'',numero:i.numero||'',bairro:i.bairro||'',cidade:(p&&p.cidade)||'',uf:i.uf||'',coord:(p&&(S.comp[p.etiqueta]||{}).coord)||''},t:{pop:(p&&p.pop)||'',equip:(p&&p.equip)||'',porta:i.porta||'',pa:i.pa||'',locPa:i.locPa||'',pd:i.pd||'',locPd:i.locPd||'',notas:(i.notas||[]).join('. '),semRua:p&&p.semRua?'1':''}}}
 function wizOpen(id,step){const p=id?S.previsao.find(x=>x.id===id):null;
   ui.roiTmp=p?Object.assign({nome:p.roi?p.roi.nome:'',itens:p.roi?p.roi.itens:[],achados:p.roi?p.roi.achados||[]:[],cabos:[],protocolo:p.protocolo,etiqueta:p.etiqueta,cliente:p.cliente,valor:p.valor,topologia:p.topologia,metros:p.metros},(p.roi&&p.roi.fin)||{}):null;
   ui.roiTarget=id||'';ui.wiz=Object.assign({step:step||1,id:id||''},wizFrom(p));renderWiz()}
@@ -1915,7 +1965,7 @@ function renderWiz(){
   if(W.step===1){body=`<p class="muted">Envie o PDF do ROI${p?' para atualizar os dados, ou apenas confira os atuais':''}.</p><label class="f" style="margin-top:12px"><span>PDF do ROI</span><input type="file" class="inp" accept=".pdf,application/pdf" data-ch="roiPdf"></label>
     <details class="roi" style="margin-bottom:8px"><summary>O PDF não tem texto selecionável? Cole o conteúdo</summary><textarea id="roiTxt" class="inp" rows="5" data-in="roiTxt" style="font-size:14px;margin-top:8px"></textarea></details><div id="roiPrev">${ui.roiTmp?roiPreview(ui.roiTmp,ui.roiTarget):''}</div>`;
     foot=`<button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="wizGo" data-n="2">Avançar</button>`}
-  else if(W.step===2){body=paste('Colar bloco de endereço')+`<div class="grid2 even" style="gap:0 12px">${fl('e','cep','CEP')}${fl('e','logradouro','Logradouro')}${fl('e','numero','Número')}${fl('e','bairro','Bairro')}${fl('e','cidade','Cidade')}${fl('e','uf','Estado (UF)')}</div>`;
+  else if(W.step===2){body=paste('Colar bloco de endereço')+`<div class="grid2 even" style="gap:0 12px">${fl('e','cep','CEP')}${fl('e','logradouro','Logradouro')}${fl('e','numero','Número')}${fl('e','bairro','Bairro')}${fl('e','cidade','Cidade')}${fl('e','uf','Estado (UF)')}</div>${fl('e','coord','Coordenada do cliente (latitude, longitude)')}<p class="muted" style="margin:-6px 0 0;font-size:13px">Ex.: -23.5505, -46.6333 ou o link do Google Maps. O celular do técnico usa a coordenada para traçar a rota até o cliente.</p>`;
     foot=`<button class="btn" data-act="wizGo" data-n="1">Voltar</button><button class="btn primary" data-act="wizGo" data-n="3">Avançar</button>`}
   else{body=paste('Colar bloco de dados do projeto')+`<div class="grid2 even" style="gap:0 12px">${fl('t','pop','POP')}${fl('t','equip','Equipamento de acesso')}${fl('t','porta','Porta')}<span></span>${fl('t','pa','Ponto de acesso')}${fl('t','locPa','Localização do ponto de acesso')}${fl('t','pd','Ponto de derivação na rede externa')}${fl('t','locPd','Localização do ponto de derivação')}</div><label class="f"><span>Lançamento na rua</span><select class="inp" id="wzRua" data-in="wz" data-s="t" data-f="semRua"><option value="" ${!W.t.semRua?'selected':''}>Tem lançamento na rua</option><option value="1" ${W.t.semRua?'selected':''}>Não tem: lançamento todo interno (galpão, condomínio, prédio)</option></select></label>${fl('t','notas','Observações técnicas',1)}<div id="wzExt">${extNote(W.t)}</div>`;
     foot=`<button class="btn" data-act="wizGo" data-n="2">Voltar</button><button class="btn primary" data-act="wizSave">Salvar projeto</button>`}
@@ -2112,13 +2162,13 @@ const ACT={
   wizSave:()=>{const W=ui.wiz,r=ui.roiTmp,etq=r.etiqueta;let p=W.id?S.previsao.find(x=>x.id===W.id):null;const novo=!p;
     if(novo){p={id:uid(),protocolo:'',etiqueta:'',cliente:'',valor:0,topologia:'GPON',metros:0,caixas:0,dRua:0,dInterno:0,dExt:0,dAtiv:0};S.previsao.unshift(p)}
     const old=p.etiqueta;if(old&&old!==etq){if(S.comp[old]){S.comp[etq]=S.comp[old];delete S.comp[old]}S.ags.forEach(a=>{if(a.etiqueta===old)a.etiqueta=etq});S.lpus.forEach(l=>{if(l.etiqueta===old)l.etiqueta=etq})}
-    Object.assign(p,{protocolo:r.protocolo,etiqueta:etq,cliente:r.cliente,valor:r.valor,topologia:r.topologia,metros:r.metros});
+    Object.assign(p,{protocolo:r.protocolo,etiqueta:etq,cliente:r.cliente,valor:r.valor,topologia:r.topologia,metros:r.metros});fwaAjusta(p);
     if(r.nome)p.roi={nome:r.nome,itens:r.itens,achados:r.achados,fin:Object.fromEntries(FIN.filter(([k])=>r[k]!==undefined&&r[k]!=='').map(([k])=>[k,r[k]]))};
     const e=W.e,t=W.t;p.cidade=e.cidade.trim();p.pop=t.pop.trim();p.equip=t.equip.trim();
     p.inst={cep:e.cep,logradouro:e.logradouro,numero:e.numero,bairro:e.bairro,uf:e.uf,porta:t.porta,pa:t.pa,locPa:t.locPa,pd:t.pd,locPd:t.locPd,notas:t.notas?[t.notas]:[]};
     const se=semExtOf(t);if(se!==null){p.semExt=se;if(se){p.dExt=0;p.caixas=1}}
     p.semRua=!!t.semRua;if(p.semRua)p.dRua=0;
-    const end=buildEnd(e),c=S.comp[etq]=S.comp[etq]||{};if(end)c.endereco=end;if(t.notas&&!(c.obs||'').includes(t.notas))c.obs=[c.obs,t.notas].filter(Boolean).join('. ');
+    const end=buildEnd(e),c=S.comp[etq]=S.comp[etq]||{};if(end)c.endereco=end;if((e.coord||'').trim()){const k=coordOf(e.coord);if(!k){toast('Coordenada não reconhecida. Use o formato -23.5505, -46.6333.','bad');return}c.coord=k[0]+', '+k[1]}else if(e.coord==='')delete c.coord;if(t.notas&&!(c.obs||'').includes(t.notas))c.obs=[c.obs,t.notas].filter(Boolean).join('. ');
     ui.baseQ='';save();closeModal();render();toast(novo?`Projeto ${etq} incluído. Complete a previsão de dias por fase.`:`Cadastro de ${etq} atualizado.`)},
   roi:el=>{const id=el.dataset.id||'',p=id&&S.previsao.find(x=>x.id===id);ui.roiTmp=null;ui.roiTarget=id;
     openModal(`<h3>${p?'Atualizar ROI de '+esc(p.etiqueta||'projeto sem etiqueta'):'Novo projeto pelo ROI'}</h3><p class="muted">Envie o PDF do ROI. Os dados são lidos e você confere antes de ${p?'atualizar':'criar'} o projeto.</p>
@@ -2155,7 +2205,7 @@ const ACT={
   unpick:()=>{ui.agSel=null;render()},
   fTab:el=>{ui.fTab=el.dataset.t;render()},
   dia:el=>{const n=+el.dataset.n;if(ui.agView==='semana')ui.agDia=addD(ui.agDia,7*n);else if(ui.agView==='mes'){const d=new Date(ui.agDia+'T12:00:00');ui.agDia=isoD(new Date(d.getFullYear(),d.getMonth()+n,1))}else ui.agDia=addD(ui.agDia,n);render()},
-  agendar:()=>{if(!pode('a_agendar')&&semPerm())return;const F=ui.agForm,c=S.comp[ui.agSel]||{},falta=[];if(!(c.endereco||'').trim())falta.push('endereço');if(!(c.contato||'').trim())falta.push('contato');if(!(c.telefone||'').trim())falta.push('telefone');
+  agendar:()=>{if(!pode('a_agendar')&&semPerm())return;const F=ui.agForm,c=S.comp[ui.agSel]||{},falta=[];if(!(c.endereco||'').trim())falta.push('endereço');const precisaCont=(F.fases||[]).some(k=>k==='interno'||k==='ativ');if(precisaCont&&!(c.contato||'').trim())falta.push('contato');if(precisaCont&&!(c.telefone||'').trim())falta.push('telefone');
     if(falta.length){ui.fTab='comp';render();toast('Preencha '+falta.join(', ')+' em Dados complementares para agendar.','bad');return}
     if(!F.fases||!F.fases.length){toast('Selecione ao menos uma fase ou atividade.','bad');return}if(!F.data){toast('Informe a data.','bad');return}if(!F.tec){toast('Selecione o técnico.','bad');return}
     const dias=diasRange(F.data,F.dataFim,F.uteis);if(!dias.length){toast('O intervalo escolhido não tem dias válidos.','bad');return}
@@ -2189,7 +2239,7 @@ const ACT={
   confVoltar:()=>{const g=ui.sign;closeModal();if(g.tipo==='ajuste')openAjuste(g.id)},
   sgOk:async()=>{const g=ui.sign,nome=$('sgNome').value.trim();if(!nome){toast('Informe o nome do responsável.','bad');return}if(!ui.sgDraw){toast('Faça a assinatura no quadro.','bad');return}if($('sgDecl')&&!$('sgDecl').checked){toast('Marque a declaração para enviar.','bad');return}
     const ass={img:$('sgPad').toDataURL('image/png'),nome,em:Date.now()},itens=draftItens(g.key),d=lpuDraft(g.key),total=itens.reduce((s,i)=>s+i.unit*i.qtd,0);
-    if(g.tipo==='novo'){const a=getAg(g.id);closeModal();toast('Gerando o PDF da LPU…');const emp=ui.perfil==='func'&&ME.empresa?ME.empresa:null;const nl={id:uid(),obs:(d.obs||'').trim()||undefined,conta:d.conta,ag:a.id,etiqueta:a.etiqueta,fases:fasesOf(a),data:a.data,tec:a.tec,tecNome:tecN(a.tec),cliente:cliN(a.etiqueta),prestador:emp||undefined,itens,total,status:emp?'conferencia':'aguardando',assinatura:ass,hist:[{acao:a.parcial?'Enviada e assinada (atividade não concluída)':'Enviada e assinada',por:nome,em:Date.now()}]};if(a.parcial)nl.parcial={motivo:a.motivo||'',obs:a.obsMotivo||''};await subirPdfLpu(nl);if(!(await lpuGravar(nl)))return;if(a.parcial)a.status='nao_concluida';else encerrar(a);S.lpus.push(nl);delete ui.draft[g.key];ui.lpuTela=null;ui.lpuP=1;save();await flushSync();render();window.scrollTo(0,0);toast(emp?'LPU assinada e enviada para a conferência do administrador da sua empresa.':'LPU assinada e enviada para aprovação da supervisão.')}
+    if(g.tipo==='novo'){const a=getAg(g.id);closeModal();toast('Gerando o PDF da LPU…');const emp=ui.perfil==='func'&&ME.empresa?ME.empresa:null;const nl={id:uid(),obs:(d.obs||'').trim()||undefined,conta:d.conta,ag:a.id,etiqueta:a.etiqueta,fases:fasesOf(a),data:a.data,tec:a.tec,tecNome:tecN(a.tec),cliente:cliN(a.etiqueta),prestador:emp||(ui.perfil==='terc'&&a.tec!==ME.id?ME.id:undefined),itens,total,status:emp?'conferencia':'aguardando',assinatura:ass,hist:[{acao:a.parcial?'Enviada e assinada (atividade não concluída)':'Enviada e assinada',por:nome,em:Date.now()}]};if(a.parcial)nl.parcial={motivo:a.motivo||'',obs:a.obsMotivo||''};await subirPdfLpu(nl);if(!(await lpuGravar(nl)))return;if(a.parcial)a.status='nao_concluida';else encerrar(a);S.lpus.push(nl);delete ui.draft[g.key];ui.lpuTela=null;ui.lpuP=1;save();await flushSync();render();window.scrollTo(0,0);toast(emp?'LPU assinada e enviada para a conferência do administrador da sua empresa.':'LPU assinada e enviada para aprovação da supervisão.')}
     else{const l=S.lpus.find(x=>x.id===g.id);closeModal();toast('Gerando o PDF da LPU…');const tmp=Object.assign({},l,{conta:d.conta,itens,total,assinatura:ass});await subirPdfLpu(tmp);const conf=l.status==='conferencia';Object.assign(l,{conta:d.conta,itens,total,status:'aguardando',assinatura:ass,pdf_path:tmp.pdf_path||l.pdf_path});l.hist.push({acao:conf?'Corrigida, assinada e enviada pelo prestador':'Reenviada e assinada após ajuste',por:nome,em:Date.now()});delete ui.draft[g.key];save();render();toast('LPU corrigida, assinada e reenviada.')}},
   nao:el=>{const a=getAg(el.dataset.id);openModal(`<h3>Atividade não concluída</h3><p class="muted">${esc(a.etiqueta)}, ${fasesN(a)}</p><label class="f" style="margin-top:12px"><span>Motivo *</span><select id="mMot" class="inp"><option value="">Selecione</option>${MOTIVOS.map(m=>`<option>${m}</option>`).join('')}</select></label><label class="f"><span>Observação</span><textarea id="mObs" class="inp" rows="3" placeholder="O que ficou faltando e o que já foi feito"></textarea></label>${['no_local','execucao'].includes(a.status)?'<label class="chk" style="margin:4px 0 8px;align-items:flex-start"><input type="checkbox" id="mParc" style="margin-top:3px"><span><b>Fiz parte do serviço e quero lançar na LPU</b><small style="display:block;color:var(--muted)">Depois de registrar, você preenche a LPU só com o que foi executado.</small></span></label>':''}<p class="muted" style="font-size:13.5px">O encarregado recebe o aviso e faz o reagendamento.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="naoOk" data-id="${a.id}">Registrar não conclusão</button></div>`)},
   naoOk:el=>{const a=getAg(el.dataset.id),m=$('mMot').value;if(!m){toast('Selecione o motivo.','bad');return}
@@ -2260,7 +2310,7 @@ const CH={
     if(f==='etiqueta'){if(!v){toast('A etiqueta não pode ficar vazia.','bad');el.value=p.etiqueta;return}
       if(S.previsao.some(x=>x.id!==p.id&&x.etiqueta.toLowerCase()===v.toLowerCase())){toast(`Já existe um projeto com a etiqueta ${v}.`,'bad');el.value=p.etiqueta;return}
       const old=p.etiqueta;if(old&&old!==v){if(S.comp[old]){S.comp[v]=S.comp[old];delete S.comp[old]}S.ags.forEach(a=>{if(a.etiqueta===old)a.etiqueta=v});S.lpus.forEach(l=>{if(l.etiqueta===old)l.etiqueta=v})}}
-    p[f]=v;save()},
+    p[f]=v;if(f==='topologia')fwaAjusta(p);save();if(f==='topologia')render()},
   agF:el=>{const F=ui.agForm,k=el.dataset.f;F[k]=el.type==='checkbox'?el.checked:el.value;if(k==='data'&&(!F.dataFim||F.dataFim<F.data))F.dataFim=F.data;render()},
   agDia:el=>{if(el.value){ui.agDia=el.value;render()}},
   agFase:el=>{ui.agFase=el.value;render()},
@@ -2386,6 +2436,7 @@ async function carregar(){
   S.agsExt=[];S.tecExt={};if(!g){try{const r=await sb.rpc('ag_fases_outros_tecnicos');if(r.error)throw r.error;const meus=new Set(S.ags.map(a=>a.id));
     (r.data||[]).filter(x=>!meus.has(x.id)).forEach(x=>{S.agsExt.push({id:x.id,etiqueta:x.etiqueta,tec:x.tecnico,data:x.data,status:x.status,fases:x.fases,fase:(x.fases||[])[0],ts:x.ts||{},fasesFin:Array.isArray(x.fases_fin)?x.fases_fin:[],ext:true});if(x.tecnico_nome)S.tecExt[x.tecnico]=x.tecnico_nome})}
     catch(e){console.warn('fases de outros técnicos (rode o agenda_ajuste_17 no Supabase)',e)}}
+  S.equipe=[];if(ui.perfil==='terc'){try{const r=await sb.rpc('ag_minha_equipe');if(r.error)throw r.error;S.equipe=(r.data||[]).filter(x=>x.ativo!==false).map(x=>({id:x.id,nome:x.nome}));S.equipe.forEach(x=>{S.tecExt[x.id]=x.nome})}catch(e){console.warn('equipe (rode o agenda_ajuste_19 no Supabase)',e)}}
   S.lpus=lp.filter(r=>!r.chamado).map(r=>Object.assign({},r.dados,{id:r.id,ag:r.agendamento,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total,pdf_path:r.pdf_path,prestador:r.prestador||undefined}));
   S.anexos=an.map(r=>({id:r.id,etiqueta:r.etiqueta,tipo:r.tipo,fase:r.fase,nome:r.nome,tam:r.tamanho,em:new Date(r.enviado_em).getTime(),por:'',path:r.path}));
   S.anexosLog=lg.map(r=>({etiqueta:r.etiqueta,nome:r.nome,tipo:r.tipo,em:new Date(r.excluido_em).getTime()}));
@@ -2460,6 +2511,8 @@ async function checarSessao(){if(NP_OPEN)return;
   try{await carregar()}catch(e){$('loadMsg').textContent='Erro ao carregar os dados: '+(e.message||e);return}
   BOOT_UID=session.user.id;document.body.classList.add('app-on');
   const qs=new URLSearchParams(location.search),agLink=qs.get('ag'),relVolta=qs.get('rel');if(qs.get('tab')==='minhas'&&ui.perfil==='terc'){history.replaceState(null,'',location.pathname);ui.tab='minhas';ui.mTab='conferencia'}if(agLink){history.replaceState(null,'',location.pathname);const a=getAg(agLink);if(a){if(['clt','terc','func'].includes(ui.perfil)){ui.tab='campo';ui.campoSel=a.id}else ui.tab='agenda'}}
+  const eqLink=qs.get('eq');if(eqLink&&ui.perfil==='terc'){history.replaceState(null,'',location.pathname);ui.tab='equipe';ui.eqSel=eqLink}
+  if(qs.get('sala')==='1'&&gVeGtd()){history.replaceState(null,'',location.pathname);ui.cat='gtd';ui.tab='gCham';ui.chat={t:'s',id:'gestao'}}
   const gtdLink=qs.get('gtd'),chatQ=qs.get('chat')==='1';if(gtdLink){history.replaceState(null,'',location.pathname);gIr('?gtd='+encodeURIComponent(gtdLink)+(chatQ?'&chat=1':''))}else if(agLink&&chatQ&&getAg(agLink))ui.chat={t:'a',id:agLink};
   render();ligarTempoReal();if(agLink&&getAg(agLink)&&!ui.chat&&!['clt','terc','func'].includes(ui.perfil))ACT.agOpen({dataset:{id:agLink}});
   if(relVolta&&agLink&&getAg(agLink)){const a=getAg(agLink);checarRelatorio(a).then(ok=>{render();toast(ok?'Relatório recebido. Agora é só encerrar a atividade.':'O PDF ainda não chegou à agenda. Toque em "Verificar relatório" em alguns segundos.',ok?'':'bad')})}
@@ -2627,6 +2680,59 @@ Object.assign(ACT,{
 Object.assign(CH,{tpF:el=>{const s=tpSt(tpK(el));s.f=el.value;s.lim=60;render()},tpTec:el=>{const s=tpSt(tpK(el));s.tec=el.value;s.lim=60;render()}});
 Object.assign(IN,{tpQ:el=>{const K=tpK(el),s=tpSt(K);s.q=el.value;s.lim=60;render();const i=$('tpQ_'+K);if(i){i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}}}});
 
+
+/* ---------- 10/10: coordenada do cliente, FWA, Rede executada pela LPU, Minha equipe (LPU pelo administrador) ---------- */
+// coordenada: aceita "-23.5505, -46.6333", "-23,5505 -46,6333" ou link do Google Maps
+const coordOf=t=>coords(String(t||'').replace(/(\d),(\d)/g,'$1.$2'));
+const rotaUrl=c=>{const k=coordOf(c&&c.coord);return k?`https://www.google.com/maps/dir/?api=1&destination=${k[0]},${k[1]}`:(c&&c.endereco?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.endereco):'')};
+const isFWA=p=>normK((p&&p.topologia)||'')==='fwa';
+const FWA_ZERA=['metros','caixas','dRua','dInterno','dExt'];
+function fwaAjusta(p){if(!isFWA(p))return;FWA_ZERA.forEach(k=>p[k]=0);p.semExt=true;p.semRua=true}
+
+/* Rede executada: tudo pelas LPUs (cabo, cordoalha, reaberturas e extensão de fibra) */
+function pRede(){const inP=d=>d>=ui.pIni&&d<=ui.pFim,L=S.lpus.filter(l=>l.status!=='reprovada'&&inP(l.data));
+  const soma=(ls,cods)=>ls.reduce((s,l)=>s+(l.itens||[]).filter(i=>cods.includes(i.cod)).reduce((x,i)=>x+(+i.qtd||0),0),0);
+  const COR=['SEV0009','SEV0010'],REA=['SEV0037'],EXT=['SEV0088'],n=v=>(+v||0).toLocaleString('pt-BR');
+  const cabo=soma(L,CABO_LPU),ap=L.filter(l=>l.status==='aprovada');
+  const sem=[];for(let d=semanaIni(ui.pIni);d<=ui.pFim&&sem.length<12;d=addD(d,7))sem.push(d);
+  const S2=sem.map(d=>{const f=addD(d,6),x=L.filter(l=>l.data>=d&&l.data<=f);return{d,f,clt:soma(x.filter(l=>tecT(l.tec)==='CLT'),CABO_LPU),ter:soma(x.filter(l=>tecT(l.tec)!=='CLT'),CABO_LPU)}}),mx=Math.max(1,...S2.map(x=>x.clt+x.ter));
+  const linhas=TEC.map(t=>{const lt=L.filter(l=>l.tec===t.id);if(!lt.length)return '';
+    return `<tr><td>${esc(t.nome)}</td><td>${t.tipo==='CLT'?'CLT':'Terceiro'}</td><td class="r">${lt.length}</td><td class="r"><b>${n(soma(lt,CABO_LPU))} m</b></td><td class="r">${n(soma(lt,COR))} m</td><td class="r">${n(soma(lt,REA))}</td><td class="r">${n(soma(lt,EXT))} m</td></tr>`}).join('');
+  return `<div class="kpis">${kp(n(cabo)+' m','Cabo lançado (LPUs)','ok')}${kp(n(soma(L,COR))+' m','Cordoalha lançada')}${kp(n(soma(L,REA)),'Reaberturas e fechamentos de CEO')}${kp(n(soma(L,EXT))+' m','Extensão de fibra')}${kp(`${L.length} (${ap.length} aprovadas)`,'LPUs no período')}</div>
+  <section class="panel"><div class="secth"><h3>Cabo lançado por semana</h3><span class="muted">Pelas LPUs. Verde escuro = equipe própria, verde claro = terceiros</span></div>
+   <div class="dbars">${S2.map(x=>`<div class="db1" title="${dBR(x.d)} a ${dBR(x.f)}: ${n(x.clt)} m própria, ${n(x.ter)} m terceiros"><span class="dn">${x.clt+x.ter?n(x.clt+x.ter):''}</span><div class="dbw" style="max-width:70px"><i style="height:${(x.clt+x.ter)/mx*100}%;flex-direction:column;justify-content:flex-end"><b style="height:${x.clt+x.ter?x.clt/(x.clt+x.ter)*100:0}%"></b></i></div><small>${dBR(x.d).slice(0,5)}</small></div>`).join('')}</div></section>
+  <section><div class="secth"><h3>Por técnico ou prestador</h3></div><div class="tablewrap"><table><thead><tr><th>Técnico ou prestador</th><th>Vínculo</th><th class="r">LPUs</th><th class="r">Cabo lançado</th><th class="r">Cordoalha</th><th class="r">Reaberturas e fechamentos</th><th class="r">Extensão de fibra</th></tr></thead><tbody>${linhas||'<tr><td colspan="7" class="muted">Nenhuma LPU no período.</td></tr>'}</tbody></table></div></section>
+  <p class="muted" style="font-size:13px">Todos os números vêm das LPUs enviadas no período (aguardando aprovação, devolvidas para ajuste ou aprovadas; as reprovadas não contam), pela data da atividade. Cabo lançado soma os serviços de lançamento de cabo da LPU.</p>`}
+
+/* ---------- MINHA EQUIPE (administrador da empresa terceira) ---------- */
+const eqIds=()=>new Set((S.equipe||[]).map(e=>e.id));
+function viewEquipe(){const ids=eqIds();
+  if(ui.lpuTela){if(String(ui.lpuTela).startsWith('G:')){const c=G.ch.find(x=>'G:'+x.id===ui.lpuTela);if(c&&ids.has(c.tec))return `<div class="campo">${gLpuView(c)}</div>`}else{const a=S.ags.find(x=>x.id===ui.lpuTela);if(a&&ids.has(a.tec)&&a.status==='lpu')return `<div class="campo">${lpuView(a)}</div>`}ui.lpuTela=null}
+  const T=hoje(),F=ui.eqTec||'',ok=t=>ids.has(t)&&(!F||t===F),hm=v=>v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
+  const ags=S.ags.filter(a=>ok(a.tec)&&a.status!=='cancelada'),chs=G.ch.filter(c=>ok(c.tec)&&c.status!=='cancelado');
+  const lpuA=ags.filter(a=>a.status==='lpu'),lpuG=chs.filter(c=>c.status==='lpu');
+  const campoA=ags.filter(a=>EM_CAMPO.includes(a.status)),campoG=chs.filter(c=>['desloc','local','atend'].includes(c.status));
+  const proxA=ags.filter(a=>a.status==='agendada').sort((a,b)=>a.data.localeCompare(b.data)),proxG=chs.filter(c=>c.status==='aberto').sort((a,b)=>gIni(a)-gIni(b));
+  const docA=ags.filter(a=>a.status==='relatorios');
+  const conc=ags.filter(a=>a.status==='concluida'&&a.data>=addD(T,-30)).sort((a,b)=>b.data.localeCompare(a.data));
+  const sel=ui.eqSel||'';
+  const infoA=a=>{const t=a.ts||{};return a.status==='deslocamento'?`Saiu às ${hm(t.desloc)}${t.eta?`, chegada prevista ${hm(t.eta)}`:''}`:a.status==='no_local'?`Chegou às ${hm(t.chegada)}`:a.status==='execucao'?`Em execução desde ${hm(t.inicio)}`:a.status==='lpu'?`Terminou às ${hm(t.relatorios||t.conclusao)}`:a.status==='relatorios'?'Fazendo os relatórios':dBR(a.data)};
+  const cA=(a,btn)=>`<article class="eqc${sel==='a:'+a.id?' on':''}"><div class="eqh"><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b>${chip(a.status)}</div><small>${esc(a.etiqueta)} · ${fasesN(a)} · ${dBR(a.data)}</small><span class="eqt">${esc(tecN(a.tec))} · ${esc(infoA(a))}</span>${btn||''}</article>`;
+  const cG=(c,btn)=>`<article class="eqc${sel==='g:'+c.id?' on':''}"><div class="eqh"><b>${esc(c.cliente||'Cliente')}</b>${gChip(c)}</div><small>GTD · O&amp;M ${esc(c.pom||'—')} · ${esc(c.categoria||'')}</small><span class="eqt">${esc(gTecN(c.tec))}${c.ts&&c.ts.rfo?' · RFO às '+hm(c.ts.rfo):''}</span>${btn||''}</article>`;
+  const lpuBtnA=a=>S.lpus.some(l=>l.ag===a.id)?`<button class="btn wide" data-act="lpuJaEnviada" data-id="${a.id}">LPU já enviada: encerrar a atividade</button>`:`<button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;
+  const sec=(t,L,vz)=>`<section class="eqs"><h3 class="lsub">${t} <span class="chip">${L.length}</span></h3>${L.join('')||`<p class="muted">${vz}</p>`}</section>`;
+  const EQ=S.equipe||[];
+  return `<div class="campo"><div class="toolbar"><div><h2>Minha equipe</h2><p class="muted">O que os seus funcionários estão fazendo e as LPUs que você precisa preencher. Você recebe um aviso sempre que um funcionário termina uma atividade ou chamado.</p></div>
+   ${EQ.length>1?`<label class="f inline"><span>Funcionário</span><select class="inp" data-ch="eqTec"><option value="">Todos</option>${EQ.map(e=>`<option value="${e.id}" ${F===e.id?'selected':''}>${esc(e.nome)}</option>`).join('')}</select></label>`:''}</div>
+   <div class="kpis" style="margin-bottom:12px">${kp(lpuA.length+lpuG.length,'LPUs para preencher',lpuA.length+lpuG.length?'warn':'ok')}${kp(campoA.length+campoG.length,'Em campo agora')}${kp(proxA.length+proxG.length,'Agendadas')}${kp(conc.length,'Concluídas (30 dias)','ok')}</div>
+   ${sec('LPU para preencher',lpuA.map(a=>cA(a,lpuBtnA(a))).concat(lpuG.map(c=>cG(c,`<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU do chamado</button>`))),'Nenhuma LPU pendente. Quando um funcionário terminar uma atividade, ela aparece aqui.')}
+   ${sec('Em campo agora',campoA.map(a=>cA(a)).concat(campoG.map(c=>cG(c))),'Nenhum funcionário em campo neste momento.')}
+   ${docA.length?sec('Fazendo os relatórios',docA.map(a=>cA(a)),''):''}
+   ${sec('Agendadas',proxA.map(a=>cA(a)).concat(proxG.map(c=>cG(c))),'Nenhuma atividade agendada.')}
+   ${sec('Concluídas nos últimos 30 dias',conc.slice(0,30).map(a=>cA(a)),'Nenhuma atividade concluída nos últimos 30 dias.')}
+  </div>`}
+Object.assign(CH,{eqTec:el=>{ui.eqTec=el.value;render()}});
+
 /* =====================================================================
    GTD MANUTENÇÃO (chamados do NOC), MENSAGENS (CHAT) E SINO DE AVISOS
    Dados próprios: ag_chamados, ag_mensagens, ag_avisos e as LPUs do chamado
@@ -2782,6 +2888,8 @@ const gRecusa=c=>!c.tec&&c.status==='aberto'?(c.recusas||[]).slice(-1)[0]||null:
 const GCAT_COR={'Indisponibilidade':'#C0392B','Verificação / qualidade do link':'#245F80','Troca de equipamento':'#B7791F','Equipamento / energia':'#C2410C','Wi-Fi':'#6D4FB3','Gerência':'#0F766E','Instalação / last mile':'#4D7C0F'};
 const gCatTag=c=>`<span class="kcat"><i style="background:${GCAT_COR[c.categoria]||'var(--muted)'}"></i>${esc(c.categoria||'Sem categoria')}</span>`;
 const gMsgIco=(t,id)=>{const n=gNMsg(t,id);if(gNNova(t,id))return gSeloMsg(t,id);return n?`<span class="kmsg" title="${n} ${n>1?'mensagens':'mensagem'}">${_sv('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',13)}${n}</span>`:''};
+/* botão de conversa dentro do cartão (o clique abre o chat, não o chamado) */
+const gChatBtn=c=>{const n=gNMsg('g',c.id),nv=gNNova('g',c.id);return `<span class="kchat${nv?' nova':''}" role="button" tabindex="0" data-act="chatAbrir" data-t="g" data-id="${c.id}" title="Abrir mensagens" aria-label="Mensagens do chamado${n?`, ${n}`:''}${nv?`, ${nv} nova(s)`:''}">${_sv('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',13)}${nv?nv:n?n:'Chat'}</span>`};
 const gAceiteChip=c=>c.status!=='aberto'||!c.tec?'':gAceito(c)?`<span class="chip ok">Aceito ${gQuando(c.aceite.em)}</span>`:'<span class="chip warn">Aguardando aceite</span>';
 const gChip=c=>{const x=GST[gStK(c)]||[c.status,''];return `<span class="chip ${x[1]}">${x[0]}</span>`};
 const gT=v=>v?new Date(v).getTime():null;
@@ -2795,13 +2903,13 @@ function gSla(c){if(c.categoria!=='Indisponibilidade'||c.status==='cancelado')re
 const gEndKey=e=>{const p=gtdNorm(e).split(',');return (p[0]+','+(p[1]||'')).replace(/[^a-z0-9,]/g,'')};
 const gReinc=c=>c.etiqueta?G.ch.filter(x=>x.id!==c.id&&x.status!=='cancelado'&&x.etiqueta===c.etiqueta&&x.criadoEm<=c.criadoEm&&c.criadoEm-x.criadoEm<=30*GTD_DIA):[];
 const gMesmoEnd=c=>c.endereco?G.ch.filter(x=>x.id!==c.id&&GTD_ABERTOS.includes(x.status)&&x.endereco&&gEndKey(x.endereco)===gEndKey(c.endereco)):[];
-const gTecN=id=>{if(!id)return 'Não despachado';const t=G.tecs.find(x=>x.id===id)||TEC.find(x=>x.id===id);return t?t.nome:(ME&&id===ME.id?ME.nome:'Técnico')};
+const gTecN=id=>{if(!id)return 'Não despachado';const t=G.tecs.find(x=>x.id===id)||TEC.find(x=>x.id===id);return t?t.nome:(ME&&id===ME.id?ME.nome:(S.tecExt&&S.tecExt[id])||'Técnico')};
 const gTecV=id=>{const t=G.tecs.find(x=>x.id===id);if(t)return t.vinculo==='terceiro'?'Terceiro':'CLT';const u=TEC.find(x=>x.id===id);return u?(u.tipo==='TERC'?'Terceiro':'CLT'):''};
 const gLpuDe=c=>G.lpus.filter(l=>l.chamado===c.id).sort((a,b)=>((b.hist||[])[0]||{em:0}).em-((a.hist||[])[0]||{em:0}).em)[0]||null;
 const gNMsg=(t,id)=>G.nMsg[t+':'+id]||0,gNNova=(t,id)=>G.nNova[t+':'+id]||0;
 /* selo de mensagem nova do técnico (some quando qualquer pessoa abre a conversa) */
 const gSeloMsg=(t,id,n)=>{n=n==null?gNNova(t,id):n;return n?`<span class="msgnova" title="${n} ${n>1?'mensagens novas':'mensagem nova'} do técnico" aria-label="${n} ${n>1?'mensagens novas':'mensagem nova'} do técnico">${_sv('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',14)}${n}</span>`:''};
-const gMsgBtn=(t,id,cls)=>{const n=gNMsg(t,id);return `<button class="btn ${cls||'primary'} sm" data-act="chatAbrir" data-t="${t}" data-id="${id}">Mensagens${n?` (${n})`:''}</button>`};
+const gMsgBtn=(t,id,cls,lbl)=>{const n=gNMsg(t,id);return `<button class="btn ${cls||'primary'} sm" data-act="chatAbrir" data-t="${t}" data-id="${id}">${lbl||'Mensagens'}${n?` (${n})`:''}</button>`};
 const gPdMsg=r=>{const n=ui.perfil==='visu'?(+r.msgsNovas||0):gNNova('a',r.id);if(!n)return '';const s=gSeloMsg('a',r.id,n);return ui.perfil==='visu'?s:`<button class='msgbtn' data-act='chatAbrir' data-t='a' data-id='${r.id}' title='Abrir as mensagens'>${s}</button>`};
 const gErroBox=()=>`<div class="result warn" style="margin-top:8px"><b>GTD Manutenção indisponível.</b> ${esc(G.erro)}</div>`;
 
@@ -2831,6 +2939,7 @@ async function gCarregar(){
     let[ms,av]=await Promise.all([q(G.vista?'id,chamado,agendamento,papel,vista_em':'id,chamado,agendamento'),sb.from('ag_avisos').select('*').order('em',{ascending:false}).limit(100)]);
     if(ms.error&&G.vista){G.vista=false;ms=await q('id,chamado,agendamento')}   /* sem o ajuste 15 ainda: só o total */
     if(!ms.error){G.nMsg={};G.nNova={};(ms.data||[]).forEach(m=>{const k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;G.nMsg[k]=(G.nMsg[k]||0)+1;if(G.vista&&m.papel==='Técnico'&&!m.vista_em)G.nNova[k]=(G.nNova[k]||0)+1})}if(!av.error)G.avisos=av.data||[]}catch(e){}
+  if(gVeGtd())await gSalaContar();
   G.ok=true}
 async function gAcao(id,fn,msg){let c;
   try{const r=await sb.from('ag_chamados').select('*').eq('id',id).maybeSingle();if(r.error)throw r.error;if(!r.data){toast('Chamado não encontrado.','bad');return false}c=gDeRow(r.data)}
@@ -2846,7 +2955,7 @@ const gHist=(c,acao,extra)=>{c.hist=(c.hist||[]).concat([Object.assign({acao,por
 /* ---------- KANBAN (gestão e NOC) ---------- */
 function gCard(c){const sla=gSla(c),re=gReinc(c).length,me=gMesmoEnd(c).length,mt=gMttr(c),rc=gRecusa(c);
   const tags=[c.agendaEm?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:'',c.prioridade&&c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:'',sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:'',re?'<span class="chip bad">Reincidente</span>':'',me?'<span class="chip info">Mesmo endereço</span>':'',c.naoVal&&c.naoVal.length&&GTD_ABERTOS.includes(c.status)?'<span class="chip bad">Não validado</span>':'',gAceiteChip(c),rc?`<span class="chip bad">Recusado por ${esc(String(rc.nome||'técnico').split(' ')[0])}</span>`:''].filter(Boolean).join('');
-  return `<button class="kc" data-act="gAbrir" data-id="${c.id}"><span class="kch"><b>O&amp;M ${esc(c.pom||'—')}</b>${gMsgIco('g',c.id)}</span><span class="kcc">${esc(c.cliente||'Cliente')}</span>${gCatTag(c)}
+  return `<button class="kc" data-act="gAbrir" data-id="${c.id}"><span class="kch"><b>O&amp;M ${esc(c.pom||'—')}</b>${gChatBtn(c)}</span><span class="kcc">${esc(c.cliente||'Cliente')}</span>${gCatTag(c)}
    ${tags?`<span class="kct">${tags}</span>`:''}${c.status==='desloc'&&c.ts&&c.ts.eta?`<span class="kceta">Chega por volta das ${hm(c.ts.eta)}</span>`:''}<small>${esc(gTecN(c.tec))}${c.tec?' ('+gTecV(c.tec)+')':''} · ${esc(c.cidade||'—')}</small><small>${mt.l}: ${mt.v}</small></button>`}
 function viewGCham(){if(G.erro)return `<h2>Chamados · GTD Manutenção</h2>${gErroBox()}`;
   if(ui.gSel){const c=G.ch.find(x=>x.id===ui.gSel);if(c)return gDetalhe(c);ui.gSel=null}
@@ -2854,7 +2963,7 @@ function viewGCham(){if(G.erro)return `<h2>Chamados · GTD Manutenção</h2>${gE
   const cols=[['Não despachados','Aguardando a gestão escolher o técnico',c=>c.status==='aberto'&&!c.tec],['Despachados','Aguardando aceite ou aceito, antes de sair',c=>c.status==='aberto'&&c.tec],['Em deslocamento','Com a previsão de chegada',c=>c.status==='desloc'],['No local · em atividade','Chegou ou já está atendendo',c=>c.status==='local'||c.status==='atend'],['Aguardando validação','O NOC confere; o MTTR continua',c=>c.status==='valid'],['Encerrados hoje','Validados hoje pelo NOC',c=>!GTD_ABERTOS.includes(c.status)&&c.validadoEm&&isoD(new Date(c.validadoEm))===T]];
   const pend=G.ch.filter(c=>['rfo','lpu'].includes(c.status)&&c.validadoEm&&isoD(new Date(c.validadoEm))<T).length;
   return `<div class="toolbar"><div><h2>Chamados · GTD Manutenção</h2><p class="muted">${ui.perfil==='noc'?'Acompanhe os chamados, converse com o técnico e valide o atendimento. O despacho é feito pela gestão do GTD.':'Toque no chamado para despachar, acompanhar e ver a linha do tempo.'}</p></div>
-   <div class="tools"><input class="inp" type="search" id="gQ" data-in="gQ" placeholder="Buscar O&amp;M, cliente, etiqueta ou técnico" value="${esc(ui.gQ||'')}" autocomplete="off">${pode('gAgenda')?'<button class="btn" data-act="tab" data-t="gAgenda">Ver agenda</button>':''}${pode('gNovo')?'<button class="btn primary" data-act="tab" data-t="gNovo">Criar chamado</button>':''}</div></div>
+   <div class="tools">${gSalaBtn()}<input class="inp" type="search" id="gQ" data-in="gQ" placeholder="Buscar O&amp;M, cliente, etiqueta ou técnico" value="${esc(ui.gQ||'')}" autocomplete="off">${pode('gAgenda')?'<button class="btn" data-act="tab" data-t="gAgenda">Ver agenda</button>':''}${pode('gNovo')?'<button class="btn primary" data-act="tab" data-t="gNovo">Criar chamado</button>':''}</div></div>
    ${pend?`<p class="note">${pend} ${pend===1?'chamado validado em dias anteriores ainda está':'chamados validados em dias anteriores ainda estão'} com RFO ou LPU pendente. Veja em Relatórios.</p>`:''}
    <div class="kbwrap"><div class="kb">${cols.map(([n,aj,fn])=>{const cs=L.filter(fn).sort((a,b)=>gIni(a)-gIni(b));return `<section class="gkcol" aria-label="${n}"><div class="kcolh"><h3>${n}</h3><b>${cs.length}</b></div><small class="muted">${aj}</small>${cs.map(gCard).join('')||'<span class="muted kvz">Nenhum chamado.</span>'}</section>`}).join('')}</div></div>`}
 
@@ -2875,12 +2984,12 @@ const gTecOpts=sel=>{const L=G.tecs.length?G.tecs:TEC.map(t=>({id:t.id,nome:t.no
 function gDetalhe(c){const sla=gSla(c),mt=gMttr(c),re=gReinc(c),me=gMesmoEnd(c),l=gLpuDe(c),t=c.ts||{},ab=c.status==='aberto';
   const agBox=(gPodeEditar()||ui.perfil==='noc')&&ab?`<section class="gbox ag"><b>Agendamento</b><div class="tools"><label class="f inline"><span>Data</span><input type="date" class="inp" id="gAgD" value="${c.agendaEm?isoD(new Date(c.agendaEm)):''}"></label><label class="f inline"><span>Horário</span><input type="time" class="inp" id="gAgH" value="${c.agendaEm?hm(c.agendaEm):'08:00'}"></label><button class="btn primary sm" data-act="gAgSalvar" data-id="${c.id}">Salvar</button>${c.agendaEm?`<button class="btn sm" data-act="gAgTirar" data-id="${c.id}">Atender hoje (sem agendamento)</button>`:''}</div><small class="muted">O MTTR e o SLA começam no horário agendado.</small></section>`:'';
   const desp=gPodeDesp()&&ab?`<section class="gbox desp"><label class="f" style="margin:0"><span>${c.tec?'Trocar técnico':'Despachar para'}</span><span class="tools"><select class="inp" id="gDespTec"><option value="">Escolha o técnico…</option>${gTecOpts(c.tec)}</select><button class="btn primary" data-act="gDespachar" data-id="${c.id}">${c.tec?'Trocar':'Despachar'}</button></span></label><small class="muted">O técnico recebe o aviso no celular.</small></section>`:'';
-  const val=c.status==='valid'?(gPodeValidar()?`<section class="gbox val"><b>O técnico pediu validação</b><span class="muted">Confira o link. Ao validar, o MTTR para e o técnico segue para o RFO e a LPU.</span><div class="tools"><button class="btn primary" data-act="gValidar" data-id="${c.id}">Validado</button><input class="inp" id="gNvMot" placeholder="Motivo, se não validado" value="${esc((ui.gNv||{})[c.id]||'')}" data-in="gNv" data-id="${c.id}"><button class="btn danger" data-act="gNaoValidar" data-id="${c.id}">Não validado</button></div></section>`:'<div class="result warn">O técnico pediu validação. Aguardando o NOC validar; o MTTR continua contando.</div>'):'';
+  const val=c.status==='valid'?(gPodeValidar()?`<section class="gbox gval"><b>O técnico pediu validação</b><span class="muted">Confira o link. Ao validar, o MTTR para e o técnico segue para o RFO e a LPU.</span><div class="tools"><button class="btn primary" data-act="gValidar" data-id="${c.id}">Validado</button><input class="inp" id="gNvMot" placeholder="Motivo, se não validado" value="${esc((ui.gNv||{})[c.id]||'')}" data-in="gNv" data-id="${c.id}"><button class="btn danger" data-act="gNaoValidar" data-id="${c.id}">Não validado</button></div></section>`:'<div class="result warn">O técnico pediu validação. Aguardando o NOC validar; o MTTR continua contando.</div>'):'';
   const lpuBox=l?`<section class="gbox"><b>LPU do chamado</b><div class="tools">${`<span class="chip ${(GLST[l.status]||['',''])[1]}">${(GLST[l.status]||[l.status])[0]}</span>`}${verValor()&&l.status!=='registrada'?`<b>${brl(l.total)}</b>`:''}<span class="muted">${(l.itens||[]).length} serviço(s)</span><button class="btn sm" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'&&pode('gAprov')&&pode('g_fin')?'<button class="btn sm" data-act="gIrAprov">Ir para a aprovação</button>':''}</div></section>`:'';
   const acoes=gPodeEditar()&&c.status!=='cancelado'?`<div class="actions" style="justify-content:flex-start">${GTD_ABERTOS.includes(c.status)?`<button class="btn sm" data-act="gEditar" data-id="${c.id}">Editar dados</button><button class="btn sm" data-act="gCancelar" data-id="${c.id}">Cancelar chamado</button>`:''}</div>`:'';
   return `<button class="back" data-act="gFechar">‹ Chamados</button>
   <div class="gdet"><div class="stack">
-   <section class="panel"><div class="ah"><div><h2>O&amp;M ${esc(c.pom||'—')}</h2><small class="muted">NOC ${esc(c.pnoc||'—')} · criado ${gQuando(c.criadoEm)}</small></div>${gMsgBtn('g',c.id)}</div>
+   <section class="panel"><div class="ah"><div><h2>O&amp;M ${esc(c.pom||'—')}</h2><small class="muted">NOC ${esc(c.pnoc||'—')} · criado ${gQuando(c.criadoEm)}</small></div><div class="tools">${gMsgBtn('g',c.id,'',gVeGtd()?'Chat com técnico':'')}${gVeGtd()?`<button class="btn sm" data-act="salaAbrir" data-id="${c.id}" title="Abre a conversa com este chamado citado">${esc(salaNome())}</button>`:''}</div></div>
     <p style="margin:8px 0 2px;font-weight:600;font-size:17px">${esc(c.cliente||'Cliente')}</p><p class="muted" style="margin:0">Etiqueta ${esc(c.etiqueta||'—')}${c.parceiro?' · parceiro '+esc(c.parceiro):''} · ${esc(c.cidade||'—')}</p>
     <div class="tools" style="margin-top:8px">${gChip(c)}<span class="chip">${esc(c.categoria||'')}</span><span class="chip ${c.prioridade==='Escalonado'?'bad':c.prioridade==='Alta'?'warn':''}">${esc(c.prioridade||'Normal')}</span>${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}</div>
     <div class="gnums"><div><small>${mt.l}</small><b>${mt.v}</b></div><div><small>Técnico</small><span>${esc(gTecN(c.tec))}${c.tec?' ('+gTecV(c.tec)+')':''}</span></div><div><small>Quando</small><span>${c.agendaEm?'Agendado '+gQuando(c.agendaEm):'Atendimento hoje'}</span></div></div></section>
@@ -2973,14 +3082,15 @@ function gPainelGeral(){
   const ab=G.ch.filter(c=>c.categoria==='Indisponibilidade'&&GTD_ABERTOS.includes(c.status));
   return `<div class="toolbar"><div><h2>Painel de KPIs · GTD Manutenção</h2><p class="muted">Chamados pelo dia de início (criação ou horário agendado). MTTR: do início até a validação do NOC.</p></div>
    <div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${fim}"></label></div></div>
-   <div class="kpis" style="margin-bottom:14px">${cards.map(([v,l,c])=>kp(v,l,c)).join('')}</div>
+   <div class="kpis gk4" style="margin-bottom:14px">${cards.map(([v,l,c])=>kp(v,l,c)).join('')}</div>
    ${ab.length?`<section class="panel" style="margin-bottom:14px"><h3>Indisponibilidades em andamento (SLA 4h)</h3>${ab.map(c=>{const s=gSla(c);return `<button class="item gai" data-act="gAbrir" data-id="${c.id}"><div><b>O&amp;M ${esc(c.pom)}</b> ${esc(c.cliente)}<small>${esc(gTecN(c.tec))} · ${GST[gStK(c)][0]}</small></div><div class="right">${s?`<span class="chip ${s.cls}">${s.t}</span>`:''}</div></button>`}).join('')}</section>`:''}
-   <div class="g2c"><section class="panel"><h3>Chamados por categoria</h3>${gBarras(porCat)}<small class="muted">Ao lado: MTTR médio dos validados.</small></section>
-    <section class="panel"><h3>Chamados por técnico</h3><div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Chamados</th><th class="r">Em aberto</th><th class="r">Resolvidos</th><th class="r">Improd.</th><th class="r">MTTR médio</th></tr></thead><tbody>${porTec.map(([id,L])=>{const v=L.filter(c=>c.validadoEm),m=med(v.map(c=>c.validadoEm-gIni(c)));return `<tr><td>${esc(gTecN(id))}</td><td>${gTecV(id)}</td><td class="r">${L.length}</td><td class="r">${L.filter(c=>GTD_ABERTOS.includes(c.status)).length}</td><td class="r">${L.filter(c=>c.desfecho==='Resolvido').length}</td><td class="r">${L.filter(c=>c.desfecho==='Improdutivo').length}</td><td class="r">${m==null?'—':gDur(m)}</td></tr>`}).join('')||'<tr><td colspan="7" class="muted">Nenhum chamado despachado no período.</td></tr>'}</tbody></table></div></section>
-    <section class="panel"><h3>Por cidade</h3>${gBarras(grp(c=>c.cidade).slice(0,10).map(([k,L])=>[k,L.length]))}</section>
-    <section class="panel"><h3>Por OLT</h3>${gBarras(grp(c=>c.olt).filter(([k])=>k!=='—').slice(0,10).map(([k,L])=>[k,L.length]))}</section>
-    <section class="panel"><h3>Por desfecho</h3>${gBarras(grp(c=>c.desfecho).filter(([k])=>k!=='—').map(([k,L])=>[k,L.length]))}</section>
-    <section class="panel"><h3>CLT x terceiros</h3>${gBarras([['Equipe própria (CLT)',P.filter(c=>c.tec&&gTecV(c.tec)==='CLT').length],['Terceiros',P.filter(c=>c.tec&&gTecV(c.tec)==='Terceiro').length],['Não despachados',P.filter(c=>!c.tec).length]])}</section></div>`}
+   ${(()=>{const tot=P.length||1,pc=n=>Math.round(n/tot*100)+'%',mxT=Math.max(1,...porTec.map(([,L])=>L.length));
+     const des=grp(c=>c.desfecho).filter(([k])=>k!=='—'),nDes=des.reduce((s,[,L])=>s+L.length,0)||1;
+     return `<div class="gkgrid">
+     <section class="panel"><div class="secth"><h3>Por categoria</h3><span class="muted">chamados · MTTR médio</span></div>${gBarras(porCat)}</section>
+     <section class="panel"><div class="secth"><h3>Por desfecho</h3><span class="muted">dos chamados com RFO</span></div>${gBarras(des.map(([k,L])=>[k,L.length,Math.round(L.length/nDes*100)+'%']))}</section>
+     <section class="panel"><div class="secth"><h3>Por cidade</h3><span class="muted">10 com mais chamados</span></div>${gBarras(grp(c=>c.cidade).slice(0,10).map(([k,L])=>[k,L.length,pc(L.length)]))}</section>
+     <section class="panel gkwide"><div class="secth"><h3>Por técnico</h3><span class="muted">chamados despachados no período</span></div><div class="tablewrap"><table class="gktec"><thead><tr><th>Técnico</th><th>Vínculo</th><th style="width:34%">Chamados</th><th class="r">Em aberto</th><th class="r">Resolvidos</th><th class="r">Improdutivos</th><th class="r">MTTR médio</th></tr></thead><tbody>${porTec.map(([id,L])=>{const v=L.filter(c=>c.validadoEm),m=med(v.map(c=>c.validadoEm-gIni(c)));return `<tr><td><b>${esc(gTecN(id))}</b></td><td>${gTecV(id)}</td><td><div class="gkbar"><i style="width:${Math.round(L.length/mxT*100)}%"></i><b>${L.length}</b></div></td><td class="r">${L.filter(c=>GTD_ABERTOS.includes(c.status)).length}</td><td class="r">${L.filter(c=>c.desfecho==='Resolvido').length}</td><td class="r">${L.filter(c=>c.desfecho==='Improdutivo').length}</td><td class="r">${m==null?'—':gDur(m)}</td></tr>`}).join('')||'<tr><td colspan="7" class="muted">Nenhum chamado despachado no período.</td></tr>'}</tbody></table></div></section></div>`})()}`}
 
 /* ---------- FINANCEIRO DO GTD: budget e detalhamento ---------- */
 const gSoma=L=>L.reduce((s,l)=>s+(+l.total||0),0);
@@ -3057,7 +3167,7 @@ const gTecPend=c=>GTD_ABERTOS.includes(c.status)||['rfo','lpu'].includes(c.statu
 function gTecLista(){if(G.erro)return '';const T=hoje(),mine=G.ch.filter(c=>c.tec===ui.tec&&c.status!=='cancelado');if(!mine.length)return '';
   const g={hoje:mine.filter(c=>gTecPend(c)&&gDiaDe(c)<=T).sort((a,b)=>gIni(a)-gIni(b)),prox:mine.filter(c=>gTecPend(c)&&gDiaDe(c)>T).sort((a,b)=>gIni(a)-gIni(b)),enc:mine.filter(c=>!gTecPend(c)).sort((a,b)=>(b.validadoEm||b.criadoEm)-(a.validadoEm||a.criadoEm))};
   const f=ui.gcF&&g[ui.gcF]?ui.gcF:'hoje',lab={hoje:'Hoje',prox:'Próximas',enc:'Encerradas'};
-  const card=c=>{const sla=gTecPend(c)?gSla(c):null,n=gNMsg('g',c.id),l=gLpuDe(c);return `<button class="row" data-act="gTecAbrir" data-id="${c.id}"><span class="tools">${c.status==='aberto'&&!gAceito(c)?'<span class="chip bad">Aguardando seu aceite</span>':gChip(c)}${c.agendaEm&&gTecPend(c)?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:''}${c.prioridade!=='Normal'&&gTecPend(c)?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${n?`<span class="chip info">${n} msg</span>`:''}${l&&l.status==='ajuste'?'<span class="chip bad">LPU para ajuste</span>':''}</span><b>${esc(c.cliente)}</b><small>O&amp;M ${esc(c.pom)} · ${esc(c.categoria)} · ${esc(c.cidade||'—')}${f==='enc'&&c.validadoEm?' · validado '+dBR(isoD(new Date(c.validadoEm))):''}</small></button>`};
+  const card=c=>{const sla=gTecPend(c)?gSla(c):null,n=gNMsg('g',c.id),l=gLpuDe(c);return `<button class="row" data-act="gTecAbrir" data-id="${c.id}"><span class="tools">${c.status==='aberto'&&!gAceito(c)?'<span class="chip bad">Aguardando seu aceite</span>':gChip(c)}${c.agendaEm&&gTecPend(c)?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:''}${c.prioridade!=='Normal'&&gTecPend(c)?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:''}${sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''}${l&&l.status==='ajuste'?'<span class="chip bad">LPU para ajuste</span>':''}${gChatBtn(c)}</span><b>${esc(c.cliente)}</b><small>O&amp;M ${esc(c.pom)} · ${esc(c.categoria)} · ${esc(c.cidade||'—')}${f==='enc'&&c.validadoEm?' · validado '+dBR(isoD(new Date(c.validadoEm))):''}</small></button>`};
   return `<section class="gtec"><h3 class="lsub">GTD Manutenção</h3><div class="chips">${Object.keys(lab).map(k=>`<button data-act="gcF" data-t="${k}" aria-current="${f===k}">${lab[k]} (${g[k].length})</button>`).join('')}</div>
    ${g[f].map(card).join('')||`<p class="muted pad">${f==='enc'?'Nenhum chamado encerrado.':'Nenhum chamado aqui.'}</p>`}<h3 class="lsub">Implantação</h3></section>`}
 function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
@@ -3077,7 +3187,7 @@ function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
      ${gRfoFotosHtml(c,R)}
      <button class="bigbtn" data-act="gRfoGerar" data-id="${c.id}">Gerar RFO e seguir para a LPU</button></section>`}
   else{const rfo=c.rfoTxt?`<section class="tbox"><div class="ah"><b>RFO</b><span class="tools">${c.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(c.rfoPdf)}">Relatório (PDF)</button>`:''}<button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></span></div><pre class="rfo">${esc(c.rfoTxt)}</pre></section>`:'';
-    if(c.status==='lpu')acao=`${rfo}<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU</button>`;
+    if(c.status==='lpu')acao=ui.perfil==='func'?`<div class="result info"><b>RFO enviado.</b> A LPU deste chamado é preenchida pelo administrador da sua empresa, que já foi avisado.</div>${rfo}`:`${rfo}<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU</button>`;
     else if(l&&l.status==='ajuste'){const m=(l.hist||[]).slice().reverse().find(h=>h.motivo);acao=`<div class="result bad"><b>LPU devolvida para ajuste.</b> ${esc(m?m.motivo:'')}</div><button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}" data-aj="${l.id}">Corrigir a LPU</button>${rfo}`}
     else acao=`${l?`<div class="result ${l.status==='reprovada'?'bad':'ok'}">${(GLST[l.status]||[l.status])[0]}.</div>`:''}${rfo}`}
   return `<div class="tools" style="justify-content:space-between"><button class="back" data-act="gFechar">‹ Minhas atividades</button>${gMsgBtn('g',c.id)}</div>
@@ -3151,7 +3261,7 @@ async function gSgOk(){const g=ui.sign,nome=(($('sgNome')||{}).value||'').trim()
       const r=await sb.from('ag_lpus').update(gLpuRow(Object.assign({},tmp,{status:'aguardando',hist}))).eq('id',aj.id);if(r.error){toast('Não foi possível reenviar: '+r.error.message,'bad');return}
       Object.assign(aj,tmp,{status:'aguardando',hist});ui.gLpuAj=null}
     else{const st=gLpuStatusNovo(c),emp=st==='conferencia'?ME.empresa:null;
-      const l={id:uid(),chamado:c.id,etiqueta:c.etiqueta||('OM-'+(c.pom||c.id.slice(0,8))),tec:c.tec,status:st,total,conta:GTD_CONTA,itens,data:hoje(),tecNome:gTecN(c.tec),cliente:c.cliente,pom:c.pom,cidade:c.cidade,categoria:c.categoria,desfecho:c.desfecho,obs:(d.obs||'').trim()||undefined,assinatura:ass,prestador:emp||undefined,hist:[{acao:st==='registrada'?'Registrada e assinada (equipe própria)':'Enviada e assinada',por:nome,em:Date.now()}]};
+      const l={id:uid(),chamado:c.id,etiqueta:c.etiqueta||('OM-'+(c.pom||c.id.slice(0,8))),tec:c.tec,status:st,total,conta:GTD_CONTA,itens,data:hoje(),tecNome:gTecN(c.tec),cliente:c.cliente,pom:c.pom,cidade:c.cidade,categoria:c.categoria,desfecho:c.desfecho,obs:(d.obs||'').trim()||undefined,assinatura:ass,prestador:emp||(ui.perfil==='terc'&&c.tec&&c.tec!==ME.id?ME.id:undefined),hist:[{acao:st==='registrada'?'Registrada e assinada (equipe própria)':'Enviada e assinada',por:nome,em:Date.now()}]};
       await subirPdfLpu(l);const r=await sb.from('ag_lpus').insert(gLpuRow(l));if(r.error){toast('Não foi possível enviar a LPU: '+r.error.message,'bad');return}G.lpus.push(l);
       await gAcao(c.id,x=>{x.status=st==='registrada'?'concl':'aprov';x.lpu=l.id;x.ts.lpu=Date.now();gHist(x,st==='registrada'?'LPU registrada':'LPU enviada para '+(st==='conferencia'?'conferência do prestador':'aprovação'))})}
     delete ui.draft[g.key];ui.lpuTela=null;ui.lpuP=1;render();window.scrollTo(0,0);toast(ui.perfil==='clt'?'LPU registrada. Chamado encerrado.':'LPU assinada e enviada.');return}
@@ -3163,25 +3273,25 @@ function gOpenAjuste(lid){const l=G.lpus.find(x=>x.id===lid),k='GL:'+lid;if(!l)r
 
 /* ---------- MENSAGENS (tela cheia) ---------- */
 const gChatK=()=>ui.chat?ui.chat.t+':'+ui.chat.id:'';
-async function gChatCarregar(quieto){const k=gChatK(),ch=ui.chat;if(!ch||G.msgBus[k])return;G.msgBus[k]=true;const antes=(G.msgs[k]||[]).length;
+async function gChatCarregar(quieto){const k=gChatK(),ch=ui.chat;if(ch&&ch.t==='s')return gSalaCarregar(quieto);if(!ch||G.msgBus[k])return;G.msgBus[k]=true;const antes=(G.msgs[k]||[]).length;
   try{const r=await sb.from('ag_mensagens').select('*').eq(ch.t==='g'?'chamado':'agendamento',ch.id).order('em');if(r.error)throw r.error;G.msgs[k]=r.data||[];G.nMsg[k]=G.msgs[k].length;
     await Promise.all(G.msgs[k].filter(m=>m.foto&&!G.fotos[m.foto]).map(async m=>{const s=await sb.storage.from('agenda').createSignedUrl(m.foto,3600);if(!s.error)G.fotos[m.foto]=s.data.signedUrl}))}
   catch(e){G.msgs[k]=G.msgs[k]||[];if(!quieto)toast('Não foi possível carregar as mensagens: '+(e.message||e),'bad')}
   G.msgBus[k]=false;if(gChatK()===k){if($('chatList')){if(!quieto||(G.msgs[k]||[]).length!==antes)gChatPintar()}else render();gChatVistas()}}
 /* quem abre a conversa marca as mensagens dos outros como vistas: o selo some para todos */
-async function gChatVistas(){const ch=ui.chat;if(!ch)return;const k=gChatK();
+async function gChatVistas(){const ch=ui.chat;if(!ch)return;if(ch.t==='s')return gSalaVistas();const k=gChatK();
   const ids=G.avisos.filter(a=>!a.lida&&a.ref===ch.id&&/^Mensagem/.test(a.titulo)).map(a=>a.id);if(ids.length){G.avisos.forEach(a=>{if(ids.includes(a.id))a.lida=true});gSinoAtualizar();sb.from('ag_avisos').update({lida:true}).in('id',ids).then(()=>{})}
   if(!G.vista||!(G.msgs[k]||[]).some(m=>ME&&m.autor!==ME.id&&!m.vista_em))return;G.nNova[k]=0;
   try{const r=await sb.rpc('ag_marcar_vistas',{p_chamado:ch.t==='g'?ch.id:null,p_ag:ch.t==='a'?ch.id:null});if(!r.error)(G.msgs[k]||[]).forEach(m=>{if(ME&&m.autor!==ME.id&&!m.vista_em)m.vista_em=new Date().toISOString()})}catch(e){}}
 /* com a conversa aberta, confere novas mensagens a cada 5 s (além do tempo real) */
 setInterval(()=>{if(ME&&ui.chat&&document.visibilityState==='visible')gChatCarregar(true)},5000);
-function gChatLista(){const k=gChatK(),L=G.msgs[k];if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
+function gChatLista(){if(ui.chat&&ui.chat.t==='s')return gSalaLista();const k=gChatK(),L=G.msgs[k];if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
   return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}</small>${m.texto?`<p>${esc(m.texto)}</p>`:''}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:'<small class="muted">Foto</small>'):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
 function gChatPintar(){const el=$('chatList');if(!el)return;const fim=el.scrollHeight-el.scrollTop-el.clientHeight<80;el.innerHTML=gChatLista();if(fim)el.scrollTop=el.scrollHeight}
-function viewChat(){const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);
+function viewChat(){if(ui.chat&&ui.chat.t==='s')return viewSala();const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);
   let tit='',sub='',quem='';if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};tit='O&M '+(c.pom||'');sub=c.cliente||'';quem='Técnico, NOC e O&M'}else{const a=getAg(ch.id)||{};tit=a.etiqueta||'Atividade';sub=cliN(a.etiqueta||'')+(a.fases?' · '+fasesN(a):'');quem='Técnico, Delivery e O&M'}
   setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
-  return `<div class="chatv"><div class="chath"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><div><b>Mensagens · ${esc(tit)}</b><small class="muted">${esc(sub)} · ${quem}</small></div></div>
+  return `<div class="chatv"><div class="chath"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><div><b>${ch.t==='g'&&gVeGtd()?'Chat com técnico':'Mensagens'} · ${esc(tit)}</b><small class="muted">${esc(sub)} · ${quem}</small></div></div>
    <div class="chatl" id="chatList" aria-live="polite">${gChatLista()}</div>
    <div class="chatc"><textarea class="inp" id="chatTxt" rows="2" data-in="chatTxt" placeholder="Escreva uma mensagem" aria-label="Mensagem">${esc(ui.chatTxt||'')}</textarea>
     <div class="tools"><label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} Câmera<input type="file" accept="image/*" capture="environment" data-ch="chatFoto" hidden></label><label class="btn sm chatfoto">${_sv('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',16)} Galeria<input type="file" accept="image/*" data-ch="chatFoto" hidden></label><button class="btn primary" data-act="chatEnviar">Enviar</button></div>
@@ -3189,7 +3299,7 @@ function viewChat(){const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setT
 /* no computador, Enter envia e Shift + Enter pula linha (como no WhatsApp Web); no celular, o Enter do teclado pula linha */
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatTxt'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&matchMedia('(pointer:fine)').matches){e.preventDefault();const b=document.querySelector('[data-act="chatEnviar"]');if(b&&!b.disabled)ACT.chatEnviar(b)}});
 function gReduz(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(fr.error);fr.onload=()=>{const img=new Image();img.onerror=()=>rej(new Error('arquivo de imagem inválido'));img.onload=()=>{const M=1280,r=Math.min(1,M/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=Math.round(img.width*r);cv.height=Math.round(img.height*r);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);cv.toBlob(b=>b?res(b):rej(new Error('falha ao reduzir a foto')),'image/jpeg',.6)};img.src=fr.result};fr.readAsDataURL(file)})}
-async function gChatEnviar(texto,foto){const ch=ui.chat;if(!ch)return false;const row={texto:texto||null};row[ch.t==='g'?'chamado':'agendamento']=ch.id;
+async function gChatEnviar(texto,foto){const ch=ui.chat;if(!ch)return false;if(ch.t==='s')return gSalaEnviar(texto,foto);const row={texto:texto||null};row[ch.t==='g'?'chamado':'agendamento']=ch.id;
   if(foto){try{const b=await gReduz(foto),path=`chat/${ch.t}/${ch.id}/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(up.error)throw up.error;row.foto=path}catch(e){toast('Não foi possível enviar a foto: '+(e.message||e),'bad');return false}}
   const r=await sb.from('ag_mensagens').insert(row).select().maybeSingle();if(r.error){toast('Não foi possível enviar: '+r.error.message,'bad');return false}
   const k=gChatK();if(r.data){G.msgs[k]=(G.msgs[k]||[]).concat([r.data]);G.nMsg[k]=G.msgs[k].length;if(r.data.foto){const s=await sb.storage.from('agenda').createSignedUrl(r.data.foto,3600);if(!s.error)G.fotos[r.data.foto]=s.data.signedUrl}}gChatPintar();return true}
@@ -3198,9 +3308,11 @@ async function gChatEnviar(texto,foto){const ch=ui.chat;if(!ch)return false;cons
 const gNaoLidas=()=>G.avisos.filter(a=>!a.lida).length;
 const gSinoHtml=()=>{const n=gNaoLidas();return `${_sv('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>')}${n?`<span class="sinon">${n>99?'99+':n}</span>`:''}`};
 function gSinoAtualizar(){document.querySelectorAll('[data-act="avisos"]').forEach(b=>{b.innerHTML=gSinoHtml();b.setAttribute('aria-label',`Avisos${gNaoLidas()?`, ${gNaoLidas()} não lidos`:''}`)})}
-function gAvisosModal(){const L=G.avisos;openModal(`<div class="ah"><h3>Avisos</h3>${gNaoLidas()?'<button class="btn sm" data-act="avLidas">Marcar todos como lidos</button>':''}</div><p class="muted" style="margin:4px 0 10px">Os mesmos avisos chegam no celular quando as notificações estão ativas.</p>
-  <div class="avl">${L.map(a=>`<button class="avi ${a.lida?'':'nova'}" data-act="avAbrir" data-id="${a.id}"><small>${a.cat==='gtd'?'GTD Manutenção':'Implantação'} · ${gQuando(new Date(a.em).getTime())}</small><b>${esc(a.titulo)}</b><span>${esc(a.texto)}</span></button>`).join('')||'<p class="muted pad">Nenhum aviso.</p>'}</div><div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)}
-function gIr(url){let q;try{q=new URL(url||'',location.href).searchParams}catch(e){return}const gt=q.get('gtd'),ag=q.get('ag'),chat=q.get('chat')==='1',tc=gTecPerfil();
+function gAvisosModal(){const L=G.avisos.filter(a=>!a.lida);openModal(`<div class="ah"><h3>Avisos</h3>${gNaoLidas()?'<button class="btn sm" data-act="avLidas">Marcar todos como lidos</button>':''}</div><p class="muted" style="margin:4px 0 10px">Só os avisos não lidos. Ao abrir um aviso ele sai da lista. Os mesmos avisos chegam no celular quando as notificações estão ativas.</p>
+  <div class="avl">${L.map(a=>`<button class="avi ${a.lida?'':'nova'}" data-act="avAbrir" data-id="${a.id}"><small>${a.cat==='gtd'?'GTD Manutenção':'Implantação'} · ${gQuando(new Date(a.em).getTime())}</small><b>${esc(a.titulo)}</b><span>${esc(a.texto)}</span></button>`).join('')||'<p class="muted pad">Nenhum aviso novo. Os avisos lidos saem desta lista.</p>'}</div><div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)}
+function gIr(url){let q;try{q=new URL(url||'',location.href).searchParams}catch(e){return}const gt=q.get('gtd'),ag=q.get('ag'),chat=q.get('chat')==='1',tc=gTecPerfil(),eq=q.get('eq');
+  if(eq&&ui.perfil==='terc'){ui.chat=null;ui.tab='equipe';ui.eqSel=eq;ui.lpuTela=null;render();window.scrollTo(0,0);return}
+  if(q.get('sala')==='1'&&gVeGtd()){ui.cat='gtd';ui.tab='gCham';ui.gSel=null;ui.chat={t:'s',id:'gestao'};ui.chatTxt='';render();window.scrollTo(0,0);gChatCarregar();return}
   ui.chat=null;if(gt){if(tc){ui.tab='campo';ui.campoSel=null;ui.gSel=gt}else if(gVeGtd()){ui.cat='gtd';ui.tab='gCham';ui.gSel=gt}if(chat)ui.chat={t:'g',id:gt}}
   else if(ag){if(tc){ui.tab='campo';ui.campoSel=ag;ui.gSel=null}else{ui.cat='impl';ui.tab=tabsDe().includes('agenda')?'agenda':ui.tab}if(chat)ui.chat={t:'a',id:ag}}
   ui.chatTxt='';render();window.scrollTo(0,0)}
@@ -3210,12 +3322,13 @@ let RTG=null;const gRecT={};
 const gEmTela=()=>ui.chat||ui.cat==='gtd'||(ui.tab==='campo'&&!ui.campoSel)||ui.tab==='painelDia';
 const gDigitando=()=>{const ae=document.activeElement;return !!(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)&&$('app').contains(ae))};
 function gRec(tipo,p){tipo=tipo||'ch';clearTimeout(gRecT[tipo]);gRecT[tipo]=setTimeout(async()=>{
+  if(tipo==='sala'){if(gChatK()===SALA_K){gChatCarregar(true);return}await gSalaContar();gSalaBadge();return}
   if(tipo==='msg'&&p&&p.new&&p.new.id){const m=p.new,k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;
     if(gChatK()===k){if(G.msgs[k]&&!G.msgs[k].some(x=>x.id===m.id)){G.msgs[k].push(m);G.nMsg[k]=G.msgs[k].length;if(m.foto&&!G.fotos[m.foto]){const s=await sb.storage.from('agenda').createSignedUrl(m.foto,3600);if(!s.error)G.fotos[m.foto]=s.data.signedUrl}gChatPintar()}gChatCarregar(true);return}}
   if(SYNC_PEND||$('modal').classList.contains('open')){gSinoAtualizar();return}
   await gCarregar();gSinoAtualizar();if(ui.chat||!gEmTela())return;if(gDigitando()){setTimeout(()=>gRec(tipo),2500);return}if(ui.lpuTela&&String(ui.lpuTela).startsWith('G:'))return;render()},tipo==='msg'?150:700)}
 function gLigarTempoReal(){if(RTG){sb.removeChannel(RTG);RTG=null}if(G.erro||!ME)return;
-  RTG=sb.channel('gtd').on('postgres_changes',{event:'*',schema:'public',table:'ag_chamados'},()=>gRec('ch')).on('postgres_changes',{event:'*',schema:'public',table:'ag_mensagens'},p=>gRec('msg',p)).on('postgres_changes',{event:'*',schema:'public',table:'ag_avisos'},()=>gRec('av')).subscribe()}
+  RTG=sb.channel('gtd').on('postgres_changes',{event:'*',schema:'public',table:'ag_chamados'},()=>gRec('ch')).on('postgres_changes',{event:'*',schema:'public',table:'ag_mensagens'},p=>gRec('msg',p)).on('postgres_changes',{event:'*',schema:'public',table:'ag_avisos'},()=>gRec('av')).on('postgres_changes',{event:'INSERT',schema:'public',table:'ag_sala'},p=>gRec('sala',p)).subscribe()}
 setInterval(()=>{if(!ME||ui.chat||ui.cat!=='gtd'||!['gCham','gPainel'].includes(ui.tab)||ui.gSel&&ui.tab!=='gCham')return;if(gDigitando()||$('modal').classList.contains('open'))return;render()},60000);
 
 /* ---------- ações ---------- */
@@ -3286,8 +3399,8 @@ Object.assign(ACT,{
       const fotos=[];for(const f of F){const d=await gImgData(f);if(d)fotos.push({data:d,leg:f.leg||''})}
       const blob=await gRfoPdf(c0,fotos),path=`chat/g/${id}/rfo/relatorio-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
     catch(e){toast('O RFO será gravado, mas o PDF do relatório não foi gerado: '+(e.message||e),'bad')}
-    const nv=await gAcao(id,c=>{if(c.status!=='rfo'){toast('O RFO já foi gerado.','bad');return false}c.desfecho=R.desfecho;c.encEquipe=R.desfecho==='Encaminhado'?String(R.encEquipe).trim():'';const{fotos,...rr}=R;c.rfo=rr;c.rfoFotos=F.map(f=>({path:f.path,leg:f.leg||''}));if(pdf)c.rfoPdf=pdf;c.rfoTxt=gRfoTexto(c);c.status='lpu';c.ts.rfo=Date.now();gHist(c,'RFO gerado ('+R.desfecho+')'+(F.length?', '+F.length+' foto(s)':''))},'RFO gerado. Agora preencha a LPU.');
-    el.disabled=false;if(nv){delete ui.gRfo[id];IDB.del('gr:'+id).catch(()=>{});ACT.gLpuAbrir({dataset:{id}})}},
+    const nv=await gAcao(id,c=>{if(c.status!=='rfo'){toast('O RFO já foi gerado.','bad');return false}c.desfecho=R.desfecho;c.encEquipe=R.desfecho==='Encaminhado'?String(R.encEquipe).trim():'';const{fotos,...rr}=R;c.rfo=rr;c.rfoFotos=F.map(f=>({path:f.path,leg:f.leg||''}));if(pdf)c.rfoPdf=pdf;c.rfoTxt=gRfoTexto(c);c.status='lpu';c.ts.rfo=Date.now();gHist(c,'RFO gerado ('+R.desfecho+')'+(F.length?', '+F.length+' foto(s)':''))},ui.perfil==='func'?'RFO gerado. O administrador da sua empresa foi avisado para preencher a LPU.':'RFO gerado. Agora preencha a LPU.');
+    el.disabled=false;if(nv){delete ui.gRfo[id];IDB.del('gr:'+id).catch(()=>{});if(ui.perfil!=='func')ACT.gLpuAbrir({dataset:{id}})}},
   gRfoFotoRem:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R||!R.fotos)return;R.fotos.splice(+el.dataset.k,1);gRfoSalvar(el.dataset.id);const y=window.scrollY;render();window.scrollTo(0,y)},
   gAceitar:async el=>{await gAcao(el.dataset.id,c=>{if(c.status!=='aberto'||c.tec!==ME.id&&ui.perfil!=='coord'){toast('Este chamado não está mais com você.','bad');return false}c.aceite={tec:c.tec,em:Date.now(),por:meNome()};gHist(c,'Aceito pelo técnico')},'Chamado aceito. Informe a previsão de chegada ao sair.');window.scrollTo(0,0)},
   gRecusar:el=>{openModal(`<h3>Recusar o chamado</h3><p class="muted">O chamado volta para Não despachados e a gestão do GTD é avisada.</p><label class="f" style="margin-top:12px"><span>Motivo *</span><select class="inp" id="grMot"><option value="">Escolha…</option>${['Estou em outro atendimento','Fora da minha região','Sem material ou equipamento necessário','Fora do meu horário','Outro'].map(x=>`<option>${x}</option>`).join('')}</select></label><label class="f"><span>Detalhes</span><textarea class="inp" id="grObs" rows="3" placeholder="Explique para a gestão"></textarea></label><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="gRecusarOk" data-id="${el.dataset.id}">Recusar chamado</button></div>`)},
@@ -3352,6 +3465,86 @@ Object.assign(IN,{
 /* reserva do tempo real da Implantação: a cada 2 min a gestão recarrega o Painel do dia, a Agenda e o Painel (correção 08/10) */
 setInterval(async function gRecargaImpl(){if(!ME||!['coord','sup','enc','deliv'].includes(ui.perfil)||document.visibilityState!=='visible'||ui.chat)return;if(!['painelDia','agenda','painel','relat'].includes(ui.tab))return;
   if(SYNC_PEND||$('modal').classList.contains('open')||gDigitando())return;try{await SYNC_P;await carregar();render()}catch(e){}},120000);
+
+
+/* ---------- CONVERSA DA GESTÃO DO GTD (grupo: coordenação, supervisão, encarregados e NOC; técnicos não veem) ---------- */
+const SALA_K='s:gestao';
+/* nome da conversa conforme quem vê: o NOC conversa com o O&M; a gestão O&M conversa com o NOC */
+const salaNome=()=>ui.perfil==='noc'?'Chat com O&M':'Chat com NOC';G.salaNova=0;G.salaOk=null;G.salaErro='';G.salaVisto=null;
+const salaFalta=e=>/ag_sala|does not exist|schema cache|relation/i.test(String((e&&e.message)||e));
+const SALA_AJ='Rode o script agenda_ajuste_20_conversa_gestao_gtd.sql no Supabase para ativar a conversa da gestão.';
+async function gSalaContar(){if(!ME)return;
+  try{const v=await sb.from('ag_sala_vistos').select('visto_em').eq('user_id',ME.id).maybeSingle();if(v.error)throw v.error;
+    G.salaVisto=(v.data&&v.data.visto_em)||G.salaVisto||'1970-01-01T00:00:00Z';
+    const r=await sb.from('ag_sala').select('id,autor,em').gt('em',G.salaVisto).neq('autor',ME.id).limit(500);if(r.error)throw r.error;
+    G.salaNova=(r.data||[]).length;G.salaOk=true;G.salaErro=''}
+  catch(e){G.salaOk=false;G.salaNova=0;G.salaErro=salaFalta(e)?SALA_AJ:'Não foi possível carregar a conversa: '+(e.message||e)}}
+const SALA_ICO='<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>';
+const gSalaBtn=()=>gVeGtd()?`<button class="btn salabtn${G.salaNova?' nova':''}" data-act="salaAbrir" title="Conversa em grupo entre a gestão O&amp;M do GTD e o NOC" aria-label="${salaNome()}${G.salaNova?`, ${G.salaNova} mensagens novas`:''}">${_sv(SALA_ICO,16)}${esc(salaNome())}${G.salaNova?`<span class="salan">${G.salaNova>99?'99+':G.salaNova}</span>`:''}</button>`:'';
+function gSalaBadge(){document.querySelectorAll('button.salabtn').forEach(b=>{b.outerHTML=gSalaBtn()})}
+async function gSalaCarregar(quieto){const k=SALA_K;if(G.msgBus[k])return;G.msgBus[k]=true;const L0=G.msgs[k],antes=(L0||[]).length;
+  try{let r;
+    if(L0&&L0.length){r=await sb.from('ag_sala').select('*').gt('em',L0[L0.length-1].em).order('em');if(r.error)throw r.error;const ids=new Set(L0.map(m=>m.id));G.msgs[k]=L0.concat((r.data||[]).filter(m=>!ids.has(m.id)))}
+    else{r=await sb.from('ag_sala').select('*').order('em',{ascending:false}).limit(300);if(r.error)throw r.error;G.msgs[k]=(r.data||[]).reverse()}
+    G.salaErro='';G.salaOk=true;
+    await Promise.all(G.msgs[k].filter(m=>m.foto&&!G.fotos[m.foto]).map(async m=>{const s=await sb.storage.from('agenda').createSignedUrl(m.foto,3600);if(!s.error)G.fotos[m.foto]=s.data.signedUrl}))}
+  catch(e){G.msgs[k]=G.msgs[k]||[];G.salaErro=salaFalta(e)?SALA_AJ:'Não foi possível carregar a conversa: '+(e.message||e);if(!quieto)toast(G.salaErro,'bad')}
+  G.msgBus[k]=false;if(gChatK()===k){if($('chatList')){if(!quieto||(G.msgs[k]||[]).length!==antes)gChatPintar()}else render();gSalaVistas()}}
+/* quem abre a conversa zera o próprio contador (e os avisos da conversa saem do sino) */
+async function gSalaVistas(){const ids=G.avisos.filter(a=>!a.lida&&a.ref==='sala').map(a=>a.id);
+  if(ids.length){G.avisos.forEach(a=>{if(ids.includes(a.id))a.lida=true});gSinoAtualizar();sb.from('ag_avisos').update({lida:true}).in('id',ids).then(()=>{})}
+  const L=G.msgs[SALA_K]||[],ult=L.length?L[L.length-1].em:null;G.salaNova=0;if(!ult||(G.salaVisto&&G.salaVisto>=ult))return;G.salaVisto=ult;
+  try{await sb.from('ag_sala_vistos').upsert({user_id:ME.id,visto_em:ult},{onConflict:'user_id'})}catch(e){}}
+async function gSalaEnviar(texto,foto){const row={texto:texto||null,chamado:ui.salaCh||null};
+  if(foto){try{const b=await gReduz(foto),path=`chat/g/sala/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(up.error)throw up.error;row.foto=path}catch(e){toast('Não foi possível enviar a foto: '+(e.message||e),'bad');return false}}
+  const r=await sb.from('ag_sala').insert(row).select().maybeSingle();
+  if(r.error){toast(salaFalta(r.error)?SALA_AJ:'Não foi possível enviar: '+r.error.message,'bad');return false}
+  const k=SALA_K;if(r.data&&!(G.msgs[k]||[]).some(m=>m.id===r.data.id)){G.msgs[k]=(G.msgs[k]||[]).concat([r.data]);if(r.data.foto){const s=await sb.storage.from('agenda').createSignedUrl(r.data.foto,3600);if(!s.error)G.fotos[r.data.foto]=s.data.signedUrl}}
+  if(r.data){G.salaVisto=r.data.em;sb.from('ag_sala_vistos').upsert({user_id:ME.id,visto_em:r.data.em},{onConflict:'user_id'}).then(()=>{})}
+  if(ui.salaCh){ui.salaCh=null;ui.chatTxt='';render()}else gChatPintar();
+  const el=$('chatList');if(el)el.scrollTop=el.scrollHeight;return true}
+/* cor fixa por pessoa, como nos grupos do WhatsApp */
+const salaHue=id=>{let h=0;String(id||'').split('').forEach(c=>{h=(h*31+c.charCodeAt(0))|0});return [168,212,28,268,340,145,40,195][Math.abs(h)%8]};
+const salaIni=n=>String(n||'?').replace(/\(.*?\)/g,'').trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'?';
+const salaHora=v=>new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const SALA_PRIO={Escalonado:0,Alta:1,Normal:2};
+const gSalaOrd=(a,b)=>(SALA_PRIO[a.prioridade]??2)-(SALA_PRIO[b.prioridade]??2)||gIni(a)-gIni(b);
+const gPrioChip=c=>c.prioridade&&c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:'';
+const gSalaRef=(c,id)=>c?`<button class="salaref" data-act="salaVerCh" data-id="${id}" title="Abrir o chamado"><span class="salarefh"><b>O&amp;M ${esc(c.pom||'—')}</b>${gChip(c)}${gPrioChip(c)}</span><span class="salarefc">${esc(c.cliente||'')}${c.cidade?' · '+esc(c.cidade):''} · ${esc(gTecN(c.tec))}</span></button>`:'<span class="salaref off">Chamado citado não encontrado</span>';
+function gSalaLista(){const L=G.msgs[SALA_K];
+  if(G.salaErro&&!(L&&L.length))return `<div class="result bad" style="margin:auto 0">${esc(G.salaErro)}</div>`;
+  if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
+  if(!L.length)return '<div class="salavz"><b>Nenhuma mensagem ainda</b><span>Use esta conversa para combinar prioridades entre a gestão do GTD e o NOC. Para falar de um chamado, toque em <b>Citar</b> ao lado dele ou escolha em "Citar chamado".</span></div>';
+  let dia='',prev=null;const hj=hoje(),on=addD(hj,-1);
+  return L.map(m=>{const t=new Date(m.em),d=isoD(t),eu=!!(ME&&m.autor===ME.id);let h='';
+    if(d!==dia){dia=d;prev=null;h+=`<div class="saladia"><span>${d===hj?'Hoje':d===on?'Ontem':dBR(d)}</span></div>`}
+    const cont=!!(prev&&prev.autor===m.autor&&t-new Date(prev.em)<5*60000);prev=m;
+    const hue=salaHue(m.autor),c=m.chamado?G.ch.find(x=>x.id===m.chamado):null;
+    const foto=m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:'<small class="muted">Foto</small>'):'';
+    h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?gSalaRef(c,m.chamado):''}${m.texto?`<p>${esc(m.texto)}</p>`:''}${foto}<small class="salahr">${salaHora(m.em)}</small></div></div>`;return h}).join('')}
+function viewSala(){const k=SALA_K;if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
+  const ab=G.ch.filter(c=>GTD_ABERTOS.includes(c.status)).sort(gSalaOrd),cit=ui.salaCh&&G.ch.find(x=>x.id===ui.salaCh);
+  const nEsc=ab.filter(c=>c.prioridade==='Escalonado').length,nAlta=ab.filter(c=>c.prioridade==='Alta').length,nND=ab.filter(c=>c.status==='aberto'&&!c.tec).length;
+  const cam=_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16),gal=_sv('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',16);
+  return `<div class="salav"><section class="salam" aria-label="${esc(salaNome())}">
+   <div class="salah"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><span class="salaico" aria-hidden="true">${_sv(SALA_ICO,20)}</span><div><b>${esc(salaNome())} · GTD Manutenção</b><small class="muted">Coordenação, supervisão, encarregados e NOC. Os técnicos não veem esta conversa.</small></div></div>
+   <div class="chatl salal" id="chatList" aria-live="polite">${gSalaLista()}</div>
+   <div class="chatc salac">${cit?`<div class="salacit"><span>Sobre o chamado <b>O&amp;M ${esc(cit.pom||'—')}</b> · ${esc(cit.cliente||'')}</span><button class="icon" data-act="salaTirar" aria-label="Tirar o chamado citado">✕</button></div>`:''}
+    <textarea class="inp" id="chatTxt" rows="2" data-in="chatTxt" placeholder="${ui.perfil==='noc'?'Mensagem para o O&amp;M':'Mensagem para o NOC'}" aria-label="Mensagem">${esc(ui.chatTxt||'')}</textarea>
+    <div class="tools"><select class="inp salasel" data-ch="salaChSel" aria-label="Citar um chamado"><option value="">Citar chamado…</option>${ab.map(c=>`<option value="${c.id}" ${ui.salaCh===c.id?'selected':''}>O&amp;M ${esc(c.pom||'—')} · ${esc((c.cliente||'').slice(0,40))}${c.prioridade!=='Normal'?' · '+esc(c.prioridade):''}</option>`).join('')}</select>
+     <label class="btn sm chatfoto">${cam} Câmera<input type="file" accept="image/*" capture="environment" data-ch="chatFoto" hidden></label><label class="btn sm chatfoto">${gal} Galeria<input type="file" accept="image/*" data-ch="chatFoto" hidden></label><button class="btn primary" data-act="chatEnviar">Enviar</button></div>
+    <small class="muted chatdica">Enter envia; Shift + Enter pula linha.</small></div></section>
+   <aside class="salaside" aria-label="Chamados em aberto"><div class="secth"><h3>Chamados em aberto</h3><span class="chip">${ab.length}</span></div>
+    <p class="muted salares">${nEsc} escalonado${nEsc===1?'':'s'} · ${nAlta} alta${nAlta===1?'':'s'} · ${nND} não despachado${nND===1?'':'s'}</p>
+    <input class="inp" type="search" id="salaQ" data-in="salaQ" placeholder="Buscar O&amp;M, cliente ou técnico" autocomplete="off">
+    <div class="salalst">${ab.map(c=>`<div class="salaitem" data-q="${esc(normK([c.pom,c.cliente,c.cidade,gTecN(c.tec),c.categoria].join(' ')))}"><button class="salaabre" data-act="salaVerCh" data-id="${c.id}"><span class="salarefh"><b>O&amp;M ${esc(c.pom||'—')}</b>${gPrioChip(c)}</span><span>${esc(c.cliente||'')}</span><small class="muted">${esc(c.categoria||'')} · ${esc(gTecN(c.tec))}</small>${gChip(c)}</button><button class="btn sm" data-act="salaCitar" data-id="${c.id}" aria-label="Citar o O&amp;M ${esc(c.pom||'')} na conversa">Citar</button></div>`).join('')||'<p class="muted">Nenhum chamado em aberto.</p>'}</div></aside></div>`}
+Object.assign(ACT,{
+  salaAbrir:el=>{ui.cat='gtd';if(!['gCham'].includes(ui.tab)&&tabsDe().includes('gCham'))ui.tab='gCham';ui.chat={t:'s',id:'gestao'};ui.chatTxt='';const id=el&&el.dataset&&el.dataset.id;if(id)ui.salaCh=id;closeModal();document.body.classList.remove('menu');render();window.scrollTo(0,0);gChatCarregar()},
+  salaCitar:el=>{ui.salaCh=el.dataset.id;const t=$('chatTxt');if(t)ui.chatTxt=t.value;render();const i=$('chatTxt');if(i)i.focus()},
+  salaTirar:()=>{ui.salaCh=null;const t=$('chatTxt');if(t)ui.chatTxt=t.value;render()},
+  salaVerCh:el=>{const id=el.dataset.id;ui.chat=null;ui.cat='gtd';ui.tab='gCham';ui.gSel=id;render();window.scrollTo(0,0)}});
+Object.assign(CH,{salaChSel:el=>{ui.salaCh=el.value||null;const t=$('chatTxt');if(t)ui.chatTxt=t.value;render()}});
+Object.assign(IN,{salaQ:el=>{const q=normK(el.value||'');document.querySelectorAll('.salaitem').forEach(x=>{x.hidden=!!q&&!x.dataset.q.includes(q)})}});
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
