@@ -600,6 +600,16 @@ details summary{cursor:pointer;font-weight:600}
 .saladia{pointer-events:none}
 .eqh .chip{margin:0;flex:none;white-space:nowrap}
 .chip.info{margin:0}
+.kpis.ghist{grid-template-columns:repeat(7,minmax(0,1fr));margin-bottom:6px}
+.ghistp{margin:0 0 12px;font-size:13px}
+@media(max-width:1100px){.kpis.ghist{grid-template-columns:repeat(4,minmax(0,1fr))}.kpis.ghist .kpi:last-child{grid-column:span 2}}
+@media(max-width:600px){.kpis.ghist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi.kbtn{border:0;text-align:left;font:inherit;color:inherit;cursor:pointer;position:relative;display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch}
+.kpi.kbtn:hover{background:var(--bg)}
+.kpi.kbtn:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.kpi.kbtn[aria-pressed="true"]{background:var(--brand-soft);box-shadow:inset 0 -3px 0 var(--brand)}
+.kpi.kbtn[aria-pressed="true"] span{color:var(--brand-ink);font-weight:600}
+.linkbtn{border:0;background:none;padding:0;font:inherit;color:var(--brand-ink);text-decoration:underline;cursor:pointer}
 </style>
 </head>
 <body>
@@ -3134,15 +3144,24 @@ function gFinDet(){const sit=ui.gdSit||'ap',pres=ui.gdPres||'',cls=ui.gdClasse||
 function viewGRel(){if(G.erro)return `<h2>Histórico · GTD Manutenção</h2>${gErroBox()}`;
   const q=normK(ui.grQ||''),cat=ui.grCat||'',tec=ui.grTec||'',ini=ui.grIni||addD(hoje(),-30),fim=ui.grFim||hoje();ui.grOpen=ui.grOpen||{};
   const L=G.ch.filter(c=>gDiaDe(c)>=ini&&gDiaDe(c)<=fim&&(!cat||c.categoria===cat)&&(!tec||c.tec===tec)&&(!q||normK([c.cliente,c.etiqueta,c.pom,c.pnoc].join(' ')).includes(q)));
-  const M={};L.forEach(c=>{const k=c.etiqueta||normK(c.cliente||'');(M[k]=M[k]||[]).push(c)});
+  const SITF={ab:c=>GTD_ABERTOS.includes(c.status),enc:c=>['rfo','lpu','aprov','concl'].includes(c.status),can:c=>c.status==='cancelado',rei:c=>c.status!=='cancelado'&&gReinc(c).length>0,imp:c=>c.desfecho==='Improdutivo'};
+  const sit=SITF[ui.grSit]?ui.grSit:'',LF=sit?L.filter(SITF[sit]):L,nCli=new Set(L.map(c=>c.etiqueta||normK(c.cliente||''))).size;
+  G.histUlt={LF,sit,ini,fim,cat,tec,q};
+  const M={};LF.forEach(c=>{const k=c.etiqueta||normK(c.cliente||'');(M[k]=M[k]||[]).push(c)});
   const cls=Object.values(M).map(x=>x.sort((a,b)=>gIni(b)-gIni(a))).sort((a,b)=>String(a[0].cliente).localeCompare(String(b[0].cliente)));
   const tecs=G.tecs.length?G.tecs:[];
-  return `<div class="toolbar"><div><h2>Histórico · GTD Manutenção</h2><p class="muted">Todos os chamados, inclusive os cancelados, com RFO, desfecho, MTTR e LPU, organizados por cliente.</p></div></div>
+  return `<div class="toolbar"><div><h2>Histórico · GTD Manutenção</h2><p class="muted">Todos os chamados, inclusive os cancelados, com RFO, desfecho, MTTR e LPU, organizados por cliente.</p></div><div class="tools"><button class="btn" data-act="grXlsx" title="Baixa a planilha com os chamados da lista, como estão filtrados">Baixar planilha</button></div></div>
   <div class="tools" style="margin-bottom:12px"><input class="inp" type="search" id="grQ" placeholder="Buscar cliente, etiqueta ou protocolo" data-in="grQ" value="${esc(ui.grQ||'')}" autocomplete="off">
    <select class="inp" data-ch="grCat"><option value="">Todas as categorias</option>${GTD_CATS.map(x=>`<option ${x===cat?'selected':''}>${esc(x)}</option>`).join('')}</select>
    <select class="inp" data-ch="grTec"><option value="">Todos os técnicos</option>${tecs.map(t=>`<option value="${t.id}" ${t.id===tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</select>
    <label class="f inline"><span>De</span><input type="date" class="inp" data-ch="grIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="grFim" value="${fim}"></label></div>
-  ${cls.map(Lc=>{const c0=Lc[0],k=c0.etiqueta||normK(c0.cliente||''),o=ui.grOpen[k]!==undefined?ui.grOpen[k]:cls.length===1,re=Lc.filter(c=>c.status!=='cancelado'&&gReinc(c).length).length,nCan=Lc.filter(c=>c.status==='cancelado').length;
+  ${(()=>{const n=k=>L.filter(SITF[k]).length,SN={ab:'Em aberto',enc:'Validados / encerrados',can:'Cancelados',rei:'Reincidentes',imp:'Improdutivos'};
+    const kb=(v,lab,cl,k)=>`<button type="button" class="kpi kbtn ${cl}" data-act="grSit" data-v="${k}" aria-pressed="${sit===k}" title="${k?'Mostrar só: '+lab:'Mostrar todos'}"><b>${v}</b><span>${lab}</span></button>`;
+    const ab=n('ab'),rei=n('rei'),imp=n('imp');
+    return `<div class="kpis ghist" role="group" aria-label="Resumo do período (toque para filtrar)">${kb(L.length,'Chamados no período','','')}<div class="kpi"><b>${nCli}</b><span>Clientes</span></div>${kb(n('enc'),'Validados / encerrados','ok','enc')}${kb(ab,'Em aberto',ab?'warn':'','ab')}${kb(n('can'),'Cancelados','','can')}${kb(rei,'Reincidentes',rei?'bad':'','rei')}${kb(imp,'Improdutivos',imp?'warn':'','imp')}</div>
+    <p class="muted ghistp">${dBR(ini)} a ${dBR(fim)}${cat||tec||q?' · com os filtros aplicados':''}. ${sit?`Mostrando só <b>${SN[sit]}</b> (${LF.length}). <button type="button" class="linkbtn" data-act="grSit" data-v="">Mostrar todos</button>`:'Toque em um número para filtrar a lista.'}</p>
+    ${sit&&!LF.length?'<p class="muted">Nenhum chamado nesta situação no período.</p>':''}`})()}
+  ${cls.map(Lc=>{const c0=Lc[0],k=c0.etiqueta||normK(c0.cliente||''),o=ui.grOpen[k]!==undefined?ui.grOpen[k]:cls.length===1||!!sit,re=Lc.filter(c=>c.status!=='cancelado'&&gReinc(c).length).length,nCan=Lc.filter(c=>c.status==='cancelado').length;
     return `<section class="lcard"><button class="lhead" data-act="grOpen" data-k="${esc(k)}" aria-expanded="${o}"><div><b style="font:700 20px 'Barlow Condensed',sans-serif">${esc(c0.cliente||'Cliente')}</b><small>${esc(c0.etiqueta||'sem etiqueta')}${c0.cidade?', '+esc(c0.cidade):''}</small></div><span style="display:flex;gap:8px;align-items:center">${re?`<span class="chip bad">${re} ${re>1?'reincidências':'reincidência'}</span>`:''}${nCan?`<span class="chip">${nCan} ${nCan>1?'cancelados':'cancelado'}</span>`:''}<span class="chip">${Lc.length} ${Lc.length>1?'chamados':'chamado'}</span><span class="muted">${o?'▴':'▾'}</span></span></button>
      ${o?`<div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table class="grtab"><thead><tr><th>Data</th><th>Chamado</th><th>Categoria e motivo</th><th>Técnico</th><th>Desfecho</th><th>MTTR</th><th>LPU</th><th></th></tr></thead><tbody>${Lc.map(c=>{const l=gLpuDe(c);return `<tr><td>${dBR(gDiaDe(c))}</td><td><b>O&amp;M ${esc(c.pom||'—')}</b><br><small class="muted">NOC ${esc(c.pnoc||'—')}</small>${c.status!=='cancelado'&&gReinc(c).length?'<br><span class="chip bad">Reincidente</span>':''}</td><td>${esc(c.categoria)}<br><small class="muted">${esc(String(c.motivo||'').slice(0,90))}</small></td><td>${esc(gTecN(c.tec))}</td><td>${c.status==='cancelado'?`<span class="chip">Cancelado</span>${c.motivoCancel?`<br><small class="muted">${esc(c.motivoCancel)}</small>`:''}`:c.desfecho?esc(c.desfecho+(c.encEquipe?' para '+c.encEquipe:'')):GST[gStK(c)][0]}</td><td>${c.validadoEm?gDur(c.validadoEm-gIni(c)):c.status==='cancelado'?'—':'em aberto'}</td><td>${l?(GLST[l.status]||[l.status])[0].replace(/^LPU /,'')+(verValor()&&l.status!=='registrada'?'<br><small class="muted">'+brl(l.total)+'</small>':''):'—'}</td><td class="r" style="white-space:nowrap">${c.rfoTxt?`<button class="btn sm" data-act="gRfoVer" data-id="${c.id}">Ver RFO</button> `:''}${c.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(c.rfoPdf)}">PDF</button> `:''}<button class="btn sm" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button></td></tr>`}).join('')}</tbody></table></div>`:''}</section>`}).join('')||'<p class="muted pad">Nenhum chamado com esses filtros.</p>'}`}
 
@@ -3342,6 +3361,23 @@ Object.assign(ACT,{
   gbSalvar:async()=>{const mes=ui.bMes||hoje().slice(0,7),valor=parseFloat((($('gBud')||{}).value||'0').replace(',','.'))||0;const r=await sb.from('ag_budget').upsert([{mes,conta:GTD_CONTA,valor}],{onConflict:'mes,conta'});if(r.error){toast('Não foi possível salvar o budget: '+r.error.message,'bad');return}
     S.budget=S.budget||{};S.budget[mes]=S.budget[mes]||{};S.budget[mes][GTD_CONTA]=valor;ui.bEdit=false;render();toast('Budget da manutenção de '+mesNome(mes)+' salvo.')},
   gcF:el=>{ui.gcF=el.dataset.t;render()},
+  grXlsx:()=>{const H=G.histUlt;if(!H||!H.LF.length){toast('Nada para exportar com esses filtros.','bad');return}
+    const hr=v=>v?new Date(v).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'',vv=verValor();
+    const SN={ab:'Em aberto',enc:'Validados / encerrados',can:'Cancelados',rei:'Reincidentes',imp:'Improdutivos'};
+    const L=H.LF.slice().sort((a,b)=>gIni(a)-gIni(b)).map(c=>{const t=c.ts||{},r=c.rfo||{},l=gLpuDe(c),re=c.status!=='cancelado'?gReinc(c):[];
+      const o={'Data':dBR(gDiaDe(c)),'O&M':c.pom||'','Protocolo NOC':c.pnoc||'','Cliente':c.cliente||'','Etiqueta':c.etiqueta||'','Cidade':c.cidade||'','Categoria':c.categoria||'','Motivo':c.motivo||'','Prioridade':c.prioridade||'',
+        'Técnico':c.tec?gTecN(c.tec):'Não despachado','Vínculo':c.tec?gTecV(c.tec):'','Situação':(GST[gStK(c)]||[c.status])[0],'Desfecho':c.status==='cancelado'?'Cancelado':c.desfecho||'','Encaminhado para':c.encEquipe||'','Motivo do cancelamento':c.status==='cancelado'?c.motivoCancel||'':'',
+        'Reincidente':re.length?'Sim':'Não','Chamado anterior':re.length?re.map(x=>'O&M '+(x.pom||'')).join(', '):'',
+        'Aberto em':hr(c.criadoEm),'Agendado para':hr(c.agendaEm),'Despacho':hr(t.despacho),'Saída':hr(t.desloc),'Chegada':hr(t.chegada),'Início do atendimento':hr(t.inicio),'Validação pedida':hr(t.pedido),'Validado em':hr(c.validadoEm),'RFO em':hr(t.rfo),
+        'MTTR (h)':c.validadoEm?+((c.validadoEm-gIni(c))/36e5).toFixed(2):'','MTTR':c.validadoEm?gDur(c.validadoEm-gIni(c)):'',
+        'Local da falha':r.local||'','Causa':r.causa||'','Detalhes':r.detalhes||'','Solução':r.solucao||'','Materiais':r.materiais||'','Serial retirado':r.serialRet||'','Serial instalado':r.serialInst||'','Patrimônio':r.patrimonio||'','Melhoria de rede':r.melhoria||'',
+        'LPU':l?(GLST[l.status]||[l.status])[0].replace(/^LPU /,''):''};
+      if(vv)o['Valor da LPU (R$)']=l&&l.status!=='registrada'?+(+l.total||0).toFixed(2):'';return o});
+    const res=[['Período',dBR(H.ini)+' a '+dBR(H.fim)],['Busca',H.q?ui.grQ:'(todas)'],['Categoria',H.cat||'(todas)'],['Técnico',H.tec?gTecN(H.tec):'(todos)'],['Situação',H.sit?SN[H.sit]:'(todas)'],['Chamados exportados',L.length],['Gerado em',hr(Date.now())]].map(([a,b])=>({Filtro:a,Valor:b}));
+    const arq=`historico_gtd_${H.ini}_a_${H.fim}${H.sit?'_'+H.sit:''}`;
+    try{const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(L);ws['!cols']=Object.keys(L[0]).map(k=>({wch:Math.min(40,Math.max(10,k.length+2))}));XLSX.utils.book_append_sheet(wb,ws,'Chamados');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(res),'Filtros');XLSX.writeFile(wb,arq+'.xlsx');toast(L.length+(L.length===1?' chamado exportado.':' chamados exportados.'))}
+    catch(e){const cols=Object.keys(L[0]),csv='\ufeff'+[cols.join(';')].concat(L.map(x=>cols.map(c=>`"${String(x[c]??'').replace(/"/g,'""')}"`).join(';'))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=arq+'.csv';a.click()}},
+  grSit:el=>{const v=el.dataset.v||'';ui.grSit=ui.grSit===v?'':v;ui.grOpen={};render()},
   grOpen:el=>{const k=el.dataset.k;ui.grOpen=ui.grOpen||{};const atual=ui.grOpen[k]!==undefined?ui.grOpen[k]:document.querySelectorAll('.lcard').length===1;ui.grOpen[k]=!atual;render()},
   gRfoVer:el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(!c)return;openModal(`<div class="ah"><h3>RFO · O&amp;M ${esc(c.pom)}</h3><button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></div><pre class="rfo">${esc(c.rfoTxt||'')}</pre><div class="actions"><button class="btn" data-act="close">Fechar</button><button class="btn primary" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button></div>`,'wide')},
   gCat:el=>{ui.cat=el.dataset.v;ui.gSel=null;ui.chat=null;ui.campoSel=null;ui.tab=ui.cat==='gtd'&&tabsDe().includes('gCham')?'gCham':'';render();window.scrollTo(0,0)},
