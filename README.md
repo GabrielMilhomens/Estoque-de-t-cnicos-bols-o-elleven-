@@ -60,6 +60,7 @@ Sistema web de gestão das atividades de campo de O&M em duas categorias: **Impl
 | `agenda-rota.ts` | Código da Edge Function `agenda-rota` (rota, previsão de chegada e endereço das fotos pelo OpenRouteService). |
 | `NAO_SUBIR_NO_GITHUB_segredos_notificacoes.txt` | Segredos da Edge Function (ver seção 6). |
 | `agenda_zerar_dados_de_teste.sql` | Script usado uma vez para apagar atividades, LPUs e avisos de teste antes da operação, com cópia de segurança no banco. |
+| `agenda_apagar_cliente_teste.sql` | Apaga por completo um cliente de teste pela etiqueta (já vem com `teste`): projeto da Base de previsão, complementos, atividades, LPUs da Implantação e do GTD, chamados do GTD da mesma etiqueta, mensagens, avisos do sino, expurgos, anexos e registro de anexos excluídos, guardando cópia em `bkp_cliente_teste_*`. Rodar por partes; a Parte 3 lista o que será apagado e a Parte 5 gera o comando que apaga os arquivos do Storage pelo console da agenda (entrando como coordenador). Não envia notificação a ninguém. |
 | `agenda_limpar_testes_por_tecnico.sql` | Apaga as atividades e LPUs da Implantação só dos técnicos escolhidos pelo nome (e dos funcionários das empresas escolhidas), com as mensagens, avisos e expurgos dessas atividades, guardando cópia em `bkp_limpeza_ag_agendamentos` e `bkp_limpeza_ag_lpus`. Rodar por partes; a Parte 3 mostra a lista do que será apagado. Não mexe no GTD, nos projetos nem no estoque. |
 | `gtd_limpar_testes_por_tecnico.sql` | O mesmo para o GTD Manutenção: apaga os chamados despachados para os técnicos escolhidos, as LPUs desses chamados (apagadas antes do chamado, para não virarem LPU solta da Implantação), mensagens, avisos e expurgos, com cópia em `bkp_limpeza_ag_chamados` e `bkp_limpeza_ag_lpus_gtd`. Não mexe na Implantação nem nos chamados não despachados. |
 
@@ -389,6 +390,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 10/10/2026 | Roteiro para apagar por completo um cliente de teste (banco e arquivos do Storage), com cópia de segurança. | `agenda_apagar_cliente_teste.sql` |
 | 10/10/2026 | Funcionário de empresa terceira deixa de ver qualquer coisa de LPU (PDF, situação, valores, avisos e notificação de aprovação); na atividade encerrada vê os relatórios. | `agenda.html`, `agenda_ajuste_22` (rodar antes), `agenda-lembretes.ts` (deploy) |
 | 10/10/2026 | Mensagem do funcionário de empresa terceira para o administrador (serviços executados para a LPU) na etapa de relatórios, na atividade em LPU e no RFO do GTD; o administrador vê no card, na consulta e ao preencher a LPU. | `agenda.html` |
 | 10/10/2026 | Minha equipe: o administrador da empresa terceira consulta a atividade ou o chamado de cada funcionário (só leitura) e abre ou baixa os relatórios, RFO, fotos e LPU. | `agenda.html`, `agenda_ajuste_21` (rodar antes) |
