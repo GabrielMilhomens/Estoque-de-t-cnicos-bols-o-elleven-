@@ -54,7 +54,7 @@ Sistema web de gestão das atividades de campo de O&M em duas categorias: **Impl
 
 | Arquivo | Onde vai |
 |---|---|
-| `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `21` (14: GTD Manutenção; 15: mensagens vistas; 16: aceite do despacho; 17: fases feitas por outro técnico; 18: tempos de atendimento e expurgo; 19: LPU dos funcionários pelo administrador; 20: conversa da gestão do GTD; 21: relatórios para o administrador da empresa terceira) | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
+| `agenda_implantacao_supabase.sql` e `agenda_ajuste_01` a `22` (14: GTD Manutenção; 15: mensagens vistas; 16: aceite do despacho; 17: fases feitas por outro técnico; 18: tempos de atendimento e expurgo; 19: LPU dos funcionários pelo administrador; 20: conversa da gestão do GTD; 21: relatórios para o administrador da empresa terceira; 22: funcionário sem LPU) | SQL Editor do Supabase (migrações). Os ajustes 02 e 03 contêm o segredo da rotina (`CRON_SECRET`) embutido. |
 | `agenda-lembretes.ts` | Código da Edge Function de notificações (pode ficar em repositório privado). |
 | `limpeza-arquivos.ts` e `preventivas_retencao_arquivos.sql` | Retenção de 30 dias no **outro projeto** Supabase da organização (preventivas e agendamentos), seção 6.2. O SQL contém o segredo da rotina. |
 | `agenda-rota.ts` | Código da Edge Function `agenda-rota` (rota, previsão de chegada e endereço das fotos pelo OpenRouteService). |
@@ -177,6 +177,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 20. `agenda_ajuste_19_lpu_pelo_administrador.sql` — LPU dos funcionários de empresa terceira feita pelo administrador: o administrador passa a ver e atualizar as atividades e os chamados dos seus funcionários (`ag_sou_adm_de`), a enviar a LPU em nome deles (técnico = funcionário, prestador = administrador, situação "aguardando"), função `ag_minha_equipe` e trigger `ag_aviso_equipe_lpu` com o aviso "LPU para preencher".
 21. `agenda_ajuste_20_conversa_gestao_gtd.sql` — Conversa da gestão do GTD: tabelas `ag_sala` (mensagens, com chamado citado opcional) e `ag_sala_vistos` (até onde cada pessoa leu), regras de acesso (só coordenação, supervisão, encarregados e NOC; técnicos e Delivery não veem), triggers `ag_sala_autor` e `ag_sala_aviso` e tempo real.
 22. `agenda_ajuste_21_relatorios_para_administrador.sql` — regra de leitura no Storage (`agenda_st_select_adm`, somada às existentes) para o administrador da empresa terceira abrir e baixar os relatórios das atividades dos seus funcionários (`relatorios/<atividade>/`) e o relatório do atendimento e as fotos do RFO dos chamados deles (`chat/g/<chamado>/rfo/`). Requer o ajuste 19.
+23. `agenda_ajuste_22_funcionario_sem_lpu.sql` — funcionário de empresa terceira deixa de ver LPU: `aglp_select` não mostra mais as LPUs em que ele é o técnico (o administrador continua vendo como prestador), o Storage não abre mais os PDFs de `lpus/<funcionário>/` para ele, o aviso do sino da decisão da LPU do GTD vai para o administrador e os avisos de LPU já enviados aos funcionários são apagados. Requer os ajustes 12, 14 e 19. Depois dele, refazer o deploy da Edge Function `agenda-lembretes` (a notificação da decisão da LPU da Implantação deixa de ir para o funcionário).
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -193,7 +194,7 @@ Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create 
 | Visualização | Somente o Painel do dia (outros setores, TV da sala). Não acessa as tabelas da agenda: lê os dados pela função `ag_painel_dia`, sem valores, endereços ou telefones. |
 | Técnico CLT | Minhas atividades, Meu estoque e Meu histórico. |
 | Técnico terceiro (administrador da empresa) | Igual ao CLT, mais Gestão financeira (LPUs e totais) da empresa inteira e a tela **Minha equipe** (quando tem funcionários): o que cada funcionário está fazendo e as LPUs dos funcionários para preencher. Recebe o aviso "LPU para preencher" quando um funcionário termina. |
-| Funcionário de empresa terceira | Igual ao CLT, **sem LPU e sem Gestão financeira** (desde 10/10). Ao terminar a atividade e enviar os relatórios (ou o RFO, no GTD), a atividade fica "Com o administrador", que preenche a LPU pela tela Minha equipe (`agenda_papeis.empresa`). |
+| Funcionário de empresa terceira | Igual ao CLT, **sem LPU e sem Gestão financeira** (desde 10/10): não vê LPU em lugar nenhum (nem PDF, valores, situação ou aviso de aprovação; regra também no banco pelo ajuste 22). Na atividade encerrada vê só os relatórios (abrir e baixar) e a mensagem que deixou para o administrador; a etapa "LPU" aparece como "Administrador". Ao terminar a atividade e enviar os relatórios (ou o RFO, no GTD), a atividade fica "Com o administrador", que preenche a LPU pela tela Minha equipe (`agenda_papeis.empresa`). |
 | NOC | Só GTD Manutenção: Chamados (Kanban), Agenda, Criar chamado e Relatórios. Cria chamados, conversa com o técnico e **valida** o atendimento. Não despacha. Recebe avisos de despacho, saída, chegada e pedido de validação. |
 | Delivery | Só Implantação, com as telas e ações que a coordenação liberar em Permissões (padrão: Painel do dia e Agenda), como encarregado e supervisor. Conversa com o técnico pelo chat da atividade. **Nunca vê o GTD Manutenção** (regra também no banco). |
 
@@ -388,6 +389,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 10/10/2026 | Funcionário de empresa terceira deixa de ver qualquer coisa de LPU (PDF, situação, valores, avisos e notificação de aprovação); na atividade encerrada vê os relatórios. | `agenda.html`, `agenda_ajuste_22` (rodar antes), `agenda-lembretes.ts` (deploy) |
 | 10/10/2026 | Mensagem do funcionário de empresa terceira para o administrador (serviços executados para a LPU) na etapa de relatórios, na atividade em LPU e no RFO do GTD; o administrador vê no card, na consulta e ao preencher a LPU. | `agenda.html` |
 | 10/10/2026 | Minha equipe: o administrador da empresa terceira consulta a atividade ou o chamado de cada funcionário (só leitura) e abre ou baixa os relatórios, RFO, fotos e LPU. | `agenda.html`, `agenda_ajuste_21` (rodar antes) |
 | 10/10/2026 | Correção: **Minha equipe** não aparecia no menu lateral do administrador de empresa terceira (só abria pelo aviso); agora fica no grupo Campo com o contador de LPUs para preencher. Menu lateral do celular recolhe ao tocar fora ou em qualquer item. | `agenda.html` |
