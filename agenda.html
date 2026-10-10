@@ -2478,7 +2478,7 @@ async function carregar(){
   else novos.push({id:ME.id,nome:ME.nome,tipo:ME.vinculo==='terceiro'?'TERC':'CLT',doc:ME.cnpj||''});
   TEC.splice(0,TEC.length,...novos);
   const [pr,co,ag,lp,an,lg]=await Promise.all([(g?todas(()=>sb.from('ag_projetos').select('*')):sb.rpc('ag_projetos_tecnico').then(r=>{if(r.error)throw r.error;return r.data||[]})),todas(()=>sb.from('ag_complementos').select('*')),todas(()=>sb.from('ag_agendamentos').select('*')),todas(()=>sb.from('ag_lpus').select('*')),todas(()=>sb.from('ag_anexos').select('*')),g?todas(()=>sb.from('ag_anexos_log').select('*')):Promise.resolve([])]);
-  S.previsao=pr.map(r=>Object.assign({id:r.id,etiqueta:r.etiqueta},r.dados));
+  S.previsao=pr.slice().sort((a,b)=>String(b.criado_em||'').localeCompare(String(a.criado_em||''))).map(r=>Object.assign({id:r.id,etiqueta:r.etiqueta},r.dados));
   S.semValor=g&&!pode('a_valor');if(S.semValor)S.previsao.forEach(p=>{delete p.valor;if(p.roi&&p.roi.fin)delete p.roi.fin});
   S.comp={};co.forEach(r=>S.comp[r.etiqueta]=r.dados||{});
   S.ags=ag.map(r=>Object.assign({ts:{},rel:{}},r.dados,{id:r.id,etiqueta:r.etiqueta,tec:r.tecnico,data:r.data,status:r.status,fases:r.fases,fase:(r.fases||[])[0]}));
