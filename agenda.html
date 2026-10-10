@@ -636,6 +636,9 @@ details summary{cursor:pointer;font-weight:600}
 .wsteps button{white-space:normal;text-align:left;line-height:1.2;font-size:13.5px;min-width:0}
 @media(max-width:600px){.wsteps{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .ktrab .kkm{grid-column:1/-1}
+.eqc .eqver{align-self:flex-start;margin-top:6px}
+.relbts{display:flex;flex-direction:column;gap:6px}
+.relbt{display:flex;align-items:center;gap:6px;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:6px 8px}.relbt>span{flex:1;min-width:160px;font-size:14px}
 </style>
 </head>
 <body>
@@ -669,7 +672,7 @@ details summary{cursor:pointer;font-weight:600}
   <nav class="tabs" id="tabs" aria-label="Seções"></nav>
   <div class="who" id="whoBox"></div><select id="perfilSel" hidden></select>
 </aside>
-<div class="scrim" data-act="menu"></div>
+<div class="scrim" data-act="menuFechar"></div>
 <div class="shell">
 <header class="mbar"><button class="icon" data-act="menu" aria-label="Abrir menu">☰</button><strong id="mTitle"></strong><button class="sino" data-act="avisos" aria-label="Avisos" hidden></button></header>
 <main id="app"></main>
@@ -971,8 +974,8 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span>${['supply','visu'].includes(ui.perfil)?'':'<button class="wic sino" data-act="avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','painel','agenda','painelDia','relat','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','meuEst','meuHist','minhas','usuarios'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo',equipe:'Campo'};
-  const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','painel','agenda','painelDia','relat','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','equipe','meuEst','meuHist','minhas','usuarios'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',usuarios:'Administração',relat:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',minhas:'Campo',equipe:'Campo'};
+  const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu').length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
   const nAprov=S.lpus.filter(l=>l.status==='aguardando').length,bAp=nAprov&&pode('f_aprov')?`<span class="nbadge">${nAprov}</span>`:'';
@@ -2180,7 +2183,7 @@ const ACT={
      <div style="margin-top:10px">${L.map(a=>`<button class="item" data-act="agOpen" data-id="${a.id}" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;cursor:pointer;color:inherit"><div><b>${esc(a.etiqueta)}</b> ${esc(cliN(a.etiqueta))}<small>${fasesN(a)}, ${esc(tecN(a.tec))}</small></div><div class="right">${chip(a.status)}</div></button>`).join('')||'<p class="muted pad">Nenhuma atividade neste dia.</p>'}</div>
      <div class="actions"><button class="btn" data-act="diaVer" data-d="${d}">Ver na visão de dia</button><button class="btn primary" data-act="close">Fechar</button></div>`,'wide')},
   diaVer:el=>{closeModal();ui.agDia=el.dataset.d;ui.agView='dia';render()},
-  agOpen:el=>{const a=getAg(el.dataset.id),p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},t=a.ts,ed=a.status==='agendada';
+  agOpen:el=>{const a=getAg(el.dataset.id),p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},t=a.ts,ro=['terc','func'].includes(ui.perfil),ed=a.status==='agendada'&&!ro;
     const tl=[['Deslocamento',t.desloc],['Chegada',t.chegada],['Início',t.inicio],['Conclusão',t.conclusao],['Relatórios enviados',t.relatorios],['Encerramento',t.encerramento]].filter(x=>x[1]);
     const hm=v=>v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'--:--';
     const diasHtml=a.dias&&a.dias.length>1||(a.diario||[]).length?`<h3 class="lsub">Execução por dia</h3>${(a.diario||[]).map((x,i)=>`<div class="dcard"><div class="dch"><b>Dia ${i+1}${a.dias?' de '+a.dias.length:''}, ${dBR(x.data)}</b><span class="chip ok">Dia encerrado</span></div><div class="dts"><span>Deslocamento <b>${hm(x.ts.desloc)}</b></span><span>Chegada <b>${hm(x.ts.chegada)}</b></span><span>Início <b>${hm(x.ts.inicio)}</b></span><span>Fim do dia <b>${hm(x.ts.fimDia)}</b></span></div><p style="margin:6px 0 0">${esc(x.resumo||'')}</p>${x.m?`<small class="muted">Metragem no fim do dia: ${esc(x.m)} m${x.lote?', lote '+esc(x.lote):''}</small>`:''}${(x.fotos||[]).length?`<div class="tools" style="margin-top:6px">${x.fotos.map((p0,k)=>`<button class="btn sm" data-act="relVer" data-p="${esc(p0)}">Foto ${k+1}</button>`).join('')}</div>`:''}</div>`).join('')}
@@ -2191,15 +2194,16 @@ const ACT={
     ${c.endereco?`<p style="margin-top:10px"><span class="muted">Endereço:</span> ${esc(c.endereco)}</p>`:''}${c.contato?`<p><span class="muted">Contato:</span> ${esc(c.contato)}${c.telefone?', '+esc(c.telefone):''}</p>`:''}
     ${pzHtml}${(a.atualizacoes||[]).length?`<h3 class="lsub">Atualizações do técnico</h3>${a.atualizacoes.slice().reverse().map(u=>`<div class="dts" style="margin:4px 0"><b>${hm(u.em)}</b><span style="color:var(--ink)">${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}</span>${u.foto?`<button class="btn sm" data-act="relVer" data-p="${esc(u.foto)}">Foto</button>`:''}</div>`).join('')}`:''}${diasHtml}
     ${a.motivo?`<div class="result bad" style="margin-top:10px">Não concluída: ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`. Reagendada para ${dBR(a.reag)}.`:''}</div>`:''}
-    ${a.rel&&(a.rel.foto||a.rel.entrega)?`<h3 class="lsub">Relatórios</h3><div class="tools">${a.rel.foto&&a.rel.foto.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.foto.path)}">Relatório fotográfico</button>`:''}${a.rel.entrega&&a.rel.entrega.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.entrega.path)}">Relatório de entrega</button>`:''}</div>${a.medicoes?`<dl class="dl" style="margin-top:8px">${['rua','interno'].filter(f=>a.medicoes[f+':metros']!=null).map(f=>`<div><dt>Metros lançados (${FCURTO[f].toLowerCase()})</dt><dd>${(+a.medicoes[f+':metros']).toLocaleString('pt-BR')} m</dd></div>`).join('')}${['sinal_ini','sinal_fim'].filter(k=>a.medicoes['ext:'+k+':dbm']!=null).map(k=>`<div><dt>${k==='sinal_ini'?'Sinal no ponto de acesso':'Sinal no ponto de derivação'}</dt><dd>${esc(a.medicoes['ext:'+k+':dbm'])} dBm</dd></div>`).join('')}</dl>`:''}`:''}
+    ${ro?(()=>{const R=a.rel||{},l=S.lpus.filter(x=>x.ag===a.id).pop(),b=[relBt(R.foto&&R.foto.path,'relatorio_fotografico_'+a.etiqueta+'.pdf','Relatório fotográfico'),relBt(R.entrega&&R.entrega.path,'relatorio_entrega_'+a.etiqueta+'.pdf','Relatório de entrega'),relBt(R.parcial&&R.parcial.path,'relatorio_nao_conclusao_'+a.etiqueta+'.pdf','Relatório do que foi feito (não concluída)'),l&&l.pdf_path?relBt(l.pdf_path,'LPU_'+a.etiqueta+'.pdf','LPU'):''].join('');
+      return `<h3 class="lsub">Relatórios</h3>${b?`<div class="relbts">${b}</div>`:'<p class="muted">Nenhum relatório enviado ainda.</p>'}${a.medicoes?`<dl class="dl" style="margin-top:8px">${['rua','interno'].filter(f=>a.medicoes[f+':metros']!=null).map(f=>`<div><dt>Metros lançados (${FCURTO[f].toLowerCase()})</dt><dd>${(+a.medicoes[f+':metros']).toLocaleString('pt-BR')} m</dd></div>`).join('')}</dl>`:''}`})():a.rel&&(a.rel.foto||a.rel.entrega)?`<h3 class="lsub">Relatórios</h3><div class="tools">${a.rel.foto&&a.rel.foto.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.foto.path)}">Relatório fotográfico</button>`:''}${a.rel.entrega&&a.rel.entrega.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.entrega.path)}">Relatório de entrega</button>`:''}</div>${a.medicoes?`<dl class="dl" style="margin-top:8px">${['rua','interno'].filter(f=>a.medicoes[f+':metros']!=null).map(f=>`<div><dt>Metros lançados (${FCURTO[f].toLowerCase()})</dt><dd>${(+a.medicoes[f+':metros']).toLocaleString('pt-BR')} m</dd></div>`).join('')}${['sinal_ini','sinal_fim'].filter(k=>a.medicoes['ext:'+k+':dbm']!=null).map(k=>`<div><dt>${k==='sinal_ini'?'Sinal no ponto de acesso':'Sinal no ponto de derivação'}</dt><dd>${esc(a.medicoes['ext:'+k+':dbm'])} dBm</dd></div>`).join('')}</dl>`:''}`:''}
     ${tl.length?`<h3 class="lsub">Registro de tempos</h3><dl class="dl">${tl.map(([l,v])=>`<div><dt>${l}</dt><dd>${hm(v)}</dd></div>`).join('')}</dl>`:''}
-    ${!FIM.includes(a.status)&&a.status!=='cancelada'&&(p.roi||a.materiais)?`<h3 class="lsub">Material do técnico</h3>${matHtml(matCheck(p,a.tec,fasesOf(a),a.materiais))}`:''}
+    ${!ro&&!FIM.includes(a.status)&&a.status!=='cancelada'&&(p.roi||a.materiais)?`<h3 class="lsub">Material do técnico</h3>${matHtml(matCheck(p,a.tec,fasesOf(a),a.materiais))}`:''}
     ${a.obs?`<p class="note" style="margin-top:10px"><b>Observação do agendamento:</b> ${esc(a.obs)}</p>`:''}
     <h3 class="lsub">Fases do projeto</h3>${faseFlags(p,1)}
     ${anxDe(a.etiqueta).length?`<h3 class="lsub">Anexos</h3>${anxDe(a.etiqueta).map(x=>anxLinha(x,0)).join('')}`:''}
     ${a.pendReag?`<p class="note" style="margin-top:10px">${canReag()?'Aguardando reagendamento.':'Aguardando o encarregado reagendar.'}</p>`:''}
     ${ed?`<h3 class="lsub">Alterar agendamento</h3><div class="grid2 even" style="gap:0 12px"><label class="f"><span>Data${canReag()?'':' (somente o encarregado altera)'}</span><input type="date" class="inp" id="eData" value="${a.data}" ${canReag()?'':'disabled'}></label><label class="f"><span>Técnico</span><select class="inp" id="eTec">${TEC.map(x=>`<option value="${x.id}" ${x.id===a.tec?'selected':''}>${esc(x.nome)}</option>`).join('')}</select></label></div>`:''}
-    <div class="actions"><button class="btn" data-act="close">Fechar</button>${ed&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button><button class="btn primary" data-act="agEdit" data-id="${a.id}">Salvar alterações</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button></div>`)},
+    <div class="actions"><button class="btn" data-act="close">Fechar</button>${ed&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button><button class="btn primary" data-act="agEdit" data-id="${a.id}">Salvar alterações</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${ro?'':`${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button>`}</div>`)},
   replicar:el=>{if(!pode('a_agendar')&&semPerm())return;const a=getAg(el.dataset.id),p=pPor(a.etiqueta),ini=addD(a.data<hoje()?hoje():a.data,1);ui.rp={id:a.id,data:ini,dataFim:ini,uteis:true,tec:a.tec,fases:fasesOf(a).filter(k=>!faseFim(a.etiqueta,k))};renderRep()},
   agEdit:el=>{const a=getAg(el.dataset.id),d=$('eData').value,t=$('eTec').value;if(!d){toast('Informe a data.','bad');return}if(d!==a.data&&!canReag()){toast('Somente o encarregado reagenda.','bad');return}a.data=d;a.tec=t;save();closeModal();render();toast(`Agendamento atualizado: ${dBR(d)}, ${tecN(t)}.`)},
   verProj:el=>{closeModal();ui.agSel=el.dataset.etq;ui.fTab='proj';ui.agForm={};render();window.scrollTo(0,0)},
@@ -2241,9 +2245,10 @@ const ACT={
     const c=S.comp[p.etiqueta]=S.comp[p.etiqueta]||{};if(r.endereco)c.endereco=r.endereco;
     const nt=r.notas.join('. ');if(nt&&!(c.obs||'').includes(nt))c.obs=[c.obs,nt].filter(Boolean).join('. ');
     save();closeModal();render();toast(`Dados aplicados a ${p.etiqueta}.${p.semExt?' Sem extensão de sinal.':''}${!c.contato?' Falta informar o contato no local.':''}`)},
-  tab:el=>{const t=el.dataset.t;if(t==='painel'&&ui.tab==='painel'){ui.pFech=!ui.pFech;render();return}ui.pFech=false;ui.tab=t;ui.campoSel=null;if(t!=='painel')document.body.classList.remove('menu');render();window.scrollTo(0,0)},
+  tab:el=>{const t=el.dataset.t;if(t==='painel'&&ui.tab==='painel'){ui.pFech=!ui.pFech;render();return}ui.pFech=false;ui.tab=t;ui.campoSel=null;if(t!=='painel'&&t!=='gPainel')document.body.classList.remove('menu');render();window.scrollTo(0,0)},
   grp:el=>{const g=el.dataset.g;ui.grpOpen=ui.grpOpen||{};ui.grpOpen[g]=!ui.grpOpen[g];render()},
   menu:()=>document.body.classList.toggle('menu'),
+  menuFechar:()=>document.body.classList.remove('menu'),
   close:()=>closeModal(),
   addRow:()=>{S.previsao.unshift({id:uid(),protocolo:'',etiqueta:'',cliente:'',valor:0,topologia:'GPON',metros:0,caixas:0,dRua:0,dInterno:0,dExt:0,dAtiv:0});ui.baseQ='';save();render();const i=document.querySelector('.sheet tbody input');if(i)i.focus()},
   delRow:el=>{const p=S.previsao.find(x=>x.id===el.dataset.id);if(S.ags.some(a=>a.etiqueta===p.etiqueta&&p.etiqueta)){toast('Esta etiqueta já tem agendamentos e não pode ser excluída.','bad');return}if(confirm('Excluir esta linha da base?')){S.previsao=S.previsao.filter(x=>x!==p);save();render()}},
@@ -2404,7 +2409,12 @@ const IN={
   baseQ:el=>{ui.baseQ=el.value;render();const i=$('baseQ');i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}},
   comp:el=>{const k=ui.agSel;S.comp[k]=S.comp[k]||{};S.comp[k][el.dataset.f]=el.value;save()}
 };
-document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(el&&ACT[el.dataset.act]){e.preventDefault();ACT[el.dataset.act](el,e)}});
+/* celular: o menu lateral recolhe ao tocar fora dele ou em qualquer parte dele (menos nos grupos e no Painel de KPIs, que só abrem as subseções) */
+const menuFica=el=>!!el&&(el.dataset.act==='grp'||el.dataset.act==='menu'||(el.dataset.act==='tab'&&['painel','gPainel'].includes(el.dataset.t)));
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');
+  if(document.body.classList.contains('menu')&&(e.target.closest('.scrim')||(e.target.closest('.side')&&!menuFica(el))))document.body.classList.remove('menu');
+  if(el&&ACT[el.dataset.act]){e.preventDefault();ACT[el.dataset.act](el,e)}});
+document.addEventListener('pointerdown',e=>{if(e.target.classList&&e.target.classList.contains('scrim'))document.body.classList.remove('menu')});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-ch]');if(el&&CH[el.dataset.ch])CH[el.dataset.ch](el,e)});
 document.addEventListener('input',e=>{const el=e.target.closest('[data-in]');if(el&&IN[el.dataset.in])IN[el.dataset.in](el,e)});
 /* ---------- NOTIFICAÇÕES ---------- */
@@ -2769,8 +2779,8 @@ function viewEquipe(){const ids=eqIds();
   const conc=ags.filter(a=>a.status==='concluida'&&a.data>=addD(T,-30)).sort((a,b)=>b.data.localeCompare(a.data));
   const sel=ui.eqSel||'';
   const infoA=a=>{const t=a.ts||{};return a.status==='deslocamento'?`Saiu às ${hm(t.desloc)}${t.eta?`, chegada prevista ${hm(t.eta)}`:''}`:a.status==='no_local'?`Chegou às ${hm(t.chegada)}`:a.status==='execucao'?`Em execução desde ${hm(t.inicio)}`:a.status==='lpu'?`Terminou às ${hm(t.relatorios||t.conclusao)}`:a.status==='relatorios'?'Fazendo os relatórios':dBR(a.data)};
-  const cA=(a,btn)=>`<article class="eqc${sel==='a:'+a.id?' on':''}"><div class="eqh"><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b>${chip(a.status)}</div><small>${esc(a.etiqueta)} · ${fasesN(a)} · ${dBR(a.data)}</small><span class="eqt">${esc(tecN(a.tec))} · ${esc(infoA(a))}</span>${btn||''}</article>`;
-  const cG=(c,btn)=>`<article class="eqc${sel==='g:'+c.id?' on':''}"><div class="eqh"><b>${esc(c.cliente||'Cliente')}</b>${gChip(c)}</div><small>GTD · O&amp;M ${esc(c.pom||'—')} · ${esc(c.categoria||'')}</small><span class="eqt">${esc(gTecN(c.tec))}${c.ts&&c.ts.rfo?' · RFO às '+hm(c.ts.rfo):''}</span>${btn||''}</article>`;
+  const cA=(a,btn)=>`<article class="eqc${sel==='a:'+a.id?' on':''}"><div class="eqh"><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b>${chip(a.status)}</div><small>${esc(a.etiqueta)} · ${fasesN(a)} · ${dBR(a.data)}</small><span class="eqt">${esc(tecN(a.tec))} · ${esc(infoA(a))}</span>${btn||''}<button class="btn sm eqver" data-act="eqVer" data-k="a:${a.id}">Ver atividade e relatórios</button></article>`;
+  const cG=(c,btn)=>`<article class="eqc${sel==='g:'+c.id?' on':''}"><div class="eqh"><b>${esc(c.cliente||'Cliente')}</b>${gChip(c)}</div><small>GTD · O&amp;M ${esc(c.pom||'—')} · ${esc(c.categoria||'')}</small><span class="eqt">${esc(gTecN(c.tec))}${c.ts&&c.ts.rfo?' · RFO às '+hm(c.ts.rfo):''}</span>${btn||''}<button class="btn sm eqver" data-act="eqVer" data-k="g:${c.id}">Ver chamado e RFO</button></article>`;
   const lpuBtnA=a=>S.lpus.some(l=>l.ag===a.id)?`<button class="btn wide" data-act="lpuJaEnviada" data-id="${a.id}">LPU já enviada: encerrar a atividade</button>`:`<button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;
   const sec=(t,L,vz)=>`<section class="eqs"><h3 class="lsub">${t} <span class="chip">${L.length}</span></h3>${L.join('')||`<p class="muted">${vz}</p>`}</section>`;
   const EQ=S.equipe||[];
@@ -2784,6 +2794,20 @@ function viewEquipe(){const ids=eqIds();
    ${sec('Concluídas nos últimos 30 dias',conc.slice(0,30).map(a=>cA(a)),'Nenhuma atividade concluída nos últimos 30 dias.')}
   </div>`}
 Object.assign(CH,{eqTec:el=>{ui.eqTec=el.value;render()}});
+
+/* consulta da atividade ou do chamado do funcionário (administrador da empresa terceira): só leitura, com abrir e baixar relatórios */
+const relBt=(path,nome,rot)=>path?`<span class="relbt"><span>${esc(rot)}</span><button class="btn sm" data-act="relVer" data-p="${esc(path)}">Abrir</button><button class="btn sm" data-act="relBaixar" data-p="${esc(path)}" data-n="${esc(nome)}">Baixar</button></span>`:'';
+function eqChamado(c){const t=c.ts||{},l=gLpuDe(c),dd=(k,v)=>v?`<div><dt>${k}</dt><dd>${v}</dd></div>`:'';
+  openModal(`<div class="ah"><h3>O&amp;M ${esc(c.pom||'—')}</h3>${gChip(c)}</div><p>${esc(c.cliente||'')}</p>
+   <dl class="dl" style="margin-top:10px">${dd('Categoria',esc(c.categoria||''))}${dd('Prioridade',esc(c.prioridade||''))}${dd('Técnico',esc(gTecN(c.tec)))}${dd('Cidade',esc(c.cidade||''))}${dd('Etiqueta',esc(c.etiqueta||''))}${dd('Desfecho',esc(c.desfecho?c.desfecho+(c.encEquipe?' para '+c.encEquipe:''):''))}${dd('MTTR',c.validadoEm?gDur(c.validadoEm-gIni(c)):'')}</dl>
+   ${c.endereco?`<p style="margin-top:8px"><span class="muted">Endereço:</span> ${esc(c.endereco)}</p>`:''}${c.motivo?`<p><span class="muted">Motivo:</span> ${esc(c.motivo)}</p>`:''}
+   <h3 class="lsub">Linha do tempo</h3>${gTimeline(c)}
+   ${c.rfoPdf||(c.rfoFotos||[]).length||l?`<h3 class="lsub">Relatórios</h3><div class="relbts">${relBt(c.rfoPdf,'relatorio_atendimento_OM'+(c.pom||'')+'.pdf','Relatório do atendimento (RFO e fotos)')}${l&&l.pdf_path?relBt(l.pdf_path,'LPU_OM'+(c.pom||'')+'.pdf','LPU do chamado'):''}${(c.rfoFotos||[]).map((f,i)=>relBt(f.path,'foto_'+(i+1)+'_OM'+(c.pom||'')+'.jpg','Foto '+(i+1)+(f.leg?': '+f.leg:''))).join('')}</div>`:''}
+   ${c.rfoTxt?`<details style="margin-top:10px" open><summary>RFO</summary><pre class="rfo">${esc(c.rfoTxt)}</pre></details>`:''}
+   <div class="actions"><button class="btn" data-act="close">Fechar</button></div>`,'wide')}
+Object.assign(ACT,{
+  eqVer:el=>{const[t,id]=String(el.dataset.k).split(':');ui.eqSel=el.dataset.k;if(t==='a'){if(getAg(id))ACT.agOpen({dataset:{id}})}else{const c=G.ch.find(x=>x.id===id);if(c)eqChamado(c)}},
+  relBaixar:async el=>{const r=await sb.storage.from('agenda').createSignedUrl(el.dataset.p,300,{download:el.dataset.n||true});if(r.error){toast('Não foi possível baixar: '+r.error.message,'bad');return}const a=document.createElement('a');a.href=r.data.signedUrl;a.download=el.dataset.n||'';document.body.appendChild(a);a.click();a.remove()}});
 
 /* =====================================================================
    GTD MANUTENÇÃO (chamados do NOC), MENSAGENS (CHAT) E SINO DE AVISOS
