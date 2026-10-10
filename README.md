@@ -46,6 +46,7 @@ Sistema web de gestão das atividades de campo de O&M em duas categorias: **Impl
 | `sw.js` | Service worker: recebe e exibe as notificações push e abre a atividade ao tocar. Não faz cache de páginas. |
 | `manifest.webmanifest` | Manifesto PWA (nome, ícones, cores, `id` do app). Permite instalar no celular e no computador. |
 | `icon-192.png`, `icon-512.png` | Ícones do app (símbolo da Net Turbo). |
+| `badge-96.png` | Ícone pequeno da notificação na barra de status do Android: símbolo da Net Turbo em branco com fundo transparente (o Android pinta só o formato; um ícone com fundo vira um quadrado branco). Usado pelo `sw.js` no campo `badge`. |
 | `armazenamento.html` | Espaço de armazenamento do projeto da agenda (só coordenador, aberto por **Usuários e acessos → Espaço de armazenamento**): uso de arquivos e banco frente ao plano Pro (100 GB de arquivos, 8 GB de banco), tamanho por pasta e compactação das fotos já enviadas pela agenda (regrava no mesmo caminho, 1280 px, JPEG 60%). |
 | `index.html` | Redirecionamento do endereço antigo do Estoque de Materiais para `agenda.html` (aplicar só depois de desligar o sistema antigo). |
 | `README.md` | Este documento. |
@@ -390,6 +391,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 10/10/2026 | Notificação no Android: a barra de status mostra o símbolo da Net Turbo no lugar do quadrado branco (novo `badge-96.png`, silhueta branca com fundo transparente). | `sw.js`, `badge-96.png` |
 | 10/10/2026 | Roteiro para apagar por completo um cliente de teste (banco e arquivos do Storage), com cópia de segurança. | `agenda_apagar_cliente_teste.sql` |
 | 10/10/2026 | Funcionário de empresa terceira deixa de ver qualquer coisa de LPU (PDF, situação, valores, avisos e notificação de aprovação); na atividade encerrada vê os relatórios. | `agenda.html`, `agenda_ajuste_22` (rodar antes), `agenda-lembretes.ts` (deploy) |
 | 10/10/2026 | Mensagem do funcionário de empresa terceira para o administrador (serviços executados para a LPU) na etapa de relatórios, na atividade em LPU e no RFO do GTD; o administrador vê no card, na consulta e ao preencher a LPU. | `agenda.html` |

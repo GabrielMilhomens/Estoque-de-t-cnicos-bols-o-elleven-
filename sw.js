@@ -8,7 +8,7 @@ self.addEventListener('push', e => {
   e.waitUntil(self.registration.showNotification(d.title || 'Ferramenta de Gestão O&M', {
     body: d.body || '',
     icon: 'icon-192.png',
-    badge: 'icon-192.png',
+    badge: 'badge-96.png',  // ícone da barra de status (Android): silhueta branca com fundo transparente
     tag: d.tag,
     renotify: !!d.tag,
     data: { url: d.url || 'agenda.html' }
