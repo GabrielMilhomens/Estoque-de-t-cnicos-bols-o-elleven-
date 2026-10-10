@@ -610,6 +610,9 @@ details summary{cursor:pointer;font-weight:600}
 .kpi.kbtn[aria-pressed="true"]{background:var(--brand-soft);box-shadow:inset 0 -3px 0 var(--brand)}
 .kpi.kbtn[aria-pressed="true"] span{color:var(--brand-ink);font-weight:600}
 .linkbtn{border:0;background:none;padding:0;font:inherit;color:var(--brand-ink);text-decoration:underline;cursor:pointer}
+.lper{flex-wrap:wrap;align-items:flex-end;margin:0 0 10px}.lper .sp{flex:1}
+@media(max-width:600px){.lper .sp{display:none}}
+.lhead .chip{display:inline-flex;width:auto}
 </style>
 </head>
 <body>
@@ -1034,7 +1037,7 @@ function pBase(){const T=hoje(),inP=a=>a.data>=ui.pIni&&a.data<=ui.pFim,all=S.ag
 function pGeral(){const b=pBase();
   const dias=[];for(let d=ui.pIni;d<=ui.pFim&&dias.length<62;d=addD(d,1))dias.push(d);
   const porDia=dias.map(d=>({d,n:S.ags.filter(a=>a.data===d&&a.status!=='cancelada').length,c:S.ags.filter(a=>a.data===d&&a.status==='concluida').length}));const mxD=Math.max(1,...porDia.map(x=>x.n));
-  return `<div class="kpis">${kp(b.ags.length,'Atividades agendadas')}${kp(b.ent.length,'Circuitos entregues','ok')}${kp(S.semValor?'—':brl(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(pct(b.dentro.length,b.conc.length)+'%','Concluídas dentro da previsão')}${kp(f1(b.mTot),'Dias de execução por circuito')}${kp(b.atras.length,'Atividades em atraso','warn')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
+  return `<div class="tools" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" data-act="pgXlsx" title="Indicadores, atividades e entregas do período">Baixar planilha</button></div><div class="kpis">${kp(b.ags.length,'Atividades agendadas')}${kp(b.ent.length,'Circuitos entregues','ok')}${kp(S.semValor?'—':brl(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(pct(b.dentro.length,b.conc.length)+'%','Concluídas dentro da previsão')}${kp(f1(b.mTot),'Dias de execução por circuito')}${kp(b.atras.length,'Atividades em atraso','warn')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
   <section class="panel"><div class="secth"><h3>Agendamentos por dia</h3><span class="muted">${porDia.reduce((s,x)=>s+x.n,0)} no período. Verde claro = agendados, verde escuro = concluídos</span></div>
    <div class="dbars">${porDia.map(x=>`<div class="db1 ${x.d===hoje()?'hj':''}" title="${dBR(x.d)}: ${x.n} agendado(s), ${x.c} concluído(s)"><span class="dn">${x.n||''}</span><div class="dbw"><i style="height:${x.n/mxD*100}%"><b style="height:${x.n?x.c/x.n*100:0}%"></b></i></div><small>${dBR(x.d).slice(0,5)}</small><small class="ds">${DSEM[new Date(x.d+'T12:00:00').getDay()]}</small></div>`).join('')}</div></section>`}
 function pEntregas(){const b=pBase();
@@ -1079,7 +1082,7 @@ function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&pode('a_bud
   const nL=n=>n+(n===1?' LPU':' LPUs'),cor=p=>p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)';
   // ROI x LPU (período)
   const inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim;
-  const moRows=[...new Set(S.lpus.filter(l=>inP(l)&&tecT(l.tec)==='TERC').map(l=>l.etiqueta))].map(e=>{const p=pPor(e),Ls=S.lpus.filter(l=>l.etiqueta===e&&l.status!=='reprovada'&&tecT(l.tec)==='TERC'),a=Ls.filter(l=>l.status==='aprovada').reduce((s,l)=>s+l.total,0),q=Ls.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+l.total,0),roi=p.roi&&p.roi.fin&&p.roi.fin.custoMO!=null?+p.roi.fin.custoMO:null;return{e,p,a,q,tot:a+q,roi,tecs:[...new Set(Ls.map(l=>tecN(l.tec)))].join(', ')}});
+  const moRows=moCalc();
   const moT={roi:moRows.reduce((s,r)=>s+(r.roi||0),0),tot:moRows.reduce((s,r)=>s+r.tot,0)};
   return `<section class="panel"><div class="secth"><div><h3>Budget de mão de obra terceirizada</h3><span class="muted">Consumido pelas LPUs aprovadas no mês da aprovação, conforme a conta contábil de cada uma.</span></div>
    <div class="tools"><label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${meses.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>${pode('a_budget')?(ed?'<button class="btn primary" data-act="bSalvar">Salvar budget</button><button class="btn" data-act="bEdit">Cancelar</button>':'<button class="btn" data-act="bEdit">Definir budget do mês</button>'):''}</div></div>
@@ -1087,7 +1090,7 @@ function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&pode('a_bud
    <div class="tablewrap"><table><thead><tr><th>Conta contábil</th><th class="r">Budget</th><th class="r">Consumido</th><th class="r">Disponível</th><th class="r">Aguardando aprovação</th><th style="min-width:180px">Consumo</th></tr></thead><tbody>
    ${rows.map(r=>`<tr><td><b>${esc(cod(r.c))}</b><br><small class="muted">${esc(nome(r.c))}</small></td><td class="r">${ed?`<input class="inp r" type="number" min="0" step="100" style="max-width:130px;margin-left:auto" data-bud="${esc(r.c)}" value="${r.orc||''}" placeholder="0">`:brl(r.orc)}</td><td class="r">${brl(r.uso)}<br><small class="muted">${r.A.length} aprovada${r.A.length===1?'':'s'}</small></td><td class="r"><b style="color:${r.disp<0?'var(--bad)':'inherit'}">${brl(r.disp)}</b></td><td class="r">${brl(r.comp)}<br><small class="muted">${r.P.length?nL(r.P.length)+' aguardando':'nenhuma'}</small>${r.est?'<br><small style="color:var(--bad);font-weight:600">passa do budget se aprovar tudo</small>':''}</td><td><div class="bbar"><i style="width:${r.wU}%"></i><b style="width:${r.wC}%"></b></div><small style="color:${cor(r.p)};font-weight:600">${r.orc?r.p+'% consumido':'sem budget definido'}</small></td></tr>`).join('')||'<tr><td colspan="6" class="muted">Nenhum budget definido nem LPU aprovada neste mês.</td></tr>'}
    </tbody></table></div><p class="muted" style="font-size:13px;margin-top:8px">Barra: verde escuro = consumido; amarelo = aguardando aprovação, que só consome o budget depois de aprovado.</p></section>
-  <section><div class="secth"><h3>Mão de obra de terceiros: ROI x LPU executada</h3><span class="muted">Projetos com LPU no período (filtro De/Até das outras seções), sem as reprovadas</span></div><div class="tablewrap"><table><thead><tr><th>Projeto</th><th>Terceiro</th><th class="r">Mão de obra no ROI</th><th class="r">LPU aprovada</th><th class="r">LPU pendente</th><th class="r">Diferença</th></tr></thead><tbody>${moRows.map(r=>{const d=r.roi==null?null:r.tot-r.roi;return `<tr><td><b>${esc(r.e)}</b><br><small class="muted">${esc(r.p.cliente||'')}</small></td><td>${esc(r.tecs)}</td><td class="r">${r.roi==null?'<span class="muted">Sem ROI</span>':brl(r.roi)}</td><td class="r">${brl(r.a)}</td><td class="r">${brl(r.q)}</td><td class="r">${d==null?'—':`<b style="color:${d>0?'var(--bad)':'var(--brand-ink)'}">${d>0?'+':''}${brl(d)}</b>`}</td></tr>`}).join('')||'<tr><td colspan="6" class="muted">Nenhuma LPU no período.</td></tr>'}${moRows.length?`<tr><td colspan="2"><b>Total</b></td><td class="r"><b>${brl(moT.roi)}</b></td><td colspan="2"></td><td class="r"><b>${brl(moT.tot-moT.roi)}</b></td></tr>`:''}</tbody></table></div></section>`}
+  <section><div class="secth"><h3>Mão de obra de terceiros: ROI x LPU executada</h3><span class="muted">Projetos com LPU no período (filtro De/Até das outras seções), sem as reprovadas</span><button class="btn sm" data-act="moXlsx" style="margin-left:auto">Baixar planilha</button></div><div class="tablewrap"><table><thead><tr><th>Projeto</th><th>Terceiro</th><th class="r">Mão de obra no ROI</th><th class="r">LPU aprovada</th><th class="r">LPU pendente</th><th class="r">Diferença</th></tr></thead><tbody>${moRows.map(r=>{const d=r.roi==null?null:r.tot-r.roi;return `<tr><td><b>${esc(r.e)}</b><br><small class="muted">${esc(r.p.cliente||'')}</small></td><td>${esc(r.tecs)}</td><td class="r">${r.roi==null?'<span class="muted">Sem ROI</span>':brl(r.roi)}</td><td class="r">${brl(r.a)}</td><td class="r">${brl(r.q)}</td><td class="r">${d==null?'—':`<b style="color:${d>0?'var(--bad)':'var(--brand-ink)'}">${d>0?'+':''}${brl(d)}</b>`}</td></tr>`}).join('')||'<tr><td colspan="6" class="muted">Nenhuma LPU no período.</td></tr>'}${moRows.length?`<tr><td colspan="2"><b>Total</b></td><td class="r"><b>${brl(moT.roi)}</b></td><td colspan="2"></td><td class="r"><b>${brl(moT.tot-moT.roi)}</b></td></tr>`:''}</tbody></table></div></section>`}
 function pDetalhe(){const sit=ui.dSit||'ap',conta=ui.dConta||'',pres=ui.dPres||'',cls=ui.dClasse||'';
   const noP=t=>{if(!t)return false;const d=isoD(new Date(t));return d>=ui.pIni&&d<=ui.pFim};
   const L=S.lpus.filter(l=>(sit==='ap'?l.status==='aprovada'&&noP(aprovEm(l)):sit==='pe'?(l.status==='aguardando'||l.status==='ajuste'):(l.status==='aprovada'&&noP(aprovEm(l)))||l.status==='aguardando'||l.status==='ajuste')&&(!conta||l.conta===conta)&&(!pres||l.tec===pres));
@@ -1832,8 +1835,8 @@ function alertasCabo(a,l){const out=[];if(!a)return out;const rel=metrosAg(a),p=
 const relBtns=a=>a&&a.rel?`${a.rel.parcial&&a.rel.parcial.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.parcial.path)}">Relatório da não conclusão</button>`:''}${a.rel.foto&&a.rel.foto.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.foto.path)}">Relatório fotográfico${a.rel.foto.fotos?` (${a.rel.foto.fotos} fotos)`:''}</button>`:''}${a.rel.entrega&&a.rel.entrega.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.entrega.path)}">Relatório de entrega</button>`:''}`:'';
 function viewAprov(emb){
   const tabs=[['aguardando','Aguardando'],['ajuste','Em ajuste'],['aprovada','Aprovadas'],['reprovada','Reprovadas']];
-  const tot=s=>S.lpus.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0),cnt=s=>S.lpus.filter(l=>l.status===s).length;
-  const rows=S.lpus.filter(l=>l.status===ui.aTab).sort((a,b)=>b.data.localeCompare(a.data));
+  const AP=S.lpus.filter(l=>lpuNoPer(l,'a')),tot=s=>AP.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0),cnt=s=>AP.filter(l=>l.status===s).length;
+  const rows=AP.filter(l=>l.status===ui.aTab).sort((a,b)=>b.data.localeCompare(a.data));
   const card=l=>{const a=getAg(l.ag)||{ts:{}},op=ui.aOpen===l.id,al=alertasCabo(getAg(l.ag),l),p=pPor(l.etiqueta),rel=metrosAg(getAg(l.ag)),lc=caboLpu(l),mp=metrosProj(l.etiqueta);
     return `<div class="lcard"><button class="lhead" data-act="aOpen" data-id="${l.id}" aria-expanded="${op}"><div><b>${esc(l.etiqueta)}</b> <span>${esc(cliN(l.etiqueta))}</span>${l.parcial?' <span class="chip warn">Atividade não concluída</span>':''}${al.length?` <span class="chip bad">${al.length} ${al.length>1?'alertas':'alerta'} de cabo</span>`:''}<small>${esc(tecN(l.tec))} (${vinc(l.tec)}), ${fasesN(l)}, ${dBR(l.data)}</small>${aprovPor(l)?`<small class="aprovp">${aprovPor(l)}</small>`:''}</div><span class="val">${brl(l.total)}</span></button>
     ${op?`<div class="lbody">${(()=>{const h=(l.hist||[]).slice().reverse().find(x=>/pelo prestador/.test(x.acao));return h?`<div class="note" style="margin-top:12px"><b>Conferida pelo prestador:</b> ${esc(h.por)} em ${dtBR(h.em)}. Executada por ${esc(l.tecNome||tecN(l.tec))}.</div>`:''})()}${l.obs?`<div class="note" style="margin-top:12px"><b>Observação do técnico:</b> ${esc(l.obs)}</div>`:''}${l.parcial?`<div class="result warn" style="margin-top:12px"><b>LPU de atividade não concluída.</b> Motivo: ${esc(l.parcial.motivo)}${l.parcial.obs?'. '+esc(l.parcial.obs):''}. Confira se os serviços lançados correspondem ao que foi executado.</div>`:''}${al.length?`<div class="calert">${al.map(x=>`<div><b>${x.t}</b><span>${x.d}</span></div>`).join('')}</div>`:''}
@@ -1850,6 +1853,7 @@ function viewAprov(emb){
      <div class="actions"><button class="btn" data-act="pdf" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'&&pode('a_aprovar')?`<button class="btn" data-act="decidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="decidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="aprovar" data-id="${l.id}">${al.length?'Aprovar mesmo assim':'Aprovar'}</button>`:''}</div></div>`:''}</div>`};
   return `${emb?'':`<div class="toolbar"><div><h2>Aprovação de LPU</h2><p class="muted">Fila da supervisão. Toque na LPU para ver itens, tempos e histórico.</p></div></div>`}
    <div class="kpis" style="margin-bottom:14px">${tabs.map(([k,n])=>`<div class="kpi ${k==='aprovada'?'ok':k==='reprovada'?'bad':k==='aguardando'?'warn':''}"><b>${brl(tot(k))}</b><span>${n} (${cnt(k)})</span></div>`).join('')}</div>
+   ${lpuPerBar('a','aXlsx')}
    <div class="chips">${tabs.map(([k,n])=>`<button data-act="aTab" data-t="${k}" aria-current="${ui.aTab===k}">${n} (${cnt(k)})</button>`).join('')}</div>
    ${rows.map(card).join('')||'<p class="muted pad">Nenhuma LPU nesta situação.</p>'}`;
 }
@@ -3168,8 +3172,8 @@ function viewGRel(){if(G.erro)return `<h2>Histórico · GTD Manutenção</h2>${g
 /* ---------- APROVAÇÃO DE LPU DO GTD (mesmo layout da Implantação) ---------- */
 function viewGAprov(emb){if(G.erro)return `<h2>Aprovação de LPU · GTD</h2>${gErroBox()}`;
   const tabs=[['aguardando','Aguardando'],['ajuste','Em ajuste'],['aprovada','Aprovadas'],['reprovada','Reprovadas']],tab=tabs.some(x=>x[0]===ui.gaTab)?ui.gaTab:'aguardando';
-  const tot=s=>G.lpus.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0),cnt=s=>G.lpus.filter(l=>l.status===s).length;
-  const rows=G.lpus.filter(l=>l.status===tab).sort((a,b)=>String(b.data).localeCompare(String(a.data)));
+  const AP=G.lpus.filter(l=>lpuNoPer(l,'ga')),tot=s=>AP.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0),cnt=s=>AP.filter(l=>l.status===s).length;
+  const rows=AP.filter(l=>l.status===tab).sort((a,b)=>String(b.data).localeCompare(String(a.data)));
   const card=l=>{const c=G.ch.find(x=>x.id===l.chamado)||{ts:{}},op=ui.gaOpen===l.id,t=c.ts||{};
     return `<div class="lcard"><button class="lhead" data-act="gaOpen" data-id="${l.id}" aria-expanded="${op}"><div><b>O&amp;M ${esc(l.pom||c.pom||'')}</b> <span>${esc(l.cliente||c.cliente||'')}</span>${c.desfecho==='Improdutivo'?' <span class="chip warn">Improdutivo</span>':''}<small>${esc(gTecN(l.tec))} (${gTecV(l.tec)||'terceiro'}), ${esc(l.categoria||c.categoria||'')}, ${dBR(l.data)}</small>${aprovPor(l)?`<small class="aprovp">${aprovPor(l)}</small>`:''}</div><span class="val">${brl(l.total)}</span></button>
     ${op?`<div class="lbody">${(()=>{const h=(l.hist||[]).slice().reverse().find(x=>/pelo prestador/.test(x.acao));return h?`<div class="note" style="margin-top:12px"><b>Conferida pelo prestador:</b> ${esc(h.por)} em ${dtBR(h.em)}. Executada por ${esc(l.tecNome||gTecN(l.tec))}.</div>`:''})()}${l.obs?`<div class="note" style="margin-top:12px"><b>Observação do técnico:</b> ${esc(l.obs)}</div>`:''}
@@ -3181,6 +3185,7 @@ function viewGAprov(emb){if(G.erro)return `<h2>Aprovação de LPU · GTD</h2>${g
      <div class="actions">${c.id?`<button class="btn" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button>`:''}<button class="btn" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>${l.status==='aguardando'&&pode('a_gAprovar')?`<button class="btn" data-act="gDecidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="gDecidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="gAprovar" data-id="${l.id}">Aprovar</button>`:''}</div></div>`:''}</div>`};
   return `${emb?'':`<div class="toolbar"><div><h2>Aprovação de LPU · GTD Manutenção</h2><p class="muted">Fila da supervisão. Só LPUs de terceiros passam por aqui; todas usam a conta 3.1.1.2.05.0006 (Manutenção cliente), que consome o budget dessa conta.</p></div></div>`}
    <div class="kpis" style="margin-bottom:14px">${tabs.map(([k,n])=>`<div class="kpi ${k==='aprovada'?'ok':k==='reprovada'?'bad':k==='aguardando'?'warn':''}"><b>${brl(tot(k))}</b><span>${n} (${cnt(k)})</span></div>`).join('')}</div>
+   ${lpuPerBar('ga','gaXlsx')}
    <div class="chips">${tabs.map(([k,n])=>`<button data-act="gaTab" data-t="${k}" aria-current="${tab===k}">${n} (${cnt(k)})</button>`).join('')}</div>
    ${rows.map(card).join('')||'<p class="muted pad">Nenhuma LPU nesta situação.</p>'}`}
 
@@ -3585,6 +3590,78 @@ Object.assign(ACT,{
   salaVerCh:el=>{const id=el.dataset.id;ui.chat=null;ui.cat='gtd';ui.tab='gCham';ui.gSel=id;render();window.scrollTo(0,0)}});
 Object.assign(CH,{salaChSel:el=>{ui.salaCh=el.value||null;const t=$('chatTxt');if(t)ui.chatTxt=t.value;render()}});
 Object.assign(IN,{salaQ:el=>{const q=normK(el.value||'');document.querySelectorAll('.salaitem').forEach(x=>{x.hidden=!!q&&!x.dataset.q.includes(q)})}});
+
+
+/* ---------- PLANILHAS (.xlsx) e filtro de período da Aprovação de LPU ---------- */
+/* abas: [[nome, linhas(objetos)], ...]; sem a biblioteca, baixa a primeira aba em CSV */
+function xlsxBaixar(arq,abas,msg){if(!abas.length||!abas[0][1]||!abas[0][1].length){toast('Nada para exportar com esses filtros.','bad');return}abas=abas.filter(([,L])=>L&&L.length);if(!abas.length){toast('Nada para exportar com esses filtros.','bad');return}
+  try{const wb=XLSX.utils.book_new();abas.forEach(([n,L])=>{const ws=XLSX.utils.json_to_sheet(L),ks=Object.keys(L[0]);ws['!cols']=ks.map(k=>({wch:Math.min(45,Math.max(10,k.length+2,...L.slice(0,200).map(r=>String(r[k]??'').length+1)))}));XLSX.utils.book_append_sheet(wb,ws,n.slice(0,31))});XLSX.writeFile(wb,arq+'.xlsx');if(msg)toast(msg)}
+  catch(e){const L=abas[0][1],cols=Object.keys(L[0]),csv='﻿'+[cols.join(';')].concat(L.map(x=>cols.map(c=>`"${String(x[c]??'').replace(/"/g,'""')}"`).join(';'))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=arq+'.csv';a.click()}}
+const xHr=v=>v?new Date(v).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+const xR=v=>+(+v||0).toFixed(2);
+const xFiltros=o=>Object.entries(o).map(([Filtro,Valor])=>({Filtro,Valor})).concat([{Filtro:'Gerado em',Valor:xHr(Date.now())},{Filtro:'Gerado por',Valor:ME?ME.nome:''}]);
+
+/* ----- período da Aprovação de LPU (k = 'a' Implantação, 'ga' GTD) ----- */
+const LPER_DT=[['ativ','Data da atividade'],['envio','Data do envio'],['dec','Data da decisão']];
+const lpuEnvio=l=>{const h=(l.hist||[])[0];return h&&h.em?isoD(new Date(h.em)):null};
+const lpuDecisao=l=>{const h=(l.hist||[]).filter(x=>/^(Aprovada|Reprovada|Devolvida)/.test(x.acao||'')).pop();return h?h:null};
+const lpuDataDe=(l,dt)=>dt==='envio'?lpuEnvio(l):dt==='dec'?((h=>h&&h.em?isoD(new Date(h.em)):null)(lpuDecisao(l))):l.data;
+function lpuNoPer(l,k){const ini=ui[k+'Ini']||'',fim=ui[k+'Fim']||'';if(!ini&&!fim)return true;const d=lpuDataDe(l,ui[k+'Dt']||'ativ');if(!d)return false;return(!ini||d>=ini)&&(!fim||d<=fim)}
+function lpuPerBar(k,act){const ini=ui[k+'Ini']||'',fim=ui[k+'Fim']||'',dt=ui[k+'Dt']||'ativ',on=ini||fim;
+  return `<div class="tools lper" role="group" aria-label="Período"><label class="f inline"><span>Período por</span><select class="inp" data-ch="lpDt" data-k="${k}">${LPER_DT.map(([v,n])=>`<option value="${v}" ${v===dt?'selected':''}>${n}</option>`).join('')}</select></label>
+   <label class="f inline"><span>De</span><input type="date" class="inp" data-ch="lpIni" data-k="${k}" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="lpFim" data-k="${k}" value="${fim}"></label>
+   <button class="btn sm" data-act="lpMes" data-k="${k}">Este mês</button>${on?`<button class="btn sm" data-act="lpLimpa" data-k="${k}">Todas as datas</button>`:''}<span class="sp"></span><button class="btn" data-act="${act}">Baixar planilha</button></div>
+   ${on?`<p class="muted" style="margin:-4px 0 10px;font-size:13px">Mostrando LPUs com ${LPER_DT.find(x=>x[0]===dt)[1].toLowerCase()} ${ini&&fim?`de ${dBR(ini)} a ${dBR(fim)}`:ini?`a partir de ${dBR(ini)}`:`até ${dBR(fim)}`}. Os totais acima seguem o período.</p>`:''}`}
+Object.assign(CH,{lpDt:el=>{ui[el.dataset.k+'Dt']=el.value;render()},lpIni:el=>{ui[el.dataset.k+'Ini']=el.value;render()},lpFim:el=>{ui[el.dataset.k+'Fim']=el.value;render()}});
+
+/* linhas de LPU e de itens, comuns à Implantação e ao GTD */
+function xLpuItens(L,ref){const o=[];L.forEach(l=>(l.itens||[]).forEach(i=>o.push(Object.assign(ref(l),{'Código':i.cod,'Serviço':i.desc||'','Classe':i.classe||'','Medida':i.medida||'','Fator':i.fator||'Comum','Quantidade':+i.qtd||0,'Valor unitário (R$)':xR(i.unit),'Total do item (R$)':xR((+i.unit||0)*(+i.qtd||0))}))));return o}
+const xHist=l=>(l.hist||[]).map(h=>`${h.acao} por ${h.por||''} em ${xHr(h.em)}${h.motivo?': '+h.motivo:''}`).join(' | ');
+const xPerTxt=k=>{const ini=ui[k+'Ini']||'',fim=ui[k+'Fim']||'';return !ini&&!fim?'Todas as datas':`${LPER_DT.find(x=>x[0]===(ui[k+'Dt']||'ativ'))[1]}: ${ini?dBR(ini):'…'} a ${fim?dBR(fim):'…'}`};
+const xTabN={aguardando:'Aguardando',ajuste:'Em ajuste',aprovada:'Aprovadas',reprovada:'Reprovadas'};
+
+Object.assign(ACT,{
+  lpMes:el=>{const k=el.dataset.k,h=hoje();ui[k+'Ini']=h.slice(0,8)+'01';ui[k+'Fim']=h;render()},
+  lpLimpa:el=>{const k=el.dataset.k;ui[k+'Ini']='';ui[k+'Fim']='';render()},
+  /* Aprovação de LPU · Implantação */
+  aXlsx:()=>{const tab=ui.aTab||'aguardando',L=S.lpus.filter(l=>l.status===tab&&lpuNoPer(l,'a')).sort((a,b)=>String(a.data).localeCompare(String(b.data)));
+    const ref=l=>({'Data da atividade':dBR(l.data),'Etiqueta':l.etiqueta,'Cliente':cliN(l.etiqueta)||'','Prestador':tecN(l.tec)});
+    const R=L.map(l=>{const a=getAg(l.ag),p=pPor(l.etiqueta),d=lpuDecisao(l),al=alertasCabo(a,l),rel=metrosAg(a);
+      return {'Data da atividade':dBR(l.data),'Etiqueta':l.etiqueta,'Cliente':cliN(l.etiqueta)||'','Cidade':p.cidade||'','Protocolo':p.protocolo||'','Fases':fasesN(l),'Prestador':tecN(l.tec),'Vínculo':vinc(l.tec),'Executada por':l.tecNome||tecN(l.tec),
+        'Conta contábil':l.conta||'','Situação':(LST[l.status]||[l.status])[0],'Valor (R$)':xR(l.total),'Serviços':(l.itens||[]).length,'Atividade não concluída':l.parcial?'Sim':'Não',
+        'Enviada em':xHr(((l.hist||[])[0]||{}).em),'Decisão':d?d.acao:'','Decidida por':d?d.por||'':'','Decidida em':d?xHr(d.em):'','Motivo':d&&d.motivo?d.motivo:'',
+        'Cabo no ROI (m)':+p.metros||'','Cabo no relatório (m)':rel!=null?rel:'','Cabo na LPU (m)':caboLpu(l),'Alertas de cabo':al.map(x=>x.t).join('; '),'Observação do técnico':l.obs||'','Histórico':xHist(l)}});
+    xlsxBaixar(`aprovacao_lpu_implantacao_${tab}_${(ui.aIni||'inicio')}_a_${(ui.aFim||'hoje')}`,[['LPUs',R],['Itens',xLpuItens(L,ref)],['Filtros',xFiltros({'Tela':'Aprovação de LPU · Implantação','Situação':xTabN[tab]||tab,'Período':xPerTxt('a'),'LPUs exportadas':R.length,'Valor total (R$)':xR(L.reduce((s,l)=>s+(+l.total||0),0))})]],R.length+(R.length===1?' LPU exportada.':' LPUs exportadas.'))},
+  /* Aprovação de LPU · GTD */
+  gaXlsx:()=>{const tab=ui.gaTab||'aguardando',L=G.lpus.filter(l=>l.status===tab&&lpuNoPer(l,'ga')).sort((a,b)=>String(a.data).localeCompare(String(b.data)));
+    const ref=l=>({'Data':dBR(l.data),'O&M':l.pom||'','Cliente':l.cliente||'','Prestador':gTecN(l.tec)});
+    const R=L.map(l=>{const c=G.ch.find(x=>x.id===l.chamado)||{ts:{}},t=c.ts||{},d=lpuDecisao(l);
+      return {'Data':dBR(l.data),'O&M':l.pom||c.pom||'','Protocolo NOC':c.pnoc||'','Cliente':l.cliente||c.cliente||'','Etiqueta':c.etiqueta||'','Cidade':l.cidade||c.cidade||'','Categoria':l.categoria||c.categoria||'','Desfecho':c.desfecho||l.desfecho||'',
+        'Prestador':gTecN(l.tec),'Vínculo':gTecV(l.tec)||'Terceiro','Executada por':l.tecNome||gTecN(l.tec),'Conta contábil':l.conta||GTD_CONTA,'Situação':(GLST[l.status]||LST[l.status]||[l.status])[0],'Valor (R$)':xR(l.total),'Serviços':(l.itens||[]).length,
+        'MTTR (h)':c.validadoEm?+((c.validadoEm-gIni(c))/36e5).toFixed(2):'','Enviada em':xHr(((l.hist||[])[0]||{}).em),'Decisão':d?d.acao:'','Decidida por':d?d.por||'':'','Decidida em':d?xHr(d.em):'','Motivo':d&&d.motivo?d.motivo:'','Observação do técnico':l.obs||'','Histórico':xHist(l)}});
+    xlsxBaixar(`aprovacao_lpu_gtd_${tab}_${(ui.gaIni||'inicio')}_a_${(ui.gaFim||'hoje')}`,[['LPUs',R],['Itens',xLpuItens(L,ref)],['Filtros',xFiltros({'Tela':'Aprovação de LPU · GTD Manutenção','Situação':xTabN[tab]||tab,'Período':xPerTxt('ga'),'LPUs exportadas':R.length,'Valor total (R$)':xR(L.reduce((s,l)=>s+(+l.total||0),0))})]],R.length+(R.length===1?' LPU exportada.':' LPUs exportadas.'))},
+  /* Painel de KPIs · Visão geral (Implantação) */
+  pgXlsx:()=>{const b=pBase(),vv=verValor()&&!S.semValor;
+    const A=b.all.slice().sort((x,y)=>x.data.localeCompare(y.data)).map(a=>{const p=pPor(a.etiqueta),t=a.ts||{},l=S.lpus.filter(x=>x.ag===a.id).pop();
+      const o={'Data':dBR(a.data),'Etiqueta':a.etiqueta,'Cliente':cliN(a.etiqueta)||'','Cidade':p.cidade||'','Topologia':p.topologia||'','Fases':fasesN(a),'Técnico':tecN(a.tec),'Vínculo':vinc(a.tec),'Situação':(ST[a.status]||[a.status])[0],
+        'Atrasada':a.data<b.T&&!FIM.includes(a.status)&&a.status!=='cancelada'?'Sim':'Não','Dentro da previsão':a.status==='concluida'?(dentroPrev(a)?'Sim':'Não'):'','Aguardando reagendamento':a.pendReag?'Sim':'Não',
+        'Saída':xHr(t.desloc),'Chegada':xHr(t.chegada),'Início':xHr(t.inicio),'Conclusão':xHr(t.conclusao),'Relatórios enviados':xHr(t.relatorios),'Encerramento':xHr(t.encerramento),
+        'Motivo (não concluída)':a.motivo||'','Cabo no relatório (m)':metrosAg(a)??'','LPU':l?(LST[l.status]||[l.status])[0]:''};
+      if(vv)o['Valor da LPU (R$)']=l?xR(l.total):'';return o});
+    const E=b.efi.map(({p,f,tot,ia})=>{const o={'Data da ativação':dBR(f.data),'Etiqueta':p.etiqueta,'Cliente':p.cliente||'','Cidade':p.cidade||'','Topologia':p.topologia||'','POP':p.pop||'','Equipamento de acesso':p.equip||'','Dias de execução (todas as fases)':tot,'Dias de execução (interno + ativação)':ia,'Ativado por':tecN(f.tec)};if(!S.semValor)o['Valor mensal (R$)']=xR(p.valor);return o}).sort((x,y)=>x['Data da ativação'].split('/').reverse().join('').localeCompare(y['Data da ativação'].split('/').reverse().join('')));
+    const K=[['Atividades agendadas',b.ags.length],['Circuitos entregues',b.ent.length],['Valor mensal entregue (R$)',S.semValor?'—':xR(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0))],['Concluídas dentro da previsão (%)',pct(b.dentro.length,b.conc.length)],['Dias de execução por circuito',b.mTot==null?'':+b.mTot.toFixed(1)],['Atividades em atraso',b.atras.length],['Aguardando reagendamento',S.ags.filter(a=>a.pendReag).length],['Atividades canceladas no período',b.canc],['Atividades não concluídas no período',b.nao.length]].map(([Indicador,Valor])=>({Indicador,Valor}));
+    xlsxBaixar(`visao_geral_implantacao_${ui.pIni}_a_${ui.pFim}`,[['Indicadores',K],['Atividades',A],['Entregas',E],['Filtros',xFiltros({'Tela':'Painel de KPIs · Visão geral (Implantação)','Período':dBR(ui.pIni)+' a '+dBR(ui.pFim),'Atividades exportadas':A.length,'Entregas':E.length})]],A.length+' atividades exportadas.')},
+  /* Mão de obra de terceiros: ROI x LPU executada */
+  moXlsx:()=>{const M=moCalc(),inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim;
+    const R=M.map(r=>({'Etiqueta':r.e,'Cliente':r.p.cliente||'','Cidade':r.p.cidade||'','Topologia':r.p.topologia||'','Terceiro(s)':r.tecs,'Mão de obra no ROI (R$)':r.roi==null?'Sem ROI':xR(r.roi),'LPU aprovada (R$)':xR(r.a),'LPU pendente (R$)':xR(r.q),'LPU total (R$)':xR(r.tot),'Diferença LPU − ROI (R$)':r.roi==null?'':xR(r.tot-r.roi),'LPU / ROI (%)':r.roi?+(r.tot/r.roi*100).toFixed(1):''}));
+    const T=M.reduce((s,r)=>({roi:s.roi+(r.roi||0),a:s.a+r.a,q:s.q+r.q,tot:s.tot+r.tot}),{roi:0,a:0,q:0,tot:0});
+    if(R.length)R.push({'Etiqueta':'TOTAL','Cliente':'','Cidade':'','Topologia':'','Terceiro(s)':'','Mão de obra no ROI (R$)':xR(T.roi),'LPU aprovada (R$)':xR(T.a),'LPU pendente (R$)':xR(T.q),'LPU total (R$)':xR(T.tot),'Diferença LPU − ROI (R$)':xR(T.tot-T.roi),'LPU / ROI (%)':T.roi?+(T.tot/T.roi*100).toFixed(1):''});
+    const es=new Set(M.map(r=>r.e)),LL=S.lpus.filter(l=>es.has(l.etiqueta)&&l.status!=='reprovada'&&tecT(l.tec)==='TERC').sort((a,b)=>a.etiqueta.localeCompare(b.etiqueta)||String(a.data).localeCompare(String(b.data)));
+    const D=LL.map(l=>({'Etiqueta':l.etiqueta,'Cliente':cliN(l.etiqueta)||'','Data da atividade':dBR(l.data),'No período':inP(l)?'Sim':'Não','Fases':fasesN(l),'Prestador':tecN(l.tec),'Conta contábil':l.conta||'','Situação':(LST[l.status]||[l.status])[0],'Valor (R$)':xR(l.total)}));
+    xlsxBaixar(`roi_x_lpu_terceiros_${ui.pIni}_a_${ui.pFim}`,[['ROI x LPU',R],['LPUs',D],['Filtros',xFiltros({'Tela':'Mão de obra de terceiros: ROI x LPU executada','Período (projetos com LPU no período)':dBR(ui.pIni)+' a '+dBR(ui.pFim),'Projetos':M.length,'Observação':'As LPUs de cada projeto somam todas as datas, sem as reprovadas, como na tela.'})]],M.length+' projetos exportados.')}});
+/* ROI x LPU (usado na tela e na planilha) */
+function moCalc(){const inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim;
+  return [...new Set(S.lpus.filter(l=>inP(l)&&tecT(l.tec)==='TERC').map(l=>l.etiqueta))].map(e=>{const p=pPor(e),Ls=S.lpus.filter(l=>l.etiqueta===e&&l.status!=='reprovada'&&tecT(l.tec)==='TERC'),a=Ls.filter(l=>l.status==='aprovada').reduce((s,l)=>s+l.total,0),q=Ls.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+l.total,0),roi=p.roi&&p.roi.fin&&p.roi.fin.custoMO!=null?+p.roi.fin.custoMO:null;return{e,p,a,q,tot:a+q,roi,tecs:[...new Set(Ls.map(l=>tecN(l.tec)))].join(', ')}})}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
