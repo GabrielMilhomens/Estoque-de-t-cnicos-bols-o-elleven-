@@ -641,6 +641,158 @@ details summary{cursor:pointer;font-weight:600}
 .relbt{display:flex;align-items:center;gap:6px;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:6px 8px}.relbt>span{flex:1;min-width:160px;font-size:14px}
 .nadmv{margin:10px 0}.nadmv p{margin:4px 0;white-space:pre-wrap}
 .eqnota{display:block;background:var(--brand-soft);color:var(--brand-ink)!important;border-radius:6px;padding:4px 8px;margin-top:4px;font-size:13px!important}
+
+/* 11/10: layout único do técnico, Criar chamado e KPIs do GTD */
+.inp[type=time],.inp[type=date]{min-width:0;max-width:100%;box-sizing:border-box}
+.tv .toolbar{margin-bottom:10px}
+.tvtabs{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.25fr) minmax(0,1.1fr);gap:4px;padding:4px;background:var(--line);border-radius:12px;margin-bottom:10px}
+.tvtabs button{min-height:42px;border:0;border-radius:9px;background:transparent;color:var(--ink);font:600 14px/1.15 Barlow,sans-serif;cursor:pointer;padding:0 4px}
+.tvtabs button[aria-selected=true]{background:var(--ink);color:var(--surface)}
+.tvflt,.tvops,.tvper{display:flex;flex-wrap:wrap;gap:6px}
+.tvflt{margin-bottom:12px}
+.tvflt button,.tvops button,.tvper button{min-height:40px;padding:0 14px;border:1.5px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:600 14.5px Barlow,sans-serif;cursor:pointer}
+.tvflt button[aria-pressed=true],.tvops button[aria-pressed=true],.tvper button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.tvlista{display:flex;flex-direction:column;gap:12px}
+.tvcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.tvcard.alvo{border:1.5px solid #E2BE8A}
+.tvtag{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.tvtag.impl{color:var(--brand-ink)}.tvtag.gtd{color:var(--info)}
+.tvch{display:flex;flex-wrap:wrap;gap:6px}
+.tvch .chip{font-size:12.5px;padding:3px 10px}
+.tvnm{border:0;background:none;padding:0;text-align:left;color:var(--ink);display:flex;flex-direction:column;gap:2px;cursor:pointer;font-family:Barlow,sans-serif}
+.tvnm b{font:700 22px/1.1 "Barlow Condensed",Barlow,sans-serif}
+.tvnm span{font-size:14px;color:var(--muted)}
+.tvinf{display:flex;flex-direction:column;gap:6px;font-size:15px}
+.tvinf span{display:flex;align-items:flex-start;gap:8px;min-width:0}
+.tvinf svg{flex-shrink:0;margin-top:2px;color:var(--muted)}
+.tvac{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px}
+.tvac.tres{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) 48px}
+.tvpri,.tvinfo,.tvrec{min-height:48px;border-radius:10px;font:700 16px Barlow,sans-serif;cursor:pointer;padding:0 10px}
+.tvpri{border:0;background:var(--brand);color:var(--on-brand)}
+.tvinfo{border:1px solid var(--line);background:var(--bg);color:var(--ink);font-weight:600}
+.tvrec{border:1.5px solid var(--bad);background:var(--surface);color:var(--bad)}
+.tvci{position:relative;min-height:48px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--info);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tvci i{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font:700 11px/18px Barlow,sans-serif;font-style:normal;padding:0 4px}
+.tvhd{position:sticky;top:0;z-index:9;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 8px;margin-bottom:10px}
+.tvback{display:flex;align-items:center;gap:4px;min-height:44px;padding:0 8px;border:0;background:none;color:var(--ink);font:600 16px Barlow,sans-serif;cursor:pointer}
+.tvmsg{display:flex;align-items:center;gap:6px;min-height:42px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--info);font:600 15px Barlow,sans-serif;cursor:pointer}
+.tvmsg.nova{border-color:var(--bad);color:var(--bad)}
+.tvtop{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.tvtt{padding:14px 14px 12px;display:flex;flex-direction:column;gap:8px}
+.tvnome{margin:0;font:700 25px/1.08 "Barlow Condensed",Barlow,sans-serif}
+.tvbd{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.tvst{list-style:none;margin:0;padding:0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px}
+.tvst li{display:flex;flex-direction:column;gap:4px;min-width:0}
+.tvst i{display:block;height:6px;border-radius:3px;background:var(--line)}
+.tvst b{font-size:11.5px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tvst small{font-size:12px;color:var(--muted);min-height:15px}
+.tvst li.ok i{background:var(--brand)}.tvst li.ok b{color:var(--ink);font-weight:600}
+.tvst li.now i{background:var(--info)}.tvst li.now b,.tvst li.now small{color:var(--info);font-weight:700}
+.tvbxs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tvbx{background:var(--bg);border-radius:10px;padding:8px 10px;min-width:0}
+.tvbx small{display:block;font-size:12px;color:var(--muted)}
+.tvbx b{display:block;font:700 23px/1.15 "Barlow Condensed",Barlow,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tvpre{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.tvft{position:sticky;bottom:0;z-index:8;margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px 14px 0 0;box-shadow:0 -6px 18px rgba(0,0,0,.08);padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.tvft>*{grid-column:1/-1;margin:0!important}
+.tvft>.diab,.tvft>[data-act=nao]{grid-column:auto;min-height:46px}
+.tvft:not(:has(.diab))>[data-act=nao]{grid-column:1/-1}
+.tvft .bigbtn{min-height:56px;font-size:22px}
+.tvft .bigbtn[disabled]{opacity:.55}
+.tvft p.muted{margin:0;font-size:13px;text-align:center}
+.tvnota{display:block;text-align:center;font-size:13px;color:var(--muted)}
+.tveta{display:grid;grid-template-columns:minmax(0,1fr) 140px;align-items:center;gap:10px;margin:0}
+.tveta span{font-weight:600}
+.tveta input{width:100%;min-width:0;box-sizing:border-box;min-height:46px;font-size:17px}
+.tvdois{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:8px}
+.tvdois .btn{min-height:56px;font-size:17px}
+.tvsec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.tvsec h3{margin:0;font-size:16px}
+.tvsec .f{margin:0}
+.tvops button{min-height:44px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px}
+.tvrow{display:flex;align-items:center;gap:8px;min-height:50px;border-bottom:1px solid var(--line)}
+.tvrow:last-child{border-bottom:0}
+.tvrow>div{flex:1;min-width:0}
+.tvrow span{display:block;font-size:12px;color:var(--muted)}
+.tvrow b{display:block;font-weight:600;overflow-wrap:anywhere}
+.tvcp{min-width:44px;height:44px;border:0;border-radius:10px;background:var(--bg);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;font:600 14px Barlow,sans-serif}
+.tvcp.txt{padding:0 10px}
+@media(max-width:900px){.tvhd{top:calc(env(safe-area-inset-top,0px) + 58px);border-radius:0 0 12px 12px}}
+
+/* Criar chamado */
+.gnwrap{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+.gnform{display:flex;flex-direction:column;gap:14px;min-width:0}
+.gnsec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.gnsec .f{margin:0}
+.gnh{margin:0;font-size:17px;display:flex;align-items:center;gap:10px}
+.gnh2{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.gnn{width:26px;height:26px;border-radius:13px;background:var(--ink);color:var(--surface);font-size:14px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.gnok,.gnwarn{display:flex;gap:10px;align-items:flex-start;border-radius:10px;padding:10px 12px}
+.gnok{background:var(--brand-soft);color:var(--brand-ink);font-weight:600}
+.gnwarn{background:var(--warn-soft);color:var(--warn)}
+.gnok svg,.gnwarn svg{flex-shrink:0;margin-top:1px}
+.gnsug{color:var(--brand-ink);font-weight:600}
+.gnseg{display:grid;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.gnseg button{min-height:44px;border:0;background:var(--surface);color:var(--ink);font:600 15px Barlow,sans-serif;cursor:pointer}
+.gnseg button+button{border-left:1px solid var(--line)}
+.gnseg button[aria-pressed=true]{background:var(--ink);color:var(--surface)}
+.gng3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.gng4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.gnmapa{min-height:44px;display:flex;align-items:center;gap:8px;font-weight:600}
+.gnsec .inp:placeholder-shown{border:1.5px dashed #C9A15A;background:var(--warn-soft)}
+.gnsec .gtxt:placeholder-shown{border:1px solid var(--line);background:var(--surface)}
+.gnside{position:sticky;top:16px;display:flex;flex-direction:column;gap:12px}
+.gnlbl{font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--muted)}
+.gnchk{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.gnchk .ok{color:var(--brand-ink)}.gnchk .warn{color:var(--warn)}.gnchk .bad{color:var(--bad)}
+.gnbt{display:flex;flex-direction:column;gap:6px}
+.gnbt .bigbtn{min-height:56px;font-size:22px}
+.tvcard.prev{pointer-events:none}
+@media(max-width:1100px){.gnwrap{grid-template-columns:minmax(0,1fr)}.gnside{position:static}.gnbt{position:sticky;bottom:0;z-index:8;background:var(--surface);border:1px solid var(--line);border-radius:14px 14px 0 0;box-shadow:0 -6px 18px rgba(0,0,0,.08);padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px))}}
+@media(max-width:700px){.gng3,.gng4{grid-template-columns:repeat(2,minmax(0,1fr))}.gng3>[style*=span],.gng4>[style*=span],.gnat>:first-child,.gnat>:last-child{grid-column:1/-1!important}.gnsec{padding:14px}}
+
+/* KPIs do GTD */
+.tvkh{align-items:flex-end;flex-wrap:wrap;gap:10px}
+.tvper button{min-height:38px}
+.tvatn{background:var(--surface);border:1.5px solid #E2A49C;border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:8px}
+.tvatnh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--bad)}
+.tvatnh h3{margin:0;color:var(--ink);font-size:17px}
+.tvatni{display:grid;grid-template-columns:130px minmax(0,1fr) auto auto;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-radius:10px;background:var(--bad-soft);padding:10px 12px;color:var(--ink);font:500 15px Barlow,sans-serif;cursor:pointer}
+.tvatni .cl{font-weight:600}.tvatni .tc{color:var(--muted)}
+.tvkg{display:grid;grid-template-columns:1fr .8fr 1.2fr;gap:14px;margin-bottom:14px}
+.tvkg .panel h3,.tvk2 .panel h3{margin:0 0 10px}
+.tvkr{display:grid;gap:12px}.tvkr.c3{grid-template-columns:repeat(3,minmax(0,1fr))}.tvkr.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tvkv b{display:block;font:700 32px/1.05 "Barlow Condensed",Barlow,sans-serif;font-variant-numeric:tabular-nums}
+.tvkv b.warn{color:var(--warn)}.tvkv b.bad{color:var(--bad)}
+.tvkv small{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.tvk2{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;margin-bottom:14px;align-items:start}
+.tvkcol{display:flex;flex-direction:column;gap:14px}
+.tvbars{display:flex;flex-direction:column;gap:10px}
+.tvbr{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr) 34px 52px;align-items:center;gap:6px 12px}
+.tvbr .n{font-size:15px}
+.tvbr .tk,.tvtb .tk{height:10px;background:var(--bg);border-radius:4px;overflow:hidden;display:flex}
+.tvbr .tk i,.tvtb .tk i{display:block;height:100%;background:var(--brand-ink);border-radius:0 4px 4px 0}
+.tvbr b{text-align:right;font-variant-numeric:tabular-nums}
+.tvbr small{text-align:right;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.tvtb{display:flex;align-items:center;gap:10px}.tvtb .tk{flex:1}.tvtb b{min-width:24px;text-align:right;white-space:nowrap}
+.tvktab td,.tvktab th{white-space:nowrap}
+.tvkcards{display:none;flex-direction:column;gap:8px}
+.tvkc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.tvkc .h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tvkc .g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tvkc .tvkv b{font-size:20px}.tvkc .tvkv small{font-size:12px}
+@media(max-width:1100px){.tvkg{grid-template-columns:1fr}.tvk2{grid-template-columns:1fr}}
+@media(max-width:700px){.tvktab{display:none}.tvkcards{display:flex}.tvkv b{font-size:28px}
+ .tvbr{grid-template-columns:minmax(0,1fr) auto auto;gap:4px 8px}.tvbr .n{grid-column:1}.tvbr b{grid-column:2;grid-row:1}.tvbr small{grid-column:3;grid-row:1}.tvbr .tk{grid-column:1/-1;grid-row:2;height:8px}
+ .tvatni{grid-template-columns:1fr auto;gap:2px 8px}.tvatni .cl,.tvatni .tc{grid-column:1/-1}.tvatni .chip{grid-column:1/-1;justify-self:start;margin-top:4px}
+ .tvkr.c3{grid-template-columns:repeat(3,minmax(0,1fr))}.tvper{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.tvper button{flex-shrink:0}}
+
+.tv .tacch small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tv .tact{min-width:0;flex:1}
+@media(min-width:701px){.gnat{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr)}.gnat .tvops{flex-wrap:nowrap}.gnat .tvops button{padding:0 11px}}
+@media(max-width:700px){.gnat>*{grid-column:1/-1!important}}
+.gktec .chip,.tvkc .chip{display:inline-block;white-space:nowrap;line-height:1.4;padding:2px 9px}
+.tvft .bigbtn{font-size:21px;line-height:1.1}
 </style>
 </head>
 <body>
@@ -1628,7 +1780,7 @@ function updHtml(a){const U=a.atualizacoes||[],ult=U.length?U[U.length-1]:null,F
    <span class="muted" style="font-size:13px;font-weight:600">Como está agora? *</span><div class="updt">${UPD_TIPOS.map(t=>`<button class="btn ${F.tipo===t?(t.startsWith('Parado')?'on par':'on'):''}" data-act="updTipo" data-id="${a.id}" data-v="${esc(t)}" aria-pressed="${F.tipo===t}">${t}</button>`).join('')}</div>
    ${fasesOf(a).some(k=>k==='rua'||k==='interno')?`<label class="f" style="margin:0"><span>Metragem lançada até agora (opcional)</span><input class="inp" id="updM" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 120"></label>`:''}
    <label class="f" style="margin:0"><span>Comentário (opcional)</span><textarea class="inp" id="updObs" rows="2" placeholder="Ex.: cabo passado até o 3º andar, faltam 2 andares"></textarea></label>
-   <label class="f" style="margin:0"><span>Foto (opcional)</span><input class="inp" id="updFoto" type="file" accept="image/*"></label>
+   ${tvFotoBtns('updFoto',false)}
    <button class="btn primary wide" data-act="updEnviar" data-id="${a.id}">Enviar atualização</button><button class="link" data-act="updFechar" data-id="${a.id}">Cancelar</button>`}
    ${U.length?`<div class="updl"><span class="tck2">${U.length} ${U.length===1?'ATUALIZAÇÃO ENVIADA':'ATUALIZAÇÕES ENVIADAS'}</span>${U.slice().reverse().map(u=>`<div><b>${hm(u.em)}</b><span>${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?'. '+esc(u.obs):''}${u.foto?' (com foto)':''}</span></div>`).join('')}</div>`:''}</section>`}
 /* ---------- DESLOCAMENTO: previsão de chegada informada pelo técnico ---------- */
@@ -2068,7 +2220,7 @@ const ACT={
   updFechar:el=>{delete (ui.upd||{})[el.dataset.id];render()},
   updTipo:el=>{const F=ui.upd[el.dataset.id],m=$('updM')&&$('updM').value,o=$('updObs')&&$('updObs').value;F.tipo=el.dataset.v;render();if(m&&$('updM'))$('updM').value=m;if(o&&$('updObs'))$('updObs').value=o},
   updEnviar:async el=>{const a=getAg(el.dataset.id),F=(ui.upd||{})[a.id];if(!F||!F.tipo){toast('Escolha como está o andamento.','bad');return}
-    const u={em:Date.now(),tipo:F.tipo,m:(($('updM')||{}).value||'').trim().replace('.',',')||null,obs:(($('updObs')||{}).value||'').trim()||null},fl=(($('updFoto')||{}).files||[])[0];el.disabled=true;
+    const u={em:Date.now(),tipo:F.tipo,m:(($('updM')||{}).value||'').trim().replace('.',',')||null,obs:(($('updObs')||{}).value||'').trim()||null},fl=tvArqs('updFoto')[0];el.disabled=true;
     if(fl){try{const d=await reduzirFoto(fl,{etq:a.etiqueta}),b=await (await fetch(d)).blob(),path=`relatorios/${a.id}/atualizacoes/${Date.now()}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)u.foto=path}catch(e){}}
     a.atualizacoes=(a.atualizacoes||[]).concat([u]);delete ui.upd[a.id];save();render();toast('Atualização enviada. Já aparece no painel do dia.')},
   pdCid:el=>{ui.pdCid=el.dataset.v;render()},
@@ -2097,10 +2249,10 @@ const ACT={
   diaFim:el=>{const a=getAg(el.dataset.id),prox=proxDia(a);openModal(`<h3>Encerrar o dia ${a.dias&&a.dias.length>1?diaIdx(a,a.data).toLowerCase():''}</h3><p class="muted">${prox?`Você continua esta atividade em ${dBR(prox)}.`:'A atividade fica aguardando a decisão da gestão sobre o seu pedido de prazo.'}</p>
     <label class="f"><span>O que você fez hoje? *</span><textarea class="inp" id="dfRes" rows="3" placeholder="Ex.: lancei 220 m da CEO do poste 14 até a esquina; amanhã faço a travessia"></textarea></label>
     ${fasesOf(a).some(k=>k==='rua'||k==='interno')?`<div class="grid2 even" style="gap:0 12px"><label class="f"><span>Metragem no fim do dia</span><input class="inp" id="dfM" type="number" inputmode="numeric" placeholder="Ex.: 1220"></label><label class="f"><span>Lote do cabo</span><input class="inp" id="dfLote" placeholder="Ex.: 2405-118"></label></div>`:''}
-    <label class="f"><span>Fotos do dia (opcional)</span><input class="inp" id="dfFotos" type="file" accept="image/*" multiple></label>
+    ${tvFotoBtns('dfFotos',true,'Fotos do dia (opcional)')}
     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="diaOk" data-id="${a.id}">Encerrar o dia</button></div>`)},
   diaOk:async el=>{const a=getAg(el.dataset.id),res=$('dfRes').value.trim();if(!res){toast('Conte o que foi feito hoje.','bad');return}
-    const fs=[...(($('dfFotos')||{}).files||[])].slice(0,8),fotos=[],dia=a.data;el.disabled=true;
+    const fs=tvArqs('dfFotos').slice(0,8),fotos=[],dia=a.data;el.disabled=true;
     if(fs.length){toast('Enviando as fotos do dia…');for(const[x,f0]of fs.entries()){try{const u=await reduzirFoto(f0,{etq:a.etiqueta}),b=await (await fetch(u)).blob(),path=`relatorios/${a.id}/dias/${dia}-${Date.now()}-${x+1}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)fotos.push(path)}catch(e){}}}
     a.diario=(a.diario||[]).concat([{data:dia,ts:Object.assign({},a.ts,{fimDia:Date.now()}),resumo:res,m:(($('dfM')||{}).value||'').trim()||null,lote:(($('dfLote')||{}).value||'').trim()||null,fotos}]);
     const prox=proxDia(a);a.ts={};if(prox){a.data=prox;a.status='agendada'}else{a.status='agendada';a.aguardaPrazo=true}
@@ -3982,6 +4134,267 @@ function trfTrechos(L,atual,iniAtend){return (L||[]).map((x,i)=>{const t=x.ts||{
   if(!t.chegada)return{desloc:t.desloc,chegada:nd||null,inicio:nd||null,fim:nd||null,trf:1};
   if(!t[iniAtend])return{desloc:t.desloc,chegada:t.chegada,inicio:x.em,fim:x.em,trf:1};
   return{desloc:t.desloc,chegada:t.chegada,inicio:t[iniAtend],fim:x.em,trf:1}}).filter(Boolean)}
+
+
+/* ---------- 11/10: layout único do técnico (Implantação e Manutenção GTD), Criar chamado e KPIs do GTD ----------
+   Mesma lista ("Minhas atividades" com Hoje, Próximos dias e Encerradas e o filtro Tudo / Manutenção GTD / Implantação),
+   mesmo cartão (tipo e protocolo, situação, cliente, o que fazer, quando, onde e a próxima ação), mesma tela aberta
+   (topo fixo com Voltar e Mensagens, faixa O que fazer, 6 etapas com horário, dois contadores, seções que abrem e fecham
+   e rodapé fixo com a ação). As regras de cada etapa continuam as mesmas: só a apresentação mudou. */
+const TVI={
+  back:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
+  chat:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>',
+  clock:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  alert:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.01"/></svg>',
+  copy:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>',
+  cam:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>',
+  gal:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>',
+  ok:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>'
+};
+const TV_GCOR='#1F4F6B';
+
+/* fotos: sempre Câmera e Galeria (atualização do andamento e encerrar o dia) */
+function tvFotoBtns(id,multi,label){return `<div class="f" style="margin:0"><span>${label||'Foto (opcional)'}</span><div class="rfbt"><label class="rfb">${TVI.cam}Câmera<input type="file" accept="image/*" capture="environment" id="${id}Cam" data-ch="tvArq" data-id="${id}" hidden></label><label class="rfb">${TVI.gal}Galeria<input type="file" accept="image/*" ${multi?'multiple':''} id="${id}" data-ch="tvArq" data-id="${id}" hidden></label></div><small class="muted" id="${id}N">Nenhuma foto escolhida.</small></div>`}
+const tvArqs=id=>[...((($(id+'Cam')||{}).files)||[]),...((($(id)||{}).files)||[])];
+
+/* peças comuns */
+const tvMsg=(t,id)=>{const n=gNMsg(t,id),nv=gNNova(t,id);return `<button class="tvmsg${nv?' nova':''}" data-act="chatAbrir" data-t="${t}" data-id="${id}">${TVI.chat}Mensagens${n?` (${n})`:''}</button>`};
+const tvMsgIco=(t,id)=>{const n=gNMsg(t,id),nv=gNNova(t,id);return `<button class="tvci${nv?' nova':''}" data-act="chatAbrir" data-t="${t}" data-id="${id}" aria-label="Mensagens${n?`, ${n}`:''}${nv?`, ${nv} nova(s)`:''}">${TVI.chat}${nv?`<i>${nv}</i>`:''}</button>`};
+const tvHead=(act,t,id)=>`<div class="tvhd"><button class="tvback" data-act="${act}">${TVI.back}Voltar</button>${tvMsg(t,id)}</div>`;
+const tvSteps=L=>`<ol class="tvst" aria-label="Etapas">${L.map(x=>`<li class="${x.st}"><i></i><b>${x.l}</b><small>${x.h||''}</small></li>`).join('')}</ol>`;
+const tvBox=(l,v)=>`<div class="tvbx"><small>${l}</small><b>${v}</b></div>`;
+const tvBand=(cor,o,q)=>`<div class="tcband" style="background:${cor}"><span class="tck">O QUE FAZER</span><span class="tcf">${o}</span>${q?`<span class="tcs">${q}</span>`:''}</div>`;
+function tvAcc(k,padrao,ico,tit,sub,body){ui.tvAcc=ui.tvAcc||{};const o=ui.tvAcc[k]===undefined?padrao:!!ui.tvAcc[k];
+  return `<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="${k}" data-p="${padrao?1:0}" aria-expanded="${o}"><span class="taci">${ico}</span><span class="tact"><b>${tit}</b><small>${sub}</small></span><span class="tacs">${o?IC.up:IC.dn}</span></button>${o?`<div class="taccb">${body}</div>`:''}</section>`}
+const tvLinha=(l,v,copia)=>`<div class="tvrow"><div><span>${l}</span><b>${v}</b></div>${copia?`<button class="tvcp" data-act="tvCopiar" data-v="${esc(copia)}" data-n="${esc(l)}" aria-label="Copiar ${esc(l.toLowerCase())}">${TVI.copy}</button>`:''}</div>`;
+const tvHm=t=>t?hm(t):'';
+function tvStepsDe(L,cur,emCurso){return L.map(([l,t],i)=>({l,h:tvHm(t),st:i<cur?'ok':i===cur?'now':''}))}
+const tvFoot=html=>html&&html.trim()?`<div class="tvft">${html}</div>`:'';
+
+/* ---------- lista única ---------- */
+function tvTag(t,txt){return `<span class="tvtag ${t}">${txt}</span>`}
+function tvCardA(x){const c=S.comp[x.etiqueta]||{},bl=x.status==='agendada'&&emAndamento(x.tec,x.id),T=hoje();
+  const chips=chip(x.status)+(bl?'<span class="chip warn">Bloqueada</span>':'')+(x.data<T&&!FIM.includes(x.status)?'<span class="chip bad">Atrasada</span>':'');
+  const abrir=l=>`<button class="tvpri" data-act="abrir" data-id="${x.id}">${l}</button>`,go=l=>`<button class="tvpri" data-act="go" data-id="${x.id}">${l}</button>`,info=l=>`<button class="tvinfo" data-act="abrir" data-id="${x.id}">${l}</button>`;
+  const A={agendada:bl||x.aguardaPrazo?info('Abrir atividade'):abrir('Informar previsão e sair'),deslocamento:go('Cheguei no local'),no_local:go('Iniciar atividade'),execucao:abrir('Abrir atividade'),relatorios:abrir(x.parcial?'Preencher o relatório do que foi feito':'Preencher o relatório'),lpu:ui.perfil==='func'?info('Com o administrador'):abrir('Preencher a LPU'),concluida:info('Ver atividade'),nao_concluida:info('Ver atividade')}[x.status]||abrir('Abrir atividade');
+  return `<article class="tvcard${x.status==='agendada'&&x.data<=T&&!bl?' alvo':''}">${tvTag('impl','Implantação · '+esc(x.etiqueta))}<div class="tvch">${chips}</div>
+   <button class="tvnm" data-act="abrir" data-id="${x.id}"><b>${esc(cliN(x.etiqueta)||x.etiqueta)}</b><span>${esc(fasesN(x))}</span></button>
+   <div class="tvinf"><span>${TVI.clock}${esc(apoioTxt(x))}</span>${c.endereco?`<span>${IC.pin}${esc(endCurto(c.endereco))}</span>`:''}</div>
+   <div class="tvac">${A}${tvMsgIco('a',x.id)}</div></article>`}
+function tvCardG(c){const sla=gTecPend(c)?gSla(c):null,l=gLpuDe(c),ac=gAceito(c),aj=l&&l.status==='ajuste';
+  const chips=(c.status==='aberto'&&!ac?'<span class="chip bad">Aguardando seu aceite</span>':c.status==='aberto'?'<span class="chip ok">Aceito · informe a saída</span>':gChip(c))+(c.agendaEm&&gTecPend(c)?`<span class="chip ag">Agendado ${gQuando(c.agendaEm)}</span>`:'')+(c.prioridade!=='Normal'&&gTecPend(c)?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:'')+(sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:'')+(aj?'<span class="chip bad">LPU para ajuste</span>':'');
+  const abrir=t=>`<button class="tvpri" data-act="gTecAbrir" data-id="${c.id}">${t}</button>`,passo=(p,t)=>`<button class="tvpri" data-act="gTecPasso" data-p="${p}" data-id="${c.id}">${t}</button>`,info=t=>`<button class="tvinfo" data-act="gTecAbrir" data-id="${c.id}">${t}</button>`;
+  let A;if(c.status==='aberto'&&!ac)A=`<button class="tvrec" data-act="gRecusar" data-id="${c.id}">Recusar</button><button class="tvpri" data-act="tvAceitar" data-id="${c.id}">Aceitar</button>`;
+  else A={aberto:abrir('Informar previsão e sair'),desloc:passo('local','Cheguei no cliente'),local:passo('atend','Iniciar atendimento'),atend:passo('valid','Pedir validação ao NOC'),valid:info('Aguardando o NOC validar'),rfo:abrir('Preencher RFO e LPU'),lpu:ui.perfil==='func'?info('Com o administrador'):abrir('Preencher a LPU')}[c.status]||(aj&&ui.perfil!=='func'?abrir('Corrigir a LPU'):info('Ver chamado'));
+  const q=(c.agendaEm?'Agendado '+gQuando(c.agendaEm):'Hoje')+(c.janela?' · '+c.janela:'');
+  return `<article class="tvcard${c.status==='aberto'&&!ac?' alvo':''}">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(c.pom||'—'))}<div class="tvch">${chips}</div>
+   <button class="tvnm" data-act="gTecAbrir" data-id="${c.id}"><b>${esc(c.cliente||'—')}</b><span>${esc(c.categoria||'')}</span></button>
+   <div class="tvinf"><span>${TVI.clock}${esc(q)}</span>${c.endereco||c.cidade?`<span>${IC.pin}${esc(c.endereco?endCurto(c.endereco):c.cidade)}</span>`:''}</div>
+   <div class="tvac${c.status==='aberto'&&!ac?' tres':''}">${A}${tvMsgIco('g',c.id)}</div></article>`}
+const TV_ORD_A={deslocamento:1,no_local:1,execucao:1,agendada:3,relatorios:4,lpu:5,concluida:9,nao_concluida:9};
+const tvOrdG=c=>c.status==='aberto'&&!gAceito(c)?0:['desloc','local','atend'].includes(c.status)?1:c.status==='aberto'?3:c.status==='valid'?4:['rfo','lpu'].includes(c.status)?5:9;
+function viewCampo(){
+  const sel=tecSelect(tecsPerfil(),ui.perfil==='coord'?'Ver como':'Técnico logado');
+  const a=ui.campoSel&&S.ags.find(x=>x.id===ui.campoSel&&x.tec===ui.tec);
+  if(a)return `<div class="campo tv">${ui.rf&&ui.rf.ag===a.id?fotoView(a):ui.lpuTela===a.id&&a.status==='lpu'?lpuView(a):detalhe(a)}</div>`;
+  const gc=gTecSel();if(gc)return `<div class="campo tv">${gTecView(gc)}</div>`;
+  const terc=tecT(ui.tec)==='TERC',nAj=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;
+  const sw=terc&&ui.perfil==='coord'?`<div class="views" style="margin:4px 0 2px"><button data-act="cSec" data-v="at" aria-current="${ui.campoSec!=='fin'}">Atividades</button><button data-act="cSec" data-v="fin" aria-current="${ui.campoSec==='fin'}">Gestão financeira${nAj?` (${nAj} para ajuste)`:''}</button></div>`:'';
+  if(terc&&ui.perfil==='coord'&&ui.campoSec==='fin')return `<div class="campo"><div class="toolbar"><h2>Visão do técnico</h2>${sel}</div>${sw}${viewMinhas(true)}</div>`;
+  const T=hoje(),ags=S.ags.filter(x=>x.tec===ui.tec&&x.status!=='cancelada'),chs=G.erro?[]:G.ch.filter(c=>c.tec===ui.tec&&c.status!=='cancelado');
+  const temG=chs.length>0,tipo=temG&&['gtd','impl'].includes(ui.cTipo)?ui.cTipo:'tudo';
+  const ga={hoje:ags.filter(x=>!FIM.includes(x.status)&&x.data<=T),prox:ags.filter(x=>!FIM.includes(x.status)&&x.data>T),enc:ags.filter(x=>FIM.includes(x.status))};
+  const gg={hoje:chs.filter(c=>gTecPend(c)&&gDiaDe(c)<=T),prox:chs.filter(c=>gTecPend(c)&&gDiaDe(c)>T),enc:chs.filter(c=>!gTecPend(c))};
+  const it=k=>[].concat(tipo==='gtd'?[]:ga[k].map(x=>({h:tvCardA(x),o:k==='enc'?-(x.ts&&(x.ts.encerramento||x.ts.lpu)||Date.parse(x.data)):(TV_ORD_A[x.status]||6)*1e13+Date.parse(x.data)})),tipo==='impl'?[]:gg[k].map(c=>({h:tvCardG(c),o:k==='enc'?-(c.validadoEm||c.criadoEm):tvOrdG(c)*1e13+gIni(c)})));
+  const f=['hoje','prox','enc'].includes(ui.cF)?ui.cF:'hoje',lab={hoje:'Hoje',prox:'Próximos dias',enc:'Encerradas'},L=it(f).sort((x,y)=>x.o-y.o);
+  const filtros=temG?`<div class="tvflt" role="group" aria-label="Tipo">${[['tudo','Tudo'],['gtd','Manutenção GTD'],['impl','Implantação']].map(([k,n])=>`<button data-act="cTipo" data-v="${k}" aria-pressed="${tipo===k}">${n}</button>`).join('')}</div>`:'';
+  const vazio={hoje:'Nada para hoje.',prox:'Nada agendado para os próximos dias.',enc:'Nada encerrado ainda.'}[f];
+  return `<div class="campo tv"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${G.erro&&temG?gErroBox():''}
+   <div class="tvtabs" role="tablist">${Object.keys(lab).map(k=>`<button role="tab" data-act="cF" data-t="${k}" aria-selected="${f===k}">${lab[k]} · ${it(k).length}</button>`).join('')}</div>${filtros}
+   <div class="tvlista">${L.map(x=>x.h).join('')||`<p class="muted pad">${vazio}</p>`}</div></div>`;
+}
+
+/* ---------- tela da atividade (Implantação) ---------- */
+function detalhe(a){
+  const p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},t=a.ts||{},T=Date.now(),{act}=blocoAcao(a);
+  const k=['<label class="f" style="margin:0"><span>Previsão de chegada','<button class="bigbtn"'].map(x=>act.indexOf(x)).filter(x=>x>=0),i=k.length?Math.min(...k):act.length;
+  let pre=act.slice(0,i),foot=act.slice(i);
+  foot=foot.replace('<label class="f" style="margin:0"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta" style="font-size:17px;min-height:48px"></label>','<label class="tveta"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta"></label>');
+  const L=[['Saída',t.desloc],['Chegada',t.chegada],['Execução',t.inicio],['Relatório',t.relatorios],[ui.perfil==='func'?'Administrador':'LPU',t.lpu],['Fim',a.status==='concluida'||a.status==='nao_concluida'?t.encerramento||t.lpu:null]];
+  const cur={agendada:0,deslocamento:1,no_local:2,execucao:2,relatorios:3,lpu:4,concluida:6,nao_concluida:6}[a.status]??0;
+  const lanc=+p.metros?['Lançamento previsto',(+p.metros)+' m']:c.janela?['Janela',esc(c.janela)]:['Data',dBR(a.data).slice(0,5)];
+  const B={agendada:[['Começa',a.data===hoje()?'Hoje':dBR(a.data).slice(0,5)],lanc],deslocamento:[['A caminho há',gDur(T-t.desloc)],['Previsão de chegada',t.eta?hm(t.eta):'—']],no_local:[['No local há',gDur(T-t.chegada)],lanc],execucao:[['Em execução há',gDur(T-t.inicio)],lanc]}[a.status]||[[t.inicio?'Execução levou':'Encerrada',t.inicio?gDur((t.conclusao||t.encerramento||T)-t.inicio):t.encerramento?hm(t.encerramento):'—'],lanc];
+  const mats=matCheck(p,a.tec,fasesOf(a),a.materiais),nm=mats?mats.length:0;
+  const matBody=`${a.obs?`<div class="tobs"><b>Observação do agendamento</b><span>${esc(a.obs)}</span></div>`:''}${c.obs?`<div class="tobs2"><b>Observações do projeto</b><span>${esc(c.obs)}</span></div>`:''}${mats?matHtml(mats,1):'<p class="muted">Nenhum material listado para esta atividade.</p>'}`;
+  const dd=(l,v)=>v?`<div><span>${l}</span>${v}</div>`:'';
+  const endBody=`<div style="font-size:15px">${esc(c.endereco||'Endereço não informado')}</div><div class="tgrid">${dd('Quem vai receber',esc(c.contato||''))}${dd('Telefone',esc(c.telefone||''))}${dd('Janela',esc(c.janela||''))}${dd('Acesso',esc(c.acesso||''))}</div><div class="tcbt">${rotaLigar(c)}${c.endereco?`<button class="tcbtn" data-act="tvCopiar" data-v="${esc(c.endereco)}" data-n="Endereço">${TVI.copy}Copiar endereço</button>`:''}</div>`;
+  const pi=p.inst||{},anx=anxDe(a.etiqueta);
+  const tecBody=`<div class="tgrid">${dd('Topologia',esc(p.topologia||''))}${dd('Lançamento',(+p.metros||0)+' m')}${dd('Caixas de emenda',caixasTxt(p))}${dd('POP',esc(p.pop||''))}${dd('Porta',esc(pi.porta||''))}${p.equip?`<div style="grid-column:1/-1"><span>Equipamento de acesso</span>${esc(p.equip)}</div>`:''}${pi.pa?`<div><span>Ponto de acesso</span>${esc(pi.pa)}${pi.locPa?`, <a href="${esc(mapUrl(pi.locPa))}" target="_blank" rel="noopener">ver no mapa</a>`:''}</div>`:''}${pi.pd&&!p.semExt?`<div><span>Ponto de derivação</span>${esc(pi.pd)}${pi.locPd?`, <a href="${esc(mapUrl(pi.locPd))}" target="_blank" rel="noopener">ver no mapa</a>`:''}</div>`:''}</div>
+   <div class="tanx"><span class="tck2">ANEXOS</span>${anx.length?anx.map(x=>anxLinha(x,0)).join(''):'<p class="muted" style="margin:4px 0 0">Nenhum anexo.</p>'}</div>`;
+  const resumoMat=[nm?nm+(nm===1?' item':' itens'):'sem materiais',a.obs?'1 observação do agendamento':''].filter(Boolean).join(', ');
+  const resumoTec=[p.topologia,+p.metros?(+p.metros)+' m':'',anx.length?anx.length+(anx.length===1?' anexo':' anexos'):''].filter(Boolean).join(', ');
+  return `${tvHead('voltar','a',a.id)}
+  <article class="tvtop"><div class="tvtt">${tvTag('impl','Implantação · '+esc(a.etiqueta))}<div class="tvch">${chip(a.status)}</div><h2 class="tvnome">${esc(cliN(a.etiqueta)||a.etiqueta)}</h2></div>
+   ${tvBand(a.parcial?'var(--bad)':corFase(a),fasesN(a),esc(apoioTxt(a)))}
+   <div class="tvbd">${tvSteps(tvStepsDe(L,cur))}<div class="tvbxs">${tvBox(B[0][0],B[0][1])}${tvBox(B[1][0],B[1][1])}</div>${andamentoHtml(a)}</div></article>
+  ${pre.trim()?`<div class="tvpre">${pre}</div>`:''}
+  ${tvAcc('a:mat',false,IC.mat,'Materiais e observações',esc(resumoMat),matBody)}
+  ${tvAcc('a:end',false,IC.pin,'Endereço e contato',esc(endCurto(c.endereco||'Endereço não informado')),endBody)}
+  ${tvAcc('a:tec',false,IC.doc,'Dados técnicos e anexos',esc(resumoTec||'Ver dados do projeto'),tecBody)}
+  ${tvFoot(foot)}`;
+}
+
+/* ---------- tela do chamado (Manutenção GTD) ---------- */
+function tvPppoe(ip){const s=String(ip||''),u=s.match(/USER\s*[:=]\s*(\S+)/i),pw=s.match(/PASS(?:WORD)?\s*[:=]\s*(\S+)/i);return u?{u:u[1],p:pw?pw[1]:''}:null}
+function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
+  if(c.status==='rfo'&&!(ui.gRfo||{})[c.id]&&!(ui.gRfoIdb||{})[c.id]){(ui.gRfoIdb=ui.gRfoIdb||{})[c.id]=1;IDB.get('gr:'+c.id).then(v=>{if(v&&v.desfecho!==undefined){(ui.gRfo=ui.gRfo||{})[c.id]=v;render()}}).catch(()=>{})}
+  const t=c.ts||{},T=Date.now(),sla=gSla(c),mt=gMttr(c),l=gLpuDe(c),nv=(c.naoVal||[]).slice(-1)[0],ac=gAceito(c),R=(ui.gRfo=ui.gRfo||{})[c.id]||(ui.gRfo[c.id]={desfecho:'',encEquipe:'',local:'',causa:'',detalhes:'',materiais:c.levar||'',serialRet:'',serialInst:'',patrimonio:'',solucao:'',melhoria:''});
+  const fut=c.agendaEm&&isoD(new Date(c.agendaEm))>hoje(),fim=['aprov','concl'].includes(c.status);
+  const chips=(c.status==='aberto'&&!ac?'<span class="chip bad">Aguardando seu aceite</span>':c.status==='aberto'?'<span class="chip ok">Aceito · informe a saída</span>':gChip(c))+(sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:'')+(c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:'');
+  const L=[['Aceite',c.aceite&&c.aceite.em],['Saída',t.desloc],['Chegada',t.chegada],['Atend.',t.inicio],['NOC',c.validadoEm],[ui.perfil==='func'?'RFO':'RFO/LPU',t.rfo]];
+  const cur=c.status==='aberto'?(ac?1:0):{desloc:2,local:3,atend:3,valid:4,rfo:5,lpu:5}[c.status]??6;
+  const B2=c.status==='aberto'?(ac?['Aceito',gQuando(c.aceite.em)]:sla?['SLA',sla.t.replace(/^SLA:?\s*/,'')]:['Despachado',t.despacho?gQuando(t.despacho):'—']):({desloc:['A caminho há',gDur(T-t.desloc)],local:['No local há',gDur(T-t.chegada)],atend:['No atendimento há',gDur(T-t.inicio)],valid:['Aguardando o NOC há',gDur(T-(t.pedido||T))]}[c.status]||['Validado',c.validadoEm?gQuando(c.validadoEm):'—']);
+  const q=(c.agendaEm?'Agendado '+gQuando(c.agendaEm):'Atendimento hoje')+(c.janela?' · '+c.janela:'');
+  const top=`<article class="tvtop"><div class="tvtt">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(c.pom||'—'))}<div class="tvch">${chips}</div><h2 class="tvnome">${esc(c.cliente||'—')}</h2></div>
+   ${tvBand(TV_GCOR,esc(c.categoria||'Chamado'),esc(q))}
+   <div class="tvbd">${tvSteps(tvStepsDe(L,cur))}<div class="tvbxs">${tvBox(mt.l==='MTTR (contando)'?'MTTR contando':mt.l,mt.v)}${tvBox(B2[0],B2[1])}</div></div></article>`;
+  /* RFO: tela própria, com as etapas do encerramento */
+  if(c.status==='rfo'){const op=(k,L)=>`<div class="tvops" role="group">${L.map(([v,n])=>`<button data-act="tvRfoOpt" data-id="${c.id}" data-k="${k}" data-v="${esc(v)}" aria-pressed="${R[k]===v}">${esc(n)}</button>`).join('')}</div>`,
+    inp=(k,lb,mono)=>`<label class="f"><span>${lb}</span><input class="inp${mono?' mono':''}" data-in="gRfo" data-id="${c.id}" data-k="${k}" value="${esc(R[k]||'')}"></label>`,ta=(k,lb,ph)=>`<label class="f"><span>${lb}</span><textarea class="inp" rows="2" data-in="gRfo" data-id="${c.id}" data-k="${k}" ${ph?`placeholder="${ph}"`:''}>${esc(R[k]||'')}</textarea></label>`;
+    const falta=[!R.desfecho&&'desfecho',R.desfecho==='Encaminhado'&&!String(R.encEquipe||'').trim()&&'equipe',!R.local&&'onde estava a falha',!R.causa&&'causa',!String(R.solucao||'').trim()&&'solução'].filter(Boolean);
+    return `${tvHead('gFechar','g',c.id)}
+    <article class="tvtop"><div class="tvtt">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(c.pom||'—')+' · RFO')}<h2 class="tvnome">${esc(c.cliente||'—')}</h2></div><div class="tvbd">${tvSteps([{l:'RFO',st:'now'},{l:'Serviços',st:''},{l:'Conferência',st:''},{l:'Assinatura',st:''}])}</div></article>
+    <div class="result ok" style="margin:0 0 10px">Validado pelo NOC. Preencha o RFO e depois a LPU.</div>
+    <section class="tvsec"><h3>Desfecho do atendimento *</h3>${op('desfecho',[['Resolvido','Resolvido'],['Improdutivo','Improdutivo'],['Encaminhado','Encaminhado']])}${R.desfecho==='Encaminhado'?inp('encEquipe','Encaminhado para qual equipe *'):''}</section>
+    <section class="tvsec"><h3>Onde estava a falha *</h3>${op('local',GTD_LOCAL.map(x=>[x,x]))}<h3>Causa *</h3>${op('causa',GTD_CAUSA.map(x=>[x,x]))}${ta('detalhes','Detalhes','O que você encontrou')}</section>
+    <section class="tvsec"><h3>Equipamento e materiais</h3><div class="grid2 even" style="gap:0 12px">${inp('serialRet','Serial retirado',1)}${inp('serialInst','Serial instalado',1)}</div>${inp('patrimonio','Patrimônio')}${inp('materiais','Materiais utilizados (separe por vírgula)')}</section>
+    <section class="tvsec">${ta('solucao','Solução *','O que foi feito para resolver')}${ta('melhoria','Melhoria de rede','Opcional')}${ui.perfil==='func'?ta('notaAdm','Mensagem para o administrador da sua empresa: serviços executados (não entra no RFO)'):''}</section>
+    <section class="tvsec">${gRfoFotosHtml(c,R)}</section>
+    ${tvFoot(`<button class="bigbtn" data-act="gRfoGerar" data-id="${c.id}">Gerar RFO e seguir para a LPU</button><small class="tvnota">${falta.length?'Falta: '+falta.join(', '):'Gera o texto do WhatsApp e o relatório do atendimento (PDF)'}</small>`)}`}
+  let pre='',foot='';
+  const rfo=c.rfoTxt?`<section class="tbox"><div class="ah"><b>RFO</b><span class="tools">${c.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(c.rfoPdf)}">Relatório (PDF)</button>`:''}<button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></span></div><pre class="rfo">${esc(c.rfoTxt)}</pre></section>`:'';
+  if(fut&&c.status==='aberto')pre+=`<div class="result info" style="margin:0">Agendado para ${gQuando(c.agendaEm)}.</div>`;
+  if(nv&&GTD_ABERTOS.includes(c.status))pre+=`<div class="result bad" style="margin:0"><b>Não validado pelo NOC:</b> ${esc(nv.motivo)}</div>`;
+  if(c.status==='aberto'&&!ac)foot=`<div class="tvdois"><button class="btn danger" data-act="gRecusar" data-id="${c.id}">Recusar</button><button class="bigbtn" data-act="gAceitar" data-id="${c.id}">Aceitar</button></div><small class="tvnota">Se não puder atender, recuse e informe o motivo: o chamado volta para a gestão despachar.</small>`;
+  else if(c.status==='aberto')foot=`<label class="tveta"><span>Previsão de chegada *</span><input class="inp" type="time" id="gEta" data-in="gEta" data-id="${c.id}" value="${esc((ui.gEta||{})[c.id]||'')}"></label><button class="bigbtn" data-act="gTecPasso" data-p="desloc" data-id="${c.id}">Iniciar deslocamento</button>`;
+  else if(c.status==='desloc')foot=`<button class="bigbtn" data-act="gTecPasso" data-p="local" data-id="${c.id}">Cheguei no cliente</button><small class="tvnota">Toque assim que chegar no endereço.</small>`;
+  else if(c.status==='local')foot=`<button class="bigbtn" data-act="gTecPasso" data-p="atend" data-id="${c.id}">Iniciar atendimento</button><small class="tvnota">Toque quando começar a mexer no equipamento.</small>`;
+  else if(c.status==='atend')foot=`<button class="bigbtn" data-act="gTecPasso" data-p="valid" data-id="${c.id}">Pedir validação ao NOC</button><small class="tvnota">O MTTR só para quando o NOC validar. O desfecho é informado depois, no RFO.</small>`;
+  else if(c.status==='valid')foot='<div class="result warn" style="margin:0">Aguardando a validação do NOC. O MTTR continua contando.</div>';
+  else if(c.status==='lpu'){if(ui.perfil==='func')pre+=`<div class="result info" style="margin:0"><b>RFO enviado.</b> O chamado agora está com o administrador da sua empresa, que já foi avisado.</div>${notaAdmBox('g',c.id,c.notaAdm)}${rfo}`;else{pre+=rfo;foot=`<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU</button><small class="tvnota">O RFO já foi gerado. A LPU tem 3 passos.</small>`}}
+  else if(l&&l.status==='ajuste'&&ui.perfil!=='func'){const m=(l.hist||[]).slice().reverse().find(h=>h.motivo);pre+=`<div class="result bad" style="margin:0"><b>LPU devolvida para ajuste.</b> ${esc(m?m.motivo:'')}</div>${rfo}`;foot=`<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}" data-aj="${l.id}">Corrigir a LPU</button>`}
+  else pre+=`${l&&ui.perfil!=='func'?`<div class="result ${l.status==='reprovada'?'bad':'ok'}" style="margin:0">${(GLST[l.status]||[l.status])[0]}.</div>`:''}${rfo}`;
+  const pp=tvPppoe(c.ip),mapa=c.mapa||(c.endereco?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.endereco):'');ui.tvSenha=ui.tvSenha||{};const sv=!!ui.tvSenha[c.id];
+  const probBody=`<p style="margin:0;font-size:16px;line-height:1.4">${esc(c.motivo||'—')}</p>${c.levar?`<div class="result ok" style="margin:0"><b>Levar:</b> ${esc(c.levar)}</div>`:''}${c.obs?`<div class="tobs"><b>Observações do NOC</b><span>${esc(c.obs)}</span></div>`:''}`;
+  const endBody=`<div style="font-size:15px">${esc(c.endereco||'Endereço não informado')}</div><div class="tgrid">${c.contato?`<div><span>Procurar por</span>${esc(c.contato)}</div>`:''}${c.janela?`<div><span>Janela</span>${esc(c.janela)}</div>`:''}${c.cidade?`<div><span>Cidade</span>${esc(c.cidade)}</div>`:''}</div><div class="tcbt">${mapa?`<a class="tcbtn" href="${esc(mapa)}" target="_blank" rel="noopener">${IC.rota}Rota</a>`:''}${c.endereco?`<button class="tcbtn" data-act="tvCopiar" data-v="${esc(c.endereco)}" data-n="Endereço">${TVI.copy}Copiar endereço</button>`:''}</div>`;
+  const tecBody=`${c.equipamento?tvLinha('Equipamento',esc(c.equipamento)):''}${c.porta?tvLinha('Porta',`<span class="mono">${esc(c.porta)}</span>`,c.porta):''}${c.banda?tvLinha('Banda',esc(c.banda)):''}${c.entrega?tvLinha('Tipo de entrega',esc(c.entrega)):''}
+   ${pp?tvLinha('Usuário PPPoE',`<span class="mono">${esc(pp.u)}</span>`,pp.u)+(pp.p?`<div class="tvrow"><div><span>Senha PPPoE</span><b class="mono">${sv?esc(pp.p):'••••••••'}</b></div><button class="tvcp txt" data-act="tvSenha" data-id="${c.id}">${sv?'Ocultar':'Mostrar'}</button><button class="tvcp" data-act="tvCopiar" data-v="${esc(pp.p)}" data-n="Senha" aria-label="Copiar senha">${TVI.copy}</button></div>`:''):c.ip?tvLinha('Dados IP / PPPoE',`<span class="mono" style="white-space:pre-line">${esc(c.ip)}</span>`,c.ip):''}
+   ${!(c.equipamento||c.porta||c.ip||c.banda||c.entrega)?'<p class="muted" style="margin:0">Sem dados técnicos no chamado.</p>':''}`;
+  const resTec=[c.equipamento,c.porta?'porta':'',pp||c.ip?'PPPoE':''].filter(Boolean).join(' · ')||'Ver dados';
+  return `${tvHead('gFechar','g',c.id)}${top}
+  ${pre.trim()?`<div class="tvpre">${pre}</div>`:''}
+  ${tvAcc('g:prob',!fim,TVI.alert,'Problema',esc(c.motivo||'—'),probBody)}
+  ${tvAcc('g:end',false,IC.pin,'Endereço e contato',esc(endCurto(c.endereco||'Endereço não informado')),endBody)}
+  ${tvAcc('g:tec',false,IC.doc,'Dados técnicos',esc(resTec),tecBody)}
+  ${tvFoot(foot)}`}
+
+Object.assign(ACT,{
+  cTipo:el=>{ui.cTipo=el.dataset.v;render()},
+  tvAcc:el=>{ui.tvAcc=ui.tvAcc||{};const k=el.dataset.k,o=ui.tvAcc[k]===undefined?el.dataset.p==='1':!!ui.tvAcc[k];ui.tvAcc[k]=!o;const y=window.scrollY;render();window.scrollTo(0,y)},
+  tvCopiar:el=>{const v=el.dataset.v||'',n=el.dataset.n||'Texto',ok=()=>toast(n+' copiado.');if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v).then(ok,()=>toast('Não foi possível copiar. Toque e segure o texto para copiar.','bad'));else toast('Toque e segure o texto para copiar.','bad')},
+  tvSenha:el=>{ui.tvSenha=ui.tvSenha||{};ui.tvSenha[el.dataset.id]=!ui.tvSenha[el.dataset.id];const y=window.scrollY;render();window.scrollTo(0,y)},
+  tvAceitar:async el=>{const id=el.dataset.id;await ACT.gAceitar(el);if(G.ch.some(c=>c.id===id&&gAceito(c))){ui.gSel=id;ui.campoSel=null;render();window.scrollTo(0,0)}},
+  tvRfoOpt:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;R[el.dataset.k]=el.dataset.v;gRfoSalvar(el.dataset.id);const y=window.scrollY;render();window.scrollTo(0,y)}
+});
+Object.assign(CH,{tvArq:el=>{const id=el.dataset.id,n=tvArqs(id).length,s=$(id+'N');if(s)s.textContent=n?n+(n>1?' fotos escolhidas':' foto escolhida'):'Nenhuma foto escolhida.'}});
+
+/* ---------- Criar chamado ---------- */
+function viewGNovo(){if(G.erro)return `<h2>Criar chamado</h2>${gErroBox()}`;const F=ui.gF,txtAb=!F||ui.gTxtAb;
+  const cab=`<div class="toolbar"><div><h2>Criar chamado · Manutenção GTD</h2><p class="muted">Cole a solicitação de deslocamento do NOC, confira e crie. O chamado entra em Não despachados e a gestão do GTD despacha.</p></div></div>`;
+  const caixaTxt=`<label class="f"><span>Solicitação de deslocamento</span><textarea class="inp gtxt" rows="9" id="gTxt" data-in="gTxt" placeholder="Solicitação de deslocamento:&#10;Motivo: …&#10;Cliente: …">${esc(ui.gTxt||'')}</textarea></label>
+    <div class="tools"><button class="btn primary" data-act="gLer">${F?'Ler de novo':'Ler chamado'}</button>${F?'':'<button class="btn" data-act="gManual">Preencher sem texto</button>'}${F||ui.gTxt?'<button class="btn" data-act="gLimpar">Limpar</button>':''}</div>`;
+  if(!F)return `${cab}<section class="gnsec"><h3 class="gnh"><span class="gnn">1</span>Texto do NOC</h3>${caixaTxt}</section>`;
+  const fake=Object.assign({},F,{id:'_novo',criadoEm:Date.now()}),re=gReinc(fake),me=gMesmoEnd(fake),dup=F.pom&&G.ch.filter(x=>x.pom===F.pom&&x.status!=='cancelado');
+  const CAMPOS=['cliente','etiqueta','cidade','pnoc','pom','equipamento','porta','banda','entrega','levar','contato','janela','motivo','endereco','ip','obs'],cheios=CAMPOS.filter(k=>String(F[k]||'').trim()).length;
+  const veioTxt=!!ui.gTxt,ph=veioTxt?'Não veio no texto':'';
+  const vaz=['levar','contato','janela','etiqueta','endereco','pom'].filter(k=>!String(F[k]||'').trim()),NOME={levar:'Material a levar',contato:'Contato no local',janela:'Janela',etiqueta:'Etiqueta',endereco:'Endereço',pom:'Protocolo O&M'};
+  const MARCA=['cliente','etiqueta','cidade','pom','equipamento','porta','levar','contato','janela','motivo','endereco'],phk=k=>MARCA.includes(k)?ph:'';
+  const cur=(k,l,ex)=>`<label class="f"${ex||''}><span>${l}</span><input class="inp" data-in="gF" data-k="${k}" value="${esc(F[k]||'')}" placeholder="${phk(k)}"></label>`,lon=(k,l,r)=>`<label class="f"><span>${l}</span><textarea class="inp" rows="${r||2}" data-in="gF" data-k="${k}" placeholder="${phk(k)}">${esc(F[k]||'')}</textarea></label>`;
+  const seg=(k,L)=>`<div class="gnseg" role="group" style="grid-template-columns:repeat(${L.length},minmax(0,1fr))">${L.map(([v,n])=>`<button data-act="tvGF" data-k="${k}" data-v="${v}" aria-pressed="${F[k]===v||(k==='modo'&&v==='hoje'&&F.modo!=='agendado')}">${n}</button>`).join('')}</div>`;
+  const sug=gtdSugerir(F.motivo,F.obs);
+  const avisos=`${dup&&dup.length?`<div class="result bad" style="margin:0">Já existe chamado com o protocolo O&amp;M ${esc(F.pom)} (${dup.map(x=>GST[gStK(x)][0].toLowerCase()).join(', ')}).</div>`:''}
+     ${re.length?`<div class="result bad" style="margin:0"><b>Reincidência:</b> a etiqueta ${esc(F.etiqueta)} teve ${re.length} chamado(s) nos últimos 30 dias (${re.map(x=>'O&M '+esc(x.pom)+', '+dBR(isoD(new Date(x.criadoEm)))).join('; ')}).</div>`:''}
+     ${me.length?`<div class="result info" style="margin:0">Mesmo endereço de chamado em aberto: ${me.map(x=>'O&M '+esc(x.pom)+' ('+esc(x.cliente)+')').join(', ')}.</div>`:''}
+     ${F.possivelImprodutiva?'<div class="result warn" style="margin:0">Possível improdutiva sinalizada no texto.</div>':''}`;
+  const passo1=`<section class="gnsec"><div class="gnh2"><h3 class="gnh"><span class="gnn">1</span>Texto do NOC</h3><div class="tools"><button class="btn sm" data-act="tvGTxt">${txtAb?'Esconder o texto':'Ver / editar o texto'}</button>${!txtAb?'<button class="btn sm" data-act="gLimpar">Colar outro</button>':''}</div></div>
+     ${txtAb?caixaTxt:''}
+     ${veioTxt?`<div class="gnok">${TVI.ok}Texto lido · ${cheios} campos preenchidos. Confira abaixo.</div>`:''}
+     ${vaz.length&&veioTxt?`<div class="gnwarn">${TVI.alert}<span><b>Não veio no texto:</b> ${vaz.map(k=>NOME[k]).join(', ')}. Preencha se souber (campos com borda tracejada).</span></div>`:''}
+     ${avisos}</section>`;
+  const passo2=`<section class="gnsec"><h3 class="gnh"><span class="gnn">2</span>Atendimento</h3>
+     <div class="f"><span>Categoria * <b class="gnsug">· sugerida pelo motivo: ${esc(sug)}</b></span><div class="tvops" role="group">${GTD_CATS.map(x=>`<button data-act="tvGF" data-k="categoria" data-v="${esc(x)}" aria-pressed="${x===F.categoria}">${esc(x)}</button>`).join('')}</div></div>
+     <div class="gng3 gnat"><div class="f"><span>Prioridade</span><div class="tvops" role="group">${['Normal','Alta','Escalonado'].map(x=>`<button data-act="tvGF" data-k="prioridade" data-v="${x}" aria-pressed="${F.prioridade===x}">${x}</button>`).join('')}</div></div>
+      <div class="f"><span>Quando atender</span>${seg('modo',[['hoje','Hoje'],['agendado','Agendar']])}</div>
+      ${cur('janela','Janela informada pelo NOC')}</div>
+     ${F.modo==='agendado'?`<div class="gng3"><label class="f"><span>Data</span><input type="date" class="inp" data-in="gF" data-k="agD" value="${esc(F.agD||'')}"></label><label class="f"><span>Horário</span><input type="time" class="inp" data-in="gF" data-k="agH" value="${esc(F.agH||'08:00')}"></label></div>`:''}
+     <small class="muted">${F.modo==='agendado'?'O MTTR e o SLA começam no horário agendado. O chamado aparece na Agenda.':'Hoje: o MTTR começa agora, na criação do chamado.'} Indisponibilidade tem SLA de 4 horas.</small></section>`;
+  const passo3=`<section class="gnsec"><h3 class="gnh"><span class="gnn">3</span>Cliente e local</h3>
+     <div class="gng3">${cur('cliente','Cliente *',' style="grid-column:span 2"')}${cur('etiqueta','Etiqueta')}</div>
+     ${lon('endereco','Endereço')}
+     <div class="gng3">${cur('cidade','Cidade')}${cur('contato','Contato no local')}<div class="f"><span>Localização</span>${F.mapa?`<a class="gnmapa" href="${esc(F.mapa)}" target="_blank" rel="noopener">${IC.pin}Lida do link · abrir no mapa</a>`:'<span class="muted gnmapa">Sem link de localização</span>'}</div></div></section>`;
+  const passo4=`<section class="gnsec"><h3 class="gnh"><span class="gnn">4</span>Problema</h3>${lon('motivo','Motivo *',3)}</section>`;
+  const passo5=`<section class="gnsec"><h3 class="gnh"><span class="gnn">5</span>Dados técnicos</h3>
+     <div class="gng4">${cur('pom','Protocolo O&amp;M')}${cur('pnoc','Protocolo NOC')}${cur('equipamento','Equipamento')}${cur('entrega','Tipo de entrega')}${cur('porta','Porta',' style="grid-column:span 2"')}${cur('banda','Banda',' style="grid-column:span 2"')}</div>
+     ${lon('ip','Dados IP / PPPoE')}${cur('levar','Material a levar')}${lon('obs','Observações (técnico autorizado, horário do cliente, avisos)')}
+     ${(F.extras||[]).length?`<p class="muted" style="margin:0">Dados técnicos extras: ${esc(F.extras.join(' · '))}</p>`:''}</section>`;
+  const prev=Object.assign({},F,{id:'_prev',status:'aberto',tec:'_',aceite:null,criadoEm:Date.now(),agendaEm:F.modo==='agendado'&&F.agD?new Date(F.agD+'T'+(F.agH||'08:00')+':00').getTime():null});
+  const sl=gSla(prev),q=(prev.agendaEm?'Agendado '+gQuando(prev.agendaEm):'Hoje')+(F.janela?' · '+F.janela:'');
+  const ok1=String(F.cliente||'').trim()&&String(F.motivo||'').trim(),ok2=String(F.endereco||'').trim();
+  const lado=`<aside class="gnside"><span class="gnlbl">COMO O TÉCNICO VAI VER</span>
+     <article class="tvcard alvo prev">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(F.pom||'—'))}<div class="tvch"><span class="chip bad">Aguardando seu aceite</span>${F.prioridade!=='Normal'?`<span class="chip ${F.prioridade==='Escalonado'?'bad':'warn'}">${esc(F.prioridade)}</span>`:''}${sl?`<span class="chip ${sl.cls}">${sl.t}</span>`:''}</div>
+      <div class="tvnm"><b>${esc(F.cliente||'Cliente')}</b><span>${esc(F.categoria||'')}</span></div><div class="tvinf"><span>${TVI.clock}${esc(q)}</span>${F.endereco||F.cidade?`<span>${IC.pin}${esc(F.endereco?endCurto(F.endereco):F.cidade)}</span>`:''}</div></article>
+     <section class="gnchk"><b>Conferência</b><span class="${ok1?'ok':'bad'}">${ok1?'✓':'!'} Cliente e motivo ${ok1?'preenchidos':'obrigatórios'}</span><span class="${ok2?'ok':'warn'}">${ok2?'✓':'!'} Endereço ${ok2?'preenchido':'vazio'}</span><span class="ok">✓ Categoria e prioridade escolhidas</span>${vaz.length?`<span class="warn">! ${vaz.length} ${vaz.length>1?'campos vazios':'campo vazio'}</span>`:''}</section>
+     <div class="gnbt"><button class="bigbtn" data-act="gCriar">Criar chamado</button><small class="tvnota">Vai para Não despachados e avisa a gestão do GTD.</small></div></aside>`;
+  return `${cab}<div class="gnwrap"><div class="gnform">${passo1}${passo2}${passo3}${passo4}${passo5}</div>${lado}</div>`}
+Object.assign(ACT,{
+  tvGF:el=>{if(!ui.gF)return;ui.gF[el.dataset.k]=el.dataset.v;const y=window.scrollY;render();window.scrollTo(0,y)},
+  tvGTxt:()=>{ui.gTxtAb=!ui.gTxtAb;render()}
+});
+
+/* ---------- KPIs do GTD ---------- */
+function tvBarras(L,ex){const mx=Math.max(1,...L.map(x=>x[1]));return L.length?`<div class="tvbars">${L.map(([n,v,e])=>`<div class="tvbr"><span class="n">${esc(n)}</span><span class="tk"><i style="width:${Math.round(v/mx*100)}%"></i></span><b>${v}</b><small>${e==null?'':esc(e)}</small></div>`).join('')}</div>`:'<p class="muted" style="margin:0">Nada no período.</p>'}
+function gPainelGeral(){
+  const T=hoje(),ini=ui.gpIni||T.slice(0,8)+'01',fim=ui.gpFim||T;ui.gpIni=ini;ui.gpFim=fim;
+  const P=G.ch.filter(c=>c.status!=='cancelado'&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim),V=P.filter(c=>c.validadoEm),med=L=>L.length?L.reduce((s,x)=>s+x,0)/L.length:null;
+  const mttr=med(V.map(c=>c.validadoEm-gIni(c))),desp=med(P.filter(c=>c.ts&&c.ts.despacho).map(c=>c.ts.despacho-gIni(c)).filter(x=>x>=0)),ind=V.filter(c=>c.categoria==='Indisponibilidade'),indOk=ind.filter(c=>gSla(c)&&gSla(c).ok).length;
+  const reinc=P.filter(c=>gReinc(c).length).length,cnt=f=>P.filter(f).length,abertos=cnt(c=>GTD_ABERTOS.includes(c.status));
+  const grp=fn=>{const m={};P.forEach(c=>{const k=fn(c)||'—';(m[k]=m[k]||[]).push(c)});return Object.entries(m).sort((a,b)=>b[1].length-a[1].length)};
+  const porCat=grp(c=>c.categoria).map(([k,L])=>{const v=L.filter(c=>c.validadoEm),m=med(v.map(c=>c.validadoEm-gIni(c)));return[k,L.length,m==null?'—':gDur(m)]});
+  const porTec=grp(c=>c.tec||'').filter(([k])=>k!=='—').map(([id,L])=>{const v=L.filter(c=>c.validadoEm),m=med(v.map(c=>c.validadoEm-gIni(c)));return{id,n:L.length,ab:L.filter(c=>GTD_ABERTOS.includes(c.status)).length,res:L.filter(c=>c.desfecho==='Resolvido').length,imp:L.filter(c=>c.desfecho==='Improdutivo').length,m}});
+  const ab=G.ch.filter(c=>c.categoria==='Indisponibilidade'&&GTD_ABERTOS.includes(c.status)),tot=P.length||1,pc=n=>Math.round(n/tot*100)+'%';
+  const des=grp(c=>c.desfecho).filter(([k])=>k!=='—'),nDes=des.reduce((s,[,L])=>s+L.length,0)||1,mxT=Math.max(1,...porTec.map(x=>x.n));
+  const PER=[['hoje','Hoje',T,T],['7','7 dias',addD(T,-6),T],['30','30 dias',addD(T,-29),T],['mes','Este mês',T.slice(0,8)+'01',T]],perAt=(PER.find(x=>x[2]===ini&&x[3]===fim)||[''])[0];
+  const kv=(v,l,cls)=>`<div class="tvkv"><b class="${cls||''}">${v}</b><small>${l}</small></div>`;
+  const vc=(v,c)=>c?`<span class="chip ${c==='Terceiro'?'info':'ok'}">${c}</span>`:'';
+  return `<div class="toolbar tvkh"><div><h2>Painel de KPIs · Manutenção GTD</h2><p class="muted">${dBR(ini)} a ${dBR(fim)} · chamados pelo dia de início · MTTR do início até a validação do NOC</p></div>
+   <div class="tvper" role="group" aria-label="Período">${PER.map(([k,n])=>`<button data-act="tvPer" data-v="${k}" aria-pressed="${perAt===k}">${n}</button>`).join('')}<button data-act="tvPer" data-v="datas" aria-pressed="${!perAt}">Escolher datas</button></div></div>
+   ${!perAt||ui.gpDatas?`<div class="tools" style="margin:-4px 0 12px"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${fim}"></label></div>`:''}
+   ${ab.length?`<section class="tvatn"><div class="tvatnh">${TVI.alert}<h3>Precisa de atenção agora</h3><span class="muted">indisponibilidades em andamento · SLA de 4h</span></div>${ab.map(c=>{const s=gSla(c);return `<button class="tvatni" data-act="gAbrir" data-id="${c.id}"><b>O&amp;M ${esc(c.pom)}</b><span class="cl">${esc(c.cliente)}</span><span class="tc">${esc(gTecN(c.tec)||'Sem técnico')} · ${GST[gStK(c)][0].toLowerCase()}</span>${s?`<span class="chip ${s.cls}">${s.t}</span>`:''}</button>`}).join('')}</section>`:''}
+   <div class="tvkg">
+    <section class="panel"><h3>Volume</h3><div class="tvkr c3">${kv(P.length,'chamados no período')}${kv(abertos,'em aberto agora',abertos?'warn':'')}${kv(reinc,'reincidências (30 dias)',reinc?'bad':'')}</div></section>
+    <section class="panel"><h3>Tempo</h3><div class="tvkr c2">${kv(mttr==null?'—':gDur(mttr),'MTTR médio (validados)')}${kv(desp==null?'—':gDur(desp),'tempo médio até o despacho')}</div></section>
+    <section class="panel"><h3>Qualidade</h3><div class="tvkr c3">${kv(ind.length?pct(indOk,ind.length)+'%':'—',`SLA indisponibilidade · ${indOk} de ${ind.length} em até 4h`,ind.length&&indOk<ind.length?'bad':'')}${kv(cnt(c=>c.desfecho==='Improdutivo'),'improdutivos')}${kv(cnt(c=>c.desfecho==='Encaminhado'),'encaminhados para outra equipe')}</div></section>
+   </div>
+   <div class="tvk2">
+    <section class="panel"><div class="secth"><h3>Por categoria</h3><span class="muted">chamados · MTTR médio</span></div>${tvBarras(porCat)}</section>
+    <div class="tvkcol"><section class="panel"><div class="secth"><h3>Por cidade</h3><span class="muted">10 com mais chamados</span></div>${tvBarras(grp(c=>c.cidade).slice(0,10).map(([k,L])=>[k,L.length,pc(L.length)]))}</section>
+     <section class="panel"><div class="secth"><h3>Por desfecho</h3><span class="muted">dos chamados com RFO</span></div>${tvBarras(des.map(([k,L])=>[k,L.length,Math.round(L.length/nDes*100)+'%']))}</section></div>
+   </div>
+   <section class="panel"><div class="secth"><h3>Por técnico</h3><span class="muted">chamados despachados no período</span></div>
+    ${porTec.length?`<div class="tvktab"><table class="gktec"><thead><tr><th>Técnico</th><th>Vínculo</th><th style="width:30%">Chamados</th><th class="r">Em aberto</th><th class="r">Resolvidos</th><th class="r">Improdutivos</th><th class="r">MTTR médio</th></tr></thead><tbody>${porTec.map(x=>`<tr><td><b>${esc(gTecN(x.id))}</b></td><td>${vc(0,gTecV(x.id))}</td><td><div class="tvtb"><span class="tk"><i style="width:${Math.round(x.n/mxT*100)}%"></i></span><b>${x.n}</b></div></td><td class="r">${x.ab}</td><td class="r">${x.res}</td><td class="r">${x.imp}</td><td class="r"><b>${x.m==null?'—':gDur(x.m)}</b></td></tr>`).join('')}</tbody></table></div>
+     <div class="tvkcards">${porTec.map(x=>`<div class="tvkc"><div class="h"><b>${esc(gTecN(x.id))}</b>${vc(0,gTecV(x.id))}</div><div class="g">${kv(x.n,'chamados')}${kv(x.ab,'em aberto')}${kv(x.res,'resolvidos')}${kv(x.m==null?'—':gDur(x.m),'MTTR')}</div></div>`).join('')}</div>`:'<p class="muted" style="margin:0">Nenhum chamado despachado no período.</p>'}</section>`}
+Object.assign(ACT,{tvPer:el=>{const T=hoje(),v=el.dataset.v;if(v==='datas'){ui.gpDatas=!ui.gpDatas;render();return}ui.gpDatas=false;
+  const m={hoje:[T,T],'7':[addD(T,-6),T],'30':[addD(T,-29),T],mes:[T.slice(0,8)+'01',T]}[v];if(m){ui.gpIni=m[0];ui.gpFim=m[1]}render()}});
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
