@@ -2480,7 +2480,7 @@ const ACT={
       return `${notaAdmVer(a.notaAdm)}<h3 class="lsub">Relatórios</h3>${b?`<div class="relbts">${b}</div>`:'<p class="muted">Nenhum relatório enviado ainda.</p>'}${a.medicoes?`<dl class="dl" style="margin-top:8px">${['rua','interno'].filter(f=>a.medicoes[f+':metros']!=null).map(f=>`<div><dt>Metros lançados (${FCURTO[f].toLowerCase()})</dt><dd>${(+a.medicoes[f+':metros']).toLocaleString('pt-BR')} m</dd></div>`).join('')}</dl>`:''}`})():a.rel&&(a.rel.foto||a.rel.entrega)?`<h3 class="lsub">Relatórios</h3><div class="tools">${a.rel.foto&&a.rel.foto.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.foto.path)}">Relatório fotográfico</button>`:''}${a.rel.entrega&&a.rel.entrega.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.entrega.path)}">Relatório de entrega</button>`:''}</div>${a.medicoes?`<dl class="dl" style="margin-top:8px">${['rua','interno'].filter(f=>a.medicoes[f+':metros']!=null).map(f=>`<div><dt>Metros lançados (${FCURTO[f].toLowerCase()})</dt><dd>${(+a.medicoes[f+':metros']).toLocaleString('pt-BR')} m</dd></div>`).join('')}${['sinal_ini','sinal_fim'].filter(k=>a.medicoes['ext:'+k+':dbm']!=null).map(k=>`<div><dt>${k==='sinal_ini'?'Sinal no ponto de acesso':'Sinal no ponto de derivação'}</dt><dd>${esc(a.medicoes['ext:'+k+':dbm'])} dBm</dd></div>`).join('')}</dl>`:''}`:''}
     ${etaGestao(t,'a',a.id,a.status==='deslocamento')}${tl.length?`<h3 class="lsub">Registro de tempos</h3><dl class="dl">${tl.map(([l,v])=>`<div><dt>${l}</dt><dd>${hm(v)}</dd></div>`).join('')}</dl>`:''}
     ${!ro&&!FIM.includes(a.status)&&a.status!=='cancelada'&&(p.roi||a.materiais)?`<h3 class="lsub">Material do técnico</h3>${matHtml(matCheck(p,a.tec,fasesOf(a),a.materiais))}`:''}
-    ${a.obs?`<p class="note" style="margin-top:10px"><b>Observação do agendamento:</b> ${esc(a.obs)}</p>`:''}
+    ${a.obs?`<p class="note" style="margin-top:10px"><b>Observação do agendamento:</b> ${esc(a.obs)}</p>`:''}${corrBloco(a)}
     <h3 class="lsub">Fases do projeto</h3>${faseFlags(p,1)}
     ${anxDe(a.etiqueta).length?`<h3 class="lsub">Anexos</h3>${anxDe(a.etiqueta).map(x=>anxLinha(x,0)).join('')}`:''}
     ${a.pendReag?`<p class="note" style="margin-top:10px">${canReag()?'Aguardando reagendamento.':'Aguardando o encarregado reagendar.'}</p>`:''}
@@ -4795,6 +4795,29 @@ Object.assign(ACT,{
     const ant=EQP.rows[id];EQP.rows[id]=Object.assign({},a,n);EQP.conf=Object.values(EQP.rows).some(x=>x.impl||x.gtd);render();
     const r=await sb.from('ag_equipe').upsert({tecnico:id,impl:n.impl,servicos:n.servicos,gtd:n.gtd,atualizado_por_nome:meNome()},{onConflict:'tecnico'});
     if(r.error){if(ant)EQP.rows[id]=ant;else delete EQP.rows[id];EQP.conf=Object.values(EQP.rows).some(x=>x.impl||x.gtd);render();toast('Não foi possível salvar: '+r.error.message,'bad')}}
+});
+
+/* ---------- 14/10: corrigir fase finalizada por engano (coordenação e supervisão) ----------
+   Na atividade (Agenda), "Corrigir fases finalizadas": desmarca a fase que o técnico finalizou por engano
+   (ex.: ativação marcada sem ter sido feita). O projeto volta ao backlog e sai das entregas do mês.
+   Fica registrado em dados.correcoes [{em, por, papel, fases, motivo}]. */
+const corrPode=()=>['coord','sup'].includes(ui.perfil);
+function corrBloco(a){const ff=a.fasesFin||[],C=a.correcoes||[];if(!ff.length&&!C.length)return '';
+  return `${C.length?`<div class="result warn" style="margin-top:10px"><b>Correções da gestão:</b>${C.map(c=>`<br>${dBR(isoD(new Date(c.em)))} · ${esc(c.por||'')}: ${c.fases.map(k=>FCURTO[k]||k).join(', ')} ${c.fases.length===1?'deixou':'deixaram'} de constar como finalizada${c.fases.length===1?'':'s'}. ${esc(c.motivo||'')}`).join('')}</div>`:''}
+   ${ff.length&&corrPode()&&!['cancelada'].includes(a.status)?`<div class="tools" style="margin-top:10px"><button class="btn sm" data-act="corrAbrir" data-id="${a.id}">Corrigir fases finalizadas</button></div>`:''}`}
+Object.assign(ACT,{
+  corrAbrir:el=>{if(!corrPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const ff=a.fasesFin||[];
+    openModal(`<h3>Corrigir fases finalizadas</h3><p class="muted">${esc(a.etiqueta)} · ${esc(cliN(a.etiqueta)||'')} · ${dBR(a.data)} · ${esc(tecN(a.tec))}</p>
+     <p style="margin:10px 0 6px">Desmarque a fase que <b>não</b> foi feita. Ela volta a ficar pendente no projeto: o cliente volta para o Backlog e sai das entregas do mês.</p>
+     <div class="fchk">${ff.map(k=>`<label><input type="checkbox" class="corrFz" value="${k}" checked><span>${faseN(k)}</span></label>`).join('')}</div>
+     <label class="f"><span>Motivo da correção *</span><textarea class="inp" id="corrMot" rows="2" placeholder="Ex.: técnico marcou a ativação por engano; cliente não foi ativado"></textarea></label>
+     <p class="muted" style="font-size:13px;margin:0">A atividade continua no histórico com os horários e relatórios. Se já existe LPU com itens dessa fase, confira na Aprovação de LPU.</p>
+     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="corrOk" data-id="${a.id}">Salvar correção</button></div>`)},
+  corrOk:el=>{if(!corrPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const ff=a.fasesFin||[],fica=[...document.querySelectorAll('.corrFz:checked')].map(x=>x.value),sai=ff.filter(k=>!fica.includes(k)),mot=(($('corrMot')||{}).value||'').trim();
+    if(!sai.length){toast('Desmarque a fase que não foi feita.','bad');return}if(!mot){toast('Escreva o motivo da correção.','bad');return}
+    a.fasesFin=fica;a.correcoes=(a.correcoes||[]).concat([{em:Date.now(),por:meNome(),papel:(PERFIS[ui.perfil]||{}).n||'',fases:sai,motivo:mot}]);
+    if(sai.includes('ativ'))delete a.ativSemFases;save();closeModal();render();
+    toast(`${sai.map(k=>FCURTO[k]||k).join(', ')} voltou a ficar pendente em ${a.etiqueta}.${sai.includes('ativ')?' O cliente voltou para o Backlog.':''}`)}
 });
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
