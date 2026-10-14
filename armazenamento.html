@@ -80,7 +80,7 @@ async function carregar() {
     return;
   }
   USO = data || [];
-  const [a, l] = await Promise.all([sb.rpc('ag_arquivos', { p_bucket: 'agenda', p_min: 0 }), sb.from('ag_limpezas').select('*').order('em', { ascending: false }).limit(60)]);
+  const [a, l] = await Promise.all([sb.rpc('ag_arquivos', { p_bucket: 'agenda', p_min: 0 }), sb.from('ag_limpezas').select('*').order('em', { ascending: false }).limit(60), carregarRef()]);
   ARQ = a.error ? [] : (a.data || []); ARQERR = a.error ? a.error.message : '';
   LOG = l.error ? [] : (l.data || []); LOGERR = l.error ? 'Rode o ajuste 27 (agenda_ajuste_27_limpeza_armazenamento.sql) no Supabase para guardar o registro das limpezas.' : '';
   desenhar();
@@ -181,7 +181,7 @@ const TIPOS = [
   { k: 'foto', nome: 'Fotos dos relatórios da Implantação', curto: 'Fotos da Implantação', cor: '#245F80', d: 'Fotos das etapas e do resumo de cada dia' },
   { k: 'gtd',  nome: 'Fotos do atendimento do GTD', curto: 'Fotos do GTD', cor: '#0F766E', d: 'Fotos do RFO' },
   { k: 'rel',  nome: 'PDFs de relatório e RFO', curto: 'Relatórios e RFO', cor: '#A8352B', d: 'Relatórios fotográficos, de entrega e do RFO' },
-  { k: 'lpu',  nome: 'PDFs de LPU assinados', curto: 'LPUs', cor: '#9A6414', d: 'Valores e itens da LPU continuam na ferramenta' },
+  { k: 'lpu',  nome: 'PDFs de LPU aprovadas', curto: 'LPUs', cor: '#9A6414', d: 'Só a versão aprovada; LPUs aguardando, em ajuste ou reprovadas ficam de fora' },
   { k: 'kmz',  nome: 'KMZ e anexos dos projetos', curto: 'KMZ e anexos', cor: '#7B5A9E', d: 'KMZ de lançamento e extensão e outros anexos' },
   { k: 'out',  nome: 'Outros arquivos', curto: 'Outros', cor: '#8A958D', d: 'Fora das pastas acima' }];
 const ZIP_PARTE = 700 * 1024 ** 2;
@@ -202,7 +202,7 @@ function tipoDe(f) {
 }
 function grupos() {
   const atual = mesDe(Date.now()), G = {};
-  (ARQ || []).forEach(f => { if (!f.criado) return; const m = mesDe(f.criado) > atual ? atual : mesDe(f.criado); const k = tipoDe(f);
+  (ARQ || []).forEach(f => { if (!f.criado) return; const m = mesDe(f.criado) > atual ? atual : mesDe(f.criado); const k = tipoDe(f); if (k === 'lpu' && !lpuAprovada(f)) return;
     ((G[m] = G[m] || {})[k] = G[m][k] || []).push(f) });
   return G;
 }
@@ -239,6 +239,39 @@ function limpDesenhar() {
   el.querySelectorAll('[data-zip]').forEach(b => b.onclick = () => baixarZip(b.dataset.zip));
   el.querySelectorAll('[data-del]').forEach(b => b.onclick = () => confirmarApagar(b.dataset.del));
 }
+
+/* ---------- referências para nomear as pastas do ZIP e filtrar as LPUs aprovadas ----------
+   Pastas: <CLT - técnico | Prestador - empresa>/<cliente - etiqueta>/<Atividade dd-mm-aaaa | O&M nº>/arquivo */
+let REF = { tec: {}, ag: {}, ch: {}, pj: {}, lpu: {} };
+async function todos(t, cols) { let out = [], i = 0; for (;;) { const r = await sb.from(t).select(cols).range(i, i + 999); if (r.error) return out; out = out.concat(r.data || []); if (!r.data || r.data.length < 1000) return out; i += 1000 } }
+async function carregarRef() {
+  const [L, A, C, P, T] = await Promise.all([todos('ag_lpus', 'id,status,tecnico,etiqueta,chamado,agendamento,pdf_path,dados'), todos('ag_agendamentos', 'id,etiqueta,tecnico,data'),
+    todos('ag_chamados', 'id,etiqueta,cliente,tecnico,pom'), todos('ag_projetos', 'etiqueta,dados'), sb.rpc('ag_tecnicos_lista')]);
+  const R = { tec: {}, ag: {}, ch: {}, pj: {}, lpu: {} };
+  (T.data || []).forEach(t => R.tec[t.id] = t); A.forEach(a => R.ag[a.id] = a); C.forEach(c => R.ch[c.id] = c);
+  P.forEach(p => R.pj[p.etiqueta] = (p.dados || {}).cliente || ''); L.forEach(l => R.lpu[l.id] = l);
+  REF = R;
+}
+const lpuId = n => { const m = n.split('/').pop().match(/^(.+?)-(?:aprovada-)?\d+\.pdf$/i); return m ? m[1] : null };
+const lpuDe = f => REF.lpu[lpuId(f.nome)] || Object.values(REF.lpu).find(l => l.pdf_path === f.nome) || null;
+function lpuAprovada(f) { const l = lpuDe(f); return !!l && l.status === 'aprovada' && (l.pdf_path === f.nome || /-aprovada-\d+\.pdf$/i.test(f.nome)) }
+const limpa = t => String(t || '').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 90) || 'sem nome';
+const dBR = d => d ? String(d).slice(0, 10).split('-').reverse().join('-') : '';
+function prestador(id) { const t = REF.tec[id]; if (!t) return 'Técnico ' + String(id || '').slice(0, 8);
+  if (t.vinculo === 'clt') return 'CLT - ' + limpa(t.nome); const e = t.empresa && REF.tec[t.empresa]; return 'Prestador - ' + limpa(e ? e.nome : t.nome) }
+function pastaZip(f) {
+  const n = f.nome, seg = n.split('/'), b = seg[seg.length - 1];
+  let tec = null, eti = null, cli = null, sub = '', topo = null;
+  if (seg[0] === 'lpus') { const l = lpuDe(f); tec = (l && l.tecnico) || seg[1]; if (l) { eti = l.etiqueta; cli = (l.dados || {}).cliente;
+      if (l.chamado) { const c = REF.ch[l.chamado]; sub = c ? 'O&M ' + (c.pom || '') : ''; if (c && !cli) cli = c.cliente }
+      else if (l.agendamento) { const a = REF.ag[l.agendamento]; sub = a ? 'Atividade ' + dBR(a.data) : '' } } }
+  else if (seg[0] === 'relatorios' || (seg[0] === 'chat' && seg[1] === 'a')) { const a = REF.ag[seg[0] === 'relatorios' ? seg[1] : seg[2]]; if (a) { tec = a.tecnico; eti = a.etiqueta; sub = 'Atividade ' + dBR(a.data) } }
+  else if (seg[0] === 'chat' && seg[1] === 'g') { if (seg[2] === 'sala') return 'Chat com NOC/' + b; const c = REF.ch[seg[2]]; if (c) { tec = c.tecnico; eti = c.etiqueta; cli = c.cliente; sub = 'O&M ' + (c.pom || '') } }
+  else if (seg[0] === 'anexos') { eti = seg[1]; topo = 'Projetos' }
+  if (eti && !cli) cli = REF.pj[eti];
+  if (!eti && !tec) return 'Sem identificação/' + n;
+  return [topo || (tec ? prestador(tec) : 'Sem técnico'), (cli || eti) ? limpa((cli ? cli + ' - ' : '') + (eti || '')) : null, sub ? limpa(sub) : null, b].filter(Boolean).join('/');
+}
 let JSZIP_P = null;
 const jszip = () => JSZIP_P || (JSZIP_P = new Promise((ok, er) => { if (window.JSZip) return ok(window.JSZip); const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'; sc.onload = () => window.JSZip ? ok(window.JSZip) : er(new Error('JSZip indisponível')); sc.onerror = () => { JSZIP_P = null; er(new Error('não foi possível carregar o gerador de ZIP')) }; document.head.appendChild(sc) }));
 function salvar(blob, nome) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000) }
@@ -247,12 +280,13 @@ async function baixarZip(k) {
   let JSZip; try { JSZip = await jszip() } catch (e) { alert(e.message); return }
   OCUP = true; limpDesenhar(); $('lProg').hidden = false;
   const ok = [], base = `agenda_arquivos_${MES}_${k}` + (MES === mesDe(Date.now()) ? '_ate-dia-' + new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', day: '2-digit' }).format(new Date()) : '');
+  const usados = new Set(); const nomeZip = f => { let z = pastaZip(f), i = 2; const m = z.match(/^(.*?)(\.[^./]*)?$/); while (usados.has(z)) z = m[1] + ' (' + (i++) + ')' + (m[2] || ''); usados.add(z); return z };
   let zip = new JSZip(), noZip = 0, parte = 1, feitos = 0, falhas = 0, i = 0, fila = Promise.resolve();
   const txt = m => { $('lBar').style.width = (feitos / F.length * 100) + '%'; $('lTxt').textContent = m || `${tipoNome(k)} · ${mesNome(MES)}: ${feitos} de ${F.length} arquivos baixados${falhas ? ' · ' + falhas + ' com erro' : ''}` };
   const fechar = async ult => { if (!noZip) return; txt(`Gerando o ZIP${ult && parte === 1 ? '' : ' (parte ' + parte + ')'}…`); const b = await zip.generateAsync({ type: 'blob', compression: 'STORE' }); salvar(b, ult && parte === 1 ? base + '.zip' : `${base}_parte${parte}.zip`); parte++; zip = new JSZip(); noZip = 0 };
   const trab = async () => { while (i < F.length) { const f = F[i++];
     try { const { data, error } = await sb.storage.from('agenda').download(f.nome); if (error) throw error;
-      fila = fila.then(async () => { zip.file(f.nome, data); noZip += data.size; ok.push(f.nome); if (noZip >= ZIP_PARTE) await fechar(false) }); await fila;
+      fila = fila.then(async () => { zip.file(nomeZip(f), data); noZip += data.size; ok.push(f.nome); if (noZip >= ZIP_PARTE) await fechar(false) }); await fila;
     } catch (e) { falhas++; console.warn(f.nome, e) }
     feitos++; txt() } };
   try { await Promise.all([trab(), trab(), trab()]); await fila; await fechar(true) }
