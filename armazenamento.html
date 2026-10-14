@@ -5,11 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Espaço de armazenamento</title>
 <link rel="icon" type="image/png" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#F2F4F0;--surface:#FFFFFF;--ink:#1D2620;--muted:#5D6A61;--line:#D8DED4;--brand:#8CBF3F;--brand-ink:#2E5410;--brand-soft:#E6F1D5;--warn:#9A6414;--warn-soft:#FBEFD9;--bad:#A8352B;--bad-soft:#F8E0DC}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Barlow,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.sub{color:var(--muted);margin:0 0 14px}
+.uso{display:flex;flex-wrap:wrap;gap:18px;align-items:center}.uso .big{font-size:28px;font-weight:700;line-height:1.1}
+.ubar{flex:1;min-width:220px}.track{height:14px;border-radius:7px;background:#E9ECE6;overflow:hidden;display:flex}.track span{display:block;height:100%;min-width:0}
+.leg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:13px;color:var(--muted)}.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.mantem{display:flex;gap:10px;align-items:flex-start;background:var(--brand-soft);color:var(--brand-ink);border-color:transparent}
+details.panel summary{cursor:pointer;font-size:16px}details.panel[open] summary{margin-bottom:8px}
+.btn{min-height:40px}.chip.and{background:#E9ECE6;color:var(--muted)}
 header{background:var(--surface);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:12px;align-items:center}
 header a{color:var(--brand-ink);font-weight:600;text-decoration:none}
 main{max-width:920px;margin:0 auto;padding:16px}
@@ -48,7 +56,7 @@ select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-ra
 </style>
 </head>
 <body>
-<header><a href="agenda.html">← Voltar para a agenda</a><h1>Espaço de armazenamento</h1></header>
+<header><a href="agenda.html">← Voltar para a agenda</a><h1>Armazenamento</h1></header>
 <main id="app"><p class="muted">Carregando…</p></main>
 <script>
 const sb = supabase.createClient('https://ksatofcjlqziqhblpwul.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzYXRvZmNqbHF6aXFoYmxwd3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTA3NTIsImV4cCI6MjEwNTMyNjc1Mn0.IOAHnOcxVdrP1gBD7nCoQ6wq1mB-dEYVJQIM_WiJaqc');
@@ -57,7 +65,7 @@ const MAXPX = 1280, QUAL = 0.6, MIN_BYTES = 350 * 1024;    // mesmo padrão das 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt = b => b >= 1024 ** 3 ? (b / 1024 ** 3).toFixed(2) + ' GB' : b >= 1024 ** 2 ? (b / 1024 ** 2).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB';
-let USO = [], RODANDO = false, PARAR = false, ARQ = null, LOG = null, LOGERR = '', MES = '', LST = {}, OCUP = false;
+let USO = [], RODANDO = false, PARAR = false, ARQERR = '', ARQ = null, LOG = null, LOGERR = '', MES = '', LST = {}, OCUP = false;
 
 async function iniciar() {
   const { data: { session } } = await sb.auth.getSession();
@@ -73,7 +81,7 @@ async function carregar() {
   }
   USO = data || [];
   const [a, l] = await Promise.all([sb.rpc('ag_arquivos', { p_bucket: 'agenda', p_min: 0 }), sb.from('ag_limpezas').select('*').order('em', { ascending: false }).limit(60)]);
-  ARQ = a.error ? [] : (a.data || []);
+  ARQ = a.error ? [] : (a.data || []); ARQERR = a.error ? a.error.message : '';
   LOG = l.error ? [] : (l.data || []); LOGERR = l.error ? 'Rode o ajuste 27 (agenda_ajuste_27_limpeza_armazenamento.sql) no Supabase para guardar o registro das limpezas.' : '';
   desenhar();
 }
@@ -81,35 +89,30 @@ async function carregar() {
 function desenhar() {
   const total = USO.reduce((s, r) => s + Number(r.bytes), 0), banco = Number(USO[0]?.banco || 0);
   const porBucket = {};
-  USO.forEach(r => { (porBucket[r.bucket] = porBucket[r.bucket] || { arquivos: 0, bytes: 0, pastas: [] }); porBucket[r.bucket].arquivos += Number(r.arquivos); porBucket[r.bucket].bytes += Number(r.bytes); porBucket[r.bucket].pastas.push(r) });
-  const barra = (v, lim) => `<div class="bar ${v > lim * .9 ? 'alto' : ''}"><i style="width:${Math.min(100, v / lim * 100).toFixed(1)}%"></i></div>`;
-  const falta = total - LIM_ARQ;
+  USO.forEach(r => { (porBucket[r.bucket] = porBucket[r.bucket] || { arquivos: 0, bytes: 0 }); porBucket[r.bucket].arquivos += Number(r.arquivos); porBucket[r.bucket].bytes += Number(r.bytes) });
+  const pt = {}; TIPOS.forEach(t => pt[t.k] = 0); (ARQ || []).forEach(f => pt[tipoDe(f)] += Number(f.bytes || 0));
+  const falta = total - LIM_ARQ, pc = v => Math.min(100, v / LIM_ARQ * 100);
   $('app').innerHTML = `
+  <p class="sub">Baixe os arquivos de um mês em ZIP e depois libere o espaço. Os dados da ferramenta continuam.</p>
   <section class="panel">
-    <h2>Uso do plano Pro — projeto estoque de materiais</h2>
-    <div class="grid">
-      <div><b>Arquivos</b> <span class="muted">${fmt(total)} de 100 GB</span>${barra(total, LIM_ARQ)}</div>
-      <div><b>Banco de dados</b> <span class="muted">${fmt(banco)} de 8 GB</span>${barra(banco, LIM_BANCO)}</div>
-    </div>
-    ${falta > 0 ? `<div class="aviso">Só este projeto já passa do limite em ${fmt(falta)}. Compacte as fotos abaixo (os arquivos continuam no mesmo lugar, só ficam menores).</div>` : `<div class="ok">Este projeto ocupa ${fmt(total)}.</div>`}
-    <p class="muted" style="margin:0">Os 100 GB de arquivos são da organização Netturbo inteira: somam este projeto e o projeto de preventivas e agendamentos (agendamento-fotos, preventivas-pdfs), que tem retenção automática de 30 dias. Acima disso o Supabase cobra por GB excedente, se o limite de gastos estiver desligado. O painel do Supabase atualiza o número com algumas horas de atraso.</p>
+    <div class="uso"><div><div class="big">${fmt(total)}</div><small class="muted">de 100 GB do plano</small></div>
+      <div class="ubar"><div class="track" aria-hidden="true">${TIPOS.filter(t => pt[t.k]).map(t => `<span style="width:${pc(pt[t.k])}%;min-width:3px;background:${t.cor}"></span>`).join('')}</div>
+      <div class="leg">${TIPOS.filter(t => pt[t.k]).map(t => `<span><i style="background:${t.cor}"></i>${esc(t.curto)} · ${fmt(pt[t.k])}</span>`).join('')}</div></div></div>
+    ${falta > 0 ? `<div class="aviso">Só este projeto já passa do limite em ${fmt(falta)}.</div>` : ''}
+    <p class="muted" style="margin:10px 0 0;font-size:13.5px">Banco de dados: ${fmt(banco)} de 8 GB. Os 100 GB de arquivos são da organização Netturbo inteira (somam este projeto e o de preventivas e agendamentos). O painel do Supabase atualiza o número com algumas horas de atraso.</p>
   </section>
-  <section class="panel">
-    <h2>Onde está o espaço</h2>
-    <table><thead><tr><th>Bucket</th><th>Pasta</th><th class="n">Arquivos</th><th class="n">Tamanho</th></tr></thead><tbody>
-    ${USO.map(r => `<tr><td>${esc(r.bucket)}</td><td>${esc(r.pasta)}</td><td class="n">${r.arquivos}</td><td class="n">${fmt(Number(r.bytes))}</td></tr>`).join('')}
-    </tbody></table>
-  </section>
+  <section class="panel mantem"><span aria-hidden="true">✔</span><span><b>Sempre fica na ferramenta:</b> chamados, atividades, horários, indicadores, LPUs com valores e itens, backlog, textos do chat e histórico. A limpeza tira só os arquivos (fotos, anexos, KMZ e PDFs). No lugar de cada arquivo aparece o aviso de que ele foi apagado e está no ZIP da coordenação.</span></section>
   <section class="panel" id="limp"></section>
-  <section class="panel">
-    <h2>Compactar fotos</h2>
+  <section class="panel" id="limpReg"></section>
+  <details class="panel">
+    <summary><b>Compactar fotos</b></summary>
     <p class="muted">Cada foto acima de ${fmt(MIN_BYTES)} é baixada, reduzida para ${MAXPX} px no lado maior e regravada no mesmo caminho. Os links e relatórios da agenda continuam funcionando. PDFs não são alterados. A foto só é trocada se ficar pelo menos 20% menor.</p>
     <div class="row">
       ${Object.keys(porBucket).filter(b => b === 'agenda').map(b => `<label class="chk"><input type="checkbox" class="bk" value="${esc(b)}" checked> ${esc(b)} (${fmt(porBucket[b].bytes)})</label>`).join('')}
     </div>
     <div class="row" style="margin-top:10px"><button class="btn primary" id="bComp">Compactar</button><button class="btn" id="bParar" hidden>Parar</button></div>
     <div id="prog" hidden><div class="bar"><i id="pBar" style="width:0"></i></div><p id="pTxt" class="muted"></p></div>
-  </section>`;
+  </details>`;
   limpDesenhar();
   $('bComp').onclick = compactar;
   $('bParar').onclick = () => { PARAR = true; $('bParar').disabled = true };
@@ -174,13 +177,13 @@ async function compactar() {
    Só arquivos do bucket agenda. Os dados da ferramenta (chamados, atividades, horários, indicadores, LPUs, textos do chat) continuam.
    Apagar só fica liberado depois de baixar o ZIP daquele mês e tipo, e apaga só os arquivos que entraram no ZIP. */
 const TIPOS = [
-  { k: 'chat', nome: 'Fotos e arquivos do chat', d: 'Chat com técnico, chat da atividade e Chat com NOC' },
-  { k: 'foto', nome: 'Fotos dos relatórios da Implantação', d: 'Fotos das etapas e do resumo de cada dia' },
-  { k: 'gtd',  nome: 'Fotos do atendimento do GTD', d: 'Fotos do RFO' },
-  { k: 'rel',  nome: 'PDFs de relatório e RFO', d: 'Relatórios fotográficos, de entrega e do RFO' },
-  { k: 'lpu',  nome: 'PDFs de LPU assinados', d: 'Valores e itens da LPU continuam na ferramenta' },
-  { k: 'kmz',  nome: 'KMZ e anexos dos projetos', d: 'KMZ de lançamento e extensão e outros anexos' },
-  { k: 'out',  nome: 'Outros arquivos', d: 'Fora das pastas acima' }];
+  { k: 'chat', nome: 'Fotos e arquivos do chat', curto: 'Chat', cor: '#8CBF3F', d: 'Chat com técnico, chat da atividade e Chat com NOC' },
+  { k: 'foto', nome: 'Fotos dos relatórios da Implantação', curto: 'Fotos da Implantação', cor: '#245F80', d: 'Fotos das etapas e do resumo de cada dia' },
+  { k: 'gtd',  nome: 'Fotos do atendimento do GTD', curto: 'Fotos do GTD', cor: '#0F766E', d: 'Fotos do RFO' },
+  { k: 'rel',  nome: 'PDFs de relatório e RFO', curto: 'Relatórios e RFO', cor: '#A8352B', d: 'Relatórios fotográficos, de entrega e do RFO' },
+  { k: 'lpu',  nome: 'PDFs de LPU assinados', curto: 'LPUs', cor: '#9A6414', d: 'Valores e itens da LPU continuam na ferramenta' },
+  { k: 'kmz',  nome: 'KMZ e anexos dos projetos', curto: 'KMZ e anexos', cor: '#7B5A9E', d: 'KMZ de lançamento e extensão e outros anexos' },
+  { k: 'out',  nome: 'Outros arquivos', curto: 'Outros', cor: '#8A958D', d: 'Fora das pastas acima' }];
 const ZIP_PARTE = 700 * 1024 ** 2;
 const MESF = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' });
 const mesDe = t => MESF.format(new Date(t)).slice(0, 7);
@@ -199,32 +202,36 @@ function tipoDe(f) {
 }
 function grupos() {
   const atual = mesDe(Date.now()), G = {};
-  (ARQ || []).forEach(f => { if (!f.criado) return; const m = mesDe(f.criado); if (m >= atual) return; const k = tipoDe(f);
+  (ARQ || []).forEach(f => { if (!f.criado) return; const m = mesDe(f.criado) > atual ? atual : mesDe(f.criado); const k = tipoDe(f);
     ((G[m] = G[m] || {})[k] = G[m][k] || []).push(f) });
   return G;
 }
 function limpDesenhar() {
   const el = $('limp'); if (!el) return;
-  const G = grupos(), meses = Object.keys(G).sort().reverse();
-  if (!MES || !G[MES]) MES = meses[0] || '';
-  const L = MES ? G[MES] : {};
+  const atual = mesDe(Date.now()), G = grupos(); G[atual] = G[atual] || {};
+  const meses = Object.keys(G).sort().reverse(), fechados = meses.filter(m => m < atual);
+  if (!MES || !G[MES]) MES = fechados[0] || atual;
+  const L = G[MES], aberto = MES === atual;
   let livre = 0;
   const linhas = TIPOS.filter(t => L[t.k] && L[t.k].length).map(t => {
     const F = L[t.k], q = F.length, b = F.reduce((s, f) => s + Number(f.bytes || 0), 0), e = LST[MES + t.k];
     livre += b;
-    const chip = e && e.ok ? `<span class="chip zip">ZIP baixado · ${nArq(e.ok.length)}${e.falhas ? ' · ' + e.falhas + ' não baixaram' : ''}</span>` : '<span class="chip">No armazenamento</span>';
-    const acts = `<button class="btn ${e && e.ok ? '' : 'primary'}" data-zip="${t.k}" ${OCUP ? 'disabled' : ''}>${e && e.ok ? 'Baixar de novo' : 'Baixar ZIP'}</button>`
-      + `<button class="btn ${e && e.ok && e.ok.length ? 'del' : ''}" data-del="${t.k}" ${e && e.ok && e.ok.length && !OCUP ? '' : 'disabled title="Baixe o ZIP primeiro"'}>Apagar</button>`;
+    let chip, acts;
+    if (aberto) { chip = '<span class="chip and">Mês em andamento</span>'; acts = '<button class="btn" disabled title="Disponível quando o mês fechar">Baixar ZIP</button><button class="btn" disabled title="Disponível quando o mês fechar">Apagar</button>' }
+    else {
+      chip = e && e.ok ? `<span class="chip zip">ZIP baixado · ${nArq(e.ok.length)}${e.falhas ? ' · ' + e.falhas + ' não baixaram' : ''}</span>` : '<span class="chip">No armazenamento</span>';
+      acts = `<button class="btn ${e && e.ok ? '' : 'primary'}" data-zip="${t.k}" ${OCUP ? 'disabled' : ''}>${e && e.ok ? 'Baixar de novo' : 'Baixar ZIP'}</button>`
+        + `<button class="btn ${e && e.ok && e.ok.length ? 'del' : ''}" data-del="${t.k}" ${e && e.ok && e.ok.length && !OCUP ? '' : 'disabled title="Baixe o ZIP primeiro"'}>Apagar</button>` }
     return `<tr><td><b>${esc(t.nome)}</b><small>${esc(t.d)}</small></td><td class="n" data-l="Arquivos">${q}</td><td class="n" data-l="Tamanho">${fmt(b)}</td><td>${chip}</td><td><div class="acts">${acts}</div></td></tr>`;
   }).join('');
+  const info = aberto ? `Mês em andamento: ${livre ? fmt(livre) + ' guardados até agora. ' : ''}A limpeza de ${mesNome(atual).toLowerCase()} fica disponível a partir do mês que vem.` : (livre ? 'Dá para liberar até ' + fmt(livre) + ' neste mês' : 'Nada mais para liberar neste mês');
   el.innerHTML = `<h2>Baixar e liberar espaço por mês</h2>
-    <div class="ok"><b>Fica sempre na ferramenta:</b> chamados, atividades, horários, indicadores, LPUs com valores e itens, backlog, textos do chat e histórico. Aqui saem só os arquivos (fotos, anexos, KMZ e PDFs). Quem abrir um arquivo apagado vê o aviso de que ele está no ZIP da coordenação.</div>
-    ${meses.length ? `<div class="row" style="margin:10px 0"><label for="limpMes"><b>Mês</b></label><select id="limpMes">${meses.map(m => `<option value="${m}" ${m === MES ? 'selected' : ''}>${mesNome(m)}</option>`).join('')}</select><span class="muted">${livre ? 'Dá para liberar até ' + fmt(livre) + ' neste mês' : ''}</span></div>
-    <p class="muted" style="margin:0 0 8px">O mês corrente não aparece. Primeiro baixe o ZIP (acima de 700 MB ele vem em partes) e guarde num lugar seguro, como o Drive da empresa; depois o Apagar fica liberado e apaga só os arquivos que entraram no ZIP.</p>
-    <table class="lt"><thead><tr><th>Tipo de arquivo</th><th class="n">Arquivos</th><th class="n">Tamanho</th><th>Situação</th><th class="n">Ações</th></tr></thead><tbody>${linhas || '<tr><td colspan="5" class="muted">Nada guardado neste mês.</td></tr>'}</tbody></table>`
-    : '<p class="muted">Não há arquivos de meses anteriores ao mês corrente.</p>'}
-    <div id="lProg" hidden><div class="bar"><i id="lBar" style="width:0"></i></div><p id="lTxt" class="muted"></p></div>
-    <h2 style="margin-top:14px">Registro de limpezas</h2>
+    ${ARQERR ? `<div class="erro">Não foi possível listar os arquivos: ${esc(ARQERR)}</div>` : ''}
+    <div class="row" style="margin:10px 0"><label for="limpMes"><b>Mês</b></label><select id="limpMes">${meses.map(m => `<option value="${m}" ${m === MES ? 'selected' : ''}>${mesNome(m)}${m === atual ? ' (mês em andamento)' : ''}</option>`).join('')}</select><span class="muted">${info}</span></div>
+    <p class="muted" style="margin:0 0 8px;font-size:13.5px">Primeiro baixe o ZIP (acima de 700 MB ele vem em partes) e guarde num lugar seguro, como o Drive da empresa; depois o Apagar fica liberado e apaga só os arquivos que entraram no ZIP.</p>
+    <table class="lt"><thead><tr><th>Tipo de arquivo</th><th class="n">Arquivos</th><th class="n">Tamanho</th><th>Situação</th><th class="n">Ações</th></tr></thead><tbody>${linhas || '<tr><td colspan="5" class="muted">Nada guardado neste mês.</td></tr>'}</tbody></table>
+    <div id="lProg" hidden><div class="bar"><i id="lBar" style="width:0"></i></div><p id="lTxt" class="muted"></p></div>`;
+  $('limpReg').innerHTML = `<h2>Registro de limpezas</h2>
     ${LOGERR ? `<div class="aviso">${esc(LOGERR)}</div>` : ''}
     ${LOG && LOG.length ? `<ul class="reg">${LOG.map(x => `<li>${x.em ? new Date(x.em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) + ' · ' : ''}${x.por_nome ? esc(x.por_nome) + ' · ' : ''}${esc(mesNome(x.mes))} · ${esc(tipoNome(x.tipo))} · ${nArq(x.arquivos)} · ${fmt(Number(x.bytes))} liberados</li>`).join('')}</ul>` : (LOGERR ? '' : '<p class="muted" style="margin:0">Nenhuma limpeza feita ainda.</p>')}`;
   const s = $('limpMes'); if (s) s.onchange = () => { MES = s.value; limpDesenhar() };
@@ -235,7 +242,7 @@ let JSZIP_P = null;
 const jszip = () => JSZIP_P || (JSZIP_P = new Promise((ok, er) => { if (window.JSZip) return ok(window.JSZip); const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'; sc.onload = () => window.JSZip ? ok(window.JSZip) : er(new Error('JSZip indisponível')); sc.onerror = () => { JSZIP_P = null; er(new Error('não foi possível carregar o gerador de ZIP')) }; document.head.appendChild(sc) }));
 function salvar(blob, nome) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000) }
 async function baixarZip(k) {
-  if (OCUP) return; const F = (grupos()[MES] || {})[k] || []; if (!F.length) return;
+  if (OCUP || MES >= mesDe(Date.now())) return; const F = (grupos()[MES] || {})[k] || []; if (!F.length) return;
   let JSZip; try { JSZip = await jszip() } catch (e) { alert(e.message); return }
   OCUP = true; limpDesenhar(); $('lProg').hidden = false;
   const ok = [], base = `agenda_arquivos_${MES}_${k}`;
