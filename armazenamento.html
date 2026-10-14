@@ -34,6 +34,16 @@ td.n,th.n{text-align:right;white-space:nowrap}
 .ok{background:var(--brand-soft);color:var(--brand-ink);border-radius:8px;padding:10px 12px;margin:8px 0}
 label.chk{display:flex;gap:6px;align-items:center}
 select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.lt td{vertical-align:middle}.lt small{display:block;color:var(--muted)}
+.chip{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap;background:#E9ECE6;color:var(--muted)}
+.chip.zip{background:var(--warn-soft);color:var(--warn)}.chip.feito{background:var(--brand-soft);color:var(--brand-ink)}
+.acts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.btn.del{background:var(--bad);border-color:var(--bad);color:#fff}
+.reg{padding-left:18px;margin:6px 0 0}.reg li{margin:3px 0;font-size:14px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.mbox{background:var(--surface);border-radius:12px;max-width:460px;width:100%;padding:18px}.mbox h3{margin:0 0 8px}
+.mbox input{width:100%;margin:6px 0 4px}
+@media(max-width:640px){.lt thead{display:none}.lt,.lt tbody,.lt tr,.lt td{display:block;width:100%}.lt tr{border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin-bottom:8px}.lt td{border:0;padding:4px 0;text-align:left}.lt td.n{text-align:left}.lt td[data-l]::before{content:attr(data-l)': ';color:var(--muted)}.acts{justify-content:flex-start}}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -47,7 +57,7 @@ const MAXPX = 1280, QUAL = 0.6, MIN_BYTES = 350 * 1024;    // mesmo padrão das 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt = b => b >= 1024 ** 3 ? (b / 1024 ** 3).toFixed(2) + ' GB' : b >= 1024 ** 2 ? (b / 1024 ** 2).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB';
-let USO = [], RODANDO = false, PARAR = false;
+let USO = [], RODANDO = false, PARAR = false, ARQ = null, LOG = null, LOGERR = '', MES = '', LST = {}, OCUP = false;
 
 async function iniciar() {
   const { data: { session } } = await sb.auth.getSession();
@@ -62,6 +72,9 @@ async function carregar() {
     return;
   }
   USO = data || [];
+  const [a, l] = await Promise.all([sb.rpc('ag_arquivos', { p_bucket: 'agenda', p_min: 0 }), sb.from('ag_limpezas').select('*').order('em', { ascending: false }).limit(60)]);
+  ARQ = a.error ? [] : (a.data || []);
+  LOG = l.error ? [] : (l.data || []); LOGERR = l.error ? 'Rode o ajuste 27 (agenda_ajuste_27_limpeza_armazenamento.sql) no Supabase para guardar o registro das limpezas.' : '';
   desenhar();
 }
 
@@ -87,6 +100,7 @@ function desenhar() {
     ${USO.map(r => `<tr><td>${esc(r.bucket)}</td><td>${esc(r.pasta)}</td><td class="n">${r.arquivos}</td><td class="n">${fmt(Number(r.bytes))}</td></tr>`).join('')}
     </tbody></table>
   </section>
+  <section class="panel" id="limp"></section>
   <section class="panel">
     <h2>Compactar fotos</h2>
     <p class="muted">Cada foto acima de ${fmt(MIN_BYTES)} é baixada, reduzida para ${MAXPX} px no lado maior e regravada no mesmo caminho. Os links e relatórios da agenda continuam funcionando. PDFs não são alterados. A foto só é trocada se ficar pelo menos 20% menor.</p>
@@ -96,6 +110,7 @@ function desenhar() {
     <div class="row" style="margin-top:10px"><button class="btn primary" id="bComp">Compactar</button><button class="btn" id="bParar" hidden>Parar</button></div>
     <div id="prog" hidden><div class="bar"><i id="pBar" style="width:0"></i></div><p id="pTxt" class="muted"></p></div>
   </section>`;
+  limpDesenhar();
   $('bComp').onclick = compactar;
   $('bParar').onclick = () => { PARAR = true; $('bParar').disabled = true };
 }
@@ -153,6 +168,116 @@ async function compactar() {
   const txt = $('pTxt').textContent;
   await carregar();
   $('prog').hidden = false; $('pBar').style.width = '100%'; $('pTxt').textContent = txt;
+}
+
+/* ---------- 14/10: baixar o mês em ZIP e liberar o espaço ----------
+   Só arquivos do bucket agenda. Os dados da ferramenta (chamados, atividades, horários, indicadores, LPUs, textos do chat) continuam.
+   Apagar só fica liberado depois de baixar o ZIP daquele mês e tipo, e apaga só os arquivos que entraram no ZIP. */
+const TIPOS = [
+  { k: 'chat', nome: 'Fotos e arquivos do chat', d: 'Chat com técnico, chat da atividade e Chat com NOC' },
+  { k: 'foto', nome: 'Fotos dos relatórios da Implantação', d: 'Fotos das etapas e do resumo de cada dia' },
+  { k: 'gtd',  nome: 'Fotos do atendimento do GTD', d: 'Fotos do RFO' },
+  { k: 'rel',  nome: 'PDFs de relatório e RFO', d: 'Relatórios fotográficos, de entrega e do RFO' },
+  { k: 'lpu',  nome: 'PDFs de LPU assinados', d: 'Valores e itens da LPU continuam na ferramenta' },
+  { k: 'kmz',  nome: 'KMZ e anexos dos projetos', d: 'KMZ de lançamento e extensão e outros anexos' },
+  { k: 'out',  nome: 'Outros arquivos', d: 'Fora das pastas acima' }];
+const ZIP_PARTE = 700 * 1024 ** 2;
+const MESF = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' });
+const mesDe = t => MESF.format(new Date(t)).slice(0, 7);
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const mesNome = m => { const [a, b] = m.split('-'); return MESES[+b - 1].replace(/^./, c => c.toUpperCase()) + '/' + a };
+const nArq = q => q + (q === 1 ? ' arquivo' : ' arquivos');
+const tipoNome = k => (TIPOS.find(t => t.k === k) || { nome: k }).nome;
+function tipoDe(f) {
+  const n = f.nome, img = /^image\//.test(f.tipo || '') || /\.(jpe?g|png|webp|gif|heic)$/i.test(n), pdf = /pdf/i.test(f.tipo || '') || /\.pdf$/i.test(n);
+  if (n.startsWith('lpus/')) return 'lpu';
+  if (n.startsWith('anexos/')) return 'kmz';
+  if (/^chat\/g\/[^/]+\/rfo\//.test(n)) return img ? 'gtd' : 'rel';
+  if (n.startsWith('chat/')) return 'chat';
+  if (n.startsWith('relatorios/')) return pdf ? 'rel' : 'foto';
+  return 'out';
+}
+function grupos() {
+  const atual = mesDe(Date.now()), G = {};
+  (ARQ || []).forEach(f => { if (!f.criado) return; const m = mesDe(f.criado); if (m >= atual) return; const k = tipoDe(f);
+    ((G[m] = G[m] || {})[k] = G[m][k] || []).push(f) });
+  return G;
+}
+function limpDesenhar() {
+  const el = $('limp'); if (!el) return;
+  const G = grupos(), meses = Object.keys(G).sort().reverse();
+  if (!MES || !G[MES]) MES = meses[0] || '';
+  const L = MES ? G[MES] : {};
+  let livre = 0;
+  const linhas = TIPOS.filter(t => L[t.k] && L[t.k].length).map(t => {
+    const F = L[t.k], q = F.length, b = F.reduce((s, f) => s + Number(f.bytes || 0), 0), e = LST[MES + t.k];
+    livre += b;
+    const chip = e && e.ok ? `<span class="chip zip">ZIP baixado · ${nArq(e.ok.length)}${e.falhas ? ' · ' + e.falhas + ' não baixaram' : ''}</span>` : '<span class="chip">No armazenamento</span>';
+    const acts = `<button class="btn ${e && e.ok ? '' : 'primary'}" data-zip="${t.k}" ${OCUP ? 'disabled' : ''}>${e && e.ok ? 'Baixar de novo' : 'Baixar ZIP'}</button>`
+      + `<button class="btn ${e && e.ok && e.ok.length ? 'del' : ''}" data-del="${t.k}" ${e && e.ok && e.ok.length && !OCUP ? '' : 'disabled title="Baixe o ZIP primeiro"'}>Apagar</button>`;
+    return `<tr><td><b>${esc(t.nome)}</b><small>${esc(t.d)}</small></td><td class="n" data-l="Arquivos">${q}</td><td class="n" data-l="Tamanho">${fmt(b)}</td><td>${chip}</td><td><div class="acts">${acts}</div></td></tr>`;
+  }).join('');
+  el.innerHTML = `<h2>Baixar e liberar espaço por mês</h2>
+    <div class="ok"><b>Fica sempre na ferramenta:</b> chamados, atividades, horários, indicadores, LPUs com valores e itens, backlog, textos do chat e histórico. Aqui saem só os arquivos (fotos, anexos, KMZ e PDFs). Quem abrir um arquivo apagado vê o aviso de que ele está no ZIP da coordenação.</div>
+    ${meses.length ? `<div class="row" style="margin:10px 0"><label for="limpMes"><b>Mês</b></label><select id="limpMes">${meses.map(m => `<option value="${m}" ${m === MES ? 'selected' : ''}>${mesNome(m)}</option>`).join('')}</select><span class="muted">${livre ? 'Dá para liberar até ' + fmt(livre) + ' neste mês' : ''}</span></div>
+    <p class="muted" style="margin:0 0 8px">O mês corrente não aparece. Primeiro baixe o ZIP (acima de 700 MB ele vem em partes) e guarde num lugar seguro, como o Drive da empresa; depois o Apagar fica liberado e apaga só os arquivos que entraram no ZIP.</p>
+    <table class="lt"><thead><tr><th>Tipo de arquivo</th><th class="n">Arquivos</th><th class="n">Tamanho</th><th>Situação</th><th class="n">Ações</th></tr></thead><tbody>${linhas || '<tr><td colspan="5" class="muted">Nada guardado neste mês.</td></tr>'}</tbody></table>`
+    : '<p class="muted">Não há arquivos de meses anteriores ao mês corrente.</p>'}
+    <div id="lProg" hidden><div class="bar"><i id="lBar" style="width:0"></i></div><p id="lTxt" class="muted"></p></div>
+    <h2 style="margin-top:14px">Registro de limpezas</h2>
+    ${LOGERR ? `<div class="aviso">${esc(LOGERR)}</div>` : ''}
+    ${LOG && LOG.length ? `<ul class="reg">${LOG.map(x => `<li>${x.em ? new Date(x.em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) + ' · ' : ''}${x.por_nome ? esc(x.por_nome) + ' · ' : ''}${esc(mesNome(x.mes))} · ${esc(tipoNome(x.tipo))} · ${nArq(x.arquivos)} · ${fmt(Number(x.bytes))} liberados</li>`).join('')}</ul>` : (LOGERR ? '' : '<p class="muted" style="margin:0">Nenhuma limpeza feita ainda.</p>')}`;
+  const s = $('limpMes'); if (s) s.onchange = () => { MES = s.value; limpDesenhar() };
+  el.querySelectorAll('[data-zip]').forEach(b => b.onclick = () => baixarZip(b.dataset.zip));
+  el.querySelectorAll('[data-del]').forEach(b => b.onclick = () => confirmarApagar(b.dataset.del));
+}
+let JSZIP_P = null;
+const jszip = () => JSZIP_P || (JSZIP_P = new Promise((ok, er) => { if (window.JSZip) return ok(window.JSZip); const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'; sc.onload = () => window.JSZip ? ok(window.JSZip) : er(new Error('JSZip indisponível')); sc.onerror = () => { JSZIP_P = null; er(new Error('não foi possível carregar o gerador de ZIP')) }; document.head.appendChild(sc) }));
+function salvar(blob, nome) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000) }
+async function baixarZip(k) {
+  if (OCUP) return; const F = (grupos()[MES] || {})[k] || []; if (!F.length) return;
+  let JSZip; try { JSZip = await jszip() } catch (e) { alert(e.message); return }
+  OCUP = true; limpDesenhar(); $('lProg').hidden = false;
+  const ok = [], base = `agenda_arquivos_${MES}_${k}`;
+  let zip = new JSZip(), noZip = 0, parte = 1, feitos = 0, falhas = 0, i = 0, fila = Promise.resolve();
+  const txt = m => { $('lBar').style.width = (feitos / F.length * 100) + '%'; $('lTxt').textContent = m || `${tipoNome(k)} · ${mesNome(MES)}: ${feitos} de ${F.length} arquivos baixados${falhas ? ' · ' + falhas + ' com erro' : ''}` };
+  const fechar = async ult => { if (!noZip) return; txt(`Gerando o ZIP${ult && parte === 1 ? '' : ' (parte ' + parte + ')'}…`); const b = await zip.generateAsync({ type: 'blob', compression: 'STORE' }); salvar(b, ult && parte === 1 ? base + '.zip' : `${base}_parte${parte}.zip`); parte++; zip = new JSZip(); noZip = 0 };
+  const trab = async () => { while (i < F.length) { const f = F[i++];
+    try { const { data, error } = await sb.storage.from('agenda').download(f.nome); if (error) throw error;
+      fila = fila.then(async () => { zip.file(f.nome, data); noZip += data.size; ok.push(f.nome); if (noZip >= ZIP_PARTE) await fechar(false) }); await fila;
+    } catch (e) { falhas++; console.warn(f.nome, e) }
+    feitos++; txt() } };
+  try { await Promise.all([trab(), trab(), trab()]); await fila; await fechar(true) }
+  catch (e) { alert('Não foi possível gerar o ZIP: ' + e.message); OCUP = false; limpDesenhar(); return }
+  LST[MES + k] = { ok, falhas, bytes: F.filter(f => ok.includes(f.nome)).reduce((s, f) => s + Number(f.bytes || 0), 0), partes: parte - 1 };
+  OCUP = false; limpDesenhar(); $('lProg').hidden = false; $('lBar').style.width = '100%';
+  $('lTxt').textContent = `ZIP baixado: ${nArq(ok.length)}${parte - 1 > 1 ? ' em ' + (parte - 1) + ' partes' : ''}${falhas ? ' · ' + falhas + ' não baixaram e não serão apagados' : ''}. Confira o arquivo no seu computador antes de apagar.`;
+}
+function confirmarApagar(k) {
+  const e = LST[MES + k]; if (!e || !e.ok.length || OCUP) return;
+  const m = document.createElement('div'); m.className = 'modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
+  m.innerHTML = `<div class="mbox"><h3>Apagar arquivos</h3><p><b>${esc(tipoNome(k))}</b> de <b>${mesNome(MES)}</b>: ${nArq(e.ok.length)}, ${fmt(e.bytes)}.</p>
+    <div class="erro">Não tem como desfazer. Depois de apagados, esses arquivos só existem no ZIP que você baixou.</div>
+    <label for="lConf">Para confirmar, digite <b>APAGAR</b></label><input id="lConf" autocomplete="off">
+    <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" id="lNao">Cancelar</button><button class="btn del" id="lSim" disabled>Apagar e liberar espaço</button></div></div>`;
+  document.body.appendChild(m); const inp = m.querySelector('#lConf'), sim = m.querySelector('#lSim'); inp.focus();
+  inp.oninput = () => sim.disabled = inp.value.trim().toUpperCase() !== 'APAGAR';
+  m.querySelector('#lNao').onclick = () => m.remove();
+  sim.onclick = async () => { m.remove(); await apagar(k) };
+}
+async function apagar(k) {
+  const e = LST[MES + k]; OCUP = true; limpDesenhar(); $('lProg').hidden = false;
+  let feitos = 0, erros = 0;
+  for (let j = 0; j < e.ok.length; j += 100) {
+    const lote = e.ok.slice(j, j + 100), { error } = await sb.storage.from('agenda').remove(lote);
+    if (error) { erros += lote.length; console.warn(error) } else feitos += lote.length;
+    $('lBar').style.width = ((j + lote.length) / e.ok.length * 100) + '%'; $('lTxt').textContent = `Apagando: ${feitos} de ${e.ok.length}${erros ? ' · ' + erros + ' com erro' : ''}`;
+  }
+  const bytes = feitos === e.ok.length ? e.bytes : Math.round(e.bytes * feitos / e.ok.length);
+  let aviso = '';
+  if (feitos) { const r = await sb.from('ag_limpezas').insert({ mes: MES, tipo: k, arquivos: feitos, bytes, zip: `agenda_arquivos_${MES}_${k}` + (e.partes > 1 ? ` (${e.partes} partes)` : '') + '.zip' }); if (r.error) aviso = ' O registro não foi gravado: rode o ajuste 27.' }
+  delete LST[MES + k]; OCUP = false; const msg = `${feitos} arquivos apagados · ${fmt(bytes)} liberados${erros ? ' · ' + erros + ' não foram apagados (tente de novo)' : ''}.${aviso}`;
+  await carregar(); $('lProg').hidden = false; $('lBar').style.width = '100%'; $('lTxt').textContent = msg;
 }
 
 iniciar();

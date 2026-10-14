@@ -3707,7 +3707,7 @@ async function gChatVistas(){const ch=ui.chat;if(!ch)return;if(ch.t==='s')return
 /* com a conversa aberta, confere novas mensagens a cada 5 s (além do tempo real) */
 setInterval(()=>{if(ME&&ui.chat&&document.visibilityState==='visible')gChatCarregar(true)},5000);
 function gChatLista(){if(ui.chat&&ui.chat.t==='s')return gSalaLista();const k=gChatK(),L=G.msgs[k];if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
-  return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}</small>${chxMsgTxt(m)}${chxAnexo(m)}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:'<small class="muted">Foto</small>'):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
+  return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}</small>${chxMsgTxt(m)}${chxAnexo(m)}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
 function gChatPintar(){const el=$('chatList');if(!el)return;const fim=el.scrollHeight-el.scrollTop-el.clientHeight<80;el.innerHTML=gChatLista();if(fim)el.scrollTop=el.scrollHeight;chxArqsAtual()}
 function viewChat(){if(ui.chat&&ui.chat.t==='s')return viewSala();const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);
   let tit='',sub='',quem='';if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};tit='O&M '+(c.pom||'');sub=c.cliente||'';quem='Técnico, NOC e O&M'}else{const a=getAg(ch.id)||{};tit=a.etiqueta||'Atividade';sub=cliN(a.etiqueta||'')+(a.fases?' · '+fasesN(a):'');quem='Técnico, Delivery e O&M'}
@@ -3958,7 +3958,7 @@ function gSalaLista(){const L=G.msgs[SALA_K];
     if(d!==dia){dia=d;prev=null;h+=`<div class="saladia"><span>${d===hj?'Hoje':d===on?'Ontem':dBR(d)}</span></div>`}
     const cont=!!(prev&&prev.autor===m.autor&&t-new Date(prev.em)<5*60000);prev=m;
     const hue=salaHue(m.autor),c=m.chamado?G.ch.find(x=>x.id===m.chamado):null;
-    const foto=m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:'<small class="muted">Foto</small>'):'';
+    const foto=m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):'';
     h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?gSalaRef(c,m.chamado):''}${chxMsgTxt(m)}${chxAnexo(m)}${foto}<small class="salahr">${salaHora(m.em)}</small></div></div>`;return h}).join('')}
 function viewSala(){const k=SALA_K;if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
   const ab=G.ch.filter(c=>GTD_ABERTOS.includes(c.status)).sort(gSalaOrd),cit=ui.salaCh&&G.ch.find(x=>x.id===ui.salaCh);
@@ -4857,7 +4857,7 @@ function chxAnexo(m){const a=m.anexo;if(!a)return '';
      <span class="chxlt"><b>Localização de ${esc(m.autor_nome||'')}</b><small>${esc(v)}${a.prec?` · precisão ${Math.round(a.prec)} m`:''}${d!=null?` · ${d<1000?Math.round(d)+' m':(d/1000).toFixed(1).replace('.',',')+' km'} do endereço do cliente`:''}</small>
      <span class="chxbt"><a class="btn sm" href="https://www.google.com/maps/search/?api=1&query=${(+a.lat).toFixed(6)},${(+a.lng).toFixed(6)}" target="_blank" rel="noopener">Abrir no mapa</a><button class="btn sm" data-act="tvCopiar" data-v="${esc(v)}" data-n="Coordenadas">Copiar coordenadas</button></span></span></div>`}
   if(a.tipo==='arq'){const e=chxExt(a.nome),u=chxUrl[a.path];if(u===undefined)setTimeout(()=>chxAssinar(a),0);
-    return `<a class="chxarq" ${u&&u!=='…'?`href="${esc(u)}" target="_blank" rel="noopener"`:'aria-disabled="true"'}><span class="chxic" style="background:${CHX_COR[e]||'#5D6A61'}">${esc(e.slice(0,4))}</span><span class="chxat"><b>${esc(a.nome||'arquivo')}</b><small>${a.tam?chxTam(a.tam)+' · ':''}${CHX_ABRE.test(e)?'toque para abrir':'toque para baixar'}</small></span></a>`}
+    return `<a class="chxarq" ${u&&u!=='…'?`href="${esc(u)}" target="_blank" rel="noopener"`:'aria-disabled="true"'}><span class="chxic" style="background:${CHX_COR[e]||'#5D6A61'}">${esc(e.slice(0,4))}</span><span class="chxat"><b>${esc(a.nome||'arquivo')}</b><small>${u===''&&ARM_REM.has(a.path)?'apagado na limpeza do armazenamento · está no ZIP da coordenação':(a.tam?chxTam(a.tam)+' · ':'')+(CHX_ABRE.test(e)?'toque para abrir':'toque para baixar')}</small></span></a>`}
   return ''}
 const chxMsgTxt=m=>m.texto&&!(m.anexo&&m.anexo.auto)?`<p>${chxTxt(m.texto)}</p>`:'';
 function chxBtns(){const ch=ui.chat;if(!ch)return '';const clip=_sv('<path d="M21 11.5l-8.5 8.5a5 5 0 0 1-7-7L14 4.5a3.5 3.5 0 0 1 5 5L10.5 18a2 2 0 0 1-3-3L15 7.5"/>',16),pin=_sv('<path d="M12 21s7-6.8 7-11.5a7 7 0 0 0-14 0C5 14.2 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/>',16);
@@ -4890,6 +4890,14 @@ Object.assign(ACT,{
   chxArqs:()=>{const L=(G.msgs[gChatK()]||[]).filter(m=>m.anexo&&m.anexo.tipo==='arq').slice().reverse();
     openModal(`<h3>Arquivos do chat</h3><div class="chxlst">${L.map(m=>`<div>${chxAnexo(m)}<small class="muted">${esc(m.autor_nome||'')} · ${gQuando(new Date(m.em).getTime())}</small></div>`).join('')}</div><div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)}
 });
+
+/* ---------- 14/10: arquivo apagado na limpeza do armazenamento ----------
+   A coordenação baixa o mês em ZIP e apaga os arquivos em armazenamento.html. Aqui, quando um arquivo não existe mais,
+   a mensagem diz que ele foi apagado e está no ZIP, em vez de "Object not found". */
+const ARM_REM=new Set(),ARM_MSG='o arquivo foi apagado na limpeza do armazenamento e está guardado no ZIP baixado pela coordenação';
+(()=>{try{const st=sb.storage,f0=st.from.bind(st);st.from=b=>{const o=f0(b);if(b!=='agenda'||!o||!o.createSignedUrl)return o;const c0=o.createSignedUrl.bind(o);
+  o.createSignedUrl=async(p,...a)=>{const r=await c0(p,...a);if(r&&r.error&&/not.?found|404/i.test((r.error.message||'')+' '+(r.error.statusCode||'')+' '+(r.error.error||''))){ARM_REM.add(p);r.error.message=ARM_MSG}return r};return o}}catch(e){}})();
+const armFoto=p=>ARM_REM.has(p)?'<small class="muted">Foto apagada na limpeza do armazenamento (está no ZIP da coordenação)</small>':'<small class="muted">Foto</small>';
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
