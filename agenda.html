@@ -920,6 +920,18 @@ details summary{cursor:pointer;font-weight:600}
 .agtsel.nfaz{border:2px solid var(--warn)}.agtsel.nfaz .agthd{background:var(--warn-soft)}
 .agtg.nfaz{background:var(--surface);color:var(--warn);border:1px solid var(--warn)}
 .tvcoord{margin-top:8px}
+.chxloc{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line,#D8DED4);border-radius:10px;padding:8px 10px;margin:4px 0;max-width:340px;color:var(--ink,#1D2620)}
+.chxmap{flex-shrink:0;width:46px;height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center;background-color:#DDE7D6;background-image:linear-gradient(#C9D6C1 2px,transparent 2px),linear-gradient(90deg,#C9D6C1 2px,transparent 2px);background-size:14px 14px}
+.chxlt{display:flex;flex-direction:column;gap:2px;min-width:0}.chxlt b{font-size:14px}.chxlt small{color:var(--muted,#5D6A61);font-size:12.5px;overflow-wrap:anywhere}
+.chxbt{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.chxbt .btn{text-decoration:none}
+.chxarq{display:flex;align-items:center;gap:10px;background:#F2F4F0;border:1px solid var(--line,#D8DED4);border-radius:10px;padding:8px 10px;margin:4px 0;text-decoration:none;color:var(--ink,#1D2620);min-height:44px;max-width:340px}
+.chxarq[aria-disabled]{opacity:.7;cursor:progress}
+.chxic{width:38px;height:44px;border-radius:6px;color:#fff;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chxat{display:flex;flex-direction:column;min-width:0}.chxat b{font-size:14px;overflow-wrap:anywhere}.chxat small{color:var(--muted,#5D6A61);font-size:12.5px}
+.msg p a{color:#245F80;overflow-wrap:anywhere}
+.chxarqw{margin-left:auto;flex-shrink:0}.chxarqs{white-space:nowrap}
+.chxlst{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto;margin:8px 0}.chxlst small{display:block}
+@media(max-width:640px){.chxloc,.chxarq{max-width:100%}.chxlg{display:none}}
 </style>
 </head>
 <body>
@@ -3695,15 +3707,15 @@ async function gChatVistas(){const ch=ui.chat;if(!ch)return;if(ch.t==='s')return
 /* com a conversa aberta, confere novas mensagens a cada 5 s (além do tempo real) */
 setInterval(()=>{if(ME&&ui.chat&&document.visibilityState==='visible')gChatCarregar(true)},5000);
 function gChatLista(){if(ui.chat&&ui.chat.t==='s')return gSalaLista();const k=gChatK(),L=G.msgs[k];if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
-  return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}</small>${m.texto?`<p>${esc(m.texto)}</p>`:''}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:'<small class="muted">Foto</small>'):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
-function gChatPintar(){const el=$('chatList');if(!el)return;const fim=el.scrollHeight-el.scrollTop-el.clientHeight<80;el.innerHTML=gChatLista();if(fim)el.scrollTop=el.scrollHeight}
+  return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}</small>${chxMsgTxt(m)}${chxAnexo(m)}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:'<small class="muted">Foto</small>'):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
+function gChatPintar(){const el=$('chatList');if(!el)return;const fim=el.scrollHeight-el.scrollTop-el.clientHeight<80;el.innerHTML=gChatLista();if(fim)el.scrollTop=el.scrollHeight;chxArqsAtual()}
 function viewChat(){if(ui.chat&&ui.chat.t==='s')return viewSala();const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);
   let tit='',sub='',quem='';if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};tit='O&M '+(c.pom||'');sub=c.cliente||'';quem='Técnico, NOC e O&M'}else{const a=getAg(ch.id)||{};tit=a.etiqueta||'Atividade';sub=cliN(a.etiqueta||'')+(a.fases?' · '+fasesN(a):'');quem='Técnico, Delivery e O&M'}
   setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
-  return `<div class="chatv"><div class="chath"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><div><b>${ch.t==='g'&&gVeGtd()?'Chat com técnico':'Mensagens'} · ${esc(tit)}</b><small class="muted">${esc(sub)} · ${quem}</small></div></div>
+  return `<div class="chatv"><div class="chath"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><div><b>${ch.t==='g'&&gVeGtd()?'Chat com técnico':'Mensagens'} · ${esc(tit)}</b><small class="muted">${esc(sub)} · ${quem}</small></div>${chxArqsBtn()}</div>
    <div class="chatl" id="chatList" aria-live="polite">${gChatLista()}</div>
    <div class="chatc"><textarea class="inp" id="chatTxt" rows="2" data-in="chatTxt" placeholder="Escreva uma mensagem" aria-label="Mensagem">${esc(ui.chatTxt||'')}</textarea>
-    <div class="tools"><label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} Câmera<input type="file" accept="image/*" capture="environment" data-ch="chatFoto" hidden></label><label class="btn sm chatfoto">${_sv('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',16)} Galeria<input type="file" accept="image/*" data-ch="chatFoto" hidden></label><button class="btn primary" data-act="chatEnviar">Enviar</button></div>
+    <div class="tools"><label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} Câmera<input type="file" accept="image/*" capture="environment" data-ch="chatFoto" hidden></label><label class="btn sm chatfoto">${_sv('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',16)} Galeria<input type="file" accept="image/*" data-ch="chatFoto" hidden></label>${chxBtns()}<button class="btn primary" data-act="chatEnviar">Enviar</button></div>
     <small class="muted chatdica">Enter envia; Shift + Enter pula linha.</small></div></div>`}
 /* no computador, Enter envia e Shift + Enter pula linha (como no WhatsApp Web); no celular, o Enter do teclado pula linha */
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatTxt'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&matchMedia('(pointer:fine)').matches){e.preventDefault();const b=document.querySelector('[data-act="chatEnviar"]');if(b&&!b.disabled)ACT.chatEnviar(b)}});
@@ -3947,18 +3959,18 @@ function gSalaLista(){const L=G.msgs[SALA_K];
     const cont=!!(prev&&prev.autor===m.autor&&t-new Date(prev.em)<5*60000);prev=m;
     const hue=salaHue(m.autor),c=m.chamado?G.ch.find(x=>x.id===m.chamado):null;
     const foto=m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:'<small class="muted">Foto</small>'):'';
-    h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?gSalaRef(c,m.chamado):''}${m.texto?`<p>${esc(m.texto)}</p>`:''}${foto}<small class="salahr">${salaHora(m.em)}</small></div></div>`;return h}).join('')}
+    h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?gSalaRef(c,m.chamado):''}${chxMsgTxt(m)}${chxAnexo(m)}${foto}<small class="salahr">${salaHora(m.em)}</small></div></div>`;return h}).join('')}
 function viewSala(){const k=SALA_K;if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
   const ab=G.ch.filter(c=>GTD_ABERTOS.includes(c.status)).sort(gSalaOrd),cit=ui.salaCh&&G.ch.find(x=>x.id===ui.salaCh);
   const nEsc=ab.filter(c=>c.prioridade==='Escalonado').length,nAlta=ab.filter(c=>c.prioridade==='Alta').length,nND=ab.filter(c=>c.status==='aberto'&&!c.tec).length;
   const cam=_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16),gal=_sv('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',16);
   return `<div class="salav"><section class="salam" aria-label="${esc(salaNome())}">
-   <div class="salah"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><span class="salaico" aria-hidden="true">${_sv(SALA_ICO,20)}</span><div><b>${esc(salaNome())} · GTD Manutenção</b><small class="muted">Coordenação, supervisão, encarregados e NOC. Os técnicos não veem esta conversa.</small></div></div>
+   <div class="salah"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><span class="salaico" aria-hidden="true">${_sv(SALA_ICO,20)}</span><div><b>${esc(salaNome())} · GTD Manutenção</b><small class="muted">Coordenação, supervisão, encarregados e NOC. Os técnicos não veem esta conversa.</small></div>${chxArqsBtn()}</div>
    <div class="chatl salal" id="chatList" aria-live="polite">${gSalaLista()}</div>
    <div class="chatc salac">${cit?`<div class="salacit"><span>Sobre o chamado <b>O&amp;M ${esc(cit.pom||'—')}</b> · ${esc(cit.cliente||'')}</span><button class="icon" data-act="salaTirar" aria-label="Tirar o chamado citado">✕</button></div>`:''}
     <textarea class="inp" id="chatTxt" rows="2" data-in="chatTxt" placeholder="${ui.perfil==='noc'?'Mensagem para o O&amp;M':'Mensagem para o NOC'}" aria-label="Mensagem">${esc(ui.chatTxt||'')}</textarea>
     <div class="tools"><select class="inp salasel" data-ch="salaChSel" aria-label="Citar um chamado"><option value="">Citar chamado…</option>${ab.map(c=>`<option value="${c.id}" ${ui.salaCh===c.id?'selected':''}>O&amp;M ${esc(c.pom||'—')} · ${esc((c.cliente||'').slice(0,40))}${c.prioridade!=='Normal'?' · '+esc(c.prioridade):''}</option>`).join('')}</select>
-     <label class="btn sm chatfoto">${cam} Câmera<input type="file" accept="image/*" capture="environment" data-ch="chatFoto" hidden></label><label class="btn sm chatfoto">${gal} Galeria<input type="file" accept="image/*" data-ch="chatFoto" hidden></label><button class="btn primary" data-act="chatEnviar">Enviar</button></div>
+     <label class="btn sm chatfoto">${cam} Câmera<input type="file" accept="image/*" capture="environment" data-ch="chatFoto" hidden></label><label class="btn sm chatfoto">${gal} Galeria<input type="file" accept="image/*" data-ch="chatFoto" hidden></label>${chxBtns()}<button class="btn primary" data-act="chatEnviar">Enviar</button></div>
     <small class="muted chatdica">Enter envia; Shift + Enter pula linha.</small></div></section>
    <aside class="salaside" aria-label="Chamados em aberto"><div class="secth"><h3>Chamados em aberto</h3><span class="chip">${ab.length}</span></div>
     <p class="muted salares">${nEsc} escalonado${nEsc===1?'':'s'} · ${nAlta} alta${nAlta===1?'':'s'} · ${nND} não despachado${nND===1?'':'s'}</p>
@@ -4818,6 +4830,65 @@ Object.assign(ACT,{
     a.fasesFin=fica;a.correcoes=(a.correcoes||[]).concat([{em:Date.now(),por:meNome(),papel:(PERFIS[ui.perfil]||{}).n||'',fases:sai,motivo:mot}]);
     if(sai.includes('ativ'))delete a.ativSemFases;save();closeModal();render();
     toast(`${sai.map(k=>FCURTO[k]||k).join(', ')} voltou a ficar pendente em ${a.etiqueta}.${sai.includes('ativ')?' O cliente voltou para o Backlog.':''}`)}
+});
+
+/* ---------- 14/10: anexos (qualquer arquivo, até 25 MB) e localização do momento no chat ----------
+   Chat do chamado / da atividade: Arquivo para todos; Localização só para o técnico (GPS do celular, posição do momento).
+   Chat com NOC: Arquivo. A mensagem guarda anexo jsonb (agenda_ajuste_26): {tipo:'arq',path,nome,mime,tam} ou {tipo:'loc',lat,lng,prec}.
+   O texto da mensagem recebe um resumo (auto) para os avisos do sino e do celular continuarem com conteúdo. */
+const CHX_MAX=25*1024*1024,CHX_AJ='Rode o script agenda_ajuste_26_anexos_chat.sql no Supabase para enviar arquivos e localização no chat.';
+const chxTam=n=>n>=1048576?(n/1048576).toFixed(1).replace('.',',')+' MB':Math.max(1,Math.round(n/1024))+' KB';
+const chxExt=nm=>{const m=String(nm||'').match(/\.([a-z0-9]{1,5})$/i);return m?m[1].toUpperCase():'ARQ'};
+const CHX_COR={PDF:'#A8352B',XLSX:'#2E5410',XLS:'#2E5410',CSV:'#2E5410',DOC:'#245F80',DOCX:'#245F80',KMZ:'#0F766E',KML:'#0F766E',MP4:'#7B5A9E',MOV:'#7B5A9E',JPG:'#5D6A61',JPEG:'#5D6A61',PNG:'#5D6A61'};
+const CHX_ABRE=/^(PDF|JPG|JPEG|PNG|GIF|WEBP|MP4|MOV|TXT)$/;
+const chxTxt=t=>esc(t).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+const chxUrl={};
+async function chxAssinar(a){if(!a||!a.path||chxUrl[a.path])return;chxUrl[a.path]='…';
+  const e=chxExt(a.nome),s=await sb.storage.from('agenda').createSignedUrl(a.path,3600,CHX_ABRE.test(e)?undefined:{download:a.nome||true});
+  chxUrl[a.path]=s.error?'':s.data.signedUrl;if(typeof gChatPintar==='function')gChatPintar()}
+/* coordenada do cliente para mostrar a distância na localização */
+function chxAlvo(){const ch=ui.chat;if(!ch)return null;if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};if(c.lat!=null&&c.lat!=='')return[+c.lat,+c.lng];return c.mapa?coords(c.mapa):null}
+  if(ch.t==='a'){const a=getAg(ch.id);return a?coordOf((S.comp[a.etiqueta]||{}).coord):null}return null}
+function chxDist(a,b){const R=6371000,r=x=>x*Math.PI/180,dl=r(b[0]-a[0]),dg=r(b[1]-a[1]),h=Math.sin(dl/2)**2+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+const chxCoordTxt=(la,lo)=>`${(+la).toFixed(5)}, ${(+lo).toFixed(5)}`;
+function chxAnexo(m){const a=m.anexo;if(!a)return '';
+  if(a.tipo==='loc'){const alvo=chxAlvo(),d=alvo?chxDist([+a.lat,+a.lng],alvo):null,v=chxCoordTxt(a.lat,a.lng);
+    return `<div class="chxloc"><span class="chxmap" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24"><path d="M12 22s7-7.2 7-12.5A7 7 0 0 0 5 9.5C5 14.8 12 22 12 22z" fill="#A8352B"/><circle cx="12" cy="9.5" r="2.6" fill="#fff"/></svg></span>
+     <span class="chxlt"><b>Localização de ${esc(m.autor_nome||'')}</b><small>${esc(v)}${a.prec?` · precisão ${Math.round(a.prec)} m`:''}${d!=null?` · ${d<1000?Math.round(d)+' m':(d/1000).toFixed(1).replace('.',',')+' km'} do endereço do cliente`:''}</small>
+     <span class="chxbt"><a class="btn sm" href="https://www.google.com/maps/search/?api=1&query=${(+a.lat).toFixed(6)},${(+a.lng).toFixed(6)}" target="_blank" rel="noopener">Abrir no mapa</a><button class="btn sm" data-act="tvCopiar" data-v="${esc(v)}" data-n="Coordenadas">Copiar coordenadas</button></span></span></div>`}
+  if(a.tipo==='arq'){const e=chxExt(a.nome),u=chxUrl[a.path];if(u===undefined)setTimeout(()=>chxAssinar(a),0);
+    return `<a class="chxarq" ${u&&u!=='…'?`href="${esc(u)}" target="_blank" rel="noopener"`:'aria-disabled="true"'}><span class="chxic" style="background:${CHX_COR[e]||'#5D6A61'}">${esc(e.slice(0,4))}</span><span class="chxat"><b>${esc(a.nome||'arquivo')}</b><small>${a.tam?chxTam(a.tam)+' · ':''}${CHX_ABRE.test(e)?'toque para abrir':'toque para baixar'}</small></span></a>`}
+  return ''}
+const chxMsgTxt=m=>m.texto&&!(m.anexo&&m.anexo.auto)?`<p>${chxTxt(m.texto)}</p>`:'';
+function chxBtns(){const ch=ui.chat;if(!ch)return '';const clip=_sv('<path d="M21 11.5l-8.5 8.5a5 5 0 0 1-7-7L14 4.5a3.5 3.5 0 0 1 5 5L10.5 18a2 2 0 0 1-3-3L15 7.5"/>',16),pin=_sv('<path d="M12 21s7-6.8 7-11.5a7 7 0 0 0-14 0C5 14.2 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/>',16);
+  return `<label class="btn sm chatfoto">${clip} Arquivo<input type="file" data-ch="chxArq" hidden></label>${ch.t!=='s'&&gTecPerfil()?`<button class="btn sm" data-act="chxLoc">${pin} Localização</button>`:''}`}
+function chxArqsIn(){const L=G.msgs[gChatK()]||[],n=L.filter(m=>m.anexo&&m.anexo.tipo==='arq').length;return n?`<button class="btn sm chxarqs" data-act="chxArqs">Arquivos<span class="chxlg"> do chat</span> · ${n}</button>`:''}
+const chxArqsBtn=()=>`<span id="chxArqsW" class="chxarqw">${chxArqsIn()}</span>`;
+/* chamado ao repintar a lista: atualiza o contador do cabeçalho quando as mensagens chegam */
+function chxArqsAtual(){const w=$('chxArqsW');if(w){const h=chxArqsIn();if(w.innerHTML!==h)w.innerHTML=h}}
+async function chxEnviar(texto,anexo){const ch=ui.chat;if(!ch)return false;const sala=ch.t==='s',row={texto,anexo};
+  if(sala)row.chamado=ui.salaCh||null;else row[ch.t==='g'?'chamado':'agendamento']=ch.id;
+  const r=await sb.from(sala?'ag_sala':'ag_mensagens').insert(row).select().maybeSingle();
+  if(r.error){toast(/anexo/i.test(r.error.message||'')?CHX_AJ:'Não foi possível enviar: '+r.error.message,'bad');return false}
+  const k=gChatK();if(r.data&&!(G.msgs[k]||[]).some(m=>m.id===r.data.id)){G.msgs[k]=(G.msgs[k]||[]).concat([r.data]);if(!sala)G.nMsg[k]=G.msgs[k].length}
+  if(sala&&r.data){G.salaVisto=r.data.em;sb.from('ag_sala_vistos').upsert({user_id:ME.id,visto_em:r.data.em},{onConflict:'user_id'}).then(()=>{});if(ui.salaCh){ui.salaCh=null;render()}}
+  gChatPintar();const el=$('chatList');if(el)el.scrollTop=el.scrollHeight;return true}
+Object.assign(CH,{chxArq:async el=>{const f=el.files&&el.files[0];el.value='';if(!f)return;const ch=ui.chat;if(!ch)return;
+  if(f.size>CHX_MAX){toast(`O arquivo tem ${chxTam(f.size)}. O limite é 25 MB.`,'bad');return}
+  const nome=String(f.name||'arquivo').replace(/[\\/]/g,'_'),seg=nome.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_').slice(-80);
+  const path=ch.t==='s'?`chat/g/sala/${Date.now()}-${Math.random().toString(36).slice(2,7)}-${seg}`:`chat/${ch.t}/${ch.id}/${Date.now()}-${Math.random().toString(36).slice(2,7)}-${seg}`;
+  toast(`Enviando ${nome} (${chxTam(f.size)})…`);
+  const up=await sb.storage.from('agenda').upload(path,f,{contentType:f.type||'application/octet-stream',upsert:false});if(up.error){toast('Não foi possível enviar o arquivo: '+up.error.message,'bad');return}
+  const cap=(($('chatTxt')||{}).value||'').trim(),ok=await chxEnviar(cap||'Arquivo: '+nome,{tipo:'arq',path,nome,mime:f.type||'',tam:f.size,auto:!cap});
+  if(ok){if(cap){ui.chatTxt='';const i=$('chatTxt');if(i)i.value=''}toast('Arquivo enviado.')}}});
+Object.assign(ACT,{
+  chxLoc:()=>{if(!navigator.geolocation){toast('Este aparelho não informa a localização.','bad');return}toast('Buscando sua localização…');
+    navigator.geolocation.getCurrentPosition(p=>{const la=p.coords.latitude,lo=p.coords.longitude,pr=p.coords.accuracy;ui.chxPos={la,lo,pr};
+      openModal(`<h3>Enviar sua localização atual?</h3><p style="margin:8px 0"><b>${chxCoordTxt(la,lo)}</b> · precisão de ${Math.round(pr)} m</p>${pr>100?'<div class="result warn" style="margin:0 0 8px">Precisão baixa. Se possível, ative o GPS (localização precisa) e tente de novo ao ar livre.</div>':''}<p class="muted" style="margin:0">Quem está no chat recebe o ponto com o link do mapa.</p><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="chxLocOk">Enviar localização</button></div>`)},
+      e=>toast(e&&e.code===1?'A localização está bloqueada para a ferramenta. Libere nas configurações do navegador.':'Não foi possível obter a localização. Ative o GPS e tente de novo.','bad'),{enableHighAccuracy:true,timeout:20000,maximumAge:0})},
+  chxLocOk:async el=>{const P=ui.chxPos;if(!P)return;el.disabled=true;const ok=await chxEnviar('Localização: '+chxCoordTxt(P.la,P.lo),{tipo:'loc',lat:P.la,lng:P.lo,prec:Math.round(P.pr),auto:true});el.disabled=false;if(ok){closeModal();toast('Localização enviada.')}},
+  chxArqs:()=>{const L=(G.msgs[gChatK()]||[]).filter(m=>m.anexo&&m.anexo.tipo==='arq').slice().reverse();
+    openModal(`<h3>Arquivos do chat</h3><div class="chxlst">${L.map(m=>`<div>${chxAnexo(m)}<small class="muted">${esc(m.autor_nome||'')} · ${gQuando(new Date(m.em).getTime())}</small></div>`).join('')}</div><div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)}
 });
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
