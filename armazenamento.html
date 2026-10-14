@@ -64,7 +64,7 @@ const LIM_ARQ = 100 * 1024 ** 3, LIM_BANCO = 8 * 1024 ** 3;   // plano Pro: 100 
 const MAXPX = 1280, QUAL = 0.6, MIN_BYTES = 350 * 1024;    // mesmo padrão das fotos novas da agenda
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmt = b => b >= 1024 ** 3 ? (b / 1024 ** 3).toFixed(2) + ' GB' : b >= 1024 ** 2 ? (b / 1024 ** 2).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB';
+const fmt = b => b >= 1024 ** 3 ? (b / 1024 ** 3).toFixed(2) + ' GB' : b >= 1024 ** 2 ? (b / 1024 ** 2).toFixed(1) + ' MB' : (b > 0 ? Math.max(1, Math.round(b / 1024)) : 0) + ' KB';
 let USO = [], RODANDO = false, PARAR = false, ARQERR = '', ARQ = null, LOG = null, LOGERR = '', MES = '', LST = {}, OCUP = false;
 
 async function iniciar() {
@@ -217,14 +217,15 @@ function limpDesenhar() {
     const F = L[t.k], q = F.length, b = F.reduce((s, f) => s + Number(f.bytes || 0), 0), e = LST[MES + t.k];
     livre += b;
     let chip, acts;
-    if (aberto) { chip = '<span class="chip and">Mês em andamento</span>'; acts = '<button class="btn" disabled title="Disponível quando o mês fechar">Baixar ZIP</button><button class="btn" disabled title="Disponível quando o mês fechar">Apagar</button>' }
+    if (aberto) { chip = e && e.ok ? `<span class="chip zip">ZIP baixado · ${nArq(e.ok.length)}</span>` : '<span class="chip and">Mês em andamento</span>';
+      acts = `<button class="btn ${e && e.ok ? '' : 'primary'}" data-zip="${t.k}" ${OCUP ? 'disabled' : ''}>${e && e.ok ? 'Baixar de novo' : 'Baixar ZIP'}</button><button class="btn" disabled title="Apagar fica disponível quando o mês fechar">Apagar</button>` }
     else {
       chip = e && e.ok ? `<span class="chip zip">ZIP baixado · ${nArq(e.ok.length)}${e.falhas ? ' · ' + e.falhas + ' não baixaram' : ''}</span>` : '<span class="chip">No armazenamento</span>';
       acts = `<button class="btn ${e && e.ok ? '' : 'primary'}" data-zip="${t.k}" ${OCUP ? 'disabled' : ''}>${e && e.ok ? 'Baixar de novo' : 'Baixar ZIP'}</button>`
         + `<button class="btn ${e && e.ok && e.ok.length ? 'del' : ''}" data-del="${t.k}" ${e && e.ok && e.ok.length && !OCUP ? '' : 'disabled title="Baixe o ZIP primeiro"'}>Apagar</button>` }
     return `<tr><td><b>${esc(t.nome)}</b><small>${esc(t.d)}</small></td><td class="n" data-l="Arquivos">${q}</td><td class="n" data-l="Tamanho">${fmt(b)}</td><td>${chip}</td><td><div class="acts">${acts}</div></td></tr>`;
   }).join('');
-  const info = aberto ? `Mês em andamento: ${livre ? fmt(livre) + ' guardados até agora. ' : ''}A limpeza de ${mesNome(atual).toLowerCase()} fica disponível a partir do mês que vem.` : (livre ? 'Dá para liberar até ' + fmt(livre) + ' neste mês' : 'Nada mais para liberar neste mês');
+  const info = aberto ? `Mês em andamento: ${livre ? fmt(livre) + ' guardados até agora. ' : ''}Já dá para baixar o ZIP do que foi guardado até hoje; o Apagar de ${mesNome(atual).toLowerCase()} fica disponível a partir do mês que vem.` : (livre ? 'Dá para liberar até ' + fmt(livre) + ' neste mês' : 'Nada mais para liberar neste mês');
   el.innerHTML = `<h2>Baixar e liberar espaço por mês</h2>
     ${ARQERR ? `<div class="erro">Não foi possível listar os arquivos: ${esc(ARQERR)}</div>` : ''}
     <div class="row" style="margin:10px 0"><label for="limpMes"><b>Mês</b></label><select id="limpMes">${meses.map(m => `<option value="${m}" ${m === MES ? 'selected' : ''}>${mesNome(m)}${m === atual ? ' (mês em andamento)' : ''}</option>`).join('')}</select><span class="muted">${info}</span></div>
@@ -242,10 +243,10 @@ let JSZIP_P = null;
 const jszip = () => JSZIP_P || (JSZIP_P = new Promise((ok, er) => { if (window.JSZip) return ok(window.JSZip); const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'; sc.onload = () => window.JSZip ? ok(window.JSZip) : er(new Error('JSZip indisponível')); sc.onerror = () => { JSZIP_P = null; er(new Error('não foi possível carregar o gerador de ZIP')) }; document.head.appendChild(sc) }));
 function salvar(blob, nome) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000) }
 async function baixarZip(k) {
-  if (OCUP || MES >= mesDe(Date.now())) return; const F = (grupos()[MES] || {})[k] || []; if (!F.length) return;
+  if (OCUP) return; const F = (grupos()[MES] || {})[k] || []; if (!F.length) return;
   let JSZip; try { JSZip = await jszip() } catch (e) { alert(e.message); return }
   OCUP = true; limpDesenhar(); $('lProg').hidden = false;
-  const ok = [], base = `agenda_arquivos_${MES}_${k}`;
+  const ok = [], base = `agenda_arquivos_${MES}_${k}` + (MES === mesDe(Date.now()) ? '_ate-dia-' + new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', day: '2-digit' }).format(new Date()) : '');
   let zip = new JSZip(), noZip = 0, parte = 1, feitos = 0, falhas = 0, i = 0, fila = Promise.resolve();
   const txt = m => { $('lBar').style.width = (feitos / F.length * 100) + '%'; $('lTxt').textContent = m || `${tipoNome(k)} · ${mesNome(MES)}: ${feitos} de ${F.length} arquivos baixados${falhas ? ' · ' + falhas + ' com erro' : ''}` };
   const fechar = async ult => { if (!noZip) return; txt(`Gerando o ZIP${ult && parte === 1 ? '' : ' (parte ' + parte + ')'}…`); const b = await zip.generateAsync({ type: 'blob', compression: 'STORE' }); salvar(b, ult && parte === 1 ? base + '.zip' : `${base}_parte${parte}.zip`); parte++; zip = new JSZip(); noZip = 0 };
@@ -261,7 +262,7 @@ async function baixarZip(k) {
   $('lTxt').textContent = `ZIP baixado: ${nArq(ok.length)}${parte - 1 > 1 ? ' em ' + (parte - 1) + ' partes' : ''}${falhas ? ' · ' + falhas + ' não baixaram e não serão apagados' : ''}. Confira o arquivo no seu computador antes de apagar.`;
 }
 function confirmarApagar(k) {
-  const e = LST[MES + k]; if (!e || !e.ok.length || OCUP) return;
+  const e = LST[MES + k]; if (!e || !e.ok.length || OCUP || MES >= mesDe(Date.now())) return;
   const m = document.createElement('div'); m.className = 'modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
   m.innerHTML = `<div class="mbox"><h3>Apagar arquivos</h3><p><b>${esc(tipoNome(k))}</b> de <b>${mesNome(MES)}</b>: ${nArq(e.ok.length)}, ${fmt(e.bytes)}.</p>
     <div class="erro">Não tem como desfazer. Depois de apagados, esses arquivos só existem no ZIP que você baixou.</div>
