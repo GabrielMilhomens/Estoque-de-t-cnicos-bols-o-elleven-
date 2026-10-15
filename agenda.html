@@ -1009,6 +1009,9 @@ details summary{cursor:pointer;font-weight:600}
 .pmchk{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:0 12px;min-height:40px;background:var(--surface);font-size:14px;cursor:pointer}
 .pmig td{color:var(--muted);font-style:italic}
 @media(min-width:701px){.calw .evn .evh b{-webkit-line-clamp:4;overflow-wrap:anywhere}}
+.ev.evn{border-left-width:8px}
+.pmtools{align-items:stretch!important;flex-wrap:wrap}.pmtools>*{margin:0!important}
+.pmtools .inp,.pmchk{min-height:44px;height:44px;box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -1441,7 +1444,7 @@ function pEntregas(){const b=pBase();
   const grpN={cidade:'Cidade',pop:'POP',equip:'Equipamento de acesso'},gm={};b.efi.forEach(x=>{const k=x.p[ui.pGrp]||'Não informado';(gm[k]=gm[k]||[]).push(x)});
   const grR=Object.entries(gm).sort((a,c)=>c[1].length-a[1].length).map(([k,x])=>`<tr><td><b>${esc(k)}</b></td><td class="r">${x.length}</td><td class="r">${f1(x.reduce((s,y)=>s+y.tot,0)/x.length)}</td><td class="r">${S.semValor?'—':brl(x.reduce((s,y)=>s+(+y.p.valor||0),0))}</td></tr>`).join('');
   const cel=(p,f)=>{if(naoAplica(p,f.k))return '<td class="r"><span class="chip">N/A</span></td>';const r=realDias(p.etiqueta,f.k),pv=+p[f.p]||0;return `<td class="r"><span class="chip ${r>pv?'bad':(r&&r>=pv?'ok':'')}">${r} / ${pv}</span></td>`};
-  return `<div class="tools" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" data-act="pEntXlsx" title="Circuitos, topologia, cidade, POP e cruzamentos do período">Baixar planilha</button></div><div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${pEntMig(b).length?kp(pEntMig(b).length,'Migrações de GPON para ponto a ponto','info'):''}${kp(f1(b.mTot),'Dias de execução por circuito (todas as fases)')}${kp(f1(b.mIA),'Dias de execução por circuito (interno + ativação)')}</div>
+  return `<div class="tools" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" data-act="pEntXlsx" title="Circuitos, topologia, cidade, POP e cruzamentos do período">Baixar planilha</button></div><div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${kp(pEntMig(b).length,'Migrações de GPON para ponto a ponto')}${kp(f1(b.mTot),'Dias de execução por circuito (todas as fases)')}${kp(f1(b.mIA),'Dias de execução por circuito (interno + ativação)')}</div>
   <div class="grid2 even">
    <section><div class="secth"><h3>Entregas por topologia</h3></div><div class="tablewrap"><table><thead><tr><th>Topologia</th><th class="r">Circuitos</th><th class="r">Valor mensal</th></tr></thead><tbody>${Object.entries(topo).sort((a,c)=>c[1].n-a[1].n).map(([t,x])=>`<tr><td>${esc(t)}</td><td class="r">${x.n}</td><td class="r">${S.semValor?'—':brl(x.v)}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nenhuma entrega no período.</td></tr>'}${pEntMigRow(b)}</tbody></table></div></section>
    <section><div class="secth"><h3>Entregas por ${grpN[ui.pGrp].toLowerCase()}</h3><select class="inp" style="width:auto" data-ch="pGrp">${Object.entries(grpN).map(([k,n])=>`<option value="${k}" ${k===ui.pGrp?'selected':''}>Agrupar por ${n.toLowerCase()}</option>`).join('')}</select></div><div class="tablewrap"><table><thead><tr><th>${grpN[ui.pGrp]}</th><th class="r">Circuitos</th><th class="r">Dias por circuito</th><th class="r">Valor mensal</th></tr></thead><tbody>${grR||'<tr><td colspan="4" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
