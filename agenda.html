@@ -4429,7 +4429,7 @@ function viewCampo(){
   const f=['hoje','prox','enc'].includes(ui.cF)?ui.cF:'hoje',lab={hoje:'Hoje',prox:'Próximos dias',enc:'Encerradas'},L=it(f).sort((x,y)=>x.o-y.o);
   const filtros=temG?`<div class="tvflt" role="group" aria-label="Tipo">${[['tudo','Tudo'],['gtd','Manutenção GTD'],['impl','Implantação']].map(([k,n])=>`<button data-act="cTipo" data-v="${k}" aria-pressed="${tipo===k}">${n}</button>`).join('')}</div>`:'';
   const vazio={hoje:'Nada para hoje.',prox:'Nada agendado para os próximos dias.',enc:'Nada encerrado ainda.'}[f];
-  return `<div class="campo tv"><div class="toolbar"><h2>${['coord','sup','enc'].includes(ui.perfil)?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${G.erro&&temG?gErroBox():''}
+  return `<div class="campo tv"><div class="toolbar"><h2>${['coord','sup','enc'].includes(ui.perfil)?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${campoRO()?'<p class="note" style="margin:0 0 10px">Somente consulta: você vê o que o técnico vê, mas os botões não agem por ele.</p>':''}${sw}${G.erro&&temG?gErroBox():''}
    <div class="tvtabs" role="tablist">${Object.keys(lab).map(k=>`<button role="tab" data-act="cF" data-t="${k}" aria-selected="${f===k}">${lab[k]} · ${it(k).length}</button>`).join('')}</div>${filtros}
    <div class="tvlista">${L.map(x=>x.h).join('')||`<p class="muted pad">${vazio}</p>`}</div></div>`;
 }
@@ -5180,6 +5180,14 @@ Object.assign(ACT,{pEntXlsx:()=>{const b=pBase(),sv=S.semValor,V=v=>sv?undefined
     ['Resumo',xFiltros(cl({'Tela':'Painel de KPIs · Entregas','Período':`${dBR(ui.pIni)} a ${dBR(ui.pFim)}`,'Circuitos entregues':b.ent.length,'Migrações de GPON para ponto a ponto':mig.length,'Dias de execução por circuito (todas as fases)':b.mTot==null?'':+b.mTot.toFixed(1),'Dias de execução por circuito (interno + ativação)':b.mIA==null?'':+b.mIA.toFixed(1),'Valor mensal entregue (R$)':V(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0))}))]],
     b.ent.length+(b.ent.length===1?' circuito exportado.':' circuitos exportados.'))}});
 const pEntMigRow=b=>{const L=pEntMig(b);return L.length?`<tr class="pmig"><td>Ponto a ponto · migração de GPON</td><td class="r">${L.length}</td><td class="r">${S.semValor?'—':brl(L.reduce((s,{p})=>s+(+p.valor||0),0))}</td></tr>`:''};
+
+/* Visão do técnico para supervisão e encarregados: só consulta (os botões não agem pelo técnico) */
+const campoRO=()=>ui.tab==='campo'&&['sup','enc'].includes(ui.perfil);
+const CAMPO_VER=new Set(['chatEnviar','close','relVer','relBaixar','pdfArq','pdf','tvCopiar','gCopiar','abrir','tab','gTecAbrir','gAbrir','gLpuAbrir','gRfoVer','chatAbrir','chatFechar','chxArqs','cSec','cF','cTipo','tvGF','tvPer','tvSenha','tvAcc','tAcc','voltar','gFechar','menu','menuFechar','avisos','avAbrir','avLidas','logout','conta','mTab','grp','rOpen','anxOpen','pushFechar','updFechar']);
+const CAMPO_CH=new Set(['tec','gpIni','gpFim','chatFoto','chxArq']);
+const campoBloq=e=>{toast('Na Visão do técnico, supervisão e encarregados só consultam. Quem age é o técnico.','bad');e.preventDefault();e.stopImmediatePropagation()};
+document.addEventListener('click',e=>{if(!campoRO())return;const el=e.target.closest('[data-act]');if(!el||!el.closest('#app,#modal'))return;if(!CAMPO_VER.has(el.dataset.act))campoBloq(e)},true);
+document.addEventListener('change',e=>{if(!campoRO())return;const el=e.target.closest('[data-ch]');if(el&&!CAMPO_CH.has(el.dataset.ch)){campoBloq(e);if(el.type==='file')el.value=''}},true);
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
