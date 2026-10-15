@@ -992,6 +992,23 @@ details summary{cursor:pointer;font-weight:600}
 @media(min-width:701px){.calw .evn .evh{flex-direction:column;gap:3px}.calw .evn .evh b{font-size:13px}.calw .evn .evs{align-self:flex-start}.calw .evt{white-space:normal}}
 .caldia{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-bottom:6px}.caldia .ev.evn{border-radius:10px}
 .agdh2{display:flex;align-items:center;gap:8px;margin:14px 0 8px;font-weight:700}.agdh2 .chip{font-weight:600}
+/* rodada 2 */
+.ev.evn{border-left-width:12px}
+.ev.evn .evt{margin-left:4px}
+.ck{display:inline-flex;width:17px;height:17px;border-radius:50%;background:var(--fz-ativ);color:#fff;font-size:11px;align-items:center;justify-content:center;margin-right:4px;vertical-align:-2px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ck{color:#141916}}
+:root[data-theme="dark"] .ck{color:#141916}
+.gdf{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.gdf button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 11px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.gdf button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.gdt,.gdg summary{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.gdg summary{cursor:pointer}
+.gdl{display:flex;flex-direction:column;gap:8px}
+.gdl .ev.evn{padding:9px 10px 10px 12px}.gdl .ev.evn .evh b{font-size:14.5px;-webkit-line-clamp:3}
+.pmtools{gap:8px;align-items:center}
+.pmchk{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:0 12px;min-height:40px;background:var(--surface);font-size:14px;cursor:pointer}
+.pmig td{color:var(--muted);font-style:italic}
+@media(min-width:701px){.calw .evn .evh b{-webkit-line-clamp:4;overflow-wrap:anywhere}}
 </style>
 </head>
 <body>
@@ -1424,9 +1441,9 @@ function pEntregas(){const b=pBase();
   const grpN={cidade:'Cidade',pop:'POP',equip:'Equipamento de acesso'},gm={};b.efi.forEach(x=>{const k=x.p[ui.pGrp]||'Não informado';(gm[k]=gm[k]||[]).push(x)});
   const grR=Object.entries(gm).sort((a,c)=>c[1].length-a[1].length).map(([k,x])=>`<tr><td><b>${esc(k)}</b></td><td class="r">${x.length}</td><td class="r">${f1(x.reduce((s,y)=>s+y.tot,0)/x.length)}</td><td class="r">${S.semValor?'—':brl(x.reduce((s,y)=>s+(+y.p.valor||0),0))}</td></tr>`).join('');
   const cel=(p,f)=>{if(naoAplica(p,f.k))return '<td class="r"><span class="chip">N/A</span></td>';const r=realDias(p.etiqueta,f.k),pv=+p[f.p]||0;return `<td class="r"><span class="chip ${r>pv?'bad':(r&&r>=pv?'ok':'')}">${r} / ${pv}</span></td>`};
-  return `<div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${kp(f1(b.mTot),'Dias de execução por circuito (todas as fases)')}${kp(f1(b.mIA),'Dias de execução por circuito (interno + ativação)')}</div>
+  return `<div class="tools" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" data-act="pEntXlsx" title="Circuitos, topologia, cidade, POP e cruzamentos do período">Baixar planilha</button></div><div class="kpis">${kp(b.ent.length,'Circuitos entregues','ok')}${pEntMig(b).length?kp(pEntMig(b).length,'Migrações de GPON para ponto a ponto','info'):''}${kp(f1(b.mTot),'Dias de execução por circuito (todas as fases)')}${kp(f1(b.mIA),'Dias de execução por circuito (interno + ativação)')}</div>
   <div class="grid2 even">
-   <section><div class="secth"><h3>Entregas por topologia</h3></div><div class="tablewrap"><table><thead><tr><th>Topologia</th><th class="r">Circuitos</th><th class="r">Valor mensal</th></tr></thead><tbody>${Object.entries(topo).sort((a,c)=>c[1].n-a[1].n).map(([t,x])=>`<tr><td>${esc(t)}</td><td class="r">${x.n}</td><td class="r">${S.semValor?'—':brl(x.v)}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
+   <section><div class="secth"><h3>Entregas por topologia</h3></div><div class="tablewrap"><table><thead><tr><th>Topologia</th><th class="r">Circuitos</th><th class="r">Valor mensal</th></tr></thead><tbody>${Object.entries(topo).sort((a,c)=>c[1].n-a[1].n).map(([t,x])=>`<tr><td>${esc(t)}</td><td class="r">${x.n}</td><td class="r">${S.semValor?'—':brl(x.v)}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nenhuma entrega no período.</td></tr>'}${pEntMigRow(b)}</tbody></table></div></section>
    <section><div class="secth"><h3>Entregas por ${grpN[ui.pGrp].toLowerCase()}</h3><select class="inp" style="width:auto" data-ch="pGrp">${Object.entries(grpN).map(([k,n])=>`<option value="${k}" ${k===ui.pGrp?'selected':''}>Agrupar por ${n.toLowerCase()}</option>`).join('')}</select></div><div class="tablewrap"><table><thead><tr><th>${grpN[ui.pGrp]}</th><th class="r">Circuitos</th><th class="r">Dias por circuito</th><th class="r">Valor mensal</th></tr></thead><tbody>${grR||'<tr><td colspan="4" class="muted">Nenhuma entrega no período.</td></tr>'}</tbody></table></div></section>
   </div>
   ${pMatriz(b)}<section><div class="secth"><h3>Dias de execução e previsto x realizado por circuito</h3><span class="muted">Nas fases: dias realizados / previstos. Fases feitas no mesmo dia contam 1 dia no total.</span></div><div class="tablewrap"><table><thead><tr><th>Circuito</th><th>Entregue em</th><th class="r">Dias (todas)</th><th class="r">Dias (int. + ativ.)</th>${FASES.map(f=>`<th class="r">${f.k==='rua'?'Lanç. rua':f.k==='interno'?'Lanç. interno':f.k==='ext'?'Extensão':'Ativação'}</th>`).join('')}</tr></thead><tbody>${b.efi.map(x=>`<tr><td><b>${esc(x.p.etiqueta)}</b><br><small class="muted">${esc(x.p.cliente)}</small></td><td>${dBR(x.f.data)}</td><td class="r">${x.tot}</td><td class="r">${x.ia}</td>${FASES.map(f=>cel(x.p,f)).join('')}</tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhuma entrega no período. Os projetos em andamento estão em Previsão dos projetos.</td></tr>'}${b.efi.length?`<tr><td colspan="2"><b>Média</b></td><td class="r"><b>${f1(b.mTot)}</b></td><td class="r"><b>${f1(b.mIA)}</b></td><td colspan="4"></td></tr>`:''}</tbody></table></div></section>`}
@@ -2355,7 +2372,7 @@ function roiPreview(r,target){
 }
 
 /* ---------- CADASTRO EM ETAPAS ---------- */
-function wizFrom(p){const i=(p&&p.inst)||{};return{e:{cep:i.cep||'',logradouro:i.logradouro||'',numero:i.numero||'',bairro:i.bairro||'',cidade:(p&&p.cidade)||'',uf:i.uf||'',coord:(p&&(S.comp[p.etiqueta]||{}).coord)||''},t:{pop:(p&&p.pop)||'',equip:(p&&p.equip)||'',porta:i.porta||'',pa:i.pa||'',locPa:i.locPa||'',pd:i.pd||'',locPd:i.locPd||'',notas:(i.notas||[]).join('. '),semRua:p&&p.semRua?'1':'',lmLanc:(p&&p.lmLanc)||''},k:kmzDe(p)}}
+function wizFrom(p){const i=(p&&p.inst)||{};return{e:{cep:i.cep||'',logradouro:i.logradouro||'',numero:i.numero||'',bairro:i.bairro||'',cidade:(p&&p.cidade)||'',uf:i.uf||'',coord:(p&&(S.comp[p.etiqueta]||{}).coord)||''},t:{pop:(p&&p.pop)||'',equip:(p&&p.equip)||'',porta:i.porta||'',pa:i.pa||'',locPa:i.locPa||'',pd:i.pd||'',locPd:i.locPd||'',notas:(i.notas||[]).join('. '),semRua:p&&p.semRua?'1':'',lmLanc:(p&&p.lmLanc)||'',migGpon:p&&p.migGpon!=null?(p.migGpon?'sim':'nao'):''},k:kmzDe(p)}}
 function wizOpen(id,step){const p=id?S.previsao.find(x=>x.id===id):null;
   ui.roiTmp=p?Object.assign({nome:p.roi?p.roi.nome:'',itens:p.roi?p.roi.itens:[],achados:p.roi?p.roi.achados||[]:[],cabos:[],protocolo:p.protocolo,etiqueta:p.etiqueta,cliente:p.cliente,valor:p.valor,topologia:p.topologia,metros:p.metros},(p.roi&&p.roi.fin)||{}):null;
   ui.roiTarget=id||'';ui.wiz=Object.assign({step:step||1,id:id||''},wizFrom(p));renderWiz()}
@@ -4987,12 +5004,14 @@ const agTecCurto=n=>{const s=String(n||'').replace(/\s*\(.*?\)\s*/g,' ').trim(),
 const agFzChips=a=>fasesOf(a).map(k=>`<span class="evz ${FZC[k]||'x'}">${esc(FCURTO[k]||k)}</span>`).join('');
 function agStTxt(a){const t=a.ts||{};if(a.status==='deslocamento'&&typeof etaEst==='function'&&t.eta){const e=etaEst(t);if(e&&e.k==='atraso')return 'Atrasado';return 'A caminho'}return (ST[a.status]||[a.status])[0]}
 function agEv(a,d,extra){const p=pPor(a.etiqueta)||{},cli=p.cliente||cliN(a.etiqueta)||'',cid=p.cidade||'',tn=tecN(a.tec),di=typeof d==='string'&&diaIdx(a,d);
-  return `<button class="ev evn ${evCls(a)}" data-act="agOpen" data-id="${a.id}" title="${esc(cli+' · '+a.etiqueta+', '+fasesN(a)+', '+tn)}"><span class="evh"><b>${esc(cli||a.etiqueta)}</b><i class="evs ${evCls(a)}">${esc(agStTxt(a))}</i></span><small class="eve">${esc(a.etiqueta)}${cid?' · '+esc(cid):''}${di?' · '+esc(di):''}${extra?' · '+esc(extra):''}</small><small class="evf">${agFzChips(a)}<span class="evt"><i aria-hidden="true">${esc(agIni(tn))}</i>${esc(agTecCurto(tn))}</span></small></button>`}
+  const tp=topoTxt(p);
+  return `<button class="ev evn ${evCls(a)}" data-act="agOpen" data-id="${a.id}" title="${esc((cli?cli+' - ':'')+a.etiqueta+', '+fasesN(a)+', '+tn)}"><span class="evh"><b>${esc(cli?cli+' - '+a.etiqueta:a.etiqueta)}</b><i class="evs ${evCls(a)}">${esc(agStTxt(a))}</i></span><small class="eve">${[tp,cid,di,extra].filter(Boolean).map(esc).join(' · ')}</small><small class="evf">${agFzChips(a)}<span class="evt">${esc(agTecCurto(tn))}</span></small></button>`}
+const topoTxt=p=>p&&p.topologia?p.topologia+(p.migGpon?' (migração de GPON)':''):'';
 
 /* 3. Detalhe da atividade organizado */
-function agPassos(p){return fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);if(fin)return `<div class="feita"><b>${FCURTO[f.k]}</b><small>${dBR(fin.data).slice(0,5)}</small></div>`;
+function agPassos(p){return fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);if(fin)return `<div class="feita"><b><span class="ck" aria-hidden="true">✓</span>${FCURTO[f.k]}</b><small>feita em ${dBR(fin.data).slice(0,5)}</small></div>`;
   const ag=S.ags.filter(x=>x.etiqueta===p.etiqueta&&AG_ATIVOS.includes(x.status)&&fasesOf(x).includes(f.k)).sort((x,y)=>x.data<y.data?-1:1)[0];
-  return ag?`<div class="ag"><b>${FCURTO[f.k]}</b><small>${dBR(ag.data).slice(0,5)}</small></div>`:`<div><b>${FCURTO[f.k]}</b><small>pendente</small></div>`}).join('')}
+  return ag?`<div class="ag"><b>${FCURTO[f.k]}</b><small>agendada ${dBR(ag.data).slice(0,5)}</small></div>`:`<div><b>${FCURTO[f.k]}</b><small>pendente</small></div>`}).join('')}
 const agSec=(t,res,body,open)=>body?`<details class="agsec"${open?' open':''}><summary><span>${t}</span>${res?`<small>${res}</small>`:''}</summary><div class="agsb">${body}</div></details>`:'';
 function agPodeEditar(a){return a.status==='agendada'&&!(a.ts&&a.ts.desloc)&&!['terc','func'].includes(ui.perfil)&&pode('a_agendar')}
 Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p=pPor(a.etiqueta)||{etiqueta:a.etiqueta},c=S.comp[a.etiqueta]||{},t=a.ts||{},ro=['terc','func'].includes(ui.perfil);
@@ -5021,7 +5040,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
     +(a.pendReag?`<div class="note" style="margin:0 0 8px">${canReag()?'Aguardando reagendamento.':'Aguardando o encarregado reagendar.'}</div>`:'');
   const edHist=(a.edicoes||[]).length?`<p class="lbl2">Alterações da gestão</p>${a.edicoes.slice().reverse().map(e=>`<div class="dts" style="margin:3px 0"><b>${dBR(isoD(new Date(e.em))).slice(0,5)} ${hm(e.em)}</b><span style="color:var(--ink)">${esc(e.por)}: ${esc(e.mud.join('; '))}</span></div>`).join('')}`:'';
   const pdEd=agPodeEditar(a);
-  openModal(`<div class="agdt"><div class="agdh"><div><h3>${esc(cli||a.etiqueta)}</h3><p>${esc(a.etiqueta)}${p.cidade?' · '+esc(p.cidade):''}${p.topologia?' · '+esc(p.topologia):''}</p></div>${chip(a.status)}</div>
+  openModal(`<div class="agdt"><div class="agdh"><div><h3>${esc(cli||a.etiqueta)}</h3><p>${esc(a.etiqueta)}${p.cidade?' · '+esc(p.cidade):''}${p.topologia?' · '+esc(topoTxt(p)):''}</p></div>${chip(a.status)}</div>
    <div class="agfacts"><div><small>Data</small><b>${dataTxt}</b></div><div><small>Técnico</small><b>${esc(tecN(a.tec))}</b><small>${vinc(a.tec)}${a.criadoPor?' · agendado por '+esc(a.criadoPor):''}</small></div>
     <div class="w"><small>Fases desta atividade</small><span class="evf">${agFzChips(a)}</span>${(a.fasesFin||[]).length?`<small>finalizou: ${a.fasesFin.map(k=>FCURTO[k]).join(', ')}</small>`:''}</div></div>
    ${quick?`<div class="agquick">${quick}</div>`:''}${avisos}
@@ -5087,15 +5106,16 @@ function wzPasso3(W,p,fl,paste){const t=wzTopo(),lm=t==='last mile',sa=t==='fire
   const q=lm?`<div class="wzq"><b>Este last mile tem lançamento de cabo?</b><div class="wzr"><label><input type="radio" name="wzLm" data-ch="wzLm" value="sim" ${W.t.lmLanc==='sim'?'checked':''}> Sim, tem lançamento</label><label><input type="radio" name="wzLm" data-ch="wzLm" value="nao" ${W.t.lmLanc==='nao'?'checked':''}> Não, só instalação da RB</label></div></div>`:'';
   if(sa)return `<p class="note" style="margin:0 0 10px">${t==='voz'?'Voz':'Firewall'}: só ativação. Não precisa de POP, equipamento, porta, cabo, caixas, KM de fibra nem dias de rua, interno e extensão; na previsão fica só a ativação.</p>${fl('t','notas','Informações da atividade (o que será ativado, equipamento do cliente, observações)',1)}`;
   if(lm&&!W.t.lmLanc)return q+'<p class="muted" style="margin:6px 0 0">Responda a pergunta para continuar.</p>';
+  const mig=t==='ponto a ponto'?`<div class="wzq"><b>O cliente está migrando de GPON para ponto a ponto?</b><div class="wzr"><label><input type="radio" name="wzMig" data-ch="wzMig" value="sim" ${W.t.migGpon==='sim'?'checked':''}> Sim, é migração de GPON</label><label><input type="radio" name="wzMig" data-ch="wzMig" value="nao" ${W.t.migGpon==='nao'?'checked':''}> Não, cliente novo</label></div></div>`:'';
   const fix=lm?`${ro('POP','Parceiro')}${ro('Equipamento de acesso','N/A')}${ro('Porta','N/A')}<span></span>`:`${fl('t','pop','POP')}${fl('t','equip','Equipamento de acesso')}${fl('t','porta','Porta')}<span></span>`;
   if(lm&&W.t.lmLanc==='nao')return q+`<div class="grid2 even" style="gap:0 12px">${fix}</div><p class="note" style="margin:0 0 10px">Só instalação da RB: sem cabo, caixas, KM de fibra e dias de rua, interno e extensão. Na previsão fica só a ativação.</p>${fl('t','notas','Observações técnicas',1)}`;
-  return q+paste('Colar bloco de dados do projeto')+`<div class="grid2 even" style="gap:0 12px">${fix}${fl('t','pa','Ponto de acesso')}${fl('t','locPa','Localização do ponto de acesso')}${fl('t','pd','Ponto de derivação na rede externa')}${fl('t','locPd','Localização do ponto de derivação')}</div><label class="f"><span>Lançamento na rua</span><select class="inp" id="wzRua" data-in="wz" data-s="t" data-f="semRua"><option value="" ${!W.t.semRua?'selected':''}>Tem lançamento na rua</option><option value="1" ${W.t.semRua?'selected':''}>Não tem: lançamento todo interno (galpão, condomínio, prédio)</option></select></label>${fl('t','notas','Observações técnicas',1)}<div id="wzExt">${extNote(W.t)}</div>${kmzLBloco(W,p)}`}
-Object.assign(CH,{wzLm:el=>{ui.wiz.t.lmLanc=el.value;renderWiz()}});
-{const _ws=ACT.wizSave;ACT.wizSave=(...x)=>{const W=ui.wiz,t=wzTopo(),r=ui.roiTmp;if(t==='last mile'&&!W.t.lmLanc){toast('Responda se o last mile tem lançamento.','bad');return}
+  return q+mig+paste('Colar bloco de dados do projeto')+`<div class="grid2 even" style="gap:0 12px">${fix}${fl('t','pa','Ponto de acesso')}${fl('t','locPa','Localização do ponto de acesso')}${fl('t','pd','Ponto de derivação na rede externa')}${fl('t','locPd','Localização do ponto de derivação')}</div><label class="f"><span>Lançamento na rua</span><select class="inp" id="wzRua" data-in="wz" data-s="t" data-f="semRua"><option value="" ${!W.t.semRua?'selected':''}>Tem lançamento na rua</option><option value="1" ${W.t.semRua?'selected':''}>Não tem: lançamento todo interno (galpão, condomínio, prédio)</option></select></label>${fl('t','notas','Observações técnicas',1)}<div id="wzExt">${extNote(W.t)}</div>${kmzLBloco(W,p)}`}
+Object.assign(CH,{wzLm:el=>{ui.wiz.t.lmLanc=el.value;renderWiz()},wzMig:el=>{ui.wiz.t.migGpon=el.value}});
+{const _ws=ACT.wizSave;ACT.wizSave=(...x)=>{const W=ui.wiz,t=wzTopo(),r=ui.roiTmp;if(t==='last mile'&&!W.t.lmLanc){toast('Responda se o last mile tem lançamento.','bad');return}if(t==='ponto a ponto'&&!W.t.migGpon){toast('Responda se o cliente está migrando de GPON.','bad');return}
   const id=W.id,etq=r&&r.etiqueta,res=_ws(...x),p=id?S.previsao.find(y=>y.id===id):S.previsao.find(y=>y.etiqueta===etq);
   if(p){if(t==='last mile'){p.lmLanc=W.t.lmLanc;p.pop='Parceiro';p.equip='N/A';p.inst=Object.assign(p.inst||{},{porta:'N/A'});if(p.lmLanc==='nao')Object.assign(p.inst,{pa:'',locPa:'',pd:'',locPd:''})}
     else if(t==='firewall'||t==='voz'){p.pop='';p.equip='';if(p.inst)Object.assign(p.inst,{porta:'',pa:'',locPa:'',pd:'',locPd:''})}
-    else delete p.lmLanc;fwaAjusta(p);save();render()}
+    else delete p.lmLanc;if(t==='ponto a ponto')p.migGpon=W.t.migGpon==='sim';else delete p.migGpon;fwaAjusta(p);save();render()}
   return res}}
 
 /* 7. Entregas por topologia em cada cidade ou POP */
@@ -5106,10 +5126,11 @@ function pMatriz(b){const g=ui.pMx||'cidade',val=!S.semValor&&ui.pMxV!==false,TP
   const cel=(c,k,t)=>c&&c.n?`<td class="r"><button class="pmx" data-act="pMxVer" data-k="${esc(k)}" data-t="${esc(t||'')}"><b>${c.n}</b>${val?`<small>${brl(c.v)}</small>`:''}</button></td>`:'<td class="r pmz">·</td>';
   const linhas=Object.entries(M).map(([k,r])=>({k,r,tot:soma(Object.values(r))})).sort((x,y)=>y.tot.n-x.tot.n||y.tot.v-x.tot.v);
   const tc=ord.map(t=>soma(linhas.map(l=>l.r[t]||{n:0,v:0})));
-  return `<section><div class="secth"><h3>Entregas por topologia em cada ${g==='pop'?'POP':'cidade'}</h3><div class="seg pmseg">${[['cidade','Por cidade'],['pop','Por POP']].map(([k2,n])=>`<button data-act="pMx" data-g="${k2}" aria-pressed="${g===k2}">${n}</button>`).join('')}</div>${S.semValor?'':`<div class="seg pmseg">${[[1,'Quantidade e valor'],[0,'Só quantidade']].map(([k2,n])=>`<button data-act="pMxV" data-v="${k2}" aria-pressed="${val===!!k2}">${n}</button>`).join('')}</div>`}</div>
+  return `<section><div class="secth"><h3>Entregas por topologia em cada ${g==='pop'?'POP':'cidade'}</h3><div class="tools pmtools"><select class="inp" style="width:auto" data-ch="pMxG" aria-label="Agrupar">${[['cidade','Agrupar por cidade'],['pop','Agrupar por POP']].map(([k2,n])=>`<option value="${k2}" ${g===k2?'selected':''}>${n}</option>`).join('')}</select>${S.semValor?'':`<label class="chk pmchk"><input type="checkbox" data-ch="pMxV" ${val?'checked':''}> Mostrar valor mensal</label>`}</div></div>
    ${linhas.length?`<div class="tablewrap"><table class="pmt"><thead><tr><th>${g==='pop'?'POP':'Cidade'}</th>${ord.map(t=>`<th class="r">${esc(t)}</th>`).join('')}<th class="r">Total</th></tr></thead><tbody>${linhas.map(l=>`<tr><td><b>${esc(l.k)}</b></td>${ord.map(t=>cel(l.r[t],l.k,t)).join('')}${cel(l.tot,l.k,'')}</tr>`).join('')}<tr class="pmtot"><td><b>Total</b></td>${ord.map((t,i)=>cel(tc[i],'',t)).join('')}${cel(soma(tc),'','')}</tr></tbody></table></div>`:'<p class="muted">Nenhuma entrega no período.</p>'}
    <p class="muted" style="font-size:13px;margin:6px 0 0">Toque no número para ver os circuitos.${g==='pop'?' Last mile aparece com POP "Parceiro"; Firewall, Voz e FWA em "Sem POP".':''}</p></section>`}
-Object.assign(ACT,{pMx:el=>{ui.pMx=el.dataset.g;render()},pMxV:el=>{ui.pMxV=el.dataset.v==='1';render()},
+Object.assign(CH,{pMxG:el=>{ui.pMx=el.value;render()},pMxV:el=>{ui.pMxV=el.checked;render()}});
+Object.assign(ACT,{
   pMxVer:el=>{const k=el.dataset.k,t=el.dataset.t,g=ui.pMx||'cidade',b=pBase();
     const L=b.ent.filter(({p})=>(!t||(p.topologia||'—')===t)&&(!k||(g==='pop'?(p.pop||(soAtiv(p)&&normK(p.topologia||'')!=='last mile'?'Sem POP':'Não informado')):(p.cidade||'Não informada'))===k));
     openModal(`<h3>${esc([t||'Todas as topologias',k||(g==='pop'?'todos os POPs':'todas as cidades')].join(' · '))}</h3><p class="muted">${L.length} ${L.length===1?'circuito entregue':'circuitos entregues'} no período${S.semValor?'':' · '+brl(L.reduce((s,{p})=>s+(+p.valor||0),0))+' por mês'}</p>
@@ -5117,6 +5138,34 @@ Object.assign(ACT,{pMx:el=>{ui.pMx=el.dataset.g;render()},pMxV:el=>{ui.pMxV=el.d
 
 /* visão Dia com os mesmos cards da semana e do mês */
 const agDiaCards=(L,D,late)=>L.length?`<div class="caldia">${L.map(a=>agEv(a,D,late?'agendada para '+dBR(a.data):a.origem?'reagendamento':'')).join('')}</div>`:'';
+
+/* lista do dia (tocar no dia da semana ou do mês): mesmos cards, agrupados pela situação */
+const GD_GR=[['conc','Concluídas',a=>a.status==='concluida'],['and','Em andamento',a=>['deslocamento','no_local','execucao'].includes(a.status)],['pend','Relatórios ou LPU pendentes',a=>['relatorios','lpu'].includes(a.status)],['ag','Agendadas',a=>a.status==='agendada'],['nao','Não concluídas',a=>a.status==='nao_concluida'],['canc','Canceladas',a=>a.status==='cancelada']];
+function gdHtml(d){const L=S.ags.filter(a=>naData(a,d)&&agFilt(a)),dw=new Date(d+'T12:00:00'),F=ui.gdF||'all',G=GD_GR.map(([k,t,fn])=>[k,t,L.filter(fn)]).filter(x=>x[2].length);
+  const bloco=([k,t,X])=>{const c=`<div class="gdl">${X.map(a=>agEv(a,d)).join('')}</div>`;return k==='canc'&&F==='all'?`<details class="gdg"><summary>${t} · ${X.length}</summary>${c}</details>`:`<p class="gdt">${t} · ${X.length}</p>${c}`};
+  return `<h3>${DSEM[dw.getDay()].charAt(0).toUpperCase()+DSEM[dw.getDay()].slice(1)}, ${dBR(d)}</h3><p class="muted">${L.length} ${L.length===1?'atividade':'atividades'}${ui.agFase!=='all'||ui.agTec!=='all'?' com os filtros atuais':''}</p>
+   ${G.length>1?`<div class="gdf">${[['all','Todas',L.length]].concat(G.map(([k,t,X])=>[k,t,X.length])).map(([k,t,n])=>`<button data-act="gdF" data-k="${k}" data-d="${d}" aria-pressed="${F===k}">${t} · ${n}</button>`).join('')}</div>`:''}
+   ${G.filter(x=>F==='all'||F===x[0]).map(bloco).join('')||'<p class="muted">Nenhuma atividade.</p>'}
+   <div class="actions"><button class="btn" data-act="diaVer" data-d="${d}">Ver na visão de dia</button><button class="btn primary" data-act="close">Fechar</button></div>`}
+Object.assign(ACT,{goDia:el=>{ui.gdF='all';openModal(gdHtml(el.dataset.d))},gdF:el=>{ui.gdF=el.dataset.k;const m=document.querySelector('#modal .sheetm')||document.querySelector('#modal > div');if(m)m.innerHTML=gdHtml(el.dataset.d);else openModal(gdHtml(el.dataset.d))}});
+
+/* Entregas: planilha e migração de GPON */
+const pEntMig=b=>b.ent.filter(({p})=>p.migGpon);
+Object.assign(ACT,{pEntXlsx:()=>{const b=pBase(),sv=S.semValor,V=v=>sv?undefined:xR(+v||0),cl=o=>{Object.keys(o).forEach(k=>o[k]===undefined&&delete o[k]);return o};
+  const tec=e=>{const f=faseFim(e,'ativ');return f?tecN(f.tec):''};
+  const grp=(fn)=>{const M={};b.efi.forEach(x=>{const k=fn(x.p);const g=M[k]=M[k]||{n:0,d:0,v:0};g.n++;g.d+=x.tot;g.v+=+x.p.valor||0});return M};
+  const topo=grp(p=>p.topologia||'—'),cid=grp(p=>p.cidade||'Não informada'),pop=grp(p=>p.pop||(soAtiv(p)&&normK(p.topologia||'')!=='last mile'?'Sem POP':'Não informado'));
+  const lin=(M,n)=>Object.entries(M).sort((a,c)=>c[1].n-a[1].n).map(([k,g])=>cl({[n]:k,'Circuitos':g.n,'Dias por circuito':+(g.d/g.n).toFixed(1),'Valor mensal (R$)':V(g.v)}));
+  const cruz=(chave,n)=>{const TP=[...new Set(b.ent.map(({p})=>p.topologia||'—'))],M={};b.ent.forEach(({p})=>{const k=chave(p),r=M[k]=M[k]||{};r[p.topologia||'—']=(r[p.topologia||'—']||0)+1});
+    const L=Object.entries(M).map(([k,r])=>Object.assign({[n]:k},...TP.map(t=>({[t]:r[t]||0})),{Total:TP.reduce((s,t)=>s+(r[t]||0),0)})).sort((a,c)=>c.Total-a.Total);
+    L.push(Object.assign({[n]:'Total'},...TP.map(t=>({[t]:L.reduce((s,x)=>s+x[t],0)})),{Total:L.reduce((s,x)=>s+x.Total,0)}));return L};
+  const circ=b.efi.map(x=>{const p=x.p,o={'Etiqueta':p.etiqueta,'Cliente':p.cliente||'','Topologia':p.topologia||'','Migração de GPON':p.migGpon?'Sim':normK(p.topologia||'')==='ponto a ponto'?'Não':'','Cidade':p.cidade||'','POP':p.pop||'','Entregue em':dBR(x.f.data),'Técnico da ativação':tec(p.etiqueta),'Dias (todas as fases)':x.tot,'Dias (interno + ativação)':x.ia};
+    FASES.forEach(f=>{o[FCURTO[f.k]+' (realizado / previsto)']=naoAplica(p,f.k)?'N/A':`${realDias(p.etiqueta,f.k)} / ${+p[f.p]||0}`});o['Valor mensal (R$)']=V(p.valor);return cl(o)});
+  const mig=pEntMig(b);
+  xlsxBaixar(`entregas_${ui.pIni}_a_${ui.pFim}`,[['Circuitos',circ],['Por topologia',lin(topo,'Topologia')],['Por cidade',lin(cid,'Cidade')],['Por POP',lin(pop,'POP')],['Topologia x cidade',cruz(p=>p.cidade||'Não informada','Cidade')],['Topologia x POP',cruz(p=>p.pop||(soAtiv(p)&&normK(p.topologia||'')!=='last mile'?'Sem POP':'Não informado'),'POP')],
+    ['Resumo',xFiltros(cl({'Tela':'Painel de KPIs · Entregas','Período':`${dBR(ui.pIni)} a ${dBR(ui.pFim)}`,'Circuitos entregues':b.ent.length,'Migrações de GPON para ponto a ponto':mig.length,'Dias de execução por circuito (todas as fases)':b.mTot==null?'':+b.mTot.toFixed(1),'Dias de execução por circuito (interno + ativação)':b.mIA==null?'':+b.mIA.toFixed(1),'Valor mensal entregue (R$)':V(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0))}))]],
+    b.ent.length+(b.ent.length===1?' circuito exportado.':' circuitos exportados.'))}});
+const pEntMigRow=b=>{const L=pEntMig(b);return L.length?`<tr class="pmig"><td>Ponto a ponto · migração de GPON</td><td class="r">${L.length}</td><td class="r">${S.semValor?'—':brl(L.reduce((s,{p})=>s+(+p.valor||0),0))}</td></tr>`:''};
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
