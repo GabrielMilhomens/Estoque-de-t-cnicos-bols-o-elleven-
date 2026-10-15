@@ -1015,6 +1015,10 @@ table.eqt tfoot b{font:700 18px 'Barlow Condensed',Barlow,sans-serif;color:var(-
 .tobs span,.tobs2 span,.agdt .note{white-space:pre-line;overflow-wrap:anywhere}
 .ausht{display:flex!important;gap:8px;align-items:center;margin:0 0 12px;font-size:14px;cursor:pointer}.ausht input{width:18px;height:18px}
 .agquick a.btn,.agquick a.btn:visited{color:var(--ink)}
+[data-hold]{position:relative;background-image:linear-gradient(rgba(0,0,0,.2),rgba(0,0,0,.2));background-size:var(--p,0%) 100%;background-repeat:no-repeat;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+.btn.ghost[data-hold]{background-image:linear-gradient(var(--bad-soft),var(--bad-soft));color:var(--bad);border-color:var(--bad)}
+[data-hold].holding{transform:scale(.99)}
+.updtela .upd{border:0;padding:0}
 </style>
 </head>
 <body>
@@ -2015,7 +2019,7 @@ function blocoAcao(a){
   const order=['agendada','deslocamento','no_local','execucao','relatorios'].concat(['lpu']).concat(['concluida']);
   const s=order.indexOf(a.status);
   const etapas=a.status==='nao_concluida'?'':`<div class="tcand"><span class="tck2">ETAPAS DESTA ATIVIDADE</span><div class="tcbars" style="grid-template-columns:repeat(${steps.length},minmax(0,1fr))">${steps.map((n,i)=>{const done=a.status==='concluida'||i<s-1,cur=!done&&i===Math.max(0,s-1)&&a.status!=='agendada'||(a.status==='agendada'&&i===0);return `<div><i class="${done?'ok':cur?'now':''}"></i><span class="${done?'ok':cur?'now':''}">${n}</span></div>`}).join('')}</div></div>`;
-  const nok=`<button class="btn ghost wide" data-act="nao" data-id="${a.id}">Não foi possível realizar</button>`;
+  const nok=`<button class="btn ghost wide" data-act="nao" data-id="${a.id}" data-hold="3000">Segure: não foi possível ${a.status==='execucao'?'concluir':'realizar'}</button>`;
   const go=l=>`<button class="bigbtn" data-act="go" data-id="${a.id}">${l}</button>`;
   let act='';
   switch(a.status){
@@ -2033,7 +2037,7 @@ function blocoAcao(a){
         <label class="f" style="margin:0"><span>Por quê? *</span><select class="inp" id="pzMot"><option value="">Selecione…</option>${MOT_PRAZO.map(m=>`<option>${m}</option>`).join('')}</select></label>
         <label class="f" style="margin:0"><span>Explique o que falta *</span><textarea class="inp" id="pzObs" rows="3" placeholder="Ex.: a travessia da avenida precisa de autorização; faltam 180 m"></textarea></label>
         <button class="btn primary wide" data-act="pzEnviar" data-id="${a.id}">Enviar pedido à gestão</button><button class="link" data-act="pzVoltar" data-id="${a.id}">Voltar</button>`}</section>`}
-      act=pz+updHtml(a)+go('Concluir atividade')+(proxDia(a)?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (continuo em ${dBR(proxDia(a)).slice(0,5)})</button>`:ph&&ph.status==='pendente'?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (aguardo a gestão)</button>`:'')+nok;break}
+      act=pz+updHtml(a)+`<button class="bigbtn" data-act="go" data-id="${a.id}" data-hold="3000">Segure para concluir a atividade</button>`+(proxDia(a)?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (continuo em ${dBR(proxDia(a)).slice(0,5)})</button>`:ph&&ph.status==='pendente'?`<button class="btn wide diab" data-act="diaFim" data-id="${a.id}">Encerrar o dia (aguardo a gestão)</button>`:'')+nok;break}
     case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">${a.parcial?'Envie o relatório do que foi feito antes de lançar na LPU.':'Preencha o relatório para encerrar a atividade.'}</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}${relsDe(a).some(r=>r.k==='entrega')&&!a.rel.entrega?`<label class="btn wide relup">Enviar o PDF salvo no celular<input type="file" accept="application/pdf,.pdf" data-ch="relPdfUp" data-id="${a.id}" hidden></label><p class="muted" style="margin:-2px 0 0;font-size:13px">Use se o relatório foi gerado e salvo no celular, mas não chegou à agenda.</p>`:''}${ui.perfil==='func'?notaAdmBox('a',a.id,a.notaAdm):''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${ui.perfil==='func'?'Enviar relatório':'Enviar relatório e preencher LPU'}</button>`;break}
     case 'lpu':if(ui.perfil==='func'){act=`<div class="result info"><b>Relatórios enviados.</b> A atividade agora está com o administrador da sua empresa, que já foi avisado. Para você, ela está concluída.</div>${notaAdmBox('a',a.id,a.notaAdm)}`;break}if(S.lpus.some(x=>x.ag===a.id)){act=`<div class="result ok">A LPU desta atividade já foi enviada.</div><button class="bigbtn" data-act="lpuJaEnviada" data-id="${a.id}">Encerrar a atividade</button>`;break}act=`${a.parcial?`<div class="result warn"><b>Atividade não concluída:</b> ${esc(a.motivo||'')}${a.obsMotivo?'. '+esc(a.obsMotivo):''}<br>Lance na LPU somente o que foi executado nesta visita.</div>`:''}<p class="muted" style="margin:0">Lance os serviços executados nesta visita.</p><button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;break;
     case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída em ${dBR(isoD(new Date(t.encerramento||t.conclusao||Date.now())))}.</div>${ui.perfil==='func'?relsFunc(a):l?`<div class="result">LPU enviada ${lchip(l.status)}${aprovPor(l)?`<br><small>${aprovPor(l)}</small>`:''}</div><button class="btn wide" data-act="pdfArq" data-id="${l.id}">Abrir PDF da LPU</button>`:['clt','terc','func','coord'].includes(ui.perfil)?`<div class="result bad"><b>A LPU desta atividade não chegou ao sistema.</b> Toque abaixo para preencher e enviar de novo.</div><button class="bigbtn" data-act="lpuRefazer" data-id="${a.id}">Enviar a LPU</button>`:''}`;break}
@@ -4437,6 +4441,7 @@ function viewCampo(){
 
 /* ---------- tela da atividade (Implantação) ---------- */
 function detalhe(a){
+  if(a.status==='execucao'&&(ui.upd||{})[a.id])return updTela(a);
   const p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},t=a.ts||{},T=Date.now(),{act}=blocoAcao(a);
   const k=['<label class="f" style="margin:0"><span>Previsão de chegada','<button class="bigbtn"'].map(x=>act.indexOf(x)).filter(x=>x>=0),i=k.length?Math.min(...k):act.length;
   let pre=act.slice(0,i),foot=act.slice(i);
@@ -4507,7 +4512,7 @@ function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
   else if(c.status==='aberto')foot=`<label class="tveta"><span>Previsão de chegada *</span><input class="inp" type="time" id="gEta" data-in="gEta" data-id="${c.id}" value="${esc((ui.gEta||{})[c.id]||'')}"></label><button class="bigbtn" data-act="gTecPasso" data-p="desloc" data-id="${c.id}">Iniciar deslocamento</button>`;
   else if(c.status==='desloc'){pre+=etaBoxT(c.ts||{},'g',c.id);foot=`<button class="bigbtn" data-act="gTecPasso" data-p="local" data-id="${c.id}">Cheguei no cliente</button><small class="tvnota">Toque assim que chegar no endereço.</small>`}
   else if(c.status==='local')foot=`<button class="bigbtn" data-act="gTecPasso" data-p="atend" data-id="${c.id}">Iniciar atendimento</button><small class="tvnota">Toque quando começar a mexer no equipamento.</small>`;
-  else if(c.status==='atend')foot=`<button class="bigbtn" data-act="gTecPasso" data-p="valid" data-id="${c.id}">Pedir validação ao NOC</button><small class="tvnota">O MTTR só para quando o NOC validar. O desfecho é informado depois, no RFO.</small>`;
+  else if(c.status==='atend')foot=`<button class="bigbtn" data-act="gTecPasso" data-p="valid" data-id="${c.id}" data-hold="3000">Segure para pedir validação ao NOC</button><small class="tvnota">O MTTR só para quando o NOC validar. O desfecho é informado depois, no RFO.</small>`;
   else if(c.status==='valid')foot='<div class="result warn" style="margin:0">Aguardando a validação do NOC. O MTTR continua contando.</div>';
   else if(c.status==='lpu'){if(ui.perfil==='func')pre+=`<div class="result info" style="margin:0"><b>RFO enviado.</b> O chamado agora está com o administrador da sua empresa, que já foi avisado.</div>${notaAdmBox('g',c.id,c.notaAdm)}${rfo}`;else{pre+=rfo;foot=`<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU</button><small class="tvnota">O RFO já foi gerado. A LPU tem 3 passos.</small>`}}
   else if(l&&l.status==='ajuste'&&ui.perfil!=='func'){const m=(l.hist||[]).slice().reverse().find(h=>h.motivo);pre+=`<div class="result bad" style="margin:0"><b>LPU devolvida para ajuste.</b> ${esc(m?m.motivo:'')}</div>${rfo}`;foot=`<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}" data-aj="${l.id}">Corrigir a LPU</button>`}
@@ -5202,6 +5207,25 @@ const CAMPO_CH=new Set(['tec','gpIni','gpFim','chatFoto','chxArq']);
 const campoBloq=e=>{toast('Na Visão do técnico, supervisão e encarregados só consultam. Quem age é o técnico.','bad');e.preventDefault();e.stopImmediatePropagation()};
 document.addEventListener('click',e=>{if(!campoRO())return;const el=e.target.closest('[data-act]');if(!el||!el.closest('#app,#modal'))return;if(!CAMPO_VER.has(el.dataset.act))campoBloq(e)},true);
 document.addEventListener('change',e=>{if(!campoRO())return;const el=e.target.closest('[data-ch]');if(el&&!CAMPO_CH.has(el.dataset.ch)){campoBloq(e);if(el.type==='file')el.value=''}},true);
+
+/* 15/10: trava "segure por 3 segundos" nos botões que encerram (Implantação e GTD) e atualização do andamento em tela própria */
+const HOLD_MS=3000;
+(()=>{let H=null;
+  const fim=(ok)=>{if(!H)return;cancelAnimationFrame(H.raf);const el=H.el,curto=performance.now()-H.t0<500;el.style.setProperty('--p','0%');el.classList.remove('holding');const fez=H.ok;H=null;if(!fez&&!ok&&curto)toast('Segure o botão por 3 segundos para confirmar.')};
+  document.addEventListener('pointerdown',e=>{const el=e.target.closest('[data-hold]');if(!el||el.disabled||e.button>0)return;
+    if(typeof campoRO==='function'&&campoRO()){toast('Na Visão do técnico, supervisão e encarregados só consultam. Quem age é o técnico.','bad');return}
+    e.preventDefault();const ms=+el.dataset.hold||HOLD_MS;H={el,t0:performance.now(),ok:false};el.classList.add('holding');
+    const go=()=>{if(!H)return;const p=Math.min(1,(performance.now()-H.t0)/ms);el.style.setProperty('--p',(p*100).toFixed(1)+'%');
+      if(p>=1){H.ok=true;try{navigator.vibrate&&navigator.vibrate(60)}catch(x){}const f=ACT[el.dataset.act];fim(true);if(f)f(el);return}H.raf=requestAnimationFrame(go)};H.raf=requestAnimationFrame(go)},true);
+  ['pointerup','pointercancel','pointerleave'].forEach(t=>document.addEventListener(t,e=>{if(H&&(t!=='pointerleave'||e.target===H.el))fim(false)},true));
+  document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el){e.preventDefault();e.stopImmediatePropagation()}},true);
+  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()},true);
+})();
+/* atualização do andamento: tela só dela, sem Concluir e Não foi possível */
+function updTela(a){const h=updHtml(a),bt=h.match(/<button class="btn primary wide" data-act="updEnviar"[^>]*>Enviar atualização<\/button><button class="link" data-act="updFechar"[^>]*>Cancelar<\/button>/),corpo=bt?h.replace(bt[0],''):h;
+  return `${tvHead('updFechar','a',a.id)}<article class="tvtop"><div class="tvtt">${tvTag('impl','Implantação · '+esc(a.etiqueta))}<h2 class="tvnome">${esc(cliN(a.etiqueta)||a.etiqueta)}</h2></div></article><div class="tvpre updtela">${corpo}</div>${tvFoot(bt?`<button class="bigbtn" data-act="updEnviar" data-id="${a.id}">Enviar atualização</button><button class="btn wide" data-act="updFechar" data-id="${a.id}">Cancelar</button>`:'')}`}
+{const _ua=ACT.updAbrir;ACT.updAbrir=el=>{_ua(el);window.scrollTo(0,0)}}
+ACT.updFechar=el=>{ui.upd=ui.upd||{};const id=el.dataset.id;if(id)delete ui.upd[id];else ui.upd={};render();window.scrollTo(0,0)};
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
