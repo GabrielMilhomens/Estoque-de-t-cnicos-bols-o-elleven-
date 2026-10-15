@@ -990,6 +990,8 @@ details summary{cursor:pointer;font-weight:600}
 .pmz{color:var(--line)}.pmtot td{background:var(--bg)}
 @media(max-width:640px){.agfacts{grid-template-columns:1fr}.agfoot .btn{flex:1 1 auto}}
 @media(min-width:701px){.calw .evn .evh{flex-direction:column;gap:3px}.calw .evn .evh b{font-size:13px}.calw .evn .evs{align-self:flex-start}.calw .evt{white-space:normal}}
+.caldia{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-bottom:6px}.caldia .ev.evn{border-radius:10px}
+.agdh2{display:flex;align-items:center;gap:8px;margin:14px 0 8px;font-weight:700}.agdh2 .chip{font-weight:600}
 </style>
 </head>
 <body>
@@ -1843,8 +1845,7 @@ function calendario(){
     const atras=D===T?S.ags.filter(a=>a.data<T&&!FIM.includes(a.status)&&a.status!=='cancelada'&&agFilt(a)):[];
     const lst=S.ags.filter(a=>naData(a,D)&&agFilt(a));qtd=lst.length;
     const d=new Date(D+'T12:00:00');titulo=`${DSEM[d.getDay()]}, ${dBR(D)}`;
-    const item=(a,late)=>`<button class="item ${late?'late':''}" data-act="agOpen" data-id="${a.id}" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;cursor:pointer"><div><b>${esc(a.etiqueta)}</b> ${esc(cliN(a.etiqueta))}<small>${fasesN(a)}, ${esc(tecN(a.tec))}${late?`, agendada para ${dBR(a.data)}`:''}${a.origem?', reagendamento':''}</small></div><div class="right">${chip(a.status)}</div></button>`;
-    corpo=`${atras.length?`<h3 class="lsub" style="margin-top:0">Pendentes de dias anteriores</h3>${atras.map(a=>item(a,1)).join('')}<h3 class="lsub">${dBR(D)}</h3>`:''}${lst.map(a=>item(a)).join('')||'<p class="muted pad">Nenhuma atividade nesta data. Busque uma etiqueta para agendar.</p>'}`;
+    corpo=`${atras.length?`<div class="agdh2" style="margin-top:0">Pendentes de dias anteriores <span class="chip warn">${atras.length}</span></div>${agDiaCards(atras,D,1)}<div class="agdh2">${dBR(D)}</div>`:''}${agDiaCards(lst,D)||'<p class="muted pad">Nenhuma atividade nesta data. Busque uma etiqueta para agendar.</p>'}`;
   }else if(v==='semana'){
     const ini=semanaIni(D),dias=[...Array(7)].map((_,k)=>addD(ini,k));titulo=`Semana de ${dBR(dias[0]).slice(0,5)} a ${dBR(dias[6])}`;
     corpo=`<div class="calw">${dias.map(x=>{const L=S.ags.filter(a=>naData(a,x)&&agFilt(a));qtd+=L.length;const d=new Date(x+'T12:00:00');return `<div class="dcol"><button class="dh ${x===T?'today':''}" data-act="goDia" data-d="${x}">${DSEM[d.getDay()]} ${dBR(x).slice(0,5)}</button><div class="db">${L.map(a=>ev(a,x)).join('')}</div></div>`}).join('')}</div>`;
@@ -4985,8 +4986,8 @@ const agIni=n=>String(n||'').replace(/\(.*?\)/g,' ').trim().split(/\s+/).filter(
 const agTecCurto=n=>{const s=String(n||'').replace(/\s*\(.*?\)\s*/g,' ').trim(),w=s.split(/\s+/);return w.length>2?w.slice(0,2).join(' '):s};
 const agFzChips=a=>fasesOf(a).map(k=>`<span class="evz ${FZC[k]||'x'}">${esc(FCURTO[k]||k)}</span>`).join('');
 function agStTxt(a){const t=a.ts||{};if(a.status==='deslocamento'&&typeof etaEst==='function'&&t.eta){const e=etaEst(t);if(e&&e.k==='atraso')return 'Atrasado';return 'A caminho'}return (ST[a.status]||[a.status])[0]}
-function agEv(a,d){const p=pPor(a.etiqueta)||{},cli=p.cliente||cliN(a.etiqueta)||'',cid=p.cidade||'',tn=tecN(a.tec),di=typeof d==='string'&&diaIdx(a,d);
-  return `<button class="ev evn ${evCls(a)}" data-act="agOpen" data-id="${a.id}" title="${esc(cli+' · '+a.etiqueta+', '+fasesN(a)+', '+tn)}"><span class="evh"><b>${esc(cli||a.etiqueta)}</b><i class="evs ${evCls(a)}">${esc(agStTxt(a))}</i></span><small class="eve">${esc(a.etiqueta)}${cid?' · '+esc(cid):''}${di?' · '+esc(di):''}</small><small class="evf">${agFzChips(a)}<span class="evt"><i aria-hidden="true">${esc(agIni(tn))}</i>${esc(agTecCurto(tn))}</span></small></button>`}
+function agEv(a,d,extra){const p=pPor(a.etiqueta)||{},cli=p.cliente||cliN(a.etiqueta)||'',cid=p.cidade||'',tn=tecN(a.tec),di=typeof d==='string'&&diaIdx(a,d);
+  return `<button class="ev evn ${evCls(a)}" data-act="agOpen" data-id="${a.id}" title="${esc(cli+' · '+a.etiqueta+', '+fasesN(a)+', '+tn)}"><span class="evh"><b>${esc(cli||a.etiqueta)}</b><i class="evs ${evCls(a)}">${esc(agStTxt(a))}</i></span><small class="eve">${esc(a.etiqueta)}${cid?' · '+esc(cid):''}${di?' · '+esc(di):''}${extra?' · '+esc(extra):''}</small><small class="evf">${agFzChips(a)}<span class="evt"><i aria-hidden="true">${esc(agIni(tn))}</i>${esc(agTecCurto(tn))}</span></small></button>`}
 
 /* 3. Detalhe da atividade organizado */
 function agPassos(p){return fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);if(fin)return `<div class="feita"><b>${FCURTO[f.k]}</b><small>${dBR(fin.data).slice(0,5)}</small></div>`;
@@ -5113,6 +5114,9 @@ Object.assign(ACT,{pMx:el=>{ui.pMx=el.dataset.g;render()},pMxV:el=>{ui.pMxV=el.d
     const L=b.ent.filter(({p})=>(!t||(p.topologia||'—')===t)&&(!k||(g==='pop'?(p.pop||(soAtiv(p)&&normK(p.topologia||'')!=='last mile'?'Sem POP':'Não informado')):(p.cidade||'Não informada'))===k));
     openModal(`<h3>${esc([t||'Todas as topologias',k||(g==='pop'?'todos os POPs':'todas as cidades')].join(' · '))}</h3><p class="muted">${L.length} ${L.length===1?'circuito entregue':'circuitos entregues'} no período${S.semValor?'':' · '+brl(L.reduce((s,{p})=>s+(+p.valor||0),0))+' por mês'}</p>
      <div style="margin-top:8px">${L.map(({p})=>`<div class="item"><div><b>${esc(p.cliente||'')}</b><small>${esc(p.etiqueta)} · ${esc(p.topologia||'')} · ${esc(p.cidade||'')}${p.pop?' · '+esc(p.pop):''}</small></div>${S.semValor?'':`<div class="right">${brl(+p.valor||0)}</div>`}</div>`).join('')}</div><div class="actions"><button class="btn primary" data-act="close">Fechar</button></div>`)}});
+
+/* visão Dia com os mesmos cards da semana e do mês */
+const agDiaCards=(L,D,late)=>L.length?`<div class="caldia">${L.map(a=>agEv(a,D,late?'agendada para '+dBR(a.data):a.origem?'reagendamento':'')).join('')}</div>`:'';
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
