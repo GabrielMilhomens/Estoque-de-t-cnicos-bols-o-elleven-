@@ -4906,8 +4906,21 @@ Object.assign(ACT,{
 const corrPode=()=>['coord','sup'].includes(ui.perfil);
 function corrBloco(a){const ff=a.fasesFin||[],C=a.correcoes||[];if(!ff.length&&!C.length)return '';
   return `${C.length?`<div class="result warn" style="margin-top:10px"><b>Correções da gestão:</b>${C.map(c=>`<br>${dBR(isoD(new Date(c.em)))} · ${esc(c.por||'')}: ${c.fases.map(k=>FCURTO[k]||k).join(', ')} ${c.fases.length===1?'deixou':'deixaram'} de constar como finalizada${c.fases.length===1?'':'s'}. ${esc(c.motivo||'')}`).join('')}</div>`:''}
-   ${ff.length&&corrPode()&&!['cancelada'].includes(a.status)?`<div class="tools" style="margin-top:10px"><button class="btn sm" data-act="corrAbrir" data-id="${a.id}">Corrigir fases finalizadas</button></div>`:''}`}
+   ${a.retirada?`<div class="result warn" style="margin-top:10px"><b>Retirada do técnico:</b> ${dBR(isoD(new Date(a.retirada.em)))} · ${esc(a.retirada.por||'')}: ${esc(a.retirada.motivo||'')}. Aguardando reagendamento.</div>`:''}
+   ${!['cancelada'].includes(a.status)&&(corrPode()&&ff.length||corrRetPode()&&C.length&&CORR_RET.includes(a.status))?`<div class="tools" style="margin-top:10px">${ff.length&&corrPode()?`<button class="btn sm" data-act="corrAbrir" data-id="${a.id}">Corrigir fases finalizadas</button>`:''}${corrRetPode()&&C.length&&CORR_RET.includes(a.status)?`<button class="btn sm" data-act="corrRet" data-id="${a.id}">Tirar do técnico e aguardar reagendamento</button>`:''}</div>`:''}`}
+const corrRetPode=()=>['coord','sup','enc'].includes(ui.perfil);
+const CORR_RET=['deslocamento','no_local','execucao','relatorios','lpu','concluida'];
 Object.assign(ACT,{
+  corrRet:el=>{if(!corrRetPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const ult=(a.correcoes||[]).slice(-1)[0],l=S.lpus.find(x=>x.ag===a.id);
+    openModal(`<h3>Tirar a atividade do técnico</h3><p class="muted">${esc(a.etiqueta)} · ${esc(cliN(a.etiqueta)||'')} · ${dBR(a.data)} · ${esc(tecN(a.tec))}</p>
+     <p style="margin:10px 0 6px">A atividade sai da lista do técnico (não precisa mais enviar relatórios nem LPU dela) e vai para <b>Aguardando reagendamento</b>, sem data. Quando souber o dia, use Reagendar.</p>
+     ${l?`<div class="result warn" style="margin:0 0 8px">Esta atividade já tem LPU (${esc(l.status)}). Confira na Aprovação de LPU.</div>`:''}
+     <label class="f"><span>Motivo *</span><textarea class="inp" id="corrRetMot" rows="2">${esc(ult?ult.motivo:'')}</textarea></label>
+     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="corrRetOk" data-id="${a.id}">Tirar do técnico</button></div>`)},
+  corrRetOk:el=>{if(!corrRetPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const mot=(($('corrRetMot')||{}).value||'').trim();if(!mot){toast('Escreva o motivo.','bad');return}
+    a.retirada={em:Date.now(),por:meNome(),motivo:mot,statusAnt:a.status};a.status='nao_concluida';a.pendReag=true;a.motivo='Retirada pela gestão';a.obsMotivo=mot;save();
+    sb.from('ag_mensagens').insert({agendamento:a.id,texto:'Atividade retirada pela gestão: '+mot+'. Ela será reagendada.'}).then(()=>{},()=>{});
+    closeModal();render();toast(`${a.etiqueta} saiu da lista de ${tecN(a.tec)} e está aguardando reagendamento.`)},
   corrAbrir:el=>{if(!corrPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const ff=a.fasesFin||[];
     openModal(`<h3>Corrigir fases finalizadas</h3><p class="muted">${esc(a.etiqueta)} · ${esc(cliN(a.etiqueta)||'')} · ${dBR(a.data)} · ${esc(tecN(a.tec))}</p>
      <p style="margin:10px 0 6px">Desmarque a fase que <b>não</b> foi feita. Ela volta a ficar pendente no projeto: o cliente volta para o Backlog e sai das entregas do mês.</p>
