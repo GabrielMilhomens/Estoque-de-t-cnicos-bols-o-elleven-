@@ -443,6 +443,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 15/10/2026 | Correção: Minha equipe (administrador da empresa terceira) ficava mais larga que o celular e a janela da atividade abria deslocada — a regra de largura da tabela da Equipe técnica atingia o texto dos cartões; agora vale só para a tabela. Botões Ligar para o contato e Abrir no mapa com a cor normal. | `agenda.html` |
 | 15/10/2026 | Atividade com correção da gestão pode ser tirada do técnico e ir para Aguardando reagendamento, sem data. | `agenda.html` |
 | 14/10/2026 | Visão do técnico para supervisão e encarregados em modo somente consulta (botões que agem pelo técnico travados). | `agenda.html` |
 | 14/10/2026 | Ausência por período de horário (Das / Às) e Visão do técnico e Equipe técnica liberadas para supervisão e encarregados. | `agenda.html`, `agenda_ajuste_28_ausencia_por_horario.sql` (rodar antes) |
