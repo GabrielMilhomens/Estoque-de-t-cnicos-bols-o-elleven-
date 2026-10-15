@@ -4818,14 +4818,14 @@ function gAgora(){if(!G.tecs||!G.tecs.length)return '';if(!GAG.bus&&Date.now()-G
   const T=hoje(),lim=Date.now()-60*GTD_DIA,usa=new Set(G.ch.filter(c=>c.tec&&(GTD_ABERTOS.includes(c.status)||(c.criadoEm||0)>=lim)).map(c=>c.tec));
   const eq=G.tecs.filter(t=>usa.has(t.id)),EQ=eqConf()?G.tecs.filter(t=>eqDe(t.id).gtd):eq.length?eq:G.tecs;
   const rowDe=id=>(GAG.rows||[]).find(r=>(r.tecnico||r.id)===id);
-  const pes=EQ.map(t=>{const id=t.id,ch=G.ch.filter(c=>c.tec===id&&GTD_ABERTOS.includes(c.status)),cur=ch.find(c=>['desloc','local','atend','valid'].includes(c.status))||ch.find(c=>c.status==='aberto'&&gAceito(c)),ac=ch.find(c=>c.status==='aberto'&&!gAceito(c));
+  const pes=EQ.map(t=>{const id=t.id,ch=G.ch.filter(c=>c.tec===id&&GTD_ABERTOS.includes(c.status)),cur=ch.find(c=>['desloc','local','atend','valid'].includes(c.status)),acc=ch.find(c=>c.status==='aberto'&&gAceito(c)),ac=ch.find(c=>c.status==='aberto'&&!gAceito(c));
     const r=rowDe(id),imp=r?(r.impl?(([e,f])=>(f?f.split(', ').map(k=>FCURTO[k]||k).join(' + ')+' ':'')+e)(String(r.impl).split(' · ')):''):(()=>{const a=S.ags.find(x=>x.tec===id&&['deslocamento','no_local','execucao'].includes(x.status));return a?agFzC(a)+' '+a.etiqueta:''})(),au=r?(r.ausente?{obs:r.aus_obs||''}:null):ausDe(id,T);
     const nm=t.nome||gTecN(id),vi=t.vinculo==='terceiro'?'Terceiro':'CLT';
-    if(cur){const e=cur.status==='desloc'?etaEst(cur.ts||{}):null;return{g:'atend',nm,txt:`O&M ${cur.pom||'—'} · ${cur.cidade||''} · ${cur.status==='aberto'?'aceito, ainda não saiu':cur.status==='desloc'?(e&&e.k==='atraso'?'atrasado '+etaMin(-e.f):'a caminho, chega '+hm(cur.ts.eta)):cur.status==='valid'?'aguardando validação':'no cliente'}`}}
+    if(cur){const e=cur.status==='desloc'?etaEst(cur.ts||{}):null;return{g:'atend',nm,txt:`O&M ${cur.pom||'—'} · ${cur.cidade||''} · ${cur.status==='desloc'?(e&&e.k==='atraso'?'atrasado '+etaMin(-e.f):'a caminho, chega '+hm(cur.ts.eta)):cur.status==='valid'?'aguardando validação':'no cliente'}`}}
     if(ac)return{g:'aceite',nm,txt:`O&M ${ac.pom||'—'} · ${ac.cidade||''} · despachado ${ac.ts&&ac.ts.despacho?'às '+hm(ac.ts.despacho):''}`};
     if(imp)return{g:'impl',nm,txt:imp};
     if(au)return{g:'aus',nm,txt:'Ausente hoje'+(au.obs?' · '+au.obs:'')};
-    const ult=G.ch.filter(c=>c.tec===id&&c.validadoEm&&isoD(new Date(c.validadoEm))===T).length;return{g:'disp',nm,txt:`${vi} · ${ult?ult+(ult===1?' chamado hoje':' chamados hoje'):'sem chamado hoje'}`}});
+    const ult=G.ch.filter(c=>c.tec===id&&c.validadoEm&&isoD(new Date(c.validadoEm))===T).length;return{g:'disp',nm,txt:`${vi} · ${ult?ult+(ult===1?' chamado hoje':' chamados hoje'):'sem chamado hoje'}${acc?` · aceitou O&M ${acc.pom||'—'}${acc.cidade?' ('+acc.cidade+')':''}, ainda não saiu`:''}`}});
   const GR=[['disp','disponíveis'],['atend','em atendimento'],['aceite','aguardando aceite'],['impl','na Implantação'],['aus','ausentes hoje']],sel=ui.gAgG===undefined?null:ui.gAgG;
   const nd=G.ch.filter(c=>c.status==='aberto'&&!c.tec).length,nDisp=pes.filter(x=>x.g==='disp').length,lst=sel?pes.filter(x=>x.g===sel).sort((a,b)=>a.nm.localeCompare(b.nm)):[];
   return `<section class="gag" aria-label="Técnicos agora"><div class="gagh"><b>Técnicos agora</b>${GR.map(([k,n])=>{const c=pes.filter(x=>x.g===k).length;return k==='aus'&&!c?'':`<button class="gagt ${k}" data-act="gAgG" data-g="${k}" aria-pressed="${sel===k}"><b>${c}</b><span>${n}</span></button>`}).join('')}
