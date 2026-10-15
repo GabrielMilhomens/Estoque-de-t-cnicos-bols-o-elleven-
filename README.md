@@ -444,6 +444,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 15/10/2026 | Correção: atividade **não concluída** que ainda espera o relatório (ou a LPU) do que foi feito aparecia como "Concluída" no Painel do dia (o status `relatorios`/`lpu` era lido como conclusão). Agora Painel do dia, card da agenda e detalhe mostram "Não concluída" com o que falta. | `agenda.html` |
 | 15/10/2026 | Tela do técnico: segurar 3 segundos para concluir, para "não foi possível concluir/realizar" e para pedir validação ao NOC (GTD); atualização do andamento em tela própria, sem os botões de concluir. | `agenda.html` |
 | 15/10/2026 | Correção: Minha equipe (administrador da empresa terceira) ficava mais larga que o celular e a janela da atividade abria deslocada — a regra de largura da tabela da Equipe técnica atingia o texto dos cartões; agora vale só para a tabela. Botões Ligar para o contato e Abrir no mapa com a cor normal. | `agenda.html` |
 | 15/10/2026 | Atividade com correção da gestão pode ser tirada do técnico e ir para Aguardando reagendamento, sem data. | `agenda.html` |
