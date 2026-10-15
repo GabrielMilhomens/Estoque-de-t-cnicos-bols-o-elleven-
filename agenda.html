@@ -1013,6 +1013,7 @@ details summary{cursor:pointer;font-weight:600}
 .pmtools{align-items:stretch!important;flex-wrap:wrap}.pmtools>*{margin:0!important}
 .pmtools .inp,.pmchk{min-height:44px;height:44px;box-sizing:border-box}
 .tobs span,.tobs2 span,.agdt .note{white-space:pre-line;overflow-wrap:anywhere}
+.ausht{display:flex!important;gap:8px;align-items:center;margin:0 0 12px;font-size:14px;cursor:pointer}.ausht input{width:18px;height:18px}
 </style>
 </head>
 <body>
@@ -1257,7 +1258,7 @@ const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto','
 const permDe=(papel,perm)=>Array.isArray(perm)?perm:(PERM_PAD[papel]||[]);
 const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc','func'].includes(ui.perfil))return false;if(ui.perfil==='noc')return NOC_PERM.includes(k);if(ui.perfil==='deliv'&&GTD_KEYS.includes(k))return false;return permDe(ME.papel,ME.perm).includes(k)};
 const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel'];
-const tabsDe=()=>['coord','clt','terc','func','visu','noc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs.filter(t=>t!=='equipe'||(S.equipe||[]).length):G_TABS.filter(pode).concat(['sup','enc'].includes(ui.perfil)?['ausencias']:[]).concat(ui.perfil==='sup'?['eqTec']:[]);
+const tabsDe=()=>['coord','clt','terc','func','visu','noc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs.filter(t=>t!=='equipe'||(S.equipe||[]).length):[...new Set(G_TABS.filter(pode).concat(['sup','enc'].includes(ui.perfil)?['ausencias','eqTec','campo']:[]))];
 const PSEC_K={geral:'p_geral',entregas:'p_entregas',rede:'p_rede',exec:'p_exec',tempos:'p_tempos',equipes:'p_equipes',fin:'p_fin'},FSUB_K={budget:'f_budget',det:'f_det',aprov:'f_aprov'};
 const secsOk=()=>PSEC.filter(([k])=>pode(PSEC_K[k])),subsOk=()=>FSUB.filter(([k])=>pode(FSUB_K[k]));
 const semPerm=()=>{toast('Seu usuário não tem permissão para esta ação. Fale com a coordenação.','bad');return true};
@@ -1335,7 +1336,7 @@ function progLabel(e){const p=pPor(e);if(faseFim(e,'ativ'))return '<span class="
   const falta=fasesProj(p).filter(f=>!faseFim(e,f.k)).map(f=>FSTATUS[f.k]);
   return `<span class="chip ${falta.length===1&&liberado(p)?'go':'warn'}" style="white-space:normal">Falta${falta.length>1?'m':''}: ${falta.join(', ')}</span>`}
 function nextFase(e){const p=pPor(e);const f=fasesProj(p).find(f=>!faseFim(e,f.k));return f?f.k:'ativ'}
-const tabLabel=t=>({gPainel:'Painel de KPIs',gCham:'Chamados',gAgenda:'Agenda',gNovo:'Criar chamado',gRel:'Histórico',gAprov:'Aprovação de LPU',painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',eqTec:'Equipe técnica',painelDia:'Painel do dia',ausencias:'Ausências',estoque:'Estoque dos técnicos',estAtual:'Atualizar estoque',estHist:'Movimentações',meuEst:'Meu estoque',meuHist:'Meu histórico',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:ui.perfil==='coord'?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira',equipe:'Minha equipe'})[t];
+const tabLabel=t=>({gPainel:'Painel de KPIs',gCham:'Chamados',gAgenda:'Agenda',gNovo:'Criar chamado',gRel:'Histórico',gAprov:'Aprovação de LPU',painel:'Painel de KPIs',base:'Base de previsão',kanban:'Backlog de projetos',prev:'Previsão dos projetos',relat:'Relatórios',usuarios:'Usuários e acessos',eqTec:'Equipe técnica',painelDia:'Painel do dia',ausencias:'Ausências',estoque:'Estoque dos técnicos',estAtual:'Atualizar estoque',estHist:'Movimentações',meuEst:'Meu estoque',meuHist:'Meu histórico',sim:'Simulação de entrega',agenda:'Agenda',aprov:'Aprovação de LPU',campo:['coord','sup','enc'].includes(ui.perfil)?'Visão do técnico':'Minhas atividades',minhas:'Gestão financeira',equipe:'Minha equipe'})[t];
 
 const _sv=(d,w)=>`<svg width="${w||19}" height="${w||19}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w?2.2:1.9}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICN={'Acompanhamento':_sv('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>'),'Operação':_sv('<path d="M8 2v4M16 2v4M3 9h18"/><rect x="3" y="4" width="18" height="18" rx="2"/>'),'Projetos':_sv('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
@@ -1948,13 +1949,13 @@ function renderSug(){const el=$('sug');if(!el)return;const q=(ui.q||'').trim().t
 const tecsPerfil=()=>ui.perfil==='clt'?TEC.filter(t=>t.tipo==='CLT'):ui.perfil==='terc'?TEC.filter(t=>t.tipo==='TERC'):TEC;
 function tecSelect(L,label){if(!L.length)return '<span class="muted">Nenhum técnico liberado.</span>';if(!L.some(t=>t.id===ui.tec))ui.tec=L[0].id;if(L.length===1&&ui.perfil!=='coord')return `<span class="muted">${esc(L[0].nome)}</span>`;return `<label class="f inline"><span>${label}</span><select class="inp" data-ch="tec">${L.map(t=>`<option value="${t.id}" ${t.id===ui.tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></label>`}
 function viewCampo(){
-  const sel=tecSelect(tecsPerfil(),ui.perfil==='coord'?'Ver como':'Técnico logado');
+  const sel=tecSelect(tecsPerfil(),['coord','sup','enc'].includes(ui.perfil)?'Ver como':'Técnico logado');
   const a=ui.campoSel&&S.ags.find(x=>x.id===ui.campoSel&&x.tec===ui.tec);
   if(a)return `<div class="campo">${ui.rf&&ui.rf.ag===a.id?fotoView(a):ui.lpuTela===a.id&&a.status==='lpu'?lpuView(a):detalhe(a)}</div>`;
   const gc=gTecSel();if(gc)return `<div class="campo">${gTecView(gc)}</div>`;
   const terc=tecT(ui.tec)==='TERC',nAj=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;
   const sw=terc&&ui.perfil==='coord'?`<div class="views" style="margin:4px 0 2px"><button data-act="cSec" data-v="at" aria-current="${ui.campoSec!=='fin'}">Atividades</button><button data-act="cSec" data-v="fin" aria-current="${ui.campoSec==='fin'}">Gestão financeira${nAj?` (${nAj} para ajuste)`:''}</button></div>`:'';
-  if(terc&&ui.perfil==='coord'&&ui.campoSec==='fin')return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${viewMinhas(true)}</div>`;
+  if(terc&&ui.perfil==='coord'&&ui.campoSec==='fin')return `<div class="campo"><div class="toolbar"><h2>${['coord','sup','enc'].includes(ui.perfil)?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${viewMinhas(true)}</div>`;
   const T=hoje(),mine=S.ags.filter(x=>x.tec===ui.tec&&x.status!=='cancelada');
   const g={hoje:mine.filter(x=>!FIM.includes(x.status)&&x.data<=T).sort((a,b)=>a.data.localeCompare(b.data)),prox:mine.filter(x=>!FIM.includes(x.status)&&x.data>T).sort((a,b)=>a.data.localeCompare(b.data)),enc:mine.filter(x=>FIM.includes(x.status)).sort((a,b)=>b.data.localeCompare(a.data))};
   ui.cExp=ui.cExp||{};
@@ -1964,7 +1965,7 @@ function viewCampo(){
     <div class="tcb">${c.endereco?`<div class="tcend">${IC.pin}<span>${esc(endCurto(c.endereco))}</span></div>`:''}${andamentoHtml(x)}
      <div class="tcbt">${rotaLigar(c)}</div><button class="tcopen" data-act="abrir" data-id="${x.id}">Abrir atividade</button></div>`:''}</article>`};
   const lab={hoje:'Hoje',prox:'Próximas',enc:'Encerradas'};
-  return `<div class="campo"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${gTecLista()}
+  return `<div class="campo"><div class="toolbar"><h2>${['coord','sup','enc'].includes(ui.perfil)?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${gTecLista()}
    <div class="chips">${Object.keys(lab).map(k=>`<button data-act="cF" data-t="${k}" aria-current="${ui.cF===k}">${lab[k]} (${g[k].length})</button>`).join('')}</div>
    ${g[ui.cF].map(card).join('')||'<p class="muted pad">Nenhuma atividade aqui.</p>'}</div>`;
 }
@@ -4413,7 +4414,7 @@ function tvCardG(c){const sla=gTecPend(c)?gSla(c):null,l=gLpuDe(c),ac=gAceito(c)
 const TV_ORD_A={deslocamento:1,no_local:1,execucao:1,agendada:3,relatorios:4,lpu:5,concluida:9,nao_concluida:9};
 const tvOrdG=c=>c.status==='aberto'&&!gAceito(c)?0:['desloc','local','atend'].includes(c.status)?1:c.status==='aberto'?3:c.status==='valid'?4:['rfo','lpu'].includes(c.status)?5:9;
 function viewCampo(){
-  const sel=tecSelect(tecsPerfil(),ui.perfil==='coord'?'Ver como':'Técnico logado');
+  const sel=tecSelect(tecsPerfil(),['coord','sup','enc'].includes(ui.perfil)?'Ver como':'Técnico logado');
   const a=ui.campoSel&&S.ags.find(x=>x.id===ui.campoSel&&x.tec===ui.tec);
   if(a)return `<div class="campo tv">${ui.rf&&ui.rf.ag===a.id?fotoView(a):ui.lpuTela===a.id&&a.status==='lpu'?lpuView(a):detalhe(a)}</div>`;
   const gc=gTecSel();if(gc)return `<div class="campo tv">${gTecView(gc)}</div>`;
@@ -4428,7 +4429,7 @@ function viewCampo(){
   const f=['hoje','prox','enc'].includes(ui.cF)?ui.cF:'hoje',lab={hoje:'Hoje',prox:'Próximos dias',enc:'Encerradas'},L=it(f).sort((x,y)=>x.o-y.o);
   const filtros=temG?`<div class="tvflt" role="group" aria-label="Tipo">${[['tudo','Tudo'],['gtd','Manutenção GTD'],['impl','Implantação']].map(([k,n])=>`<button data-act="cTipo" data-v="${k}" aria-pressed="${tipo===k}">${n}</button>`).join('')}</div>`:'';
   const vazio={hoje:'Nada para hoje.',prox:'Nada agendado para os próximos dias.',enc:'Nada encerrado ainda.'}[f];
-  return `<div class="campo tv"><div class="toolbar"><h2>${ui.perfil==='coord'?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${G.erro&&temG?gErroBox():''}
+  return `<div class="campo tv"><div class="toolbar"><h2>${['coord','sup','enc'].includes(ui.perfil)?'Visão do técnico':'Minhas atividades'}</h2>${sel}</div>${sw}${G.erro&&temG?gErroBox():''}
    <div class="tvtabs" role="tablist">${Object.keys(lab).map(k=>`<button role="tab" data-act="cF" data-t="${k}" aria-selected="${f===k}">${lab[k]} · ${it(k).length}</button>`).join('')}</div>${filtros}
    <div class="tvlista">${L.map(x=>x.h).join('')||`<p class="muted pad">${vazio}</p>`}</div></div>`;
 }
@@ -4742,9 +4743,14 @@ async function ausCarregar(force){if(AUS.bus||(AUS.ok&&!force)||!ausVe())return;
   try{const r=await sb.from('ag_ausencias').select('*').gte('ate',addD(hoje(),-7)).order('de');if(r.error)throw r.error;AUS.rows=r.data||[];AUS.err=''}
   catch(e){AUS.rows=[];AUS.err=/ag_ausencias|does not exist|schema cache|relation/i.test(String(e.message||e))?'Rode o script agenda_ajuste_24_ausencias.sql no Supabase para ativar as ausências.':'Não foi possível carregar as ausências: '+(e.message||e)}
   AUS.bus=false;AUS.ok=true;if(['ausencias','agenda','gCham'].includes(ui.tab)&&!document.querySelector('.modal-bg:not(.hidden) input:focus'))render()}
-const ausDe=(tec,d)=>AUS.rows.find(r=>r.tecnico===tec&&r.de<=d&&r.ate>=d)||null;
+const ausHr=r=>r&&r.hora_de&&r.hora_ate?[String(r.hora_de).slice(0,5),String(r.hora_ate).slice(0,5)]:null;
+const ausHrTxt=r=>{const h=ausHr(r);return h?`das ${h[0]} às ${h[1]}`:''};
+/* ausDe: ausência do dia inteiro (bloqueia); ausParc: só um período do dia (avisa) */
+const ausDe=(tec,d)=>AUS.rows.find(r=>r.tecnico===tec&&r.de<=d&&r.ate>=d&&!ausHr(r))||null;
+const ausParc=(tec,d)=>AUS.rows.find(r=>r.tecnico===tec&&r.de<=d&&r.ate>=d&&ausHr(r))||null;
+const ausAgora=(tec)=>{const T=hoje(),r=ausDe(tec,T);if(r)return r;const p=ausParc(tec,T);if(!p)return null;const h=ausHr(p),n=new Date().toTimeString().slice(0,5);return n>=h[0]&&n<=h[1]?Object.assign({},p,{obs:['até '+h[1],p.obs].filter(Boolean).join(' · ')}):null};
 const diaC=d=>{const w=new Date(d+'T12:00:00').getDay();return DSEM[w].charAt(0).toUpperCase()+DSEM[w].slice(1)+' '+d.slice(8,10)};
-const ausQuando=r=>r.de===r.ate?diaC(r.de)+'/'+r.de.slice(5,7):diaC(r.de)+'/'+r.de.slice(5,7)+' até '+diaC(r.ate)+'/'+r.ate.slice(5,7);
+const ausQuando=r=>(r.de===r.ate?diaC(r.de)+'/'+r.de.slice(5,7):diaC(r.de)+'/'+r.de.slice(5,7)+' até '+diaC(r.ate)+'/'+r.ate.slice(5,7))+(ausHr(r)?', '+ausHrTxt(r)+(r.de===r.ate?'':' em cada dia'):', dia inteiro');
 
 /* tela Operação › Ausências */
 function viewAusencias(){if(!AUS.ok)ausCarregar();const F=ui.ausF=ui.ausF||{tec:'',de:hoje(),ate:hoje(),obs:''},T=hoje(),pode=ETA_GESTAO();
@@ -4754,6 +4760,7 @@ function viewAusencias(){if(!AUS.ok)ausCarregar();const F=ui.ausF=ui.ausF||{tec:
    <div class="ausg">${pode?`<section class="panel ausf"><h3 style="margin-top:0">Registrar ausência</h3>
      <label class="f"><span>Técnico</span><select class="inp" id="ausTec" data-ch="ausF" data-f="tec"><option value="">Selecione</option><optgroup label="Equipe própria (CLT)">${TEC.filter(t=>t.tipo==='CLT').map(t=>`<option value="${t.id}" ${t.id===F.tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</optgroup><optgroup label="Terceiros">${TEC.filter(t=>t.tipo==='TERC').map(t=>`<option value="${t.id}" ${t.id===F.tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</optgroup></select></label>
      <div class="grid2 even" style="gap:0 12px"><label class="f"><span>De</span><input type="date" class="inp" id="ausDe" data-ch="ausF" data-f="de" value="${F.de}"></label><label class="f"><span>Até</span><input type="date" class="inp" id="ausAte" data-ch="ausF" data-f="ate" value="${F.ate}" min="${F.de}"></label></div>
+     <label class="chk ausht"><input type="checkbox" data-ch="ausHt" ${F.ht?'checked':''}> Só um período do dia</label>${F.ht?`<div class="grid2 even" style="gap:0 12px"><label class="f"><span>Das</span><input type="time" class="inp" id="ausHd" data-ch="ausF" data-f="hd" value="${F.hd||'08:00'}"></label><label class="f"><span>Às</span><input type="time" class="inp" id="ausHa" data-ch="ausF" data-f="ha" value="${F.ha||'12:00'}"></label></div>`:''}
      <label class="f"><span>Observação (opcional)</span><input class="inp" id="ausObs" data-in="ausObs" value="${esc(F.obs||'')}" placeholder="Ex.: folga combinada, curso, férias"></label>
      <button class="btn primary wide" data-act="ausAdd">Registrar ausência</button>
      <p class="muted" style="margin:8px 0 0;font-size:13px">Registram e removem: encarregado, supervisor e coordenador O&amp;M.</p></section>`:''}
@@ -4764,9 +4771,10 @@ const agFzC=a=>fasesOf(a).map(k=>FCURTO[k]||k).join(' + ');
 function agOcupa(tec,d){return S.ags.filter(a=>a.tec===tec&&a.status!=='cancelada'&&naData(a,d))}
 function agTecInfo(t,dias){const oc=dias.filter(d=>agOcupa(t.id,d).length),au=dias.filter(d=>ausDe(t.id,d)),n=dias.length;
   if(au.length){const r=ausDe(t.id,au[0]);return{g:'aus',tag:'Ausente',txt:'Ausente '+(au.length===n&&n>1?'no período':au.map(diaC).join(', '))+(r&&r.obs?' · '+r.obs:'')}}
-  if(!oc.length)return{g:'livre',tag:'Livre',txt:n>1?'Sem atividade no período':'Sem atividade no dia'};
+  const pa=dias.filter(d=>ausParc(t.id,d)),paT=pa.length?' · ausente '+pa.slice(0,2).map(d=>(n>1?diaC(d)+' ':'')+ausHrTxt(ausParc(t.id,d))).join(', ')+(pa.length>2?` +${pa.length-2}`:''):'';
+  if(!oc.length)return{g:'livre',tag:pa.length?'Ausente parte do dia':'Livre',txt:(n>1?'Sem atividade no período':'Sem atividade no dia')+paT};
   const ds=oc.slice(0,2).map(d=>(n>1?diaC(d)+': ':'')+agOcupa(t.id,d).map(a=>agFzC(a)+' '+a.etiqueta).join(', ')).join(' · ')+(oc.length>2?` · +${oc.length-2} dia(s)`:'');
-  return{g:'parc',tag:n>1?`${oc.length} de ${n} dias`:(agOcupa(t.id,dias[0]).length===1?'1 atividade':agOcupa(t.id,dias[0]).length+' atividades'),txt:ds}}
+  return{g:'parc',tag:n>1?`${oc.length} de ${n} dias`:(agOcupa(t.id,dias[0]).length===1?'1 atividade':agOcupa(t.id,dias[0]).length+' atividades'),txt:ds+paT}}
 function agTecBloco(F,dias){
   if(!TEC.length)return '<p class="note">Nenhum técnico cadastrado.</p>';
   const dica=EQP.ok&&!EQP.conf&&!EQP.err&&eqEdita()?'<p class="muted" style="margin:0;font-size:13px">Dica: marque em Administração › Equipe técnica quem faz cada serviço para separar a lista.</p>':'';
@@ -4819,7 +4827,7 @@ function gAgora(){if(!G.tecs||!G.tecs.length)return '';if(!GAG.bus&&Date.now()-G
   const eq=G.tecs.filter(t=>usa.has(t.id)),EQ=eqConf()?G.tecs.filter(t=>eqDe(t.id).gtd):eq.length?eq:G.tecs;
   const rowDe=id=>(GAG.rows||[]).find(r=>(r.tecnico||r.id)===id);
   const pes=EQ.map(t=>{const id=t.id,ch=G.ch.filter(c=>c.tec===id&&GTD_ABERTOS.includes(c.status)),cur=ch.find(c=>['desloc','local','atend','valid'].includes(c.status)),acc=ch.find(c=>c.status==='aberto'&&gAceito(c)),ac=ch.find(c=>c.status==='aberto'&&!gAceito(c));
-    const r=rowDe(id),imp=r?(r.impl?(([e,f])=>(f?f.split(', ').map(k=>FCURTO[k]||k).join(' + ')+' ':'')+e)(String(r.impl).split(' · ')):''):(()=>{const a=S.ags.find(x=>x.tec===id&&['deslocamento','no_local','execucao'].includes(x.status));return a?agFzC(a)+' '+a.etiqueta:''})(),au=r?(r.ausente?{obs:r.aus_obs||''}:null):ausDe(id,T);
+    const r=rowDe(id),imp=r?(r.impl?(([e,f])=>(f?f.split(', ').map(k=>FCURTO[k]||k).join(' + ')+' ':'')+e)(String(r.impl).split(' · ')):''):(()=>{const a=S.ags.find(x=>x.tec===id&&['deslocamento','no_local','execucao'].includes(x.status));return a?agFzC(a)+' '+a.etiqueta:''})(),au=r?(r.ausente?{obs:r.aus_obs||''}:null):ausAgora(id);
     const nm=t.nome||gTecN(id),vi=t.vinculo==='terceiro'?'Terceiro':'CLT';
     if(cur){const e=cur.status==='desloc'?etaEst(cur.ts||{}):null;return{g:'atend',nm,txt:`O&M ${cur.pom||'—'} · ${cur.cidade||''} · ${cur.status==='desloc'?(e&&e.k==='atraso'?'atrasado '+etaMin(-e.f):'a caminho, chega '+hm(cur.ts.eta)):cur.status==='valid'?'aguardando validação':'no cliente'}`}}
     if(ac)return{g:'aceite',nm,txt:`O&M ${ac.pom||'—'} · ${ac.cidade||''} · despachado ${ac.ts&&ac.ts.despacho?'às '+hm(ac.ts.despacho):''}`};
@@ -4835,10 +4843,12 @@ function gAgora(){if(!G.tecs||!G.tecs.length)return '';if(!GAG.bus&&Date.now()-G
 Object.assign(ACT,{
   ausAdd:async el=>{if(!ETA_GESTAO())return semPerm();const F=ui.ausF||{};F.obs=(($('ausObs')||{}).value||'').trim();
     if(!F.tec){toast('Escolha o técnico.','bad');return}if(!F.de||!F.ate){toast('Informe o período.','bad');return}if(F.ate<F.de){toast('A data final é antes da inicial.','bad');return}
-    if(AUS.rows.some(r=>r.tecnico===F.tec&&!(F.ate<r.de||F.de>r.ate))){toast(tecN(F.tec)+' já tem ausência nesse período.','bad');return}
-    el.disabled=true;const r=await sb.from('ag_ausencias').insert({tecnico:F.tec,de:F.de,ate:F.ate,obs:F.obs||null,criado_por_nome:meNome()}).select().maybeSingle();el.disabled=false;
-    if(r.error){toast('Não foi possível registrar: '+r.error.message,'bad');return}
-    AUS.rows.push(r.data||{id:uid(),tecnico:F.tec,de:F.de,ate:F.ate,obs:F.obs,criado_por_nome:meNome()});const nm=tecN(F.tec);ui.ausF={tec:'',de:F.de,ate:F.de,obs:''};render();toast(`Ausência de ${nm} registrada.`)},
+    const hd=F.ht?(F.hd||'08:00'):null,ha=F.ht?(F.ha||'12:00'):null;if(F.ht&&ha<=hd){toast('O horário final precisa ser depois do inicial.','bad');return}
+    if(AUS.rows.some(r=>{if(r.tecnico!==F.tec||F.ate<r.de||F.de>r.ate)return false;const h=ausHr(r);return !h||!F.ht||!(ha<=h[0]||hd>=h[1])})){toast(tecN(F.tec)+' já tem ausência nesse período.','bad');return}
+    const row={tecnico:F.tec,de:F.de,ate:F.ate,obs:F.obs||null,criado_por_nome:meNome()};if(F.ht){row.hora_de=hd;row.hora_ate=ha}
+    el.disabled=true;const r=await sb.from('ag_ausencias').insert(row).select().maybeSingle();el.disabled=false;
+    if(r.error){toast(/hora_/.test(r.error.message||'')?'Rode o script agenda_ajuste_28_ausencia_por_horario.sql no Supabase para registrar ausência por horário.':'Não foi possível registrar: '+r.error.message,'bad');return}
+    AUS.rows.push(r.data||Object.assign({id:uid()},row));const nm=tecN(F.tec);ui.ausF={tec:'',de:F.de,ate:F.de,obs:'',ht:F.ht,hd:F.hd,ha:F.ha};render();toast(`Ausência de ${nm} registrada${F.ht?' ('+hd+' às '+ha+')':''}.`)},
   ausRem:async el=>{if(!ETA_GESTAO())return semPerm();const r0=AUS.rows.find(x=>x.id===el.dataset.id);if(!r0||!confirm(`Remover a ausência de ${tecN(r0.tecnico)} (${ausQuando(r0)})?`))return;
     const r=await sb.from('ag_ausencias').delete().eq('id',r0.id);if(r.error){toast('Não foi possível remover: '+r.error.message,'bad');return}AUS.rows=AUS.rows.filter(x=>x!==r0);render();toast('Ausência removida.')},
   ausAbrir:()=>{ui.cat='impl';ui.tab='ausencias';ui.gSel=null;render();window.scrollTo(0,0)},
@@ -4846,7 +4856,7 @@ Object.assign(ACT,{
   agAb:el=>{ui.agAb=ui.agAb||{};ui.agAb[el.dataset.k]=!ui.agAb[el.dataset.k];render()},
   gAgG:el=>{ui.gAgG=ui.gAgG===el.dataset.g?null:el.dataset.g;render()}
 });
-Object.assign(CH,{ausF:el=>{const F=ui.ausF=ui.ausF||{};F[el.dataset.f]=el.value;if(el.dataset.f==='de'&&(!F.ate||F.ate<F.de))F.ate=F.de;render()}});
+Object.assign(CH,{ausHt:el=>{(ui.ausF=ui.ausF||{}).ht=el.checked;render()},ausF:el=>{const F=ui.ausF=ui.ausF||{};F[el.dataset.f]=el.value;if(el.dataset.f==='de'&&(!F.ate||F.ate<F.de))F.ate=F.de;render()}});
 Object.assign(IN,{ausObs:el=>{(ui.ausF=ui.ausF||{}).obs=el.value}});
 {const _ag=ACT.agendar;ACT.agendar=(...x)=>{const F=ui.agForm||{};if(F.tec){const au=diasRange(F.data,F.dataFim,F.uteis).filter(d=>ausDe(F.tec,d));if(au.length){toast(`${tecN(F.tec)} está ausente em ${au.map(d=>dBR(d).slice(0,5)).join(', ')}. Ajuste o período ou escolha outro técnico.`,'bad');return}}return _ag(...x)}}
 
