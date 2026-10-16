@@ -1080,6 +1080,37 @@ button.ca2{cursor:pointer}
 .ev.ca2{min-width:0;max-width:100%}
 .ev.ca2 .car span,.ev.ca2 .cas{min-width:0;overflow-wrap:anywhere;white-space:normal}
 .calw .ca2 .chip{white-space:normal;line-height:1.25}
+/* 15/10: ficha do Novo agendamento */
+.fi2 .fh2{display:flex;gap:10px;align-items:flex-start;padding:14px 14px 10px}.fi2 .fh2>div{flex:1;min-width:0}
+.fi2 .fh2 b{font:700 22px/1.15 "Barlow Condensed",Barlow,sans-serif;display:block;overflow-wrap:anywhere}.fi2 .fh2 span{color:var(--muted);font-size:13.5px}.fi2 .fh2 .chip{margin-top:3px}
+.fi2 .fbody{padding:14px}.fi2 .car{display:flex;gap:9px;align-items:flex-start;font-size:15px;margin-top:0;margin-bottom:8px}.fi2 .cai{width:17px;height:17px}
+.ficols{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.ficols .casit{margin-top:0}
+.fimiss span{color:var(--warn);font-weight:600}.fimiss .cai{stroke:var(--warn)}.fivz span{color:var(--muted)}
+.filk{color:var(--info);font-weight:600;margin-left:6px}
+.fiobs{white-space:pre-line;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+.fzl{display:grid;grid-template-columns:repeat(var(--n),1fr);position:relative;margin:4px 0 6px}
+.fzl::before{content:"";position:absolute;left:calc(50% / var(--n));right:calc(50% / var(--n));top:8px;height:2px;background:var(--line)}
+.fzl div{display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;padding:24px 4px 0;font-size:13px;min-width:0}
+.fzl div::before{content:"";position:absolute;left:50%;top:0;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--surface);border:2px solid var(--line);box-sizing:border-box}
+.fzl div.on::before{border-color:var(--info)}.fzl div.go::before{border-color:var(--brand)}.fzl div.k::before{border-color:var(--brand);background:var(--brand)}
+.fzl b{font-size:14.5px}.fzl span{color:var(--muted)}.fzl .on span{color:var(--info);font-weight:600}.fzl .k span,.fzl .go span{color:var(--brand-ink);font-weight:600}.fzl small{color:var(--muted);font-size:12.5px;overflow-wrap:anywhere}
+.filis{border-top:1px solid var(--line);margin-top:14px}.fili{border-bottom:1px solid var(--line)}
+.fili>button{display:flex;gap:10px;align-items:center;width:100%;background:none;border:0;padding:11px 2px;cursor:pointer;color:var(--ink);font:inherit;text-align:left}
+.fili>button span{margin-left:auto;color:var(--muted);font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fili>button i{font-style:normal;font-size:20px;line-height:1;color:var(--muted);transition:transform .15s}
+.fili.on>button i{transform:rotate(90deg)}.fili>div{padding:0 2px 12px}
+.fikv{display:grid;grid-template-columns:auto 1fr;gap:5px 16px;margin:0;font-size:14px}.fikv dt{color:var(--muted)}.fikv dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.fift{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px;margin-top:14px}
+.fiform{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;margin-top:12px}.fiform .full{grid-column:1/-1}
+.fied .fift .btn{flex:0 1 auto}
+.fisl2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}.fisl{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}.fisl.pend{border-style:dashed}
+.fislh{display:flex;gap:10px;align-items:flex-start}.fislh>div{flex:1;min-width:0}.fislh b{display:block}.fislh span:not(.chip){font-size:13px;color:var(--muted)}
+.fisl .anx{margin:0}.fisl .upl,.fiadd .upl{align-self:flex-start;display:inline-flex;align-items:center;gap:5px}.fi2 .upl .cai{width:14px;height:14px;margin:0}
+.cati{width:20px;height:20px;flex-shrink:0;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.fiadd{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 12px}.fiadd select{width:auto;min-width:0}
+.fimini{border-top:1px solid var(--line);font-size:14px}.fimini summary{cursor:pointer;font-weight:600;color:var(--muted);padding:10px 0}.fimini p{margin:0 0 10px}
+.fi2 .agbh i{background:none;border:1px solid var(--line);color:var(--ink)}.fi2 .agbh span{color:var(--muted)}
+.fiwarn{margin:0 0 10px}
+@media (max-width:760px){.ficols,.fisl2,.fiform{grid-template-columns:1fr}.fift .btn{flex:1}.fzl b{font-size:13px}}
 </style>
 </head>
 <body>
@@ -1902,14 +1933,7 @@ function viewAgenda(){
     const dd=(l,v)=>`<div><dt>${l}</dt><dd>${v}</dd></div>`;
     const fld=(k,l,t)=>`<label class="f"><span>${l}</span>${t==='area'?`<textarea class="inp" rows="3" data-in="comp" data-f="${k}">${esc(c[k])}</textarea>`:`<input class="inp" type="${t||'text'}" data-in="comp" data-f="${k}" value="${esc(c[k])}">`}</label>`;
     let body='';
-    if(ui.fTab==='proj')body=`<dl class="dl">${dd('Cliente',esc(p.cliente))}${dd('Protocolo',esc(p.protocolo))}${dd('Etiqueta',esc(p.etiqueta))}${dd('Valor mensal',brl(p.valor))}${dd('Topologia',esc(p.topologia))}${dd('Lançamento',(+p.metros||0)+' m')}${dd('Caixas de emenda',caixasTxt(p))}${dd('Cidade',esc(p.cidade||'—'))}${dd('POP',esc(p.pop||'—'))}${dd('Equipamento de acesso',esc(p.equip||'—'))}${p.inst&&p.inst.porta?dd('Porta',esc(p.inst.porta)):''}${p.inst&&p.inst.pa?dd('Ponto de acesso',esc(p.inst.pa)):''}${p.inst&&p.inst.pd?dd('Ponto de derivação',esc(p.inst.pd)):''}${dd('Lançamento na rua',p.semRua?'Não tem (lançamento todo interno)':'Previsto')}${dd('Extensão de sinal',p.semExt?'Não se aplica':'Prevista')}${dd('Lista de ROI',p.roi?`${esc(p.roi.nome)} (${p.roi.itens.length} itens)`:'Não enviada')}${p.roi&&p.roi.fin?FIN.filter(([k])=>p.roi.fin[k]!==undefined).map(([k,l,m])=>dd(l,m?brl(p.roi.fin[k]):String(p.roi.fin[k]).replace('.',','))).join(''):''}${dd('Status',progLabel(p.etiqueta))}</dl>
-      <h3 class="lsub">Fases do projeto</h3>${faseFlags(p,1)}
-      <h3 class="lsub">Dias realizados / previstos</h3><div class="phases">${fasesProj(p).map(f=>`<div><span>${f.n}</span><b>${realDias(p.etiqueta,f.k)} / ${+p[f.p]||0}</b></div>`).join('')}</div>`;
-    else if(ui.fTab==='comp')body=`<button class="btn sm" style="margin-bottom:12px" data-act="wiz" data-n="2" data-id="${p.id}">Editar endereço e dados técnicos</button>${usado&&c.endereco?'<p class="note">Dados gravados nesta etiqueta em agendamento anterior. Revise antes de agendar.</p>':''}${fld('endereco','Endereço completo *')}${fld('coord','Coordenada do cliente (latitude, longitude)')}${coordOf(c.coord)?'':(c.coord||'').trim()?'<p class="note" style="margin-top:-6px">Coordenada não reconhecida. Use o formato -23.5505, -46.6333.</p>':''}${fld('contato','Contato no local (obrigatório para lançamento interno e ativação)')}${fld('telefone','Telefone do contato (obrigatório para lançamento interno e ativação)','tel')}${fld('janela','Horário ou janela de atendimento')}${fld('acesso','Condições de acesso (portaria, autorização, chave)')}${fld('obs','Observações técnicas','area')}`;
-    else if(ui.fTab==='anx')body=anexosEdit(p);
-    else body=agendForm(p);
-    ficha=`<div class="ficha"><div class="fhead"><div><b>${esc(p.etiqueta)}</b><span>${esc(p.cliente)}</span></div><button class="icon" data-act="unpick" aria-label="Fechar ficha">✕</button></div>
-      <div class="seg">${[['proj','Dados do projeto'],['comp','Dados complementares'],['anx',`Anexos${anxDe(p.etiqueta).length?' ('+anxDe(p.etiqueta).length+')':''}`],['ag','Agendamento']].map(([k,n])=>`<button data-act="fTab" data-t="${k}" aria-current="${k===ui.fTab}">${n}</button>`).join('')}</div><div class="fbody">${body}</div></div>`;
+    ficha=fichaA(p,usado);
   }
   const novo=`<section class="panel"><h2>Novo agendamento</h2><p class="muted">Busque o projeto na base de previsão.</p>
     <div class="search"><input class="inp" type="search" id="q" data-in="q" placeholder="Etiqueta, protocolo ou cliente" value="${esc(ui.q)}" autocomplete="off"><div id="sug"></div></div>${ficha}</section>`;
@@ -5376,6 +5400,74 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
    <div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${pdEd?`<button class="btn primary" data-act="agEditar" data-id="${a.id}">Editar</button>`:''}${a.status==='agendada'&&!ro&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${ro?'':`${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button>`}</div>`)},
   caTile:el=>{const on=el.getAttribute('aria-pressed')==='true',box=el.closest('.agdt2');box.querySelectorAll('.catile').forEach(b=>b.setAttribute('aria-pressed','false'));box.querySelectorAll('.capn').forEach(x=>x.hidden=true);if(!on){el.setAttribute('aria-pressed','true');const pn=box.querySelector(`.capn[data-k="${el.dataset.k}"]`);if(pn)pn.hidden=false}}});
 const endCurtoA=(e,cid)=>{const s=String(e||'').split(/,|\s-\s/)[0].trim();return s||cid||''};
+
+/* 15/10: ficha do Novo agendamento no padrão da Agenda (4 abas) */
+Object.assign(ICA,{
+  cabo:'<path d="M4 20c0-6 4-6 8-8s8-2 8-8"/><circle cx="4" cy="20" r="1.5"/><circle cx="20" cy="4" r="1.5"/>',
+  val:'<path d="M12 2v20M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.8 5 3.5 5 1.6 5 3.5-2.2 3-5 3-5-1.1-5-3"/>',
+  gps:'<circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="1.5"/>',
+  rel:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  cha:'<rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  tel:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>',
+  obs:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  map:'<path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3z"/><path d="M9 3v15M15 6v15"/>',
+  up:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>'});
+const fiAb=e=>S.ags.find(a=>a.etiqueta===e.etq&&fasesOf(a).includes(e.k)&&!FIM.includes(a.status)&&a.status!=='cancelada');
+const fiFalta=p=>fasesProj(p).filter(f=>!faseFim(p.etiqueta,f.k));
+function fiChip(p){if(faseFim(p.etiqueta,'ativ'))return '<span class="chip ok">Entregue</span>';
+  if(S.ags.some(a=>a.etiqueta===p.etiqueta&&['deslocamento','no_local','execucao'].includes(a.status)))return '<span class="chip info">Em execução</span>';
+  const n=fiFalta(p).length;return `<span class="chip ${n===1&&liberado(p)?'go':'warn'}">Falta${n>1?'m':''} ${n} ${n>1?'fases':'fase'}</span>`}
+function fiSit(p){const e=p.etiqueta,fin=faseFim(e,'ativ');
+  if(fin)return `<div class="casit ok"><b>Entregue</b><span>Ativação finalizada por ${esc(tecN(fin.tec))} em ${dBR(fin.data)}.</span></div>`;
+  const F=fiFalta(p),ags=F.map(f=>[f,fiAb({etq:e,k:f.k})]).filter(x=>x[1]);
+  const lst=F.map(f=>FCURTO[f.k]),txt=lst.length>1?lst.slice(0,-1).join(', ')+' e '+lst[lst.length-1]:lst[0];
+  const det=ags.map(([f,a])=>`${FCURTO[f.k]} ${ST[a.status][0].toLowerCase()} para ${dBR(a.data).slice(0,5)} com ${esc(tecN(a.tec))}.`).join('\n');
+  return `<div class="casit ${liberado(p)?'info':'warn'}"><b>${liberado(p)?'Liberado para ativar o cliente':'Faltam: '+txt}</b>${det?`<span>${det}</span>`:''}</div>`}
+function fiTl(p){const e=p.etiqueta,F=fasesProj(p);
+  return `<div class="fzl" style="--n:${F.length}">${F.map(f=>{const fin=faseFim(e,f.k),a=fin?null:fiAb({etq:e,k:f.k}),dias=`${realDias(e,f.k)} de ${+p[f.p]||0} ${(+p[f.p]||0)===1?'dia':'dias'}`;
+    const [cls,st,who]=fin?['k','✓ feita '+dBR(fin.data).slice(0,5),tecN(fin.tec)]:a?['on',ST[a.status][0].toLowerCase()+' '+dBR(a.data).slice(0,5),tecN(a.tec)]:f.k==='ativ'&&liberado(p)?['go','liberada','']:['','pendente',''];
+    return `<div class="${cls}"><b>${FCURTO[f.k]}</b><span>${st}</span>${who?`<small>${esc(who)}</small>`:''}<small>${dias}</small></div>`}).join('')}</div>`}
+const fiKv=L=>`<dl class="fikv">${L.filter(x=>x).map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>`;
+function fiProj(p){const ab=ui.fdAb||{},I=p.inst||{},fin=p.roi&&p.roi.fin||{};
+  const rede=[['POP',esc(p.pop||'—')],['Equipamento de acesso',esc(p.equip||'—')],I.porta&&['Porta',esc(I.porta)],I.pa&&['Ponto de acesso',esc(I.pa)],I.pd&&['Ponto de derivação',esc(I.pd)],['Lançamento na rua',p.semRua?'Não tem (todo interno)':'Previsto'],['Extensão de sinal',p.semExt?'Não se aplica':'Prevista']];
+  const vals=[['Valor mensal',brl(p.valor)]].concat(FIN.filter(([k])=>fin[k]!==undefined).map(([k,l,m])=>[l,m?brl(fin[k]):String(fin[k]).replace('.',',')]));
+  const li=(k,t,r,b)=>`<div class="fili${ab[k]?' on':''}"><button data-act="fdAb" data-k="${k}" aria-expanded="${!!ab[k]}"><b>${t}</b><span>${r}</span><i>›</i></button>${ab[k]?`<div>${b}</div>`:''}</div>`;
+  const roiB=p.roi?`<p style="margin:0"><b style="overflow-wrap:anywhere">${esc(p.roi.nome)}</b><br><span class="muted">${p.roi.itens.length} itens de material lidos do ROI</span></p>`:'<p class="muted" style="margin:0">Lista de ROI não enviada. Envie em Editar dados do projeto.</p>';
+  return `<div class="ficols"><div>${cRow('top','<b>'+esc(topoTxt(p)||'—')+'</b>')}${cRow('cid',esc(p.cidade||'—'))}${cRow('cabo',+p.metros>0?`Lançamento de <b>${(+p.metros).toLocaleString('pt-BR')} m</b> · caixas de emenda: ${caixasTxt(p)}`:`Sem cabo para lançar · caixas de emenda: ${caixasTxt(p)}`)}${cRow('val',`<b>${brl(p.valor)}</b> por mês`)}</div>${fiSit(p)}</div>
+   <p class="lbl2">Fases do projeto</p>${fiTl(p)}
+   <div class="filis">${li('rede','Rede',esc([p.pop,I.porta&&'porta '+I.porta].filter(Boolean).join(' · ')||'—'),fiKv(rede))}${li('val','Valores',fin.custoTotal!==undefined?brl(fin.custoTotal)+' de custo total':brl(p.valor)+' por mês',fiKv(vals))}${li('roi','Arquivo do ROI',p.roi?p.roi.itens.length+' itens':'não enviado',roiB)}</div>
+   <div class="fift"><button class="btn" data-act="wiz" data-n="1" data-id="${p.id}">Editar dados do projeto</button><button class="btn primary" data-act="fTab" data-t="ag">Agendar</button></div>`}
+function fiComp(p,usado){const e=p.etiqueta,c=S.comp[e]||{},v=k=>(c[k]||'').trim();if(!v('endereco')&&ui.compEd!==e)ui.compEd=e;const ed=ui.compEd===e;
+  const fld=(k,l,t)=>`<label class="f${t==='area'?' full':''}"><span>${l}</span>${t==='area'?`<textarea class="inp" rows="3" data-in="comp" data-f="${k}">${esc(c[k])}</textarea>`:`<input class="inp" type="${t||'text'}" data-in="comp" data-f="${k}" value="${esc(c[k])}">`}</label>`;
+  const precisa=!faseFim(e,'ativ')&&fiFalta(p).some(f=>f.k==='interno'||f.k==='ativ'),miss=(k,t)=>`<div class="car fimiss">${icA(k)}<span>${t}</span></div>`,vazio=(k,t)=>`<div class="car fivz">${icA(k)}<span>${t}</span></div>`;
+  const co=coordOf(c.coord),falta=[!v('endereco')&&'endereço',precisa&&!v('contato')&&'contato',precisa&&!v('telefone')&&'telefone'].filter(Boolean);
+  const sit=!v('endereco')?`<div class="casit bad"><b>Falta o endereço</b><span>Obrigatório para agendar qualquer fase.</span></div>`:falta.length?`<div class="casit warn"><b>Falta para agendar Interno e Ativação</b><span>Contato e telefone no local são obrigatórios nessas fases.</span></div>`:'<div class="casit ok"><b>Pronto para agendar</b></div>';
+  const leit=`<div class="ficols"><div><p class="lbl2" style="margin-top:0">Local</p>${v('endereco')?cRow('cid',esc(c.endereco)):miss('cid','Falta o endereço')}${co?cRow('gps',`${esc(c.coord)} <a class="filk" href="https://www.google.com/maps?q=${co[0]},${co[1]}" target="_blank" rel="noopener">abrir no mapa</a>`):v('coord')?miss('gps','Coordenada não reconhecida. Use o formato -23.5505, -46.6333'):vazio('gps','Sem coordenada')}${v('janela')?cRow('rel',esc(c.janela)):vazio('rel','Sem horário informado')}${v('acesso')?cRow('cha',esc(c.acesso)):vazio('cha','Sem condições de acesso informadas')}
+    <p class="lbl2">Contato no local</p>${v('contato')?cRow('tec',esc(c.contato)):(precisa?miss:vazio)('tec','Falta o nome do contato')}${v('telefone')?cRow('tel',esc(c.telefone)):(precisa?miss:vazio)('tel','Falta o telefone')}</div>
+    <div>${sit}<p class="lbl2">Observações técnicas</p>${v('obs')?`<div class="fiobs">${esc(c.obs)}</div>`:'<p class="muted" style="margin:0">Sem observações.</p>'}${usado&&v('endereco')?'<p class="muted" style="font-size:13px;margin:8px 0 0">Dados gravados em agendamento anterior desta etiqueta. Revise antes de agendar.</p>':''}</div></div>`;
+  const form=`<div class="fiform">${fld('endereco','Endereço completo *')}${fld('coord','Coordenada (latitude, longitude)')}${fld('contato','Contato no local')}${fld('telefone','Telefone do contato','tel')}${fld('janela','Horário ou janela de atendimento')}${fld('acesso','Condições de acesso (portaria, autorização, chave)')}${fld('obs','Observações técnicas','area')}</div><p class="muted" style="font-size:13px;margin:4px 0 0">Contato e telefone são obrigatórios para lançamento interno e ativação. Os dados são gravados enquanto você digita.</p>`;
+  return ed?`${sit}<div class="fied">${form}<div class="fift" style="border:0;padding-top:4px;margin-top:8px"><button class="btn" data-act="wiz" data-n="2" data-id="${p.id}">Editar endereço e dados técnicos do projeto</button><button class="btn primary" data-act="compEd" data-v="0">Pronto</button></div></div>`
+   :`${leit}<div class="fift"><button class="btn" data-act="compEd" data-v="1">Editar estes dados</button><button class="btn primary" data-act="fTab" data-t="ag">Agendar</button></div>`}
+function anexosEdit(p){const L=anxDe(p.etiqueta);
+  const slot=(tipo,titulo,sub)=>{const x=L.find(a=>a.tipo===tipo);return `<div class="fisl${x?'':' pend'}"><div class="fislh">${icA('map','cati')}<div><b>${titulo}</b><span>${sub}</span></div><span class="chip ${x?'ok':'warn'}">${x?'Anexado':'Falta'}</span></div>${x?anxLinha(x,1):''}<span class="upl btn sm">${icA('up')} ${x?'Substituir arquivo':'Selecionar .kmz'}<input type="file" accept=".kmz,.kml" data-ch="anexo" data-tipo="${tipo}"></span></div>`};
+  const outros=L.filter(a=>a.tipo==='outro'),log=(S.anexosLog||[]).filter(x=>x.etiqueta===p.etiqueta),sl=[+p.metros>0&&slot('kmzL','KMZ de lançamento',`${(+p.metros).toLocaleString('pt-BR')} m de cabo para lançar`),temExt(p)&&slot('kmzA','KMZ de extensão','Projeto com extensão de sinal')].filter(Boolean);
+  return `${sl.length?`<div class="fisl2">${sl.join('')}</div>`:'<p class="muted" style="margin:0 0 10px">Este projeto não tem cabo para lançar nem extensão de sinal, então não pede KMZ.</p>'}
+   <p class="lbl2">Outros anexos${outros.length?' ('+outros.length+')':''}</p>${outros.map(x=>anxLinha(x,1)).join('')||'<p class="muted" style="margin:0 0 8px">Nenhum. Fotos, projetos, autorizações ou qualquer arquivo de apoio.</p>'}
+   <div class="fiadd"><select class="inp" id="anxFase" aria-label="Vincular à fase">${FASES.filter(f=>!(f.k==='ext'&&!temExt(p))).map(f=>`<option value="${f.k}" ${f.k===(ui.anxFase||'ativ')?'selected':''}>Vincular a ${f.n.toLowerCase()}</option>`).join('')}</select><span class="upl btn sm">${icA('up')} Adicionar arquivos<input type="file" multiple data-ch="anexo" data-tipo="outro"></span></div>
+   <details class="fimini"><summary>Quando os anexos são apagados</summary><p>O técnico vê os anexos em todas as fases. Os KMZ são apagados quando a ativação é concluída. Os outros anexos, quando a fase a que pertencem termina.</p></details>
+   ${log.length?`<details class="fimini"><summary>Apagados após a conclusão (${log.length})</summary>${log.map(x=>`<div class="anx" style="opacity:.7"><span>${esc(x.nome)}<small>${ANX[x.tipo]}, apagado em ${dtBR(x.em)}</small></span></div>`).join('')}</details>`:''}
+   <div class="fift"><button class="btn primary" data-act="fTab" data-t="ag">Agendar</button></div>`}
+function fiAg(p){let b=agendForm(p);const c=S.comp[p.etiqueta]||{},F=ui.agForm||{},precisa=(F.fases||[]).some(k=>k==='interno'||k==='ativ');
+  const falta=[!(c.endereco||'').trim()&&'o endereço',precisa&&!(c.contato||'').trim()&&'o contato',precisa&&!(c.telefone||'').trim()&&'o telefone'].filter(Boolean);
+  if(falta.length)b=b.replace('<div class="agft">',`<p class="note fiwarn">Ainda falta ${falta.length>1?falta.slice(0,-1).join(', ')+' e '+falta[falta.length-1]:falta[0]} em Dados complementares. <button class="link" data-act="fTab" data-t="comp">Preencher agora</button></p><div class="agft">`);
+  return b}
+function fichaA(p,usado){const n=anxDe(p.etiqueta).length,t=ui.fTab||'proj';
+  const body=t==='comp'?fiComp(p,usado):t==='anx'?anexosEdit(p):t==='ag'?fiAg(p):fiProj(p);
+  return `<div class="ficha fi2"><div class="fh2"><div><b>${esc(p.cliente?p.cliente+' - '+p.etiqueta:p.etiqueta)}</b><span>Protocolo ${esc(p.protocolo||'—')}${p.topologia?' · '+esc(p.topologia):''}${p.cidade?' · '+esc(p.cidade):''}</span></div>${fiChip(p)}<button class="icon" data-act="unpick" aria-label="Fechar ficha">✕</button></div>
+   <div class="seg">${[['proj','Dados do projeto'],['comp','Dados complementares'],['anx',`Anexos${n?' ('+n+')':''}`],['ag','Agendamento']].map(([k,l])=>`<button data-act="fTab" data-t="${k}" aria-current="${k===t}">${l}</button>`).join('')}</div><div class="fbody">${body}</div></div>`}
+Object.assign(ACT,{
+  fdAb:el=>{ui.fdAb=ui.fdAb||{};const k=el.dataset.k;ui.fdAb[k]=!ui.fdAb[k];render()},
+  compEd:el=>{const c=S.comp[ui.agSel]||{};if(el.dataset.v!=='1'&&!(c.endereco||'').trim()){toast('Preencha o endereço.','bad');return}ui.compEd=el.dataset.v==='1'?ui.agSel:null;render()}});
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
