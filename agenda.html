@@ -1111,6 +1111,20 @@ button.ca2{cursor:pointer}
 .fi2 .agbh i{background:none;border:1px solid var(--line);color:var(--ink)}.fi2 .agbh span{color:var(--muted)}
 .fiwarn{margin:0 0 10px}
 @media (max-width:760px){.ficols,.fisl2,.fiform{grid-template-columns:1fr}.fift .btn{flex:1}.fzl b{font-size:13px}}
+/* 15/10: agendamento em blocos que abrem e fecham */
+.agb2{padding:0;gap:0;border-radius:12px;margin-bottom:8px}
+.agb2h{display:flex;gap:10px;align-items:center;width:100%;background:none;border:0;padding:11px 12px;cursor:pointer;color:var(--ink);font:inherit;text-align:left}
+.agb2h i{font-style:normal;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.agb2h b{font-size:16px;flex-shrink:0}.agb2h span{margin-left:auto;color:var(--muted);font-size:13.5px;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.agb2h span.bad{color:var(--bad);font-weight:600}
+.agb2h em{font-style:normal;font-size:20px;line-height:1;color:var(--muted);transition:transform .15s}.agb2.on .agb2h em{transform:rotate(90deg)}
+.agb2b{padding:0 12px 12px;display:flex;flex-direction:column;gap:10px}.agb2b .grid2,.agb2b .chk,.agb2b p.muted{margin-bottom:0}
+.agfz2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.agfc{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-weight:600;font-size:14.5px;cursor:pointer}
+.agfc input{margin-top:3px;accent-color:var(--brand)}.agfc small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}.agfc.dis{opacity:.6;cursor:default}.agfc:has(input:checked){border-color:var(--ink)}
+.agb2l{margin:4px 0 -4px;font-size:13px;font-weight:600;color:var(--muted)}
+.agres{display:flex;gap:9px;align-items:flex-start;background:var(--surface-2,var(--bg));border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14.5px;margin-top:4px}.agres .cai{margin-top:2px}
+.agresf{color:var(--warn)}.agft2{margin-top:12px}
+@media (max-width:760px){.agfz2{grid-template-columns:1fr}.agb2h span{max-width:45%}}
 </style>
 </head>
 <body>
@@ -5457,10 +5471,7 @@ function anexosEdit(p){const L=anxDe(p.etiqueta);
    <details class="fimini"><summary>Quando os anexos são apagados</summary><p>O técnico vê os anexos em todas as fases. Os KMZ são apagados quando a ativação é concluída. Os outros anexos, quando a fase a que pertencem termina.</p></details>
    ${log.length?`<details class="fimini"><summary>Apagados após a conclusão (${log.length})</summary>${log.map(x=>`<div class="anx" style="opacity:.7"><span>${esc(x.nome)}<small>${ANX[x.tipo]}, apagado em ${dtBR(x.em)}</small></span></div>`).join('')}</details>`:''}
    <div class="fift"><button class="btn primary" data-act="fTab" data-t="ag">Agendar</button></div>`}
-function fiAg(p){let b=agendForm(p);const c=S.comp[p.etiqueta]||{},F=ui.agForm||{},precisa=(F.fases||[]).some(k=>k==='interno'||k==='ativ');
-  const falta=[!(c.endereco||'').trim()&&'o endereço',precisa&&!(c.contato||'').trim()&&'o contato',precisa&&!(c.telefone||'').trim()&&'o telefone'].filter(Boolean);
-  if(falta.length)b=b.replace('<div class="agft">',`<p class="note fiwarn">Ainda falta ${falta.length>1?falta.slice(0,-1).join(', ')+' e '+falta[falta.length-1]:falta[0]} em Dados complementares. <button class="link" data-act="fTab" data-t="comp">Preencher agora</button></p><div class="agft">`);
-  return b}
+function fiAg(p){return agendForm(p)}
 function fichaA(p,usado){const n=anxDe(p.etiqueta).length,t=ui.fTab||'proj';
   const body=t==='comp'?fiComp(p,usado):t==='anx'?anexosEdit(p):t==='ag'?fiAg(p):fiProj(p);
   return `<div class="ficha fi2"><div class="fh2"><div><b>${esc(p.cliente?p.cliente+' - '+p.etiqueta:p.etiqueta)}</b><span>Protocolo ${esc(p.protocolo||'—')}${p.topologia?' · '+esc(p.topologia):''}${p.cidade?' · '+esc(p.cidade):''}</span></div>${fiChip(p)}<button class="icon" data-act="unpick" aria-label="Fechar ficha">✕</button></div>
@@ -5468,6 +5479,40 @@ function fichaA(p,usado){const n=anxDe(p.etiqueta).length,t=ui.fTab||'proj';
 Object.assign(ACT,{
   fdAb:el=>{ui.fdAb=ui.fdAb||{};const k=el.dataset.k;ui.fdAb[k]=!ui.fdAb[k];render()},
   compEd:el=>{const c=S.comp[ui.agSel]||{};if(el.dataset.v!=='1'&&!(c.endereco||'').trim()){toast('Preencha o endereço.','bad');return}ui.compEd=el.dataset.v==='1'?ui.agSel:null;render()}});
+
+/* 15/10: agendamento em 4 blocos que abrem e fecham (padrão da ficha) */
+function agendForm(p){
+  const F=ui.agForm;if(F.etq!==p.etiqueta){F.etq=p.etiqueta;const nf=nextFase(p.etiqueta);F.fases=faseFim(p.etiqueta,nf)?[]:[nf];F.data=hoje();F.dataFim=hoje();F.uteis=true;F.tec='';F.rem=[];F.obs='';F.fOff=[];F._tv='';ui.agTecAb=false;ui.agAb={};ui.agBk={1:1,2:1}}
+  if(!AUS.ok)ausCarregar();ui.agAb=ui.agAb||{};ui.agBk=ui.agBk||{1:1,2:1};const BK=ui.agBk;
+  const dias=diasRange(F.data,F.dataFim,F.uteis),e=p.etiqueta,FZ=F.fases||[];
+  const fs=fasesProj(p).map(f=>{const fin=faseFim(e,f.k),ab=fin?null:fiAb({etq:e,k:f.k}),pv=+p[f.p]||0;let sub;
+    if(fin)sub=`Finalizada por ${esc(tecN(fin.tec))} em ${dBR(fin.data).slice(0,5)}`;
+    else if(f.k==='ativ'){const pr=pendReq(p,FZ);sub=liberado(p)?'<b style="color:var(--brand-ink)">Liberada para ativar o cliente</b>':pr.length?`<span style="color:var(--warn)">Ainda falta finalizar ${pr.map(k=>FCURTO[k].toLowerCase()).join(', ')}</span>`:'Liberada junto com as fases selecionadas'}
+    else sub=ab?`<span style="color:var(--info)">${ST[ab.status][0]} para ${dBR(ab.data).slice(0,5)} com ${esc(tecN(ab.tec))}</span>`:`${pv} ${pv===1?'dia previsto':'dias previstos'}`;
+    return `<label class="agfc ${fin?'dis':''}"><input type="checkbox" data-ch="agFz" value="${f.k}" ${FZ.includes(f.k)?'checked':''} ${fin?'disabled':''}><span>${f.n}<small>${sub}</small></span></label>`}).join('');
+  const ex=EXTRAS.map(x=>`<label class="agx"><input type="checkbox" data-ch="agFz" value="${x.k}" ${FZ.includes(x.k)?'checked':''}> ${x.n}</label>`).join('');
+  const kmz=(()=>{const L=anxDe(e),w=[];if(+p.metros>0&&FZ.some(k=>k==='rua'||k==='interno')&&!L.some(x=>x.tipo==='kmzL'))w.push('KMZ de lançamento');if(temExt(p)&&FZ.includes('ext')&&!L.some(x=>x.tipo==='kmzA'))w.push('KMZ de extensão');return w.length?`<p class="note" style="margin:0">Ainda sem ${w.join(' e ')}. <button class="link" data-act="fTab" data-t="anx">Anexar agora</button></p>`:''})();
+  const n=dias.length,m=F.modo||'unico';
+  const modo=n>1?`<div class="agmodo">${[['unico','Uma atividade em vários dias','O técnico registra cada dia e conclui no último'],['separado','Uma atividade por dia',`${n} atividades independentes`]].map(([k,t,d])=>`<label class="chk ${m===k?'on':''}"><input type="radio" name="agModo" data-ch="agModo" value="${k}" ${m===k?'checked':''}><span><b>${t}</b><small>${d}</small></span></label>`).join('')}</div>`:'';
+  const resDias=!n?'Nenhum dia no intervalo':n===1?dBR(dias[0]).slice(0,5):n<=4?`${n} dias: ${dias.map(d=>d.slice(8,10)).join(', ').replace(/, (\d+)$/,' e $1')}/${dias[0].slice(5,7)}`:`${n} dias, de ${dBR(dias[0]).slice(0,5)} a ${dBR(dias[n-1]).slice(0,5)}`;
+  const nec=p.roi?matLista(p,F):[],st=F.tec&&nec.length?matCheck(p,F.tec,FZ,nec):null,falt=st?st.filter(x=>x.st!=='ok').length:0;
+  const resMat=!p.roi?'Projeto sem ROI':!FZ.length?'Escolha a fase':!nec.length?'Nenhum material':`${nec.length} ${nec.length===1?'item':'itens'} · ${!F.tec?'escolha o técnico':falt?`${falt} em falta no estoque`:'técnico tem todo o material'}`;
+  const off=new Set(F.fOff||[]),fz=FASES.filter(f=>FZ.includes(f.k)&&fotosDaFase(f.k).length),nf=fz.reduce((s,f)=>s+fotosDaFase(f.k).filter(([id])=>!off.has(f.k+':'+id)).length,0);
+  const resFot=(fz.length?`${nf} ${nf===1?'foto':'fotos'} no relatório`:'Sem fotos')+((F.obs||'').trim()?' · com observação':'');
+  const tecSel=TEC.find(t=>t.id===F.tec),fzTxt=FZ.map(k=>FCURTO[k]||k).join(' + ');
+  const blk=(k,t,r,body,cls)=>`<div class="agbk agb2${BK[k]?' on':''}"><button class="agb2h" data-act="agBk" data-k="${k}" aria-expanded="${!!BK[k]}"><i>${k}</i><b>${t}</b><span class="${cls||''}">${r}</span><em>›</em></button>${BK[k]?`<div class="agb2b">${body}</div>`:''}</div>`;
+  const per=n?(n===1?'em '+dBR(dias[0]).slice(0,5):`de ${dBR(dias[0]).slice(0,5)} a ${dBR(dias[n-1]).slice(0,5)}`):'';
+  const c=S.comp[e]||{},precisa=FZ.some(k=>k==='interno'||k==='ativ'),falta=[!(c.endereco||'').trim()&&'o endereço',precisa&&!(c.contato||'').trim()&&'o contato',precisa&&!(c.telefone||'').trim()&&'o telefone'].filter(Boolean);
+  const E=ui.agEd,ea=E&&getAg(E.id),emEd=ea&&ea.etiqueta===e;
+  const res=`<div class="agres">${icA('dt')}<span>${FZ.length?`<b>${fzTxt}</b>`:'Escolha a fase'} ${n===1?'em':'·'} <b>${resDias}</b> com ${tecSel?`<b>${esc(tecSel.nome)}</b>`:'<span style="color:var(--warn)">escolha o técnico</span>'}.${falta.length?` <span class="agresf">Ainda falta ${falta.length>1?falta.slice(0,-1).join(', ')+' e '+falta[falta.length-1]:falta[0]} em Dados complementares. <button class="link" data-act="fTab" data-t="comp">Preencher agora</button></span>`:''}</span></div>`;
+  return `${agEdBanner(p)}${blk(1,'O que será feito',fzTxt||'escolha a fase',`<div class="agfz2">${fs}</div><div class="agxs"><span>Outras atividades (não contam como fase):</span>${ex}</div>${kmz}`)}
+   ${blk(2,'Quando e quem',`${resDias} · ${tecSel?esc(tecSel.nome):'escolha o técnico'}`,`${rangeHtml('ag',F.data,F.dataFim,F.uteis)}${modo}<p class="agb2l">Técnico${per?' · ocupação '+per:''}</p>${agTecBloco(F,dias)}`)}
+   ${blk(3,'Material',resMat,p.roi&&FZ.length?matEditor(p,F):`<p class="muted" style="margin:0">${!p.roi?'Projeto sem ROI: sem lista de materiais. Envie o ROI em Editar dados do projeto.':'Escolha a fase para ver os materiais.'}</p>`,falt?'bad':'')}
+   ${blk(4,'Fotos e observação',resFot,`${fz.length?fotosEditor(F):'<p class="muted" style="margin:0 0 10px">Sem fotos para as fases escolhidas.</p>'}<label class="f" style="margin:0"><span>Observação para o técnico</span><textarea class="inp" rows="2" data-in="agObs" placeholder="Ex.: sobra de cabo deixada no poste em frente ao cliente pela equipe do lançamento na rua">${esc(F.obs||'')}</textarea></label>`)}
+   ${res}
+   <div class="fift agft2">${emEd?'':'<button class="btn" data-act="unpick">Cancelar</button>'}${pode('a_agendar')?`<button class="btn primary" data-act="agendar">${emEd?agEdBtn():FZ.length?'Agendar '+esc(fzTxt):'Agendar'}</button>`:'<p class="note" style="margin:0">Seu usuário não tem permissão para agendar atividades.</p>'}</div>`}
+Object.assign(ACT,{agBk:el=>{ui.agBk=ui.agBk||{};const k=el.dataset.k;ui.agBk[k]=!ui.agBk[k];render()}});
+{const _o=agEdAbrir;agEdAbrir=function(a,m){ui.agBk={1:1,2:1,3:0,4:1};return _o(a,m)}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
