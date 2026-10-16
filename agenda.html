@@ -2957,10 +2957,10 @@ async function carregar(){
   const g=['coord','sup','enc','deliv'].includes(ui.perfil);
   // técnicos
   const novos=[];
-  if(g){const pap=await todas(()=>sb.from('agenda_papeis').select('user_id,papel,vinculo,ativo').eq('papel','tecnico').eq('ativo',true));
+  if(g){const pap=await todas(()=>sb.from('agenda_papeis').select('user_id,papel,vinculo,ativo,empresa').eq('papel','tecnico').eq('ativo',true));
     const ids=[...new Set(pap.map(x=>x.user_id))];const pf=ids.length?await todas(()=>sb.from('perfis').select('id,nome,cnpj').in('id',ids)):[];
-    pf.forEach(x=>{if(novos.some(t=>t.id===x.id))return;const pp=pap.find(y=>y.user_id===x.id);novos.push({id:x.id,nome:x.nome,tipo:pp.vinculo==='terceiro'?'TERC':'CLT',doc:x.cnpj||''})});novos.sort((a,b)=>a.nome.localeCompare(b.nome))}
-  else novos.push({id:ME.id,nome:ME.nome,tipo:ME.vinculo==='terceiro'?'TERC':'CLT',doc:ME.cnpj||''});
+    pf.forEach(x=>{if(novos.some(t=>t.id===x.id))return;const pp=pap.find(y=>y.user_id===x.id);novos.push({id:x.id,nome:x.nome,tipo:pp.vinculo==='terceiro'?'TERC':'CLT',doc:x.cnpj||'',empresa:pp.empresa||null})});novos.sort((a,b)=>a.nome.localeCompare(b.nome))}
+  else novos.push({id:ME.id,nome:ME.nome,tipo:ME.vinculo==='terceiro'?'TERC':'CLT',doc:ME.cnpj||'',empresa:ME.empresa||null});
   TEC.splice(0,TEC.length,...novos);
   const [pr,co,ag,lp,an,lg]=await Promise.all([(g?todas(()=>sb.from('ag_projetos').select('*')):sb.rpc('ag_projetos_tecnico').then(r=>{if(r.error)throw r.error;return r.data||[]})),todas(()=>sb.from('ag_complementos').select('*')),todas(()=>sb.from('ag_agendamentos').select('*')),todas(()=>sb.from('ag_lpus').select('*')),todas(()=>sb.from('ag_anexos').select('*')),g?todas(()=>sb.from('ag_anexos_log').select('*')):Promise.resolve([])]);
   S.previsao=pr.slice().sort((a,b)=>String(b.criado_em||'').localeCompare(String(a.criado_em||''))).map(r=>Object.assign({id:r.id,etiqueta:r.etiqueta},r.dados));
@@ -5566,6 +5566,21 @@ Object.assign(ACT,{
   eqLpuDia:el=>{const a=getAg(el.dataset.id);if(!a)return;ui.lpuDia={id:a.id,d:el.dataset.d};ui.lpuTela=a.id;ui.lpuP=1;ui.lpuQ='';ui.lpuCls='';ui.lpuContaAb=false;render();window.scrollTo(0,0)},
   eqDiaAdiar:el=>{const a=getAg(el.dataset.id),x=a&&(a.diario||[]).find(y=>y.data===el.dataset.d);if(!x)return;x.lpuAdiada=true;save();render();toast('Lembrete recolhido. A LPU deste dia continua disponível aqui.')}});
 {const _f=ACT.lpuFechar;ACT.lpuFechar=el=>{ui.lpuDia=null;return _f(el)}}
+
+/* 16/10: funcionário de empresa terceira não preenche LPU: quem preenche é o administrador da empresa dele.
+   Na Visão do técnico, a tela do funcionário aparece como ele vê (sem "Preencher a LPU"). */
+const tecFunc=id=>!!id&&(!!(TEC.find(t=>t.id===id)||{}).empresa||(!!ME&&ME.id===id&&!!ME.empresa));
+const lpuBloq=tec=>tecFunc(tec)&&!(ui.perfil==='terc'&&typeof eqIds==='function'&&eqIds().has(tec));
+{const _ts=tecSelect;tecSelect=function(L,lbl){if(!ui._p0)return _ts(L,lbl);const p=ui.perfil;ui.perfil=ui._p0;try{return _ts(TEC,'Ver como')}finally{ui.perfil=p}}}
+{const _vc=viewCampo;viewCampo=function(){const p0=ui.perfil;if(['coord','sup','enc'].includes(p0)&&tecFunc(ui.tec)){ui.perfil='func';ui._p0=p0}try{return _vc()}finally{ui.perfil=p0;ui._p0=null}}}
+{const msg='A LPU deste técnico é preenchida pelo administrador da empresa dele, em Minha equipe.';
+ const g=(k,fn)=>{const o=ACT[k];if(!o)return;ACT[k]=el=>{if(fn(el)){toast(msg,'bad');return}return o(el)}};
+ g('lpuAbrir',el=>{const a=getAg(el.dataset.id);return a&&lpuBloq(a.tec)});
+ g('lpuEnviar',el=>{const a=getAg(el.dataset.id);return a&&lpuBloq(a.tec)});
+ g('lpuPasso',()=>{const a=getAg(ui.lpuTela);return a&&lpuBloq(a.tec)});
+ g('gLpuAbrir',el=>{const c=G.ch.find(x=>x.id===el.dataset.id);return c&&lpuBloq(c.tec)});
+ g('gLpuPasso',()=>{const c=G.ch.find(x=>'G:'+x.id===ui.lpuTela);return c&&lpuBloq(c.tec)});
+ g('sgOk',()=>{const s=ui.sign;if(!s)return false;const a=s.tipo==='gtd'?G.ch.find(x=>x.id===s.id):getAg(s.id);return a&&lpuBloq(a.tec)})}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
