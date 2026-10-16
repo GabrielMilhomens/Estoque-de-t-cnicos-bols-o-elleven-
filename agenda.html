@@ -1130,6 +1130,9 @@ button.ca2{cursor:pointer}
 .pzq{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--info-soft)}
 .pzq .pzb{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pzq .pzb .btn{min-height:46px;font-size:16px}
 #toast{pointer-events:none}
+/* 16/10: ícone de mensagens no card do Painel do dia */
+.msgico{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:999px;background:var(--info-soft);color:var(--info);font:700 12px/22px Barlow,sans-serif}
+.cat .msgbtn{margin-left:auto}
 </style>
 </head>
 <body>
@@ -3498,7 +3501,7 @@ const gNMsg=(t,id)=>G.nMsg[t+':'+id]||0,gNNova=(t,id)=>G.nNova[t+':'+id]||0;
 /* selo de mensagem nova do técnico (some quando qualquer pessoa abre a conversa) */
 const gSeloMsg=(t,id,n)=>{n=n==null?gNNova(t,id):n;return n?`<span class="msgnova" title="${n} ${n>1?'mensagens novas':'mensagem nova'} do técnico" aria-label="${n} ${n>1?'mensagens novas':'mensagem nova'} do técnico">${_sv('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',14)}${n}</span>`:''};
 const gMsgBtn=(t,id,cls,lbl)=>{const n=gNMsg(t,id);return `<button class="btn ${cls||'primary'} sm" data-act="chatAbrir" data-t="${t}" data-id="${id}">${lbl||'Mensagens'}${n?` (${n})`:''}</button>`};
-const gPdMsg=r=>{const n=ui.perfil==='visu'?(+r.msgsNovas||0):gNNova('a',r.id);if(!n)return '';const s=gSeloMsg('a',r.id,n);return ui.perfil==='visu'?s:`<button class='msgbtn' data-act='chatAbrir' data-t='a' data-id='${r.id}' title='Abrir as mensagens'>${s}</button>`};
+const gPdMsg=r=>{const n=ui.perfil==='visu'?(+r.msgsNovas||0):gNNova('a',r.id),t=gNMsg('a',r.id);return `<button class='msgbtn' data-act='chatAbrir' data-t='a' data-id='${r.id}' title='${n?n+(n>1?' mensagens novas':' mensagem nova')+' do técnico':'Conversar com o técnico'}' aria-label='Mensagens da atividade'>${n?gSeloMsg('a',r.id,n):`<span class="msgico">${_sv('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',14)}${t?t:''}</span>`}</button>`};
 const gErroBox=()=>`<div class="result warn" style="margin-top:8px"><b>GTD Manutenção indisponível.</b> ${esc(G.erro)}</div>`;
 
 function gRfoTexto(c){const r=c.rfo||{},ini=(c.ts&&c.ts.inicio)||gIni(c),fim=c.validadoEm||(c.ts&&c.ts.validado)||Date.now(),L='━━━━━━━━━━━━━━';
@@ -3888,7 +3891,7 @@ function gChatLista(){if(ui.chat&&ui.chat.t==='s')return gSalaLista();const k=gC
   return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}</small>${chxMsgTxt(m)}${chxAnexo(m)}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
 function gChatPintar(){const el=$('chatList');if(!el)return;const fim=el.scrollHeight-el.scrollTop-el.clientHeight<80;el.innerHTML=gChatLista();if(fim)el.scrollTop=el.scrollHeight;chxArqsAtual()}
 function viewChat(){if(ui.chat&&ui.chat.t==='s')return viewSala();const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);
-  let tit='',sub='',quem='';if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};tit='O&M '+(c.pom||'');sub=c.cliente||'';quem='Técnico, NOC e O&M'}else{const a=getAg(ch.id)||{};tit=a.etiqueta||'Atividade';sub=cliN(a.etiqueta||'')+(a.fases?' · '+fasesN(a):'');quem='Técnico, Delivery e O&M'}
+  let tit='',sub='',quem='';if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};tit='O&M '+(c.pom||'');sub=c.cliente||'';quem='Técnico, NOC e O&M'}else{const a=getAg(ch.id)||((typeof PD!=='undefined'&&PD.rows)||[]).find(r=>r.id===ch.id)||{};tit=a.etiqueta||'Atividade';sub=(cliN(a.etiqueta||'')||a.cliente||'')+(a.fases?' · '+fasesN(a):'');quem='Técnico, Delivery e O&M'}
   setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
   return `<div class="chatv"><div class="chath"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><div><b>${ch.t==='g'&&gVeGtd()?'Chat com técnico':'Mensagens'} · ${esc(tit)}</b><small class="muted">${esc(sub)} · ${quem}</small></div>${chxArqsBtn()}</div>
    <div class="chatl" id="chatList" aria-live="polite">${gChatLista()}</div>
