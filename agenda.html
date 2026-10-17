@@ -1198,6 +1198,101 @@ button.ca2{cursor:pointer}
 .r2fi.ok small{color:var(--ok,#4f7a12)}
 .r2 .bigbtn[aria-disabled="true"]{opacity:.55}
 [data-act="gCopiar"]{display:none!important}
+
+/* 17/10: vistoria de lançamento */
+.vtbody{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.vtblk{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.vtblk>button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:8px;align-items:center;width:100%;padding:12px;cursor:pointer}
+.vtblk>button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;border-radius:12px}
+.vtblk .k{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700}
+.vtblk.done .k{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.vtblk h3{font:700 17px 'Barlow Condensed',sans-serif;margin:0}
+.vtblk .r{font-size:12.5px;color:var(--muted);max-width:170px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vtbb{padding:0 12px 14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.vtdl{display:grid;grid-template-columns:86px minmax(0,1fr);gap:4px 10px;margin:0;font-size:14px}
+.vtdl dt{color:var(--muted)}.vtdl dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.vtwarn{color:var(--warn);font-weight:600}
+.vtmapw{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+#vtMap{height:min(62vh,460px);width:100%;background:#e9ece6}
+#vtMap.vtliso{background:var(--bg)}
+#vtMap.drawing{outline:3px solid #0f9d9a;outline-offset:-3px;cursor:crosshair}
+#vtMap .leaflet-control-attribution{font-size:9px}
+.vtmt{position:absolute;right:8px;top:8px;z-index:500;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.vtmt button{pointer-events:auto;font:600 12.5px Barlow,sans-serif;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.vtel .lb{position:absolute;left:24px;top:6px;font:700 10px Barlow,sans-serif;color:#1d2620;background:#fff;padding:0 3px;border-radius:3px;white-space:nowrap;display:none;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.zhi .vtel .lb,.vtel.on .lb{display:block}
+.vtel.on .lb{background:#1d2620;color:#fff}
+.vtel svg,.vtref svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.zlo .vtel svg{transform:scale(.42);transform-origin:center}
+.zmid .vtel svg{transform:scale(.7);transform-origin:center}
+.zlo .vtel.on svg,.zmid .vtel.on svg{transform:none}
+.vtleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted);align-items:center}
+.vtleg span{display:inline-flex;gap:5px;align-items:center}
+.vtcnt{flex-basis:100%}
+.vtl{width:11px;height:11px;border-radius:50%;display:inline-block;border:2px solid var(--ink)}
+.vtl.sok{background:#5a9a1a;border-color:#5a9a1a}.vtl.snc{background:var(--bad);border-color:var(--bad)}.vtl.sinc{background:var(--surface);border-style:dashed;border-color:var(--muted)}
+.vtmact{display:flex;flex-wrap:wrap;gap:6px 16px}
+.vtmact .link{font-size:14px}
+.vtnav{display:grid;grid-template-columns:44px auto minmax(0,1fr) 44px;align-items:center;gap:8px}
+.vtnav button{all:unset;cursor:pointer;height:40px;border:1px solid var(--line);border-radius:8px;text-align:center;font-size:22px;line-height:38px;background:var(--surface)}
+.vtnav button:disabled{opacity:.35;cursor:default}
+.vtnav b{font:700 22px 'Barlow Condensed',sans-serif}
+.vtnav span{color:var(--muted);font-size:13.5px;min-width:0}
+.vtok{all:unset;box-sizing:border-box;text-align:center;font:700 18px 'Barlow Condensed',sans-serif;padding:13px;border-radius:10px;background:var(--brand);color:var(--on-brand);cursor:pointer}
+.vtok:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.vtitd{border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+.vtitd summary{cursor:pointer;font-weight:600;font-size:14.5px}
+.vtitd[open] summary{margin-bottom:10px}
+.vtitd>label{margin-bottom:10px!important}
+.vtchk{display:flex;flex-direction:column;gap:8px}
+.vtci{border:1px solid var(--line);border-radius:10px;padding:9px 10px;display:flex;flex-direction:column;gap:7px;font-size:14.5px;font-weight:600}
+.vtci>span small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
+.vtci>span small b{color:var(--ink)}
+.vtci.ncb{border-color:var(--bad);background:var(--bad-soft)}
+.vtci.antb{border-color:var(--warn);border-style:dashed}
+.vtant{color:var(--warn)!important;font-weight:600!important}
+.vtseg{display:grid;grid-template-columns:1fr 1.3fr .6fr;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.vtseg button{all:unset;cursor:pointer;text-align:center;padding:9px 4px;font-size:13.5px;font-weight:600;color:var(--muted);background:var(--surface)}
+.vtseg button+button{border-left:1px solid var(--line)}
+.vtseg button.c[aria-pressed="true"]{background:var(--brand);color:var(--on-brand)}
+.vtseg button.nc[aria-pressed="true"]{background:var(--bad);color:#fff}
+.vtseg button.na[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.vtseg button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.vtncd{display:flex;flex-direction:column;gap:6px;font-weight:400}
+.vtfb{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.vtfb .rfb.pri{border-color:var(--warn)}
+.vtreq{color:var(--warn);font-size:12px;font-weight:600}
+.vtft{position:relative;width:120px}
+.vtft img{width:120px;height:90px;object-fit:cover;border-radius:8px;display:block}
+.vtskip{margin:0;background:var(--bg);border-radius:8px;padding:8px 10px;font-size:13.5px;color:var(--muted)}
+.vtrev{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:9px 11px;font-size:13.5px}
+.vtdrw{background:var(--surface);border:1.5px solid #0f9d9a;border-radius:10px;padding:10px;display:grid;gap:8px;font-size:14px}
+.vtdrp{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.vtdrp input{accent-color:#0f9d9a;width:18px;height:18px}
+.vtdrb{display:flex;gap:6px}
+.vtdrb button{flex:1;font:600 13.5px Barlow,sans-serif;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:9px 6px;cursor:pointer}
+.vtdrb button.pri{background:#0f9d9a;border-color:#0f9d9a;color:#fff}
+.vtdrb button:disabled{opacity:.4;cursor:default}
+.vterr{color:var(--bad);font-weight:600}
+.vtaltb{border:1px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:8px}
+.vtalti{border-left:4px solid #0f9d9a;background:var(--bg);border-radius:8px;padding:8px;display:grid;gap:6px}
+.vtalti.nok{border-color:var(--bad)}
+.vtaltt{display:flex;justify-content:space-between;gap:8px;font-size:13.5px}
+.vtaltt small{display:block;color:var(--muted);font-size:12.5px}
+.vtaltx{all:unset;cursor:pointer;width:30px;height:30px;text-align:center;color:var(--muted)}
+.vtpd{display:flex;flex-direction:column;gap:6px}
+.vtpdi{all:unset;box-sizing:border-box;cursor:pointer;border-left:4px solid var(--line);background:var(--bg);border-radius:6px;padding:8px 10px;display:grid;gap:2px;font-size:13.5px}
+.vtpdi.critica{border-color:var(--bad)}.vtpdi.corrigir{border-color:var(--warn)}.vtpdi.obs{border-color:var(--info)}
+.vtpdi small{color:var(--muted)}
+.vtres{border-radius:10px;padding:10px 12px;display:grid;gap:2px}
+.vtres small{font-size:12px}.vtres b{font:700 21px 'Barlow Condensed',sans-serif}.vtres span{font-size:13px}
+.vtres.okr{background:var(--brand-soft);color:var(--brand-ink)}.vtres.warnr{background:var(--warn-soft);color:var(--warn)}.vtres.badr{background:var(--bad-soft);color:var(--bad)}
+.vtprz{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 12px;display:grid;gap:2px;font-size:13.5px}
+.vtmiss{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13.5px}
+.vtmiss ul{margin:4px 0 0;padding-left:18px}
+.vtsem{display:flex;flex-direction:column;gap:10px}
+.vtvenc{color:var(--bad);font-weight:700}
+.vtpz{margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -1419,7 +1514,7 @@ const LPU_REGRAS = {
 const LPU_CONTAS=Object.keys(LPU_REGRAS);
 const lpuDaConta=c=>{const r=LPU_REGRAS[c]||LPU_REGRAS[LPU_CONTAS[0]];return LPU.filter(it=>{const n=parseInt(it.cod.replace(/\D/g,''));return r.intervalos.some(x=>n>=x.inicio&&n<=x.fim)||r.especificos.includes(it.cod)})};
 const REL=[{k:'foto',n:'Relatório fotográfico'},{k:'entrega',n:'Relatório de entrega de circuito'}];
-const relsDe=a=>{if(a.parcial)return[{k:'parcial',n:'Relatório do que foi feito'}];const f=(a.fases||[a.fase]);return REL.filter(r=>r.k==='entrega'?f.includes('ativ'):(a.fotosReq||[]).length>0)};
+const relsDe=a=>{if(a.parcial)return[{k:'parcial',n:'Relatório do que foi feito'}];const f=(a.fases||[a.fase]);return REL.filter(r=>r.k==='entrega'?f.includes('ativ'):(a.fotosReq||[]).length>0).concat(f.includes('vist')?[{k:'vist',n:'Relatório de vistoria'}]:[])};
 const FOTOS_LANC=[['lote_ini','Lote e metragem no início do lançamento','unica','lote'],['lote_fim','Lote e metragem no término do lançamento','unica','lote'],['reserva','Reservas técnicas','opcional',''],['local_ini','Local de início do lançamento','unica',''],['local_fim','Local de término do lançamento','unica','']];
 const FOTOS_EXT=[['sinal_ini','Nível de sinal na CEO/CTO de Ponto de acesso','unica','sinal'],['ceo_ini','CEO acomodada no início da extensão','unica',''],['sinal_fim','Nível de sinal na CEO/CTO de Ponto de derivação','unica','sinal'],['ceos','Todas as CEOs trabalhadas','multi','']];
 const fotosDaFase=k=>k==='rua'||k==='interno'?FOTOS_LANC:k==='ext'?FOTOS_EXT:[];
@@ -1699,19 +1794,19 @@ function viewRelat(){const q=normK(ui.rQ||''),tipo=ui.rTipo||'',tec=ui.rTec||'',
   const linhas=[];S.ags.filter(a=>a.rel&&a.data>=ini&&a.data<=fim&&(!tec||a.tec===tec)).forEach(a=>{
     if(a.rel.foto&&a.rel.foto.path&&(!tipo||tipo==='foto'))linhas.push({a,k:'foto',path:a.rel.foto.path});
     if(a.rel.parcial&&a.rel.parcial.path&&(!tipo||tipo==='parcial'))linhas.push({a,k:'parcial',path:a.rel.parcial.path});
-    if(a.rel.entrega&&a.rel.entrega.path&&(!tipo||tipo==='entrega'))linhas.push({a,k:'entrega',path:a.rel.entrega.path})});
+    if(a.rel.entrega&&a.rel.entrega.path&&(!tipo||tipo==='entrega'))linhas.push({a,k:'entrega',path:a.rel.entrega.path});if(a.rel.vist&&a.rel.vist.path&&(!tipo||tipo==='vist'))linhas.push({a,k:'vist',path:a.rel.vist.path})});
   const G={};linhas.forEach(x=>{const p=pPor(x.a.etiqueta),c=p.cliente||x.a.etiqueta;if(q&&!normK(c+' '+x.a.etiqueta).includes(q))return;(G[c]=G[c]||[]).push(x)});
   const cls=Object.keys(G).sort((a,b)=>a.localeCompare(b));ui.rOpen=ui.rOpen||{};
   const med=a=>{const m=a.medicoes||{},v=[];const mt=metrosAg(a);if(mt!=null)v.push(mt.toLocaleString('pt-BR')+' m lançados');if(m['ext:sinal_ini:dbm']!=null)v.push('sinal '+String(m['ext:sinal_ini:dbm']).replace('.',',')+' / '+String(m['ext:sinal_fim:dbm']||'—').replace('.',',')+' dBm');return v.join(', ')||'—'};
-  return `<div class="toolbar"><div><h2>Relatórios</h2><p class="muted">Relatórios fotográficos e de entrega enviados pelos técnicos, organizados por cliente.</p></div></div>
+  return `<div class="toolbar"><div><h2>Relatórios</h2><p class="muted">Relatórios fotográficos, de entrega e de vistoria enviados pelos técnicos, organizados por cliente.</p></div></div>
   <div class="tools" style="margin-bottom:12px"><input class="inp" type="search" id="rQ" placeholder="Buscar cliente ou etiqueta" data-in="rQ" value="${esc(ui.rQ||'')}">
-   <select class="inp" data-ch="rTipo"><option value="">Todos os tipos</option><option value="foto" ${tipo==='foto'?'selected':''}>Fotográfico</option><option value="entrega" ${tipo==='entrega'?'selected':''}>Entrega de circuito</option><option value="parcial" ${tipo==='parcial'?'selected':''}>Não conclusão</option></select>
+   <select class="inp" data-ch="rTipo"><option value="">Todos os tipos</option><option value="foto" ${tipo==='foto'?'selected':''}>Fotográfico</option><option value="entrega" ${tipo==='entrega'?'selected':''}>Entrega de circuito</option><option value="parcial" ${tipo==='parcial'?'selected':''}>Não conclusão</option><option value="vist" ${tipo==='vist'?'selected':''}>Vistoria de lançamento</option></select>
    <select class="inp" data-ch="rTec"><option value="">Todos os técnicos</option>${TEC.map(t=>`<option value="${t.id}" ${t.id===tec?'selected':''}>${esc(t.nome)}</option>`).join('')}</select>
    <label class="f inline"><span>De</span><input type="date" class="inp" data-ch="rIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="rFim" value="${fim}"></label>
    </div>
-  ${cls.map(c=>{const L=G[c].sort((x,y)=>y.a.data.localeCompare(x.a.data)),o=ui.rOpen[c]!==undefined?ui.rOpen[c]:cls.length===1,etqs=[...new Set(L.map(x=>x.a.etiqueta))].join(', '),cid=pPor(L[0].a.etiqueta).cidade;
+  ${vtPrazos(tipo)}${cls.map(c=>{const L=G[c].sort((x,y)=>y.a.data.localeCompare(x.a.data)),o=ui.rOpen[c]!==undefined?ui.rOpen[c]:cls.length===1,etqs=[...new Set(L.map(x=>x.a.etiqueta))].join(', '),cid=pPor(L[0].a.etiqueta).cidade;
     return `<section class="lcard"><button class="lhead" data-act="rOpen" data-c="${esc(c)}" aria-expanded="${o}"><div><b style="font:700 20px 'Barlow Condensed',sans-serif">${esc(c)}</b><small>${esc(etqs)}${cid?', '+esc(cid):''}</small></div><span style="display:flex;gap:8px;align-items:center"><span class="chip">${L.length} ${L.length>1?'relatórios':'relatório'}</span><span class="muted">${o?'▴':'▾'}</span></span></button>
-     ${o?`<div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table><thead><tr><th>Data</th><th>Relatório</th><th>Etiqueta e fases</th><th>Técnico</th><th>Medições</th><th></th></tr></thead><tbody>${L.map(x=>`<tr><td>${dBR(x.a.data)}</td><td><b>${x.k==='foto'?'Fotográfico':x.k==='parcial'?'Não conclusão':'Entrega de circuito'}</b></td><td>${esc(x.a.etiqueta)}<br><small class="muted">${fasesN(x.a)}</small></td><td>${esc(tecN(x.a.tec))}</td><td>${x.k==='foto'||x.k==='parcial'?esc(med(x.a)):'Circuito entregue'}</td><td class="r"><button class="btn sm" data-act="relVer" data-p="${esc(x.path)}">Abrir PDF</button></td></tr>`).join('')}</tbody></table></div>`:''}</section>`}).join('')||'<p class="muted pad">Nenhum relatório com esses filtros.</p>'}`}
+     ${o?`<div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table><thead><tr><th>Data</th><th>Relatório</th><th>Etiqueta e fases</th><th>Técnico</th><th>Medições</th><th></th></tr></thead><tbody>${L.map(x=>`<tr><td>${dBR(x.a.data)}</td><td><b>${x.k==='vist'?(x.a.vistoria&&x.a.vistoria.revis?'Revistoria':'Vistoria de lançamento'):x.k==='foto'?'Fotográfico':x.k==='parcial'?'Não conclusão':'Entrega de circuito'}</b></td><td>${esc(x.a.etiqueta)}<br><small class="muted">${fasesN(x.a)}</small></td><td>${esc(tecN(x.a.tec))}</td><td>${x.k==='vist'?vtMedRel(x.a):x.k==='foto'||x.k==='parcial'?esc(med(x.a)):'Circuito entregue'}</td><td class="r"><button class="btn sm" data-act="relVer" data-p="${esc(x.path)}">Abrir PDF</button></td></tr>`).join('')}</tbody></table></div>`:''}</section>`}).join('')||'<p class="muted pad">Nenhum relatório com esses filtros.</p>'}`}
 
 /* ---------- BASE ---------- */
 // colunas agrupadas: [campo, rótulo completo, tipo, rótulo curto, largura px]
@@ -2198,7 +2293,7 @@ function blocoAcao(a){
     case 'deslocamento':act=etaBox(a)+go('Segure: cheguei no local')+nok;break;
     case 'no_local':act=go('Segure: iniciar atividade')+nok;break;
     case 'execucao':{act=thAcoes(a,nok);break}
-    case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">${a.parcial?'Envie o relatório do que foi feito antes de lançar na LPU.':'Preencha o relatório para encerrar a atividade.'}</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}${relsDe(a).some(r=>r.k==='entrega')&&!a.rel.entrega?`<label class="btn wide relup">Enviar o PDF salvo no celular<input type="file" accept="application/pdf,.pdf" data-ch="relPdfUp" data-id="${a.id}" hidden></label><p class="muted" style="margin:-2px 0 0;font-size:13px">Use se o relatório foi gerado e salvo no celular, mas não chegou à agenda.</p>`:''}${ui.perfil==='func'?notaAdmBox('a',a.id,a.notaAdm):''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${ui.perfil==='func'?'Enviar relatório':'Enviar relatório e preencher LPU'}</button>`;break}
+    case 'relatorios':{const ok=relsDe(a).every(r=>a.rel[r.k]);act=`<p class="muted">${a.parcial?'Envie o relatório do que foi feito antes de lançar na LPU.':'Preencha o relatório para encerrar a atividade.'}</p><div class="rels">${relsDe(a).map(r=>`<button class="relbtn ${a.rel[r.k]?'done':''}" data-act="rel" data-id="${a.id}" data-r="${r.k}"><span>${r.n}</span><small>${a.rel[r.k]?'Recebido':'Abrir relatório'}</small></button>`).join('')}</div>${relsDe(a).some(r=>r.k==='entrega'&&!a.rel[r.k])?`<button class="link" data-act="relOk" data-id="${a.id}" data-r="entrega">Já gerei o PDF: verificar relatório</button>`:''}${relsDe(a).some(r=>r.k==='entrega')&&!a.rel.entrega?`<label class="btn wide relup">Enviar o PDF salvo no celular<input type="file" accept="application/pdf,.pdf" data-ch="relPdfUp" data-id="${a.id}" hidden></label><p class="muted" style="margin:-2px 0 0;font-size:13px">Use se o relatório foi gerado e salvo no celular, mas não chegou à agenda.</p>`:''}${ui.perfil==='func'?notaAdmBox('a',a.id,a.notaAdm):''}<button class="bigbtn" data-act="relEnviar" data-id="${a.id}" ${ok?'':'disabled'}>${ui.perfil==='func'?'Enviar relatório':'Enviar relatório e preencher LPU'}</button>`;break}
     case 'lpu':if(ui.perfil==='func'){act=`<div class="result info"><b>Relatórios enviados.</b> A atividade agora está com o administrador da sua empresa, que já foi avisado. Para você, ela está concluída.</div>${notaAdmBox('a',a.id,a.notaAdm)}`;break}if(S.lpus.some(x=>x.ag===a.id)){act=`<div class="result ok">A LPU desta atividade já foi enviada.</div><button class="bigbtn" data-act="lpuJaEnviada" data-id="${a.id}">Encerrar a atividade</button>`;break}act=`${a.parcial?`<div class="result warn"><b>Atividade não concluída:</b> ${esc(a.motivo||'')}${a.obsMotivo?'. '+esc(a.obsMotivo):''}<br>Lance na LPU somente o que foi executado nesta visita.</div>`:''}<p class="muted" style="margin:0">Lance os serviços executados nesta visita.</p><button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;break;
     case 'concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result ok">Atividade concluída em ${dBR(isoD(new Date(t.encerramento||t.conclusao||Date.now())))}.</div>${ui.perfil==='func'?relsFunc(a):l?`<div class="result">LPU enviada ${lchip(l.status)}${aprovPor(l)?`<br><small>${aprovPor(l)}</small>`:''}</div><button class="btn wide" data-act="pdfArq" data-id="${l.id}">Abrir PDF da LPU</button>`:['clt','terc','func','coord'].includes(ui.perfil)?`<div class="result bad"><b>A LPU desta atividade não chegou ao sistema.</b> Toque abaixo para preencher e enviar de novo.</div><button class="bigbtn" data-act="lpuRefazer" data-id="${a.id}">Enviar a LPU</button>`:''}`;break}
     case 'nao_concluida':{const l=S.lpus.find(x=>x.ag===a.id);act=`<div class="result bad"><b>Não realizada:</b> ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`<br>Reagendada para ${dBR(a.reag)}.`:a.pendReag?'<br>Aguardando reagendamento pelo encarregado.':''}</div>${ui.perfil==='func'?relsFunc(a):l?`<div class="result">LPU do que foi feito enviada ${lchip(l.status)}${aprovPor(l)?`<br><small>${aprovPor(l)}</small>`:''}</div><button class="btn wide" data-act="pdfArq" data-id="${l.id}">Abrir PDF da LPU</button>`:t.chegada?`<button class="btn wide" data-act="lpuParcial" data-id="${a.id}">Fiz parte do serviço: lançar na LPU</button>`:''}`;break}
@@ -5997,6 +6092,386 @@ function r2Painel(P){const L=P.filter(c=>c.rfo&&c.rfo.v===2&&c.desfecho!=='Impro
   const mt=X=>{const v=X.filter(c=>c.validadoEm).map(c=>c.validadoEm-gIni(c));return v.length?gDur(v.reduce((s,x)=>s+x,0)/v.length):'—'};
   return `<section class="panel"><div class="secth"><h3>Por responsabilidade</h3><span class="muted">RFO novo · chamados · MTTR médio</span></div>${gBarras(g(c=>c.rfo.resp===R2_SF?'Sem falha identificada':c.rfo.resp).map(([k,X])=>[k,X.length,pc(X.length)+' · '+mt(X)]))}</section>
    <section class="panel"><div class="secth"><h3>Causas mais frequentes</h3><span class="muted">10 maiores</span></div>${gBarras(g(c=>c.rfo.causa).slice(0,10).map(([k,X])=>[k,X.length,pc(X.length)]))}</section>`}
+
+/* ---------- 17/10: VISTORIA DE LANÇAMENTO ----------
+   Lê o KMZ de lançamento anexado ao projeto (ícones e traços do IOP.2.5.1.001R00), mostra o trajeto num mapa com zoom
+   (fundo de ruas ou satélite da Esri, sem OpenStreetMap), checklist por ponto, alterações de trajeto, resultado com prazo e PDF. */
+const VT_FUNDOS={
+  ruas:{n:'Ruas',u:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',max:19,at:'Mapa: Esri'},
+  sat:{n:'Satélite',u:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',max:19,at:'Imagem: Esri, Maxar, Earthstar Geographics',sob:'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'},
+  liso:{n:'Sem fundo'}};
+const VT_ORDEM_FUNDO=['ruas','sat','liso'];
+const VT_ANC={encFita:['Encabeçamento com fita de aço','Gera esforço no poste: 2 suportes dielétricos presos por fita de aço, nas faces perpendiculares, voltados para a via.'],
+  encBAP:['Encabeçamento com BAP','Gera esforço no poste: 2 conjuntos suporte BAP + olhal reto, nas faces perpendiculares, voltados para a via.'],
+  pasFita:['Passagem com fita de aço','Sem esforço no poste: 1 suporte dielétrico preso por fita de aço, na face voltada para a via.'],
+  pasBAP:['Passagem com BAP','Sem esforço no poste: 1 suporte dielétrico preso por BAP, na face voltada para a via.']};
+const VT_ICO={shaded_dot:'encFita',donut:'encBAP',placemark_circle:'pasFita',placemark_circle_highlight:'pasFita',forbidden:'pasBAP',no_entry:'pasBAP'};
+const VT_IT={
+  poste:[['plaq','Plaqueta de identificação','Ao menos 1 plaqueta no cabo em cada poste, a 200–400 mm do poste.'],['anc','Ancoragem conforme o projeto',''],['equip','Ancoragem permitida no poste','Poste com transformador, chave ou religador: só ancoragem de passagem.'],['faixa','Na faixa de ocupação de telecom','Faixa de 500 mm abaixo da rede secundária, sem invadir outro ocupante.'],['afast','Afastamento da rede elétrica','Baixa tensão 0,60 m · até 15 kV 1,50 m.'],['alt','Altura do cabo no vão','Ruas 5,0 m · pedestres 4,0 m · garagens 4,5 m.'],['flecha','Flecha e tensionamento','Uma cordoalha por vão, tensionada pela tabela.'],['dano','Cabo sem danos ou dobras',''],['arv','Sem interferência com árvores e outros cabos','']],
+  esp:[['esp','Cabo espinado na cordoalha em todo o lance','Cordoalha e cabo no mesmo lance: sempre espinado.'],['fio','Fio de espinar firme, passo uniforme',''],['cord','Cordoalha tensionada e ancorada nas pontas','Ancoragem com alça pré-formada e manilha-sapatilha.'],['tipo','Cordoalha do tipo do projeto','Traço branco: dielétrica · cinza: aço.']],
+  rt:[['esp','Reserva espinada',''],['pos','No vão, a 2 m ou mais do poste','Nunca no poste; sem cruzeta ou raquete.'],['comp','Comprimento do projeto (30 m)',''],['plaq','Plaqueta de identificação','']],
+  ceo:[['pos','No vão, a 2 m ou mais do poste','Nunca fixada no poste; sem cruzeta ou raquete.'],['fix','Fixação na cordoalha',''],['ved','Fechada e vedada',''],['plaq','Plaqueta de identificação',''],['dano','Cabos sem danos na entrada e saída','']],
+  cli:[['ent','Entrada do drop no cliente','Fixação, pingadeira e acabamento.'],['plaq','Plaqueta de identificação',''],['dano','Cabo sem danos ou dobras','']]};
+VT_IT.cto=VT_IT.ceo;
+const VT_GRAV=[['critica','Crítica · risco ou norma da concessionária'],['corrigir','Corrigir · fora do padrão'],['obs','Observação · sem correção']];
+const VT_MOT=['Poste do projeto ocupado ou sem condição','Poste inexistente ou removido','Obstáculo (árvore, obra, rede de energia)','Pedido do cliente ou do condomínio','Travessia mais segura','Outro'];
+const VT_PRAZO={'Aprovado com ressalvas':15,'Reprovado':5};
+const VT_TIPON={poste:'postes',esp:'lances espinados',rt:'reservas técnicas',ceo:'CEO',cto:'CTO',cli:'cliente'};
+const VT_COR_EXEC='#0f9d9a';
+const VT={M:null,R:null,map:null,LY:{},kml:'',nome:'',base:null,eu:null,_t:null};
+
+/* ---------- bibliotecas (Leaflet sob demanda) ---------- */
+let _vtL=null;
+function vtLib(){if(window.L&&window.L.map)return Promise.resolve();
+  return _vtL||(_vtL=new Promise((ok,er)=>{if(!document.getElementById('vtLeafCss')){const c=document.createElement('link');c.id='vtLeafCss';c.rel='stylesheet';c.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';document.head.appendChild(c)}
+    const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';s.onload=()=>window.L&&window.L.map?ok():er(new Error('mapa indisponível'));s.onerror=()=>{_vtL=null;er(new Error('não foi possível carregar o mapa (confira a internet)'))};document.head.appendChild(s)}))}
+
+/* ---------- leitura do KML ---------- */
+const vtCorRGB=c=>c&&c.length===8?[parseInt(c.slice(6,8),16),parseInt(c.slice(4,6),16),parseInt(c.slice(2,4),16),parseInt(c.slice(0,2),16)/255]:null;
+const vtCorCss=c=>{const r=vtCorRGB(c);return r?`rgb(${r[0]},${r[1]},${r[2]})`:'#ffffff'};
+const vtFm=n=>Math.round(+n||0).toLocaleString('pt-BR');
+const vtMetrosNome=n=>{const m=String(n).match(/\(([\d.,]+)\s*m\)/i);return m?+m[1].replace(/\./g,'').replace(',','.'):null};
+function vtTipoLinha(l){const n=l.nome.toLowerCase(),c=vtCorRGB(l.cor);
+  if(/rota|existente/.test(n)||(c&&c[0]>180&&c[1]>80&&c[1]<160&&c[2]<80&&l.larg>=8))return 'exist';
+  if(/cordoalha|mensageiro/.test(n)||!c)return 'cord';return 'cabo'}
+function vtCaboDesc(l){const n=l.nome.toUpperCase(),m=n.match(/(\d+)\s*F/);if(/DROP/.test(n))return 'Cabo drop';if(m)return `Cabo AS/ASU ${m[1]} fo`;
+  const c=vtCorRGB(l.cor)||[0,0,0];if(c[1]>150&&c[0]<150&&c[2]<120)return 'Cabo drop';if(c[2]>200&&c[0]<120&&c[1]<120)return 'Cabo AS/ASU 12 fo';if(c[0]>180&&c[2]>180&&c[1]<170)return 'Cabo AS/ASU 24 fo';return 'Cabo óptico'}
+function vtModelo(txt){const doc=new DOMParser().parseFromString(txt,'application/xml');if(doc.getElementsByTagName('parsererror').length)throw new Error('o arquivo não é um KML válido');
+  const kid=(el,n)=>[...el.children].find(c=>c.localName===n),tx=(el,n)=>{const c=el&&kid(el,n);return c?c.textContent.trim():''},all=(el,n)=>[...el.getElementsByTagNameNS('*',n)];
+  const ST={};all(doc,'Style').forEach(s=>{const id=s.getAttribute('id');if(!id)return;const h=all(s,'href')[0],ls=all(s,'LineStyle')[0];ST[id]={href:h?h.textContent.trim().split('/').pop().replace(/\.png$/,''):'',color:ls?tx(ls,'color'):'',width:ls?+tx(ls,'width')||0:0}});
+  all(doc,'StyleMap').forEach(m=>{const id=m.getAttribute('id');const p=all(m,'Pair').find(p=>tx(p,'key')==='normal');if(p){const u=tx(p,'styleUrl').replace(/^#/,'');ST[id]=ST[u]||{}}});
+  const st=pm=>{const u=tx(pm,'styleUrl').replace(/^#/,''),inl=kid(pm,'Style');if(inl){const h=all(inl,'href')[0],ls=all(inl,'LineStyle')[0];return{href:h?h.textContent.trim().split('/').pop().replace(/\.png$/,''):'',color:ls?tx(ls,'color'):'',width:ls?+tx(ls,'width')||0:0}}return ST[u]||{}};
+  const pasta=pm=>{const o=[];let p=pm.parentElement;while(p){if(p.localName==='Folder'||p.localName==='Document')o.unshift(tx(p,'name'));p=p.parentElement}return o};
+  const crd=s=>s.trim().split(/\s+/).map(c=>c.split(',').map(Number)).filter(c=>c.length>=2&&!isNaN(c[0])&&!isNaN(c[1])).map(c=>[c[1],c[0]]);
+  const LS=[],PS=[];
+  all(doc,'Placemark').forEach(pm=>{const nm=tx(pm,'name'),s=st(pm),fo=pasta(pm),ls=all(pm,'LineString')[0],pt=all(pm,'Point')[0];
+    if(ls){const c=crd(tx(ls,'coordinates'));if(c.length>1)LS.push({nome:nm,cor:s.color||'',larg:s.width||0,ll:c})}
+    else if(pt){const c=crd(tx(pt,'coordinates'));if(c.length)PS.push({nome:nm,ico:s.href||'',pasta:fo,ll:c[0]})}});
+  const nomeDoc=(all(doc,'Folder').map(f=>tx(f,'name')).find(n=>/\(\d{5,}\)/.test(n))||tx(all(doc,'Document')[0],'name')||'').replace(/\s+/g,' ').trim();
+  const pts=LS.flatMap(l=>l.ll).concat(PS.map(p=>p.ll));if(!pts.length)throw new Error('o KMZ não tem linhas nem pontos');
+  const lat0=pts.reduce((a,p)=>a+p[0],0)/pts.length,lon0=pts.reduce((a,p)=>a+p[1],0)/pts.length,cs=Math.cos(lat0*Math.PI/180);
+  const xy=([la,lo])=>[(lo-lon0)*cs*111320,(la-lat0)*110574],ll=([x,y])=>[lat0+y/110574,lon0+x/(cs*111320)];
+  const M={lat0,lon0,ll,xy,cabos:[],cords:[],exist:[],refs:[],el:[],doc:nomeDoc};
+  LS.forEach(l=>{const t=vtTipoLinha(l),o={nome:l.nome,ll:l.ll,xy:l.ll.map(xy),cor:l.cor};o.m=o.xy.slice(1).reduce((a,p,i)=>a+Math.hypot(p[0]-o.xy[i][0],p[1]-o.xy[i][1]),0);
+    if(t==='cabo'){o.desc=vtCaboDesc(l);o.prev=vtMetrosNome(l.nome);o.cum=[0];o.xy.slice(1).forEach((p,i)=>o.cum.push(o.cum[i]+Math.hypot(p[0]-o.xy[i][0],p[1]-o.xy[i][1])));M.cabos.push(o)}else if(t==='cord')M.cords.push(o);else M.exist.push(o)});
+  M.cabos.sort((a,b)=>b.m-a.m);
+  if(!M.cabos.length)throw new Error('não encontrei o traço do cabo no KMZ');
+  PS.forEach(p=>{const ic=p.ico,n=p.nome||'',emPoste=p.pasta.some(f=>/poste/i.test(f)),o={nome:n,ll:p.ll,xy:xy(p.ll)};
+    if(VT_ICO[ic]||(!ic&&emPoste))M.el.push(Object.assign(o,{tipo:'poste',anc:VT_ICO[ic]||''}));
+    else if(/^R(-lv)?$/.test(ic)){if(/exist/i.test(n))M.refs.push(Object.assign(o,{ref:'rt'}));else M.el.push(Object.assign(o,{tipo:'rt'}))}
+    else if(/blue-pushpin/.test(ic))M.el.push(Object.assign(o,{tipo:'ceo'}));
+    else if(/pink-pushpin|purple-pushpin/.test(ic))M.el.push(Object.assign(o,{tipo:'cto'}));
+    else if(/grn-blank|grn-circle|grn-pushpin/.test(ic))M.el.push(Object.assign(o,{tipo:'cli'}));
+    else if(/ylw-pushpin/.test(ic)||/^CEO?\d|^CE\b|^CEO\b|^CTO/i.test(n))M.refs.push(Object.assign(o,{ref:'ceoEx'}));
+    else if(/red-pushpin/.test(ic))M.refs.push(Object.assign(o,{ref:'parc'}));
+    else if(/triangle/.test(ic))M.refs.push(Object.assign(o,{ref:'spl'}));
+    else if(/square/.test(ic))M.refs.push(Object.assign(o,{ref:'sub'}));
+    else M.refs.push(Object.assign(o,{ref:'outro'}))});
+  /* lance espinado: cordoalha que corre junto do cabo (60% dos pontos a menos de 5 m) */
+  M.cords.forEach(c=>{const d=c.xy.map(p=>vtProj(M,p[0],p[1]).d),ok=d.filter(x=>x<5).length>=Math.ceil(d.length*.6);c.esp=ok;if(!ok)return;const half=c.m/2;let acc=0,mid=c.xy[0];
+    for(let i=1;i<c.xy.length;i++){const s=Math.hypot(c.xy[i][0]-c.xy[i-1][0],c.xy[i][1]-c.xy[i-1][1]);if(acc+s>=half){const t=(half-acc)/s;mid=[c.xy[i-1][0]+(c.xy[i][0]-c.xy[i-1][0])*t,c.xy[i-1][1]+(c.xy[i][1]-c.xy[i-1][1])*t];break}acc+=s}
+    M.el.push({tipo:'esp',nome:c.nome,xy:mid,ll:ll(mid),m:Math.round(c.m)})});
+  M.el.forEach(e=>{const p=vtProj(M,e.xy[0],e.xy[1]);e.k=p.li*1e7+p.m;e.d=p.d});
+  M.el.sort((a,b)=>a.k-b.k);
+  const dg=M.el.filter(e=>e.tipo==='poste').length>99?3:2,cnt={};
+  M.el.forEach(e=>{cnt[e.tipo]=(cnt[e.tipo]||0)+1;const n=cnt[e.tipo];e.id=e.tipo==='poste'?'P'+String(n).padStart(dg,'0'):e.tipo==='esp'?'E'+String(n).padStart(2,'0'):e.tipo==='rt'?'R'+String(n).padStart(2,'0'):e.tipo==='ceo'?'CEO'+(n>1?n:''):e.tipo==='cto'?'CTO'+(n>1?n:''):'CLI'+(n>1?n:'')});
+  const m=M.doc.match(/^(.*?)\s*-\s*([A-Z0-9]{8})\s*\((\d{5,})\)\s*(?:-\s*(.*))?$/i);M.proj=m?m[1].trim():M.doc||'Projeto';M.etq=m?m[2]:'';M.prot=m?m[3]:'';M.tipoObra=m&&m[4]?m[4].trim():'';
+  M.mPrev=M.cabos.reduce((a,c)=>a+(c.prev||Math.round(c.m)),0);M.mDes=Math.round(M.cabos.reduce((a,c)=>a+c.m,0));M.cordM=Math.round(M.cords.reduce((a,c)=>a+(vtMetrosNome(c.nome)||c.m),0));
+  return M}
+function vtProj(M,x,y){let b={d:1e9,li:0,m:0,xy:[x,y]};M.cabos.forEach((c,li)=>{const P=c.xy;for(let i=0;i<P.length-1;i++){const[a,bb]=P[i],[cx,d]=P[i+1],dx=cx-a,dy=d-bb,L2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a)*dx+(y-bb)*dy)/L2)),px=a+t*dx,py=bb+t*dy,dd=Math.hypot(x-px,y-py);if(dd<b.d)b={d:dd,li,m:c.cum[i]+t*Math.sqrt(L2),xy:[px,py]}}});return b}
+const vtPtM=(M,li,m)=>{const c=M.cabos[li],P=c.xy;for(let i=0;i<P.length-1;i++){if(c.cum[i+1]>=m){const s=c.cum[i+1]-c.cum[i]||1,t=(m-c.cum[i])/s;return[P[i][0]+(P[i+1][0]-P[i][0])*t,P[i][1]+(P[i+1][1]-P[i][1])*t]}}return P[P.length-1]};
+const vtSubR=(M,li,m1,m2)=>{const c=M.cabos[li],o=[vtPtM(M,li,m1)];c.cum.forEach((v,i)=>{if(v>m1&&v<m2)o.push(c.xy[i])});o.push(vtPtM(M,li,m2));return o};
+const vtLen=c=>Math.round(c.slice(1).reduce((a,p,i)=>a+Math.hypot(p[0]-c[i][0],p[1]-c[i][1]),0));
+
+/* ---------- estado da vistoria ---------- */
+const vtEl=(e,i)=>({id:e.id,tipo:e.tipo,anc:e.anc||'',nome:e.nome||'',xy:e.xy,ll:e.ll,k:e.k,m:e.m,mi:i,it:{},nc:{},ref:''});
+const vtItens=e=>e.skip?[]:VT_IT[e.tipo]||[];
+const vtNomeE=e=>e.skip?'Poste do projeto não usado':e.tipo==='poste'?(e.anc?VT_ANC[e.anc][0]:e.alt?'Poste do trajeto alterado':'Poste fora do KMZ'):({esp:'Lance espinado',rt:'Reserva técnica nova',ceo:'CEO nova',cto:'CTO nova',cli:'Cliente'})[e.tipo];
+const vtSt=e=>e.skip?'sskip':vtItens(e).some(([k])=>e.it[k]==='nc')?'snc':vtItens(e).some(([k])=>!e.it[k])?'sinc':'sok';
+const vtFeitos=()=>VT.R.el.filter(e=>!e.skip&&vtSt(e)!=='sinc').length,vtAtivos=()=>VT.R.el.filter(e=>!e.skip).length;
+const vtOrdem=e=>e.ks!=null?e.ks:e.k;
+function vtViz(a){const ps=VT.R.el.filter(e=>e.tipo==='poste'&&!e.alt&&!e.skip);const an=ps.filter(e=>vtOrdem(e)<=a.k1+.5).pop(),dp=ps.find(e=>vtOrdem(e)>=a.k2-.5);return[(an||{id:'início'}).id,(dp||{id:'fim'}).id]}
+function vtPend(){const R=VT.R;return R.el.flatMap(e=>vtItens(e).filter(([k])=>e.it[k]==='nc').map(([k,n])=>({e,k,n,d:e.nc[k]||{}}))).concat(R.alt.map((a,i)=>({a,i})).filter(x=>x.a.sit==='corrigir').map(({a,i})=>{const[v1,v2]=vtViz(a);return{e:{id:'ALT'+(i+1),ref:`Entre ${v1} e ${v2}`},k:'alt',n:'Trajeto alterado sem aprovação',d:{g:'corrigir',txt:a.txt||''}}}))}
+const vtConf=()=>{let c=0,t=0;VT.R.el.forEach(e=>vtItens(e).forEach(([k])=>{if(e.it[k]==='c'){c++;t++}else if(e.it[k]==='nc')t++}));return t?Math.round(c/t*100):100};
+const vtSug=()=>{const L=vtPend();return L.some(x=>x.d.g==='critica')?'Reprovado':L.some(x=>x.d.g!=='obs')?'Aprovado com ressalvas':'Aprovado'};
+const vtResul=()=>VT.R.res||vtSug(),vtCls=r=>r==='Aprovado'?'okr':r==='Reprovado'?'badr':'warnr';
+function vtFalta(){const R=VT.R,F=[];if(!String(R.mMed||'').trim())F.push('metragem medida');const nf=vtAtivos()-vtFeitos();if(nf)F.push(`${nf} ${nf>1?'pontos':'ponto'} sem vistoria`);
+  R.el.forEach(e=>vtItens(e).forEach(([k])=>{if(e.it[k]==='nc'){const d=e.nc[k]||{};if(!d.g)F.push(`${e.id}: gravidade`);if(!(d.txt||'').trim())F.push(`${e.id}: o que está errado`);if(!d.foto)F.push(`${e.id}: foto`)}}));
+  R.alt.forEach((a,i)=>{if(!a.motivo)F.push(`Alteração ${i+1}: motivo`);if(!a.sit)F.push(`Alteração ${i+1}: aceita ou não`);if(a.sit==='corrigir'&&!(a.txt||'').trim())F.push(`Alteração ${i+1}: o que fazer`)});
+  if(R.draw)F.push('alteração em desenho');if(R.res&&R.res!==vtSug()&&!String(R.just||'').trim())F.push('justificativa do resultado');return F}
+function vtRenum(R0){const R=R0||VT.R;R.el.forEach(e=>{if(e.tipo==='poste'&&!e.alt)e.skip=R.alt.some(a=>e.k>a.k1+.5&&e.k<a.k2-.5)});R.el.sort((a,b)=>vtOrdem(a)-vtOrdem(b));
+  const dg=R.el.filter(e=>e.tipo==='poste').length>99?3:2;let n=0,x=0;R.el.forEach(p=>{if(p.tipo==='poste')p.id=p.skip?'X'+(++x):'P'+String(++n).padStart(dg,'0')})}
+function vtAddAlt(pts,li,m1,m2,postes){const R=VT.R,a={pts,li,m1,m2,k1:li*1e7+m1,k2:li*1e7+m2,motivo:'',sit:'',g:'corrigir',txt:''};R.alt.push(a);
+  if(postes)pts.slice(1,-1).forEach((p,i,arr)=>R.el.push({id:'',tipo:'poste',anc:'',it:{},nc:{},ref:'',xy:p,ll:VT.M.ll(p),k:a.k1,alt:a,ks:a.k1+(a.k2-a.k1)*(i+1)/(arr.length+1)}));vtRenum()}
+/* guarda: itens em texto curto (c conforme, n não conforme, a não se aplica) */
+const VT_CD={c:'c',nc:'n',na:'a'},VT_DC={c:'c',n:'nc',a:'na'};
+const vtR10=p=>p.map(v=>Math.round(v*10)/10);
+function vtSer(R,comFoto){return{v:1,el:R.el.map(e=>{const o={id:e.id,s:(VT_IT[e.tipo]||[]).map(([k])=>VT_CD[e.it[k]]||'-').join('')};
+    if(e.mi!=null)o.i=e.mi;else{o.t=e.tipo;o.xy=vtR10(e.xy)}if(e.ks!=null)o.ks=e.ks;if(e.fora)o.fora=1;if(e.alt)o.alt=R.alt.indexOf(e.alt);if(e.ref)o.ref=e.ref;if(e.ant)o.ant=e.ant;
+    const nc={};Object.entries(e.nc||{}).forEach(([k,d])=>{if(e.it[k]==='nc'&&d){nc[k]={g:d.g||'',txt:d.txt||''};if(comFoto&&d.foto)nc[k].foto=d.foto}});if(Object.keys(nc).length)o.nc=nc;return o}),
+  alt:R.alt.map(a=>({pts:a.pts.map(vtR10),li:a.li,m1:a.m1,m2:a.m2,motivo:a.motivo||'',sit:a.sit||'',txt:a.txt||'',ant:a.ant||undefined})),res:R.res||'',just:R.just||'',mMed:R.mMed||'',revis:R.revis||undefined}}
+function vtDes(o){const M=VT.M,R={el:[],alt:[],res:o.res||'',just:o.just||'',mMed:o.mMed||'',revis:o.revis||null,ab:{2:true},sel:null,draw:null,add:false};
+  R.alt=(o.alt||[]).map(a=>Object.assign({g:'corrigir'},a,{k1:a.li*1e7+a.m1,k2:a.li*1e7+a.m2}));
+  (o.el||[]).forEach(x=>{let e;if(x.i!=null&&M.el[x.i])e=vtEl(M.el[x.i],x.i);else if(x.xy){const pr=vtProj(M,x.xy[0],x.xy[1]);e={tipo:x.t||'poste',anc:'',xy:x.xy,ll:M.ll(x.xy),k:pr.li*1e7+pr.m,it:{},nc:{},ref:''}}else return;
+    e.id=x.id;e.ref=x.ref||'';if(x.ks!=null)e.ks=x.ks;if(x.fora)e.fora=true;if(x.alt!=null&&R.alt[x.alt])e.alt=R.alt[x.alt];if(x.ant)e.ant=x.ant;
+    (VT_IT[e.tipo]||[]).forEach(([k],j)=>{const c=(x.s||'')[j];if(VT_DC[c])e.it[k]=VT_DC[c]});e.nc=JSON.parse(JSON.stringify(x.nc||{}));R.el.push(e)});
+  M.el.forEach((m,i)=>{if(!R.el.some(e=>e.mi===i))R.el.push(vtEl(m,i))});return R}
+/* vistoria anterior do mesmo projeto (revistoria) */
+const vtAnterior=a=>S.ags.filter(x=>x.etiqueta===a.etiqueta&&x.id!==a.id&&x.vistoria&&x.vistoria.estado).sort((x,y)=>(y.vistoria.em||0)-(x.vistoria.em||0))[0]||null;
+function vtNovoR(a){const M=VT.M,ant=vtAnterior(a);
+  if(ant&&ant.vistoria.res!=='Aprovado'){const R=vtDes(ant.vistoria.estado);let n=0;
+    R.el.forEach(e=>{Object.keys(e.it).forEach(k=>{if(e.it[k]==='nc'){const d=e.nc[k]||{};e.ant=Object.assign({},e.ant||{},{[k]:{g:d.g||'',txt:d.txt||''}});delete e.it[k];delete e.nc[k];n++}})});
+    R.alt.forEach(a=>{if(a.sit==='corrigir'){a.ant=true;a.sit='';n++}});
+    R.res='';R.just='';R.revis={de:ant.vistoria.em,data:ant.data,res:ant.vistoria.res,n};R.ab={2:true};vtRenum(R);R.sel=(R.el.find(e=>vtSt(e)==='sinc')||R.el[0]||{}).id;return R}
+  const R={el:M.el.map((e,i)=>vtEl(e,i)),alt:[],res:'',just:'',mMed:'',revis:null,ab:{2:true},sel:null,draw:null,add:false};R.sel=(R.el[0]||{}).id;return R}
+function vtSalvar(){clearTimeout(VT._t);const id=ui.vt&&ui.vt.ag;if(!id||!VT.R)return;VT._t=setTimeout(()=>{IDB.put('vt:'+id,{kml:VT.kml,nome:VT.nome,R:vtSer(VT.R,true)}).catch(()=>{})},300)}
+
+/* ---------- abrir ---------- */
+async function vtAbrir(id){const a=getAg(id);if(!a)return;ui.vt={ag:id,st:'carregando'};VT.R=null;VT.M=null;render();window.scrollTo(0,0);
+  try{let d=null;try{d=await IDB.get('vt:'+id)}catch(e){}
+    let kml=d&&d.kml,nome=d&&d.nome;
+    if(!kml){const x=anxKmz(a.etiqueta,'kmzL');if(!x){ui.vt={ag:id,st:'semkmz'};render();return}kml=await anxTexto(x);nome=x.nome}
+    await vtCarregar(a,kml,nome,d&&d.R)}
+  catch(e){ui.vt={ag:id,st:'erro',msg:e.message||String(e)};render()}}
+async function vtCarregar(a,kml,nome,salvo){await vtLib();VT.M=vtModelo(kml);VT.kml=kml;VT.nome=nome||'KMZ';VT.R=salvo?vtDes(salvo):vtNovoR(a);if(!VT.R.sel)VT.R.sel=(VT.R.el[0]||{}).id;vtRenum();
+  ui.vt={ag:a.id,st:'ok'};vtMapaFim();render();vtSalvar()}
+
+/* ---------- mapa ---------- */
+const vtSVG=(e,on)=>{const st=vtSt(e),ring=st==='snc'?'#b3261e':st==='sok'?'#5a9a1a':'#7a837d',fill=st==='snc'?'#fde9e7':'#ffffff',dash=st==='sinc'||st==='sskip'?'stroke-dasharray="3 2"':'',t=e.tipo==='poste'?e.anc:e.tipo;let s='';
+  if(t==='encFita')s='<circle cx="14" cy="14" r="6.5" fill="#8f8f8f" stroke="#555" stroke-width=".8"/><circle cx="12" cy="12" r="2" fill="#eee"/>';else if(t==='encBAP')s='<circle cx="14" cy="14" r="6.5" fill="none" stroke="#222" stroke-width="1.6"/><circle cx="14" cy="14" r="3.2" fill="none" stroke="#222" stroke-width="1.6"/>';
+  else if(t==='pasFita')s='<circle cx="14" cy="14" r="6" fill="none" stroke="#222" stroke-width="1.6"/><circle cx="14" cy="14" r="2.2" fill="#222"/>';else if(t==='pasBAP')s='<circle cx="14" cy="14" r="6" fill="none" stroke="#222" stroke-width="1.6"/><line x1="10" y1="10" x2="18" y2="18" stroke="#222" stroke-width="1.6"/>';
+  else if(t==='esp')s='<rect x="7.5" y="7.5" width="13" height="13" rx="2.5" fill="#fff6c8" stroke="#c9a400"/><path d="M11 17 Q11 11 16 11" fill="none" stroke="#e0b000" stroke-width="2"/><path d="M14 8.6 L17 11 L14 13.4" fill="none" stroke="#e0b000" stroke-width="2"/>';
+  else if(t==='rt')s='<circle cx="14" cy="14" r="7" fill="#f07b6c" stroke="#a03b2f"/><text x="14" y="17.3" font-size="9" font-weight="700" text-anchor="middle" fill="#fff" font-family="Arial">R</text>';
+  else if(t==='ceo'||t==='cto')s=`<circle cx="14" cy="14" r="7" fill="${t==='ceo'?'#2f6fde':'#d64ec2'}" stroke="#1d3f80"/><circle cx="12" cy="12" r="2" fill="#fff" opacity=".8"/>`;
+  else if(t==='cli')s='<circle cx="14" cy="14" r="7" fill="#57c35b" stroke="#2c7a31"/>';else s='<circle cx="14" cy="14" r="3" fill="#333"/>';
+  return `<svg width="28" height="28" viewBox="0 0 28 28" style="opacity:${st==='sskip'?.4:1}">${on?'<circle cx="14" cy="14" r="13" fill="none" stroke="#1d2420" stroke-width="2" stroke-dasharray="3 2"/>':''}<circle cx="14" cy="14" r="10.5" fill="${fill}" stroke="${ring}" stroke-width="2.6" ${dash}/>${s}</svg>`};
+const vtRefSVG=r=>({ceoEx:'<svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="6" fill="#ffd400" stroke="#9a7d00"/></svg>',spl:'<svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 4 L18 17 L4 17 Z" fill="#fff" stroke="#222" stroke-width="1.6"/></svg>',rt:'<svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="6" fill="#f3b3aa" stroke="#a03b2f"/><text x="11" y="14" font-size="8" text-anchor="middle" fill="#fff" font-family="Arial">R</text></svg>',sub:'<svg width="22" height="22" viewBox="0 0 22 22"><rect x="5" y="5" width="12" height="12" fill="#fff" stroke="#222" stroke-width="1.6"/></svg>',parc:'<svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="6" fill="#e53935"/></svg>'})[r]||'<svg width="14" height="14"><circle cx="7" cy="7" r="3" fill="#666"/></svg>';
+function vtFundoAtual(){if(VT.base)return VT.base;let f='ruas';try{f=localStorage.getItem('vtFundo')||'ruas'}catch(e){}return VT_FUNDOS[f]?f:'ruas'}
+function vtFundo(f){const LL=window.L,mp=VT.map;if(!mp)return;VT.base=f;try{localStorage.setItem('vtFundo',f)}catch(e){}
+  VT.LY.fundo.clearLayers();const F=VT_FUNDOS[f];if(F&&F.u){LL.tileLayer(F.u,{maxNativeZoom:F.max,maxZoom:21,attribution:F.at,crossOrigin:true}).addTo(VT.LY.fundo);if(F.sob)LL.tileLayer(F.sob,{maxNativeZoom:F.max,maxZoom:21,crossOrigin:true}).addTo(VT.LY.fundo)}
+  const md=document.getElementById('vtMap');if(md)md.classList.toggle('vtliso',!F||!F.u)}
+function vtHome(){let h=document.getElementById('vtHome');if(!h){h=document.createElement('div');h.id='vtHome';h.hidden=true;h.innerHTML='<div id="vtMap"></div>';document.body.appendChild(h)}return h}
+function vtMapaFim(){if(VT.map){try{VT.map.remove()}catch(e){}VT.map=null}VT.eu=null;const h=vtHome(),md=document.getElementById('vtMap');md.className='';md.innerHTML='';h.appendChild(md)}
+function vtMapaCriar(){const LL=window.L,M=VT.M,R=VT.R,div=document.getElementById('vtMap');if(!LL||!div||!M)return;
+  const mp=VT.map=LL.map(div,{zoomControl:true,attributionControl:true,zoomSnap:.5,maxZoom:21,minZoom:3});mp.attributionControl.setPrefix(false);
+  VT.LY={fundo:LL.layerGroup().addTo(mp),base:LL.layerGroup().addTo(mp),alt:LL.layerGroup().addTo(mp),el:LL.layerGroup().addTo(mp),draw:LL.layerGroup().addTo(mp),eu:LL.layerGroup().addTo(mp)};
+  vtFundo(vtFundoAtual());
+  M.exist.forEach(l=>LL.polyline(l.ll,{color:'#d2691e',weight:12,opacity:.55,interactive:false}).addTo(VT.LY.base));
+  M.cords.forEach(l=>LL.polyline(l.ll,{color:'#9aa19c',weight:6,opacity:.9,interactive:false}).addTo(VT.LY.base));
+  M.cabos.forEach(l=>{LL.polyline(l.ll,{color:'#fff',weight:6,opacity:.9,interactive:false}).addTo(VT.LY.base);LL.polyline(l.ll,{color:vtCorCss(l.cor),weight:3.5,opacity:1,interactive:false}).addTo(VT.LY.base)});
+  M.cords.forEach(l=>LL.polyline(l.ll,{color:'#ffffff',weight:1.6,dashArray:'4 4',interactive:false}).addTo(VT.LY.base));
+  M.refs.forEach(r=>LL.marker(r.ll,{icon:LL.divIcon({className:'vtref',html:vtRefSVG(r.ref),iconSize:[22,22]}),keyboard:false,title:r.nome||''}).addTo(VT.LY.base));
+  mp.on('click',vtMapaClique);const zc=()=>{const z=mp.getZoom();div.classList.toggle('zhi',z>=17.5);div.classList.toggle('zlo',z<16);div.classList.toggle('zmid',z>=16&&z<17.5)};mp.on('zoomend',zc);
+  R.el.forEach(e=>{e._k=null;e.mk=null});vtTudo();zc();vtMapaAtualiza()}
+function vtTudo(){const LL=window.L;if(!VT.map)return;VT.map.fitBounds(LL.latLngBounds(VT.M.cabos.flatMap(c=>c.ll).concat(VT.R.el.map(e=>e.ll))),{padding:[18,18]})}
+function vtMarca(e){const LL=window.L;e.mk=LL.marker(e.ll,{icon:LL.divIcon({className:'vtel',html:'',iconSize:[28,28]}),title:e.id}).addTo(VT.LY.el);
+  e.mk.on('click',ev=>{LL.DomEvent.stopPropagation(ev);if(VT.R.draw||VT.R.add)return vtMapaClique(ev);VT.R.sel=e.id;VT.R.ab[2]=true;render()})}
+function vtMapaAtualiza(){const LL=window.L,R=VT.R,M=VT.M;if(!VT.map||!R)return;const sel=R.el.find(e=>e.id===R.sel);
+  R.el.forEach(e=>{if(!e.mk)vtMarca(e);const key=vtSt(e)+(e===sel)+e.id;if(e._k!==key){e._k=key;e.mk.setIcon(LL.divIcon({className:'vtel'+(e===sel?' on':''),html:vtSVG(e,e===sel)+`<span class="lb">${e.id}</span>`,iconSize:[28,28],iconAnchor:[14,14]}));e.mk.setZIndexOffset(e===sel?1000:vtSt(e)==='snc'?500:0)}});
+  VT.LY.alt.clearLayers();R.alt.forEach(a=>{const old=vtSubR(M,a.li,a.m1,a.m2).map(M.ll);LL.polyline(old,{color:'#f2f4f0',weight:7,interactive:false}).addTo(VT.LY.alt);LL.polyline(old,{color:'#7a837d',weight:3,dashArray:'5 5',interactive:false}).addTo(VT.LY.alt);LL.polyline(a.pts.map(M.ll),{color:a.sit==='corrigir'?'#b3261e':VT_COR_EXEC,weight:4,interactive:false}).addTo(VT.LY.alt)});
+  VT.LY.draw.clearLayers();if(R.draw&&R.draw.pts.length){LL.polyline(R.draw.pts.map(M.ll),{color:VT_COR_EXEC,weight:3,dashArray:'6 5'}).addTo(VT.LY.draw);R.draw.pts.forEach(p=>LL.circleMarker(M.ll(p),{radius:5,color:VT_COR_EXEC,fillColor:'#fff',fillOpacity:1,weight:2}).addTo(VT.LY.draw))}
+  const md=document.getElementById('vtMap');if(md)md.classList.toggle('drawing',!!(R.draw||R.add))}
+function vtMapaClique(ev){const R=VT.R,M=VT.M,[x,y]=M.xy([ev.latlng.lat,ev.latlng.lng]),pr=vtProj(M,x,y),tol=11*40075016*Math.cos(M.lat0*Math.PI/180)/Math.pow(2,VT.map.getZoom()+8);
+  if(R.draw){R.draw.err='';if(!R.draw.pts.length){if(pr.d>tol*2)R.draw.err='Toque em cima do cabo onde o desvio começa.';else{R.draw.pts.push(pr.xy);R.draw.li=pr.li;R.draw.m1=pr.m}}else R.draw.pts.push([x,y]);render();return}
+  if(R.add){if(pr.d>tol*2){toast('Toque em cima do cabo para incluir o poste.','bad');return}const e={id:'',tipo:'poste',anc:'',it:{},nc:{},ref:'',xy:pr.xy,ll:M.ll(pr.xy),k:pr.li*1e7+pr.m,fora:true};R.el.push(e);vtRenum();R.sel=e.id;R.add=false;vtSalvar();render()}}
+/* depois de cada render: põe o mapa no lugar (o div do mapa é o mesmo entre as telas) */
+function vtPos(){const slot=document.getElementById('vtSlot'),md=document.getElementById('vtMap');if(!md)return;
+  if(!slot||!ui.vt||ui.vt.st!=='ok'){const h=vtHome();if(md.parentElement!==h)h.appendChild(md);return}
+  if(md.parentElement!==slot)slot.appendChild(md);if(!VT.map){if(window.L)vtMapaCriar()}else{VT.map.invalidateSize(false);vtMapaAtualiza()}}
+function vtGps(){if(!navigator.geolocation){toast('Este aparelho não informa a localização.','bad');return}toast('Buscando sua localização…');
+  navigator.geolocation.getCurrentPosition(p=>{const LL=window.L,M=VT.M,R=VT.R,pos=[p.coords.latitude,p.coords.longitude],[x,y]=M.xy(pos);let b=null,bd=1e12;
+    R.el.forEach(e=>{if(e.skip)return;const d=Math.hypot(e.xy[0]-x,e.xy[1]-y);if(d<bd){bd=d;b=e}});
+    VT.LY.eu.clearLayers();LL.circleMarker(pos,{radius:7,color:'#fff',weight:2.5,fillColor:'#1a73e8',fillOpacity:1,interactive:false}).addTo(VT.LY.eu);
+    if(b&&bd<3000){R.sel=b.id;R.ab[2]=true;render();VT.map.setView(b.ll,19);toast(`Você está a ${vtFm(bd)} m do ${b.id}.`)}else{VT.map.setView(pos,17);toast('Você está longe do trajeto deste projeto.','bad')}},
+  ()=>toast('Não foi possível pegar a localização. Libere o GPS para o navegador.','bad'),{enableHighAccuracy:true,timeout:12000,maximumAge:30000})}
+
+/* ---------- tela ---------- */
+function vtBlocos(){const F=vtFalta(),L=vtPend(),R=VT.R,M=VT.M,tudo=vtFeitos()===vtAtivos();return[
+  {k:1,t:'Dados do lançamento',r:R.mMed?`${vtFm(R.mMed)} de ${vtFm(M.mPrev)} m`:'metragem medida',ok:!!String(R.mMed||'').trim()},
+  {k:2,t:'Mapa e pontos',r:`${vtFeitos()} de ${vtAtivos()} vistoriados`,ok:!F.some(x=>/sem vistoria|^(P\d|E\d|R\d|X\d|CEO|CTO|CLI)|Alteração|alteração/.test(x))},
+  {k:3,t:'Pendências',r:L.length?`${L.length} ${L.length>1?'pendências':'pendência'}`:'nenhuma',ok:tudo&&!F.some(x=>/gravidade|errado|foto/.test(x))},
+  {k:4,t:'Resultado',r:tudo?vtResul():'ao terminar os pontos',ok:tudo&&!F.some(x=>/justificativa/.test(x))}]}
+const vtSeg=(id,k,v)=>`<div class="vtseg" role="group">${[['c','Conforme'],['nc','Não conforme'],['na','N/A']].map(([x,n])=>`<button type="button" data-vt="it" data-p="${id}" data-k="${k}" data-v="${x}" aria-pressed="${v===x}" class="${x}">${n}</button>`).join('')}</div>`;
+const vtCam='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>';
+function vtFotoBox(e,k){const d=e.nc[k]||{};if(d.foto)return `<div class="vtft"><img src="${d.foto}" alt="Foto da pendência ${esc(e.id)}"><button type="button" class="rfx" data-vt="fdel" data-p="${e.id}" data-k="${k}" aria-label="Remover a foto">✕</button></div>`;
+  return `<div class="vtfb"><label class="rfb pri">${vtCam}Câmera<input type="file" accept="image/*" capture="environment" data-vtc="foto" data-p="${e.id}" data-k="${k}" hidden></label><label class="rfb">Galeria<input type="file" accept="image/*" data-vtc="foto" data-p="${e.id}" data-k="${k}" hidden></label></div><small class="vtreq">Foto obrigatória</small>`}
+function vtCorpo(k,a){const R=VT.R,M=VT.M;
+  if(k===1)return `<dl class="vtdl"><dt>Projeto</dt><dd>${esc(M.proj)}${M.tipoObra?' · '+esc(M.tipoObra.toLowerCase()):''}</dd><dt>KMZ</dt><dd>${esc(VT.nome)}${M.etq&&M.etq!==a.etiqueta?` <span class="vtwarn">etiqueta do KMZ: ${esc(M.etq)}</span>`:''}</dd><dt>No KMZ</dt><dd>${M.cabos.map(c=>`${c.desc} ${vtFm(c.prev||c.m)} m`).join(' + ')}${M.cords.length?` · ${M.cords.length} cordoalhas (${vtFm(M.cordM)} m)`:''} · ${M.el.filter(e=>e.tipo==='poste').length} postes</dd><dt>Desenho</dt><dd>${vtFm(M.mDes)} m de cabo no traçado</dd></dl>
+    <label class="f" style="margin:0"><span>Metragem medida (m) *</span><input class="inp" type="number" inputmode="numeric" data-vti="mMed" value="${esc(R.mMed)}" placeholder="Ex.: ${vtFm(M.mPrev).replace(/\./g,'')}"></label><small class="muted" id="vtPct">${R.mMed?`${Math.round(R.mMed/M.mPrev*100)}% do previsto no KMZ`:''}</small>`;
+  if(k===2){const e=R.el.find(x=>x.id===R.sel)||R.el[0];if(!e)return '<p class="muted">O KMZ não tem pontos para vistoriar.</p>';const i=R.el.indexOf(e),nc=R.el.filter(x=>vtSt(x)==='snc').length,inc=R.el.filter(x=>vtSt(x)==='sinc').length,tp={};R.el.forEach(x=>{if(!x.skip)tp[x.tipo]=(tp[x.tipo]||0)+1});
+    const dr=R.draw?`<div class="vtdrw" role="status"><b>${!R.draw.pts.length?'1. Toque no cabo onde o desvio começa.':R.draw.pts.length<3?'2. Toque o caminho feito pela equipe, poste a poste.':'3. Toque no cabo onde volta ao projeto e conclua.'}</b><label class="vtdrp"><input type="checkbox" data-vtc="drPost" ${R.draw.postes?'checked':''}> Os pontos do caminho são postes</label><div class="vtdrb"><button type="button" data-vt="drz" ${R.draw.pts.length?'':'disabled'}>Desfazer</button><button type="button" data-vt="drx">Cancelar</button><button type="button" class="pri" data-vt="drok" ${R.draw.pts.length>=3?'':'disabled'}>Concluir</button></div>${R.draw.err?`<small class="vterr">${R.draw.err}</small>`:''}</div>`:R.add?'<div class="vtdrw"><b>Aproxime o mapa e toque no cabo onde fica o poste que falta.</b><div class="vtdrb"><button type="button" data-vt="addx">Cancelar</button></div></div>':'';
+    const prox=R.el.slice(i+1).find(x=>!x.skip&&vtSt(x)==='sinc')||R.el.find(x=>!x.skip&&vtSt(x)==='sinc'&&x!==e),fn=vtFundoAtual(),fp=VT_ORDEM_FUNDO[(VT_ORDEM_FUNDO.indexOf(fn)+1)%VT_ORDEM_FUNDO.length];
+    return `${R.revis?`<div class="vtrev"><b>Revistoria</b> da vistoria de ${dBR(R.revis.data||hoje())} (${esc(R.revis.res)}): confira só ${R.revis.n>1?`os ${R.revis.n} itens pendentes`:'o item pendente'}, marcados em cinza no mapa.</div>`:''}${dr}
+     <div class="vtmapw"><div id="vtSlot"></div><div class="vtmt"><button type="button" data-vt="tudo">Ver tudo</button><button type="button" data-vt="ir">Ir para ${e.id}</button><button type="button" data-vt="gps">Perto de mim</button><button type="button" data-vt="fundo" data-f="${fp}">${VT_FUNDOS[fp].n}</button></div></div>
+     <div class="vtleg"><span><i class="vtl sok"></i>Conforme</span><span><i class="vtl snc"></i>Pendência (${nc})</span><span><i class="vtl sinc"></i>Falta (${inc})</span><span class="vtcnt">${Object.entries(tp).map(([t,n])=>`${n} ${VT_TIPON[t]}`).join(' · ')}</span></div>
+     ${R.draw||R.add?'':`<div class="vtmact"><button type="button" class="link" data-vt="addp">+ Incluir poste que falta</button><button type="button" class="link" data-vt="dr">Desenhar alteração de trajeto</button></div>`}
+     ${R.alt.length?`<div class="vtaltb">${R.alt.map((a,j)=>{const[v1,v2]=vtViz(a),pm=Math.round(a.m2-a.m1),em=vtLen(a.pts),df=em-pm;return `<div class="vtalti ${a.sit==='corrigir'?'nok':''}"><div class="vtaltt"><span><b>Alteração ${j+1}</b> · entre ${v1} e ${v2}<small>Projeto ${pm} m → executado ${em} m (${df>=0?'+':''}${df} m)${a.ant?' · pendente na vistoria anterior':''}</small></span><button type="button" class="vtaltx" data-vt="altrm" data-j="${j}" aria-label="Excluir alteração ${j+1}">✕</button></div>
+       <select class="inp" data-vtc="alt" data-j="${j}" data-c="motivo"><option value="">Motivo da alteração…</option>${VT_MOT.map(m=>`<option ${a.motivo===m?'selected':''}>${m}</option>`).join('')}</select>
+       <select class="inp" data-vtc="alt" data-j="${j}" data-c="sit"><option value="">A alteração está correta?</option><option value="aceita" ${a.sit==='aceita'?'selected':''}>Aceita · o trajeto executado passa a valer</option><option value="corrigir" ${a.sit==='corrigir'?'selected':''}>Não aceita · o prestador refaz pelo projeto</option></select>
+       ${a.sit==='corrigir'?`<input class="inp" data-vti="altt" data-j="${j}" placeholder="O que o prestador deve fazer" value="${esc(a.txt||'')}">`:''}</div>`}).join('')}</div>`:''}
+     <div class="vtnav"><button type="button" data-vt="sel" data-id="${(R.el[i-1]||{}).id||''}" ${i?'':'disabled'} aria-label="Ponto anterior">‹</button><b>${e.id}</b><span>${vtNomeE(e)}${e.tipo==='esp'&&e.m?` · ${e.m} m`:''}</span><button type="button" data-vt="sel" data-id="${(R.el[i+1]||{}).id||''}" ${i<R.el.length-1?'':'disabled'} aria-label="Próximo ponto">›</button></div>
+     ${e.skip?'<p class="vtskip">Este poste do projeto ficou fora do trajeto executado. Não entra na vistoria.</p>':`
+     <button type="button" class="vtok" data-vt="okall" data-id="${e.id}">${vtSt(e)==='sok'?'✓ Conforme · ir para o próximo':'Tudo conforme e próximo'}</button>
+     <small class="muted" style="text-align:center">${prox?`Próximo sem vistoria: ${prox.id}`:'Todos os pontos já foram vistoriados.'}</small>
+     <details class="vtitd" ${vtItens(e).some(([k])=>e.it[k]==='nc')||(e.ant&&vtItens(e).some(([k])=>e.ant[k]&&!e.it[k]))||R.openIt?'open':''}><summary>Ver os itens ou registrar problema</summary>
+     ${e.tipo==='poste'?`<label class="f" style="margin:0"><span>Referência do ${e.id}</span><input class="inp" data-vti="ref" data-p="${e.id}" value="${esc(e.ref)}" placeholder="Número da plaqueta do poste ou endereço"></label>`:''}
+     <div class="vtchk">${vtItens(e).map(([k,n,h])=>{const hint=k==='anc'?(e.anc?`<b>${VT_ANC[e.anc][0]}</b>: ${VT_ANC[e.anc][1]}`:'<b>Poste fora do KMZ</b>: descreva a ancoragem encontrada.'):esc(h),an=e.ant&&e.ant[k],d=e.nc[k]||{};
+       return `<div class="vtci ${e.it[k]==='nc'?'ncb':''} ${an&&!e.it[k]?'antb':''}"><span>${n}${hint?`<small>${hint}</small>`:''}${an?`<small class="vtant">Pendência anterior: ${esc(an.txt||'sem descrição')}</small>`:''}</span>${vtSeg(e.id,k,e.it[k])}${e.it[k]==='nc'?`<div class="vtncd"><select class="inp" data-vtc="g" data-p="${e.id}" data-k="${k}"><option value="">Gravidade…</option>${VT_GRAV.map(([v,l])=>`<option value="${v}" ${d.g===v?'selected':''}>${l}</option>`).join('')}</select><input class="inp" data-vti="nt" data-p="${e.id}" data-k="${k}" placeholder="O que está errado" value="${esc(d.txt||'')}">${vtFotoBox(e,k)}</div>`:''}</div>`}).join('')}</div></details>`}`}
+  if(k===3){const L=vtPend();return L.length?`<div class="vtpd">${L.map(x=>`<button type="button" class="vtpdi ${x.d.g||''}" data-vt="sel" data-id="${x.k==='alt'?'':x.e.id}"><b>${x.e.id} · ${x.n}</b><span>${esc(x.d.txt||'sem descrição')}</span><small>${(VT_GRAV.find(g=>g[0]===x.d.g)||['','sem gravidade'])[1]}</small></button>`).join('')}</div>`:'<p class="muted" style="margin:0">Nenhuma não conformidade.</p>'}
+  if(k===4){const s=vtSug(),r=vtResul(),dz=VT_PRAZO[r];return `<div class="vtres ${vtCls(r)}"><small>Resultado${R.res&&R.res!==s?' (alterado)':' sugerido'}</small><b>${r}</b><span>${vtConf()}% dos itens conformes · ${vtPend().length} pendência(s)</span></div>
+    <label class="f" style="margin:0"><span>Resultado</span><select class="inp" data-vtc="res"><option value="">Usar o sugerido (${s})</option>${['Aprovado','Aprovado com ressalvas','Reprovado'].map(v=>`<option ${R.res===v?'selected':''}>${v}</option>`).join('')}</select></label>
+    ${R.res&&R.res!==s?`<label class="f" style="margin:0"><span>Justificativa *</span><textarea class="inp" rows="2" data-vti="just" placeholder="Por que mudou o resultado">${esc(R.just)}</textarea></label>`:''}
+    ${dz?`<div class="vtprz"><b>Prazo para o prestador corrigir: ${dz} dias</b><span>até ${dBR(addD(hoje(),dz))}.</span></div>`:''}`}
+  return ''}
+function vtView(a){const V=ui.vt||{},back=`<button class="back" data-act="vtFechar">‹ Voltar para a atividade</button>`,cli=esc(cliN(a.etiqueta)||a.etiqueta);
+  const top=(sub,body)=>`${back}<article class="tcard vtw"><div class="tchd"><div class="tcl"><span class="tccli">${cli}</span></div><span class="tcetq">${esc(a.etiqueta)}</span></div><div class="tcband" style="background:${corFase(a)}"><span class="tck">VISTORIA DE LANÇAMENTO</span><span class="tcf">${sub}</span></div>${body}</article>`;
+  if(V.st==='carregando')return top('Abrindo o KMZ…','<div class="tcb"><p class="muted" style="margin:0">Baixando o KMZ de lançamento do projeto e montando o mapa.</p></div>');
+  if(V.st==='semkmz'||V.st==='erro')return top(V.st==='erro'?'Não foi possível abrir':'Sem KMZ de lançamento',`<div class="tcb vtsem">${V.st==='erro'?`<div class="result bad" style="margin:0">${esc(V.msg||'')}</div>`:'<p style="margin:0">Este projeto não tem o KMZ de lançamento anexado. Peça à gestão para anexar ou carregue o KMZ que você recebeu.</p>'}
+    <label class="btn primary wide">Carregar o KMZ deste aparelho<input type="file" accept=".kmz,.kml" data-vtc="kmz" hidden></label>${V.st==='erro'?`<button class="btn wide" data-act="rel" data-id="${a.id}" data-r="vist">Tentar de novo</button>`:''}</div>`);
+  const R=VT.R,B=vtBlocos();
+  return `${top(esc(VT.M.proj)+(R.revis?' · revistoria':''),`<div class="tcb"><div style="display:flex;justify-content:space-between;font-size:14px"><span>Pontos vistoriados</span><b>${vtFeitos()} de ${vtAtivos()}</b></div><div class="bbar thin"><i style="width:${vtAtivos()?vtFeitos()/vtAtivos()*100:0}%"></i></div></div>`)}
+   <div class="vtw vtbody">${B.map(b=>`<div class="vtblk ${b.ok?'done':''}" id="vtb${b.k}"><button type="button" data-vt="ab" data-k="${b.k}" aria-expanded="${!!R.ab[b.k]}"><span class="k">${b.ok?'✓':b.k}</span><h3>${b.t}</h3><span class="r">${esc(b.r)} ${R.ab[b.k]?'▴':'▾'}</span></button>${R.ab[b.k]?`<div class="vtbb">${vtCorpo(b.k,a)}</div>`:''}</div>`).join('')}
+   <div id="vtFoot">${vtFoot(a)}</div></div>`}
+function vtFoot(a){const F=vtFalta();return F.length?`<div class="vtmiss"><b>Falta para concluir</b><ul>${F.slice(0,6).map(x=>`<li>${esc(x)}</li>`).join('')}${F.length>6?`<li>e mais ${F.length-6}</li>`:''}</ul></div><button class="bigbtn" disabled>Concluir vistoria e enviar o PDF</button>`:`<button class="bigbtn" data-act="vtEnviar" data-id="${a.id}">Concluir vistoria e enviar o PDF</button>`}
+
+/* ---------- eventos ---------- */
+function vtProx(e){const R=VT.R,i=R.el.indexOf(e);return R.el.slice(i+1).find(x=>!x.skip&&vtSt(x)==='sinc')||R.el.find(x=>!x.skip&&vtSt(x)==='sinc')}
+const vtE=id=>VT.R.el.find(x=>x.id===id);
+function vtRe(abrirItens){if(abrirItens)VT.R.openIt=true;vtSalvar();render();VT.R.openIt=false}
+document.addEventListener('click',ev=>{const b=ev.target.closest('[data-vt]');if(!b||!ui.vt||!VT.R||b.closest('.leaflet-container'))return;const R=VT.R,d=b.dataset,v=d.vt;
+  if(v==='ab'){R.ab[+d.k]=!R.ab[+d.k];render();return}
+  if(v==='sel'){if(d.id){R.sel=d.id;R.ab[2]=true;render();const e=vtE(d.id);if(e&&VT.map)VT.map.panTo(e.ll)}return}
+  if(v==='okall'){const e=vtE(d.id);if(!e)return;vtItens(e).forEach(([k])=>{if(e.it[k]!=='na'&&e.it[k]!=='nc')e.it[k]='c'});const n=vtProx(e);if(n)R.sel=n.id;vtRe();if(n&&VT.map)VT.map.panTo(n.ll);return}
+  if(v==='it'){const e=vtE(d.p);if(!e)return;e.it[d.k]=d.v;if(d.v==='nc'&&!e.nc[d.k])e.nc[d.k]={};vtRe(true);return}
+  if(v==='fdel'){const e=vtE(d.p);if(e&&e.nc[d.k])delete e.nc[d.k].foto;vtRe(true);return}
+  if(v==='tudo'){vtTudo();return}
+  if(v==='ir'){const e=vtE(R.sel);if(e&&VT.map)VT.map.setView(e.ll,19);return}
+  if(v==='gps'){vtGps();return}
+  if(v==='fundo'){vtFundo(d.f);render();return}
+  if(v==='addp'){R.add=true;R.draw=null;render();toast('Aproxime o mapa e toque no cabo onde fica o poste.');return}
+  if(v==='addx'){R.add=false;render();return}
+  if(v==='dr'){R.draw={pts:[],postes:true,err:''};R.add=false;render();toast('Aproxime o mapa no trecho alterado.');return}
+  if(v==='drx'){R.draw=null;render();return}
+  if(v==='drz'){R.draw.pts.pop();R.draw.err='';render();return}
+  if(v==='drok'){const D=R.draw,last=D.pts[D.pts.length-1],pr=vtProj(VT.M,last[0],last[1]);if(pr.d>30||pr.li!==D.li){D.err='O último ponto precisa ficar em cima do mesmo cabo, onde o caminho volta ao projeto.';render();return}
+    let pts=D.pts.slice(0,-1).concat([pr.xy]),m1=D.m1,m2=pr.m;if(m2<m1){[m1,m2]=[m2,m1];pts=pts.reverse()}vtAddAlt(pts,D.li,m1,m2,D.postes);R.draw=null;vtRe();return}
+  if(v==='altrm'){const a=R.alt[+d.j];R.el.filter(x=>x.alt===a).forEach(x=>x.mk&&x.mk.remove());R.el=R.el.filter(x=>x.alt!==a);R.alt.splice(+d.j,1);vtRenum();R.el.forEach(x=>x._k=null);vtRe();return}});
+document.addEventListener('change',async ev=>{const t=ev.target,d=t.dataset;if(!d||!d.vtc||!ui.vt)return;const R=VT.R;
+  if(d.vtc==='kmz'){const f=t.files&&t.files[0];t.value='';if(!f)return;const a=getAg(ui.vt.ag);ui.vt={ag:a.id,st:'carregando'};render();
+    try{const txt=await kmzTexto(await f.arrayBuffer(),f.name);await vtCarregar(a,txt,f.name,null)}catch(e){ui.vt={ag:a.id,st:'erro',msg:'Não foi possível ler o KMZ: '+(e.message||e)};render()}return}
+  if(!R)return;
+  if(d.vtc==='drPost'&&R.draw){R.draw.postes=t.checked;return}
+  if(d.vtc==='alt'){R.alt[+d.j][d.c]=t.value;vtRe();return}
+  if(d.vtc==='g'){const e=vtE(d.p);(e.nc[d.k]=e.nc[d.k]||{}).g=t.value;vtRe(true);return}
+  if(d.vtc==='res'){R.res=t.value;vtRe();return}
+  if(d.vtc==='foto'){const f=t.files&&t.files[0],cam=t.hasAttribute('capture'),pid=d.p,k=d.k;t.value='';if(!f)return;toast('Preparando a foto…');
+    try{const u=await reduzirFoto(f,{etq:(getAg(ui.vt.ag)||{}).etiqueta,cam});const e=vtE(pid);if(e){(e.nc[k]=e.nc[k]||{}).foto=u;vtRe(true)}}catch(e){toast('Não foi possível ler a foto: '+(e.message||e),'bad')}return}});
+document.addEventListener('input',ev=>{const t=ev.target,d=t.dataset;if(!d||!d.vti||!ui.vt||!VT.R)return;const R=VT.R;
+  if(d.vti==='mMed'||d.vti==='just')R[d.vti]=t.value;
+  else if(d.vti==='ref'){const e=vtE(d.p);if(e)e.ref=t.value}
+  else if(d.vti==='altt'){R.alt[+d.j].txt=t.value}
+  else if(d.vti==='nt'){const e=vtE(d.p);if(e)(e.nc[d.k]=e.nc[d.k]||{}).txt=t.value}
+  vtSalvar();vtParcial()});
+/* texto: não redesenha a tela (perderia o foco); só atualiza o resumo dos blocos e o que falta */
+let _vtP=null;function vtParcial(){clearTimeout(_vtP);_vtP=setTimeout(()=>{if(!ui.vt||!VT.R)return;const a=getAg(ui.vt.ag);vtBlocos().forEach(b=>{const el=document.getElementById('vtb'+b.k);if(!el)return;el.classList.toggle('done',b.ok);const r=el.querySelector('.r'),k=el.querySelector('.k');if(r)r.textContent=b.r+' '+(VT.R.ab[b.k]?'▴':'▾');if(k)k.textContent=b.ok?'✓':b.k});
+  const f=document.getElementById('vtFoot');if(f&&a)f.innerHTML=vtFoot(a);const pc=document.getElementById('vtPct');if(pc)pc.textContent=VT.R.mMed?`${Math.round(VT.R.mMed/VT.M.mPrev*100)}% do previsto no KMZ`:''},350)}
+
+/* ---------- PDF ---------- */
+function vtLancados(a){const L=S.ags.filter(x=>x.etiqueta===a.etiqueta&&x.id!==a.id&&(x.fases||[x.fase]).some(f=>f==='rua'||f==='interno')&&['concluida','lpu','relatorios','execucao'].includes(x.status)).sort((x,y)=>x.data.localeCompare(y.data));
+  return{quem:[...new Set(L.map(x=>x.equipe&&typeof agResp==='function'?agResp(x):tecN(x.tec)))].join(', ')||'—',data:L.length?dBR(L[L.length-1].data):'—'}}
+function vtPdf(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),M=VT.M,R=VT.R,m=14,W=210,H=297,VERDE=[140,191,63],LAB=[244,249,236],LINE=[212,221,216],p=pPor(a.etiqueta)||{},L=vtPend(),r=vtResul(),dz=VT_PRAZO[r],hj=hoje(),lan=vtLancados(a),vist=a.equipe&&typeof agResp==='function'?agResp(a):tecN(a.tec);
+  const tit=R.revis?'Relatório de revistoria de lançamento':'Relatório de vistoria de lançamento';let y=18;
+  doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(40);doc.text(tit,m,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(120);doc.text(`${a.etiqueta} · ${dBR(hj)}`,W-m,y,{align:'right'});
+  doc.setDrawColor(...VERDE);doc.setLineWidth(.8);doc.line(m,y+3,W-m,y+3);
+  const lb=s=>({content:s,styles:{fontStyle:'bold',fillColor:LAB,textColor:[90,100,95]}});
+  doc.autoTable({startY:y+7,theme:'grid',styles:{fontSize:8.5,cellPadding:2,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},columnStyles:{0:{cellWidth:30},2:{cellWidth:30}},
+    body:[[lb('Cliente'),cliN(a.etiqueta)||'—',lb('Etiqueta / protocolo'),`${a.etiqueta}${p.protocolo?' · '+p.protocolo:M.prot?' · '+M.prot:''}`],[lb('Cidade'),p.cidade||'—',lb('Data da vistoria'),dBR(hj)]].concat(lan.quem!=='—'?[[lb('Lançado por'),lan.quem,lb('Data do lançamento'),lan.data]]:[]).concat([
+      [lb('Projeto (KMZ)'),`${M.cabos.map(c=>`${c.desc} · ${vtFm(c.prev||c.m)} m`).join(' + ')}${M.cords.length?` · ${M.cords.length} cordoalhas (${vtFm(M.cordM)} m)`:''}`,lb('Metragem medida'),`${vtFm(R.mMed)} m (${Math.round(R.mMed/M.mPrev*100)}% do previsto)`],
+      [lb('Vistoriador'),vist,lb('Critérios'),'IOP.2.5.1.001R00 e NTT-NOR-001']]).concat(R.revis?[[lb('Revistoria'),{content:`Confere as pendências da vistoria de ${dBR(R.revis.data||hj)} (${R.revis.res}).`,colSpan:3}]]:[])});
+  y=doc.lastAutoTable.finalY+5;
+  const fx=r==='Aprovado'?[[238,246,226],[160,200,110],[79,122,18]]:r==='Reprovado'?[[253,233,231],[225,150,140],[160,32,32]]:[[255,243,220],[230,190,110],[138,90,0]];
+  doc.setFillColor(...fx[0]);doc.setDrawColor(...fx[1]);doc.setLineWidth(.3);doc.roundedRect(m,y,W-2*m,17,2,2,'FD');
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(...fx[2]);doc.text(r.toUpperCase(),m+4,y+7);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.text(`${vtFeitos()} pontos vistoriados · ${vtConf()}% dos itens conformes · ${L.length} ${L.length===1?'pendência':'pendências'}`,m+4,y+12.5);
+  if(dz){doc.setFont('helvetica','bold');doc.text(`Prazo do prestador: ${dz} dias, até ${dBR(addD(hj,dz))}`,W-m-4,y+7,{align:'right'})}
+  y+=21;if(R.res&&R.res!==vtSug()&&R.just){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90);const t=doc.splitTextToSize(`Resultado alterado (sugerido: ${vtSug()}). Justificativa: ${R.just}`,W-2*m);doc.text(t,m,y);y+=t.length*3.6+2}
+  /* mapa do trajeto */
+  doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Trajeto vistoriado',m,y);y+=3;
+  const pts=M.cabos.flatMap(c=>c.xy).concat(R.el.map(e=>e.xy)).concat(R.alt.flatMap(a=>a.pts)),x0=Math.min(...pts.map(q=>q[0])),x1=Math.max(...pts.map(q=>q[0])),y0=Math.min(...pts.map(q=>q[1])),y1=Math.max(...pts.map(q=>q[1]));
+  const maxW=W-2*m,maxH=115,pad=5,sc=Math.min((maxW-2*pad)/((x1-x0)||1),(maxH-2*pad)/((y1-y0)||1)),bw=maxW,bh=Math.max(40,(y1-y0)*sc+2*pad),bx=m,by=y,ox=bx+(bw-(x1-x0)*sc)/2;
+  doc.setDrawColor(...LINE);doc.setFillColor(247,249,245);doc.setLineWidth(.3);doc.rect(bx,by,bw,bh,'FD');
+  const P=q=>[ox+(q[0]-x0)*sc,by+pad+(y1-q[1])*sc];
+  const poly=(L2,col,w,alpha,dash)=>{if(L2.length<2)return;doc.setDrawColor(...col);doc.setLineWidth(w);if(alpha)doc.setGState(new doc.GState({opacity:alpha}));if(dash)doc.setLineDashPattern(dash,0);const Q=L2.map(P);for(let i=0;i<Q.length-1;i++)doc.line(Q[i][0],Q[i][1],Q[i+1][0],Q[i+1][1]);if(dash)doc.setLineDashPattern([],0);if(alpha)doc.setGState(new doc.GState({opacity:1}))};
+  doc.setLineCap('round');M.exist.forEach(l=>poly(l.xy,[210,105,30],2.2,.5));M.cords.forEach(l=>poly(l.xy,[150,155,152],1.2));
+  M.cabos.forEach(l=>{const c=vtCorRGB(l.cor)||[47,191,31];poly(l.xy,[255,255,255],1.1);poly(l.xy,[c[0],c[1],c[2]],.6)});
+  R.alt.forEach(a=>{poly(vtSubR(M,a.li,a.m1,a.m2),[130,130,130],.5,0,[1.2,1]);poly(a.pts,a.sit==='corrigir'?[179,38,30]:[15,157,154],.8)});
+  const n=R.el.length,rr=n>120?.7:n>50?1:1.6;
+  R.el.forEach(e=>{const s=vtSt(e);if(s==='snc')return;const[x,yy]=P(e.xy);doc.setLineWidth(.2);if(s==='sskip'){doc.setDrawColor(160);doc.setFillColor(235,235,235)}else{doc.setDrawColor(...(s==='sok'?[79,122,18]:[120,120,120]));doc.setFillColor(...(s==='sok'?[140,191,63]:[255,255,255]))}doc.circle(x,yy,rr,'FD')});
+  R.el.forEach(e=>{if(vtSt(e)!=='snc')return;const[x,yy]=P(e.xy);doc.setLineWidth(.3);doc.setDrawColor(255);doc.setFillColor(179,38,30);doc.circle(x,yy,rr+.7,'FD');doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(179,38,30);doc.text(e.id,x+rr+1.2,yy+1)});
+  {const bars=[20,50,100,200,500,1000,2000],bar=bars.find(v=>v*sc>=18)||2000,Lb=bar*sc,xr=bx+bw-4,yb=by+bh-3.5;doc.setDrawColor(40);doc.setLineWidth(.4);doc.line(xr-Lb,yb,xr,yb);doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(40);doc.text(bar>=1000?bar/1000+' km':bar+' m',xr-Lb,yb-1.4)}
+  y=by+bh+4;
+  const cont={sok:0,snc:0,sinc:0,sskip:0};R.el.forEach(e=>cont[vtSt(e)]++);const tp={};R.el.forEach(e=>{if(!e.skip)tp[e.tipo]=(tp[e.tipo]||0)+1});
+  let lx=m;const leg=(f,s,t)=>{doc.setLineWidth(.2);doc.setDrawColor(...s);doc.setFillColor(...f);doc.circle(lx+1.3,y-1,1.3,'FD');doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(40);doc.text(t,lx+3.6,y);lx+=doc.getTextWidth(t)+9};
+  leg([140,191,63],[79,122,18],`Conforme ${cont.sok}`);leg([179,38,30],[255,255,255],`Com pendência ${cont.snc}`);if(cont.sskip)leg([235,235,235],[160,160,160],`Fora do trajeto ${cont.sskip}`);
+  {if(R.alt.length){doc.setDrawColor(15,157,154);doc.setLineWidth(.8);doc.line(lx,y-1,lx+5,y-1);doc.text('Trajeto alterado',lx+7,y);lx+=doc.getTextWidth('Trajeto alterado')+12}}
+  y+=5;doc.setFontSize(8);doc.setTextColor(90);doc.text(`${Object.entries(tp).map(([t,q])=>`${q} ${VT_TIPON[t]}`).join(' · ')} · metragem prevista ${vtFm(M.mPrev)} m, medida ${vtFm(R.mMed)} m, desenho do cabo ${vtFm(M.mDes)} m`,m,y,{maxWidth:W-2*m});y+=6;
+  /* alterações */
+  if(R.alt.length){doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Alterações de trajeto',m,y);
+    doc.autoTable({startY:y+2,theme:'grid',head:[['Nº','Trecho','Projeto / executado','Motivo','Situação']],headStyles:{fillColor:VERDE,fontSize:8},styles:{fontSize:8,cellPadding:1.6,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},
+      body:R.alt.map((a,i)=>{const[v1,v2]=vtViz(a);return[i+1,`${v1} a ${v2}`,`${Math.round(a.m2-a.m1)} m / ${vtLen(a.pts)} m`,a.motivo||'—',a.sit==='aceita'?'Aceita':`Refazer: ${a.txt||''}`]})});y=doc.lastAutoTable.finalY+6}
+  /* pontos */
+  if(y>H-40){doc.addPage();y=18}
+  doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Pontos vistoriados',m,y);
+  doc.autoTable({startY:y+2,theme:'grid',head:[['Ponto','Tipo','Referência','Conformes','Situação']],headStyles:{fillColor:VERDE,fontSize:8},styles:{fontSize:7.5,cellPadding:1.3,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},
+    columnStyles:{0:{cellWidth:14,fontStyle:'bold'},3:{cellWidth:20,halign:'center'},4:{cellWidth:28,halign:'center'}},
+    body:R.el.map(e=>{const its=vtItens(e),cc=its.filter(([k])=>e.it[k]==='c').length,q=its.filter(([k])=>e.it[k]==='nc').length;return[e.id,vtNomeE(e)+(e.tipo==='esp'&&e.m?` · ${e.m} m`:''),e.ref||'',e.skip?'—':`${cc} de ${its.length}`,e.skip?'Fora do trajeto':q?`${q} ${q>1?'pendências':'pendência'}`:'Conforme']}),
+    didParseCell:d=>{if(d.section==='body'&&d.column.index===4){d.cell.styles.fontStyle='bold';d.cell.styles.textColor=/pend/.test(d.cell.raw)?[179,38,30]:/Fora/.test(d.cell.raw)?[130,130,130]:[79,122,18]}}});
+  /* pendências */
+  doc.addPage();y=18;doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(40);doc.text(L.length?'Pendências para o prestador corrigir':'Pendências',m,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(120);doc.text(L.length?(dz?`Corrigir em até ${dz} dias (até ${dBR(addD(hj,dz))}). Depois da correção, a revistoria confere só os pontos abaixo.`:'Observações registradas, sem correção obrigatória.'):'Nenhuma não conformidade encontrada.',m,y+5);y+=8;
+  if(L.length){doc.autoTable({startY:y,theme:'grid',head:[['Nº','Ponto','Item','Gravidade','O que está errado']],headStyles:{fillColor:VERDE,fontSize:8},styles:{fontSize:8.5,cellPadding:2,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},
+      columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:16,fontStyle:'bold'},2:{cellWidth:48},3:{cellWidth:22}},
+      body:L.map((x,i)=>[i+1,x.e.id,x.n,(VT_GRAV.find(g=>g[0]===x.d.g)||['','—'])[1].split(' · ')[0],(x.d.txt||'')+(x.e.ref?'\n'+x.e.ref:'')]),
+      didParseCell:d=>{if(d.section==='body'&&d.column.index===3){d.cell.styles.textColor=d.cell.raw==='Crítica'?[179,38,30]:d.cell.raw==='Observação'?[36,95,128]:[138,90,0];d.cell.styles.fontStyle='bold'}}});
+    y=doc.lastAutoTable.finalY+8;const F=L.filter(x=>x.d.foto);
+    if(F.length){if(y>H-70){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Fotos das pendências',m,y);y+=4;
+      const fw=(W-2*m-12)/3;let col=0,rowH=0;
+      F.forEach((x,k)=>{let iw=4,ih=3;try{const pr=doc.getImageProperties(x.d.foto);iw=pr.width;ih=pr.height}catch(e){}const s2=Math.min(fw/iw,70/ih),w2=iw*s2,fh=ih*s2;
+        if(col===0&&y+fh+10>H-16){doc.addPage();y=18}const xx=m+col*(fw+6);
+        try{doc.addImage(x.d.foto,'JPEG',xx+(fw-w2)/2,y,w2,fh)}catch(e){doc.setFillColor(232,236,229);doc.rect(xx,y,fw,fh,'F')}
+        doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`Foto ${k+1}: ${x.e.id} · ${x.n}`,xx,y+fh+4,{maxWidth:fw});rowH=Math.max(rowH,fh);
+        col++;if(col===3){col=0;y+=rowH+11;rowH=0}});if(col)y+=rowH+11}}
+  /* assinaturas */
+  if(y>H-50){doc.addPage();y=18}y+=24;doc.setDrawColor(60);doc.setLineWidth(.3);doc.line(m,y,90,y);doc.line(120,y,W-m,y);
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(40);doc.text(vist,52,y-3,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(110);doc.text(`Vistoriador · ${dBR(hj)} ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`,52,y+4,{align:'center'});doc.text(lan.quem!=='—'?`Prestador (${lan.quem}) · ciente das pendências`:'Prestador · ciente das pendências',157.5,y+4,{align:'center',maxWidth:W-m-120});
+  const np=doc.internal.getNumberOfPages();for(let k=1;k<=np;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, ${R.revis?'revistoria':'vistoria'} de lançamento ${a.etiqueta}`,m,H-8);doc.text(`Página ${k} de ${np}`,W-m,H-8,{align:'right'})}
+  return doc.output('blob')}
+
+/* ---------- concluir ---------- */
+Object.assign(ACT,{
+  vtFechar:()=>{ui.vt=null;vtMapaFim();VT.R=null;VT.M=null;render();window.scrollTo(0,0)},
+  vtEnviar:async el=>{const a=getAg(el.dataset.id);if(!a||!VT.R||vtFalta().length)return;toast('Gerando e enviando o relatório da vistoria…');
+    try{const R=VT.R,blob=vtPdf(a),path=`relatorios/${a.id}/vistoria/${Date.now()}-relatorio-vistoria.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
+      const r=vtResul(),dz=VT_PRAZO[r]||0,L=vtPend();
+      a.rel=a.rel||{};a.rel.vist={path,em:Date.now(),res:r};
+      a.vistoria={res:r,sug:vtSug(),just:R.res&&R.res!==vtSug()?R.just:'',conf:vtConf(),pontos:vtAtivos(),nPend:L.length,prazo:dz?addD(hoje(),dz):null,dias:dz||null,em:Date.now(),por:meNome(),revis:!!R.revis,mMed:+R.mMed||0,mPrev:VT.M.mPrev,kmz:VT.nome,
+        pend:L.map(x=>({id:x.e.id,item:x.n,g:x.d.g||'',txt:x.d.txt||''})),alt:R.alt.map(a2=>{const[v1,v2]=vtViz(a2);return{de:v1,ate:v2,proj:Math.round(a2.m2-a2.m1),exec:vtLen(a2.pts),motivo:a2.motivo,sit:a2.sit}}),estado:vtSer(R,false)};
+      a.medicoes=Object.assign({},a.medicoes||{},{'vist:metros':+R.mMed||0});save();IDB.del('vt:'+a.id).catch(()=>{});
+      ui.vt=null;vtMapaFim();VT.R=null;VT.M=null;render();window.scrollTo(0,0);toast(`Vistoria enviada: ${r}${dz?`, prazo de ${dz} dias`:''}.`)}
+    catch(e){toast('Não foi possível enviar: '+(e.message||e)+'. A vistoria continua salva neste aparelho; tente de novo.','bad')}}});
+{const _rel=ACT.rel;ACT.rel=async el=>{if(el.dataset.r==='vist')return vtAbrir(el.dataset.id);return _rel(el)}}
+{const _d=detalhe;detalhe=function(a){if(ui.vt&&ui.vt.ag===a.id)return vtView(a);return _d.apply(this,arguments)}}
+{const _r=render;render=function(){const md=document.getElementById('vtMap'),h=document.getElementById('vtHome');if(md&&h&&md.parentElement!==h)h.appendChild(md);const o=_r.apply(this,arguments);try{vtPos()}catch(e){}return o}}
+
+/* ---------- gestão: Relatórios ---------- */
+function vtMedRel(a){const v=a.vistoria;if(!v)return '—';return `<span class="chip ${v.res==='Aprovado'?'ok':v.res==='Reprovado'?'bad':'warn'}">${esc(v.res)}</span>${v.nPend?` ${v.nPend} ${v.nPend>1?'pendências':'pendência'}`:''}${v.prazo?`<br><small class="muted">corrigir até ${dBR(v.prazo)}</small>`:''}`}
+function vtPrazos(tipo){if(tipo&&tipo!=='vist')return '';const U={};S.ags.forEach(a=>{if(a.vistoria&&(!U[a.etiqueta]||(a.vistoria.em||0)>(U[a.etiqueta].vistoria.em||0)))U[a.etiqueta]=a});
+  const L=Object.values(U).filter(a=>a.vistoria.prazo).sort((x,y)=>x.vistoria.prazo.localeCompare(y.vistoria.prazo));if(!L.length)return '';const T=hoje();
+  return `<section class="lcard vtpz"><div class="lhead" style="cursor:default"><div><b style="font:700 18px 'Barlow Condensed',sans-serif">Prazos de correção da vistoria</b><small>Última vistoria de cada projeto com pendência para o prestador. Some quando a revistoria aprova.</small></div><span class="chip warn">${L.length}</span></div>
+   <div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table><thead><tr><th>Cliente</th><th>Resultado</th><th>Pendências</th><th>Prazo</th><th></th></tr></thead><tbody>${L.map(a=>{const v=a.vistoria,d=Math.round((new Date(v.prazo+'T12:00:00')-new Date(T+'T12:00:00'))/864e5);
+     return `<tr><td><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b><br><small class="muted">${esc(a.etiqueta)} · vistoria de ${dBR(a.data)}</small></td><td><span class="chip ${v.res==='Reprovado'?'bad':'warn'}">${esc(v.res)}</span></td><td>${v.nPend}</td><td>${dBR(v.prazo)}<br><small class="${d<0?'vtvenc':'muted'}">${d<0?`vencido há ${-d} ${-d>1?'dias':'dia'}`:d===0?'vence hoje':`faltam ${d} ${d>1?'dias':'dia'}`}</small></td><td class="r">${a.rel&&a.rel.vist?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.vist.path)}">Abrir PDF</button>`:''}</td></tr>`}).join('')}</tbody></table></div></section>`}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
