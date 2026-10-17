@@ -3440,7 +3440,7 @@ function viewEquipe(){const ids=eqIds();
   if(ui.lpuTela){if(String(ui.lpuTela).startsWith('G:')){const c=G.ch.find(x=>'G:'+x.id===ui.lpuTela);if(c&&ids.has(c.tec))return `<div class="campo">${gLpuView(c)}</div>`}else{const a=S.ags.find(x=>x.id===ui.lpuTela);if(a&&ids.has(a.tec)&&(a.status==='lpu'||(ui.lpuDia&&ui.lpuDia.id===a.id)))return `<div class="campo">${lpuView(a)}</div>`}ui.lpuTela=null}
   const T=hoje(),F=ui.eqTec||'',ok=t=>ids.has(t)&&(!F||t===F),hm=v=>v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
   const ags=S.ags.filter(a=>ok(a.tec)&&a.status!=='cancelada'),chs=G.ch.filter(c=>ok(c.tec)&&c.status!=='cancelado');
-  const lpuA=ags.filter(a=>a.status==='lpu'),lpuG=chs.filter(c=>c.status==='lpu');
+  const lpuA=ags.filter(a=>a.status==='lpu'||impPode(a)),lpuG=chs.filter(c=>c.status==='lpu');
   const campoA=ags.filter(a=>EM_CAMPO.includes(a.status)),campoG=chs.filter(c=>['desloc','local','atend'].includes(c.status));
   const proxA=ags.filter(a=>a.status==='agendada').sort((a,b)=>a.data.localeCompare(b.data)),proxG=chs.filter(c=>c.status==='aberto').sort((a,b)=>gIni(a)-gIni(b));
   const docA=ags.filter(a=>a.status==='relatorios');
@@ -3449,7 +3449,7 @@ function viewEquipe(){const ids=eqIds();
   const infoA=a=>{const t=a.ts||{};return a.status==='deslocamento'?`Saiu às ${hm(t.desloc)}${etaTxt(t)}`:a.status==='no_local'?`Chegou às ${hm(t.chegada)}`:a.status==='execucao'?`Em execução desde ${hm(t.inicio)}`:a.status==='lpu'?`Terminou às ${hm(t.relatorios||t.conclusao)}`:a.status==='relatorios'?'Fazendo os relatórios':dBR(a.data)};
   const cA=(a,btn)=>`<article class="eqc${sel==='a:'+a.id?' on':''}"><div class="eqh"><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b>${chip(a.status)}</div><small>${esc(a.etiqueta)} · ${fasesN(a)} · ${dBR(a.data)}</small><span class="eqt">${esc(tecN(a.tec))} · ${esc(infoA(a))}</span>${notaAdmCurta(a.notaAdm)}${btn||''}<button class="btn sm eqver" data-act="eqVer" data-k="a:${a.id}">Ver atividade e relatórios</button></article>`;
   const cG=(c,btn)=>`<article class="eqc${sel==='g:'+c.id?' on':''}"><div class="eqh"><b>${esc(c.cliente||'Cliente')}</b>${gChip(c)}</div><small>GTD · O&amp;M ${esc(c.pom||'—')} · ${esc(c.categoria||'')}</small><span class="eqt">${esc(gTecN(c.tec))}${c.ts&&c.ts.rfo?' · RFO às '+hm(c.ts.rfo):''}</span>${notaAdmCurta(c.notaAdm)}${btn||''}<button class="btn sm eqver" data-act="eqVer" data-k="g:${c.id}">Ver chamado e RFO</button></article>`;
-  const lpuBtnA=a=>S.lpus.some(l=>l.ag===a.id)?`<button class="btn wide" data-act="lpuJaEnviada" data-id="${a.id}">LPU já enviada: encerrar a atividade</button>`:`<button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;
+  const lpuBtnA=a=>impPode(a)?`<button class="bigbtn" data-act="impLpuAdm" data-id="${a.id}">Preencher a LPU de improdutiva e deslocamento</button>`:S.lpus.some(l=>l.ag===a.id)?`<button class="btn wide" data-act="lpuJaEnviada" data-id="${a.id}">LPU já enviada: encerrar a atividade</button>`:`<button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;
   const sec=(t,L,vz)=>`<section class="eqs"><h3 class="lsub">${t} <span class="chip">${L.length}</span></h3>${L.join('')||`<p class="muted">${vz}</p>`}</section>`;
   const EQ=S.equipe||[];
   return `<div class="campo"><div class="toolbar"><div><h2>Minha equipe</h2><p class="muted">O que os seus funcionários estão fazendo e as LPUs que você precisa preencher. Você recebe um aviso sempre que um funcionário termina uma atividade ou chamado.</p></div>
@@ -6512,6 +6512,26 @@ function vtPrazos(tipo){if(tipo&&tipo!=='vist')return '';const U={};S.ags.forEac
   return `<section class="lcard vtpz"><div class="lhead" style="cursor:default"><div><b style="font:700 18px 'Barlow Condensed',sans-serif">Prazos de correção da vistoria</b><small>Última vistoria de cada projeto com pendência para o prestador. Some quando a revistoria aprova.</small></div><span class="chip warn">${L.length}</span></div>
    <div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table><thead><tr><th>Cliente</th><th>Resultado</th><th>Pendências</th><th>Prazo</th><th></th></tr></thead><tbody>${L.map(a=>{const v=a.vistoria,d=Math.round((new Date(v.prazo+'T12:00:00')-new Date(T+'T12:00:00'))/864e5);
      return `<tr><td><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b><br><small class="muted">${esc(a.etiqueta)} · vistoria de ${dBR(a.data)}</small></td><td><span class="chip ${v.res==='Reprovado'?'bad':'warn'}">${esc(v.res)}</span></td><td>${v.nPend}</td><td>${dBR(v.prazo)}<br><small class="${d<0?'vtvenc':'muted'}">${d<0?`vencido há ${-d} ${-d>1?'dias':'dia'}`:d===0?'vence hoje':`faltam ${d} ${d>1?'dias':'dia'}`}</small></td><td class="r">${a.rel&&a.rel.vist?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.vist.path)}">Abrir PDF</button>`:''}</td></tr>`}).join('')}</tbody></table></div></section>`}
+
+/* ---------- 17/10: improdutiva e deslocamento de terceiros ----------
+   Antes, "Não foi possível realizar" sem marcar "Fiz parte do serviço" deixava a atividade em nao_concluida, que nunca chega à LPU.
+   Agora, terceiro (ou funcionário de empresa terceira) que saiu para o atendimento vai direto para a LPU de improdutiva e deslocamento
+   (o trigger do ajuste 19 avisa o administrador da empresa). Atividades antigas paradas podem ser liberadas pelo técnico, pelo administrador ou pela gestão. */
+/* 17/10 10h: vale para CLT e terceiros (o CLT preenche a LPU sem valores; só o funcionário de empresa terceira vai para o administrador) */
+const impTerc=a=>!!a&&!!a.tec;
+const impPode=a=>!!a&&a.status==='nao_concluida'&&!!(a.ts&&a.ts.desloc)&&impTerc(a)&&!S.lpus.some(l=>l.ag===a.id);
+function impLiberar(a,por){a.parcial=true;a.improd=true;a.status='lpu';a.improdLib={em:Date.now(),por:por||meNome()};save()}
+{const _n=ACT.nao;ACT.nao=el=>{_n(el);const a=getAg(el.dataset.id),o=$('mObs');if(!a||!o||!impTerc(a)||!(a.ts&&a.ts.desloc))return;
+  const lb=o.closest('label');if(lb)lb.insertAdjacentHTML('afterend',`<div class="result info impnota"><b>Improdutiva e deslocamento.</b> Como você saiu para este atendimento, a atividade vai para a LPU de improdutiva e deslocamento${ME&&ME.empresa?', preenchida pelo administrador da sua empresa':''}. Se fez parte do serviço, marque a opção abaixo.</div>`)}}
+{const _n=ACT.naoOk;ACT.naoOk=el=>{const a=getAg(el.dataset.id),parc=$('mParc')&&$('mParc').checked,imp=a&&impTerc(a)&&a.ts&&a.ts.desloc&&!parc;_n(el);
+  if(imp&&a.status==='nao_concluida'&&a.motivo){impLiberar(a,meNome());render();toast(ME&&ME.empresa?'Registrado. O administrador da sua empresa vai preencher a LPU de improdutiva e deslocamento.':'Registrado. Agora preencha a LPU de improdutiva e deslocamento.')}}}
+ACT.impLpu=el=>{const a=getAg(el.dataset.id);if(!impPode(a))return;impLiberar(a);render();window.scrollTo(0,0);toast(ME&&ME.empresa&&ui.perfil==='func'?'Enviado para o administrador da sua empresa preencher a LPU.':'Atividade liberada para a LPU de improdutiva e deslocamento.')};
+ACT.impLpuAdm=el=>{const a=getAg(el.dataset.id);if(!impPode(a))return;impLiberar(a);ACT.lpuAbrir(el)};
+/* botão no card do técnico / funcionário */
+{const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);if(impPode(a)&&r&&typeof r.act==='string')r.act+=`<button class="btn wide" data-act="impLpu" data-id="${a.id}">Lançar improdutiva e deslocamento na LPU</button>`;return r}}
+/* janela da atividade (gestão) */
+{const _c=corrBloco;corrBloco=function(a){const h=_c.apply(this,arguments);if(!impPode(a)||!['coord','sup','enc'].includes(ui.perfil)&&!pode('a_reagendar'))return h;
+  return h+`<div class="result warn" style="margin-top:10px"><b>Sem LPU de improdutiva.</b> O técnico saiu para o atendimento${a.ts.chegada?' e chegou ao local':''}, mas a atividade não foi para a LPU.<div class="tools" style="margin-top:8px"><button class="btn sm" data-act="impLpu" data-id="${a.id}">Liberar LPU de improdutiva e deslocamento</button></div></div>`}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
