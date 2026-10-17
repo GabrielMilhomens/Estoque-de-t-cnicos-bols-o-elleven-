@@ -1207,6 +1207,13 @@ button.ca2{cursor:pointer}
 .r2exi{font:700 11px Barlow,sans-serif;background:var(--bad);color:#fff;border-radius:4px;padding:3px 5px}
 .r2exup{margin-top:2px}
 @media (max-width:420px){.r2exf{grid-template-columns:auto minmax(0,1fr)}.r2exf .btn{grid-column:span 1}}
+/* 17/10: janela de não conclusão */
+.impq{display:grid;gap:8px;margin:2px 0 6px}.impq>span{font-weight:700;font-size:14px}
+.impo{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;cursor:pointer;align-items:start}
+.impo input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--brand)}.impo b{display:block;font-size:15px}.impo small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.impo.on{border-color:var(--brand);background:var(--brand-soft)}
+.r2cg{display:flex;gap:6px;flex-wrap:wrap}
+.r2fi{flex-wrap:wrap}.r2fi>span:first-child{min-width:0;flex:1 1 160px}
 
 /* 17/10: vistoria de lançamento */
 .vtbody{display:flex;flex-direction:column;gap:10px;margin-top:10px}
@@ -1302,6 +1309,15 @@ button.ca2{cursor:pointer}
 .vtsem{display:flex;flex-direction:column;gap:10px}
 .vtvenc{color:var(--bad);font-weight:700}
 .vtpz{margin-bottom:12px}
+/* 17/10 tarde: confirmação da reserva e do espinamento */
+.vtconf{border:1.5px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:8px;font-size:15px}
+.vtconf.sim{border-color:var(--brand)}.vtconf.nao{border-color:var(--bad);background:var(--bad-soft)}
+.vtconf .req{color:var(--bad)}
+.vtsn{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vtsn button{font:700 16px Barlow,sans-serif;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:11px;cursor:pointer}
+.vtsn button[aria-pressed="true"]:first-child{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.vtsn button[aria-pressed="true"]:last-child{background:var(--bad);border-color:var(--bad);color:#fff}
+.vtok[aria-disabled="true"]{opacity:.45}
 </style>
 </head>
 <body>
@@ -5994,7 +6010,8 @@ function r2PotHtml(c,R,k,lab,req){const s=r2Pot(R[k]),x=r2Num(R[k]),pos=x===null
 function r2Chamado(c){const sr=r2Ex(c,'Serial'),ip=r2Ex(c,'IP da CPE'),fo=r2Ex(c,'Fail-over'),bd=r2Banda(c),L=[['Motivo do NOC',c.motivo],['Equipamento',[c.equipamento,sr&&'serial '+sr].filter(Boolean).join(' · ')],['IP da CPE',ip],['Entrega',[c.entrega,bd&&r2BandaTxt(bd)].filter(Boolean).join(' · ')],['Fail-over',fo],['Porta',c.porta]].filter(x=>x[1]);
   return `<details class="r2ch"><summary><b>Dados do chamado</b><span>${esc(r2CatN(c.categoria)||'')}${c.equipamento?' · '+esc(c.equipamento):''}</span></summary><dl>${L.map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join('')}</dl></details>`}
 function r2Fotos(c,R){const fr=r2FotosReq(R),cam=(tipo,lab)=>`<label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} ${lab}<input type="file" accept="image/*" capture="environment" data-ch="gRfoFoto" data-id="${c.id}" data-cam="1" data-tipo="${tipo}" hidden></label>`;
-  const req=fr.length?`<div class="r2fr">${fr.map(([k,p])=>{const ok=r2TemFoto(R,k);return `<div class="r2fi ${ok?'ok':''}"><span><b>${R2_FT[k]}</b><small>${ok?'✓ foto tirada':'Obrigatória · '+p}</small></span>${ok?'':cam(k,'Tirar')}</div>`}).join('')}</div>`:'';
+  const gal=tipo=>`<label class="btn sm chatfoto">${_sv('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',16)} Galeria<input type="file" accept="image/*" data-ch="gRfoFoto" data-id="${c.id}" data-tipo="${tipo}" hidden></label>`;
+  const req=fr.length?`<div class="r2fr">${fr.map(([k,p])=>{const ok=r2TemFoto(R,k);return `<div class="r2fi ${ok?'ok':''}"><span><b>${R2_FT[k]}</b><small>${ok?'✓ foto tirada':'Obrigatória · '+p}</small></span>${ok?'':`<span class="r2cg">${cam(k,'Câmera')}${gal(k)}</span>`}</div>`}).join('')}</div>`:'';
   return req+gRfoFotosHtml(c,R).replace('opcional, quantas precisar','outras fotos são opcionais')}
 function r2Corpo(c,R,k){const t=r2Tipo(R.cat),bd=r2Banda(c);
   if(k===1)return r2Sel(c,R,'desfecho',['Resolvido','Improdutivo','Encaminhado'],'Escolha o desfecho…');
@@ -6153,6 +6170,9 @@ const VT_IT={
   ceo:[['pos','No vão, a 2 m ou mais do poste','Nunca fixada no poste; sem cruzeta ou raquete.'],['fix','Fixação na cordoalha',''],['ved','Fechada e vedada',''],['plaq','Plaqueta de identificação',''],['dano','Cabos sem danos na entrada e saída','']],
   cli:[['ent','Entrada do drop no cliente','Fixação, pingadeira e acabamento.'],['plaq','Plaqueta de identificação',''],['dano','Cabo sem danos ou dobras','']]};
 VT_IT.cto=VT_IT.ceo;
+/* 17/10 tarde: reserva nova e lance espinado pedem confirmação explícita (Sim / Não). 'inst' entra no fim da lista para não mudar o estado já gravado */
+VT_IT.rt.push(['inst','Reserva técnica instalada','']);
+const VT_CONF={rt:['inst','A reserva técnica foi instalada?','Reserva não instalada'],esp:['esp','O lance foi espinado?','Lance não espinado']};
 const VT_GRAV=[['critica','Crítica · risco ou norma da concessionária'],['corrigir','Corrigir · fora do padrão'],['obs','Observação · sem correção']];
 const VT_MOT=['Poste do projeto ocupado ou sem condição','Poste inexistente ou removido','Obstáculo (árvore, obra, rede de energia)','Pedido do cliente ou do condomínio','Travessia mais segura','Outro'];
 const VT_PRAZO={'Aprovado com ressalvas':15,'Reprovado':5};
@@ -6249,8 +6269,8 @@ const vtR10=p=>p.map(v=>Math.round(v*10)/10);
 function vtSer(R,comFoto){return{v:1,el:R.el.map(e=>{const o={id:e.id,s:(VT_IT[e.tipo]||[]).map(([k])=>VT_CD[e.it[k]]||'-').join('')};
     if(e.mi!=null)o.i=e.mi;else{o.t=e.tipo;o.xy=vtR10(e.xy)}if(e.ks!=null)o.ks=e.ks;if(e.fora)o.fora=1;if(e.alt)o.alt=R.alt.indexOf(e.alt);if(e.ref)o.ref=e.ref;if(e.ant)o.ant=e.ant;
     const nc={};Object.entries(e.nc||{}).forEach(([k,d])=>{if(e.it[k]==='nc'&&d){nc[k]={g:d.g||'',txt:d.txt||''};if(comFoto&&d.foto)nc[k].foto=d.foto}});if(Object.keys(nc).length)o.nc=nc;return o}),
-  alt:R.alt.map(a=>({pts:a.pts.map(vtR10),li:a.li,m1:a.m1,m2:a.m2,motivo:a.motivo||'',sit:a.sit||'',txt:a.txt||'',ant:a.ant||undefined})),res:R.res||'',just:R.just||'',mMed:R.mMed||'',revis:R.revis||undefined}}
-function vtDes(o){const M=VT.M,R={el:[],alt:[],res:o.res||'',just:o.just||'',mMed:o.mMed||'',revis:o.revis||null,ab:{2:true},sel:null,draw:null,add:false};
+  alt:R.alt.map(a=>({pts:a.pts.map(vtR10),li:a.li,m1:a.m1,m2:a.m2,motivo:a.motivo||'',sit:a.sit||'',txt:a.txt||'',ant:a.ant||undefined})),res:R.res||'',just:R.just||'',mMed:R.mMed||'',obs:R.obs||'',revis:R.revis||undefined}}
+function vtDes(o){const M=VT.M,R={el:[],alt:[],res:o.res||'',just:o.just||'',mMed:o.mMed||'',obs:o.obs||'',revis:o.revis||null,ab:{2:true},sel:null,draw:null,add:false};
   R.alt=(o.alt||[]).map(a=>Object.assign({g:'corrigir'},a,{k1:a.li*1e7+a.m1,k2:a.li*1e7+a.m2}));
   (o.el||[]).forEach(x=>{let e;if(x.i!=null&&M.el[x.i])e=vtEl(M.el[x.i],x.i);else if(x.xy){const pr=vtProj(M,x.xy[0],x.xy[1]);e={tipo:x.t||'poste',anc:'',xy:x.xy,ll:M.ll(x.xy),k:pr.li*1e7+pr.m,it:{},nc:{},ref:''}}else return;
     e.id=x.id;e.ref=x.ref||'';if(x.ks!=null)e.ks=x.ks;if(x.fora)e.fora=true;if(x.alt!=null&&R.alt[x.alt])e.alt=R.alt[x.alt];if(x.ant)e.ant=x.ant;
@@ -6262,7 +6282,7 @@ function vtNovoR(a){const M=VT.M,ant=vtAnterior(a);
   if(ant&&ant.vistoria.res!=='Aprovado'){const R=vtDes(ant.vistoria.estado);let n=0;
     R.el.forEach(e=>{Object.keys(e.it).forEach(k=>{if(e.it[k]==='nc'){const d=e.nc[k]||{};e.ant=Object.assign({},e.ant||{},{[k]:{g:d.g||'',txt:d.txt||''}});delete e.it[k];delete e.nc[k];n++}})});
     R.alt.forEach(a=>{if(a.sit==='corrigir'){a.ant=true;a.sit='';n++}});
-    R.res='';R.just='';R.revis={de:ant.vistoria.em,data:ant.data,res:ant.vistoria.res,n};R.ab={2:true};vtRenum(R);R.sel=(R.el.find(e=>vtSt(e)==='sinc')||R.el[0]||{}).id;return R}
+    R.res='';R.just='';R.obs='';R.revis={de:ant.vistoria.em,data:ant.data,res:ant.vistoria.res,n};R.ab={2:true};vtRenum(R);R.sel=(R.el.find(e=>vtSt(e)==='sinc')||R.el[0]||{}).id;return R}
   const R={el:M.el.map((e,i)=>vtEl(e,i)),alt:[],res:'',just:'',mMed:'',revis:null,ab:{2:true},sel:null,draw:null,add:false};R.sel=(R.el[0]||{}).id;return R}
 function vtSalvar(){clearTimeout(VT._t);const id=ui.vt&&ui.vt.ag;if(!id||!VT.R)return;VT._t=setTimeout(()=>{IDB.put('vt:'+id,{kml:VT.kml,nome:VT.nome,R:vtSer(VT.R,true)}).catch(()=>{})},300)}
 
@@ -6344,24 +6364,26 @@ function vtCorpo(k,a){const R=VT.R,M=VT.M;
     return `${R.revis?`<div class="vtrev"><b>Revistoria</b> da vistoria de ${dBR(R.revis.data||hoje())} (${esc(R.revis.res)}): confira só ${R.revis.n>1?`os ${R.revis.n} itens pendentes`:'o item pendente'}, marcados em cinza no mapa.</div>`:''}${dr}
      <div class="vtmapw"><div id="vtSlot"></div><div class="vtmt"><button type="button" data-vt="tudo">Ver tudo</button><button type="button" data-vt="ir">Ir para ${e.id}</button><button type="button" data-vt="gps">Perto de mim</button><button type="button" data-vt="fundo" data-f="${fp}">${VT_FUNDOS[fp].n}</button></div></div>
      <div class="vtleg"><span><i class="vtl sok"></i>Conforme</span><span><i class="vtl snc"></i>Pendência (${nc})</span><span><i class="vtl sinc"></i>Falta (${inc})</span><span class="vtcnt">${Object.entries(tp).map(([t,n])=>`${n} ${VT_TIPON[t]}`).join(' · ')}</span></div>
-     ${R.draw||R.add?'':`<div class="vtmact"><button type="button" class="link" data-vt="addp">+ Incluir poste que falta</button><button type="button" class="link" data-vt="dr">Desenhar alteração de trajeto</button></div>`}
+     ${R.draw||R.add?'':`<div class="vtmact"><button type="button" class="link" data-vt="dr">Desenhar alteração de trajeto</button></div>`}
      ${R.alt.length?`<div class="vtaltb">${R.alt.map((a,j)=>{const[v1,v2]=vtViz(a),pm=Math.round(a.m2-a.m1),em=vtLen(a.pts),df=em-pm;return `<div class="vtalti ${a.sit==='corrigir'?'nok':''}"><div class="vtaltt"><span><b>Alteração ${j+1}</b> · entre ${v1} e ${v2}<small>Projeto ${pm} m → executado ${em} m (${df>=0?'+':''}${df} m)${a.ant?' · pendente na vistoria anterior':''}</small></span><button type="button" class="vtaltx" data-vt="altrm" data-j="${j}" aria-label="Excluir alteração ${j+1}">✕</button></div>
        <select class="inp" data-vtc="alt" data-j="${j}" data-c="motivo"><option value="">Motivo da alteração…</option>${VT_MOT.map(m=>`<option ${a.motivo===m?'selected':''}>${m}</option>`).join('')}</select>
        <select class="inp" data-vtc="alt" data-j="${j}" data-c="sit"><option value="">A alteração está correta?</option><option value="aceita" ${a.sit==='aceita'?'selected':''}>Aceita · o trajeto executado passa a valer</option><option value="corrigir" ${a.sit==='corrigir'?'selected':''}>Não aceita · o prestador refaz pelo projeto</option></select>
        ${a.sit==='corrigir'?`<input class="inp" data-vti="altt" data-j="${j}" placeholder="O que o prestador deve fazer" value="${esc(a.txt||'')}">`:''}</div>`}).join('')}</div>`:''}
      <div class="vtnav"><button type="button" data-vt="sel" data-id="${(R.el[i-1]||{}).id||''}" ${i?'':'disabled'} aria-label="Ponto anterior">‹</button><b>${e.id}</b><span>${vtNomeE(e)}${e.tipo==='esp'&&e.m?` · ${e.m} m`:''}</span><button type="button" data-vt="sel" data-id="${(R.el[i+1]||{}).id||''}" ${i<R.el.length-1?'':'disabled'} aria-label="Próximo ponto">›</button></div>
      ${e.skip?'<p class="vtskip">Este poste do projeto ficou fora do trajeto executado. Não entra na vistoria.</p>':`
-     <button type="button" class="vtok" data-vt="okall" data-id="${e.id}">${vtSt(e)==='sok'?'✓ Conforme · ir para o próximo':'Tudo conforme e próximo'}</button>
+     ${vtConfHtml(e)}
+     <button type="button" class="vtok" data-vt="okall" data-id="${e.id}" ${VT_CONF[e.tipo]&&!e.it[VT_CONF[e.tipo][0]]?'aria-disabled="true"':''}>${VT_CONF[e.tipo]&&e.it[VT_CONF[e.tipo][0]]==='nc'?'Registrar e ir para o próximo':vtSt(e)==='sok'?'✓ Conforme · ir para o próximo':'Tudo conforme e próximo'}</button>
      <small class="muted" style="text-align:center">${prox?`Próximo sem vistoria: ${prox.id}`:'Todos os pontos já foram vistoriados.'}</small>
      <details class="vtitd" ${vtItens(e).some(([k])=>e.it[k]==='nc')||(e.ant&&vtItens(e).some(([k])=>e.ant[k]&&!e.it[k]))||R.openIt?'open':''}><summary>Ver os itens ou registrar problema</summary>
      ${e.tipo==='poste'?`<label class="f" style="margin:0"><span>Referência do ${e.id}</span><input class="inp" data-vti="ref" data-p="${e.id}" value="${esc(e.ref)}" placeholder="Número da plaqueta do poste ou endereço"></label>`:''}
-     <div class="vtchk">${vtItens(e).map(([k,n,h])=>{const hint=k==='anc'?(e.anc?`<b>${VT_ANC[e.anc][0]}</b>: ${VT_ANC[e.anc][1]}`:'<b>Poste fora do KMZ</b>: descreva a ancoragem encontrada.'):esc(h),an=e.ant&&e.ant[k],d=e.nc[k]||{};
+     <div class="vtchk">${vtItens(e).filter(([k])=>!(VT_CONF[e.tipo]&&VT_CONF[e.tipo][0]===k)).map(([k,n,h])=>{const hint=k==='anc'?(e.anc?`<b>${VT_ANC[e.anc][0]}</b>: ${VT_ANC[e.anc][1]}`:'<b>Poste fora do KMZ</b>: descreva a ancoragem encontrada.'):esc(h),an=e.ant&&e.ant[k],d=e.nc[k]||{};
        return `<div class="vtci ${e.it[k]==='nc'?'ncb':''} ${an&&!e.it[k]?'antb':''}"><span>${n}${hint?`<small>${hint}</small>`:''}${an?`<small class="vtant">Pendência anterior: ${esc(an.txt||'sem descrição')}</small>`:''}</span>${vtSeg(e.id,k,e.it[k])}${e.it[k]==='nc'?`<div class="vtncd"><select class="inp" data-vtc="g" data-p="${e.id}" data-k="${k}"><option value="">Gravidade…</option>${VT_GRAV.map(([v,l])=>`<option value="${v}" ${d.g===v?'selected':''}>${l}</option>`).join('')}</select><input class="inp" data-vti="nt" data-p="${e.id}" data-k="${k}" placeholder="O que está errado" value="${esc(d.txt||'')}">${vtFotoBox(e,k)}</div>`:''}</div>`}).join('')}</div></details>`}`}
   if(k===3){const L=vtPend();return L.length?`<div class="vtpd">${L.map(x=>`<button type="button" class="vtpdi ${x.d.g||''}" data-vt="sel" data-id="${x.k==='alt'?'':x.e.id}"><b>${x.e.id} · ${x.n}</b><span>${esc(x.d.txt||'sem descrição')}</span><small>${(VT_GRAV.find(g=>g[0]===x.d.g)||['','sem gravidade'])[1]}</small></button>`).join('')}</div>`:'<p class="muted" style="margin:0">Nenhuma não conformidade.</p>'}
   if(k===4){const s=vtSug(),r=vtResul(),dz=VT_PRAZO[r];return `<div class="vtres ${vtCls(r)}"><small>Resultado${R.res&&R.res!==s?' (alterado)':' sugerido'}</small><b>${r}</b><span>${vtConf()}% dos itens conformes · ${vtPend().length} pendência(s)</span></div>
     <label class="f" style="margin:0"><span>Resultado</span><select class="inp" data-vtc="res"><option value="">Usar o sugerido (${s})</option>${['Aprovado','Aprovado com ressalvas','Reprovado'].map(v=>`<option ${R.res===v?'selected':''}>${v}</option>`).join('')}</select></label>
     ${R.res&&R.res!==s?`<label class="f" style="margin:0"><span>Justificativa *</span><textarea class="inp" rows="2" data-vti="just" placeholder="Por que mudou o resultado">${esc(R.just)}</textarea></label>`:''}
-    ${dz?`<div class="vtprz"><b>Prazo para o prestador corrigir: ${dz} dias</b><span>até ${dBR(addD(hoje(),dz))}.</span></div>`:''}`}
+    ${dz?`<div class="vtprz"><b>Prazo para o prestador corrigir: ${dz} dias</b><span>até ${dBR(addD(hoje(),dz))}.</span></div>`:''}
+    <label class="f" style="margin:0"><span>Observações</span><textarea class="inp" rows="3" data-vti="obs" placeholder="Opcional. Sai no PDF da vistoria.">${esc(R.obs||'')}</textarea></label>`}
   return ''}
 function vtView(a){const V=ui.vt||{},back=`<button class="back" data-act="vtFechar">‹ Voltar para a atividade</button>`,cli=esc(cliN(a.etiqueta)||a.etiqueta);
   const top=(sub,body)=>`${back}<article class="tcard vtw"><div class="tchd"><div class="tcl"><span class="tccli">${cli}</span></div><span class="tcetq">${esc(a.etiqueta)}</span></div><div class="tcband" style="background:${corFase(a)}"><span class="tck">VISTORIA DE LANÇAMENTO</span><span class="tcf">${sub}</span></div>${body}</article>`;
@@ -6381,7 +6403,8 @@ function vtRe(abrirItens){if(abrirItens)VT.R.openIt=true;vtSalvar();render();VT.
 document.addEventListener('click',ev=>{const b=ev.target.closest('[data-vt]');if(!b||!ui.vt||!VT.R||b.closest('.leaflet-container'))return;const R=VT.R,d=b.dataset,v=d.vt;
   if(v==='ab'){R.ab[+d.k]=!R.ab[+d.k];render();return}
   if(v==='sel'){if(d.id){R.sel=d.id;R.ab[2]=true;render();const e=vtE(d.id);if(e&&VT.map)VT.map.panTo(e.ll)}return}
-  if(v==='okall'){const e=vtE(d.id);if(!e)return;vtItens(e).forEach(([k])=>{if(e.it[k]!=='na'&&e.it[k]!=='nc')e.it[k]='c'});const n=vtProx(e);if(n)R.sel=n.id;vtRe();if(n&&VT.map)VT.map.panTo(n.ll);return}
+  if(v==='okall'){const e=vtE(d.id);if(!e)return;const cf=VT_CONF[e.tipo];if(cf&&!e.skip&&!e.it[cf[0]]){toast('Responda primeiro: '+cf[1].toLowerCase(),'bad');return}vtItens(e).forEach(([k])=>{if(e.it[k]!=='na'&&e.it[k]!=='nc')e.it[k]='c'});const n=vtProx(e);if(n)R.sel=n.id;vtRe();if(n&&VT.map)VT.map.panTo(n.ll);return}
+  if(v==='conf'){const e=vtE(d.p),cf=VT_CONF[e&&e.tipo];if(!cf)return;const k=cf[0];if(d.v==='c'){e.it[k]='c';delete e.nc[k];vtItens(e).forEach(([x])=>{if(x!==k&&e.it[x]==='na'&&e._auto)delete e.it[x]});e._auto=false}else{e.it[k]='nc';e.nc[k]=Object.assign({g:'corrigir',txt:cf[2]},e.nc[k]||{});vtItens(e).forEach(([x])=>{if(x!==k&&!e.it[x]){e.it[x]='na';e._auto=true}})}vtRe();return}
   if(v==='it'){const e=vtE(d.p);if(!e)return;e.it[d.k]=d.v;if(d.v==='nc'&&!e.nc[d.k])e.nc[d.k]={};vtRe(true);return}
   if(v==='fdel'){const e=vtE(d.p);if(e&&e.nc[d.k])delete e.nc[d.k].foto;vtRe(true);return}
   if(v==='tudo'){vtTudo();return}
@@ -6407,7 +6430,7 @@ document.addEventListener('change',async ev=>{const t=ev.target,d=t.dataset;if(!
   if(d.vtc==='foto'){const f=t.files&&t.files[0],cam=t.hasAttribute('capture'),pid=d.p,k=d.k;t.value='';if(!f)return;toast('Preparando a foto…');
     try{const u=await reduzirFoto(f,{etq:(getAg(ui.vt.ag)||{}).etiqueta,cam});const e=vtE(pid);if(e){(e.nc[k]=e.nc[k]||{}).foto=u;vtRe(true)}}catch(e){toast('Não foi possível ler a foto: '+(e.message||e),'bad')}return}});
 document.addEventListener('input',ev=>{const t=ev.target,d=t.dataset;if(!d||!d.vti||!ui.vt||!VT.R)return;const R=VT.R;
-  if(d.vti==='mMed'||d.vti==='just')R[d.vti]=t.value;
+  if(d.vti==='mMed'||d.vti==='just'||d.vti==='obs')R[d.vti]=t.value;
   else if(d.vti==='ref'){const e=vtE(d.p);if(e)e.ref=t.value}
   else if(d.vti==='altt'){R.alt[+d.j].txt=t.value}
   else if(d.vti==='nt'){const e=vtE(d.p);if(e)(e.nc[d.k]=e.nc[d.k]||{}).txt=t.value}
@@ -6465,7 +6488,7 @@ function vtPdf(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),M=VT.M,
   doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Pontos vistoriados',m,y);
   doc.autoTable({startY:y+2,theme:'grid',head:[['Ponto','Tipo','Referência','Conformes','Situação']],headStyles:{fillColor:VERDE,fontSize:8},styles:{fontSize:7.5,cellPadding:1.3,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},
     columnStyles:{0:{cellWidth:14,fontStyle:'bold'},3:{cellWidth:20,halign:'center'},4:{cellWidth:28,halign:'center'}},
-    body:R.el.map(e=>{const its=vtItens(e),cc=its.filter(([k])=>e.it[k]==='c').length,q=its.filter(([k])=>e.it[k]==='nc').length;return[e.id,vtNomeE(e)+(e.tipo==='esp'&&e.m?` · ${e.m} m`:''),e.ref||'',e.skip?'—':`${cc} de ${its.length}`,e.skip?'Fora do trajeto':q?`${q} ${q>1?'pendências':'pendência'}`:'Conforme']}),
+    body:R.el.map(e=>{const its=vtItens(e),cc=its.filter(([k])=>e.it[k]==='c').length,q=its.filter(([k])=>e.it[k]==='nc').length,cf=VT_CONF[e.tipo],cfx=cf&&!e.skip?(e.it[cf[0]]==='c'?(e.tipo==='rt'?' · instalada':' · espinado'):e.it[cf[0]]==='nc'?(e.tipo==='rt'?' · NÃO instalada':' · NÃO espinado'):''):'';return[e.id,vtNomeE(e)+(e.tipo==='esp'&&e.m?` · ${e.m} m`:'')+cfx,e.ref||'',e.skip?'—':`${cc} de ${its.length}`,e.skip?'Fora do trajeto':q?`${q} ${q>1?'pendências':'pendência'}`:'Conforme']}),
     didParseCell:d=>{if(d.section==='body'&&d.column.index===4){d.cell.styles.fontStyle='bold';d.cell.styles.textColor=/pend/.test(d.cell.raw)?[179,38,30]:/Fora/.test(d.cell.raw)?[130,130,130]:[79,122,18]}}});
   /* pendências */
   doc.addPage();y=18;doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(40);doc.text(L.length?'Pendências para o prestador corrigir':'Pendências',m,y);
@@ -6482,6 +6505,7 @@ function vtPdf(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),M=VT.M,
         try{doc.addImage(x.d.foto,'JPEG',xx+(fw-w2)/2,y,w2,fh)}catch(e){doc.setFillColor(232,236,229);doc.rect(xx,y,fw,fh,'F')}
         doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`Foto ${k+1}: ${x.e.id} · ${x.n}`,xx,y+fh+4,{maxWidth:fw});rowH=Math.max(rowH,fh);
         col++;if(col===3){col=0;y+=rowH+11;rowH=0}});if(col)y+=rowH+11}}
+  if(String(R.obs||'').trim()){if(y>H-40){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Observações',m,y);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(60);const ob=doc.splitTextToSize(String(R.obs).trim(),W-2*m);doc.text(ob,m,y+5);y+=ob.length*4+8}
   /* assinaturas */
   if(y>H-50){doc.addPage();y=18}y+=24;doc.setDrawColor(60);doc.setLineWidth(.3);doc.line(m,y,90,y);doc.line(120,y,W-m,y);
   doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(40);doc.text(vist,52,y-3,{align:'center'});
@@ -6497,7 +6521,7 @@ Object.assign(ACT,{
       const r=vtResul(),dz=VT_PRAZO[r]||0,L=vtPend();
       a.rel=a.rel||{};a.rel.vist={path,em:Date.now(),res:r};
       a.vistoria={res:r,sug:vtSug(),just:R.res&&R.res!==vtSug()?R.just:'',conf:vtConf(),pontos:vtAtivos(),nPend:L.length,prazo:dz?addD(hoje(),dz):null,dias:dz||null,em:Date.now(),por:meNome(),revis:!!R.revis,mMed:+R.mMed||0,mPrev:VT.M.mPrev,kmz:VT.nome,
-        pend:L.map(x=>({id:x.e.id,item:x.n,g:x.d.g||'',txt:x.d.txt||''})),alt:R.alt.map(a2=>{const[v1,v2]=vtViz(a2);return{de:v1,ate:v2,proj:Math.round(a2.m2-a2.m1),exec:vtLen(a2.pts),motivo:a2.motivo,sit:a2.sit}}),estado:vtSer(R,false)};
+        obs:String(R.obs||'').trim(),pend:L.map(x=>({id:x.e.id,item:x.n,g:x.d.g||'',txt:x.d.txt||''})),alt:R.alt.map(a2=>{const[v1,v2]=vtViz(a2);return{de:v1,ate:v2,proj:Math.round(a2.m2-a2.m1),exec:vtLen(a2.pts),motivo:a2.motivo,sit:a2.sit}}),estado:vtSer(R,false)};
       a.medicoes=Object.assign({},a.medicoes||{},{'vist:metros':+R.mMed||0});save();IDB.del('vt:'+a.id).catch(()=>{});
       ui.vt=null;vtMapaFim();VT.R=null;VT.M=null;render();window.scrollTo(0,0);toast(`Vistoria enviada: ${r}${dz?`, prazo de ${dz} dias`:''}.`)}
     catch(e){toast('Não foi possível enviar: '+(e.message||e)+'. A vistoria continua salva neste aparelho; tente de novo.','bad')}}});
@@ -6513,6 +6537,11 @@ function vtPrazos(tipo){if(tipo&&tipo!=='vist')return '';const U={};S.ags.forEac
    <div class="tablewrap" style="border:0;border-top:1px solid var(--line);border-radius:0"><table><thead><tr><th>Cliente</th><th>Resultado</th><th>Pendências</th><th>Prazo</th><th></th></tr></thead><tbody>${L.map(a=>{const v=a.vistoria,d=Math.round((new Date(v.prazo+'T12:00:00')-new Date(T+'T12:00:00'))/864e5);
      return `<tr><td><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b><br><small class="muted">${esc(a.etiqueta)} · vistoria de ${dBR(a.data)}</small></td><td><span class="chip ${v.res==='Reprovado'?'bad':'warn'}">${esc(v.res)}</span></td><td>${v.nPend}</td><td>${dBR(v.prazo)}<br><small class="${d<0?'vtvenc':'muted'}">${d<0?`vencido há ${-d} ${-d>1?'dias':'dia'}`:d===0?'vence hoje':`faltam ${d} ${d>1?'dias':'dia'}`}</small></td><td class="r">${a.rel&&a.rel.vist?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.vist.path)}">Abrir PDF</button>`:''}</td></tr>`}).join('')}</tbody></table></div></section>`}
 
+/* 17/10 tarde: pergunta Sim / Não da reserva nova e do lance espinado */
+function vtConfHtml(e){const cf=VT_CONF[e.tipo];if(!cf||e.skip)return '';const k=cf[0],v=e.it[k],d=e.nc[k]||{};
+  return `<div class="vtconf ${v==='nc'?'nao':v==='c'?'sim':''}"><b>${cf[1]} <span class="req">*</span></b><div class="vtsn" role="group" aria-label="${esc(cf[1])}"><button type="button" data-vt="conf" data-p="${e.id}" data-v="c" aria-pressed="${v==='c'}">Sim</button><button type="button" data-vt="conf" data-p="${e.id}" data-v="nc" aria-pressed="${v==='nc'}">Não</button></div>
+   ${v==='nc'?`<div class="vtncd"><select class="inp" data-vtc="g" data-p="${e.id}" data-k="${k}"><option value="">Gravidade…</option>${VT_GRAV.map(([g,l])=>`<option value="${g}" ${d.g===g?'selected':''}>${l}</option>`).join('')}</select><input class="inp" data-vti="nt" data-p="${e.id}" data-k="${k}" placeholder="O que está errado" value="${esc(d.txt||'')}">${vtFotoBox(e,k)}</div>`:''}</div>`}
+
 /* ---------- 17/10: improdutiva e deslocamento de terceiros ----------
    Antes, "Não foi possível realizar" sem marcar "Fiz parte do serviço" deixava a atividade em nao_concluida, que nunca chega à LPU.
    Agora, terceiro (ou funcionário de empresa terceira) que saiu para o atendimento vai direto para a LPU de improdutiva e deslocamento
@@ -6521,9 +6550,21 @@ function vtPrazos(tipo){if(tipo&&tipo!=='vist')return '';const U={};S.ags.forEac
 const impTerc=a=>!!a&&!!a.tec;
 const impPode=a=>!!a&&a.status==='nao_concluida'&&!!(a.ts&&a.ts.desloc)&&impTerc(a)&&!S.lpus.some(l=>l.ag===a.id);
 function impLiberar(a,por){a.parcial=true;a.improd=true;a.status='lpu';a.improdLib={em:Date.now(),por:por||meNome()};save()}
-{const _n=ACT.nao;ACT.nao=el=>{_n(el);const a=getAg(el.dataset.id),o=$('mObs');if(!a||!o||!impTerc(a)||!(a.ts&&a.ts.desloc))return;
-  const lb=o.closest('label');if(lb)lb.insertAdjacentHTML('afterend',`<div class="result info impnota"><b>Improdutiva e deslocamento.</b> Como você saiu para este atendimento, a atividade vai para a LPU de improdutiva e deslocamento${ME&&ME.empresa?', preenchida pelo administrador da sua empresa':''}. Se fez parte do serviço, marque a opção abaixo.</div>`)}}
-{const _n=ACT.naoOk;ACT.naoOk=el=>{const a=getAg(el.dataset.id),parc=$('mParc')&&$('mParc').checked,imp=a&&impTerc(a)&&a.ts&&a.ts.desloc&&!parc;_n(el);
+/* 17/10 tarde: janela nova. Motivo em texto livre; em execução, escolha obrigatória entre "não executei nada" e "fiz parte do serviço";
+   em deslocamento ou no local, vai direto para a improdutiva (sem a opção "fiz parte"). Campos ocultos mantêm os ids que o registro já lê (mObs, mParc). */
+ACT.nao=el=>{const a=getAg(el.dataset.id);if(!a)return;const saiu=!!(a.ts&&a.ts.desloc),ex=a.status==='execucao',func=!!(ME&&ME.empresa);
+  const quem=func?'o administrador da sua empresa preenche':tecT(a.tec)==='CLT'?'você preenche, sem valores':'você preenche';
+  openModal(`<h3>Atividade não concluída</h3><p class="muted">${esc(a.etiqueta)}, ${fasesN(a)}</p>
+   <label class="f" style="margin-top:12px"><span>Motivo *</span><textarea id="mMot" class="inp" rows="3" placeholder="Ex.: cheguei no local e o cliente cancelou a instalação"></textarea></label><input type="hidden" id="mObs" value="">
+   ${ex?`<div class="impq" role="radiogroup" aria-labelledby="impQ"><span id="impQ">O que foi feito nesta visita? *</span>
+     <label class="impo"><input type="radio" name="impEsc" value="nada"><span><b>Não executei nada</b><small>Vai para a LPU de improdutiva e deslocamento.</small></span></label>
+     <label class="impo"><input type="radio" name="impEsc" value="parte"><span><b>Fiz parte do serviço</b><small>Envio o relatório do que foi feito e lanço na LPU só o executado.</small></span></label>
+     <input type="checkbox" id="mParc" hidden></div>`
+   :saiu?`<div class="result info impnota"><b>Improdutiva e deslocamento.</b> Como você saiu para este atendimento, a atividade vai para a LPU de improdutiva e deslocamento: ${quem}.</div>`
+   :`<div class="result warn impnota"><b>Você ainda não saiu para este atendimento.</b> A atividade fica como não concluída e não gera LPU.</div>`}
+   <p class="muted" style="font-size:13.5px">O encarregado recebe o aviso e faz o reagendamento.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="naoOk" data-id="${a.id}">Registrar não conclusão</button></div>`);
+  document.querySelectorAll('input[name="impEsc"]').forEach(r=>r.addEventListener('change',()=>{const c=$('mParc');if(c)c.checked=r.value==='parte'&&r.checked;document.querySelectorAll('.impo').forEach(l=>l.classList.toggle('on',l.querySelector('input').checked))}))};
+{const _n=ACT.naoOk;ACT.naoOk=el=>{const a0=getAg(el.dataset.id),mt=$('mMot');if(mt&&String(mt.value).trim().length<4){toast('Escreva o motivo da não conclusão.','bad');return}if(a0&&a0.status==='execucao'&&$('mParc')&&!document.querySelector('input[name="impEsc"]:checked')){toast('Responda o que foi feito nesta visita.','bad');return}if(mt)mt.value=mt.value.trim();const a=a0,parc=$('mParc')&&$('mParc').checked,imp=a&&impTerc(a)&&a.ts&&a.ts.desloc&&!parc;_n(el);
   if(imp&&a.status==='nao_concluida'&&a.motivo){impLiberar(a,meNome());render();toast(ME&&ME.empresa?'Registrado. O administrador da sua empresa vai preencher a LPU de improdutiva e deslocamento.':'Registrado. Agora preencha a LPU de improdutiva e deslocamento.')}}}
 ACT.impLpu=el=>{const a=getAg(el.dataset.id);if(!impPode(a))return;impLiberar(a);render();window.scrollTo(0,0);toast(ME&&ME.empresa&&ui.perfil==='func'?'Enviado para o administrador da sua empresa preencher a LPU.':'Atividade liberada para a LPU de improdutiva e deslocamento.')};
 ACT.impLpuAdm=el=>{const a=getAg(el.dataset.id);if(!impPode(a))return;impLiberar(a);ACT.lpuAbrir(el)};
