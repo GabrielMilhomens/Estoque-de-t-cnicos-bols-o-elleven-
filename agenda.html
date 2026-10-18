@@ -1370,6 +1370,98 @@ button.ca2{cursor:pointer}
 .vtsn button[aria-pressed="true"]:first-child{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
 .vtsn button[aria-pressed="true"]:last-child{background:var(--bad);border-color:var(--bad);color:#fff}
 .vtok[aria-disabled="true"]{opacity:.45}
+
+/* 18/10 menu da gestão */
+.nlvx{display:flex;flex-direction:column;gap:1px}
+.nrow{display:flex;align-items:center;border-radius:8px}
+nav.tabs .nrow .nit{flex:1;min-width:0;width:auto}
+nav.tabs .nit .nic{color:inherit}
+nav.tabs .nit[aria-current="true"] .nic{color:var(--brand-ink)}
+nav.tabs .nstar{width:32px;min-height:32px;flex:none;padding:0;justify-content:center;color:var(--muted);opacity:0}
+nav.tabs .nrow:hover .nstar,nav.tabs .nstar.on,nav.tabs .nstar:focus-visible,nav.tabs .nrow.on .nstar{opacity:1}
+nav.tabs .nstar.on{color:var(--warn)}
+@media(hover:none){nav.tabs .nstar{opacity:1}}
+nav.tabs button.nsec,.nsec{display:flex;align-items:center;gap:6px;min-height:34px;margin-top:10px;padding:0 10px;font:700 12px Barlow,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.nsec .nt{flex:1}.nsec .nbadge{text-transform:none;letter-spacing:0}
+.nsfix{cursor:default}
+nav.tabs button.nsrch{border:1px solid var(--line);background:var(--surface);color:var(--muted);min-height:40px;margin-bottom:2px}
+nav.tabs button.nsrch:hover{color:var(--ink)}
+.nkbd{font:600 11px Barlow,sans-serif;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--muted);background:var(--bg)}
+nav.tabs .ncatm,.ncatm{display:none}
+.ndiv{height:1px;background:var(--line);margin:8px 10px}
+.npwrap{display:none}
+#nbar,#navCat,#navAv{display:none}
+#nsheet,#npal{display:none}
+@media(min-width:901px){
+ body.navmini .side{width:76px;padding-left:10px;padding-right:10px}
+ body.navmini .shell{margin-left:76px}
+ body.navmini .brand{padding:2px 0 10px;align-items:center}
+ body.navmini .brand small{display:none}
+ body.navmini .logo{width:52px;background-size:auto 100%;background-position:left center}
+ body.navmini nav.tabs .nt,body.navmini nav.tabs .nkbd,body.navmini nav.tabs .nch,body.navmini nav.tabs .ncatf,body.navmini nav.tabs .catlbl{display:none}
+ body.navmini nav.tabs .ncatm{display:grid;place-items:center;width:52px;min-height:40px;margin:0 auto 4px;padding:0;border:1px solid var(--line);font:700 12px Barlow,sans-serif;color:var(--brand-ink)}
+ body.navmini nav.tabs .nit,body.navmini nav.tabs .nsrch{justify-content:center;padding:0;width:52px;min-height:44px;margin:0 auto;position:relative}
+ body.navmini nav.tabs .nrow{justify-content:center}
+ body.navmini nav.tabs .nit .nbadge{position:absolute;top:1px;right:0;min-width:18px;height:17px;padding:0 5px;font-size:11px}
+ body.navmini .who{flex-direction:column;padding:10px 0 0}
+ body.navmini .who .wn{display:none}
+ body.navmini .npwrap{display:block}
+}
+.npchips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.npchips::-webkit-scrollbar{display:none}
+.npchips.sub{padding-top:0}
+.nchip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;min-height:38px;padding:0 14px;font:500 14px Barlow,sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap}
+.nchip.on{background:var(--ink);border-color:var(--ink);color:var(--surface);font-weight:600}
+.npchips.sub .nchip{min-height:34px;font-size:13.5px}
+.npchips.sub .nchip.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-ink)}
+@media(max-width:900px){
+ body.gnav .mbar [data-act="menu"]{display:none}
+ body.gnav .mbar{padding-left:16px}
+ body.gnav .mbar strong{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ body.gnav .npwrap{display:block}
+ body.gnav #navCat:not([hidden]){display:flex;align-items:center;gap:5px;height:34px;padding:0 10px;border:1px solid var(--brand);background:var(--brand-soft);color:var(--brand-ink);border-radius:999px;font:700 12.5px Barlow,sans-serif;cursor:pointer;flex:none}
+ body.gnav #navAv:not([hidden]){display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:50%;background:var(--brand-ink);color:var(--surface);font:600 14px Barlow,sans-serif;cursor:pointer;flex:none}
+ body.gnav.nbar-on #nbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--surface);border-top:1px solid var(--line);padding:0 4px env(safe-area-inset-bottom,0px);min-height:68px}
+ body.gnav.nbar-on .shell{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+ body.gnav.nbar-on #toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+ .nbt{flex:1;min-width:0;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 0;font:500 12px Barlow,sans-serif;color:var(--muted);cursor:pointer;position:relative;min-height:64px}
+ .nbic{width:56px;height:30px;border-radius:15px;display:grid;place-items:center}
+ .nbl{max-width:76px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .nbt.on{color:var(--brand-ink);font-weight:700}
+ .nbt.on .nbic{background:var(--brand-soft)}
+ .nbdot{position:absolute;top:5px;left:50%;margin-left:8px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--warn);color:var(--surface);font:700 11px Barlow,sans-serif;display:grid;place-items:center;border:2px solid var(--surface)}
+ #nsheet.on{display:block;position:fixed;inset:0;z-index:19}
+}
+.nscrim{position:absolute;inset:0;border:0;background:rgba(10,14,11,.45);cursor:pointer;width:100%}
+.nshp{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:20px 20px 0 0;padding:8px 14px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;max-height:82vh;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+.nshp.alto{height:82vh}
+.ngrab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:2px auto 8px;flex:none}
+.nshh{display:flex;align-items:center;gap:8px;margin:0 2px 8px;flex:none}
+.nshh h3{flex:1;margin:0;font:700 22px 'Barlow Condensed',sans-serif}
+.nx{width:44px;height:44px;border:0;border-radius:50%;background:var(--bg);color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.nsrch2{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;min-height:46px;padding:0 12px;margin-bottom:8px;color:var(--muted);flex:none}
+.nsrch2 input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:500 16px Barlow,sans-serif;color:var(--ink);padding:0}
+.nshp .catsw{flex:none}
+.nsl{overflow-y:auto;min-height:0;flex:1;display:flex;flex-direction:column;gap:2px;-webkit-overflow-scrolling:touch}
+.nss{font:700 12px Barlow,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:12px 8px 4px}
+.nsrow{display:flex;align-items:center;border-radius:12px}
+.nsrow.on{background:var(--brand-soft)}
+.nsi{flex:1;min-width:0;display:flex;align-items:center;gap:12px;border:0;background:none;text-align:left;min-height:50px;padding:0 10px;font:500 16px Barlow,sans-serif;color:var(--ink);cursor:pointer}
+.nsi .nt{flex:1;min-width:0}
+.nsrow.on .nsi{color:var(--brand-ink);font-weight:700}
+.nsrow .nstar{width:44px;height:44px;border:0;background:none;border-radius:10px;color:var(--muted);display:grid;place-items:center;cursor:pointer;flex:none}
+.nsrow .nstar.on{color:var(--warn)}
+.nsfoot{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:10px;margin-top:8px;flex:none}
+#npal.on{display:block;position:fixed;inset:0;z-index:40}
+.npbox{position:absolute;left:50%;top:12vh;width:min(580px,calc(100% - 32px));transform:translateX(-50%);background:var(--surface);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:70vh;overflow:hidden}
+.npin{display:flex;align-items:center;gap:10px;padding:0 16px;min-height:58px;border-bottom:1px solid var(--line);color:var(--muted)}
+.npin input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:500 17px Barlow,sans-serif;color:var(--ink);padding:0}
+.npl{overflow-y:auto;padding:6px 8px 8px}
+.npr{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;text-align:left;min-height:46px;padding:0 10px;border-radius:10px;font:500 15px Barlow,sans-serif;color:var(--ink);cursor:pointer}
+.npr .nic{color:var(--muted)}
+.npr small{margin-left:auto;font-size:13px;color:var(--muted)}
+.npr:hover,.npr.on{background:var(--brand-soft);color:var(--brand-ink)}
+.npf{display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);padding:10px 16px;font-size:12.5px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1724,7 +1816,7 @@ function render(){
         if(k==='fin'&&fOpen){h+='<div class="nlv">';subsOk().forEach(([sk,sn])=>{h+=`<button class="nit" data-act="pSec" data-v="fin" data-s="${sk}" aria-current="${sub===sk}"><span class="nt">${sn}</span>${sk==='aprov'?bAp:''}</button>`});h+='</div>'}});h+='</div>'}});
     h+='</div>'});
   if(cats.length>1)h=`<div class="catsw" role="group" aria-label="Categoria"><button data-act="gCat" data-v="impl" aria-pressed="${ui.cat==='impl'}">Implantação</button><button data-act="gCat" data-v="gtd" aria-pressed="${ui.cat==='gtd'}">GTD Manutenção</button></div>`+h;else if(ui.cat==='gtd')h='<div class="catlbl">GTD Manutenção</div>'+h;
-  $('tabs').innerHTML=h;$('mTitle').textContent=ui.chat?'Mensagens':(tabLabel(ui.tab)||'Ferramenta de Gestão O&M');
+  $('tabs').innerHTML=(typeof navNovo==='function'&&navNovo({vis,GRP,badge,bAp,cats,TT,ORD}))||h;$('mTitle').textContent=ui.chat?'Mensagens':(tabLabel(ui.tab)||'Ferramenta de Gestão O&M');
   const mb=document.querySelector('.mbar .sino');if(mb)mb.hidden=['supply','visu'].includes(ui.perfil);
   $('app').innerHTML=pushBanner()+(ui.chat?viewChat():({gPainel:viewGPainel,gCham:viewGCham,gAgenda:viewGAgenda,gNovo:viewGNovo,gRel:viewGRel,gAprov:viewGAprov,painel:viewPainel,base:viewBase,kanban:viewKanban,prev:viewPrev,relat:viewRelat,painelDia:viewPainelDia,ausencias:viewAusencias,semAcesso:()=>'<div class="toolbar"><div><h2>Nenhuma tela liberada</h2><p class="muted">Seu acesso à agenda está ativo, mas a coordenação ainda não liberou nenhuma tela para o seu usuário.</p></div></div>',usuarios:viewUsuarios,eqTec:viewEqTec,estoque:viewEstoque,estAtual:viewEstAtual,estHist:()=>viewMov(false),meuEst:viewMeuEst,meuHist:()=>viewMov(true),sim:viewSim,agenda:viewAgenda,aprov:viewAprov,campo:viewCampo,minhas:viewMinhas,equipe:viewEquipe,eqVer:viewEqVer})[ui.tab]());gSinoAtualizar();
   if(ui.chat)return;
@@ -6875,6 +6967,158 @@ Object.assign(ACT,{pdF:el=>{ui.pdF=el.dataset.v||'';render()}});
       const i=abas.findIndex(a=>a[0]==='Filtros'),add=[['Demanda',Dm],['Atuadas sem entrega',Um]];if(i>=0)abas.splice(i,0,...add);else abas.push(...add)}catch(e){}
     return orig.call(this,arq,abas,msg)};
   try{return _x(el)}finally{xlsxBaixar=orig}}}
+
+/* ===== 18/10: menu da gestão (coordenação, supervisão, encarregado, NOC, Delivery, Supply, Visualização) =====
+   Computador: lista com seções que fecham, telas fixadas (estrela), busca "Ir para uma tela" (Ctrl K) e menu recolhível.
+   Celular: barra inferior com as áreas + gaveta com as telas; "Menu" com busca, fixados, todas as áreas e a conta.
+   Técnicos (CLT, terceiro, funcionário) continuam com o menu de antes. */
+const NAV_GEST=()=>!!ME&&!['clt','terc','func'].includes(ui.perfil);
+const navCel=()=>matchMedia('(max-width:900px)').matches;
+const _ni=d=>_sv(`<path d="${d}"/>`);
+const NAV_P={acomp:'M3 3v18h18M7 15l4-4 3 3 5-6',cal:'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',box:'M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8'};
+const ICT={painel:NAV_P.acomp,gPainel:NAV_P.acomp,painelDia:'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',agenda:NAV_P.cal,gAgenda:NAV_P.cal,
+  relat:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6',ausencias:'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM10 13l4 4M14 13l-4 4',
+  estoque:NAV_P.box,meuEst:NAV_P.box,estAtual:'M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4',estHist:'M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4',meuHist:'M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4',
+  base:'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',prev:'M3 17l6-6 4 4 8-8M15 7h6v6',sim:'M3 17l6-6 4 4 8-8M15 7h6v6',kanban:'M4 4h4v16H4zM10 4h4v10h-4zM16 4h4v13h-4z',
+  campo:'M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12zM12 6.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5z',eqVer:'M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h3a2 2 0 0 1 2 2v10M8 7h4M8 11h4M8 15h4M2 21h20',
+  usuarios:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z',eqTec:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',equipe:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8z',
+  gCham:'M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4zM14 6v12',gNovo:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 8v8M8 12h8',gRel:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3 2',
+  aprov:'M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',minhas:'M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'};
+const navIc=t=>`<span class="nic">${_ni(ICT[t]||'M4 6h16M4 12h16M4 18h16')}</span>`;
+const NAV_GC={Acompanhamento:'Painel','Operação':'Operação',Estoque:'Estoque',Projetos:'Projetos',Campo:'Campo','Administração':'Admin',Financeiro:'Financeiro'};
+const NAV_TC={gPainel:'Painel',painel:'Painel',painelDia:"Painel do dia",gCham:'Chamados',gAgenda:'Agenda',agenda:'Agenda',gNovo:'Criar',gRel:'Histórico',estAtual:'Estoque',estoque:'Estoque',estHist:'Movim.',relat:'Relatórios',ausencias:'Ausências'};
+const NAV_SVG={busca:_sv('<path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4"/>'),menu:_sv('<path d="M4 6h16M4 12h16M4 18h16"/>',22),x:_sv('<path d="M6 6l12 12M18 6L6 18"/>',18),troca:_sv('<path d="M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/>',14),
+  rec:_sv('<path d="M15 6l-6 6 6 6"/>',18),exp:_sv('<path d="M9 6l6 6-6 6"/>',18)};
+const navStar=on=>`<svg width="16" height="16" viewBox="0 0 24 24" fill="${on?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>`;
+const CATN={impl:'Implantação',gtd:'GTD Manutenção'};
+const navNk=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+/* preferências por usuário: no aparelho (localStorage) e, com o ajuste 33 rodado, os fixados também no Supabase (valem em qualquer aparelho) */
+const NAVS={uid:null,pins:[],fech:{},rec:[],mini:false,last:null};let NAVD=null;
+const navK=k=>'nav:'+k+':'+((ME&&ME.id)||'');
+const navLer=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(navK(k)));return v==null?d:v}catch(e){return d}};
+const navGrava=(k,v)=>{try{localStorage.setItem(navK(k),JSON.stringify(v))}catch(e){}};
+function navIni(){if(NAVS.uid===ME.id)return;NAVS.uid=ME.id;NAVS.pins=navLer('pins',[]);NAVS.fech=navLer('fech',{});NAVS.rec=navLer('rec',[]);NAVS.mini=!!navLer('mini',false);NAVS.last=null;navNuvem()}
+async function navNuvem(){try{const r=await sb.from('ag_nav_prefs').select('fixados').eq('user_id',ME.id).maybeSingle();
+  if(r&&!r.error&&r.data&&Array.isArray(r.data.fixados)&&JSON.stringify(r.data.fixados)!==JSON.stringify(NAVS.pins)){NAVS.pins=r.data.fixados;navGrava('pins',NAVS.pins);render()}}catch(e){}}
+async function navNuvemSalvar(){try{await sb.from('ag_nav_prefs').upsert({user_id:ME.id,fixados:NAVS.pins,atualizado_em:new Date().toISOString()})}catch(e){}}
+function navTodas(){const o=NAVD;return o?o.ORD.filter(t=>o.TT.includes(t)):[]}
+const navNum=t=>{const o=NAVD;const s=t==='gPainel'?String(gNAprov()||''):(t==='painel'?o.bAp:o.badge(t))||'';const m=String(s).match(/(\d+)/);return m?+m[1]:0};
+const navBd=n=>n?`<span class="nbadge">${n}</span>`:'';
+/* item da lista (computador) */
+function navItem(t,pin,simples){const o=NAVD,cur=t===ui.tab,lb=esc(tabLabel(t)),on=NAVS.pins.includes(t),mini=NAVS.mini;
+  const st=pin&&!mini?`<button class="nstar ${on?'on':''}" data-act="navPin" data-t="${t}" aria-label="${on?'Tirar dos fixados':'Fixar no topo'}: ${lb}" title="${on?'Tirar dos fixados':'Fixar no topo'}">${navStar(on)}</button>`:'';
+  const chev=x=>`<span class="nch">${x?ICN.up:ICN.dn}</span>`;let btn,resto='';
+  if(t==='gPainel'&&!simples&&!mini){const h=gNavPainel().replace('<span class="nt">Painel de KPIs</span>',navIc(t)+'<span class="nt">Painel de KPIs</span>'),i=h.indexOf('</button>')+9;btn=h.slice(0,i);resto=h.slice(i)}
+  else if(t==='painel'&&!simples&&!mini){const pOpen=ui.tab==='painel'&&!ui.pFech;
+    btn=`<button class="nit ${pOpen?'pai':''}" data-act="tab" data-t="painel" aria-current="${cur&&!pOpen}">${navIc(t)}<span class="nt">${lb}</span>${(pOpen?'':o.bAp)+chev(pOpen)}</button>`;
+    if(pOpen){const sec=ui.pSec||'geral',sub=ui.finSub||'budget';resto='<div class="nlv">';secsOk().forEach(([k,n])=>{const s=sec===k,fOpen=s&&k==='fin'&&!ui.fFech;
+      resto+=`<button class="nit ${fOpen?'pai':''}" data-act="pSec" data-v="${k}" aria-current="${s&&!fOpen}"><span class="nt">${n}</span>${k==='fin'?(fOpen?'':o.bAp)+chev(fOpen):''}</button>`;
+      if(k==='fin'&&fOpen){resto+='<div class="nlv">';subsOk().forEach(([sk,sn])=>{resto+=`<button class="nit" data-act="pSec" data-v="fin" data-s="${sk}" aria-current="${sub===sk}"><span class="nt">${sn}</span>${sk==='aprov'?o.bAp:''}</button>`});resto+='</div>'}});resto+='</div>'}}
+  else btn=`<button class="nit" data-act="navGo" data-t="${t}" aria-current="${cur}" title="${lb}">${navIc(t)}<span class="nt">${lb}</span>${navBd(navNum(t))}</button>`;
+  return `<div class="nrow ${cur?'on':''}">${btn}${st}</div>${resto}`}
+/* lista inteira (substitui o menu de grupos de antes) */
+function navNovo(o){if(!NAV_GEST())return null;navIni();NAVD=o;
+  const todas=navTodas(),compact=todas.length<=5,mini=NAVS.mini,grupos=[...new Set(o.vis.map(t=>o.GRP[t]))];let h='';
+  if(o.cats.length>1){const outra=ui.cat==='impl'?'gtd':'impl';
+    h+=`<div class="catsw ncatf" role="group" aria-label="Categoria"><button data-act="gCat" data-v="impl" aria-pressed="${ui.cat==='impl'}">Implantação</button><button data-act="gCat" data-v="gtd" aria-pressed="${ui.cat==='gtd'}">GTD Manutenção</button></div>`;
+    h+=`<button class="ncatm" data-act="gCat" data-v="${outra}" aria-label="Trocar para ${CATN[outra]}" title="Trocar para ${CATN[outra]}">${ui.cat==='impl'?'IMP':'GTD'}</button>`}
+  else if(ui.cat==='gtd'&&!mini)h+='<div class="catlbl">GTD Manutenção</div>';
+  if(!compact)h+=`<button class="nsrch" data-act="navPal" aria-label="Ir para uma tela (Ctrl K)" title="Ir para uma tela (Ctrl K)"><span class="nic">${NAV_SVG.busca}</span><span class="nt">Ir para uma tela</span><kbd class="nkbd">Ctrl K</kbd></button>`;
+  if(compact){o.vis.forEach(t=>{h+=navItem(t,false)});return h}
+  const pins=NAVS.pins.filter(t=>o.vis.includes(t));
+  if(pins.length){h+=mini?'':`<div class="nsec nsfix"><span class="nt">Fixados</span></div>`;h+='<div class="nlvx">'+pins.map(t=>navItem(t,true,true)).join('')+'</div>'}
+  grupos.forEach((g,k)=>{const its=o.vis.filter(t=>o.GRP[t]===g);
+    if(mini){if(k>0||pins.length)h+='<div class="ndiv"></div>';h+='<div class="nlvx">'+its.map(t=>navItem(t,false)).join('')+'</div>';return}
+    const f=!!NAVS.fech[g],soma=f?its.reduce((s,t)=>s+navNum(t),0):0;
+    h+=`<button class="nsec" data-act="navSec" data-g="${esc(g)}" aria-expanded="${!f}"><span class="nt">${esc(g)}</span>${navBd(soma)}<span class="nch">${f?ICN.dn:ICN.up}</span></button>`;
+    if(!f)h+='<div class="nlvx">'+its.map(t=>navItem(t,true)).join('')+'</div>'});
+  return h}
+/* celular: barra inferior */
+function navBarHtml(){const o=NAVD;if(!o)return '';const todas=navTodas();if(todas.length<=1)return '';const shOpen=!!ui.navSheet;
+  const bt=(act,data,ic,lb,on,n)=>`<button class="nbt ${on?'on':''}" data-act="${act}" ${data}><span class="nbic">${ic}</span><span class="nbl">${esc(lb)}</span>${n?`<span class="nbdot">${n}</span>`:''}</button>`;
+  if(todas.length<=5)return todas.map(t=>bt('navGo',`data-t="${t}"`,_ni(ICT[t]||''),NAV_TC[t]||tabLabel(t),t===ui.tab&&!shOpen,navNum(t))).join('');
+  const grupos=[...new Set(o.vis.map(t=>o.GRP[t]))],na=grupos.slice(0,4),gAt=o.GRP[ui.tab];
+  return na.map(g=>{const its=o.vis.filter(t=>o.GRP[t]===g),n=its.reduce((s,t)=>s+navNum(t),0);
+      return bt('navArea',`data-g="${esc(g)}"`,ICN[g]||'',NAV_GC[g]||g,shOpen?ui.navSheet===g:g===gAt,n)}).join('')
+    +bt('navMenu','',NAV_SVG.menu,'Menu',shOpen?ui.navSheet==='menu':!na.includes(gAt),0)}
+/* celular: gaveta (área ou Menu) */
+function navLinha(t,star){const on=NAVS.pins.includes(t),lb=esc(tabLabel(t)),cur=t===ui.tab;
+  return `<div class="nsrow ${cur?'on':''}"><button class="nsi" data-act="navGo" data-t="${t}">${navIc(t)}<span class="nt">${lb}</span>${navBd(navNum(t))}</button>${star?`<button class="nstar ${on?'on':''}" data-act="navPin" data-t="${t}" aria-label="${on?'Tirar dos fixados':'Fixar'}: ${lb}">${navStar(on)}</button>`:''}</div>`}
+function navMenuLista(q){const o=NAVD,todas=navTodas(),compact=todas.length<=5;q=navNk(q).trim();
+  if(q){const r=todas.filter(t=>navNk(tabLabel(t)+' '+(o.GRP[t]||'')+' '+CATN[gCatDe(t)]).includes(q));
+    return r.length?`<div class="nss">Resultados</div>`+r.map(t=>navLinha(t,!compact)).join(''):'<p class="muted" style="padding:10px">Nenhuma tela com esse nome no seu acesso.</p>'}
+  if(compact)return todas.map(t=>navLinha(t,false)).join('');
+  let h='';const pins=NAVS.pins.filter(t=>o.vis.includes(t));if(pins.length)h+=`<div class="nss">Fixados</div>`+pins.map(t=>navLinha(t,true)).join('');
+  [...new Set(o.vis.map(t=>o.GRP[t]))].forEach(g=>{h+=`<div class="nss">${esc(g)}</div>`+o.vis.filter(t=>o.GRP[t]===g).map(t=>navLinha(t,true)).join('')});return h}
+function navSheetRender(){let el=$('nsheet');if(!el){el=document.createElement('div');el.id='nsheet';document.body.appendChild(el)}
+  const s=NAV_GEST()&&navCel()?ui.navSheet:null;if(!s||!NAVD){el.innerHTML='';el.className='';return}
+  const o=NAVD;let tit,corpo,menu=s==='menu';
+  if(menu){tit='Menu';const compact=navTodas().length<=5;
+    corpo=(compact?'':`<label class="nsrch2">${NAV_SVG.busca}<input type="search" id="navQ" data-in="navQ" placeholder="Buscar tela" aria-label="Buscar tela" autocomplete="off"></label>`)
+      +(o.cats.length>1?`<div class="catsw" role="group" aria-label="Categoria"><button data-act="gCat" data-v="impl" aria-pressed="${ui.cat==='impl'}">Implantação</button><button data-act="gCat" data-v="gtd" aria-pressed="${ui.cat==='gtd'}">GTD Manutenção</button></div>`:'')
+      +`<div class="nsl" id="navQL">${navMenuLista('')}</div>`
+      +`<div class="nsfoot"><span class="av">${esc(((String(ME.nome||'?').trim().split(/\s+/)[0]||'?')[0]||'?').toUpperCase())}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span><button class="btn ghost sm" data-act="navConta">Minha conta</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button></div>`}
+  else{tit=esc(s);const its=o.vis.filter(t=>o.GRP[t]===s);corpo=`<div class="nsl">${its.map(t=>navLinha(t,false)).join('')}</div>`}
+  el.className='on';el.innerHTML=`<button class="nscrim" data-act="navFechar" aria-label="Fechar"></button><div class="nshp ${menu?'alto':''}" role="dialog" aria-modal="true" aria-label="${tit}"><div class="ngrab"></div><div class="nshh"><h3>${tit}</h3><button class="nx" data-act="navFechar" aria-label="Fechar">${NAV_SVG.x}</button></div>${corpo}</div>`}
+/* computador: Ir para uma tela (Ctrl K) */
+function navPalItens(){const o=NAVD,todas=navTodas(),q=navNk(ui.navPal.q).trim();
+  if(q)return [['Telas',todas.filter(t=>navNk(tabLabel(t)+' '+(o.GRP[t]||'')+' '+CATN[gCatDe(t)]).includes(q))]];
+  const rec=NAVS.rec.filter(t=>todas.includes(t)).slice(0,5),fx=NAVS.pins.filter(t=>todas.includes(t)&&!rec.includes(t));
+  return [['Recentes',rec],['Fixados',fx]].filter(x=>x[1].length)}
+function navPalLista(){const o=NAVD;let i=0,h='';const L=navPalItens(),tot=L.reduce((s,x)=>s+x[1].length,0);if(ui.navPal.i>=tot)ui.navPal.i=Math.max(0,tot-1);
+  L.forEach(([n,ts])=>{h+=`<div class="nss">${n}</div>`;ts.forEach(t=>{const sel=i===ui.navPal.i;h+=`<button class="npr ${sel?'on':''}" data-act="navGo" data-t="${t}" data-i="${i}">${navIc(t)}<span class="nt">${esc(tabLabel(t))}</span><small>${o.cats.length>1?CATN[gCatDe(t)]+' · ':''}${esc(o.GRP[t]||'')}</small></button>`;i++})});
+  return h||'<p class="muted" style="padding:12px">Nenhuma tela com esse nome no seu acesso.</p>'}
+function navPalRender(){let el=$('npal');if(!el){el=document.createElement('div');el.id='npal';document.body.appendChild(el)}
+  if(!ui.navPal||!NAV_GEST()){el.innerHTML='';el.className='';return}
+  if(el.className!=='on'){el.className='on';el.innerHTML=`<button class="nscrim" data-act="navPalFechar" aria-label="Fechar busca"></button><div class="npbox" role="dialog" aria-modal="true" aria-label="Ir para uma tela"><label class="npin">${NAV_SVG.busca}<input type="search" id="navPalQ" data-in="navPalQ" placeholder="Digite o nome da tela" aria-label="Digite o nome da tela" autocomplete="off"><kbd class="nkbd">Esc</kbd></label><div class="npl" id="navPalL"></div><div class="npf"><span>↑ ↓ para escolher</span><span>Enter para abrir</span>${NAVD&&NAVD.cats.length>1?'<span>Busca em Implantação e GTD</span>':''}</div></div>`;setTimeout(()=>{const i=$('navPalQ');if(i)i.focus()},0)}
+  $('navPalL').innerHTML=navPalLista()}
+/* chips das seções do Painel de KPIs (celular e menu recolhido) */
+function navChips(){if(ui.tab==='painel'){const sec=ui.pSec||'geral',sub=ui.finSub||'budget',S=secsOk();if(!S.length)return '';
+    let h=`<div class="npchips" role="tablist" aria-label="Seções do painel">${S.map(([k,n])=>`<button class="nchip ${sec===k?'on':''}" role="tab" aria-selected="${sec===k}" data-act="pSec" data-v="${k}"${k==='fin'?` data-s="${sub}"`:''}>${esc(n)}</button>`).join('')}</div>`;
+    if(sec==='fin'){const F=subsOk();if(F.length>1)h+=`<div class="npchips sub">${F.map(([k,n])=>`<button class="nchip ${sub===k?'on':''}" data-act="pSec" data-v="fin" data-s="${k}">${esc(n)}</button>`).join('')}</div>`}return h}
+  if(ui.tab==='gPainel'){const S=gSecsOk();if(!S.length)return '';const sec=S.some(x=>x[0]===ui.gSec)?ui.gSec:'geral',sub=ui.gFinSub||'budget';
+    let h=`<div class="npchips" role="tablist" aria-label="Seções do painel">${S.map(([k,n])=>`<button class="nchip ${sec===k?'on':''}" role="tab" aria-selected="${sec===k}" data-act="gpSec" data-v="${k}"${k==='fin'?` data-s="${sub}"`:''}>${esc(n)}</button>`).join('')}</div>`;
+    if(sec==='fin'){const F=gSubsOk();if(F.length>1)h+=`<div class="npchips sub">${F.map(([k,n])=>`<button class="nchip ${sub===k?'on':''}" data-act="gpSec" data-v="fin" data-s="${k}">${esc(n)}</button>`).join('')}</div>`}return h}
+  return ''}
+/* depois de cada render: barra, gaveta, chips, recentes e botões do topo */
+{const _r=render;render=function(){_r.apply(this,arguments);if(!ME)return;const g=NAV_GEST();
+  document.body.classList.toggle('gnav',g);document.body.classList.toggle('navmini',g&&NAVS.mini);
+  let bar=$('nbar');if(!bar){bar=document.createElement('nav');bar.id='nbar';bar.setAttribute('aria-label','Menu principal');document.body.appendChild(bar)}
+  const bh=g?navBarHtml():'';bar.innerHTML=bh;document.body.classList.toggle('nbar-on',!!bh);
+  const mb=document.querySelector('.mbar');
+  if(mb){let c=$('navCat');if(!c){c=document.createElement('button');c.id='navCat';c.className='ncch';mb.insertBefore(c,mb.querySelector('.sino'))}
+    const multi=g&&NAVD&&NAVD.cats.length>1,outra=ui.cat==='impl'?'gtd':'impl';c.hidden=!multi;
+    if(multi){c.dataset.act='gCat';c.dataset.v=outra;c.setAttribute('aria-label','Trocar para '+CATN[outra]);c.title='Trocar para '+CATN[outra];c.innerHTML=`${ui.cat==='impl'?'Implantação':'GTD'}${NAV_SVG.troca}`}
+    let a=$('navAv');if(!a){a=document.createElement('button');a.id='navAv';a.className='nav-av';a.dataset.act='navMenu';a.setAttribute('aria-label','Menu e minha conta');mb.appendChild(a)}
+    a.hidden=!g;a.textContent=((String(ME.nome||'?').trim().split(/\s+/)[0]||'?')[0]||'?').toUpperCase()}
+  const wb=$('whoBox');if(g&&wb&&!wb.querySelector('.ncol'))wb.insertAdjacentHTML('beforeend',`<button class="wic ncol" data-act="navMini" aria-label="${NAVS.mini?'Expandir menu':'Recolher menu'}" title="${NAVS.mini?'Expandir menu':'Recolher menu'}">${NAVS.mini?NAV_SVG.exp:NAV_SVG.rec}</button>`);
+  if(g&&!ui.chat){const ch=navChips(),ap=$('app');if(ch&&ap)ap.insertAdjacentHTML('afterbegin',`<div class="npwrap">${ch}</div>`)}
+  if(g&&ui.tab&&ui.tab!==NAVS.last&&ui.tab!=='semAcesso'){NAVS.last=ui.tab;NAVS.rec=[ui.tab].concat(NAVS.rec.filter(x=>x!==ui.tab)).slice(0,8);navGrava('rec',NAVS.rec)}
+  navSheetRender();if(ui.navPal&&$('navPalL'))$('navPalL').innerHTML=navPalLista()}}
+const navIr=t=>{ui.navSheet=null;ui.navPal=null;navPalRender();const c=gCatDe(t);if(c!==ui.cat)ui.cat=c;
+  if(t===ui.tab){if(t==='painel')ui.pFech=false;if(t==='gPainel')ui.gpFech=false;render();return}
+  ui.pFech=false;ui.gpFech=false;ui.tab=t;ui.campoSel=null;ui.chat=null;document.body.classList.remove('menu');render();window.scrollTo(0,0)};
+Object.assign(ACT,{
+  navGo:el=>navIr(el.dataset.t),
+  navSec:el=>{const g=el.dataset.g;NAVS.fech=Object.assign({},NAVS.fech,{[g]:!NAVS.fech[g]});navGrava('fech',NAVS.fech);render()},
+  navPin:el=>{const t=el.dataset.t,on=NAVS.pins.includes(t);NAVS.pins=on?NAVS.pins.filter(x=>x!==t):NAVS.pins.concat([t]);navGrava('pins',NAVS.pins);navNuvemSalvar();
+    const q=$('navQ')&&$('navQ').value;render();if(q&&$('navQ')){$('navQ').value=q;$('navQL').innerHTML=navMenuLista(q)}toast(on?'Tela tirada dos fixados.':'Tela fixada no topo do menu.')},
+  navMini:()=>{NAVS.mini=!NAVS.mini;navGrava('mini',NAVS.mini);render()},
+  navArea:el=>{const g=el.dataset.g,its=NAVD.vis.filter(t=>NAVD.GRP[t]===g);if(its.length===1){navIr(its[0]);return}ui.navSheet=ui.navSheet===g?null:g;render()},
+  navMenu:()=>{ui.navSheet=ui.navSheet==='menu'?null:'menu';render()},
+  navFechar:()=>{ui.navSheet=null;render()},
+  navConta:()=>{ui.navSheet=null;render();ACT.conta()},
+  navPal:()=>{ui.navPal={q:'',i:0};navPalRender()},
+  navPalFechar:()=>{ui.navPal=null;navPalRender()}});
+Object.assign(IN,{navQ:el=>{const l=$('navQL');if(l)l.innerHTML=navMenuLista(el.value)},
+  navPalQ:el=>{if(!ui.navPal)return;ui.navPal.q=el.value;ui.navPal.i=0;$('navPalL').innerHTML=navPalLista()}});
+document.addEventListener('keydown',e=>{if(!ME||!NAV_GEST()||!document.body.classList.contains('app-on'))return;
+  if((e.ctrlKey||e.metaKey)&&!e.altKey&&(e.key==='k'||e.key==='K')){if(navTodas().length<=5)return;e.preventDefault();if(ui.navPal)ACT.navPalFechar();else ACT.navPal();return}
+  if(e.key==='Escape'){if(ui.navPal){e.preventDefault();ACT.navPalFechar();return}if(ui.navSheet){ui.navSheet=null;render();return}}
+  if(ui.navPal&&(e.key==='ArrowDown'||e.key==='ArrowUp'||e.key==='Enter')){const B=[...document.querySelectorAll('#navPalL .npr')];if(!B.length)return;e.preventDefault();
+    if(e.key==='Enter'){const b=B[ui.navPal.i]||B[0];navIr(b.dataset.t);return}
+    ui.navPal.i=(ui.navPal.i+(e.key==='ArrowDown'?1:-1)+B.length)%B.length;$('navPalL').innerHTML=navPalLista();const s=document.querySelector('#navPalL .npr.on');if(s)s.scrollIntoView({block:'nearest'})}});
+window.addEventListener('resize',()=>{if(ME&&NAV_GEST()&&ui.navSheet&&!navCel()){ui.navSheet=null;navSheetRender()}});
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
