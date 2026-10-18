@@ -1214,6 +1214,26 @@ button.ca2{cursor:pointer}
 .impo.on{border-color:var(--brand);background:var(--brand-soft)}
 .r2cg{display:flex;gap:6px;flex-wrap:wrap}
 .r2fi{flex-wrap:wrap}.r2fi>span:first-child{min-width:0;flex:1 1 160px}
+/* 18/10: patrimônio */
+.pttag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:5px;padding:1px 6px;vertical-align:1px}
+.pttag.pat{background:var(--info-soft);color:var(--info)}.pttag.ins{background:var(--brand-soft);color:var(--brand-ink)}
+.ptser{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.ptser span{font:500 12px ui-monospace,Menlo,Consolas,monospace;background:var(--info-soft);color:var(--info);border-radius:5px;padding:1px 6px;overflow-wrap:anywhere}
+.ptser em{font-size:12px;color:var(--muted);font-style:normal;align-self:center}
+.pttab{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden;max-width:520px}
+.pttab button{all:unset;cursor:pointer;text-align:center;padding:11px 6px;font-weight:700;font-size:15px;background:var(--surface);color:var(--muted)}
+.pttab button+button{border-left:1px solid var(--line)}
+.pttab button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.pttab button.p[aria-pressed="true"]{background:var(--info);color:#fff}
+.pttab button.i[aria-pressed="true"]{background:var(--brand);color:var(--on-brand)}
+.ptrow{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
+.ptsem{display:grid;gap:8px;border:1.5px dashed var(--warn);border-radius:10px;padding:10px 12px;margin:10px 0}
+.ptsem small{color:var(--muted)}
+.pthist{display:grid;gap:8px}
+.ptmc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:4px}
+.ptmt{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.ptmt b{font-size:14.5px}.ptmt small{display:block;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.ptmm{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;font-size:12.5px;color:var(--muted)}
+.ptmd{font-size:13px}
 
 /* 17/10: vistoria de lançamento */
 .vtbody{display:flex;flex-direction:column;gap:10px;margin-top:10px}
@@ -2078,8 +2098,8 @@ function viewEstAtual(){
   ${!pode('a_elleven')?'':card('elleven','Movimentações do Elleven','Extrato de entradas e saídas. Só entra o que for posterior à data-base de cada técnico; o que já foi importado é ignorado.','.csv',`<label class="f inline" style="margin:10px 0"><span>Ignorar movimentações antes de (opcional)</span><input type="date" class="inp" data-in="estIni" value="${esc(ui.estIni||'')}"></label>`)}
   ${pode('a_base')?card('base','Saldo base do Elleven','Retrato do saldo de cada técnico no dia do inventário. Define o ponto de partida das movimentações de cada técnico que estiver no arquivo.','.csv',`<label class="f inline" style="margin:10px 0"><span>Data e hora deste retrato *</span><input type="datetime-local" class="inp" data-in="estBaseDt" value="${esc(ui.estBaseDt||'')}"></label>`)+`
   <section class="panel"><div class="secth"><div><h3>Data-base por técnico</h3><span class="muted">Ajuste a data-base de um técnico sem subir arquivo.</span></div></div>
-   <div class="tools"><select class="inp" data-ch="estBaseTec"><option value="">Selecione um técnico…</option>${(EST.tecs||[]).map(([c,n])=>`<option value="${esc(c)}" ${c===sel?'selected':''}>${esc(n)}</option>`).join('')}</select><input type="datetime-local" class="inp" id="estBaseTecDt" value="${cur}"><button class="btn" data-act="estBaseSalvar" ${sel?'':'disabled'}>Salvar data-base</button></div>
-   <details style="margin-top:10px"><summary class="muted">${(EST.base||[]).length} técnico(s) com data-base definida</summary><div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Técnico</th><th>Data-base</th></tr></thead><tbody>${(EST.base||[]).map(r=>`<tr><td>${esc(r.nome_referencia||r.cnpj)}</td><td>${fmtDH(r.data_base)}</td></tr>`).join('')}</tbody></table></div></details></section>`:''}`}
+   <div class="tools"><select class="inp" data-ch="estBaseTec"><option value="">Selecione um técnico…</option>${(EST.tecs||[]).map(([c,n])=>`<option value="${esc(c)}" ${c===sel?'selected':''}>${esc(nmTec(c,n))}</option>`).join('')}</select><input type="datetime-local" class="inp" id="estBaseTecDt" value="${cur}"><button class="btn" data-act="estBaseSalvar" ${sel?'':'disabled'}>Salvar data-base</button></div>
+   <details style="margin-top:10px"><summary class="muted">${(EST.base||[]).length} técnico(s) com data-base definida</summary><div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Técnico</th><th>Data-base</th></tr></thead><tbody>${(EST.base||[]).map(r=>`<tr><td>${esc(nmTec(r.cnpj,r.nome_referencia))}</td><td>${fmtDH(r.data_base)}</td></tr>`).join('')}</tbody></table></div></details></section>`:''}`}
 function viewMov(meu){const de=ui.mDe||addD(hoje(),-30),ate=ui.mAte||hoje(),chave=(meu?'meu:':'all:')+de+':'+ate,doc=meuDoc();
   if(meu&&!doc)return `<div class="toolbar"><div><h2>Meu histórico</h2></div></div><p class="muted pad">Seu cadastro não tem CPF/CNPJ. Peça à coordenação para completar o cadastro.</p>`;
   if(!EST.mov[chave])estCarregar('mov'+chave,async()=>{const bm=await estBaseMap(),di=new Date(de+'T00:00:00').toISOString(),df=new Date(ate+'T23:59:59').toISOString();
@@ -6582,6 +6602,169 @@ ACT.impLpuAdm=el=>{const a=getAg(el.dataset.id);if(!impPode(a))return;impLiberar
 /* janela da atividade (gestão) */
 {const _c=corrBloco;corrBloco=function(a){const h=_c.apply(this,arguments);if(!impPode(a)||!['coord','sup','enc'].includes(ui.perfil)&&!pode('a_reagendar'))return h;
   return h+`<div class="result warn" style="margin-top:10px"><b>Sem LPU de improdutiva.</b> O técnico saiu para o atendimento${a.ts.chegada?' e chegou ao local':''}, mas a atividade não foi para a LPU.<div class="tools" style="margin-top:8px"><button class="btn sm" data-act="impLpu" data-id="${a.id}">Liberar LPU de improdutiva e deslocamento</button></div></div>`}}
+
+/* ---------- 18/10: PATRIMÔNIO DOS TÉCNICOS (ajuste 32) ----------
+   Retrato "Estoque Materiais Ativos de Técnicos" (CNPJ + serial) e planilha "Movimentações Materiais Ativos" (sem CNPJ, só nome).
+   Entrada: Enviado em Romaneio (nome na descrição) e Desvinculado de contrato (Responsável).
+   Saída: Vinculado a um Contrato, Devolvido de Romaneio, Alterado Situação para Normal e Cancelamento da NF.
+   Nome do técnico comparado sem maiúscula, acento e espaço; exibido pelo cadastro da ferramenta (CPF/CNPJ). */
+const patKp=(v,l)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+const PAT={lista:null,meu:null,nomes:null,meta:null,bus:{},err:{}};
+const nkNome=s=>normK(String(s||'')).replace(/[^a-z0-9()]+/g,' ').replace(/\s+/g,' ').trim();
+const patTitulo=s=>String(s||'').toLowerCase().replace(/(^|[\s(\-\/.])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()).replace(/ (Da|De|Do|Das|Dos|E) /g,w=>w.toLowerCase());
+function nmTec(doc,nome){const d=docN(doc),t=d?TEC.find(x=>docN(x.doc)===d):null;if(t)return t.nome;const s=String(nome||'').trim();if(!s)return doc||'—';return s===s.toUpperCase()?patTitulo(s):s}
+function patCarregar(k,fn){if(PAT.bus[k]||PAT.err[k])return;PAT.bus[k]=true;fn().catch(e=>{PAT.err[k]=e.message||String(e)}).finally(()=>{PAT.bus[k]=false;render()})}
+async function patMeta(){const m=await todas(()=>sb.from('metadados_estoque').select('*'));const o={};m.forEach(r=>{o[r.tipo]=r.atualizado_em});PAT.meta=o;return o}
+const patErro=k=>PAT.err[k]?`<div class="result bad">${/estoque_patrimonio|movimentacoes_patrimonio|patrimonio_nomes|does not exist|schema cache/i.test(PAT.err[k])?'Rode o script agenda_ajuste_32_patrimonio.sql no Supabase para ativar o patrimônio.':'Erro ao carregar o patrimônio: '+esc(PAT.err[k])}</div>`:'';
+const patGrupos=L=>{const G={};L.forEach(r=>{const k=r.codigo_material||'—';(G[k]=G[k]||{cod:k,desc:r.descricao_material||k,L:[]}).L.push(r)});return Object.values(G).sort((a,b)=>a.desc.localeCompare(b.desc))};
+const patSer=(L,max)=>{const s=L.map(r=>r.serial);return `<span class="ptser">${s.slice(0,max||99).map(x=>`<span>${esc(x)}</span>`).join('')}${s.length>(max||99)?`<em>e mais ${s.length-max}</em>`:''}</span>`};
+
+/* ---------- leitura das planilhas ---------- */
+function patEvento(r){const tipo=String(r['Tipo Movimentação']||r['Tipo Movimentacao']||'').trim(),desc=String(r['Descrição Movimentacao']||r['Descrição Movimentação']||'').replace(/\s+/g,' ').trim(),resp=String(r['Responsavel']||'').trim(),serial=String(r['Serial']||r['Tag']||'').trim(),ds=String(r['Data Movimentacao']||'').trim();
+  let efeito='',nome='';
+  if(/^Enviado em Romaneio/i.test(tipo)){efeito='entrada';const m=desc.match(/Sob Responsabilidade de (.*?)\.?\s*$/i);nome=m?m[1].trim():''}
+  else if(/^Desvinculado de contrato/i.test(tipo)){efeito='entrada';nome=resp}
+  else if(/^Vinculado a um Contrato/i.test(tipo)||/^Devolvido de Romaneio/i.test(tipo)||/^Cancelamento da NF/i.test(tipo))efeito='saida';
+  else if(/^Alterado Situa/i.test(tipo)&&/para Normal/i.test(desc))efeito='saida';
+  const ct=desc.match(/Contrato:\s*Contrato\s*(\d+)\s*-\s*(.*?)\s*Etiqueta:\s*(\S+)/i),rom=desc.match(/Romaneio:?\s*(?:N[ºo°]\s*)?(\d+)/i);
+  return{serial,codigo_material:String(r['Cod. Produto']||'').trim(),descricao_material:String(r['Produto']||'').trim(),tipo,efeito,nome,responsavel:resp,
+    contrato:ct?ct[1]:(String(r['ID Contrato']||'').trim()||null),cliente:ct?(ct[2].split(/\s-\s/).pop()||'').trim():null,etiqueta:ct?ct[3]:null,romaneio:rom?rom[1]:null,
+    data_movimentacao:ds?new Date(ds.replace(' ','T')).toISOString():''}}
+function patRetratoRows(txt){return parseCSVSmart(txt).data.map(r=>({serial:String(r['Serial']||r['Tag']||'').trim(),cnpj:normCNPJ(r['CNPJ']),nome_tecnico:String(r['Tecnico']||'').trim(),codigo_material:String(r['Cod. Produto']||'').trim(),descricao_material:String(r['Produto']||'').trim(),tag:String(r['Tag']||'').trim()||null,documento:String(r['Documento']||'').trim()||null,emissor:String(r['Emissor']||'').trim()||null,valor:Number(String(r['Valor Compra']||'0').replace(',','.'))||0,data_transferencia:String(r['Data Transferencia']||'').trim().slice(0,10)||null})).filter(r=>r.serial&&r.cnpj)}
+const patDataNome=n=>{const m=String(n||'').match(/(\d{4}-\d{2}-\d{2})[_ T](\d{2})[_:](\d{2})(?:[_:](\d{2}))?/);return m?`${m[1]}T${m[2]}:${m[3]}`:''};
+async function patNomes(){const[a,b]=await Promise.all([todas(()=>sb.from('patrimonio_nomes').select('*')),todas(()=>sb.from('estoque_patrimonio').select('cnpj,nome_tecnico'))]);const M={};
+  TEC.forEach(t=>{if(t.doc)M[nkNome(t.nome)]=docN(t.doc)});b.forEach(r=>{if(r.cnpj&&r.nome_tecnico)M[nkNome(r.nome_tecnico)]=r.cnpj});a.forEach(r=>{M[r.nome_norm]=r.cnpj||''});PAT.nomes=M;return M}
+{const _l=lerArquivoEst;lerArquivoEst=function(k,f){if(k!=='patr'&&k!=='pmov')return _l(k,f);const rd=new FileReader();rd.onerror=()=>toast('Não foi possível ler o arquivo.','bad');
+  rd.onload=async ev=>{try{if(k==='patr'){const rows=patRetratoRows(ev.target.result);if(!rows.length)throw new Error('não achei as colunas Tecnico, CNPJ e Serial');EST.imp.patr={rows,nome:f.name};ui.patDt=patDataNome(f.name)||ui.patDt||''}
+    else{const ev2=parseCSVSmart(ev.target.result).data.map(patEvento).filter(e=>e.serial&&e.data_movimentacao);if(!ev2.length)throw new Error('não achei as colunas Serial, Tipo Movimentação e Data Movimentacao');
+      const meta=await patMeta(),ret=meta.patrimonio_retrato,corte=ret?new Date(ret).getTime():null,L=corte===null?[]:ev2.filter(e=>new Date(e.data_movimentacao).getTime()>corte&&e.efeito);
+      const M=await patNomes(),sem={};L.forEach(e=>{if(e.efeito==='entrada'){const n=nkNome(e.nome);if(n&&!(n in M))sem[n]=sem[n]||{nome:e.nome,q:0};if(sem[n])sem[n].q++}});
+      EST.imp.pmov={rows:L,total:ev2.length,nome:f.name,semRetrato:corte===null,sem,map:{}}}
+    EST.msg='';render()}catch(e){toast('Arquivo fora do formato esperado: '+(e.message||e),'bad')}};rd.readAsText(f,'UTF-8')}}
+
+/* ---------- gravação ---------- */
+async function patMetaSet(tipo,iso){const r=await sb.from('metadados_estoque').upsert({tipo,atualizado_em:iso},{onConflict:'tipo'});if(r.error)throw r.error}
+async function patPublicarRetrato(I){const iso=ui.patDt?new Date(ui.patDt).toISOString():null;if(!iso)throw new Error('informe a data e a hora do retrato');
+  const meta=await patMeta(),atual=await todas(()=>sb.from('estoque_patrimonio').select('serial,cnpj,nome_tecnico,codigo_material,descricao_material')),A={};atual.forEach(r=>{A[r.serial]=r});
+  const N={};I.rows.forEach(r=>{N[r.serial]=r});const now=new Date().toISOString(),mov=[];
+  if(meta.patrimonio_base){Object.values(N).forEach(n=>{const a=A[n.serial];if(a&&a.cnpj===n.cnpj)return;if(a&&a.cnpj)mov.push({chave:`ret|${n.serial}|${iso}|s`,serial:n.serial,codigo_material:n.codigo_material,descricao_material:n.descricao_material,tipo:'Ajuste pelo retrato',efeito:'saida',cnpj:a.cnpj,nome_tecnico:a.nome_tecnico,data_movimentacao:iso});
+      mov.push({chave:`ret|${n.serial}|${iso}|e`,serial:n.serial,codigo_material:n.codigo_material,descricao_material:n.descricao_material,tipo:'Ajuste pelo retrato',efeito:'entrada',cnpj:n.cnpj,nome_tecnico:n.nome_tecnico,data_movimentacao:iso})});
+    Object.values(A).forEach(a=>{if(!N[a.serial]&&a.cnpj)mov.push({chave:`ret|${a.serial}|${iso}|s`,serial:a.serial,codigo_material:a.codigo_material,descricao_material:a.descricao_material,tipo:'Ajuste pelo retrato',efeito:'saida',cnpj:a.cnpj,nome_tecnico:a.nome_tecnico,data_movimentacao:iso})})}
+  const sai=Object.keys(A).filter(s=>!N[s]);for(let i=0;i<sai.length;i+=300){const r=await sb.from('estoque_patrimonio').delete().in('serial',sai.slice(i,i+300));if(r.error)throw r.error}
+  const up=Object.values(N).map(r=>Object.assign({},r,{origem:'retrato',atualizado_em:now}));for(let i=0;i<up.length;i+=500){const r=await sb.from('estoque_patrimonio').upsert(up.slice(i,i+500),{onConflict:'serial'});if(r.error)throw r.error}
+  for(let i=0;i<mov.length;i+=500){const r=await sb.from('movimentacoes_patrimonio').upsert(mov.slice(i,i+500),{onConflict:'chave',ignoreDuplicates:true});if(r.error)throw r.error}
+  const nm={};I.rows.forEach(r=>{nm[nkNome(r.nome_tecnico)]={nome_norm:nkNome(r.nome_tecnico),nome:r.nome_tecnico,cnpj:r.cnpj,atualizado_em:now}});const nl=Object.values(nm);if(nl.length){const r=await sb.from('patrimonio_nomes').upsert(nl,{onConflict:'nome_norm'});if(r.error)throw r.error}
+  await patMetaSet('patrimonio_retrato',iso);await patMetaSet('patrimonio',now);if(!meta.patrimonio_base)await patMetaSet('patrimonio_base',iso);
+  const tecs=new Set(I.rows.map(r=>r.cnpj)).size;
+  return `Patrimônio atualizado: ${up.length} equipamento(s) com ${tecs} técnico(s) ou empresa(s)${sai.length?`, ${sai.length} saíram dos técnicos`:''}.${meta.patrimonio_base?` ${mov.length?mov.length+' movimentação(ões) de ajuste no histórico.':'Nenhuma diferença em relação às movimentações.'}`:' Este retrato é o início do histórico dos técnicos.'}`}
+async function patPublicarMov(I){if(I.semRetrato)throw new Error('suba primeiro o patrimônio atual dos técnicos');
+  const M=Object.assign({},PAT.nomes||await patNomes()),now=new Date().toISOString(),nmUp=[];
+  Object.entries(I.map||{}).forEach(([n,c])=>{if(c===undefined)return;M[n]=c==='__ign'?'':c;nmUp.push({nome_norm:n,nome:(I.sem[n]||{}).nome||n,cnpj:c==='__ign'?null:c,atualizado_em:now})});
+  if(nmUp.length){const r=await sb.from('patrimonio_nomes').upsert(nmUp,{onConflict:'nome_norm'});if(r.error)throw r.error}
+  const ev=I.rows.slice().sort((a,b)=>a.data_movimentacao.localeCompare(b.data_movimentacao)),cont={};ev.forEach(e=>{const b=[e.serial,e.data_movimentacao,e.tipo].join('|');cont[b]=(cont[b]||0)+1;e.chave=b+'#'+cont[b]});
+  const ja=new Set();for(let i=0;i<ev.length;i+=200){const r=await sb.from('movimentacoes_patrimonio').select('chave').in('chave',ev.slice(i,i+200).map(e=>e.chave));if(r.error)throw r.error;(r.data||[]).forEach(x=>ja.add(x.chave))}
+  const nov=ev.filter(e=>!ja.has(e.chave));if(!nov.length){await patMetaSet('patrimonio',now);return 'Nenhuma movimentação nova: esse arquivo já tinha sido importado.'}
+  const ser=[...new Set(nov.map(e=>e.serial))],S0={};for(let i=0;i<ser.length;i+=200){const r=await sb.from('estoque_patrimonio').select('*').in('serial',ser.slice(i,i+200));if(r.error)throw r.error;(r.data||[]).forEach(x=>{S0[x.serial]=x})}
+  const st=Object.assign({},S0),ult={},mov=[];let semDono=0;
+  nov.forEach(e=>{const base={chave:e.chave,serial:e.serial,codigo_material:e.codigo_material,descricao_material:e.descricao_material,tipo:e.tipo,efeito:e.efeito,contrato:e.contrato,cliente:e.cliente,etiqueta:e.etiqueta,romaneio:e.romaneio,responsavel:e.responsavel,data_movimentacao:e.data_movimentacao};
+    if(e.efeito==='entrada'){const c=M[nkNome(e.nome)]||'';if(!c)semDono++;const ant=st[e.serial];if(ant&&ant.cnpj&&ant.cnpj!==c)mov.push(Object.assign({},base,{chave:e.chave+'#s',efeito:'saida',tipo:'Transferido para '+e.nome,cnpj:ant.cnpj,nome_tecnico:ant.nome_tecnico}));
+      st[e.serial]={serial:e.serial,cnpj:c||null,nome_tecnico:e.nome,codigo_material:e.codigo_material||(ant&&ant.codigo_material),descricao_material:e.descricao_material||(ant&&ant.descricao_material),data_transferencia:e.data_movimentacao.slice(0,10),origem:'mov'};mov.push(Object.assign({},base,{cnpj:c||null,nome_tecnico:e.nome}))}
+    else{const ant=st[e.serial];if(ant){mov.push(Object.assign({},base,{cnpj:ant.cnpj||null,nome_tecnico:ant.nome_tecnico||e.responsavel}));ult[e.serial]=ant}
+      /* já tinha saído do técnico (ex.: Devolvido de Romaneio e, no mesmo instante, Vinculado ao contrato): fica no histórico dele só como informação */
+      else{const u=ult[e.serial];mov.push(Object.assign({},base,{efeito:'info',cnpj:u&&u.cnpj||null,nome_tecnico:u&&u.nome_tecnico||e.responsavel}))}st[e.serial]=null}});
+  for(let i=0;i<mov.length;i+=500){const r=await sb.from('movimentacoes_patrimonio').upsert(mov.slice(i,i+500),{onConflict:'chave',ignoreDuplicates:true});if(r.error)throw r.error}
+  const del=[],up=[];ser.forEach(s=>{const x=st[s];if(x&&x.cnpj)up.push(Object.assign({},S0[s]||{},x,{atualizado_em:now}));else if(S0[s])del.push(s)});
+  for(let i=0;i<del.length;i+=300){const r=await sb.from('estoque_patrimonio').delete().in('serial',del.slice(i,i+300));if(r.error)throw r.error}
+  for(let i=0;i<up.length;i+=500){const r=await sb.from('estoque_patrimonio').upsert(up.slice(i,i+500),{onConflict:'serial'});if(r.error)throw r.error}
+  await patMetaSet('patrimonio',now);
+  const ent=nov.filter(e=>e.efeito==='entrada').length;
+  return `Patrimônio atualizado: ${nov.length} movimentação(ões) nova(s) (${ent} entrada(s), ${nov.length-ent} saída(s)), ${up.length} equipamento(s) com técnico e ${del.length} que saíram.${semDono?` ${semDono} entrada(s) para nome que não é técnico da ferramenta.`:''}`}
+{const _p=ACT.estPub;ACT.estPub=async el=>{const k=el.dataset.k;if(k!=='patr'&&k!=='pmov')return _p(el);const I=EST.imp[k];if(!I||EST.bus.pub)return;
+  if(!pode(k==='patr'?'a_base':'a_elleven')&&semPerm())return;if(k==='patr'&&!ui.patDt){toast('Informe a data e a hora do retrato.','bad');return}
+  EST.bus.pub=k;EST.msg='';render();
+  try{EST.msg=k==='patr'?await patPublicarRetrato(I):await patPublicarMov(I);delete EST.imp[k];PAT.lista=null;PAT.meu=null;PAT.nomes=null;PAT.meta=null;PAT.err={};EST.mov={};EST.meta=null}
+  catch(e){EST.msg='Erro: '+(e.message||e)+(/estoque_patrimonio|movimentacoes_patrimonio|patrimonio_nomes|does not exist|schema cache/i.test(String(e.message))?'. Rode o script agenda_ajuste_32_patrimonio.sql no Supabase.':'')}
+  EST.bus.pub=false;render()}}
+Object.assign(CH,{patNome:el=>{const I=EST.imp.pmov;if(!I)return;I.map[el.dataset.n]=el.value||undefined;render()}});
+Object.assign(IN,{patDt:el=>{ui.patDt=el.value}});
+
+/* ---------- Atualizar estoque: dois cartões novos ---------- */
+{const _v=viewEstAtual;viewEstAtual=function(){const h=_v.apply(this,arguments),I=EST.imp,M=PAT.meta||{};if(ui.perfil==='supply'||(!pode('a_elleven')&&!pode('a_base')))return h;
+  if(!PAT.meta&&!PAT.bus.meta)patCarregar('meta',patMeta);
+  const card=(k,tit,desc,extra)=>`<section class="panel ptcard" style="margin-bottom:14px"><div class="secth"><div><h3>${tit} <span class="pttag pat">Patrimônio</span></h3><span class="muted">${desc}</span></div></div>
+    <label class="estdz ${I[k]?'on':''}"><input type="file" accept=".csv" data-ch="estArq" data-k="${k}" hidden><b>${I[k]?esc(I[k].nome):'Toque para escolher o arquivo'}</b><small>${I[k]?(k==='pmov'?`${I[k].total} linhas lidas, ${I[k].rows.length} depois do último retrato`:I[k].rows.length+' equipamentos lidos'):'Formato CSV'}</small></label>${extra||''}
+    <button class="btn primary" data-act="estPub" data-k="${k}" ${I[k]&&!EST.bus.pub&&!(k==='pmov'&&I[k].semRetrato)?'':'disabled'}>${EST.bus.pub===k?'Atualizando…':'Publicar'}</button></section>`;
+  const P=I.pmov,sem=P?Object.entries(P.sem||{}):[],tecOpts=n=>`<option value="">Escolha o técnico…</option><option value="__ign" ${P.map[n]==='__ign'?'selected':''}>Não é técnico da ferramenta (só registrar)</option>${TEC.filter(t=>t.doc).map(t=>`<option value="${esc(docN(t.doc))}" ${P.map[n]===docN(t.doc)?'selected':''}>${esc(t.nome)}</option>`).join('')}`;
+  const extraMov=P?(P.semRetrato?'<div class="result warn" style="margin:10px 0">Suba primeiro o patrimônio atual dos técnicos. As movimentações valem a partir da data desse retrato.</div>':sem.length?`<div class="ptsem"><b>${sem.length} nome(s) sem CPF/CNPJ</b><small>Ligue cada nome ao técnico uma vez; a ferramenta lembra nas próximas importações. Se não ligar, o equipamento sai do técnico anterior e fica registrado só com o nome.</small>${sem.map(([n,x])=>`<label class="f" style="margin:0"><span>${esc(x.nome)} · ${x.q} entrada(s)</span><select class="inp" data-ch="patNome" data-n="${esc(n)}">${tecOpts(n)}</select></label>`).join('')}</div>`:''):'';
+  const extraRet=`<label class="f inline" style="margin:10px 0"><span>Data e hora deste retrato *</span><input type="datetime-local" class="inp" data-in="patDt" value="${esc(ui.patDt||'')}"></label>`;
+  const res=`<div class="kpis" style="margin-bottom:14px">${patKp(fmtDH(M.patrimonio_retrato),'Último retrato do patrimônio')}${patKp(fmtDH(M.patrimonio),'Última atualização do patrimônio')}${patKp(M.patrimonio_base?dBR(isoD(new Date(M.patrimonio_base))):'—','Início do histórico do patrimônio')}</div>`;
+  return h+`<h3 class="lsub" style="margin-top:18px">Patrimônio (equipamentos com número de série)</h3>${patErro('meta')}${res}`
+    +(pode('a_base')?card('patr','Patrimônio atual dos técnicos','Planilha "Estoque Materiais Ativos de Técnicos". Substitui a lista de equipamentos de cada técnico pela do arquivo. O primeiro retrato define o início do histórico; os seguintes registram no histórico só as diferenças.',extraRet):'')
+    +(pode('a_elleven')?card('pmov','Movimentações de patrimônio','Planilha "Movimentações Materiais Ativos". Entram só as movimentações depois do último retrato; o que já foi importado é ignorado.',extraMov):'')}}
+
+/* ---------- Meu estoque do técnico: Patrimônios (esquerda) e Insumos (direita) ---------- */
+function viewMeuEst(){const doc=meuDoc();
+  if(!doc)return `<div class="toolbar"><div><h2>Meu estoque</h2></div></div><p class="muted pad">Seu cadastro não tem CPF/CNPJ. Peça à coordenação para completar o cadastro.</p>`;
+  if(!EST.meu)estCarregar('meu',async()=>{const[r,m]=await Promise.all([todas(()=>sb.from('estoque').select('*').eq('cnpj',doc).order('descricao_material')),todas(()=>sb.from('metadados_estoque').select('*'))]);EST.meu=r;EST.meta={};m.forEach(x=>{EST.meta[x.tipo]=x.atualizado_em})});
+  if(!PAT.meu)patCarregar('meu',async()=>{PAT.meu=await todas(()=>sb.from('estoque_patrimonio').select('*').eq('cnpj',doc).order('descricao_material'))});
+  const ab=ui.meAba||'pat',q=normK(ui.meQ||''),M=EST.meta||{};
+  const I=(EST.meu||[]).filter(r=>(+r.qtd_bolsao||0)+(+r.qtd_elleven||0)!==0&&(!q||normK(r.codigo_material+' '+r.descricao_material).includes(q)));
+  const P=(PAT.meu||[]).filter(r=>!q||normK([r.codigo_material,r.descricao_material,r.serial,r.tag].join(' ')).includes(q)),G=patGrupos(P);
+  const nP=(PAT.meu||[]).length,nI=(EST.meu||[]).filter(r=>(+r.qtd_bolsao||0)+(+r.qtd_elleven||0)!==0).length;
+  return `<div class="toolbar"><div><h2>Meu estoque</h2><p class="muted">Equipamentos e material sob sua responsabilidade.</p></div></div>
+  <div class="pttab" role="group" aria-label="Tipo de material"><button class="p" data-act="meAba" data-v="pat" aria-pressed="${ab==='pat'}">Patrimônios (${nP})</button><button class="i" data-act="meAba" data-v="ins" aria-pressed="${ab==='ins'}">Insumos (${nI})</button></div>
+  <p class="muted" style="font-size:13px;margin:8px 0 10px">${ab==='pat'?`Patrimônio atualizado em ${fmtDH((PAT.meta||M).patrimonio||M.patrimonio)}.`:`Bolsão atualizado em ${fmtDH(M.bolsao)}. V-Task atualizado em ${fmtDH(M.elleven)}.`}</p>
+  <input class="inp" type="search" id="meQ" placeholder="${ab==='pat'?'Buscar equipamento ou número de série':'Buscar código ou material'}" data-in="meQ" value="${esc(ui.meQ||'')}" style="margin-bottom:12px">
+  ${ab==='pat'?(patErro('meu')||(!PAT.meu?'<p class="muted pad">Carregando…</p>':G.map(g=>`<div class="mrow ptrow"><div class="mtop"><span>${esc(g.desc)}<small style="display:block;color:var(--muted);font-size:12px">${esc(g.cod)}</small></span><b style="font-size:17px">${g.L.length}</b></div>${patSer(g.L)}</div>`).join('')||'<p class="muted pad">Nenhum equipamento encontrado.</p>'))
+  :(!EST.meu?'<p class="muted pad">Carregando…</p>':I.map(r=>{const tot=(+r.qtd_bolsao||0)+(+r.qtd_elleven||0);return `<div class="mrow" style="background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px"><div class="mtop"><span>${esc(r.descricao_material)}<small style="display:block;color:var(--muted);font-size:12px">${esc(r.codigo_material)}</small></span><b style="font-size:17px">${tot.toLocaleString('pt-BR')} ${esc(r.unidade||'')}</b></div><div class="mnum"><span>Bolsão <b>${(+r.qtd_bolsao||0).toLocaleString('pt-BR')}</b></span><span>V-Task <b>${(+r.qtd_elleven||0).toLocaleString('pt-BR')}</b></span></div></div>`}).join('')||'<p class="muted pad">Nenhum material encontrado.</p>')}`}
+Object.assign(ACT,{meAba:el=>{ui.meAba=el.dataset.v;ui.meQ='';render()}});
+
+/* ---------- Estoque dos técnicos (gestão): insumos e patrimônios ---------- */
+function viewEstoque(){
+  if(!PAT.lista)patCarregar('lista',async()=>{PAT.lista=await todas(()=>sb.from('estoque_patrimonio').select('*').order('descricao_material'))});
+  const q=normK(ui.eQ||''),tp=ui.eTipo||'',T=TEC.filter(t=>!ui.eTec||t.id===ui.eTec),rows=[];
+  const PL=PAT.lista||[],pd={};PL.forEach(r=>{(pd[r.cnpj]=pd[r.cnpj]||[]).push(r)});
+  const patRows=(nome,doc,L)=>{const F=L.filter(r=>!q||normK([r.codigo_material,r.descricao_material,r.serial,r.tag].join(' ')).includes(q));patGrupos(F).forEach(g=>rows.push({pat:1,nome,doc,c:g.cod,desc:g.desc,L:g.L}))};
+  T.forEach(t=>{if(tp!=='pat'){const E=S.estoque[t.id]||{},cmp=comprometido(t.id,null);Object.entries(E).forEach(([c,x])=>{if(q&&!normK(c+' '+x.desc).includes(q))return;const tot=(+x.bolsao||0)+(+x.elleven||0),cm=cmp[c]||0;if(!(+x.bolsao)&&!(+x.elleven)&&!cm)return;rows.push({nome:t.nome,doc:t.doc,c,x,tot,cm,disp:tot-cm})})}
+    if(tp!=='ins'&&t.doc)patRows(t.nome,t.doc,pd[docN(t.doc)]||[])});
+  if(tp!=='ins'&&!ui.eTec){const docs=new Set(TEC.map(t=>docN(t.doc)).filter(Boolean));Object.entries(pd).filter(([d])=>!docs.has(d)).sort((a,b)=>nmTec(a[0],a[1][0].nome_tecnico).localeCompare(nmTec(b[0],b[1][0].nome_tecnico))).forEach(([d,L])=>patRows(nmTec(d,L[0].nome_tecnico),d,L))}
+  const n=v=>(+v).toLocaleString('pt-BR'),nPat=PL.length;
+  return `<div class="toolbar"><div><h2>Estoque dos técnicos</h2><p class="muted">Insumos: saldo por técnico e material (bolsão SAP + Elleven), casado pelo CPF/CNPJ do técnico e pelo código do material. "Comprometido" soma o que os agendamentos em aberto do técnico vão consumir pelo ROI. Patrimônios: equipamentos com número de série que estão com cada técnico${nPat?` (${n(nPat)} no total)`:''}.</p></div>
+   <div class="tools"><input class="inp" type="search" id="eQ" placeholder="Buscar código, material ou serial" data-in="eQ" value="${esc(ui.eQ||'')}"><select class="inp" data-ch="eTec"><option value="">Todos os técnicos</option>${TEC.map(t=>`<option value="${t.id}" ${ui.eTec===t.id?'selected':''}>${esc(t.nome)}</option>`).join('')}</select><select class="inp" data-ch="eTipo"><option value="">Insumos e patrimônios</option><option value="ins" ${tp==='ins'?'selected':''}>Só insumos</option><option value="pat" ${tp==='pat'?'selected':''}>Só patrimônios</option></select></div></div>
+   ${patErro('lista')}
+   <div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Código</th><th>Material</th><th class="r">Bolsão (SAP)</th><th class="r">Elleven</th><th class="r">Saldo total</th><th class="r">Comprometido</th><th class="r">Disponível</th></tr></thead>
+   <tbody>${rows.map(r=>r.pat?`<tr class="ptr"><td>${esc(r.nome)}<br><small class="muted">${esc(r.doc||'')}</small></td><td>${esc(r.c)}</td><td>${esc(r.desc)} <span class="pttag pat">Patrimônio</span>${patSer(r.L,12)}</td><td class="r muted">—</td><td class="r muted">—</td><td class="r">${n(r.L.length)}</td><td class="r muted">—</td><td class="r"><b>${n(r.L.length)}</b></td></tr>`
+     :`<tr><td>${esc(r.nome)}<br><small class="muted">${esc(r.doc)}</small></td><td>${esc(r.c)}</td><td>${esc(r.x.desc)} <span class="pttag ins">Insumo</span></td><td class="r">${n(r.x.bolsao)}</td><td class="r">${n(r.x.elleven)}</td><td class="r">${r.tot.toLocaleString('pt-BR')}</td><td class="r">${r.cm?r.cm.toLocaleString('pt-BR'):'—'}</td><td class="r"><b style="color:${r.disp<0?'var(--bad)':'inherit'}">${r.disp.toLocaleString('pt-BR')}</b></td></tr>`).join('')||`<tr><td colspan="8" class="muted">${!PAT.lista&&tp==='pat'?'Carregando…':'Nenhum material encontrado.'}</td></tr>`}</tbody></table></div>`}
+Object.assign(CH,{eTipo:el=>{ui.eTipo=el.value;render()}});
+
+/* ---------- Histórico: patrimônio a partir do início do histórico; nome pelo cadastro ---------- */
+function viewMov(meu){const de=ui.mDe||addD(hoje(),-30),ate=ui.mAte||hoje(),chave=(meu?'meu:':'all:')+de+':'+ate,doc=meuDoc();
+  if(meu&&!doc)return `<div class="toolbar"><div><h2>Meu histórico</h2></div></div><p class="muted pad">Seu cadastro não tem CPF/CNPJ. Peça à coordenação para completar o cadastro.</p>`;
+  if(!EST.mov[chave])estCarregar('mov'+chave,async()=>{const bm=await estBaseMap().catch(()=>({})),di=new Date(de+'T00:00:00').toISOString(),df=new Date(ate+'T23:59:59').toISOString();
+    let q1=sb.from('movimentacoes').select('*').gt('criado_em',di).lte('criado_em',df).order('criado_em',{ascending:false}).limit(1000),q2=sb.from('movimentacoes_elleven').select('*').gt('data_movimentacao',di).lte('data_movimentacao',df).order('data_movimentacao',{ascending:false}).limit(1000);
+    if(meu){q1=q1.eq('cnpj',doc);q2=q2.eq('cnpj_tecnico',doc)}
+    let pb=null;try{const mt=await patMeta();pb=mt.patrimonio_base||null}catch(e){}
+    let q3=null;if(pb){q3=sb.from('movimentacoes_patrimonio').select('*').gte('data_movimentacao',new Date(Math.max(new Date(pb).getTime(),new Date(di).getTime())).toISOString()).lte('data_movimentacao',df).order('data_movimentacao',{ascending:false}).limit(2000);if(meu)q3=q3.eq('cnpj',doc)}
+    const[a,b,c]=await Promise.all([q1,q2,q3||Promise.resolve({data:[]})]);if(a.error)throw a.error;if(b.error)throw b.error;
+    EST.mov[chave]=[...(a.data||[]).map(m=>({...m,k:'diff',ts:m.criado_em})),...(b.data||[]).filter(m=>{const x=bm[m.cnpj_tecnico];return x&&new Date(m.data_movimentacao)>new Date(x)}).map(m=>({...m,k:'led',ts:m.data_movimentacao})),...((c&&!c.error&&c.data)||[]).map(m=>({...m,k:'pat',ts:m.data_movimentacao}))].sort((x,y)=>new Date(y.ts)-new Date(x.ts))});
+  const tipo=ui.mTipo||'',q=normK(ui.mQ||''),EL=vtask('Elleven'),tn=m=>nmTec(m.cnpj||m.cnpj_tecnico,m.nome_tecnico);
+  let L=EST.mov[chave]||[];if(tipo)L=L.filter(m=>tipo==='elleven'?m.k==='led':tipo==='patrimonio'?m.k==='pat':(m.k==='diff'&&m.tipo===tipo));
+  if(q)L=L.filter(m=>normK([tn(m),m.nome_tecnico,m.codigo_material,m.descricao_material,m.cliente_nome,m.nf,m.serial,m.cliente,m.etiqueta].join(' ')).includes(q));
+  const linha=m=>{if(m.k==='pat'){const e=m.efeito==='entrada',inf=m.efeito==='info',dest=[m.cliente,m.etiqueta?'etiqueta '+m.etiqueta:'',m.romaneio?'romaneio '+m.romaneio:''].filter(Boolean).join(' · ');return `<tr><td>${fmtDH(m.ts)}</td>${meu?'':`<td>${esc(m.cnpj?tn(m):(m.nome_tecnico||'—'))}</td>`}<td>${esc(m.descricao_material||'')}<br><small class="muted">${esc(m.codigo_material||'')} · serial ${esc(m.serial)}</small></td><td>Patrimônio</td><td class="r">${inf?`<span class="chip">${/Vinculado/i.test(m.tipo)?'Instalado':'Registro'}</span>`:`<span class="chip ${e?'ok':'bad'}">${e?'+1':'−1'}</span>`}<br><small class="muted">${inf?'':(e?'Entrada':'Saída')+' · '}${esc(m.tipo||'')}</small></td><td>${dest?esc(dest):'—'}</td></tr>`}
+    if(m.k==='led'){const e=m.tipo_movimento==='entrada';return `<tr><td>${fmtDH(m.ts)}</td>${meu?'':`<td>${esc(tn(m))}</td>`}<td>${esc(m.descricao_material||'')}<br><small class="muted">${esc(m.codigo_material||'')}</small></td><td>${EL}</td><td class="r"><span class="chip ${e?'ok':'bad'}">${e?'+':'−'}${(+m.quantidade).toLocaleString('pt-BR')} ${esc(m.unidade||'')}</span><br><small class="muted">${e?'Entrada':'Saída'}</small></td><td>${!e&&m.cliente_nome?esc(m.cliente_nome):'—'}${m.nf?`<br><small class="muted">NF ${esc(m.nf)}</small>`:''}</td></tr>`}
+    const d=(+m.qtd_depois||0)-(+m.qtd_antes||0);return `<tr><td>${fmtDH(m.ts)}</td>${meu?'':`<td>${esc(tn(m))}</td>`}<td>${esc(m.descricao_material||'')}<br><small class="muted">${esc(m.codigo_material||'')}</small></td><td>${m.tipo==='bolsao'?'Bolsão':EL+' (saldo base)'}</td><td class="r"><span class="chip ${d>0?'ok':d<0?'bad':''}">${d>0?'+':''}${d.toLocaleString('pt-BR')}</span><br><small class="muted">${(+m.qtd_antes).toLocaleString('pt-BR')} → ${(+m.qtd_depois).toLocaleString('pt-BR')}</small></td><td>—</td></tr>`};
+  const pb=(PAT.meta||{}).patrimonio_base;
+  return `<div class="toolbar"><div><h2>${meu?'Meu histórico':'Movimentações de estoque'}</h2><p class="muted">${meu?'Entradas e saídas do seu estoque: equipamentos (patrimônio) e material (bolsão e V-Task).':'Alterações do bolsão, entradas e saídas do Elleven e do patrimônio, de todos os técnicos.'}${pb?` O histórico do patrimônio começa em ${dBR(isoD(new Date(pb)))}.`:''}</p></div></div>
+  <div class="tools" style="margin-bottom:12px"><input class="inp" type="search" id="mQ" placeholder="${meu?'Buscar material, serial, cliente ou NF':'Buscar técnico, material, serial, cliente ou NF'}" data-in="mQ" value="${esc(ui.mQ||'')}"><select class="inp" data-ch="mTipo"><option value="">Todos os tipos</option><option value="patrimonio" ${tipo==='patrimonio'?'selected':''}>Patrimônio</option><option value="bolsao" ${tipo==='bolsao'?'selected':''}>Bolsão</option><option value="elleven" ${tipo==='elleven'?'selected':''}>${EL}</option></select><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="mDe" value="${de}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="mAte" value="${ate}"></label></div>
+  ${EST.msg&&/^Erro/.test(EST.msg)?`<div class="result bad">${esc(EST.msg)}</div>`:''}
+  ${!EST.mov[chave]?'<p class="muted pad">Carregando…</p>':meu?`<div class="pthist">${L.map(patCard).join('')||'<p class="muted pad">Nenhuma movimentação no período.</p>'}</div><p class="muted" style="font-size:13px;margin-top:6px">${L.length} movimentação(ões).</p>`:`<div class="tablewrap"><table><thead><tr><th>Data</th>${meu?'':'<th>Técnico</th>'}<th>Material</th><th>Origem</th><th class="r">Movimento</th><th>Cliente, etiqueta e NF</th></tr></thead><tbody>${L.map(linha).join('')||`<tr><td colspan="${meu?5:6}" class="muted">Nenhuma movimentação no período.</td></tr>`}</tbody></table></div><p class="muted" style="font-size:13px;margin-top:6px">${L.length} movimentação(ões). Mostra até 1.000 registros do bolsão e do V-Task e 2.000 do patrimônio por período.</p>`}`}
+
+/* histórico do técnico no celular: um cartão por movimentação */
+function patCard(m){const EL=vtask('Elleven');let ori,chip,sub,dest='',mat=esc(m.descricao_material||''),cod=esc(m.codigo_material||'');
+  if(m.k==='pat'){const e=m.efeito==='entrada',inf=m.efeito==='info';ori='Patrimônio';cod+=' · serial '+esc(m.serial);chip=inf?`<span class="chip">${/Vinculado/i.test(m.tipo)?'Instalado':'Registro'}</span>`:`<span class="chip ${e?'ok':'bad'}">${e?'+1':'−1'}</span>`;sub=(inf?'':(e?'Entrada · ':'Saída · '))+esc(m.tipo||'');dest=[m.cliente,m.etiqueta?'etiqueta '+m.etiqueta:'',m.romaneio?'romaneio '+m.romaneio:''].filter(Boolean).join(' · ')}
+  else if(m.k==='led'){const e=m.tipo_movimento==='entrada';ori=EL;chip=`<span class="chip ${e?'ok':'bad'}">${e?'+':'−'}${(+m.quantidade).toLocaleString('pt-BR')} ${esc(m.unidade||'')}</span>`;sub=e?'Entrada':'Saída';dest=[!e&&m.cliente_nome?m.cliente_nome:'',m.nf?'NF '+m.nf:''].filter(Boolean).join(' · ')}
+  else{const d=(+m.qtd_depois||0)-(+m.qtd_antes||0);ori=m.tipo==='bolsao'?'Bolsão':EL+' (saldo base)';chip=`<span class="chip ${d>0?'ok':d<0?'bad':''}">${d>0?'+':''}${d.toLocaleString('pt-BR')}</span>`;sub=`${(+m.qtd_antes).toLocaleString('pt-BR')} → ${(+m.qtd_depois).toLocaleString('pt-BR')}`}
+  return `<div class="ptmc"><div class="ptmt"><span><b>${mat}</b><small>${cod}</small></span>${chip}</div><div class="ptmm"><span>${fmtDH(m.ts)} · ${ori}</span><span>${sub}</span></div>${dest?`<div class="ptmd">${esc(dest)}</div>`:''}</div>`}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
