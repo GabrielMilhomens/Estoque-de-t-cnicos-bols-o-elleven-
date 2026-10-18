@@ -1234,6 +1234,38 @@ button.ca2{cursor:pointer}
 .ptmt{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.ptmt b{font-size:14.5px}.ptmt small{display:block;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
 .ptmm{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;font-size:12.5px;color:var(--muted)}
 .ptmd{font-size:13px}
+/* 18/10: demanda, eficiência e atuadas sem entrega */
+.pdgrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;margin-top:14px}
+.pdgrid2{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)}
+@media(max-width:960px){.pdgrid,.pdgrid2{grid-template-columns:minmax(0,1fr)}}
+.pdmeta{height:6px;border-radius:3px;background:var(--line);position:relative;margin-top:8px}
+.pdmeta i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:currentColor}
+.pdmeta em{position:absolute;top:-4px;width:2px;height:14px;background:var(--ink)}
+.kpi.ok .pdmeta i{background:var(--brand)}.kpi.warn .pdmeta i{background:var(--warn)}.kpi.bad .pdmeta i{background:var(--bad)}
+.pdbars{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:12px;align-items:end;height:210px;padding-top:22px}
+.pdbw{display:grid;grid-template-rows:1fr auto;height:100%;gap:6px;min-width:0}
+.pdbp{display:flex;gap:4px;align-items:end;justify-content:center;height:100%}
+.pdb{width:min(26px,40%);border-radius:5px 5px 0 0;position:relative;min-height:2px}
+.pdb.d{background:var(--info)}.pdb.e{background:var(--brand)}
+.pdb span{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;color:var(--ink)}
+.pdbl{font-size:12px;color:var(--muted);text-align:center;line-height:1.25}.pdbl b{display:block;color:var(--ink)}
+.pdleg{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin-top:10px}
+.pdleg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.pdfun{display:grid;gap:10px}
+.pdfr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
+.pdfr small{display:block;color:var(--muted);font-size:12.5px}
+.pdtr{grid-column:1/-1;height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.pdtr i{display:block;height:100%;border-radius:5px}
+.pdtr i.f-rua{background:#6B8E23}.pdtr i.f-interno{background:#2F7D6D}.pdtr i.f-ext{background:#7B5A9E}.pdtr i.f-ativ{background:#245F80}
+.pddet{margin-top:14px}.pddet summary{cursor:pointer}
+.pdfzs{display:flex;flex-wrap:wrap;gap:4px}
+.pdfz{font-size:11.5px;font-weight:700;border-radius:6px;padding:1px 7px;border:1.5px solid currentColor}
+.pdfz.f-rua{color:#6B8E23}.pdfz.f-interno{color:#2F7D6D}.pdfz.f-ext{color:#7B5A9E}.pdfz.f-ativ{color:#245F80}
+.pdfz.ok{background:currentColor}.pdfz.ok{color:#fff}
+.pdfz.ok.f-rua{background:#6B8E23;border-color:#6B8E23}.pdfz.ok.f-interno{background:#2F7D6D;border-color:#2F7D6D}.pdfz.ok.f-ext{background:#7B5A9E;border-color:#7B5A9E}.pdfz.ok.f-ativ{background:#245F80;border-color:#245F80}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pdfz.f-rua{color:#A3C65A}:root:not([data-theme="light"]) .pdfz.f-interno{color:#6BC3AF}:root:not([data-theme="light"]) .pdfz.f-ext{color:#B9A0D8}:root:not([data-theme="light"]) .pdfz.f-ativ{color:#7DB7D8}}
+.pdpar{color:var(--bad);font-weight:700}
+.chip.info{background:var(--info-soft);color:var(--info)}
 
 /* 17/10: vistoria de lançamento */
 .vtbody{display:flex;flex-direction:column;gap:10px;margin-top:10px}
@@ -6765,6 +6797,66 @@ function patCard(m){const EL=vtask('Elleven');let ori,chip,sub,dest='',mat=esc(m
   else if(m.k==='led'){const e=m.tipo_movimento==='entrada';ori=EL;chip=`<span class="chip ${e?'ok':'bad'}">${e?'+':'−'}${(+m.quantidade).toLocaleString('pt-BR')} ${esc(m.unidade||'')}</span>`;sub=e?'Entrada':'Saída';dest=[!e&&m.cliente_nome?m.cliente_nome:'',m.nf?'NF '+m.nf:''].filter(Boolean).join(' · ')}
   else{const d=(+m.qtd_depois||0)-(+m.qtd_antes||0);ori=m.tipo==='bolsao'?'Bolsão':EL+' (saldo base)';chip=`<span class="chip ${d>0?'ok':d<0?'bad':''}">${d>0?'+':''}${d.toLocaleString('pt-BR')}</span>`;sub=`${(+m.qtd_antes).toLocaleString('pt-BR')} → ${(+m.qtd_depois).toLocaleString('pt-BR')}`}
   return `<div class="ptmc"><div class="ptmt"><span><b>${mat}</b><small>${cod}</small></span>${chip}</div><div class="ptmm"><span>${fmtDH(m.ts)} · ${ori}</span><span>${sub}</span></div>${dest?`<div class="ptmd">${esc(dest)}</div>`:''}</div>`}
+
+/* ---------- 18/10: Visão geral da Implantação — demanda recebida, eficiência de entrega e etiquetas atuadas sem entrega ----------
+   Demanda: etiquetas únicas com agendamento de interno ou ativação (não cancelado e não improdutivo), contadas no período do primeiro
+   agendamento dessas fases (data da atividade). Eficiência: da demanda do período, quantas já tiveram a ativação finalizada. Meta 90%.
+   Atuadas sem entrega: etiquetas com qualquer atividade no período (todas as fases) e sem ativação finalizada até hoje. Parada: sem
+   atividade agendada e sem atuação há mais de 7 dias. */
+const pdKp=(v,l,c='')=>`<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`;
+const PD_META=90,PD_PARADA=7,PD_ORD=['rua','interno','ext','ativ'];
+const pdAgs=()=>S.agsExt&&S.agsExt.length?S.ags.concat(S.agsExt):S.ags;
+const pdAberta=a=>['agendada','deslocamento','no_local','execucao'].includes(a.status);
+const pdDias=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);
+function pdDemanda(){const rec={};pdAgs().forEach(a=>{if(a.status==='cancelada'||a.improd)return;if(!fasesOf(a).some(k=>k==='interno'||k==='ativ'))return;if(!rec[a.etiqueta]||a.data<rec[a.etiqueta].data)rec[a.etiqueta]={data:a.data,fase:fasesOf(a).includes('interno')?'interno':'ativ'}});
+  const L=Object.entries(rec).filter(([,r])=>r.data>=ui.pIni&&r.data<=ui.pFim).map(([e,r])=>{const f=faseFim(e,'ativ'),A=pdAgs().filter(a=>a.etiqueta===e);
+    const sit=f?'ok':A.some(pdAberta)?'and':'ag';return{e,p:pPor(e),rec:r.data,fase:r.fase,f,sit,dias:f?Math.max(0,pdDias(r.data,f.data)):null}}).sort((a,b)=>a.rec.localeCompare(b.rec));
+  return L}
+function pdSemanas(L){const W=[];for(let d=ui.pIni;d<=ui.pFim&&W.length<10;d=addD(d,7)){const f=addD(d,6)>ui.pFim?ui.pFim:addD(d,6),X=L.filter(x=>x.rec>=d&&x.rec<=f);W.push({d,f,dem:X.length,ent:X.filter(x=>x.sit==='ok').length})}return W}
+function pdAtuadas(){const T=hoje(),noP=a=>(a.data>=ui.pIni&&a.data<=ui.pFim)||(a.dias||[]).some(d=>d>=ui.pIni&&d<=ui.pFim),M={};
+  pdAgs().forEach(a=>{if(a.status==='cancelada'||!noP(a))return;(M[a.etiqueta]=M[a.etiqueta]||[]).push(a)});
+  return Object.entries(M).filter(([e])=>!faseFim(e,'ativ')).map(([e,P])=>{const p=pPor(e),A=pdAgs().filter(a=>a.etiqueta===e&&a.status!=='cancelada');
+    const fz=[...new Set(P.flatMap(a=>fasesOf(a)))].sort((a,b)=>PD_ORD.indexOf(a)-PD_ORD.indexOf(b)),fin=k=>!!faseFim(e,k);
+    const prox=PD_ORD.find(k=>!(p.etiqueta&&naoAplica(p,k))&&!fin(k))||'ativ';
+    const ab=A.filter(pdAberta).sort((a,b)=>a.data.localeCompare(b.data)),fe=A.filter(a=>a.ts&&(a.ts.desloc||a.ts.chegada||a.ts.inicio)).sort((a,b)=>b.data.localeCompare(a.data));
+    const ult=fe[0]?fe[0].data:P.map(a=>a.data).sort().pop(),dias=ult&&ult<=T?pdDias(ult,T):0,unc=A.filter(a=>FIM.includes(a.status)).sort((a,b)=>(b.ts&&(b.ts.encerramento||b.ts.conclusao)||0)-(a.ts&&(a.ts.encerramento||a.ts.conclusao)||0))[0];
+    const nc=A.filter(a=>a.status==='nao_concluida').sort((a,b)=>b.data.localeCompare(a.data))[0];
+    const sit=ab.length?'ag':unc&&unc.status==='nao_concluida'?'nc':dias>PD_PARADA?'pr':'aa';
+    const info=sit==='ag'?`${FCURTO[fasesOf(ab[0])[0]]||fasesN(ab[0])} ${ab[0].status==='agendada'?'agendada para '+dBR(ab[0].data).slice(0,5):'em andamento'}`:sit==='nc'?'Não concluída: '+(unc.motivo||'sem motivo'):sit==='pr'?`Sem agendamento ${prox==='ativ'?'da ativação':'de '+(FCURTO[prox]||prox).toLowerCase()}`:'Aguardando o agendamento da próxima fase';
+    return{e,p,fz:fz.map(k=>[k,fin(k)]),prox,sit,info,ult,dias,ab:ab[0]||null,tecs:[...new Set(P.map(a=>a.equipe&&typeof agResp==='function'?agResp(a):tecN(a.tec)))].join(', '),mot:nc?(nc.motivo||''):''}}).sort((a,b)=>({pr:0,nc:1,aa:2,ag:3}[a.sit]-{pr:0,nc:1,aa:2,ag:3}[b.sit])||b.dias-a.dias)}
+const PD_SIT={ok:['Entregue','ok'],and:['Em andamento','info'],ag:['Aguardando agendamento','warn']};
+const PA_SIT={ag:['Com próxima atividade agendada','info'],nc:['Última atividade não concluída','bad'],pr:['Parada','warn'],aa:['Aguardando agendamento','']};
+const pdFz=(k,ok)=>`<span class="pdfz f-${k} ${ok?'ok':''}">${FCURTO[k]||k}${ok?' ✓':''}</span>`;
+function pdHtml(){const D=pdDemanda(),dem=D.length,ent=D.filter(x=>x.sit==='ok').length,and=D.filter(x=>x.sit==='and').length,ag=dem-ent-and,ef=dem?Math.round(ent/dem*100):null,W=pdSemanas(D),mx=Math.max(1,...W.map(w=>w.dem));
+  const efc=ef==null?'':ef>=PD_META?'ok':ef>=75?'warn':'bad';
+  const row=(t,v,c)=>`<div class="pdfr"><span>${t}</span><b>${v}${dem?' · '+Math.round(v/dem*100)+'%':''}</b><div class="pdtr"><i style="width:${dem?v/dem*100:0}%;background:${c}"></i></div></div>`;
+  const U=pdAtuadas(),F=ui.pdF||'',V=U.filter(x=>!F||x.sit===F),cnt=k=>U.filter(x=>x.sit===k).length,porF={};U.forEach(x=>{porF[x.prox]=(porF[x.prox]||0)+1});const mxF=Math.max(1,...Object.values(porF));
+  return `<h3 class="lsub" style="margin-top:22px">Demanda e eficiência de entrega</h3>
+  <div class="kpis">${pdKp(dem,'Demanda recebida (etiquetas)')}${`<div class="kpi ${efc}"><b>${ef==null?'—':ef+'%'}</b><span>Eficiência de entrega · meta ${PD_META}%</span><div class="pdmeta" aria-hidden="true"><i style="width:${Math.min(ef||0,100)}%"></i><em style="left:${PD_META}%"></em></div></div>`}${pdKp(ent,'Da demanda, já entregues','ok')}${pdKp(dem-ent,'Da demanda, ainda em aberto','warn')}</div>
+  <div class="grid2 pdgrid">
+   <section class="panel"><div class="secth"><h3>Demanda × entrega por semana</h3><span class="muted">Etiquetas pela semana em que foram recebidas</span></div>
+    ${dem?`<div class="pdbars">${W.map(w=>`<div class="pdbw"><div class="pdbp"><div class="pdb d" style="height:${w.dem/mx*100}%"><span>${w.dem}</span></div><div class="pdb e" style="height:${w.ent/mx*100}%"><span>${w.ent}</span></div></div><div class="pdbl"><b>${dBR(w.d).slice(0,5)}</b>a ${dBR(w.f).slice(0,5)}${w.dem?' · '+Math.round(w.ent/w.dem*100)+'%':''}</div></div>`).join('')}</div><div class="pdleg"><span><i style="background:var(--info)"></i>Demanda recebida</span><span><i style="background:var(--brand)"></i>Entregue (ativação finalizada)</span></div>`:'<p class="muted">Nenhuma demanda recebida no período.</p>'}</section>
+   <section class="panel"><div class="secth"><h3>Situação da demanda do período</h3></div><div class="pdfun">${row('Demanda recebida',dem,'var(--info)')}${row('Entregue',ent,'var(--brand)')}${row('Em andamento (atividade agendada ou em curso)',and,'var(--info)')}${row('Aguardando agendamento da próxima fase',ag,'var(--warn)')}</div>
+    <p class="muted" style="font-size:13px;margin:12px 0 0">Demanda: etiquetas com agendamento de lançamento interno ou ativação, no período do primeiro agendamento dessas fases. Não entram rua e extensão, agendamentos cancelados e etiquetas que só tiveram atividade improdutiva.</p></section></div>
+  ${dem?`<details class="panel pddet"><summary><b>Etiquetas da demanda</b> <span class="muted">(${dem})</span></summary><div class="tablewrap" style="margin-top:10px"><table><thead><tr><th>Recebida em</th><th>Etiqueta</th><th>Cliente</th><th>Primeira fase</th><th>Situação</th><th class="r">Dias até entregar</th></tr></thead><tbody>${D.map(x=>`<tr><td>${dBR(x.rec)}</td><td>${esc(x.e)}</td><td>${esc(cliN(x.e)||'')}</td><td>${FCURTO[x.fase]}</td><td><span class="chip ${PD_SIT[x.sit][1]}">${PD_SIT[x.sit][0]}</span></td><td class="r">${x.dias==null?'—':x.dias}</td></tr>`).join('')}</tbody></table></div></details>`:''}
+  <h3 class="lsub" style="margin-top:22px">Etiquetas com atuação no período e não entregues</h3>
+  <div class="kpis">${pdKp(U.length,'Com atuação no período e não entregues','warn')}${pdKp(cnt('ag'),'Com próxima atividade agendada')}${pdKp(cnt('nc'),'Última atividade não concluída','bad')}${pdKp(cnt('pr'),`Paradas (sem agenda, mais de ${PD_PARADA} dias)`,'warn')}</div>
+  ${U.length?`<div class="grid2 pdgrid pdgrid2">
+   <section class="panel"><div class="secth"><h3>Onde estão</h3><span class="muted">Pela próxima fase que falta</span></div><div class="pdfun">${PD_ORD.filter(k=>porF[k]).map(k=>`<div class="pdfr"><span>Falta ${(FCURTO[k]||k).toLowerCase()}<small>${U.filter(x=>x.prox===k&&x.sit==='pr').length} parada(s)</small></span><b>${porF[k]}</b><div class="pdtr"><i class="f-${k}" style="width:${porF[k]/mxF*100}%"></i></div></div>`).join('')}</div>
+    <p class="muted" style="font-size:13px;margin:12px 0 0">Entra a etiqueta com qualquer atividade no período (todas as fases), concluída ou não, e sem ativação finalizada até hoje. Parada: sem atividade agendada e sem atuação há mais de ${PD_PARADA} dias.</p></section>
+   <section class="panel"><div class="secth"><h3>Lista</h3><span class="muted">${V.length} de ${U.length} etiquetas</span></div>
+    <div class="tools" style="margin-bottom:8px">${[['','Todas',U.length],['ag','Agendadas',cnt('ag')],['nc','Não concluídas',cnt('nc')],['pr','Paradas',cnt('pr')],['aa','Aguardando agendamento',cnt('aa')]].filter(x=>!x[0]||x[2]).map(([k,n,v])=>`<button class="btn sm ${F===k?'primary':''}" data-act="pdF" data-v="${k}" aria-pressed="${F===k}">${n} (${v})</button>`).join('')}</div>
+    <div class="tablewrap"><table><thead><tr><th>Etiqueta e cliente</th><th>Fases com atuação no período</th><th>Situação</th><th class="r">Última atuação</th></tr></thead><tbody>${V.map(x=>`<tr><td><b>${esc(x.e)}</b><br><small class="muted">${esc(cliN(x.e)||'')}${x.p.cidade?' · '+esc(x.p.cidade):''}</small></td><td><div class="pdfzs">${x.fz.map(([k,ok])=>pdFz(k,ok)).join('')}</div><small class="muted">Falta: ${(FCURTO[x.prox]||x.prox).toLowerCase()}</small></td><td><span class="chip ${PA_SIT[x.sit][1]}">${PA_SIT[x.sit][0]}</span><br><small class="muted">${esc(x.info)}</small></td><td class="r">${x.ult?dBR(x.ult).slice(0,5):'—'}<br><small class="${x.sit==='pr'?'pdpar':'muted'}">há ${x.dias} ${x.dias===1?'dia':'dias'}</small></td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nenhuma etiqueta com esse filtro.</td></tr>'}</tbody></table></div></section></div>`:'<p class="muted">Todas as etiquetas com atuação no período já foram entregues.</p>'}`}
+{const _g=pGeral;pGeral=function(){return _g.apply(this,arguments)+pdHtml()}}
+Object.assign(ACT,{pdF:el=>{ui.pdF=el.dataset.v||'';render()}});
+/* planilha da Visão geral: abas Demanda e Atuadas sem entrega, e os indicadores novos */
+{const _x=ACT.pgXlsx;ACT.pgXlsx=el=>{const D=pdDemanda(),U=pdAtuadas(),dem=D.length,ent=D.filter(x=>x.sit==='ok').length,orig=xlsxBaixar;
+  xlsxBaixar=function(arq,abas,msg){try{const K=abas.find(a=>a[0]==='Indicadores');if(K)K[1]=K[1].concat([{Indicador:'Demanda recebida (etiquetas)',Valor:dem},{Indicador:'Da demanda, já entregues',Valor:ent},{Indicador:'Eficiência de entrega (%)',Valor:dem?Math.round(ent/dem*1000)/10:''},{Indicador:`Meta de eficiência (%)`,Valor:PD_META},{Indicador:'Etiquetas com atuação no período e não entregues',Valor:U.length},{Indicador:`Paradas (sem agenda, mais de ${PD_PARADA} dias)`,Valor:U.filter(x=>x.sit==='pr').length}]);
+      const Dm=D.map(x=>({'Recebida em':dBR(x.rec),'Etiqueta':x.e,'Cliente':cliN(x.e)||'','Cidade':x.p.cidade||'','Topologia':x.p.topologia||'','Primeira fase':FCURTO[x.fase],'Situação':PD_SIT[x.sit][0],'Data da ativação':x.f?dBR(x.f.data):'','Dias até entregar':x.dias==null?'':x.dias}));
+      const Um=U.map(x=>({'Etiqueta':x.e,'Cliente':cliN(x.e)||'','Cidade':x.p.cidade||'','Topologia':x.p.topologia||'','Fases com atuação no período':x.fz.map(([k])=>FCURTO[k]||k).join(', '),'Fases finalizadas':x.fz.filter(([,ok])=>ok).map(([k])=>FCURTO[k]||k).join(', '),'Próxima fase':FCURTO[x.prox]||x.prox,'Próximo agendamento':x.ab?dBR(x.ab.data):'','Última atuação':x.ult?dBR(x.ult):'','Dias sem atuação':x.dias,'Técnicos':x.tecs,'Situação':PA_SIT[x.sit][0],'Detalhe':x.info,'Motivo da última não conclusão':x.mot}));
+      const i=abas.findIndex(a=>a[0]==='Filtros'),add=[['Demanda',Dm],['Atuadas sem entrega',Um]];if(i>=0)abas.splice(i,0,...add);else abas.push(...add)}catch(e){}
+    return orig.call(this,arq,abas,msg)};
+  try{return _x(el)}finally{xlsxBaixar=orig}}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
