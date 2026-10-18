@@ -2128,8 +2128,8 @@ function viewEstAtual(){
   ${EST.msg?`<div class="result ${/^Erro/.test(EST.msg)?'bad':'ok'}" style="margin-bottom:14px">${esc(EST.msg)}</div>`:''}
   ${!pode('a_bolsao')?'':card('bolsao','Planilha do bolsão (SAP)','Planilha diária enviada pela logística. Substitui o saldo do bolsão de cada técnico pelo da planilha.','.xlsx,.xls')}
   ${!pode('a_elleven')?'':card('elleven','Movimentações do Elleven','Extrato de entradas e saídas. Só entra o que for posterior à data-base de cada técnico; o que já foi importado é ignorado.','.csv',`<label class="f inline" style="margin:10px 0"><span>Ignorar movimentações antes de (opcional)</span><input type="date" class="inp" data-in="estIni" value="${esc(ui.estIni||'')}"></label>`)}
-  ${pode('a_base')?card('base','Saldo base do Elleven','Retrato do saldo de cada técnico no dia do inventário. Define o ponto de partida das movimentações de cada técnico que estiver no arquivo.','.csv',`<label class="f inline" style="margin:10px 0"><span>Data e hora deste retrato *</span><input type="datetime-local" class="inp" data-in="estBaseDt" value="${esc(ui.estBaseDt||'')}"></label>`)+`
-  <section class="panel"><div class="secth"><div><h3>Data-base por técnico</h3><span class="muted">Ajuste a data-base de um técnico sem subir arquivo.</span></div></div>
+  ${pode('a_base')?card('base','Saldo atual do Elleven (V-Task)','Planilha "Estoque Materiais consumo de Técnicos". Substitui a coluna Elleven de todos os técnicos pelo saldo do V-Task (quem não estiver no arquivo fica zerado) e passa a data-base de todos para a hora do retrato. Use este retrato para corrigir o saldo; as movimentações entram só depois dele.','.csv',`<label class="f inline" style="margin:10px 0"><span>Data e hora deste retrato *</span><input type="datetime-local" class="inp" data-in="estBaseDt" value="${esc(ui.estBaseDt||'')}"></label>`)+`
+  <section class="panel"><div class="secth"><div><h3>Data-base por técnico</h3><span class="muted">Ajuste a data-base de um técnico sem subir arquivo. Só muda a partir de quando as próximas movimentações entram; não recalcula o saldo (para isso, suba o Saldo atual do Elleven).</span></div></div>
    <div class="tools"><select class="inp" data-ch="estBaseTec"><option value="">Selecione um técnico…</option>${(EST.tecs||[]).map(([c,n])=>`<option value="${esc(c)}" ${c===sel?'selected':''}>${esc(nmTec(c,n))}</option>`).join('')}</select><input type="datetime-local" class="inp" id="estBaseTecDt" value="${cur}"><button class="btn" data-act="estBaseSalvar" ${sel?'':'disabled'}>Salvar data-base</button></div>
    <details style="margin-top:10px"><summary class="muted">${(EST.base||[]).length} técnico(s) com data-base definida</summary><div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Técnico</th><th>Data-base</th></tr></thead><tbody>${(EST.base||[]).map(r=>`<tr><td>${esc(nmTec(r.cnpj,r.nome_referencia))}</td><td>${fmtDH(r.data_base)}</td></tr>`).join('')}</tbody></table></div></details></section>`:''}`}
 function viewMov(meu){const de=ui.mDe||addD(hoje(),-30),ate=ui.mAte||hoje(),chave=(meu?'meu:':'all:')+de+':'+ate,doc=meuDoc();
@@ -6797,6 +6797,21 @@ function patCard(m){const EL=vtask('Elleven');let ori,chip,sub,dest='',mat=esc(m
   else if(m.k==='led'){const e=m.tipo_movimento==='entrada';ori=EL;chip=`<span class="chip ${e?'ok':'bad'}">${e?'+':'−'}${(+m.quantidade).toLocaleString('pt-BR')} ${esc(m.unidade||'')}</span>`;sub=e?'Entrada':'Saída';dest=[!e&&m.cliente_nome?m.cliente_nome:'',m.nf?'NF '+m.nf:''].filter(Boolean).join(' · ')}
   else{const d=(+m.qtd_depois||0)-(+m.qtd_antes||0);ori=m.tipo==='bolsao'?'Bolsão':EL+' (saldo base)';chip=`<span class="chip ${d>0?'ok':d<0?'bad':''}">${d>0?'+':''}${d.toLocaleString('pt-BR')}</span>`;sub=`${(+m.qtd_antes).toLocaleString('pt-BR')} → ${(+m.qtd_depois).toLocaleString('pt-BR')}`}
   return `<div class="ptmc"><div class="ptmt"><span><b>${mat}</b><small>${cod}</small></span>${chip}</div><div class="ptmm"><span>${fmtDH(m.ts)} · ${ori}</span><span>${sub}</span></div>${dest?`<div class="ptmd">${esc(dest)}</div>`:''}</div>`}
+
+/* ---------- 18/10 tarde: saldo do Elleven pelo retrato do V-Task ----------
+   Planilha "Estoque Materiais consumo de Técnicos" (mesmas colunas do saldo base). Substitui a coluna Elleven de todos os técnicos
+   (quem não está no arquivo fica zerado) e passa a data-base de TODOS para a hora do retrato, para as movimentações anteriores não
+   serem contadas de novo. A data e a hora vêm do nome do arquivo. */
+{const _v=viewEstAtual;viewEstAtual=function(){if(EST.imp.base&&!ui.estBaseDt)ui.estBaseDt=patDataNome(EST.imp.base.nome)||'';return _v.apply(this,arguments)}}
+{const _p=ACT.estPub;ACT.estPub=async el=>{const k=el.dataset.k;if(k!=='base')return _p(el);const I=EST.imp.base,dt=ui.estBaseDt,doFile=I?new Set(I.rows.map(r=>r.cnpj).filter(Boolean)):null;
+  await _p(el);if(!I||!dt||EST.imp.base||/^Erro/.test(EST.msg||''))return;
+  try{const iso=new Date(dt).toISOString(),est=await todas(()=>sb.from('estoque').select('cnpj,nome_tecnico')),bs=await todas(()=>sb.from('saldo_base_elleven').select('cnpj,nome_referencia')),nm={};
+    est.forEach(r=>{if(r.cnpj&&!doFile.has(r.cnpj))nm[r.cnpj]=r.nome_tecnico||nm[r.cnpj]||r.cnpj});bs.forEach(r=>{if(r.cnpj&&!doFile.has(r.cnpj))nm[r.cnpj]=nm[r.cnpj]||r.nome_referencia||r.cnpj});
+    const rows=Object.entries(nm).map(([cnpj,n])=>({cnpj,nome_referencia:n,data_base:iso,atualizado_em:new Date().toISOString()}));
+    for(let i=0;i<rows.length;i+=500){const r=await sb.from('saldo_base_elleven').upsert(rows.slice(i,i+500),{onConflict:'cnpj'});if(r.error)throw r.error}
+    await patMetaSet('elleven',new Date().toISOString());
+    EST.msg+=` Data-base de todos os técnicos passou para ${dBR(isoD(new Date(iso)))} ${new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}${rows.length?` (${rows.length} sem saldo no V-Task ficaram com o Elleven zerado)`:''}.`;ui.estBaseDt='';EST.base=null;render()}
+  catch(e){EST.msg+=' Atenção: não foi possível atualizar a data-base dos técnicos fora do arquivo: '+(e.message||e);render()}}}
 
 /* ---------- 18/10: Visão geral da Implantação — demanda recebida, eficiência de entrega e etiquetas atuadas sem entrega ----------
    Demanda: etiquetas únicas com agendamento de interno ou ativação (não cancelado e não improdutivo), contadas no período do primeiro
