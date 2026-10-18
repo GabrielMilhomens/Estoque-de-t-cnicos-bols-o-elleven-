@@ -1602,19 +1602,22 @@ const REGRA_FOTO={unica:'Obrigatória',opcional:'Se houver; várias fotos',multi
 const PERM_T=[
   ['Acompanhamento',[['painel','Painel de KPIs','t',[['p_geral','Visão geral','t'],['p_entregas','Entregas','t'],['p_rede','Rede executada','t'],['p_exec','Execução em campo','t'],['p_tempos','Tempos de atendimento','t',[['a_expurgo','Expurgar tempos das atividades','a']]],['p_equipes','Equipes','t'],
     ['p_fin','Financeiro','t',[['f_budget','Budget e ROI','t',[['a_budget','Definir o budget do mês','a']]],['f_det','Detalhamento das LPUs','t'],['f_aprov','Aprovação de LPU','t',[['a_aprovar','Aprovar, reprovar e devolver LPUs','a']]]]]]]]],
-  ['Operação',[['painelDia','Painel do dia','t'],['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar e editar atividades','a'],['a_anexos','Enviar e apagar anexos','a']]],['relat','Relatórios','t']]],
-  ['Estoque',[['estoque','Estoque dos técnicos','t'],['estAtual','Atualizar estoque','t',[['a_bolsao','Publicar planilha do bolsão (SAP)','a'],['a_elleven','Importar movimentações do Elleven','a'],['a_base','Saldo base e data-base do Elleven','a']]],['estHist','Movimentações','t']]],
-  ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['kanban','Backlog de projetos','t']]],
+  ['Operação',[['painelDia','Painel do dia','t'],['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar, editar e transferir atividades','a'],['a_retirar','Tirar o técnico da atividade e aguardar reagendamento','a'],['a_corrigir','Corrigir fases finalizadas por engano','a'],['a_improd','Liberar LPU de improdutiva e deslocamento','a'],['a_anexos','Enviar e apagar anexos','a']]],['ausencias','Ausências','t'],['relat','Relatórios (fotográfico, entrega, não conclusão e vistoria)','t']]],
+  ['Campo e equipes',[['campo','Visão do técnico','t'],['eqVer','Visão da empresa terceira','t'],['eqTec','Equipe técnica e Equipes NT','t',[['a_eqTec','Editar a equipe técnica, as Equipes NT e as trocas','a']]]]],
+  ['Estoque',[['estoque','Estoque dos técnicos','t'],['estAtual','Atualizar estoque','t',[['a_bolsao','Publicar planilha do bolsão (SAP)','a'],['a_elleven','Importar movimentações do Elleven e do patrimônio','a'],['a_base','Saldo atual do Elleven (V-Task), data-base e patrimônio atual dos técnicos','a']]],['estHist','Movimentações','t']]],
+  ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['kanban','Backlog de projetos','t'],['a_custo','Ver o custo previsto dos projetos (backlog e previsão)','a']]],
   ['GTD Manutenção',[['gPainel','Painel de KPIs do GTD','t',[['g_tempos','Tempos de atendimento do GTD','t',[['a_gExpurgo','Expurgar tempos dos chamados','a']]],['g_fin','Financeiro do GTD','t',[['gf_budget','Budget e consumo da manutenção (definir o budget usa a mesma permissão da Implantação)','t'],['gf_det','Detalhamento das LPUs do GTD','t'],['gAprov','Aprovação de LPU do GTD','t',[['a_gAprovar','Aprovar, reprovar e devolver LPUs do GTD','a']]]]]]],['gCham','Chamados (Kanban)','t',[['a_gDespachar','Despachar chamados para o técnico','a'],['a_gEditar','Agendar, editar e cancelar chamados','a'],['a_gValidar','Acesso NOC: validar chamados','a']]],['gAgenda','Agenda do GTD','t'],['gNovo','Criar chamado','t'],['gRel','Histórico do GTD (por cliente, inclusive cancelados)','t']]]];
 const PERM_ALL=(()=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));return o})();
 const _sem=l=>PERM_ALL.filter(k=>!l.includes(k));
 const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto','a_gValidar']),
-  encarregado:_sem(['painel','p_tempos','a_expurgo','g_tempos','a_gExpurgo','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','g_fin','gf_budget','gf_det','gAprov','a_gAprovar']),
+  encarregado:_sem(['a_corrigir','a_eqTec','a_custo','painel','p_tempos','a_expurgo','g_tempos','a_gExpurgo','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','g_fin','gf_budget','gf_det','gAprov','a_gAprovar']),
   supply:['estAtual','a_bolsao'],delivery:['painelDia','agenda']};
-const permDe=(papel,perm)=>Array.isArray(perm)?perm:(PERM_PAD[papel]||[]);
+/* 18/10: permissões personalizadas salvas antes das funções novas (sem a marca _v18) recebem o padrão do papel nessas funções */
+const PERM_NOVAS={ausencias:['supervisor','encarregado'],campo:['supervisor','encarregado'],eqVer:['supervisor','encarregado'],eqTec:['supervisor','encarregado'],a_eqTec:['supervisor'],a_retirar:['supervisor','encarregado'],a_corrigir:['supervisor'],a_improd:['supervisor','encarregado'],a_custo:['supervisor']};
+const permDe=(papel,perm)=>!Array.isArray(perm)?(PERM_PAD[papel]||[]):perm.includes('_v18')?perm:perm.concat(Object.keys(PERM_NOVAS).filter(k=>PERM_NOVAS[k].includes(papel)&&!perm.includes(k)));
 const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc','func'].includes(ui.perfil))return false;if(ui.perfil==='noc')return NOC_PERM.includes(k);if(ui.perfil==='deliv'&&GTD_KEYS.includes(k))return false;return permDe(ME.papel,ME.perm).includes(k)};
-const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel'];
-const tabsDe=()=>['coord','clt','terc','func','visu','noc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs.filter(t=>t!=='equipe'||(S.equipe||[]).length):[...new Set(G_TABS.filter(pode).concat(['sup','enc'].includes(ui.perfil)?['ausencias','eqTec','campo','eqVer']:[]))];
+const G_TABS=['painel','agenda','relat','estoque','estAtual','estHist','base','prev','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel','ausencias','eqTec','campo','eqVer'];
+const tabsDe=()=>['coord','clt','terc','func','visu','noc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs.filter(t=>t!=='equipe'||(S.equipe||[]).length):[...new Set(G_TABS.filter(pode))];
 const PSEC_K={geral:'p_geral',entregas:'p_entregas',rede:'p_rede',exec:'p_exec',tempos:'p_tempos',equipes:'p_equipes',fin:'p_fin'},FSUB_K={budget:'f_budget',det:'f_det',aprov:'f_aprov'};
 const secsOk=()=>PSEC.filter(([k])=>pode(PSEC_K[k])),subsOk=()=>FSUB.filter(([k])=>pode(FSUB_K[k]));
 const semPerm=()=>{toast('Seu usuário não tem permissão para esta ação. Fale com a coordenação.','bad');return true};
@@ -2836,7 +2839,7 @@ const ACT={
   permFechar:()=>{ui.permSel=null;ui.permEd=null;render()},
   permPadrao:()=>{const pp=USR.pp.find(x=>x.user_id===ui.permSel);ui.permEd.set=(PERM_PAD[pp.papel]||[]).slice();render()},
   permSalvar:async()=>{const id=ui.permSel,pp=USR.pp.find(x=>x.user_id===id),L=ui.permEd.set.filter(k=>PERM_ALL.includes(k)),pad=PERM_PAD[pp.papel]||[],igual=pad.length===L.length&&pad.every(k=>L.includes(k));
-    const r=await sb.from('agenda_papeis').update({permissoes:igual?null:L}).eq('user_id',id);if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return}
+    const r=await sb.from('agenda_papeis').update({permissoes:igual?null:L.concat(['_v18'])}).eq('user_id',id);if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return}
     await carregarUsuarios();ui.permSel=null;ui.permEd=null;render();toast('Permissões salvas. Valem no próximo acesso do usuário (ou ao recarregar a agenda).')},
   estPub:async el=>{const k=el.dataset.k,I=EST.imp[k];if(!I||EST.bus.pub)return;if(!pode({bolsao:'a_bolsao',elleven:'a_elleven',base:'a_base'}[k])&&semPerm())return;
     if(k==='base'&&!ui.estBaseDt){toast('Informe a data e a hora do retrato.','bad');return}
@@ -4970,7 +4973,7 @@ Object.assign(ACT,{tvPer:el=>{const T=hoje(),v=el.dataset.v;if(v==='datas'){ui.g
    (+1 de SEV0058, SEV0060 e SEV0062 em todas); Voz = telefones do ROI × SEV0056; FWA = R$ 900 fixo.
    Deslocamento: item "Deslocamento para …" da LPU que cita a cidade × dias de campo restantes (cidades da base não têm item). */
 const KC_FWA=900;
-const kcVe=()=>['coord','sup'].includes(ui.perfil);
+const kcVe=()=>pode('a_custo');
 const kcItem=cod=>LPU.find(x=>x.cod===cod)||null;
 const KC_KIT={'gpon':'SEV0053','ponto a ponto':'SEV0059','last mile':'SEV0054','firewall':'SEV0055'};
 const KC_TOPO={'gpon':'GPON','ponto a ponto':'ponto a ponto','last mile':'last mile','firewall':'firewall'};
@@ -5203,7 +5206,7 @@ Object.assign(IN,{ausObs:el=>{(ui.ausF=ui.ausF||{}).obs=el.value}});
    Enquanto ninguém estiver marcado, agendamento e despacho mostram todos, como antes. Efeito: filtra e avisa, sem bloquear. */
 const EQP={rows:{},ok:false,bus:false,err:'',conf:false};
 const EQ_SV=[['rua','Rua'],['interno','Interno'],['ext','Extensão'],['ativ','Ativação'],['outras','Outras atividades']],EQ_N=Object.fromEntries(EQ_SV);
-const eqEdita=()=>['coord','sup'].includes(ui.perfil);
+const eqEdita=()=>pode('a_eqTec');
 async function eqCarregar(force){if(EQP.bus||(EQP.ok&&!force)||!(ETA_GESTAO()||['deliv','noc'].includes(ui.perfil)))return;EQP.bus=true;
   try{const r=await sb.from('ag_equipe').select('*');if(r.error)throw r.error;EQP.rows={};(r.data||[]).forEach(x=>{EQP.rows[x.tecnico]=x});EQP.err=''}
   catch(e){EQP.rows={};EQP.err=/ag_equipe|does not exist|schema cache|relation/i.test(String(e.message||e))?'Rode o script agenda_ajuste_25_equipe_tecnica.sql no Supabase para ativar a equipe técnica.':'Não foi possível carregar a equipe: '+(e.message||e)}
@@ -5241,12 +5244,12 @@ Object.assign(ACT,{
    Na atividade (Agenda), "Corrigir fases finalizadas": desmarca a fase que o técnico finalizou por engano
    (ex.: ativação marcada sem ter sido feita). O projeto volta ao backlog e sai das entregas do mês.
    Fica registrado em dados.correcoes [{em, por, papel, fases, motivo}]. */
-const corrPode=()=>['coord','sup'].includes(ui.perfil);
+const corrPode=()=>pode('a_corrigir');
 function corrBloco(a){const ff=a.fasesFin||[],C=a.correcoes||[];if(!ff.length&&!C.length)return '';
   return `${C.length?`<div class="result warn" style="margin-top:10px"><b>Correções da gestão:</b>${C.map(c=>`<br>${dBR(isoD(new Date(c.em)))} · ${esc(c.por||'')}: ${c.fases.map(k=>FCURTO[k]||k).join(', ')} ${c.fases.length===1?'deixou':'deixaram'} de constar como finalizada${c.fases.length===1?'':'s'}. ${esc(c.motivo||'')}`).join('')}</div>`:''}
    ${a.retirada?`<div class="result warn" style="margin-top:10px"><b>Retirada do técnico:</b> ${dBR(isoD(new Date(a.retirada.em)))} · ${esc(a.retirada.por||'')}: ${esc(a.retirada.motivo||'')}. Aguardando reagendamento.</div>`:''}
    ${!['cancelada'].includes(a.status)&&(corrPode()&&ff.length||corrRetPode()&&C.length&&CORR_RET.includes(a.status))?`<div class="tools" style="margin-top:10px">${ff.length&&corrPode()?`<button class="btn sm" data-act="corrAbrir" data-id="${a.id}">Corrigir fases finalizadas</button>`:''}${corrRetPode()&&C.length&&CORR_RET.includes(a.status)?`<button class="btn sm" data-act="corrRet" data-id="${a.id}">Tirar do técnico e aguardar reagendamento</button>`:''}</div>`:''}`}
-const corrRetPode=()=>['coord','sup','enc'].includes(ui.perfil);
+const corrRetPode=()=>pode('a_retirar');
 const CORR_RET=['deslocamento','no_local','execucao','relatorios','lpu','concluida'];
 Object.assign(ACT,{
   corrRet:el=>{if(!corrRetPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const ult=(a.correcoes||[]).slice(-1)[0],l=S.lpus.find(x=>x.ag===a.id);
@@ -6632,7 +6635,7 @@ ACT.impLpuAdm=el=>{const a=getAg(el.dataset.id);if(!impPode(a))return;impLiberar
 /* botão no card do técnico / funcionário */
 {const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);if(impPode(a)&&r&&typeof r.act==='string')r.act+=`<button class="btn wide" data-act="impLpu" data-id="${a.id}">Lançar improdutiva e deslocamento na LPU</button>`;return r}}
 /* janela da atividade (gestão) */
-{const _c=corrBloco;corrBloco=function(a){const h=_c.apply(this,arguments);if(!impPode(a)||!['coord','sup','enc'].includes(ui.perfil)&&!pode('a_reagendar'))return h;
+{const _c=corrBloco;corrBloco=function(a){const h=_c.apply(this,arguments);if(!impPode(a)||!pode('a_improd'))return h;
   return h+`<div class="result warn" style="margin-top:10px"><b>Sem LPU de improdutiva.</b> O técnico saiu para o atendimento${a.ts.chegada?' e chegou ao local':''}, mas a atividade não foi para a LPU.<div class="tools" style="margin-top:8px"><button class="btn sm" data-act="impLpu" data-id="${a.id}">Liberar LPU de improdutiva e deslocamento</button></div></div>`}}
 
 /* ---------- 18/10: PATRIMÔNIO DOS TÉCNICOS (ajuste 32) ----------
