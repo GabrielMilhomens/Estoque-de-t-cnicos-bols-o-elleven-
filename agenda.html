@@ -6522,7 +6522,10 @@ Object.assign(ACT,{
       a.rel=a.rel||{};a.rel.vist={path,em:Date.now(),res:r};
       a.vistoria={res:r,sug:vtSug(),just:R.res&&R.res!==vtSug()?R.just:'',conf:vtConf(),pontos:vtAtivos(),nPend:L.length,prazo:dz?addD(hoje(),dz):null,dias:dz||null,em:Date.now(),por:meNome(),revis:!!R.revis,mMed:+R.mMed||0,mPrev:VT.M.mPrev,kmz:VT.nome,
         obs:String(R.obs||'').trim(),pend:L.map(x=>({id:x.e.id,item:x.n,g:x.d.g||'',txt:x.d.txt||''})),alt:R.alt.map(a2=>{const[v1,v2]=vtViz(a2);return{de:v1,ate:v2,proj:Math.round(a2.m2-a2.m1),exec:vtLen(a2.pts),motivo:a2.motivo,sit:a2.sit}}),estado:vtSer(R,false)};
-      a.medicoes=Object.assign({},a.medicoes||{},{'vist:metros':+R.mMed||0});save();IDB.del('vt:'+a.id).catch(()=>{});
+      a.medicoes=Object.assign({},a.medicoes||{},{'vist:metros':+R.mMed||0});
+      /* 17/10 noite: vistoria só de vistoria, preenchida durante a execução: enviar o relatório conclui a atividade e segue para a LPU */
+      let conc=false;if(a.status==='execucao'&&vtSo(a)){a.fasesFin=fasesOf(a);a.ts.conclusao=Date.now();if(a.dias)a.dias=a.dias.filter(d=>d<=a.data);a.status='relatorios';conc=true}
+      save();IDB.del('vt:'+a.id).catch(()=>{});if(conc&&relsDe(a).every(r=>a.rel[r.k]))ACT.relEnviar({dataset:{id:a.id}});
       ui.vt=null;vtMapaFim();VT.R=null;VT.M=null;render();window.scrollTo(0,0);toast(`Vistoria enviada: ${r}${dz?`, prazo de ${dz} dias`:''}.`)}
     catch(e){toast('Não foi possível enviar: '+(e.message||e)+'. A vistoria continua salva neste aparelho; tente de novo.','bad')}}});
 {const _rel=ACT.rel;ACT.rel=async el=>{if(el.dataset.r==='vist')return vtAbrir(el.dataset.id);return _rel(el)}}
@@ -6541,6 +6544,12 @@ function vtPrazos(tipo){if(tipo&&tipo!=='vist')return '';const U={};S.ags.forEac
 function vtConfHtml(e){const cf=VT_CONF[e.tipo];if(!cf||e.skip)return '';const k=cf[0],v=e.it[k],d=e.nc[k]||{};
   return `<div class="vtconf ${v==='nc'?'nao':v==='c'?'sim':''}"><b>${cf[1]} <span class="req">*</span></b><div class="vtsn" role="group" aria-label="${esc(cf[1])}"><button type="button" data-vt="conf" data-p="${e.id}" data-v="c" aria-pressed="${v==='c'}">Sim</button><button type="button" data-vt="conf" data-p="${e.id}" data-v="nc" aria-pressed="${v==='nc'}">Não</button></div>
    ${v==='nc'?`<div class="vtncd"><select class="inp" data-vtc="g" data-p="${e.id}" data-k="${k}"><option value="">Gravidade…</option>${VT_GRAV.map(([g,l])=>`<option value="${g}" ${d.g===g?'selected':''}>${l}</option>`).join('')}</select><input class="inp" data-vti="nt" data-p="${e.id}" data-k="${k}" placeholder="O que está errado" value="${esc(d.txt||'')}">${vtFotoBox(e,k)}</div>`:''}</div>`}
+
+/* 17/10 noite: na atividade só de vistoria, iniciar a atividade já abre o relatório; "Concluir atividade" vira "Abrir o relatório de vistoria" */
+const vtSo=a=>!!a&&fasesOf(a).length>0&&fasesOf(a).every(f=>f==='vist');
+{const _go=ACT.go;ACT.go=async el=>{const a=getAg(el.dataset.id),antes=a&&a.status;const r=await _go(el);const b=getAg(el.dataset.id);if(b&&antes==='no_local'&&b.status==='execucao'&&vtSo(b)){toast('Atividade iniciada. Preencha o relatório de vistoria.');vtAbrir(b.id)}return r}}
+{const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);if(a&&a.status==='execucao'&&vtSo(a)&&r&&typeof r.act==='string'){const d=a.rel&&a.rel.vist;
+  r.act=r.act.replace(/<button class="bigbtn" data-act="go" data-id="[^"]*"[^>]*>[^<]*[Cc]oncluir[^<]*<\/button>/,`<button class="bigbtn" data-act="rel" data-id="${a.id}" data-r="vist">${d?'Relatório enviado':'Abrir o relatório de vistoria'}</button><small class="muted" style="display:block;text-align:center;font-size:13px">Ao enviar o relatório, a atividade é concluída.</small>`)}return r}}
 
 /* ---------- 17/10: improdutiva e deslocamento de terceiros ----------
    Antes, "Não foi possível realizar" sem marcar "Fiz parte do serviço" deixava a atividade em nao_concluida, que nunca chega à LPU.
