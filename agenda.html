@@ -5493,7 +5493,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
     rels=`${notaAdmVer(a.notaAdm)}${b?`<div class="relbts">${b}</div>`:'<p class="muted">Nenhum relatório enviado ainda.</p>'}`}
   else if(R.parcial&&R.parcial.path)rels=`<div class="tools"><button class="btn sm" data-act="relVer" data-p="${esc(R.parcial.path)}">Relatório da não conclusão</button></div>`;
   const resul=rels+(med?`<dl class="dl" style="margin-top:8px">${med}</dl>`:'');
-  const mats=!ro&&!FIM.includes(a.status)&&a.status!=='cancelada'&&(p.roi||a.materiais)?matHtml(matCheck(p,a.estoque||a.__tec0||a.tec,fasesOf(a),a.materiais)):'';
+  const mats=ro?matRO(a.materiais):!FIM.includes(a.status)&&a.status!=='cancelada'&&(p.roi||a.materiais)?matHtml(matCheck(p,a.estoque||a.__tec0||a.tec,fasesOf(a),a.materiais)):'';
   const obs=a.obs?`<p class="note" style="margin:6px 0 0"><b>Observação do agendamento:</b> ${esc(a.obs)}</p>`:'';
   const nMat=(a.materiais||[]).length,anx=anxDe(a.etiqueta);
   const pz=a.prazo&&a.prazo.resp==='mais'?`<div class="result ${a.prazo.status==='pendente'?'warn':a.prazo.status==='aprovado'?'ok':'bad'}" style="margin:0 0 8px"><b>Pedido de prazo (${a.prazo.status==='pendente'?'aguardando decisão':a.prazo.status}):</b> mais ${a.prazo.dias>1?a.prazo.dias+' dias':'1 dia'}, ${esc(a.prazo.motivo||'')}. ${esc(a.prazo.obs||'')}${a.prazo.resposta?`<br>Resposta: ${esc(a.prazo.resposta)}`:''}${a.prazo.status==='pendente'&&canReag()?`<br><button class="btn sm" data-act="pzDecidir" data-id="${a.id}" style="margin-top:6px">Decidir</button>`:''}</div>`:'';
@@ -5728,7 +5728,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
   const upH=ups.length?`<details class="caup" data-upk="ag:${a.id}" ${(ui.upOpen||{})['ag:'+a.id]?'open':''}><summary>${ups.length+(ups.length===1?' atualização':' atualizações')+' do técnico'}</summary><div class="catl">${ups.slice().map(u=>`<div><b>${hmA(u.em)}</b> ${esc(u.tipo)}${u.m?`, ${esc(u.m)} m lançados`:''}${u.obs?' · '+esc(u.obs):''}${u.foto?` <button class="btn sm" data-act="relVer" data-p="${esc(u.foto)}">Foto</button>`:''}</div>`).join('')}</div></details>`:'';
   const med=a.medicoes?[...['rua','interno'].filter(f=>a.medicoes[f+':metros']!=null).map(f=>`<div><dt>Metros lançados (${FCURTO[f].toLowerCase()})</dt><dd>${(+a.medicoes[f+':metros']).toLocaleString('pt-BR')} m</dd></div>`),...['sinal_ini','sinal_fim'].filter(k2=>a.medicoes['ext:'+k2+':dbm']!=null).map(k2=>`<div><dt>${k2==='sinal_ini'?'Sinal no ponto de acesso':'Sinal no ponto de derivação'}</dt><dd>${esc(a.medicoes['ext:'+k2+':dbm'])} dBm</dd></div>`)].join(''):'';
   /* atalhos: endereço, material, anexos */
-  const mats=!ro&&!FIM.includes(a.status)&&a.status!=='cancelada'&&(p.roi||a.materiais)?matHtml(matCheck(p,a.estoque||a.__tec0||a.tec,fasesOf(a),a.materiais)):'',nMat=(a.materiais||[]).length,anx=anxDe(a.etiqueta);
+  const mats=ro?matRO(a.materiais):!FIM.includes(a.status)&&a.status!=='cancelada'&&(p.roi||a.materiais)?matHtml(matCheck(p,a.estoque||a.__tec0||a.tec,fasesOf(a),a.materiais)):'',nMat=(a.materiais||[]).length,anx=anxDe(a.etiqueta);
   const endH=`${c.endereco?`<p style="margin:0 0 4px"><b>${esc(c.endereco)}</b></p>`:'<p class="muted" style="margin:0">Endereço não informado.</p>'}${c.contato||c.telefone?`<p style="margin:0"><span class="muted">Contato:</span> ${esc(c.contato||'')}${c.telefone?' · '+esc(c.telefone):''}</p>`:''}${c.janela?`<p style="margin:4px 0 0"><span class="muted">Janela:</span> ${esc(c.janela)}</p>`:''}${k?`<p style="margin:4px 0 0"><span class="muted">Coordenada:</span> ${k[0]}, ${k[1]}</p>`:''}`;
   const matH=`${mats||(nMat?'':'<p class="muted" style="margin:0">Nenhum material listado.</p>')}${a.obs?`<p class="note" style="margin:6px 0 0"><b>Observação para o técnico:</b> ${esc(a.obs)}</p>`:''}${med?`<dl class="dl" style="margin-top:8px">${med}</dl>`:''}`;
   const anxH=anx.length?anx.map(x=>anxLinha(x,0)).join(''):'<p class="muted" style="margin:0">Nenhum anexo.</p>';
@@ -5739,7 +5739,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
   const pdEd=agPodeEditar(a);
   openModal(`<div class="agdt2"><div class="cat cath"><b>${esc(cli?cli+' - '+a.etiqueta:a.etiqueta)}</b><i class="chip ${agChipCls(a)}">${esc(agStTxt(a))}</i></div>
    ${cRow('dt',`<b>${dataTxt}</b>`)}${cRow('fz',`<b>${esc(fasesN(a))}</b>${(a.fasesFin||[]).length?` <span class="muted">· finalizou: ${a.fasesFin.map(k=>FCURTO[k]).join(', ')}</span>`:''}`)}${cRow('top',esc(topoTxt(p)))}${cRow('cid',`${esc(p.cidade||'')}${c.endereco?` <span class="muted">· ${esc(endCurtoA(c.endereco))}</span>`:''}`)}
-   ${a.equipe?cRow('eq',`<b>${esc(a.equipeNome||'Equipe')}</b> <span class="muted">· ${esc(nteNomes(a).join(' + '))} · material no estoque de ${esc(nteEstN(a))}${a.criadoPor?' · agendado por '+esc(a.criadoPor):''}</span>`):''}${a.equipe?'':cRow('tec',`${esc(tecN(a.tec))} <span class="muted">· ${vinc(a.tec)}${a.criadoPor?' · agendado por '+esc(a.criadoPor):''}</span>`)})}
+   ${a.equipe?cRow('eq',`<b>${esc(a.equipeNome||'Equipe')}</b> <span class="muted">· ${esc(nteNomes(a).join(' + '))} · material no estoque de ${esc(nteEstN(a))}${a.criadoPor?' · agendado por '+esc(a.criadoPor):''}</span>`):''}${a.equipe?'':cRow('tec',`${esc(tecN(a.tec))} <span class="muted">· ${vinc(a.tec)}${a.criadoPor?' · agendado por '+esc(a.criadoPor):''}</span>`)}
    <div class="casit ${fc}"><b>${esc(ft)}</b>${nc&&(a.obsMotivo||falta)?`<span>${esc((a.obsMotivo||'')+falta)}</span>`:''}</div>${notas}
    ${quick?`<div class="agquick" style="margin-top:12px">${quick}</div>`:''}
    <p class="lbl2">Fases do projeto</p><div class="cafp">${agPassos(p)}</div>${diasTrab(a)}
@@ -6069,6 +6069,9 @@ Object.assign(ACT,{
   nteTrDel:async el=>{if(!eqEdita())return semPerm();if(!confirm('Excluir esta troca?'))return;const r=await sb.from('ag_equipes_trocas').delete().eq('id',el.dataset.id);if(r.error){toast('Não foi possível excluir: '+r.error.message,'bad');return}await nteCarregar(true);render()}});
 ICA.eq='<circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M15 14.2a5 5 0 0 1 6.5 4.8"/>';
 const nteRotF=F=>{const e=nteDe(F.eq),c=nteComp(e,nteDias(F)),n=c.pres.map(id=>nmC(tecN(id)));return c.aus.length&&n.length?`${e.nome} · só com ${n[0]}`:`${e.nome} (${n.join(' + ')})`};
+
+/* 18/10: administrador e funcionário da empresa terceira veem a lista de materiais da atividade (só leitura, sem saldo de estoque) */
+function matRO(L){if(!L||!L.length)return '';return `<div class="tablewrap"><table><thead><tr><th>Material</th><th class="r">Quantidade</th></tr></thead><tbody>${L.map(x=>`<tr><td>${esc(x.desc||x.cod||'')}${x.cod&&x.desc?` <small class="muted">${esc(x.cod)}</small>`:''}</td><td class="r">${esc(String(x.qtd??''))}</td></tr>`).join('')}</tbody></table></div>`}
 /* ---------- 16/10: novo RFO do GTD (v2) ----------
    Blocos: desfecho, o que encontrou (categoria, causa, responsabilidade, sinal), o que foi feito, equipamento,
    testes conforme o tipo (link, qualidade/integridade, telefonia, Wi-Fi), fotos pedidas conforme o caso e recomendação.
