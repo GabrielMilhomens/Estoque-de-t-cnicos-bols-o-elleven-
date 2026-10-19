@@ -7161,7 +7161,7 @@ function agOpenTec(a){const p=pPor(a.etiqueta)||{etiqueta:a.etiqueta},c=S.comp[a
   const tile=(k2,ic,n,s)=>`<button class="catile" data-act="caTile" data-k="${k2}" aria-pressed="false">${icA(ic,'cati')}<b>${n}</b><span>${esc(s)}</span></button>`;
   const tiles=`<div class="catiles">${tile('end','cid','Endereço',p.cidade||c.endereco?endCurtoA(c.endereco,p.cidade):'—')}${tile('mat','mat',med?'Material e medições':'Material',nMat?nMat+(nMat===1?' item':' itens'):a.obs?'1 observação':'—')}${tile('anx','anx','Anexos',anx.length?anx.length+(anx.length===1?' arquivo':' arquivos'):'nenhum')}</div>
    <div class="capn" data-k="end" hidden>${endH}</div><div class="capn" data-k="mat" hidden>${matH}</div><div class="capn" data-k="anx" hidden>${anxH}</div>`;
-  openModal(`<div class="agdt2 agtec">${top}${tvHistAnt(a)}
+  openModal(`<div class="agdt2 agtec">${top}${tvHistAnt(a,true)}
    ${quick?`<div class="agquick" style="margin-top:12px">${quick}</div>`:''}
    <div style="margin-top:12px">${sit}</div>
    ${etaGestao(t,'a',a.id,a.status==='deslocamento')}${upH}${tiles}
@@ -7170,7 +7170,7 @@ function agOpenTec(a){const p=pPor(a.etiqueta)||{etiqueta:a.etiqueta},c=S.comp[a
 {const _o=ACT.agOpen;ACT.agOpen=function(el){const a=getAg(el.dataset.id);if(a&&(['terc','func'].includes(ui.perfil)||ui.tab==='eqVer'))return agOpenTec(a);return _o.apply(this,arguments)}}
 /* 18/10: histórico anterior do próprio técnico (ou da equipe, para o administrador) neste cliente:
    dias já encerrados desta atividade e atividades anteriores na mesma etiqueta */
-function tvHistAnt(a){const eq=tvEhEquipe(a),ids=new Set([a.tec]);if(eq)try{eqIds().forEach(x=>ids.add(x))}catch(e){}
+function tvHistAnt(a,emModal){const eq=tvEhEquipe(a),ids=new Set([a.tec]);if(eq)try{eqIds().forEach(x=>ids.add(x))}catch(e){}
   const d5=v=>dBR(isoD(new Date(v))).slice(0,5),hor=(l,v)=>v?`${l} ${hmA(v)}`:'';
   const upsDia=(L,dia)=>(L||[]).filter(u=>u.em&&isoD(new Date(u.em))===dia&&(u.obs||u.m)).map(u=>`<li><b>${hmA(u.em)}</b> ${esc(u.tipo||'')}${u.m?`, ${esc(u.m)} m`:''}${u.obs?' · '+esc(u.obs):''}</li>`).join('');
   const fotos=F=>(F||[]).map((p,i)=>`<button class="btn sm" data-act="relVer" data-p="${esc(p)}">Foto ${i+1}</button>`).join('');
@@ -7191,7 +7191,13 @@ function tvHistAnt(a){const eq=tvEhEquipe(a),ids=new Set([a.tec]);if(eq)try{eqId
       ${(o.atualizacoes||[]).some(u=>u.obs)?`<ul class="haup">${o.atualizacoes.filter(u=>u.obs).map(u=>`<li><b>${d5(u.em)} ${hmA(u.em)}</b> ${esc(u.obs)}</li>`).join('')}</ul>`:''}</div>`})});
   if(!H.length)return '';H.sort((x,y)=>y.o-x.o);
   const nD=(a.diario||[]).length,nA=H.length-nD,sub=[nD?nD+(nD===1?' dia anterior':' dias anteriores'):'',nA?nA+(nA===1?' atividade anterior':' atividades anteriores'):''].filter(Boolean).join(' e ');
-  return tvAcc('a:hist:'+a.id,true,IC.doc,eq?'Histórico da equipe neste cliente':'Seu histórico neste cliente',esc(sub),`<div class="hants">${H.map(x=>x.h).join('')}</div>`)}
+  const k='a:hist:'+a.id,tit=eq?'Histórico da equipe neste cliente':'Seu histórico neste cliente',body=`<div class="hants">${H.map(x=>x.h).join('')}</div>`;
+  if(!emModal)return tvAcc(k,true,IC.doc,tit,esc(sub),body);
+  /* dentro da ficha (janela): o corpo já vem pronto e só abre/fecha, sem redesenhar a tela */
+  ui.tvAcc=ui.tvAcc||{};const o=ui.tvAcc[k]===undefined?true:!!ui.tvAcc[k];
+  return `<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="${k}" data-p="1" aria-expanded="${o}"><span class="taci">${IC.doc}</span><span class="tact"><b>${tit}</b><small>${esc(sub)}</small></span><span class="tacs">${o?IC.up:IC.dn}</span></button><div class="taccb"${o?'':' hidden'}>${body}</div></section>`}
+{const _t=ACT.tvAcc;ACT.tvAcc=function(el){if(!el.closest('#modal'))return _t.apply(this,arguments);ui.tvAcc=ui.tvAcc||{};const k=el.dataset.k,o=ui.tvAcc[k]===undefined?el.dataset.p==='1':!!ui.tvAcc[k];ui.tvAcc[k]=!o;
+  const b=el.parentElement.querySelector('.taccb');if(b)b.hidden=o;el.setAttribute('aria-expanded',String(!o));const ic=el.querySelector('.tacs');if(ic)ic.innerHTML=o?IC.dn:IC.up}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
