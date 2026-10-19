@@ -6156,7 +6156,7 @@ const r2Txt=(c,R,k,ph,ta,mode)=>ta?`<textarea class="inp" rows="2" id="r2_${k}" 
 const r2Tog=(c,R,k,lab,req,sub)=>`<label class="r2tog"><input type="checkbox" id="r2_${k}" data-ch="r2c" data-id="${c.id}" data-k="${k}" ${R[k]?'checked':''}><span><b>${lab}${req?' <em>*</em>':''}</b>${sub?`<small>${sub}</small>`:''}</span></label>`;
 const r2Fld=(lab,req,html,extra)=>`<div class="r2f"><span class="r2l">${lab}${req?' <em>*</em>':''}${extra?` <i>${extra}</i>`:''}</span>${html}</div>`;
 function r2PotHtml(c,R,k,lab,req){const s=r2Pot(R[k]),x=r2Num(R[k]),pos=x===null?null:Math.max(0,Math.min(100,(x+5)/-30*100));
-  return `<div class="r2f"><span class="r2l">${lab}${req?' <em>*</em>':''}</span>${r2Txt(c,R,k,'ex.: −19,5',0,'decimal')}<div class="r2g">${pos!==null?`<i style="left:${pos}%"></i>`:''}</div><div class="r2gl"><span style="left:0">−5</span><span style="left:10%">−8</span><span style="left:66.7%">−25</span><span style="left:100%">−35</span></div>${s?`<div class="r2ps ${s[0]}">${s[1]}</div>`:''}</div>`}
+  return `<div class="r2f"><span class="r2l">${lab}${req?' <em>*</em>':''}</span>${r2DbmIn(c,R,k)}<div class="r2g">${pos!==null?`<i style="left:${pos}%"></i>`:''}</div><div class="r2gl"><span style="left:0">−5</span><span style="left:10%">−8</span><span style="left:66.7%">−25</span><span style="left:100%">−35</span></div>${s?`<div class="r2ps ${s[0]}">${s[1]}</div>`:''}</div>`}
 function r2Chamado(c){const sr=r2Ex(c,'Serial'),ip=r2Ex(c,'IP da CPE'),fo=r2Ex(c,'Fail-over'),bd=r2Banda(c),L=[['Motivo do NOC',c.motivo],['Equipamento',[c.equipamento,sr&&'serial '+sr].filter(Boolean).join(' · ')],['IP da CPE',ip],['Entrega',[c.entrega,bd&&r2BandaTxt(bd)].filter(Boolean).join(' · ')],['Fail-over',fo],['Porta',c.porta]].filter(x=>x[1]);
   return `<details class="r2ch"><summary><b>Dados do chamado</b><span>${esc(r2CatN(c.categoria)||'')}${c.equipamento?' · '+esc(c.equipamento):''}</span></summary><dl>${L.map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join('')}</dl></details>`}
 function r2Fotos(c,R){const fr=r2FotosReq(R),cam=(tipo,lab)=>`<label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} ${lab}<input type="file" accept="image/*" capture="environment" data-ch="gRfoFoto" data-id="${c.id}" data-cam="1" data-tipo="${tipo}" hidden></label>`;
@@ -6299,6 +6299,17 @@ async function r2Ex1Pdf(doc,x){const W=210,H=297,m=14;
     if(pdf.numPages>n){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(120);doc.text(`O PDF do EX1 tem ${pdf.numPages} páginas; as demais estão no arquivo original anexado ao chamado.`,m,H-12)}}
   catch(e){nota(`O PDF do EX1 (${x.nome||'arquivo'}) está anexado ao chamado e pode ser aberto no histórico. Não foi possível incluir as páginas neste relatório.`)}}
 function r2Ex1Btn(c){return c&&c.rfoEx1&&c.rfoEx1.path?`<button class="btn sm" data-act="relVer" data-p="${esc(c.rfoEx1.path)}">Teste do EX1 (PDF)</button>`:''}
+
+/* 19/10: sinal óptico com o botão de sinal (− já vem marcado), porque o teclado numérico de vários celulares não tem o "−" */
+function r2DbmIn(c,R,k){const raw=String(R[k]??''),pos=!!(R.pos||{})[k],v=raw.replace(/^[-+−]\s*/,'');
+  return `<div class="dbm"><button type="button" class="dbms ${pos?'':'neg'}" data-act="r2sinal" data-id="${c.id}" data-k="${k}" aria-label="Sinal ${pos?'positivo':'negativo'}. Tocar para trocar">${pos?'+':'−'}</button><input class="inp" id="r2_${k}" type="text" inputmode="decimal" autocomplete="off" data-in="r2dbm" data-id="${c.id}" data-k="${k}" placeholder="ex.: 19,5" value="${esc(v)}" aria-label="Valor em dBm"></div>`}
+Object.assign(IN,{r2dbm:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;let v=el.value;
+  if(/^\s*[-−]/.test(v)){R.pos=Object.assign({},R.pos,{[el.dataset.k]:false});v=v.replace(/^\s*[-−]\s*/,'');el.value=v}
+  else if(/^\s*\+/.test(v)){R.pos=Object.assign({},R.pos,{[el.dataset.k]:true});v=v.replace(/^\s*\+\s*/,'');el.value=v}
+  v=v.replace(/[^\d.,]/g,'');const pos=!!(R.pos||{})[el.dataset.k];
+  IN.r2t({dataset:el.dataset,id:el.id,selectionStart:el.selectionStart,value:v?(pos?'':'-')+v:''})}});
+Object.assign(ACT,{r2sinal:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;const k=el.dataset.k,pos=!(R.pos||{})[k];R.pos=Object.assign({},R.pos,{[k]:pos});
+  const v=String(R[k]??'').replace(/^[-+−]\s*/,'');R[k]=v?(pos?'':'-')+v:'';gRfoSalvar(el.dataset.id);r2Re();const n=document.getElementById('r2_'+k);if(n)n.focus()}});
 
 /* ---------- 17/10: VISTORIA DE LANÇAMENTO ----------
    Lê o KMZ de lançamento anexado ao projeto (ícones e traços do IOP.2.5.1.001R00), mostra o trajeto num mapa com zoom
