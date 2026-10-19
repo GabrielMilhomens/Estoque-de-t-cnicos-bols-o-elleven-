@@ -7127,7 +7127,7 @@ window.addEventListener('resize',()=>{if(ME&&NAV_GEST()&&ui.navSheet&&!navCel())
    A gestão continua vendo o andamento do projeto inteiro (fases de todos os técnicos). */
 const tvEhEquipe=a=>!!ME&&a.tec!==ME.id&&ui.tab!=='campo';
 function andamentoHtml(a){const fs=fasesOf(a).filter(k=>FCURTO[k]),fin=a.fasesFin||[],t=a.ts||{},dia=t.conclusao?dBR(isoD(new Date(t.conclusao))).slice(0,5):'';
-  if(!fs.length)return '';const enc=FIM.includes(a.status)||a.status==='nao_concluida'||['relatorios','lpu'].includes(a.status);
+  if(!fs.length||!fin.length)return '';/* só aparece depois que alguma fase foi finalizada nesta atividade */const enc=FIM.includes(a.status)||a.status==='nao_concluida'||['relatorios','lpu'].includes(a.status);
   const tit=tvEhEquipe(a)?'O QUE A EQUIPE FEZ NESTA ATIVIDADE':'O QUE VOCÊ FEZ NESTA ATIVIDADE';
   return `<div class="tcand"><span class="tck2">${tit}</span><div class="tcbars" style="grid-template-columns:repeat(${fs.length},minmax(0,1fr))">${fs.map(k=>{const ok=fin.includes(k),now=!ok&&!enc&&['execucao','no_local'].includes(a.status),txt=ok?dia:enc?'não finalizada':now?'em andamento':'a fazer';
     return `<div><i class="${ok?'ok':now?'now':''}"></i><span class="${ok?'ok':now?'now':''}">${ok?'✓ ':''}${FCURTO[k]}</span><small class="tcdt">${txt}</small></div>`}).join('')}</div></div>`}
