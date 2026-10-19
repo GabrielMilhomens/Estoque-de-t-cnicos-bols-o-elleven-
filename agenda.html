@@ -6257,7 +6257,7 @@ function r2Linhas(c,r){const L=[['Motivo do chamado',c.motivo||'—']];
     const blob=await gRfoPdf(c0,ff),path=`chat/g/${id}/rfo/relatorio-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
   catch(e){toast('O RFO será gravado, mas o PDF do relatório não foi gerado: '+(e.message||e),'bad')}
   const nv=await gAcao(id,x=>{if(x.status!=='rfo'){toast('O RFO já foi gerado.','bad');return false}x.desfecho=R.desfecho;x.encEquipe=R.desfecho==='Encaminhado'?R.encEquipe:'';x.rfo=rr;
-    if(R.cat&&R.cat!==x.categoria){gHist(x,`Categoria corrigida no RFO: ${x.categoria||'—'} → ${R.cat}`);x.categoria=R.cat}
+    if(R.cat&&R.cat!==x.categoria){gHist(x,`Categoria corrigida no RFO: ${x.categoria||'—'} → ${R.cat}`);if(['clt','terc','func'].includes(ui.perfil))x.catRfo=R.cat;else{x.categoria=R.cat;delete x.catRfo}}
     if(R.notaAdm)x.notaAdm=R.notaAdm;x.rfoFotos=Fp.map(f=>({path:f.path,leg:f.leg||'',tipo:f.tipo||''}));if(pdf)x.rfoPdf=pdf;if(R.ex1&&R.ex1.path&&r2Tipo(R.cat)==='integ'&&R.desfecho==='Resolvido')x.rfoEx1={path:R.ex1.path,nome:R.ex1.nome||'EX1.pdf'};else delete x.rfoEx1;x.rfoTxt=gRfoTexto(x);x.status='lpu';x.ts.rfo=Date.now();gHist(x,'RFO gerado ('+R.desfecho+')'+(Fp.length?', '+Fp.length+' foto(s)':''))},
     ui.perfil==='func'?'RFO gerado. O administrador da sua empresa foi avisado.':'RFO gerado. Agora preencha a LPU.');
   el.disabled=false;if(nv){delete ui.gRfo[id];IDB.del('gr:'+id).catch(()=>{});if(ui.perfil!=='func')ACT.gLpuAbrir({dataset:{id}})}}}
@@ -6310,6 +6310,15 @@ Object.assign(IN,{r2dbm:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;l
   IN.r2t({dataset:el.dataset,id:el.id,selectionStart:el.selectionStart,value:v?(pos?'':'-')+v:''})}});
 Object.assign(ACT,{r2sinal:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;const k=el.dataset.k,pos=!(R.pos||{})[k];R.pos=Object.assign({},R.pos,{[k]:pos});
   const v=String(R[k]??'').replace(/^[-+−]\s*/,'');R[k]=v?(pos?'':'-')+v:'';gRfoSalvar(el.dataset.id);r2Re();const n=document.getElementById('r2_'+k);if(n)n.focus()}});
+
+/* 19/10: o banco não deixa o técnico mudar a categoria do chamado (trava do ajuste 16).
+   A categoria corrigida pelo técnico no RFO fica em catRfo; a ferramenta mostra e conta essa categoria,
+   e grava de volta na coluna só quando quem salva é a gestão. */
+{const _d=gDeRow;gDeRow=function(r){const c=_d(r);c.catCol=r.categoria||'';if(c.catRfo&&c.catRfo!==c.categoria)c.categoria=c.catRfo;return c}}
+{const _p=gParaRow;gParaRow=function(c){const row=_p(c);if(row.dados)delete row.dados.catCol;
+  if(['clt','terc','func'].includes(ui.perfil)&&c.catCol!==undefined)row.categoria=c.catCol||null;
+  else if(row.dados&&row.dados.catRfo!==undefined)delete row.dados.catRfo;/* gestão: grava a categoria que está na tela (a do RFO ou a que ela editou) */
+  return row}}
 
 /* ---------- 17/10: VISTORIA DE LANÇAMENTO ----------
    Lê o KMZ de lançamento anexado ao projeto (ícones e traços do IOP.2.5.1.001R00), mostra o trajeto num mapa com zoom
