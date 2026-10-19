@@ -1462,7 +1462,7 @@ nav.tabs .ncatm,.ncatm{display:none}
 .npr small{margin-left:auto;font-size:13px;color:var(--muted)}
 .npr:hover,.npr.on{background:var(--brand-soft);color:var(--brand-ink)}
 .npf{display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);padding:10px 16px;font-size:12.5px;color:var(--muted)}
-.tcand .tcdt{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}.tvtec{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--bg);border-radius:12px;padding:8px 10px}.tvtec>span:last-child{display:flex;flex-direction:column;min-width:0}.tvtec b{font-size:15px}.tvtec small{color:var(--muted);font-size:13.5px}.agtec .tvtop{margin:0}.hants{display:flex;flex-direction:column;gap:10px}.hant{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:14.5px}.hah{display:flex;align-items:center;gap:8px;justify-content:space-between}.hah b{font-size:15px}.hal{color:var(--muted);font-size:13.5px}.haup{margin:4px 0 0;padding-left:18px;font-size:13.5px}.haup li{margin:2px 0}.hafo{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.agtec .tvacc{margin-top:12px}.chatcolap{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.chatcolap img{max-width:100%;max-height:52vh;border-radius:10px;border:1px solid var(--line);object-fit:contain}.chatcolap img:not(:only-child){max-width:calc(50% - 4px);max-height:30vh}</style>
+.tcand .tcdt{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}.tvtec{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--bg);border-radius:12px;padding:8px 10px}.tvtec>span:last-child{display:flex;flex-direction:column;min-width:0}.tvtec b{font-size:15px}.tvtec small{color:var(--muted);font-size:13.5px}.agtec .tvtop{margin:0}.hants{display:flex;flex-direction:column;gap:10px}.hant{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:14.5px}.hah{display:flex;align-items:center;gap:8px;justify-content:space-between}.hah b{font-size:15px}.hal{color:var(--muted);font-size:13.5px}.haup{margin:4px 0 0;padding-left:18px;font-size:13.5px}.haup li{margin:2px 0}.hafo{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.agtec .tvacc{margin-top:12px}.chatcolap{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.chatcolap img{max-width:100%;max-height:52vh;border-radius:10px;border:1px solid var(--line);object-fit:contain}.chatcolap img:not(:only-child){max-width:calc(50% - 4px);max-height:30vh}.tvetq{white-space:nowrap}</style>
 </head>
 <body>
 <div id="vLoad" class="authv"><div class="acard"><div class="brand"><span class="logo" role="img" aria-label="Net Turbo Telecom"></span><small>Ferramenta de Gestão O&amp;M</small></div><p class="muted" id="loadMsg" style="margin-top:14px">Carregando…</p></div></div>
@@ -4830,7 +4830,7 @@ function tvCardA(x){const c=S.comp[x.etiqueta]||{},bl=x.status==='agendada'&&emA
   const abrir=l=>`<button class="tvpri" data-act="abrir" data-id="${x.id}">${l}</button>`,go=l=>`<button class="tvpri" data-act="go" data-id="${x.id}" data-hold="2000">${l}</button>`,info=l=>`<button class="tvinfo" data-act="abrir" data-id="${x.id}">${l}</button>`;
   const A={agendada:bl||x.aguardaPrazo?info('Abrir atividade'):abrir('Informar previsão e sair'),deslocamento:go('Segure: cheguei no local'),no_local:go('Segure: iniciar atividade'),execucao:abrir('Abrir atividade'),relatorios:abrir(x.parcial?'Preencher o relatório do que foi feito':'Preencher o relatório'),lpu:ui.perfil==='func'?info('Com o administrador'):abrir('Preencher a LPU'),concluida:info('Ver atividade'),nao_concluida:info('Ver atividade')}[x.status]||abrir('Abrir atividade');
   return `<article class="tvcard${x.status==='agendada'&&x.data<=T&&!bl?' alvo':''}">${tvTag('impl','Implantação · '+esc(x.etiqueta))}<div class="tvch">${chips}</div>
-   <button class="tvnm" data-act="abrir" data-id="${x.id}"><b>${esc(cliN(x.etiqueta)||x.etiqueta)}</b><span>${esc(fasesN(x))}</span></button>
+   <button class="tvnm" data-act="abrir" data-id="${x.id}"><b>${tvNomeEtq(cliN(x.etiqueta),x.etiqueta)}</b><span>${esc(fasesN(x))}</span></button>
    <div class="tvinf"><span>${TVI.clock}${esc(apoioTxt(x))}</span>${c.endereco?`<span>${IC.pin}${esc(endCurto(c.endereco))}</span>`:''}</div>
    <div class="tvac">${A}${tvMsgIco('a',x.id)}</div></article>`}
 function tvCardG(c){const sla=gTecPend(c)?gSla(c):null,l=gLpuDe(c),ac=gAceito(c),aj=l&&l.status==='ajuste';
@@ -4840,7 +4840,7 @@ function tvCardG(c){const sla=gTecPend(c)?gSla(c):null,l=gLpuDe(c),ac=gAceito(c)
   else A={aberto:abrir('Informar previsão e sair'),desloc:passo('local','Segure: cheguei no cliente'),local:passo('atend','Segure: iniciar atendimento'),atend:passo('valid','Segure: pedir validação ao NOC'),valid:info('Aguardando o NOC validar'),rfo:abrir('Preencher RFO e LPU'),lpu:ui.perfil==='func'?info('Com o administrador'):abrir('Preencher a LPU')}[c.status]||(aj&&ui.perfil!=='func'?abrir('Corrigir a LPU'):info('Ver chamado'));
   const q=(c.agendaEm?'Agendado '+gQuando(c.agendaEm):'Hoje')+(c.janela?' · '+c.janela:'');
   return `<article class="tvcard${c.status==='aberto'&&!ac?' alvo':''}">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(c.pom||'—'))}<div class="tvch">${chips}</div>
-   <button class="tvnm" data-act="gTecAbrir" data-id="${c.id}"><b>${esc(c.cliente||'—')}</b><span>${esc(c.categoria||'')}</span></button>
+   <button class="tvnm" data-act="gTecAbrir" data-id="${c.id}"><b>${tvNomeEtq(c.cliente,c.etiqueta)}</b><span>${esc(c.categoria||'')}</span></button>
    <div class="tvinf"><span>${TVI.clock}${esc(q)}</span>${c.endereco||c.cidade?`<span>${IC.pin}${esc(c.endereco?endCurto(c.endereco):c.cidade)}</span>`:''}</div>
    <div class="tvac${c.status==='aberto'&&!ac?' tres':''}">${A}${tvMsgIco('g',c.id)}</div></article>`}
 const TV_ORD_A={deslocamento:1,no_local:1,execucao:1,agendada:3,relatorios:4,lpu:5,concluida:9,nao_concluida:9};
@@ -4887,7 +4887,7 @@ function detalhe(a){
   const resumoMat=[a.equipe?'estoque de '+nmC(nteEstN(a)):'',estOut?(a.materiais||[]).length+' itens':nm?nm+(nm===1?' item':' itens'):'sem materiais',a.obs?'1 observação do agendamento':''].filter(Boolean).join(', ');
   const resumoTec=[p.topologia,+p.metros?(+p.metros)+' m':'',anx.length?anx.length+(anx.length===1?' anexo':' anexos'):''].filter(Boolean).join(', ');
   return `${tvHead('voltar','a',a.id)}
-  <article class="tvtop"><div class="tvtt">${tvTag('impl','Implantação · '+esc(a.etiqueta))}<div class="tvch">${chip(a.status)}</div><h2 class="tvnome">${esc(cliN(a.etiqueta)||a.etiqueta)}</h2></div>
+  <article class="tvtop"><div class="tvtt">${tvTag('impl','Implantação · '+esc(a.etiqueta))}<div class="tvch">${chip(a.status)}</div><h2 class="tvnome">${tvNomeEtq(cliN(a.etiqueta),a.etiqueta)}</h2></div>
    ${tvBand(a.parcial?'var(--bad)':corFase(a),fasesN(a),esc(apoioTxt(a))+(a.equipe?`<span class="tceq">Equipe ${esc(agResp(a))}</span>`:''))}
    <div class="tvbd">${tvSteps(tvStepsDia(L,cur,a))}<div class="tvbxs">${tvBox(B[0][0],B[0][1])}${tvBox(B[1][0],B[1][1])}</div>${andamentoHtml(a)}</div></article>${tvHistAnt(a)}
   ${pre.trim()?`<div class="tvpre">${pre}</div>`:''}
@@ -4915,7 +4915,7 @@ function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
   const cur=c.status==='aberto'?(ac?1:0):{desloc:2,local:3,atend:3,valid:4,rfo:5,lpu:5}[c.status]??6;
   const B2=c.status==='aberto'?(ac?['Aceito',gQuando(c.aceite.em)]:sla?['SLA',sla.t.replace(/^SLA:?\s*/,'')]:['Despachado',t.despacho?gQuando(t.despacho):'—']):({desloc:['A caminho há',gDur(T-t.desloc)],local:['No local há',gDur(T-t.chegada)],atend:['No atendimento há',gDur(T-t.inicio)],valid:['Aguardando o NOC há',gDur(T-(t.pedido||T))]}[c.status]||['Validado',c.validadoEm?gQuando(c.validadoEm):'—']);
   const q=(c.agendaEm?'Agendado '+gQuando(c.agendaEm):'Atendimento hoje')+(c.janela?' · '+c.janela:'');
-  const top=`<article class="tvtop"><div class="tvtt">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(c.pom||'—'))}<div class="tvch">${chips}</div><h2 class="tvnome">${esc(c.cliente||'—')}</h2></div>
+  const top=`<article class="tvtop"><div class="tvtt">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(c.pom||'—'))}<div class="tvch">${chips}</div><h2 class="tvnome">${tvNomeEtq(c.cliente,c.etiqueta)}</h2></div>
    ${tvBand(TV_GCOR,esc(c.categoria||'Chamado'),esc(q))}
    <div class="tvbd">${tvSteps(tvStepsDe(L,cur))}<div class="tvbxs">${tvBox(mt.l==='MTTR (contando)'?'MTTR contando':mt.l,mt.v)}${tvBox(B2[0],B2[1])}</div></div></article>`;
   /* RFO: tela própria, com as etapas do encerramento */
@@ -4923,7 +4923,7 @@ function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
     inp=(k,lb,mono)=>`<label class="f"><span>${lb}</span><input class="inp${mono?' mono':''}" data-in="gRfo" data-id="${c.id}" data-k="${k}" value="${esc(R[k]||'')}"></label>`,ta=(k,lb,ph)=>`<label class="f"><span>${lb}</span><textarea class="inp" rows="2" data-in="gRfo" data-id="${c.id}" data-k="${k}" ${ph?`placeholder="${ph}"`:''}>${esc(R[k]||'')}</textarea></label>`;
     const falta=[!R.desfecho&&'desfecho',R.desfecho==='Encaminhado'&&!String(R.encEquipe||'').trim()&&'equipe',!R.local&&'onde estava a falha',!R.causa&&'causa',!String(R.solucao||'').trim()&&'solução'].filter(Boolean);
     return `${tvHead('gFechar','g',c.id)}
-    <article class="tvtop"><div class="tvtt">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(c.pom||'—')+' · RFO')}<h2 class="tvnome">${esc(c.cliente||'—')}</h2></div><div class="tvbd">${tvSteps([{l:'RFO',st:'now'},{l:'Serviços',st:''},{l:'Conferência',st:''},{l:'Assinatura',st:''}])}</div></article>
+    <article class="tvtop"><div class="tvtt">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(c.pom||'—')+' · RFO')}<h2 class="tvnome">${tvNomeEtq(c.cliente,c.etiqueta)}</h2></div><div class="tvbd">${tvSteps([{l:'RFO',st:'now'},{l:'Serviços',st:''},{l:'Conferência',st:''},{l:'Assinatura',st:''}])}</div></article>
     <div class="result ok" style="margin:0 0 10px">Validado pelo NOC. Preencha o RFO e depois a LPU.</div>
     <section class="tvsec"><h3>Desfecho do atendimento *</h3>${op('desfecho',[['Resolvido','Resolvido'],['Improdutivo','Improdutivo'],['Encaminhado','Encaminhado']])}${R.desfecho==='Encaminhado'?inp('encEquipe','Encaminhado para qual equipe *'):''}</section>
     <section class="tvsec"><h3>Onde estava a falha *</h3>${op('local',GTD_LOCAL.map(x=>[x,x]))}<h3>Causa *</h3>${op('causa',GTD_CAUSA.map(x=>[x,x]))}${ta('detalhes','Detalhes','O que você encontrou')}</section>
@@ -5652,7 +5652,7 @@ const HOLD_MS=3000;
 })();
 /* atualização do andamento: tela só dela, sem Concluir e Não foi possível */
 function updTela(a){const h=updHtml(a),bt=h.match(/<button class="btn primary wide" data-act="updEnviar"[^>]*>Enviar atualização<\/button><button class="link" data-act="updFechar"[^>]*>Cancelar<\/button>/),corpo=bt?h.replace(bt[0],''):h;
-  return `${tvHead('updFechar','a',a.id)}<article class="tvtop"><div class="tvtt">${tvTag('impl','Implantação · '+esc(a.etiqueta))}<h2 class="tvnome">${esc(cliN(a.etiqueta)||a.etiqueta)}</h2></div></article><div class="tvpre updtela">${corpo}</div>${tvFoot(bt?`<button class="bigbtn" data-act="updEnviar" data-id="${a.id}">Enviar atualização</button><button class="btn wide" data-act="updFechar" data-id="${a.id}">Cancelar</button>`:'')}`}
+  return `${tvHead('updFechar','a',a.id)}<article class="tvtop"><div class="tvtt">${tvTag('impl','Implantação · '+esc(a.etiqueta))}<h2 class="tvnome">${tvNomeEtq(cliN(a.etiqueta),a.etiqueta)}</h2></div></article><div class="tvpre updtela">${corpo}</div>${tvFoot(bt?`<button class="bigbtn" data-act="updEnviar" data-id="${a.id}">Enviar atualização</button><button class="btn wide" data-act="updFechar" data-id="${a.id}">Cancelar</button>`:'')}`}
 {const _ua=ACT.updAbrir;ACT.updAbrir=el=>{_ua(el);window.scrollTo(0,0)}}
 ACT.updFechar=el=>{ui.upd=ui.upd||{};const id=el.dataset.id;if(id)delete ui.upd[id];else ui.upd={};render();window.scrollTo(0,0)};
 
@@ -6186,7 +6186,7 @@ function r2Corpo(c,R,k){const t=r2Tipo(R.cat),bd=r2Banda(c);
   return ''}
 function r2Tela(c){const R=r2De(c),B=r2Blocos(c,R),F=r2Faltas(c,R);
   return `${tvHead('gFechar','g',c.id)}
-   <article class="tvtop"><div class="tvtt">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(c.pom||'—')+' · RFO')}<h2 class="tvnome">${esc(c.cliente||'—')}</h2></div><div class="tvbd">${tvSteps([{l:'RFO',st:'now'},{l:'Serviços',st:''},{l:'Conferência',st:''},{l:'Assinatura',st:''}])}</div></article>
+   <article class="tvtop"><div class="tvtt">${tvTag('gtd','Manutenção GTD · Protocolo O&amp;M '+esc(c.pom||'—')+' · RFO')}<h2 class="tvnome">${tvNomeEtq(c.cliente,c.etiqueta)}</h2></div><div class="tvbd">${tvSteps([{l:'RFO',st:'now'},{l:'Serviços',st:''},{l:'Conferência',st:''},{l:'Assinatura',st:''}])}</div></article>
    <div class="result ok" style="margin:0 0 10px">Validado pelo NOC${c.validadoEm?' às '+hm(c.validadoEm):''}. Preencha o RFO e depois a LPU.</div>
    ${r2Chamado(c)}
    <div class="r2bl">${B.map((b,i)=>`<section class="r2b ${b.ok?'ok':''}"><button type="button" class="r2bh" data-act="r2ab" data-id="${c.id}" data-k="${b.k}" aria-expanded="${!!R.ab[b.k]}"><span class="r2k">${b.ok?'✓':i+1}</span><b>${b.t}</b><span class="r2r ${b.ok?'':'miss'}">${esc(b.r)}</span><em>${R.ab[b.k]?'▴':'▾'}</em></button>${R.ab[b.k]?`<div class="r2bb">${r2Corpo(c,R,b.k)}</div>`:''}</section>`).join('')}</div>
@@ -7218,6 +7218,11 @@ function tvHistAnt(a,emModal){const eq=tvEhEquipe(a),ids=new Set([a.tec]);if(eq)
   return `<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="${k}" data-p="1" aria-expanded="${o}"><span class="taci">${IC.doc}</span><span class="tact"><b>${tit}</b><small>${esc(sub)}</small></span><span class="tacs">${o?IC.up:IC.dn}</span></button><div class="taccb"${o?'':' hidden'}>${body}</div></section>`}
 {const _t=ACT.tvAcc;ACT.tvAcc=function(el){if(!el.closest('#modal'))return _t.apply(this,arguments);ui.tvAcc=ui.tvAcc||{};const k=el.dataset.k,o=ui.tvAcc[k]===undefined?el.dataset.p==='1':!!ui.tvAcc[k];ui.tvAcc[k]=!o;
   const b=el.parentElement.querySelector('.taccb');if(b)b.hidden=o;el.setAttribute('aria-expanded',String(!o));const ic=el.querySelector('.tacs');if(ic)ic.innerHTML=o?IC.dn:IC.up}}
+
+/* 19/10: título padrão das telas do técnico e do administrador: "Nome do cliente - ETIQUETA" */
+function tvNomeEtq(cli,etq){cli=String(cli||'').trim();etq=String(etq||'').trim();
+  if(!cli)return esc(etq||'—');if(!etq||cli.toUpperCase().includes(etq.toUpperCase()))return esc(cli);
+  return `${esc(cli)}<span class="tvetq"> - ${esc(etq)}</span>`}
 
 /* ===== 19/10: colar imagem no chat (Ctrl+V no computador; botão Colar ou "Colar" do teclado no celular) e arrastar imagem para o chat =====
    Vale para todos os chats que usam a caixa de mensagem: atividade (técnico, Delivery, O&M), chamado do GTD (técnico, NOC, O&M) e sala NOC × O&M. */
