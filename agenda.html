@@ -1462,7 +1462,7 @@ nav.tabs .ncatm,.ncatm{display:none}
 .npr small{margin-left:auto;font-size:13px;color:var(--muted)}
 .npr:hover,.npr.on{background:var(--brand-soft);color:var(--brand-ink)}
 .npf{display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);padding:10px 16px;font-size:12.5px;color:var(--muted)}
-.tcand .tcdt{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}.tvtec{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--bg);border-radius:12px;padding:8px 10px}.tvtec>span:last-child{display:flex;flex-direction:column;min-width:0}.tvtec b{font-size:15px}.tvtec small{color:var(--muted);font-size:13.5px}.agtec .tvtop{margin:0}</style>
+.tcand .tcdt{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}.tvtec{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--bg);border-radius:12px;padding:8px 10px}.tvtec>span:last-child{display:flex;flex-direction:column;min-width:0}.tvtec b{font-size:15px}.tvtec small{color:var(--muted);font-size:13.5px}.agtec .tvtop{margin:0}.hants{display:flex;flex-direction:column;gap:10px}.hant{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:14.5px}.hah{display:flex;align-items:center;gap:8px;justify-content:space-between}.hah b{font-size:15px}.hal{color:var(--muted);font-size:13.5px}.haup{margin:4px 0 0;padding-left:18px;font-size:13.5px}.haup li{margin:2px 0}.hafo{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.agtec .tvacc{margin-top:12px}</style>
 </head>
 <body>
 <div id="vLoad" class="authv"><div class="acard"><div class="brand"><span class="logo" role="img" aria-label="Net Turbo Telecom"></span><small>Ferramenta de Gestão O&amp;M</small></div><p class="muted" id="loadMsg" style="margin-top:14px">Carregando…</p></div></div>
@@ -4889,7 +4889,7 @@ function detalhe(a){
   return `${tvHead('voltar','a',a.id)}
   <article class="tvtop"><div class="tvtt">${tvTag('impl','Implantação · '+esc(a.etiqueta))}<div class="tvch">${chip(a.status)}</div><h2 class="tvnome">${esc(cliN(a.etiqueta)||a.etiqueta)}</h2></div>
    ${tvBand(a.parcial?'var(--bad)':corFase(a),fasesN(a),esc(apoioTxt(a))+(a.equipe?`<span class="tceq">Equipe ${esc(agResp(a))}</span>`:''))}
-   <div class="tvbd">${tvSteps(tvStepsDia(L,cur,a))}<div class="tvbxs">${tvBox(B[0][0],B[0][1])}${tvBox(B[1][0],B[1][1])}</div>${andamentoHtml(a)}</div></article>
+   <div class="tvbd">${tvSteps(tvStepsDia(L,cur,a))}<div class="tvbxs">${tvBox(B[0][0],B[0][1])}${tvBox(B[1][0],B[1][1])}</div>${andamentoHtml(a)}</div></article>${tvHistAnt(a)}
   ${pre.trim()?`<div class="tvpre">${pre}</div>`:''}
   ${tvAcc('a:mat',false,IC.mat,'Materiais e observações',esc(resumoMat),matBody)}
   ${tvAcc('a:end',false,IC.pin,'Endereço e contato',esc(endCurto(c.endereco||'Endereço não informado')),endBody)}
@@ -7161,13 +7161,37 @@ function agOpenTec(a){const p=pPor(a.etiqueta)||{etiqueta:a.etiqueta},c=S.comp[a
   const tile=(k2,ic,n,s)=>`<button class="catile" data-act="caTile" data-k="${k2}" aria-pressed="false">${icA(ic,'cati')}<b>${n}</b><span>${esc(s)}</span></button>`;
   const tiles=`<div class="catiles">${tile('end','cid','Endereço',p.cidade||c.endereco?endCurtoA(c.endereco,p.cidade):'—')}${tile('mat','mat',med?'Material e medições':'Material',nMat?nMat+(nMat===1?' item':' itens'):a.obs?'1 observação':'—')}${tile('anx','anx','Anexos',anx.length?anx.length+(anx.length===1?' arquivo':' arquivos'):'nenhum')}</div>
    <div class="capn" data-k="end" hidden>${endH}</div><div class="capn" data-k="mat" hidden>${matH}</div><div class="capn" data-k="anx" hidden>${anxH}</div>`;
-  openModal(`<div class="agdt2 agtec">${top}
+  openModal(`<div class="agdt2 agtec">${top}${tvHistAnt(a)}
    ${quick?`<div class="agquick" style="margin-top:12px">${quick}</div>`:''}
    <div style="margin-top:12px">${sit}</div>
    ${etaGestao(t,'a',a.id,a.status==='deslocamento')}${upH}${tiles}
    ${rels?`<div class="agquick" style="margin-top:12px">${rels}</div>`:''}</div>
    <div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${gMsgBtn('a',a.id,' ')}</div>`)}
 {const _o=ACT.agOpen;ACT.agOpen=function(el){const a=getAg(el.dataset.id);if(a&&(['terc','func'].includes(ui.perfil)||ui.tab==='eqVer'))return agOpenTec(a);return _o.apply(this,arguments)}}
+/* 18/10: histórico anterior do próprio técnico (ou da equipe, para o administrador) neste cliente:
+   dias já encerrados desta atividade e atividades anteriores na mesma etiqueta */
+function tvHistAnt(a){const eq=tvEhEquipe(a),ids=new Set([a.tec]);if(eq)try{eqIds().forEach(x=>ids.add(x))}catch(e){}
+  const d5=v=>dBR(isoD(new Date(v))).slice(0,5),hor=(l,v)=>v?`${l} ${hmA(v)}`:'';
+  const upsDia=(L,dia)=>(L||[]).filter(u=>u.em&&isoD(new Date(u.em))===dia&&(u.obs||u.m)).map(u=>`<li><b>${hmA(u.em)}</b> ${esc(u.tipo||'')}${u.m?`, ${esc(u.m)} m`:''}${u.obs?' · '+esc(u.obs):''}</li>`).join('');
+  const fotos=F=>(F||[]).map((p,i)=>`<button class="btn sm" data-act="relVer" data-p="${esc(p)}">Foto ${i+1}</button>`).join('');
+  const H=[];
+  (a.diario||[]).forEach((x,i)=>{const t=x.ts||{},u=upsDia(a.atualizacoes,x.data);
+    H.push({o:t.desloc||t.chegada||t.inicio||Date.parse(x.data+'T08:00:00'),h:`<div class="hant"><div class="hah"><b>${dBR(x.data).slice(0,5)} · Dia ${i+1}</b><span class="chip">Dia encerrado</span></div>
+      <div class="hal">${[hor('Saiu',t.desloc),hor('chegou',t.chegada),hor('encerrou o dia',t.fimDia)].filter(Boolean).join(' · ')}</div>
+      ${x.m?`<div>${esc(x.m)} m lançados${x.lote?' · '+esc(x.lote):''}</div>`:''}${x.resumo?`<div>${esc(x.resumo)}</div>`:''}${x.falta?`<div class="muted">Ficou faltando: ${esc(x.falta)}</div>`:''}
+      ${u?`<ul class="haup">${u}</ul>`:''}${(x.fotos||[]).length?`<div class="hafo">${fotos(x.fotos)}</div>`:''}</div>`})});
+  S.ags.filter(o=>o.id!==a.id&&o.etiqueta===a.etiqueta&&ids.has(o.tec)&&o.status!=='cancelada'&&(FIM.includes(o.status)||['nao_concluida','relatorios','lpu'].includes(o.status))&&o.data<=a.data).forEach(o=>{const t=o.ts||{},fin=o.fasesFin||[],nc=o.status==='nao_concluida';
+    const med=o.medicoes?['rua','interno'].filter(f=>o.medicoes[f+':metros']!=null).map(f=>`${(+o.medicoes[f+':metros']).toLocaleString('pt-BR')} m no ${FCURTO[f].toLowerCase()}`).join(', '):'';
+    const dias=(o.diario||[]).length?` · ${(o.diario||[]).length+1} dias`:'';
+    H.push({o:t.desloc||t.chegada||t.inicio||Date.parse(o.data+'T08:00:00'),h:`<div class="hant"><div class="hah"><b>${dBR(o.data).slice(0,5)} · ${esc(fasesN(o))}${dias}</b><span class="chip ${nc?'bad':'ok'}">${nc?'Não concluída':'Concluída'}</span></div>
+      ${eq?`<div class="muted">${esc(tecN(o.tec))}</div>`:''}
+      <div class="hal">${[hor('Saiu',t.desloc),hor('chegou',t.chegada),t.conclusao?'concluiu '+d5(t.conclusao)+' '+hmA(t.conclusao):hor('encerrou',t.encerramento)].filter(Boolean).join(' · ')}</div>
+      ${fin.length?`<div>Finalizou: ${fin.map(k=>FCURTO[k]||k).join(', ')}</div>`:''}${med?`<div>${med}</div>`:''}
+      ${nc&&(o.motivo||o.obsMotivo)?`<div class="muted">Motivo: ${esc(o.obsMotivo||o.motivo)}</div>`:''}
+      ${(o.atualizacoes||[]).some(u=>u.obs)?`<ul class="haup">${o.atualizacoes.filter(u=>u.obs).map(u=>`<li><b>${d5(u.em)} ${hmA(u.em)}</b> ${esc(u.obs)}</li>`).join('')}</ul>`:''}</div>`})});
+  if(!H.length)return '';H.sort((x,y)=>y.o-x.o);
+  const nD=(a.diario||[]).length,nA=H.length-nD,sub=[nD?nD+(nD===1?' dia anterior':' dias anteriores'):'',nA?nA+(nA===1?' atividade anterior':' atividades anteriores'):''].filter(Boolean).join(' e ');
+  return tvAcc('a:hist:'+a.id,true,IC.doc,eq?'Histórico da equipe neste cliente':'Seu histórico neste cliente',esc(sub),`<div class="hants">${H.map(x=>x.h).join('')}</div>`)}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
