@@ -1462,7 +1462,7 @@ nav.tabs .ncatm,.ncatm{display:none}
 .npr small{margin-left:auto;font-size:13px;color:var(--muted)}
 .npr:hover,.npr.on{background:var(--brand-soft);color:var(--brand-ink)}
 .npf{display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);padding:10px 16px;font-size:12.5px;color:var(--muted)}
-.tcand .tcdt{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}.tvtec{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--bg);border-radius:12px;padding:8px 10px}.tvtec>span:last-child{display:flex;flex-direction:column;min-width:0}.tvtec b{font-size:15px}.tvtec small{color:var(--muted);font-size:13.5px}.agtec .tvtop{margin:0}.hants{display:flex;flex-direction:column;gap:10px}.hant{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:14.5px}.hah{display:flex;align-items:center;gap:8px;justify-content:space-between}.hah b{font-size:15px}.hal{color:var(--muted);font-size:13.5px}.haup{margin:4px 0 0;padding-left:18px;font-size:13.5px}.haup li{margin:2px 0}.hafo{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.agtec .tvacc{margin-top:12px}</style>
+.tcand .tcdt{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}.tvtec{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--bg);border-radius:12px;padding:8px 10px}.tvtec>span:last-child{display:flex;flex-direction:column;min-width:0}.tvtec b{font-size:15px}.tvtec small{color:var(--muted);font-size:13.5px}.agtec .tvtop{margin:0}.hants{display:flex;flex-direction:column;gap:10px}.hant{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:14.5px}.hah{display:flex;align-items:center;gap:8px;justify-content:space-between}.hah b{font-size:15px}.hal{color:var(--muted);font-size:13.5px}.haup{margin:4px 0 0;padding-left:18px;font-size:13.5px}.haup li{margin:2px 0}.hafo{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.agtec .tvacc{margin-top:12px}.chatcolap{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.chatcolap img{max-width:100%;max-height:52vh;border-radius:10px;border:1px solid var(--line);object-fit:contain}.chatcolap img:not(:only-child){max-width:calc(50% - 4px);max-height:30vh}</style>
 </head>
 <body>
 <div id="vLoad" class="authv"><div class="acard"><div class="brand"><span class="logo" role="img" aria-label="Net Turbo Telecom"></span><small>Ferramenta de Gestão O&amp;M</small></div><p class="muted" id="loadMsg" style="margin-top:14px">Carregando…</p></div></div>
@@ -7198,6 +7198,33 @@ function tvHistAnt(a,emModal){const eq=tvEhEquipe(a),ids=new Set([a.tec]);if(eq)
   return `<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="${k}" data-p="1" aria-expanded="${o}"><span class="taci">${IC.doc}</span><span class="tact"><b>${tit}</b><small>${esc(sub)}</small></span><span class="tacs">${o?IC.up:IC.dn}</span></button><div class="taccb"${o?'':' hidden'}>${body}</div></section>`}
 {const _t=ACT.tvAcc;ACT.tvAcc=function(el){if(!el.closest('#modal'))return _t.apply(this,arguments);ui.tvAcc=ui.tvAcc||{};const k=el.dataset.k,o=ui.tvAcc[k]===undefined?el.dataset.p==='1':!!ui.tvAcc[k];ui.tvAcc[k]=!o;
   const b=el.parentElement.querySelector('.taccb');if(b)b.hidden=o;el.setAttribute('aria-expanded',String(!o));const ic=el.querySelector('.tacs');if(ic)ic.innerHTML=o?IC.dn:IC.up}}
+
+/* ===== 19/10: colar imagem no chat (Ctrl+V no computador; botão Colar ou "Colar" do teclado no celular) e arrastar imagem para o chat =====
+   Vale para todos os chats que usam a caixa de mensagem: atividade (técnico, Delivery, O&M), chamado do GTD (técnico, NOC, O&M) e sala NOC × O&M. */
+let CHAT_COLA=[];
+function chatImgsDe(dt){const F=[];if(!dt)return F;[...(dt.items||[])].forEach(it=>{if(it.kind==='file'&&/^image\//.test(it.type||'')){const f=it.getAsFile();if(f)F.push(f)}});
+  if(!F.length&&dt.files)[...dt.files].forEach(f=>{if(/^image\//.test(f.type||''))F.push(f)});return F}
+function chatColarPrevia(F){F=F.slice(0,5);if(!F.length)return;CHAT_COLA=F.map((f,i)=>new File([f],(f.name&&!/^image\.\w+$/.test(f.name)?f.name:`imagem-colada-${Date.now()}-${i+1}.${(f.type.split('/')[1]||'png').replace('jpeg','jpg')}`),{type:f.type||'image/png'}));
+  const urls=CHAT_COLA.map(f=>URL.createObjectURL(f)),txt=(($('chatTxt')||{}).value||'').trim();
+  openModal(`<h3>Enviar ${CHAT_COLA.length===1?'esta imagem':'estas '+CHAT_COLA.length+' imagens'}?</h3>${txt?`<p class="muted">Vai junto com a mensagem: “${esc(txt.slice(0,140))}${txt.length>140?'…':''}”</p>`:''}
+   <div class="chatcolap">${urls.map((u,i)=>`<img src="${u}" alt="Imagem colada ${i+1}">`).join('')}</div>
+   <div class="actions"><button class="btn" data-act="chatColaNao">Cancelar</button><button class="btn primary" data-act="chatColaSim">Enviar</button></div>`);
+  setTimeout(()=>{const b=document.querySelector('[data-act="chatColaSim"]');if(b)b.focus()},0)}
+Object.assign(ACT,{
+  chatColaNao:()=>{CHAT_COLA=[];closeModal();const t=$('chatTxt');if(t)t.focus()},
+  chatColaSim:async el=>{const F=CHAT_COLA.slice();CHAT_COLA=[];if(el)el.disabled=true;closeModal();for(const f of F)await CH.chatFoto({files:[f],value:''})},
+  chatColar:async()=>{if(!navigator.clipboard||!navigator.clipboard.read){toast('Este navegador não deixa o botão ler a imagem copiada. Toque e segure na caixa de mensagem e escolha Colar.','bad');return}
+    try{const L=await navigator.clipboard.read(),F=[];for(const it of L){const ty=(it.types||[]).find(x=>/^image\//.test(x));if(ty)F.push(new File([await it.getType(ty)],'imagem.'+(ty.split('/')[1]||'png'),{type:ty}))}
+      if(!F.length){toast('Não há imagem copiada. Copie uma imagem (print, foto ou imagem do WhatsApp) e toque em Colar.','bad');return}chatColarPrevia(F)}
+    catch(e){toast('Não foi possível ler a imagem copiada. Permita o acesso à área de transferência ou toque e segure na caixa de mensagem e escolha Colar.','bad')}}});
+document.addEventListener('paste',e=>{const t=e.target;if(!t||t.id!=='chatTxt')return;const F=chatImgsDe(e.clipboardData);if(!F.length)return;e.preventDefault();chatColarPrevia(F)});
+['dragover','drop'].forEach(ev=>document.addEventListener(ev,e=>{const z=e.target&&e.target.closest&&e.target.closest('.chatv, .salav, .chatc');if(!z||!$('chatTxt'))return;
+  const tem=e.dataTransfer&&[...(e.dataTransfer.items||[])].some(i=>i.kind==='file');if(!tem)return;e.preventDefault();if(ev==='drop')chatColarPrevia(chatImgsDe(e.dataTransfer))}));
+/* botão Colar ao lado de Câmera e Galeria */
+{const _r=render;render=function(){_r.apply(this,arguments);const t=$('chatTxt');if(!t)return;const box=t.closest('.chatc')||t.parentElement,tl=box&&box.querySelector('.tools');if(!tl||tl.querySelector('.chatcola'))return;
+  const env=tl.querySelector('[data-act="chatEnviar"]'),b=document.createElement('button');b.type='button';b.className='btn sm chatcola';b.dataset.act='chatColar';b.title='Colar imagem copiada (Ctrl+V)';
+  b.innerHTML=`${_sv('<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',16)} Colar`;
+  if(env)tl.insertBefore(b,env);else tl.appendChild(b);const dc=box.querySelector('.chatdica');if(dc&&!/Ctrl\+V/.test(dc.textContent))dc.textContent=dc.textContent.replace(/\.?\s*$/,'')+'. Ctrl+V cola imagem.'}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
