@@ -1588,6 +1588,10 @@ nav.tabs .ncatm,.ncatm{display:none}
 .tptab td:nth-child(2){min-width:170px}
 .tvkh .g4xl{align-self:center;margin-left:8px}
 @media (max-width:760px){.tvkh .g4xl{margin:8px 0 0}}
+.rgh.bad{background:var(--bad-soft);color:var(--bad)}
+.nibox{border-color:var(--bad-soft)}
+.nitx{margin:0;padding:8px 12px 2px;font-size:13.5px;color:var(--muted)}
+.niit .rgt{flex:1 1 220px}
 </style>
 </head>
 <body>
@@ -7509,8 +7513,8 @@ function h19ItensCh(c){const I=[],t=c.ts||{},add=(v,k,ti,tx,ex)=>{if(v)I.push({t
   return I.sort((x,y)=>x.t-y.t)}
 /* blocos: um por atividade e dia (ou por chamado e dia), do mais antigo para o mais recente */
 function h19Blocos(e){const B=[];
-  S.ags.filter(a=>a.etiqueta===e).forEach(a=>{const I=h19ItensAg(a),g={};I.forEach(i=>{const d=h19d(i.t);(g[d]=g[d]||[]).push(i)});const ds=Object.keys(g).sort(),dc=ds.filter(d=>g[d].some(i=>i.k!=='m')),N=Math.max(dc.length,(a.dias||[]).length||1);
-    ds.forEach(d=>{const j=dc.indexOf(d),vs=fasesOf(a).every(f=>f==='vist');B.push({d,t:g[d][0].t,ti:(vs?'Vistoria de lançamento':fasesN(a))+(j<0?' · conversa':!vs&&N>1?` · dia ${j+1} de ${N}`:''),quem:r19Nome(a),it:g[d],gtd:false})})});
+  S.ags.filter(a=>a.etiqueta===e).forEach(a=>{const I=h19ItensAg(a),g={};I.forEach(i=>{const d=h19d(i.t);(g[d]=g[d]||[]).push(i)});const ds=Object.keys(g).sort(),dc=ds.filter(d=>g[d].some(i=>i.k!=='m'&&!i.nd)),N=Math.max(dc.length,(a.dias||[]).length||1);
+    ds.forEach(d=>{const j=dc.indexOf(d),vs=fasesOf(a).every(f=>f==='vist');B.push({d,t:g[d][0].t,ti:(vs?'Vistoria de lançamento':fasesN(a))+(j<0?(g[d].some(i=>i.nd)?' · registro da gestão':' · conversa'):!vs&&N>1?` · dia ${j+1} de ${N}`:''),quem:r19Nome(a),it:g[d],gtd:false})})});
   (typeof G!=='undefined'&&G.ch||[]).filter(c=>c.etiqueta===e).forEach(c=>{const I=h19ItensCh(c),g={};I.forEach(i=>{const d=h19d(i.t);(g[d]=g[d]||[]).push(i)});
     Object.keys(g).sort().forEach(d=>B.push({d,t:g[d][0].t,ti:'Chamado GTD · '+(c.categoria||''),quem:typeof gTecN==='function'?gTecN(c.tec):tecN(c.tec),it:g[d],gtd:true}))});
   const c=S.comp[e]||{};if(c.vistDisp)B.push({d:h19d(c.vistDisp.em),t:c.vistDisp.em,ti:'Vistoria dispensada',quem:c.vistDisp.por,it:[{t:c.vistDisp.em,k:'n',ti:'Vistoria de lançamento dispensada',tx:c.vistDisp.motivo,ex:{}}]});
@@ -7722,6 +7726,63 @@ function f22Limpa(root){if(!f22()||!root)return;const w=document.createTreeWalke
 {const _t=toast;toast=function(m,...x){if(f22()&&typeof m==='string'&&/LPU/.test(m)){F22_TOAST.forEach(([a,b])=>{m=m.replace(a,b)})}return _t(m,...x)}}
 /* 20/10: título da janela "Encerrar o dia" em atividade de vários dias ("Encerrar o dia dia 1 de 2" → "Encerrar o dia 1 de 2") */
 {const _d=ACT.diaFim;ACT.diaFim=el=>{const r=_d(el);const h=document.querySelector('#modal .sheetm h3');if(h&&/^Encerrar o dia dia /.test(h.textContent))h.textContent=h.textContent.replace(/^Encerrar o dia dia /,'Encerrar o dia ');return r}}
+
+/* ---------- 20/10: agendamento não iniciado no dia é cancelado na virada do dia ----------
+   Regra (a mesma do agenda_ajuste_35 no Supabase, que roda às 00:05):
+   - atividade "agendada" com data anterior a hoje, que o técnico não iniciou (não saiu para o cliente);
+   - não entram as que estão aguardando a gestão (aguardando continuação ou pedido de prazo).
+   Primeiro dia sem início: o agendamento é cancelado.
+   Dia de continuação sem início (a atividade já teve dia encerrado): não cancela, para não perder o que foi feito;
+   volta para "Aguardando continuação".
+   Nos dois casos fica registrado (naoIni) e a gestão precisa explicar o motivo (pendExpl). Tudo aparece no Histórico de clientes. */
+const NI_MOT=['Técnico faltou ou ficou indisponível','Técnico ficou em outra atividade ou chamado','Cliente pediu para remarcar','Sem acesso ao local','Chuva ou clima','Falta de material ou equipamento','Erro de agendamento (data ou técnico errado)','Outro'];
+const niPerfTec=()=>['clt','terc','func'].includes(ui.perfil);
+/* vale para atividades agendadas a partir de 20/10/2026 (as anteriores ficam como estão) */
+const NI_DESDE=window.__NI_DESDE||'2026-10-20';
+function niPend(a){return !!a&&a.status==='agendada'&&a.data&&a.data>=NI_DESDE&&a.data<hoje()&&!a.aguardaPrazo&&!(a.prazo&&a.prazo.status==='pendente')}
+function niAplicar(a){const em=Date.now(),cont=(a.diario||[]).length>0;
+  a.naoIni={dia:a.data,em,auto:true,cont,tec:a.tec};a.pendExpl=true;
+  if(cont){a.aguardaPrazo=true;a.th=null;a.prazo={tipo:'dia',status:'pendente',data:hoje(),dias:1,resp:'mais',motivo:'Dia de continuação não iniciado',obs:'O técnico não iniciou a continuação em '+dBR(a.data)+'.',em}}
+  else a.status='cancelada'}
+/* plano B: se o agendamento automático do Supabase ainda não rodou, a gestão aplica a regra ao abrir a ferramenta */
+{const _c=carregar;carregar=async function(...x){const r=await _c(...x);
+  try{if(typeof canReag==='function'&&canReag()&&!niPerfTec()){const L=S.ags.filter(niPend);if(L.length){L.forEach(niAplicar);save()}}}catch(e){console.warn('não iniciadas',e)}
+  return r}}
+/* técnico: atividade de dia que já passou e não foi iniciada não pode mais ser iniciada */
+{const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);
+  if(niPerfTec()&&niPend(a)&&r&&typeof r.act==='string')r.act=`<div class="result warn" style="margin:0"><b>Agendamento de ${dBR(a.data)} não iniciado.</b> Ele foi cancelado na virada do dia. Não inicie esta atividade: o encarregado vai reagendar e você recebe o aviso.</div>`;
+  return r}}
+/* outro agendamento ativo da mesma etiqueta a partir de hoje (ex.: já reagendaram) */
+const niProx=a=>S.ags.filter(x=>x.id!==a.id&&x.etiqueta===a.etiqueta&&x.status!=='cancelada'&&!FIM.includes(x.status)&&x.data>=hoje()&&fasesOf(x).some(k=>fasesOf(a).includes(k))).sort((p,q)=>p.data<q.data?-1:1)[0]||null;
+function niBox(){const L=S.ags.filter(a=>a.pendExpl&&a.naoIni).sort((p,q)=>p.naoIni.dia<q.naoIni.dia?-1:1);if(!L.length)return '';const pr=canReag();
+  const it=a=>{const n=a.naoIni,px=niProx(a),cli=cliN(a.etiqueta)||'';
+    const st=n.cont?'<span class="chip warn">Aguardando continuação</span>':px?`<span class="chip info">Já agendada para ${dBR(px.data).slice(0,5)}</span>`:'<span class="chip bad">Cancelada</span>';
+    return `<div class="rgi niit"><button class="rgt" data-act="agOpen" data-id="${a.id}"><b>${esc(cli||a.etiqueta)}</b><small>${esc(a.etiqueta)} · ${esc(fasesN(a))} · ${esc(r19Nome?r19Nome(a):tecN(a.tec))} · ${n.cont?'continuação ':''}não iniciada em ${dBR(n.dia)}</small></button>
+      ${st}${pr?`<button class="btn sm primary" data-act="niExpl" data-id="${a.id}">Explicar o motivo</button>`:''}</div>`};
+  return `<div class="rgbox nibox"><div class="rgh bad">${L.length} ${L.length>1?'agendamentos não iniciados':'agendamento não iniciado'} no dia${pr?' · explique o motivo':' · aguardando a explicação do encarregado'}</div>
+    <p class="nitx">Atividade agendada que o técnico não iniciou é cancelada na virada do dia. Explique o porquê: fica no histórico do cliente.</p>${L.map(it).join('')}</div>`}
+{const _r=reagBox;reagBox=function(){return niBox()+_r()}}
+Object.assign(ACT,{
+  niExpl:el=>{if(!canReag()){semPerm();return}const a=getAg(el.dataset.id);if(!a||!a.naoIni)return;const n=a.naoIni,px=niProx(a);
+    openModal(`<h3>Por que não foi iniciada?</h3><p class="muted" style="margin:4px 0 10px">${esc(cliN(a.etiqueta)||'')} · ${esc(a.etiqueta)} · ${esc(fasesN(a))}<br>${esc(r19Nome?r19Nome(a):tecN(a.tec))} · agendada para ${dBR(n.dia)} e não iniciada. ${n.cont?'A atividade voltou para Aguardando continuação.':'O agendamento foi cancelado na virada do dia.'}</p>
+     <label class="f"><span>Motivo *</span><select class="inp" id="niMot"><option value="">Escolha</option>${NI_MOT.map(m=>`<option>${esc(m)}</option>`).join('')}</select></label>
+     <label class="f" style="margin-top:10px"><span>Explique o que aconteceu *</span><textarea class="inp" id="niObs" rows="3" placeholder="Ex.: o técnico ficou no cliente da manhã até o fim do dia e não avisou a gestão"></textarea></label>
+     ${!n.cont&&!px?'<p class="muted" style="font-size:13.5px;margin:8px 0 0">Depois de salvar, você pode reagendar a atividade.</p>':''}
+     <div class="actions"><button class="btn" data-act="close">Voltar</button>${!n.cont&&!px?`<button class="btn" data-act="niOk" data-id="${a.id}" data-r="1">Salvar e reagendar</button>`:''}<button class="btn primary" data-act="niOk" data-id="${a.id}">Salvar motivo</button></div>`)},
+  niOk:el=>{const a=getAg(el.dataset.id),m=($('niMot')||{}).value||'',o=(($('niObs')||{}).value||'').trim();
+    if(!m){toast('Escolha o motivo.','bad');return}if(o.length<10){toast('Explique o que aconteceu (pelo menos uma frase).','bad');return}
+    a.naoIni.just={motivo:m,obs:o,por:meNome(),em:Date.now()};a.pendExpl=false;save();closeModal();
+    if(el.dataset.r){ACT.reag({dataset:{id:a.id}});toast('Motivo salvo. Escolha a nova data.');return}render();toast('Motivo salvo no histórico do cliente.')}
+});
+/* card da Agenda */
+{const _f=agFoot;agFoot=function(a){if(a&&a.naoIni&&a.status==='cancelada'){const j=a.naoIni.just;return['Cancelada: não iniciada no dia'+(j?' · '+j.motivo:' · falta o motivo'),'bad']}if(a&&a.naoIni&&a.naoIni.cont&&a.aguardaPrazo&&a.status==='agendada'&&a.data===a.naoIni.dia)return['Continuação não iniciada · aguardando a gestão','bad'];return _f.apply(this,arguments)}}
+/* Histórico de clientes */
+{const _h=h19ItensAg;h19ItensAg=function(a){let I=_h(a);const n=a&&a.naoIni;if(!n)return I;
+  I=I.filter(i=>i.ti!=='Agendamento cancelado');const d0=new Date(n.dia+'T07:00:00').getTime(),d1=new Date(n.dia+'T23:59:00').getTime(),q=tecN(n.tec||a.tec)||'o técnico';
+  if(!n.cont)I.push({t:d0,k:'x',ti:'Agendada',tx:a.criadoPor?'Agendada por '+a.criadoPor:'',ex:{}});
+  I.push({t:d1,k:'n',ti:n.cont?'Continuação não iniciada':'Cancelada: não iniciada no dia',tx:`${q} não iniciou a atividade agendada para ${dBR(n.dia)}. ${n.cont?'Voltou para Aguardando continuação.':'O agendamento foi cancelado na virada do dia.'}${n.just?'':' Aguardando o encarregado explicar o motivo.'}`,ex:{}});
+  if(n.just)I.push({nd:1,t:n.just.em,k:'n',ti:'Motivo da não realização: '+n.just.motivo,tx:n.just.obs+' · informado por '+n.just.por,ex:{}});
+  return I.sort((x,y)=>x.t-y.t)}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
