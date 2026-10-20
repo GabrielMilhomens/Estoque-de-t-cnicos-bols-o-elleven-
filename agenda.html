@@ -387,7 +387,7 @@ nav.tabs .catsw button{justify-content:center;text-align:center;padding:4px 6px}
 .avi:last-child{border-bottom:0}.avi small{color:var(--muted);font-size:12.5px}.avi span{font-size:14px;color:var(--muted)}
 .avi.nova{background:var(--brand-soft)}.avi.nova span{color:var(--ink)}
 .kbwrap{overflow-x:auto;padding-bottom:6px}
-.kb{display:grid;grid-template-columns:repeat(6,minmax(185px,1fr));gap:8px;min-width:1150px}
+.kb{display:grid;grid-template-columns:repeat(7,minmax(175px,1fr));gap:8px;min-width:1260px}
 .gkcol{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:380px}
 .kcolh{display:flex;justify-content:space-between;align-items:baseline;gap:6px}.kcolh h3{font-size:17px}
 .gkcol>small{margin-top:-6px}.kvz{font-size:13px;padding:6px 2px}
@@ -4011,7 +4011,7 @@ function gCard(c){const sla=gSla(c),re=gReinc(c).length,me=gMesmoEnd(c).length,m
 function viewGCham(){if(G.erro)return `<h2>Chamados · GTD Manutenção</h2>${gErroBox()}`;
   if(ui.gSel){const c=G.ch.find(x=>x.id===ui.gSel);if(c)return gDetalhe(c);ui.gSel=null}
   const T=hoje(),q=normK(ui.gQ||''),f=c=>!q||normK([c.pom,c.pnoc,c.cliente,c.etiqueta,c.cidade,gTecN(c.tec),c.categoria].join(' ')).includes(q),L=G.ch.filter(c=>c.status!=='cancelado'&&f(c));
-  const cols=[['Não despachados','Aguardando a gestão escolher o técnico',c=>c.status==='aberto'&&!c.tec],['Despachados','Aguardando aceite ou aceito, antes de sair',c=>c.status==='aberto'&&c.tec],['Em deslocamento','Com a previsão de chegada',c=>c.status==='desloc'],['No local · em atividade','Chegou ou já está atendendo',c=>c.status==='local'||c.status==='atend'],['Aguardando validação','O NOC confere; o MTTR continua',c=>c.status==='valid'],['Encerrados hoje','Validados hoje pelo NOC',c=>!GTD_ABERTOS.includes(c.status)&&c.validadoEm&&isoD(new Date(c.validadoEm))===T]];
+  const cols=[['Não despachados','Aguardando a gestão escolher o técnico',c=>c.status==='aberto'&&!c.tec],['Despachados','Aguardando aceite ou aceito, antes de sair',c=>c.status==='aberto'&&c.tec],['Em deslocamento','Com a previsão de chegada',c=>c.status==='desloc'],['No local','Chegou; atendimento ainda não iniciado',c=>c.status==='local'],['Em atendimento','Atendimento iniciado pelo técnico',c=>c.status==='atend'],['Aguardando validação','O NOC confere; o MTTR continua',c=>c.status==='valid'],['Encerrados hoje','Validados hoje pelo NOC',c=>!GTD_ABERTOS.includes(c.status)&&c.validadoEm&&isoD(new Date(c.validadoEm))===T]];
   const pend=G.ch.filter(c=>['rfo','lpu'].includes(c.status)&&c.validadoEm&&isoD(new Date(c.validadoEm))<T).length;
   return `<div class="toolbar"><div><h2>Chamados · GTD Manutenção</h2><p class="muted">${ui.perfil==='noc'?'Acompanhe os chamados, converse com o técnico e valide o atendimento. O despacho é feito pela gestão do GTD.':'Toque no chamado para despachar, acompanhar e ver a linha do tempo.'}</p></div>
    <div class="tools">${gSalaBtn()}<input class="inp" type="search" id="gQ" data-in="gQ" placeholder="Buscar O&amp;M, cliente, etiqueta ou técnico" value="${esc(ui.gQ||'')}" autocomplete="off">${pode('gAgenda')?'<button class="btn" data-act="tab" data-t="gAgenda">Ver agenda</button>':''}${pode('gNovo')?'<button class="btn primary" data-act="tab" data-t="gNovo">Criar chamado</button>':''}</div></div>
