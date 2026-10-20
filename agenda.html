@@ -1538,6 +1538,43 @@ nav.tabs .ncatm,.ncatm{display:none}
 .v19pl{display:flex;flex-direction:column;gap:8px;margin:10px 0}
 .v19p{border:1px solid var(--line);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:3px}
 .h19tag{font:600 11.5px Barlow,sans-serif;border-radius:6px;padding:2px 7px;background:#E7F0FA;color:#1D5C9A;white-space:nowrap}.h19tag.ok{background:var(--brand-soft);color:var(--brand-ink)}
+/* 20/10: SLA de 4 horas (GTD) */
+.g4 .secth{flex-wrap:wrap}
+.g4g{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:10px}
+.g4ef{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 6px;border:1px solid var(--line);border-radius:12px}
+.g4ef svg{width:118px;height:118px}
+.g4trk{fill:none;stroke:var(--line);stroke-width:10}
+.g4arc{fill:none;stroke:var(--brand);stroke-width:10;stroke-linecap:round}
+.g4ef.warn .g4arc{stroke:var(--warn)}.g4ef.bad .g4arc{stroke:var(--bad)}
+.g4ring{position:relative;width:118px;height:118px;flex:none}
+.g4efv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.g4efv b{font:700 26px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;line-height:1}
+.g4efv span{font-size:12px;color:var(--muted)}
+.g4ef p{margin:0;font-size:13px;color:var(--muted);text-align:center}
+.g4c{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;border-left-width:5px}
+.g4c.ok{border-left-color:var(--brand)}.g4c.bad{border-left-color:var(--bad)}
+.g4c b{font:700 34px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;line-height:1.1}
+.g4l{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.g4m{font-size:14px}.g4m strong{font-weight:700}
+.g4p{font-size:12.5px;color:var(--muted)}
+.g4bar{position:relative;display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--line);margin:12px 0 4px}
+.g4bar i{display:block;height:100%}.g4bar i.ok{background:var(--brand)}.g4bar i.bad{background:var(--bad)}
+.g4tw{margin-top:10px}
+.g4t.ok{color:var(--brand-ink)}.g4t.warn{color:var(--warn)}.g4t.bad{color:var(--bad)}
+.g4ab{font-size:13px;margin:8px 0 0}
+@media (max-width:760px){.g4g{grid-template-columns:repeat(2,minmax(0,1fr))}.g4ef{grid-column:1/-1;flex-direction:row;justify-content:center;gap:14px}.g4ef p{text-align:left;max-width:140px}.g4c b{font-size:30px}}
+.g4cat{margin-top:12px;display:flex;flex-direction:column;gap:2px}
+.g4ch{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);font-weight:600;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.g4r{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) auto 56px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.g4r:last-child{border-bottom:0}
+.g4rq{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.g4r b{text-align:right;font-variant-numeric:tabular-nums}
+.g4bar.sm{height:8px;margin:0}
+@media (max-width:760px){.g4r{grid-template-columns:minmax(0,1fr) auto 52px;row-gap:4px}.g4r .g4bar{grid-column:1/-1;grid-row:2}}
+.g4mk{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);transform:translateX(-1px)}
+.g4mkl{position:relative;height:16px;font-size:11.5px;color:var(--muted)}.g4mkl span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.g4meta{font-weight:600}.g4meta.ok{color:var(--brand-ink)}.g4meta.bad{color:var(--bad)}
+.g4bar.sm .g4mk,.g4bar.sm+.g4mkl{display:none}
 </style>
 </head>
 <body>
@@ -7550,6 +7587,34 @@ Object.assign(ACT,{vF:el=>{ui.vF=el.dataset.v;render()},
      <div class="actions"><button class="btn" data-act="close">Fechar</button>${a.rel&&a.rel.vist&&a.rel.vist.path?`<button class="btn" data-act="relVer" data-p="${esc(a.rel.vist.path)}">Abrir PDF</button>`:''}${pode('a_agendar')?`<button class="btn primary" data-act="vAgendar" data-e="${esc(a.etiqueta)}">Agendar revistoria</button>`:''}</div>`,'wide')}});
 {const _a=ACT.vAgendar;ACT.vAgendar=el=>{closeModal();return _a(el)}}
 Object.assign(IN,{vQ:el=>{ui.vQ=el.value;clearTimeout(window._v19t);window._v19t=setTimeout(()=>{render();const i=$('vQ');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)}});
+
+/* ---------- 20/10: SLA DE 4 HORAS no Painel de KPIs do GTD (meta 80%, todas as categorias) ----------
+   Todos os chamados validados pelo NOC no período (dia de início), do início (criação ou horário agendado) até a validação. */
+const G4_LIM=4*GTD_H,G4_META=80;
+function g4Dados(P){const V=P.filter(c=>c.validadoEm),d=c=>c.validadoEm-gIni(c),med=L=>L.length?L.reduce((s,x)=>s+x,0)/L.length:null;
+  const ok=V.filter(c=>d(c)<=G4_LIM),fora=V.filter(c=>d(c)>G4_LIM),ab=P.filter(c=>!c.validadoEm&&GTD_ABERTOS.includes(c.status)),abFora=ab.filter(c=>gIni(c)<=Date.now()&&Date.now()-gIni(c)>G4_LIM);
+  return{V,ok,fora,ab,abFora,mOk:med(ok.map(d)),mFora:med(fora.map(d)),ef:V.length?Math.round(ok.length/V.length*1000)/10:null}}
+const g4Pct=v=>v==null?'—':String(v).replace('.',',')+'%';
+function g4Secao(P){const D=g4Dados(P);if(!P.length)return '';
+  const tot=D.V.length,ef=D.ef,cls=ef==null?'':ef>=G4_META?'ok':'bad',r=42,cir=2*Math.PI*r,fill=ef==null?0:cir*ef/100;
+  const grp={};D.V.forEach(c=>{const k=c.categoria||'—';(grp[k]=grp[k]||[]).push(c)});
+  const lin=Object.entries(grp).sort((a,b)=>b[1].length-a[1].length).map(([k,L])=>{const o=L.filter(c=>c.validadoEm-gIni(c)<=G4_LIM).length,e=Math.round(o/L.length*1000)/10;
+    return `<div class="g4r"><span class="g4rn">${esc(k)}</span><div class="g4bar sm"><i class="ok" style="width:${o/L.length*100}%"></i><i class="bad" style="width:${(L.length-o)/L.length*100}%"></i></div><span class="g4rq">${o} de ${L.length}</span><b class="g4t ${e>=G4_META?'ok':'bad'}">${g4Pct(e)}</b></div>`}).join('');
+  return `<section class="panel g4" style="margin-bottom:14px"><div class="secth"><h3>SLA de 4 horas</h3><span class="muted">chamados validados no período · do início até a validação do NOC</span></div>
+   ${tot?`<div class="g4g">
+    <div class="g4ef ${cls}"><div class="g4ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="${r}" class="g4trk"/><circle cx="50" cy="50" r="${r}" class="g4arc" stroke-dasharray="${fill.toFixed(1)} ${cir.toFixed(1)}" transform="rotate(-90 50 50)"/></svg>
+     <div class="g4efv"><b>${g4Pct(ef)}</b><span>eficiência</span></div></div><p>${D.ok.length} de ${tot} chamados dentro de 4h<br><span class="g4meta ${cls}">meta ${G4_META}% · ${ef>=G4_META?'atingida':'faltam '+String(Math.round((G4_META-ef)*10)/10).replace('.',',')+' p.p.'}</span></p></div>
+    <div class="g4c ok"><span class="g4l">Até 4 horas</span><b>${D.ok.length}</b><span class="g4m">média <strong>${D.mOk==null?'—':gDur(D.mOk)}</strong></span><span class="g4p">${g4Pct(ef)} do total</span></div>
+    <div class="g4c bad"><span class="g4l">Acima de 4 horas</span><b>${D.fora.length}</b><span class="g4m">média <strong>${D.mFora==null?'—':gDur(D.mFora)}</strong></span><span class="g4p">${g4Pct(ef==null?null:Math.round((100-ef)*10)/10)} do total</span></div>
+   </div>
+   <div class="g4bar" role="img" aria-label="${D.ok.length} até 4 horas e ${D.fora.length} acima de 4 horas"><i class="ok" style="width:${D.ok.length/tot*100}%"></i><i class="bad" style="width:${D.fora.length/tot*100}%"></i><em class="g4mk" style="left:${G4_META}%" title="Meta ${G4_META}%"></em></div><div class="g4mkl"><span style="left:${G4_META}%">meta ${G4_META}%</span></div>
+   ${lin?`<div class="g4cat"><div class="g4ch"><span>Por categoria</span><span>até 4h · eficiência</span></div>${lin}</div>`:''}`
+   :'<p class="muted" style="margin:6px 0 0">Nenhum chamado validado no período.</p>'}
+   ${D.ab.length?`<p class="muted g4ab">${D.ab.length} ${D.ab.length===1?'chamado em aberto não entra':'chamados em aberto não entram'} na conta até a validação${D.abFora.length?` (${D.abFora.length} já ${D.abFora.length===1?'passou':'passaram'} de 4h)`:''}.</p>`:''}</section>`}
+{const _gp=gPainelGeral;gPainelGeral=function(){const h=_gp.apply(this,arguments);try{
+  const ini=ui.gpIni,fim=ui.gpFim,P=G.ch.filter(c=>c.status!=='cancelado'&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim),s=g4Secao(P);if(!s)return h;
+  const m=['<div class="tvk2">','<section class="panel" style="margin-bottom:14px"><h3>Indisponibilidades em andamento','<div class="gkgrid">'].map(x=>h.indexOf(x)).filter(i=>i>=0);
+  if(!m.length)return h+s;const i=Math.min(...m);return h.slice(0,i)+s+h.slice(i)}catch(e){console.warn('sla4',e);return h}}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
