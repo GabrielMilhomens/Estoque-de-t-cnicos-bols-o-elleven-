@@ -1575,6 +1575,17 @@ nav.tabs .ncatm,.ncatm{display:none}
 .g4mkl{position:relative;height:16px;font-size:11.5px;color:var(--muted)}.g4mkl span{position:absolute;transform:translateX(-50%);white-space:nowrap}
 .g4meta{font-weight:600}.g4meta.ok{color:var(--brand-ink)}.g4meta.bad{color:var(--bad)}
 .g4bar.sm .g4mk,.g4bar.sm+.g4mkl{display:none}
+/* 20/10: mensagens do chat no Histórico de clientes */
+.h19tl li.h19km .ln::after{border-color:#7B5A9E;background:var(--surface);border-radius:4px}
+.h19msg{background:var(--bg);border:1px solid var(--line);border-radius:4px 12px 12px 12px;padding:7px 10px;display:flex;flex-direction:column;gap:3px;max-width:560px}
+.h19msg.eu{background:var(--brand-soft);border-color:transparent}
+.h19msg.sis{background:none;border-style:dashed}
+.h19msg small{font-size:12.5px;color:var(--muted)}.h19msg small b{color:var(--ink);font-weight:600}
+.h19msg p{margin:0;font-size:14px;white-space:pre-line;overflow-wrap:anywhere}
+.h19msg.sis p{color:var(--muted);font-style:italic}
+.h19mload{font-size:13px;margin:0}
+.h19tl li.h19km .tx{padding-bottom:8px}
+.tptab td:nth-child(2){min-width:170px}
 </style>
 </head>
 <body>
@@ -3559,9 +3570,9 @@ const TP={
       return Object.assign(c,{id:a.id,data:a.data,etq:a.etiqueta,cli:p.cliente||a.etiqueta,sub:a.etiqueta+(a.status==='nao_concluida'?' · não concluída':'')+((a.transf||[]).length?' · transferida':''),tag:fasesOf(a).map(k=>FCURTO[k]).join(' + '),busca:(p.cliente||'')+' '+a.etiqueta+' '+(p.protocolo||''),tecId:a.tec,tecNome:tecN(a.tec),vinc:tecT(a.tec)==='TERC'?'Terceiro':'CLT'})})},
     nota:`Considera atividades concluídas e não concluídas (inclusive com relatórios ou LPU pendentes) com data no período. Atividade transferida para outro técnico soma os horários de todos os técnicos; se a troca foi no deslocamento, o deslocamento conta da saída do primeiro até a chegada do último. Deslocamento: saída até a chegada. Espera no cliente: chegada até o início. Atividade: início até a conclusão (na não concluída, até a hora em que o técnico registrou a não conclusão); em atividades de vários dias, soma os dias. Relatório: da conclusão até o envio dos relatórios (gravado a partir de ${TP_REL_DESDE}; atividades anteriores aparecem como sem registro e não entram na média do relatório).`},
   gtd:{nome:'GTD Manutenção',item:'chamado',itens:'Chamados',cons:'Chamados considerados',
-    et:[['desloc','Deslocamento','Deslocamento médio'],['espera','Espera no cliente','Espera média no cliente'],['atend','Atendimento','Atendimento médio'],['valid','Validação do NOC','Validação média do NOC'],['rfo','RFO','RFO médio']],
-    campo:['desloc','espera','atend'],cor:{desloc:'var(--info)',espera:'var(--warn)',atend:'var(--brand)',valid:'var(--tp-noc)',rfo:'var(--tp-rel)'},forte:'atend',
-    lim:{desloc:{max:240,min:1},espera:{max:180,min:null},atend:{max:600,min:3},valid:{max:240,min:null},rfo:{max:1440,min:null}},
+    et:[['ini','Até a saída','Até a saída média'],['desloc','Deslocamento','Deslocamento médio'],['espera','Espera no cliente','Espera média no cliente'],['atend','Atendimento','Atendimento médio'],['valid','Validação do NOC','Validação média do NOC'],['rfo','RFO','RFO médio']],
+    campo:['desloc','espera','atend'],cor:{ini:'#8E979A',desloc:'var(--info)',espera:'var(--warn)',atend:'var(--brand)',valid:'var(--tp-noc)',rfo:'var(--tp-rel)'},forte:'atend',
+    lim:{ini:{max:480,min:null},desloc:{max:240,min:1},espera:{max:180,min:null},atend:{max:600,min:3},valid:{max:240,min:null},rfo:{max:1440,min:null}},
     perm:'a_gExpurgo',tabela:'ag_expurgos_gtd',fk:'chamado',script:'agenda_ajuste_18',
     ex:()=>S.expurgosG||(S.expurgosG={}),err:()=>S.expurgosGErr,per:()=>{ui.gpIni=ui.gpIni||hoje().slice(0,8)+'01';ui.gpFim=ui.gpFim||hoje();return[ui.gpIni,ui.gpFim]},perCh:['gpIni','gpFim'],
     filtro:{rot:'Categoria',pad:'all',ops:()=>[['all','Todas as categorias'],...GTD_CATS.map(c=>[c,c])]},
@@ -3569,7 +3580,7 @@ const TP={
     tecs:()=>{const m={};G.ch.forEach(c=>{if(c.tec)m[c.tec]=gTecN(c.tec)});return Object.entries(m).sort((a,b)=>a[1].localeCompare(b[1]))},
     linhas(st,ini,fim){return G.ch.filter(c=>['rfo','lpu','aprov','concl'].includes(c.status)&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim&&(st.f==='all'||c.categoria===st.f)&&(!st.tec||c.tec===st.tec)).map(c=>{const k=tpCalcGtd(c);
       return Object.assign(k,{id:c.id,data:gDiaDe(c),cli:c.cliente||c.etiqueta||'—',sub:'O&M '+c.pom+(c.etiqueta?' · '+c.etiqueta:'')+((c.transf||[]).length?' · transferido':''),tag:c.categoria||'',busca:[c.cliente,c.etiqueta,c.pom,c.pnoc,c.cidade].join(' '),tecId:c.tec,tecNome:gTecN(c.tec),vinc:gTecV(c.tec)})})},
-    nota:'Considera chamados validados pelo NOC (RFO, LPU, aprovação ou concluídos) com abertura no período. Deslocamento: saída até a chegada. Espera no cliente: chegada até o início do atendimento. Atendimento: início até o pedido de validação (se o NOC não validou e o técnico voltou ao atendimento, conta até o último pedido). Validação do NOC: pedido até a validação. RFO: validação até o RFO gerado. Chamado transferido para outro técnico soma os horários de todos os técnicos; se a troca foi no deslocamento, o deslocamento conta da saída do primeiro até a chegada do último.'}};
+    nota:'Considera chamados validados pelo NOC (RFO, LPU, aprovação ou concluídos) com abertura no período. O total conta do início do MTTR (abertura do chamado ou horário agendado) até o RFO. Até a saída: início do MTTR até a saída do técnico (despacho, aceite e preparação; se o técnico saiu antes do horário agendado, conta zero). Deslocamento: saída até a chegada. Espera no cliente: chegada até o início do atendimento. Atendimento: início até o pedido de validação (se o NOC não validou e o técnico voltou ao atendimento, conta até o último pedido). Validação do NOC: pedido até a validação. RFO: validação até o RFO gerado. Chamado transferido para outro técnico soma os horários de todos os técnicos; se a troca foi no deslocamento, o deslocamento conta da saída do primeiro até a chegada do último.'}};
 const tpOkA=a=>['relatorios','lpu','concluida'].includes(a.status)||(a.status==='nao_concluida'&&tpTrechos(a).some(x=>x.desloc||x.inicio));
 function tpTrechos(a){const L=(a.diario||[]).map(x=>Object.assign({},x.ts||{},{fim:(x.ts||{}).fimDia}));const t=a.ts||{};L.push(...trfTrechos(a.transf,t,'inicio'));if(t.desloc||t.chegada||t.inicio){const f=tpFimA(a);L.push(Object.assign({},t,!t.inicio&&t.chegada&&f?{inicio:f,fim:f}:{fim:f}))}return L}
 /* fim da execução: a conclusão; na atividade não concluída, a hora em que o técnico registrou a não conclusão (trabalhou até ali) */
@@ -3584,6 +3595,7 @@ function tpCalcGtd(c){const t=c.ts||{},vd=t.validado||c.validadoEm,v={},inc={},n
   // chamado transferido: soma os trechos dos técnicos anteriores
   const tr=trfTrechos(c.transf,t,'inicio'),sm=f=>tr.reduce((s,x)=>s+(f(x)||0),0);if(tr.length){if(v.desloc!=null)v.desloc+=sm(x=>dur(x.desloc,x.chegada));if(v.espera!=null)v.espera+=sm(x=>dur(x.chegada,x.inicio));if(v.atend!=null)v.atend+=sm(x=>dur(x.inicio,x.fim))}
   TP.gtd.campo.forEach(k=>{if(v[k]==null)inc[k]=true});
+  {const sd=[t.desloc].concat((c.transf||[]).map(x=>x.ts&&x.ts.desloc)).filter(Boolean),d0=sd.length?Math.min(...sd):null;v.ini=d0?dur(gIni(c),d0):null;if(v.ini==null)nota.ini='sem registro'}
   v.valid=dur(t.pedido,vd);if(v.valid==null)nota.valid='sem registro';
   v.rfo=null;if(c.status==='rfo')nota.rfo='pendente';else if(!t.rfo||!vd)nota.rfo='sem registro';else v.rfo=dur(vd,t.rfo);
   return{v,inc,nota,dias:1}}
@@ -7495,8 +7507,8 @@ function h19ItensCh(c){const I=[],t=c.ts||{},add=(v,k,ti,tx,ex)=>{if(v)I.push({t
   return I.sort((x,y)=>x.t-y.t)}
 /* blocos: um por atividade e dia (ou por chamado e dia), do mais antigo para o mais recente */
 function h19Blocos(e){const B=[];
-  S.ags.filter(a=>a.etiqueta===e).forEach(a=>{const I=h19ItensAg(a),g={};I.forEach(i=>{const d=h19d(i.t);(g[d]=g[d]||[]).push(i)});const ds=Object.keys(g).sort(),N=Math.max(ds.length,(a.dias||[]).length||1);
-    ds.forEach((d,j)=>B.push({d,t:g[d][0].t,ti:fasesOf(a).every(f=>f==='vist')?'Vistoria de lançamento':fasesN(a)+(N>1?` · dia ${j+1} de ${N}`:''),quem:r19Nome(a),it:g[d],gtd:false}))});
+  S.ags.filter(a=>a.etiqueta===e).forEach(a=>{const I=h19ItensAg(a),g={};I.forEach(i=>{const d=h19d(i.t);(g[d]=g[d]||[]).push(i)});const ds=Object.keys(g).sort(),dc=ds.filter(d=>g[d].some(i=>i.k!=='m')),N=Math.max(dc.length,(a.dias||[]).length||1);
+    ds.forEach(d=>{const j=dc.indexOf(d),vs=fasesOf(a).every(f=>f==='vist');B.push({d,t:g[d][0].t,ti:(vs?'Vistoria de lançamento':fasesN(a))+(j<0?' · conversa':!vs&&N>1?` · dia ${j+1} de ${N}`:''),quem:r19Nome(a),it:g[d],gtd:false})})});
   (typeof G!=='undefined'&&G.ch||[]).filter(c=>c.etiqueta===e).forEach(c=>{const I=h19ItensCh(c),g={};I.forEach(i=>{const d=h19d(i.t);(g[d]=g[d]||[]).push(i)});
     Object.keys(g).sort().forEach(d=>B.push({d,t:g[d][0].t,ti:'Chamado GTD · '+(c.categoria||''),quem:typeof gTecN==='function'?gTecN(c.tec):tecN(c.tec),it:g[d],gtd:true}))});
   const c=S.comp[e]||{};if(c.vistDisp)B.push({d:h19d(c.vistDisp.em),t:c.vistDisp.em,ti:'Vistoria dispensada',quem:c.vistDisp.por,it:[{t:c.vistDisp.em,k:'n',ti:'Vistoria de lançamento dispensada',tx:c.vistDisp.motivo,ex:{}}]});
@@ -7519,14 +7531,14 @@ function h19Det(e){const p=pPor(e)||{etiqueta:e},B=h19Blocos(e),F=ui.hF||'tudo',
   const dCampo=new Set();A.forEach(a=>{(a.diario||[]).forEach(d=>dCampo.add(d.data));if((a.ts||{}).desloc)dCampo.add(h19d(a.ts.desloc))});
   const at=faseFim(e,'ativ'),sv=svcDe(p).svc;
   const facts=[[at?'Ativado em':'Atividades',at?dBR(at.data):String(A.filter(a=>a.status!=='cancelada').length)],['Dias de campo',String(dCampo.size)],['Atualizações',String(nU)],['Relatórios',String(nR)]].concat(nG?[['Chamados GTD',String(nG)]]:[]);
-  const filt=i=>F==='tudo'||(F==='u'?['u'].includes(i.k)||i.ti==='Encerrou o dia':i.k==='r');
+  const filt=i=>F==='tudo'||(F==='u'?['u'].includes(i.k)||i.ti==='Encerrou o dia':F==='m'?i.k==='m':i.k==='r');
   const fotos=L=>(L||[]).length?`<div class="h19ft">${L.map((f,j)=>`<button class="btn sm" data-act="relVer" data-p="${esc(f)}">Foto${L.length>1?' '+(j+1):''}</button>`).join('')}</div>`:'';
   const blocos=B.map(b=>{const it=b.it.filter(filt);if(!it.length)return '';
-    return `<div class="h19b"><div class="h19bh"><b>${dBR(b.d)} · ${esc(b.ti)}</b><small>${esc(b.quem||'')}</small></div><ol class="h19tl">${it.map(i=>`<li class="h19k${i.k}"><time>${i.agd?'—':h19hm(i.t)}</time><span class="ln"></span><div class="tx"><b>${esc(i.ti)}</b>${i.tx?`<span class="${i.k==='u'?'q':i.k==='n'?'q d':''}">${esc(i.tx)}</span>`:''}${i.ex.m?`<small>Metragem: ${esc(String(i.ex.m))} m${i.ex.lote?' · lote '+esc(i.ex.lote):''}</small>`:''}${i.ex.por?`<small>Por ${esc(i.ex.por)}</small>`:''}${fotos(i.ex.fotos)}${(i.ex.bt||[]).length?`<div class="h19ft">${i.ex.bt.map(([t,act,v])=>`<button class="btn sm" data-act="${act}" ${act==='relVer'?`data-p="${esc(v)}"`:`data-id="${esc(v)}"`}>${t}</button>`).join('')}</div>`:''}</div></li>`).join('')}</ol></div>`}).join('');
+    return `<div class="h19b"><div class="h19bh"><b>${dBR(b.d)} · ${esc(b.ti)}</b><small>${esc(b.quem||'')}</small></div><ol class="h19tl">${it.map(i=>i.k==='m'?h19MsgLi(i):`<li class="h19k${i.k}"><time>${i.agd?'—':h19hm(i.t)}</time><span class="ln"></span><div class="tx"><b>${esc(i.ti)}</b>${i.tx?`<span class="${i.k==='u'?'q':i.k==='n'?'q d':''}">${esc(i.tx)}</span>`:''}${i.ex.m?`<small>Metragem: ${esc(String(i.ex.m))} m${i.ex.lote?' · lote '+esc(i.ex.lote):''}</small>`:''}${i.ex.por?`<small>Por ${esc(i.ex.por)}</small>`:''}${fotos(i.ex.fotos)}${(i.ex.bt||[]).length?`<div class="h19ft">${i.ex.bt.map(([t,act,v])=>`<button class="btn sm" data-act="${act}" ${act==='relVer'?`data-p="${esc(v)}"`:`data-id="${esc(v)}"`}>${t}</button>`).join('')}</div>`:''}</div></li>`).join('')}</ol></div>`}).join('');
   return `<button class="back h19back" data-act="hSel" data-e="">‹ Clientes</button>
    <div class="h19hd"><div><h3>${tvNomeEtq(p.cliente||'',e)}</h3><p class="muted">${esc([p.protocolo&&'Protocolo '+p.protocolo,p.topologia,p.cidade,p.pop&&'POP '+p.pop].filter(Boolean).join(' · '))}</p>${sv.length?`<p class="muted" style="margin-top:2px">${sv.map(esc).join(' · ')}</p>`:''}</div>${at?'<span class="h19tag ok">Cliente ativo</span>':'<span class="h19tag">Em implantação</span>'}</div>
    <div class="h19f">${facts.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>
-   <div class="h19bar"><div class="h19seg" role="group" aria-label="Mostrar">${[['tudo','Tudo'],['u','Atualizações dos técnicos'],['r','Relatórios']].map(([k,t])=>`<button data-act="hF" data-v="${k}" aria-pressed="${F===k}">${t}</button>`).join('')}</div><button class="btn sm" data-act="hPdf" data-e="${esc(e)}">Imprimir / salvar PDF</button></div>
+   <div class="h19bar"><div class="h19seg" role="group" aria-label="Mostrar">${[['tudo','Tudo'],['u','Atualizações dos técnicos'],['m','Conversas'+(typeof h19NMsg==='function'&&h19NMsg(e)?' ('+h19NMsg(e)+')':'')],['r','Relatórios']].map(([k,t])=>`<button data-act="hF" data-v="${k}" aria-pressed="${F===k}">${t}</button>`).join('')}</div><button class="btn sm" data-act="hPdf" data-e="${esc(e)}">Imprimir / salvar PDF</button></div>
    <p class="muted" style="font-size:13px;margin:0">Do mais antigo para o mais recente ↓</p>
    ${blocos||'<p class="muted">Nada neste filtro.</p>'}`}
 Object.assign(ACT,{hSel:el=>{ui.hSel=el.dataset.e||null;ui.hF='tudo';render();if(ui.hSel&&window.innerWidth<=900)window.scrollTo(0,0)},hSit:el=>{ui.hSit=el.dataset.v;ui.hLim=60;render()},hF:el=>{ui.hF=el.dataset.v;render()},hMais:()=>{ui.hLim=(ui.hLim||60)+60;render()},
@@ -7615,6 +7627,31 @@ function g4Secao(P){const D=g4Dados(P);if(!P.length)return '';
   const ini=ui.gpIni,fim=ui.gpFim,P=G.ch.filter(c=>c.status!=='cancelado'&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim),s=g4Secao(P);if(!s)return h;
   const m=['<div class="tvk2">','<section class="panel" style="margin-bottom:14px"><h3>Indisponibilidades em andamento','<div class="gkgrid">'].map(x=>h.indexOf(x)).filter(i=>i>=0);
   if(!m.length)return h+s;const i=Math.min(...m);return h.slice(0,i)+s+h.slice(i)}catch(e){console.warn('sla4',e);return h}}}
+
+/* ---------- 20/10: conversas do chat no Histórico de clientes ----------
+   Carrega de ag_mensagens as mensagens das atividades e dos chamados da etiqueta (uma consulta por cliente aberto) e
+   coloca cada uma no dia em que foi enviada, junto com o resto da atividade. */
+const H19M={};
+const h19NMsg=e=>{const c=H19M[e];return c&&c.L?c.L.length:0};
+async function h19MsgCarregar(e){const c=H19M[e]=H19M[e]||{};if(c.bus||c.L)return;c.bus=true;
+  const ag=S.ags.filter(a=>a.etiqueta===e).map(a=>a.id),ch=(typeof G!=='undefined'&&G.ch||[]).filter(x=>x.etiqueta===e).map(x=>x.id);
+  try{const q=[];if(ag.length)q.push(sb.from('ag_mensagens').select('*').in('agendamento',ag).order('em'));if(ch.length)q.push(sb.from('ag_mensagens').select('*').in('chamado',ch).order('em'));
+    const R=await Promise.all(q);R.forEach(r=>{if(r.error)throw r.error});c.L=[].concat(...R.map(r=>r.data||[]));c.err=''}
+  catch(x){c.L=[];c.err=String(x.message||x)}
+  c.bus=false;if(ui.tab==='relat'&&ui.hSel===e)render()}
+function h19MsgItens(campo,id,e){const c=H19M[e];if(!c||!c.L)return [];
+  return c.L.filter(m=>m[campo]===id).map(m=>({t:new Date(m.em).getTime(),k:'m',ti:m.autor?(m.autor_nome||'—'):'Aviso da ferramenta',tx:'',ex:{m:null,msg:m}}))}
+{const _a=h19ItensAg;h19ItensAg=function(a){return _a(a).concat(h19MsgItens('agendamento',a.id,a.etiqueta)).sort((x,y)=>x.t-y.t)}}
+{const _c=h19ItensCh;h19ItensCh=function(c){return _c(c).concat(h19MsgItens('chamado',c.id,c.etiqueta)).sort((x,y)=>x.t-y.t)}}
+function h19MsgLi(i){const m=i.ex.msg,eu=ME&&m.autor===ME.id,sis=!m.autor,a=m.anexo||null;
+  const corpo=(typeof chxMsgTxt==='function'?chxMsgTxt(m):(m.texto?`<p>${esc(m.texto)}</p>`:''))+(a&&a.tipo==='loc'&&typeof chxAnexo==='function'?chxAnexo(m):'');
+  const bts=[m.foto&&`<button class="btn sm" data-act="relVer" data-p="${esc(m.foto)}">Ver foto</button>`,a&&a.tipo==='arq'&&a.path&&`<button class="btn sm" data-act="relVer" data-p="${esc(a.path)}">Abrir ${esc(a.nome||'arquivo')}</button>`].filter(Boolean).join('');
+  return `<li class="h19km"><time>${h19hm(i.t)}</time><span class="ln"></span><div class="tx"><div class="h19msg ${sis?'sis':eu?'eu':''}"><small><b>${esc(sis?'Aviso da ferramenta':eu?'Você':m.autor_nome||'—')}</b>${m.papel&&!sis?' · '+esc(m.papel):''}</small>${corpo}${bts?`<div class="h19ft">${bts}</div>`:''}</div></div></li>`}
+{const _d=h19Det;h19Det=function(e){const c=H19M[e];if(!c||(!c.L&&!c.bus))setTimeout(()=>h19MsgCarregar(e),0);let h=_d(e);
+  const aviso=c&&c.bus||!c?'<p class="muted h19mload">Carregando as conversas do chat…</p>':c.err?`<p class="muted h19mload">Não foi possível carregar as conversas: ${esc(c.err)}</p>`:'';
+  if(aviso){const k='<p class="muted" style="font-size:13px;margin:0">Do mais antigo';const i=h.indexOf(k);if(i>=0)h=h.slice(0,i)+aviso+h.slice(i)}
+  if(c&&c.L){const n=c.L.length,k='<div><span>Relatórios</span>';const i=h.indexOf(k);if(i>=0)h=h.slice(0,i)+`<div><span>Mensagens</span><b>${n}</b></div>`+h.slice(i)}
+  return h}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
