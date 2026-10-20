@@ -1586,6 +1586,8 @@ nav.tabs .ncatm,.ncatm{display:none}
 .h19mload{font-size:13px;margin:0}
 .h19tl li.h19km .tx{padding-bottom:8px}
 .tptab td:nth-child(2){min-width:170px}
+.tvkh .g4xl{align-self:center;margin-left:8px}
+@media (max-width:760px){.tvkh .g4xl{margin:8px 0 0}}
 </style>
 </head>
 <body>
@@ -1827,14 +1829,14 @@ const PERM_ALL=(()=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(
 const _sem=l=>PERM_ALL.filter(k=>!l.includes(k));
 const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto','a_gValidar']),
   encarregado:_sem(['a_vistDisp','a_corrigir','a_eqTec','a_custo','painel','p_tempos','a_expurgo','g_tempos','a_gExpurgo','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','g_fin','gf_budget','gf_det','gAprov','a_gAprovar']),
-  supply:['estAtual','a_bolsao'],delivery:['painelDia','agenda']};
+  supply:['estAtual','a_bolsao'],delivery:['painelDia','agenda'],noc:['gCham','gAgenda','gNovo','gRel','a_gValidar'],visualizacao:['painelDia']};
 /* 18/10: permissões personalizadas salvas antes das funções novas (sem a marca _v18) recebem o padrão do papel nessas funções */
 const PERM_NOVAS={ausencias:['supervisor','encarregado'],campo:['supervisor','encarregado'],eqVer:['supervisor','encarregado'],eqTec:['supervisor','encarregado'],a_eqTec:['supervisor'],a_retirar:['supervisor','encarregado'],a_corrigir:['supervisor'],a_improd:['supervisor','encarregado'],a_custo:['supervisor'],vist:['supervisor','encarregado'],a_vistDisp:['supervisor']};
 const PERM_V19=['vist','a_vistDisp'];
 const permDe=(papel,perm)=>!Array.isArray(perm)?(PERM_PAD[papel]||[]):perm.includes('_v19')?perm:perm.concat(Object.keys(PERM_NOVAS).filter(k=>PERM_NOVAS[k].includes(papel)&&!perm.includes(k)&&(!perm.includes('_v18')||PERM_V19.includes(k))));
-const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc','func'].includes(ui.perfil))return false;if(ui.perfil==='noc')return NOC_PERM.includes(k);if(ui.perfil==='deliv'&&GTD_KEYS.includes(k))return false;return permDe(ME.papel,ME.perm).includes(k)};
+const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc','func'].includes(ui.perfil))return false;if(ui.perfil==='deliv'&&GTD_KEYS.includes(k)&&!Array.isArray(ME.perm))return false;return permDe(ME.papel,ME.perm).includes(k)};
 const G_TABS=['painel','agenda','relat','vist','estoque','estAtual','estHist','base','prev','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel','ausencias','eqTec','campo','eqVer'];
-const tabsDe=()=>['coord','clt','terc','func','visu','noc'].includes(ui.perfil)?PERFIS[ui.perfil].tabs.filter(t=>t!=='equipe'||(S.equipe||[]).length):[...new Set(G_TABS.filter(pode))];
+const tabsDe=()=>['coord','clt','terc','func'].includes(ui.perfil)?PERFIS[ui.perfil].tabs.filter(t=>t!=='equipe'||(S.equipe||[]).length):[...new Set(G_TABS.filter(pode))];
 const PSEC_K={geral:'p_geral',entregas:'p_entregas',rede:'p_rede',exec:'p_exec',tempos:'p_tempos',equipes:'p_equipes',fin:'p_fin'},FSUB_K={budget:'f_budget',det:'f_det',aprov:'f_aprov'};
 const secsOk=()=>PSEC.filter(([k])=>pode(PSEC_K[k])),subsOk=()=>FSUB.filter(([k])=>pode(FSUB_K[k]));
 const semPerm=()=>{toast('Seu usuário não tem permissão para esta ação. Fale com a coordenação.','bad');return true};
@@ -3410,8 +3412,8 @@ async function syncAgora(){SYNC_PEND=false;const r=curRows();
   catch(e){console.error(e);setSt('Erro ao salvar',1);toast('Não foi possível salvar: '+(e.message||e)+'. Os dados foram recarregados.','bad');await carregar();render()}}
 async function todas(q){let out=[],de=0;for(;;){const r=await q().range(de,de+999);if(r.error)throw r.error;out=out.concat(r.data||[]);if(!r.data||r.data.length<1000)break;de+=1000}return out}
 async function carregar(){
-  if(ui.perfil==='supply'||ui.perfil==='visu'||ui.perfil==='noc'){TEC.length=0;S.previsao=[];S.comp={};S.ags=[];S.lpus=[];S.anexos=[];S.anexosLog=[];S.budget={};S.estoque={};snapAll();setSt('Tudo salvo');return}
-  const g=['coord','sup','enc','deliv'].includes(ui.perfil);
+  if((ui.perfil==='supply'||ui.perfil==='visu'||ui.perfil==='noc')&&!r21TemImpl()){TEC.length=0;S.previsao=[];S.comp={};S.ags=[];S.lpus=[];S.anexos=[];S.anexosLog=[];S.budget={};S.estoque={};snapAll();setSt('Tudo salvo');return}
+  const g=['coord','sup','enc','deliv'].includes(ui.perfil)||r21TemImpl();
   // técnicos
   const novos=[];
   if(g){const pap=await todas(()=>sb.from('agenda_papeis').select('user_id,papel,vinculo,ativo,empresa').eq('papel','tecnico').eq('ativo',true));
@@ -3467,15 +3469,15 @@ function gerarPdfLpu(l,o){const sv=!(o&&o.comValor)&&lpuSemValor(l),{jsPDF}=wind
 // ---- usuários e acessos (coordenador)
 let USR=null;
 async function carregarUsuarios(){const[pf,pp]=await Promise.all([todas(()=>sb.from('perfis').select('id,nome,tipo,cnpj,status,equipe').order('nome')),todas(()=>sb.from('agenda_papeis').select('*'))]);USR={pf,pp}}
-const PAPEIS=[['','Sem acesso à agenda'],['coordenador','Coordenador'],['supervisor','Supervisor'],['encarregado','Encarregado'],['tecnico:clt','Técnico próprio (CLT)'],['tecnico:terceiro','Técnico terceiro (administrador da empresa)'],['tecnico:func','Funcionário de empresa terceira'],['noc','NOC (só GTD Manutenção: cria, acompanha e valida chamados)'],['delivery','Delivery (só Implantação, telas liberadas pela coordenação)'],['supply','Supply Chain (só planilha do bolsão)'],['visualizacao','Visualização (só painel do dia)']];
+const PAPEIS=[['','Sem acesso à agenda'],['coordenador','Coordenador'],['supervisor','Supervisor'],['encarregado','Encarregado'],['tecnico:clt','Técnico próprio (CLT)'],['tecnico:terceiro','Técnico terceiro (administrador da empresa)'],['tecnico:func','Funcionário de empresa terceira'],['noc','NOC (GTD Manutenção: cria, acompanha e valida chamados; outras telas pela coordenação)'],['delivery','Delivery (Implantação; telas liberadas pela coordenação)'],['supply','Supply Chain (só planilha do bolsão)'],['visualizacao','Visualização (painel do dia; outras telas pela coordenação)']];
 function viewPermissoes(){const id=ui.permSel,pf=USR.pf.find(x=>x.id===id),pp=USR.pp.find(x=>x.user_id===id);if(!pf||!pp){ui.permSel=null;return viewUsuarios()}
   ui.permEd=ui.permEd&&ui.permEd.id===id?ui.permEd:{id,set:permDe(pp.papel,pp.permissoes).slice()};const P=new Set(ui.permEd.set),pad=PERM_PAD[pp.papel]||[],igual=pad.length===P.size&&pad.every(k=>P.has(k));
-  const papN={supervisor:'Supervisor',encarregado:'Encarregado',supply:'Supply Chain',delivery:'Delivery'}[pp.papel];const PT=pp.papel==='delivery'?PERM_T.filter(([gn])=>gn!=='GTD Manutenção'):PERM_T;
+  const papN={supervisor:'Supervisor',encarregado:'Encarregado',supply:'Supply Chain',delivery:'Delivery',noc:'NOC',visualizacao:'Visualização'}[pp.papel];const PT=PERM_T;
   const grupos=PT.map(([gn,nos])=>{let h='';const tl=[];const w=(L,niv,ok)=>L.forEach(n=>{const[k,nome,tp,fi]=n,on=P.has(k)&&ok;if(tp==='t')tl.push(k);
       h+=`<label class="prow ${ok?'':'off'}" style="padding-left:${8+niv*26}px"><input type="checkbox" data-ch="permTog" value="${k}" ${on?'checked':''} ${ok?'':'disabled'}><span class="${tp==='t'&&!niv?'pt0':''}">${nome}</span><em class="${tp==='a'?'acao':''}">${tp==='a'?'Ação':'Tela'}</em></label>`;if(fi)w(fi,niv+1,on)});
     w(nos,0,true);return `<section class="pgrp"><div class="pgh"><b>${gn}</b><span class="muted">${tl.filter(k=>P.has(k)).length} de ${tl.length} telas</span></div>${h}</section>`}).join('');
   const menu=PT.map(([gn,nos])=>{const it=[];const w=(L,niv,ok)=>L.forEach(n=>{if(n[2]!=='t')return;const on=ok&&P.has(n[0]);if(on)it.push(`<span style="padding-left:${niv*12}px">${n[1]}</span>`);if(n[3])w(n[3],niv+1,on)});w(nos,0,true);return it.length?`<div class="pmg"><b>${gn}</b><div class="nlv">${it.join('')}</div></div>`:''}).join('');
-  const outros=USR.pp.filter(x=>x.user_id!==id&&['supervisor','encarregado','supply','delivery'].includes(x.papel)&&x.ativo);
+  const outros=USR.pp.filter(x=>x.user_id!==id&&['supervisor','encarregado','supply','delivery','noc','visualizacao'].includes(x.papel)&&x.ativo);
   return `<button class="back" data-act="permFechar">‹ Usuários e acessos</button>
   <div class="toolbar"><div><h2>Permissões de ${esc(pf.nome)}</h2><p class="muted">${papN}. Marque o que ele vê e o que pode fazer na agenda. ${igual?'<span class="chip ok">Padrão do papel</span>':'<span class="chip warn">Personalizado</span>'}</p></div>
    <div class="tools"><button class="btn" data-act="permPadrao">Restaurar padrão do papel</button><select class="inp" data-ch="permCopia"><option value="">Copiar de…</option>${outros.map(x=>{const n=(USR.pf.find(y=>y.id===x.user_id)||{}).nome||'';return `<option value="${x.user_id}">${esc(n)}</option>`}).join('')}</select></div></div>
@@ -3488,7 +3490,7 @@ function viewUsuarios(){if(USR&&ui.permSel)return viewPermissoes();if(!USR){carr
   return `<div class="toolbar"><div><h2>Usuários e acessos</h2><p class="muted">Os cadastros são os mesmos do Estoque de Materiais. Aqui você aprova cadastros novos e define quem acessa a ferramenta (Implantação e GTD Manutenção) e com qual papel.</p></div>${ui.perfil==='coord'?'<a class="btn sm" href="armazenamento.html">Espaço de armazenamento</a>':''}</div>
    ${pend.length?`<section class="panel" style="margin-bottom:14px"><h3>Cadastros aguardando aprovação</h3>${pend.map(p=>`<div class="item"><div><b>${esc(p.nome)}</b><small>${p.tipo==='tecnico'?'Técnico, '+esc(p.cnpj||''):'Gestão'}</small></div><div class="right"><button class="btn sm" data-act="uRej" data-id="${p.id}">Recusar</button><button class="btn sm primary" data-act="uApr" data-id="${p.id}">Aprovar</button></div></div>`).join('')}</section>`:''}
    <div class="tools" style="margin-bottom:10px"><input class="inp" type="search" id="uQ" placeholder="Buscar nome ou equipe" data-in="uQ" value="${esc(ui.uQ||'')}"><label class="chk" style="margin:0"><input type="checkbox" data-ch="uSo" ${ui.uSo?'checked':''}> Só Implantação e quem já tem acesso</label></div>
-   <div class="tablewrap"><table><thead><tr><th>Nome</th><th>Cadastro</th><th>Equipe</th><th>Acesso à agenda</th><th>Permissões</th></tr></thead><tbody>${apr.map(p=>`<tr><td><b>${esc(p.nome)}</b>${p.cnpj?`<br><small class="muted">${esc(p.cnpj)}</small>`:''}</td><td>${p.tipo==='tecnico'?'Técnico':p.tipo==='om'?'Gestão O&M':p.tipo==='supply'?'Supply Chain':esc(p.tipo)}</td><td>${esc(p.equipe||'—')}</td><td><select class="inp" style="min-width:190px" data-ch="uPapel" data-id="${p.id}" ${p.id===ME.id?'disabled':''}>${PAPEIS.map(([v,n])=>`<option value="${v}" ${pap(p.id)===v?'selected':''}>${n}</option>`).join('')}</select>${pap(p.id)==='tecnico:func'?(()=>{const x=USR.pp.find(y=>y.user_id===p.id);return `<select class="inp" style="min-width:190px;margin-top:6px" data-ch="uEmpresa" data-id="${p.id}" aria-label="Empresa do funcionário"><option value="">Escolha a empresa…</option>${adms.map(a=>`<option value="${a.id}" ${x.empresa===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`})():''}</td><td>${['supervisor','encarregado','supply','delivery'].includes(pap(p.id))?(()=>{const x=USR.pp.find(y=>y.user_id===p.id),L=permDe(x.papel,x.permissoes),nt=L.filter(k=>!k.startsWith('a_')).length;return `<button class="btn sm" data-act="permAbrir" data-id="${p.id}">Definir</button><br><small class="muted">${x.permissoes==null?'Padrão do papel':nt+(nt===1?' tela':' telas')}</small>`})():pap(p.id)==='coordenador'?'<small class="muted">Acesso total</small>':'<small class="muted">—</small>'}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Nenhum usuário encontrado.</td></tr>'}</tbody></table></div>`}
+   <div class="tablewrap"><table><thead><tr><th>Nome</th><th>Cadastro</th><th>Equipe</th><th>Acesso à agenda</th><th>Permissões</th></tr></thead><tbody>${apr.map(p=>`<tr><td><b>${esc(p.nome)}</b>${p.cnpj?`<br><small class="muted">${esc(p.cnpj)}</small>`:''}</td><td>${p.tipo==='tecnico'?'Técnico':p.tipo==='om'?'Gestão O&M':p.tipo==='supply'?'Supply Chain':esc(p.tipo)}</td><td>${esc(p.equipe||'—')}</td><td><select class="inp" style="min-width:190px" data-ch="uPapel" data-id="${p.id}" ${p.id===ME.id?'disabled':''}>${PAPEIS.map(([v,n])=>`<option value="${v}" ${pap(p.id)===v?'selected':''}>${n}</option>`).join('')}</select>${pap(p.id)==='tecnico:func'?(()=>{const x=USR.pp.find(y=>y.user_id===p.id);return `<select class="inp" style="min-width:190px;margin-top:6px" data-ch="uEmpresa" data-id="${p.id}" aria-label="Empresa do funcionário"><option value="">Escolha a empresa…</option>${adms.map(a=>`<option value="${a.id}" ${x.empresa===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`})():''}</td><td>${['supervisor','encarregado','supply','delivery','noc','visualizacao'].includes(pap(p.id))?(()=>{const x=USR.pp.find(y=>y.user_id===p.id),L=permDe(x.papel,x.permissoes),nt=L.filter(k=>!k.startsWith('a_')).length;return `<button class="btn sm" data-act="permAbrir" data-id="${p.id}">Definir</button><br><small class="muted">${x.permissoes==null?'Padrão do papel':nt+(nt===1?' tela':' telas')}</small>`})():pap(p.id)==='coordenador'?'<small class="muted">Acesso total</small>':'<small class="muted">—</small>'}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Nenhum usuário encontrado.</td></tr>'}</tbody></table></div>`}
 // ---- sessão
 let RECUP=/type=recovery/.test(location.hash),NP_OPEN=RECUP,BOOT_UID=null;
 async function checarSessao(){if(NP_OPEN)return;
@@ -3978,8 +3980,8 @@ function gParaRow(c){const d={};Object.keys(c).forEach(k=>{if(!G_COLS.includes(k
 function gLpuDeRow(r){return Object.assign({hist:[],itens:[]},r.dados,{id:r.id,chamado:r.chamado,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total||0,pdf_path:r.pdf_path,prestador:r.prestador||undefined})}
 function gLpuRow(l){const{id,chamado,etiqueta,tec,status,total,pdf_path,prestador,...d}=l;return{id,chamado,agendamento:null,etiqueta,tecnico:tec,status,total:Math.round((+total||0)*100)/100,pdf_path:pdf_path||null,prestador:prestador||null,dados:d}}
 async function gCarregar(){
-  if(!ME||['supply','visu'].includes(ui.perfil)){G.ok=true;return}
-  const ve=gVeGtd(),tc=gTecPerfil()||ui.perfil==='coord';
+  if(!ME||(['supply','visu'].includes(ui.perfil)&&!r21TemGtd())){G.ok=true;return}
+  const ve=gVeGtd()||r21TemGtd(),tc=gTecPerfil()||ui.perfil==='coord';
   if(ve||tc){try{const[ch,lp,tcs]=await Promise.all([todas(()=>sb.from('ag_chamados').select('*').order('criado_em',{ascending:false})),todas(()=>sb.from('ag_lpus').select('*').not('chamado','is',null)),ve?sb.rpc('ag_tecnicos_lista').then(r=>r.error?[]:r.data||[]):Promise.resolve([])]);
       G.ch=ch.map(gDeRow);G.lpus=ui.perfil==='func'?[]:lp.map(gLpuDeRow);G.tecs=tcs;G.erro=''}
     catch(e){console.warn('GTD',e);G.ch=[];G.lpus=[];G.erro=/ag_chamados|chamado|does not exist|schema cache|relation/i.test(String(e.message||e))?'Rode o script agenda_ajuste_14_gtd_manutencao.sql no Supabase para ativar os chamados do GTD.':'Não foi possível carregar os chamados: '+(e.message||e)}}
@@ -6007,7 +6009,7 @@ function thAcoes(a,nok){const ph=prazoHoje(a),prox=proxDia(a),th=thHoje(a),antig
   if(nao)pre+=`<div class="result" style="margin:0;background:var(--info-soft);color:var(--info)">Você disse que não termina hoje. Ao parar, segure <b>Encerrar o dia</b>. Se conseguir terminar, é só concluir.</div>`;
   const conc=`<button class="bigbtn" data-act="go" data-id="${a.id}" data-hold="3000">Segure para concluir a atividade</button>`;
   const enc=l=>`<button class="bigbtn diab2" data-act="diaFim" data-id="${a.id}" data-hold="3000">${l}</button>`;
-  return pre+updHtml(a)+conc+(prox?enc(`Segure: encerrar o dia (continuo em ${dBR(prox).slice(0,5)})`)+nok:nao?enc('Segure: encerrar o dia'):nok)}
+  return pre+updHtml(a)+conc+(prox?enc(`Segure: encerrar o dia (continuo em ${dBR(prox).slice(0,5)})`):nao?enc('Segure: encerrar o dia'):nok)}
 /* aguardando continuação: dia encerrado sem próximo dia, ou aviso antigo de "não termino hoje" */
 const contLista=()=>S.ags.filter(a=>a.status!=='cancelada'&&((a.aguardaPrazo&&a.status==='agendada')||(a.prazo&&a.prazo.status==='pendente'&&['agendada','execucao'].includes(a.status))));
 function pzBoxA(){const L=contLista();if(!L.length)return '';
@@ -6884,17 +6886,17 @@ function impLiberar(a,por){a.parcial=true;a.improd=true;a.status='lpu';a.improdL
    em deslocamento ou no local, vai direto para a improdutiva (sem a opção "fiz parte"). Campos ocultos mantêm os ids que o registro já lê (mObs, mParc). */
 ACT.nao=el=>{const a=getAg(el.dataset.id);if(!a)return;const saiu=!!(a.ts&&a.ts.desloc),ex=a.status==='execucao',func=!!(ME&&ME.empresa);
   const quem=func?'o administrador da sua empresa preenche':tecT(a.tec)==='CLT'?'você preenche, sem valores':'você preenche';
-  openModal(`<h3>Atividade não concluída</h3><p class="muted">${esc(a.etiqueta)}, ${fasesN(a)}</p>
+  openModal(`<h3>${ex?'Atividade não concluída':'Atividade não realizada'}</h3><p class="muted">${esc(a.etiqueta)}, ${fasesN(a)}</p>
    <label class="f" style="margin-top:12px"><span>Motivo *</span><textarea id="mMot" class="inp" rows="3" placeholder="Ex.: cheguei no local e o cliente cancelou a instalação"></textarea></label><input type="hidden" id="mObs" value="">
    ${ex?`<div class="impq" role="radiogroup" aria-labelledby="impQ"><span id="impQ">O que foi feito nesta visita? *</span>
      <label class="impo"><input type="radio" name="impEsc" value="nada"><span><b>Não executei nada</b><small>Vai para a LPU de improdutiva e deslocamento.</small></span></label>
      <label class="impo"><input type="radio" name="impEsc" value="parte"><span><b>Fiz parte do serviço</b><small>Envio o relatório do que foi feito e lanço na LPU só o executado.</small></span></label>
      <input type="checkbox" id="mParc" hidden></div>`
    :saiu?`<div class="result info impnota"><b>Improdutiva e deslocamento.</b> Como você saiu para este atendimento, a atividade vai para a LPU de improdutiva e deslocamento: ${quem}.</div>`
-   :`<div class="result warn impnota"><b>Você ainda não saiu para este atendimento.</b> A atividade fica como não concluída e não gera LPU.</div>`}
-   <p class="muted" style="font-size:13.5px">O encarregado recebe o aviso e faz o reagendamento.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="naoOk" data-id="${a.id}">Registrar não conclusão</button></div>`);
+   :`<div class="result warn impnota"><b>Você ainda não saiu para este atendimento.</b> A atividade fica como não realizada e não gera LPU.</div>`}
+   <p class="muted" style="font-size:13.5px">O encarregado recebe o aviso e faz o reagendamento.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="naoOk" data-id="${a.id}">${ex?'Registrar não conclusão':'Registrar não realização'}</button></div>`);
   document.querySelectorAll('input[name="impEsc"]').forEach(r=>r.addEventListener('change',()=>{const c=$('mParc');if(c)c.checked=r.value==='parte'&&r.checked;document.querySelectorAll('.impo').forEach(l=>l.classList.toggle('on',l.querySelector('input').checked))}))};
-{const _n=ACT.naoOk;ACT.naoOk=el=>{const a0=getAg(el.dataset.id),mt=$('mMot');if(mt&&String(mt.value).trim().length<4){toast('Escreva o motivo da não conclusão.','bad');return}if(a0&&a0.status==='execucao'&&$('mParc')&&!document.querySelector('input[name="impEsc"]:checked')){toast('Responda o que foi feito nesta visita.','bad');return}if(mt)mt.value=mt.value.trim();const a=a0,parc=$('mParc')&&$('mParc').checked,imp=a&&impTerc(a)&&a.ts&&a.ts.desloc&&!parc;_n(el);
+{const _n=ACT.naoOk;ACT.naoOk=el=>{const a0=getAg(el.dataset.id),mt=$('mMot');if(mt&&String(mt.value).trim().length<4){toast(a0&&a0.status==='execucao'?'Escreva o motivo da não conclusão.':'Escreva o motivo da não realização.','bad');return}if(a0&&a0.status==='execucao'&&$('mParc')&&!document.querySelector('input[name="impEsc"]:checked')){toast('Responda o que foi feito nesta visita.','bad');return}if(mt)mt.value=mt.value.trim();const a=a0,parc=$('mParc')&&$('mParc').checked,imp=a&&impTerc(a)&&a.ts&&a.ts.desloc&&!parc;_n(el);
   if(imp&&a.status==='nao_concluida'&&a.motivo){impLiberar(a,meNome());render();toast(ME&&ME.empresa?'Registrado. O administrador da sua empresa vai preencher a LPU de improdutiva e deslocamento.':'Registrado. Agora preencha a LPU de improdutiva e deslocamento.')}}}
 ACT.impLpu=el=>{const a=getAg(el.dataset.id);if(!impPode(a))return;impLiberar(a);render();window.scrollTo(0,0);toast(ME&&ME.empresa&&ui.perfil==='func'?'Enviado para o administrador da sua empresa preencher a LPU.':'Atividade liberada para a LPU de improdutiva e deslocamento.')};
 ACT.impLpuAdm=el=>{const a=getAg(el.dataset.id);if(!impPode(a))return;impLiberar(a);ACT.lpuAbrir(el)};
@@ -7652,6 +7654,74 @@ function h19MsgLi(i){const m=i.ex.msg,eu=ME&&m.autor===ME.id,sis=!m.autor,a=m.an
   if(aviso){const k='<p class="muted" style="font-size:13px;margin:0">Do mais antigo';const i=h.indexOf(k);if(i>=0)h=h.slice(0,i)+aviso+h.slice(i)}
   if(c&&c.L){const n=c.L.length,k='<div><span>Relatórios</span>';const i=h.indexOf(k);if(i>=0)h=h.slice(0,i)+`<div><span>Mensagens</span><b>${n}</b></div>`+h.slice(i)}
   return h}}
+
+/* ---------- 20/10: Painel de KPIs do GTD › Baixar planilha (Visão geral) ---------- */
+{const _gp=gPainelGeral;gPainelGeral=function(){const h=_gp.apply(this,arguments);
+  return h.replace(/(Escolher datas<\/button><\/div>)/,'$1<button class="btn sm g4xl" data-act="g4Xlsx">Baixar planilha</button>')}}
+Object.assign(ACT,{g4Xlsx:()=>{if(typeof XLSX==='undefined'){toast('A biblioteca de planilhas ainda está carregando. Tente de novo em instantes.','bad');return}
+  const ini=ui.gpIni,fim=ui.gpFim,P=G.ch.filter(c=>c.status!=='cancelado'&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim);if(!P.length){toast('Nenhum chamado no período.','bad');return}
+  const min=ms=>ms==null?null:Math.round(ms/60000),h=ms=>ms==null?'':gDur(ms),med=L=>L.length?L.reduce((s,x)=>s+x,0)/L.length:null,dt=v=>v?new Date(v).toLocaleString('pt-BR'):'';
+  const V=P.filter(c=>c.validadoEm),D=g4Dados(P),ind=V.filter(c=>c.categoria==='Indisponibilidade'),indOk=ind.filter(c=>gSla(c)&&gSla(c).ok).length;
+  const mttr=med(V.map(c=>c.validadoEm-gIni(c))),desp=med(P.filter(c=>c.ts&&c.ts.despacho).map(c=>c.ts.despacho-gIni(c)).filter(x=>x>=0));
+  const resumo=[['Período',`${dBR(ini)} a ${dBR(fim)}`],['Chamados no período',P.length],['Em aberto',P.filter(c=>GTD_ABERTOS.includes(c.status)).length],['Validados pelo NOC',V.length],
+    ['Reincidências (30 dias)',P.filter(c=>gReinc(c).length).length],['MTTR médio (validados)',h(mttr)],['MTTR médio (min)',min(mttr)],['Tempo médio até o despacho',h(desp)],
+    ['SLA indisponibilidade',ind.length?Math.round(indOk/ind.length*1000)/10+'%':'—'],['Indisponibilidades em até 4h',`${indOk} de ${ind.length}`],
+    ['Improdutivos',P.filter(c=>c.desfecho==='Improdutivo').length],['Encaminhados para outra equipe',P.filter(c=>c.desfecho==='Encaminhado').length],
+    ['SLA 4h · eficiência',D.ef==null?'—':D.ef+'%'],['SLA 4h · meta',G4_META+'%'],['SLA 4h · até 4 horas',D.ok.length],['SLA 4h · média até 4 horas',h(D.mOk)],['SLA 4h · acima de 4 horas',D.fora.length],['SLA 4h · média acima de 4 horas',h(D.mFora)]].map(([a,b])=>({Indicador:a,Valor:b}));
+  const grp=fn=>{const m={};P.forEach(c=>{const k=fn(c)||'—';(m[k]=m[k]||[]).push(c)});return Object.entries(m).sort((a,b)=>b[1].length-a[1].length)};
+  const lin=(L,rot,k)=>{const v=L.filter(c=>c.validadoEm),ok=v.filter(c=>c.validadoEm-gIni(c)<=G4_LIM).length,m=med(v.map(c=>c.validadoEm-gIni(c)));
+    return{[rot]:k,Chamados:L.length,'Em aberto':L.filter(c=>GTD_ABERTOS.includes(c.status)).length,Validados:v.length,'Até 4h':ok,'Acima de 4h':v.length-ok,'Eficiência SLA 4h (%)':v.length?Math.round(ok/v.length*1000)/10:null,'MTTR médio':h(m),'MTTR médio (min)':min(m),Resolvidos:L.filter(c=>c.desfecho==='Resolvido').length,Improdutivos:L.filter(c=>c.desfecho==='Improdutivo').length}};
+  const cham=P.slice().sort((a,b)=>gIni(a)-gIni(b)).map(c=>{const ms=c.validadoEm?c.validadoEm-gIni(c):null,t=c.ts||{};
+    return{'O&M':c.pom||'','Protocolo NOC':c.pnoc||'',Cliente:c.cliente||'',Etiqueta:c.etiqueta||'',Cidade:c.cidade||'',Categoria:c.categoria||'',Prioridade:c.prioridade||'',
+      'Técnico':c.tec?gTecN(c.tec):'','Vínculo':c.tec?String(gTecV(c.tec)).replace(/<[^>]*>/g,''):'',Situação:(GST[gStK(c)]||[c.status])[0],'Início do MTTR':dt(gIni(c)),Despacho:dt(t.despacho),'Saída':dt(t.desloc),Chegada:dt(t.chegada),'Validação NOC':dt(c.validadoEm),
+      'MTTR':h(ms),'MTTR (min)':min(ms),'SLA 4h':ms==null?'em aberto':ms<=G4_LIM?'Até 4h':'Acima de 4h',Desfecho:c.desfecho||'',Reincidente:gReinc(c).length?'Sim':'Não'}});
+  const wb=XLSX.utils.book_new(),add=(L,n)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(L),n);
+  add(resumo,'Resumo');add(grp(c=>c.categoria).map(([k,L])=>lin(L,'Categoria',k)),'Por categoria');add(grp(c=>c.tec?gTecN(c.tec):'Não despachado').map(([k,L])=>lin(L,'Técnico',k)),'Por técnico');
+  add(grp(c=>c.cidade).map(([k,L])=>lin(L,'Cidade',k)),'Por cidade');add(grp(c=>c.desfecho||'Sem RFO').map(([k,L])=>({Desfecho:k,Chamados:L.length,'% do total':Math.round(L.length/P.length*1000)/10})),'Por desfecho');add(cham,'Chamados');
+  XLSX.writeFile(wb,`kpis_gtd_${ini}_a_${fim}.xlsx`);toast('Planilha baixada.')}});
+
+/* ---------- 20/10: acessos editáveis para NOC, Visualização, Supply e Delivery ----------
+   Usuários e acessos › Definir passa a valer também para NOC e Visualização (Supply e Delivery já tinham), com todas as telas
+   da Implantação e do GTD. Sem personalizar, cada papel continua com o padrão de antes. Quem recebe tela da outra área
+   passa a carregar os dados dela (o banco libera pelo ajuste 34). */
+const R21_EST=['estAtual','estoque','estHist'];
+function r21TemImpl(){if(!['supply','visu','noc'].includes(ui.perfil))return false;return G_TABS.some(t=>gCatDe(t)==='impl'&&!R21_EST.includes(t)&&!(ui.perfil==='visu'&&t==='painelDia')&&pode(t))}
+function r21TemGtd(){if(!['supply','visu','deliv'].includes(ui.perfil))return false;return G_TABS.some(t=>gCatDe(t)==='gtd'&&pode(t))}
+/* sem acesso à lista de técnicos (agenda_papeis), usa a função do banco que devolve nome e vínculo */
+{const _c=carregar;carregar=async function(...x){const r=await _c(...x);
+  if(r21TemImpl()&&!TEC.length){try{const q=await sb.rpc('ag_tecnicos_lista');(q.data||[]).forEach(t=>{if(!TEC.some(y=>y.id===t.id))TEC.push({id:t.id,nome:t.nome,tipo:t.vinculo==='terceiro'?'TERC':'CLT',doc:'',empresa:t.empresa||null})})}catch(e){}}
+  return r}}
+
+/* ---------- 20/10: funcionário de empresa terceira não vê nada de LPU ----------
+   Quem preenche a LPU é o administrador da empresa. No app do funcionário, os textos e botões que falavam de LPU
+   passam a falar do administrador. As regras não mudam: a atividade continua indo para o administrador do mesmo jeito. */
+const F22_TXT=[
+  ['Enviar relatório e preencher LPU','Enviar relatório'],
+  ['Lançar improdutiva e deslocamento na LPU','Avisar o administrador: visita improdutiva'],
+  ['Fiz parte do serviço: lançar na LPU','Fiz parte do serviço: enviar o relatório'],
+  [' Relatórios e LPU podem ficar para depois.',' Os relatórios podem ficar para depois.'],
+  ['Vai para a LPU de improdutiva e deslocamento.','O administrador da sua empresa recebe o aviso da visita improdutiva.'],
+  ['Envio o relatório do que foi feito e lanço na LPU só o executado.','Envio o relatório do que foi feito. O administrador da sua empresa recebe o aviso.'],
+  ['Como você saiu para este atendimento, a atividade vai para a LPU de improdutiva e deslocamento: o administrador da sua empresa preenche.','Como você saiu para este atendimento, o administrador da sua empresa recebe o aviso da visita improdutiva.'],
+  ['Improdutiva e deslocamento.','Visita improdutiva.'],
+  ['Envie o relatório do que foi feito antes de lançar na LPU.','Envie o relatório do que foi feito.'],
+  ['A atividade fica como não realizada e não gera LPU.','A atividade fica como não realizada e o encarregado reagenda.'],
+  ['Fiz parte do serviço e quero lançar na LPU','Fiz parte do serviço'],
+  ['Depois de registrar, você preenche a LPU só com o que foi executado.','Depois de registrar, você envia o relatório do que foi feito.']];
+const F22_TOAST=[
+  [/vai preencher a LPU de improdutiva e deslocamento\.?/,'recebe o aviso.'],
+  ['Enviado para o administrador da sua empresa preencher a LPU.','Enviado para o administrador da sua empresa.'],
+  ['Não conclusão registrada. Agora envie o relatório do que foi feito e, depois, a LPU.','Não conclusão registrada. Agora envie o relatório do que foi feito.'],
+  ['Relatório enviado. Agora toque em Enviar relatório e preencher LPU.','Relatório enviado. Agora toque em Enviar relatório.'],
+  ['Relatório recebido. Agora é só enviar e preencher a LPU.','Relatório recebido. Agora é só enviar.']];
+const f22=()=>ui.perfil==='func';
+function f22Limpa(root){if(!f22()||!root)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;const L=[];while(n=w.nextNode())L.push(n);
+  L.forEach(t=>{let v=t.nodeValue;if(!/LPU|improdutiva/i.test(v))return;F22_TXT.forEach(([a,b])=>{if(v.includes(a))v=v.split(a).join(b)});if(v!==t.nodeValue)t.nodeValue=v})}
+{const _r=render;render=function(...x){const o=_r.apply(this,x);try{f22Limpa($('app'))}catch(e){}return o}}
+{const _om=openModal;openModal=function(...x){const o=_om.apply(this,x);try{f22Limpa($('modal'))}catch(e){}return o}}
+{const _t=toast;toast=function(m,...x){if(f22()&&typeof m==='string'&&/LPU/.test(m)){F22_TOAST.forEach(([a,b])=>{m=m.replace(a,b)})}return _t(m,...x)}}
+/* 20/10: título da janela "Encerrar o dia" em atividade de vários dias ("Encerrar o dia dia 1 de 2" → "Encerrar o dia 1 de 2") */
+{const _d=ACT.diaFim;ACT.diaFim=el=>{const r=_d(el);const h=document.querySelector('#modal .sheetm h3');if(h&&/^Encerrar o dia dia /.test(h.textContent))h.textContent=h.textContent.replace(/^Encerrar o dia dia /,'Encerrar o dia ');return r}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
