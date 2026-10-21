@@ -1695,6 +1695,15 @@ nav.tabs .ncatm,.ncatm{display:none}
 .geocolal{display:flex;flex-wrap:wrap;gap:8px}.geocolai{position:relative;width:96px;height:72px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg)}
 .geocolai img{width:100%;height:100%;object-fit:cover;display:block}.geocolai button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:12px;cursor:pointer;line-height:1}
 .geocam{align-self:flex-start;margin:0 0 10px;cursor:pointer;display:inline-flex}
+.refsel{display:block;margin-top:6px;font:600 12px/1.3 Barlow,sans-serif;color:var(--info,#2563eb);background:color-mix(in srgb,var(--info,#2563eb) 10%,transparent);border-radius:6px;padding:3px 7px;width:fit-content}
+.refbox{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.refl{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:6px 0;border-top:1px solid var(--line)}.refl:first-of-type{border-top:0}
+.refl.at b{text-decoration:underline;text-underline-offset:3px}.refl small{flex-basis:100%;color:var(--muted);display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.refl .linkbtn{margin-left:auto}
+.refck small{font-weight:400}
+.refchip{font:600 12px/1 Barlow,sans-serif;border-radius:999px;padding:4px 9px;white-space:nowrap}
+.refchip.p{background:color-mix(in srgb,var(--ok,#16a34a) 14%,transparent);color:var(--ok,#16a34a)}
+.refchip.r{background:color-mix(in srgb,var(--info,#2563eb) 12%,transparent);color:var(--info,#2563eb)}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -5997,7 +6006,7 @@ function agFoot(a){const t=a.ts||{};if(a.status==='cancelada')return['Cancelada'
 const agChipCls=a=>agParc(a)||a.status==='nao_concluida'?'bad':a.status==='concluida'||['relatorios','lpu'].includes(a.status)?'ok':['deslocamento'].includes(a.status)?'info':['no_local','execucao'].includes(a.status)?'warn':'ag';
 function agEv(a,d,extra){const p=pPor(a.etiqueta)||{},cli=p.cliente||cliN(a.etiqueta)||'',di=typeof d==='string'&&diaIdx(a,d),[ft,fc]=agFoot(a);
   const dx=typeof d==='string'&&(a.diario||[]).find(x=>x.data===d&&x.ts&&x.ts.fimDia);
-  if(dx&&(d!==a.data||a.aguardaPrazo)&&!FIM.includes(a.status)){const prox=a.aguardaPrazo?'aguardando continuação':a.data>d?'continua '+DSEM[new Date(a.data+'T12:00:00').getDay()]+' '+dBR(a.data).slice(0,5):'';
+  if(dx&&(d!==a.data||a.aguardaPrazo)&&!FIM.includes(a.status)){const prox=a.status==='cancelada'?'continuação cancelada':a.aguardaPrazo?'aguardando continuação':a.data>d?'continua '+DSEM[new Date(a.data+'T12:00:00').getDay()]+' '+dBR(a.data).slice(0,5):'';
     return cardA({tag:'button',attrs:`data-act="agOpen" data-id="${a.id}" title="${esc((cli?cli+' - ':'')+a.etiqueta)}"`,cls2:'ev evn',cli,eti:a.etiqueta,chip:'Não concluída',cls:'bad',fz:agFzC(a)+(di?' · '+di:''),top:topoTxt(p),cid:p.cidade||'',tec:agResp(a),eqk:!!a.equipe,foot:`Dia encerrado às ${hmA(dx.ts.fimDia)}${prox?' · '+prox:''}`,fcls:'bad',mot:dx.falta?'Falta: '+dx.falta:''})}
   const cont=typeof d==='string'&&d===a.data&&(a.diario||[]).filter(x=>x.data<d).slice(-1)[0];if(cont&&!extra)extra='continuação de '+dBR(cont.data).slice(0,5);
   return cardA({tag:'button',attrs:`data-act="agOpen" data-id="${a.id}" title="${esc((cli?cli+' - ':'')+a.etiqueta)}"`,cls2:'ev evn',cli,eti:a.etiqueta,chip:agParc(a)?'Não concluída':agStTxt(a),cls:agChipCls(a),x:a.status==='cancelada',
@@ -6027,7 +6036,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
   let rels='';if(ro){const l=S.lpus.filter(x=>x.ag===a.id).pop();rels=[relBt(R.foto&&R.foto.path,'relatorio_fotografico_'+a.etiqueta+'.pdf','Relatório fotográfico'),relBt(R.entrega&&R.entrega.path,'relatorio_entrega_'+a.etiqueta+'.pdf','Relatório de entrega'),relBt(R.parcial&&R.parcial.path,'relatorio_nao_conclusao_'+a.etiqueta+'.pdf','Relatório do que foi feito'),l&&l.pdf_path?relBt(l.pdf_path,'LPU_'+a.etiqueta+'.pdf','LPU'):''].join('')}
   else rels=[R.foto&&R.foto.path?`<button class="btn sm" data-act="relVer" data-p="${esc(R.foto.path)}">Relatório fotográfico</button>`:'',R.entrega&&R.entrega.path?`<button class="btn sm" data-act="relVer" data-p="${esc(R.entrega.path)}">Relatório de entrega</button>`:'',R.parcial&&R.parcial.path?`<button class="btn sm" data-act="relVer" data-p="${esc(R.parcial.path)}">Relatório do que foi feito</button>`:''].join('');
   const quick=[tel?`<a class="btn sm" href="tel:${tel}">Ligar para o contato</a>`:'',mapa?`<a class="btn sm" href="${mapa}" target="_blank" rel="noopener">Abrir no mapa</a>`:'',rels].join('');
-  const pz=a.prazo&&a.prazo.tipo==='dia'?(a.prazo.status==='aprovado'&&a.prazo.decisao?`<div class="result ok" style="margin:10px 0 0"><b>Continuação agendada para ${DSEM[new Date((a.prazo.decisao.dias||[a.data])[0]+'T12:00:00').getDay()]} ${dBR((a.prazo.decisao.dias||[a.data])[0]).slice(0,5)}.</b>${a.prazo.obs?' Falta: '+esc(a.prazo.obs):''}</div>`:a.prazo.status==='pendente'?`<div class="result warn" style="margin:10px 0 0"><b>Aguardando continuação.</b>${a.prazo.obs?' Falta: '+esc(a.prazo.obs):''}${canReag()?`<br><button class="btn sm" data-act="pzDecidir" data-id="${a.id}" style="margin-top:6px">Agendar continuação</button>`:''}</div>`:a.prazo.status==='recusado'?`<div class="result bad" style="margin:10px 0 0"><b>Continuação não agendada.</b> ${esc(a.prazo.resposta||'')}</div>`:''):a.prazo&&a.prazo.resp==='mais'?`<div class="result ${a.prazo.status==='pendente'?'warn':a.prazo.status==='aprovado'?'ok':'bad'}" style="margin:10px 0 0"><b>Pedido de prazo (${a.prazo.status==='pendente'?'aguardando decisão':a.prazo.status}):</b> mais ${a.prazo.dias>1?a.prazo.dias+' dias':'1 dia'}, ${esc(a.prazo.motivo||'')}. ${esc(a.prazo.obs||'')}${a.prazo.resposta?`<br>Resposta: ${esc(a.prazo.resposta)}`:''}${a.prazo.status==='pendente'&&canReag()?`<br><button class="btn sm" data-act="pzDecidir" data-id="${a.id}" style="margin-top:6px">Decidir</button>`:''}</div>`:'';
+  const pz=a.status==='cancelada'&&(a.diario||[]).length?contCancTxt(a):a.prazo&&a.prazo.tipo==='dia'?(a.prazo.status==='aprovado'&&a.prazo.decisao?`<div class="result ok" style="margin:10px 0 0"><b>Continuação agendada para ${DSEM[new Date((a.prazo.decisao.dias||[a.data])[0]+'T12:00:00').getDay()]} ${dBR((a.prazo.decisao.dias||[a.data])[0]).slice(0,5)}.</b>${a.prazo.obs?' Falta: '+esc(a.prazo.obs):''}</div>`:a.prazo.status==='pendente'?`<div class="result warn" style="margin:10px 0 0"><b>Aguardando continuação.</b>${a.prazo.obs?' Falta: '+esc(a.prazo.obs):''}${canReag()?`<br><button class="btn sm" data-act="pzDecidir" data-id="${a.id}" style="margin-top:6px">Agendar continuação</button>`:''}</div>`:a.prazo.status==='recusado'?`<div class="result bad" style="margin:10px 0 0"><b>Continuação não agendada.</b> ${esc(a.prazo.resposta||'')}</div>`:''):a.prazo&&a.prazo.resp==='mais'?`<div class="result ${a.prazo.status==='pendente'?'warn':a.prazo.status==='aprovado'?'ok':'bad'}" style="margin:10px 0 0"><b>Pedido de prazo (${a.prazo.status==='pendente'?'aguardando decisão':a.prazo.status}):</b> mais ${a.prazo.dias>1?a.prazo.dias+' dias':'1 dia'}, ${esc(a.prazo.motivo||'')}. ${esc(a.prazo.obs||'')}${a.prazo.resposta?`<br>Resposta: ${esc(a.prazo.resposta)}`:''}${a.prazo.status==='pendente'&&canReag()?`<br><button class="btn sm" data-act="pzDecidir" data-id="${a.id}" style="margin-top:6px">Decidir</button>`:''}</div>`:'';
   const notas=pz+(a.reagDispensa?`<div class="note" style="margin:10px 0 0">Reagendamento dispensado por ${esc(a.reagDispensa.por)} em ${dBR(isoD(new Date(a.reagDispensa.em)))}: ${esc(a.reagDispensa.motivo)}</div>`:'')+(a.pendReag?`<div class="note" style="margin:10px 0 0">${a.reag?'Reagendada para '+dBR(a.reag)+'.':canReag()?'Aguardando reagendamento.':'Aguardando o encarregado reagendar.'}</div>`:'');
   /* linha do tempo deitada + atualizações */
   const hz=[['Saiu',t.desloc],['Chegou',t.chegada],['Iniciou',t.inicio],[nc?'Encerrou':a.status==='cancelada'?'Cancelada':'Concluiu',nc?t.encerramento:t.conclusao]];
@@ -8731,6 +8740,64 @@ Object.assign(ACT,{geoSub:el=>{ui.geoSub=el.dataset.s;if(ui.tab!=='geo'){ui.cat=
   return op?h2+`<div class="nlv">${GEO_SUB.map(([k,n])=>`<button class="nit" data-act="geoSub" data-s="${k}" aria-current="${s===k}"><span class="nt">${n}</span></button>`).join('')}</div>`:h2}}
 /* celular: chips com os sub-itens */
 {const _c=navChips;navChips=function(){if(ui.tab==='geo'){const s=geoSubAt();return `<div class="npchips" role="tablist" aria-label="Cadastro Geogrid">${GEO_SUB.map(([k,n])=>`<button class="nchip ${s===k?'on':''}" role="tab" aria-selected="${s===k}" data-act="geoSub" data-s="${k}">${n}</button>`).join('')}</div>`}return _c.apply(this,arguments)}}
+/* dia trabalhado de atividade cancelada: não diz mais que continua */
+const contCancTxt=a=>`<div class="result warn" style="margin:10px 0 0"><b>Continuação cancelada.</b> ${(a.diario||[]).length===1?'O dia trabalhado fica registrado':'Os dias trabalhados ficam registrados'}; as fases desta atividade continuam pendentes.</div>`;
+
+/* ---------- 21/10 noite: REABRIR LPU REPROVADA e DEVOLVER RELATÓRIO AO TÉCNICO ----------
+   1) LPU reprovada por engano: a gestão com a_aprovar reabre para ajuste (status ajuste + histórico). O técnico corrige e reenvia.
+   2) Devolver relatório: a gestão escolhe quais relatórios voltam. A atividade volta para "relatorios", o técnico refaz e envia.
+      O arquivo antigo fica guardado no histórico (relDevol) e não é aceito de novo. Se a atividade já tem LPU, ao reenviar o
+      relatório ela volta para concluída (não abre outra LPU). */
+const devPode=()=>pode('a_aprovar');
+const relNomeK=k=>({foto:'Relatório fotográfico',entrega:'Relatório de entrega',parcial:'Relatório do que foi feito (não concluída)',vist:'Relatório de vistoria'})[k]||k;
+const relEnviados=a=>a&&a.rel?Object.keys(a.rel).filter(k=>a.rel[k]&&(a.rel[k].path||a.rel[k].em)):[];
+const relAntigos=a=>new Set((a.relDevol||[]).flatMap(d=>(d.rels||[]).map(r=>r.path)).filter(Boolean));
+function relDevolver(a,ks,mot){a.rel=a.rel||{};a.relDevol=(a.relDevol||[]).concat([{em:Date.now(),por:meNome(),motivo:mot,status:a.status,rels:ks.map(k=>({k,path:a.rel[k]&&a.rel[k].path||null}))}]);
+  ks.forEach(k=>delete a.rel[k]);a.relMotivo=mot;a.status='relatorios';
+  try{IDB.del('rf:'+a.id)}catch(e){}
+  sb.from('ag_mensagens').insert({agendamento:a.id,texto:`Relatório devolvido para correção (${ks.map(relNomeK).join(', ')}): ${mot}. Refaça e envie de novo pela atividade.`}).then(()=>{},()=>{})}
+const devChecks=a=>{const R=relEnviados(a);return R.length?`<div class="fchk">${R.map(k=>`<label><input type="checkbox" class="devRel" value="${k}"><span>${relNomeK(k)}</span></label>`).join('')}</div>`:'<p class="muted">Esta atividade não tem relatório enviado.</p>'};
+Object.assign(ACT,{
+  lpuReab:el=>{if(!devPode())return semPerm();const l=S.lpus.find(x=>x.id===el.dataset.id);if(!l)return;const a=getAg(l.ag),m=(l.hist||[]).slice().reverse().find(h=>h.motivo);
+    openModal(`<h3>Reabrir LPU para ajuste</h3><p class="muted">${esc(l.etiqueta)} · ${esc(cliN(l.etiqueta)||'')} · ${esc(l.tecNome||tecN(l.tec))} · ${brl(l.total)}</p>
+     <div class="result info" style="margin:10px 0">A LPU sai de Reprovadas e volta para o técnico como “Devolvida para ajuste”. Ele corrige, assina e reenvia para aprovação. O histórico mostra a reprovação e a reabertura.</div>
+     <label class="f"><span>O que o técnico precisa corrigir *</span><textarea class="inp" id="reabMot" rows="3">${esc(m?m.motivo:'')}</textarea></label>
+     ${a?`<div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Devolver também o relatório? (opcional)</span>${devChecks(a)}</div>`:''}
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="lpuReabOk" data-id="${l.id}">Reabrir para ajuste</button></div>`)},
+  lpuReabOk:el=>{if(!devPode())return semPerm();const l=S.lpus.find(x=>x.id===el.dataset.id);if(!l)return;const mot=(($('reabMot')||{}).value||'').trim();if(!mot)return toast('Escreva o que precisa ser corrigido.','bad');
+    const ks=[...document.querySelectorAll('.devRel:checked')].map(x=>x.value),a=getAg(l.ag);
+    l.status='ajuste';l.hist=(l.hist||[]).concat([{acao:'Reaberta para ajuste (estava reprovada)',por:meNome(),em:Date.now(),motivo:mot}]);
+    if(a&&ks.length)relDevolver(a,ks,mot);
+    if(a)sb.from('ag_mensagens').insert({agendamento:a.id,texto:'LPU devolvida para ajuste: '+mot}).then(()=>{},()=>{});
+    ui.aOpen=null;ui.aTab='ajuste';save();closeModal();render();toast(`LPU reaberta e devolvida para ajuste${ks.length?', junto com '+ks.map(relNomeK).join(' e ').toLowerCase():''}.`)},
+  relDev:el=>{if(!devPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;
+    openModal(`<h3>Devolver relatório ao técnico</h3><p class="muted">${esc(a.etiqueta)} · ${esc(cliN(a.etiqueta)||'')} · ${dBR(a.data)} · ${esc(typeof agResp==='function'?agResp(a):tecN(a.tec))}</p>
+     <div class="result info" style="margin:10px 0">O relatório marcado volta para o técnico refazer e enviar de novo. O arquivo atual fica no histórico. ${S.lpus.some(x=>x.ag===a.id&&x.status!=='reprovada')?'A LPU desta atividade não muda; se ela também precisa de correção, devolva pela Aprovação de LPU.':''}</div>
+     <div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Relatórios *</span>${devChecks(a)}</div>
+     <label class="f"><span>O que precisa ser corrigido *</span><textarea class="inp" id="devMot" rows="3"></textarea></label>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="relDevOk" data-id="${a.id}">Devolver relatório</button></div>`)},
+  relDevOk:el=>{if(!devPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const ks=[...document.querySelectorAll('.devRel:checked')].map(x=>x.value),mot=(($('devMot')||{}).value||'').trim();
+    if(!ks.length)return toast('Marque o relatório que volta para o técnico.','bad');if(!mot)return toast('Escreva o que precisa ser corrigido.','bad');
+    relDevolver(a,ks,mot);save();closeModal();render();toast(`${ks.map(relNomeK).join(' e ')} devolvido para ${tecN(a.tec)} corrigir.`)}});
+/* Aprovação de LPU: botões nos cartões */
+{const _v=viewAprov;viewAprov=function(){const h=_v.apply(this,arguments);if(!devPode())return h;
+  return h.replace(/<button class="btn" data-act="pdf" data-id="([^"]+)">Ver PDF<\/button>/g,(m,id)=>{const l=S.lpus.find(x=>x.id===id);if(!l)return m;const a=getAg(l.ag);
+    return m+(l.status==='reprovada'?`<button class="btn primary" data-act="lpuReab" data-id="${id}">Reabrir para ajuste</button>`:'')+(a&&relEnviados(a).length&&l.status!=='reprovada'?`<button class="btn" data-act="relDev" data-id="${a.id}">Devolver relatório</button>`:'')})}}
+/* detalhe da atividade: devolver relatório e histórico */
+function devHist(a){const D=a.relDevol||[];if(!D.length)return '';return `<div class="result warn" style="margin-top:10px"><b>Relatório devolvido ao técnico:</b>${D.map(d=>`<br>${dtBR(d.em)} · ${esc(d.por||'')}: ${(d.rels||[]).map(r=>relNomeK(r.k)).join(', ')}. ${esc(d.motivo||'')}`).join('')}${a.status==='relatorios'&&a.relMotivo?'<br><i>Aguardando o técnico reenviar.</i>':''}</div>`}
+{const _cb=corrBloco;corrBloco=function(a){const h=_cb.apply(this,arguments);if(!a)return h;const gest=!['terc','func','clt'].includes(ui.perfil);
+  const bt=gest&&devPode()&&relEnviados(a).length&&['relatorios','lpu','concluida'].includes(a.status)?`<div class="tools" style="margin-top:10px"><button class="btn sm" data-act="relDev" data-id="${a.id}">Devolver relatório ao técnico</button></div>`:'';
+  return devHist(a)+h+bt}}
+/* tela do técnico: motivo da devolução */
+{const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);if(a&&a.status==='relatorios'&&a.relMotivo&&r&&typeof r.act==='string'){r.act=`<div class="result warn" style="margin:0 0 10px"><b>A gestão devolveu o relatório para correção.</b> ${esc(a.relMotivo)}. Refaça e envie de novo.</div>`+r.act;if(S.lpus.some(l=>l.ag===a.id&&l.status!=='reprovada'))r.act=r.act.replace(/Enviar relatório e preencher LPU/g,'Enviar relatório')}return r}}
+/* reenviou o relatório: se a atividade já tem LPU, volta para concluída (não abre outra LPU) */
+{const _r=ACT.relEnviar;ACT.relEnviar=el=>{const a=getAg(el.dataset.id),dev=!!(a&&a.relMotivo);const o=_r(el);
+  if(a&&dev){delete a.relMotivo;if(a.status==='lpu'&&S.lpus.some(l=>l.ag===a.id&&l.status!=='reprovada')){a.status='concluida';toast('Relatório reenviado. A atividade voltou para concluída.')}save();render()}return o}}
+/* relatório de entrega: não aceita de novo o arquivo devolvido */
+{const _ck=checarRelatorio;checarRelatorio=async function(a){const old=relAntigos(a);if(!old.size)return _ck.apply(this,arguments);
+  const r=await sb.storage.from('agenda').list('relatorios/'+a.id);if(r.error){a.__relErr=r.error.message||String(r.error);return false}a.__relErr='';
+  const f=(r.data||[]).filter(x=>/\.pdf$/i.test(x.name)&&!x.name.includes('/')&&!old.has('relatorios/'+a.id+'/'+x.name));if(!f.length)return false;
+  a.rel=a.rel||{};a.rel.entrega={path:'relatorios/'+a.id+'/'+f[f.length-1].name,em:Date.now()};save();return true}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
