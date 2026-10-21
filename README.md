@@ -491,6 +491,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 21/10/2026 | **ZIP dos PDFs de LPU** (Espaço de armazenamento): uma pasta por técnico CLT ou prestador (`CLT - técnico` ou `Prestador - empresa`) e, dentro dela, só os PDFs, sem subpastas, com o nome `cliente - etiqueta - dd-mm-aaaa.pdf` (data da atividade da LPU; nomes repetidos ganham " (2)"). Os outros tipos de arquivo seguem com as pastas de antes. | `armazenamento.html` |
 | 21/10/2026 | **Previsão de custo pelo KMZ × LPU** nos projetos com lançamento: leitura do KMZ de lançamento e de extensão, estimativa por fase com parâmetros e versões, previsão do budget por fases pendentes (previsto × realizado × saldo, métrica KMZ e antiga) e fases concluídas fora da ferramenta. Detalhes em 7. | `agenda.html`; rodar antes `agenda_ajuste_36_estimativa_kmz.sql` no Supabase |
 | 21/10/2026 | Relatório de fusões da extensão (mapa do KMZ, De/Para, fusão do cliente, splitter incluído, salvar e confirmar por caixa, PDF; opcional por enquanto); extensão sem o fotográfico antigo; aba Geogrid · Cadastro de fibras (validar e cadastrado, com registro); Demandas: coluna Valor mensal, sem Primeira fase e Dias até entregar. | `agenda.html` |
 | 20/10/2026 | **Funcionário de empresa terceira não vê nada de LPU.** Textos, botões e avisos do app do funcionário passam a falar do administrador da empresa; regras iguais. Correção do título "Encerrar o dia dia 1 de 2". Sem SQL novo. | `agenda.html` |

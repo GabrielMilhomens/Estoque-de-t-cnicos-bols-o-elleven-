@@ -241,7 +241,8 @@ function limpDesenhar() {
 }
 
 /* ---------- referências para nomear as pastas do ZIP e filtrar as LPUs aprovadas ----------
-   Pastas: <CLT - técnico | Prestador - empresa>/<cliente - etiqueta>/<Atividade dd-mm-aaaa | O&M nº>/arquivo */
+   Pastas: <CLT - técnico | Prestador - empresa>/<cliente - etiqueta>/<Atividade dd-mm-aaaa | O&M nº>/arquivo
+   PDFs de LPU (21/10): <CLT - técnico | Prestador - empresa>/<cliente> - <etiqueta> - <dd-mm-aaaa>.pdf, sem subpastas */
 let REF = { tec: {}, ag: {}, ch: {}, pj: {}, lpu: {} };
 async function todos(t, cols) { let out = [], i = 0; for (;;) { const r = await sb.from(t).select(cols).range(i, i + 999); if (r.error) return out; out = out.concat(r.data || []); if (!r.data || r.data.length < 1000) return out; i += 1000 } }
 async function carregarRef() {
@@ -262,6 +263,13 @@ function prestador(id) { const t = REF.tec[id]; if (!t) return 'Técnico ' + Str
 function pastaZip(f) {
   const n = f.nome, seg = n.split('/'), b = seg[seg.length - 1];
   let tec = null, eti = null, cli = null, sub = '', topo = null;
+  if (seg[0] === 'lpus') { /* PDF de LPU: <CLT - técnico | Prestador - empresa>/<cliente> - <etiqueta> - <dd-mm-aaaa>.pdf, sem subpastas */
+    const l = lpuDe(f), t = (l && l.tecnico) || seg[1]; let c = null, e = null, d = null;
+    if (l) { e = l.etiqueta; c = (l.dados || {}).cliente; d = (l.dados || {}).data;
+      if (l.chamado) { const ch = REF.ch[l.chamado]; if (ch) { c = c || ch.cliente; e = e || ch.etiqueta } }
+      else if (l.agendamento) { const a = REF.ag[l.agendamento]; if (a) { d = d || a.data; e = e || a.etiqueta } } }
+    if (e && !c) c = REF.pj[e]; if (!d && f.criado) d = new Date(f.criado).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+    return (t ? prestador(t) : 'Sem técnico') + '/' + limpa([c, e, dBR(d)].filter(Boolean).join(' - ') || b.replace(/\.pdf$/i, '')) + '.pdf' }
   if (seg[0] === 'lpus') { const l = lpuDe(f); tec = (l && l.tecnico) || seg[1]; if (l) { eti = l.etiqueta; cli = (l.dados || {}).cliente;
       if (l.chamado) { const c = REF.ch[l.chamado]; sub = c ? 'O&M ' + (c.pom || '') : ''; if (c && !cli) cli = c.cliente }
       else if (l.agendamento) { const a = REF.ag[l.agendamento]; sub = a ? 'Atividade ' + dBR(a.data) : '' } } }
