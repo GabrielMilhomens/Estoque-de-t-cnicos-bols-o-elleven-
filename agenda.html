@@ -1670,6 +1670,51 @@ nav.tabs .ncatm,.ncatm{display:none}
 .geoih,.geodh{flex-wrap:wrap}.geodh>div{flex:1 1 260px;min-width:0}.geoih b{flex:1 1 160px}.geolog li{grid-template-columns:150px 1fr}
 @media(max-width:900px){.geolog li{grid-template-columns:1fr;gap:0}.geoih .chip{white-space:normal}}
 .fuopc{font-weight:500;font-size:12px;color:var(--muted);margin-left:6px;text-transform:none;letter-spacing:0}
+/* KMZ de lançamento: resumo das quantidades */
+.klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
+.klinfo{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:10px 0}
+.klinfo>span{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.klinfo small{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}.klinfo b{overflow-wrap:anywhere}.klinfo em{font-style:normal;font-size:12.5px;color:var(--muted)}
+.klsvg{width:100%;height:auto;background:var(--bg);border:1px solid var(--line);border-radius:10px;display:block}
+.klsvg polyline{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.klaer{stroke:#1b1b1b;stroke-width:3}.klsub{stroke:#c26b12;stroke-width:5}.klint{stroke:#1e63d6;stroke-width:5}.klcord{stroke:#8CBF3F;stroke-width:9;opacity:.55}
+.klpo{fill:#fff;stroke:#1b1b1b;stroke-width:1.5}.klpf{fill:#b9c0b6}.klcs{fill:#c26b12}.klcx{fill:#7b3fb5}.klcli{fill:#1e63d6;stroke:#fff;stroke-width:2}
+@media(prefers-color-scheme:dark){.klaer{stroke:#e8e8e8}.klpo{fill:#222;stroke:#e8e8e8}}
+.klleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted);margin:6px 0 10px}.klleg span{display:inline-flex;align-items:center;gap:5px}
+.klleg .li{display:inline-block;width:18px;height:4px;border-radius:2px}.li.int{background:#1e63d6}.li.aer{background:var(--ink)}.li.sub{background:#c26b12}.li.cord{background:#8CBF3F;height:7px;opacity:.6}
+.klleg .dt{display:inline-block;width:10px;height:10px;border-radius:50%}.dt.po{border:1.5px solid var(--ink)}.dt.cs{background:#c26b12;border-radius:2px}.dt.cli{background:#1e63d6}.dt.cx{background:#7b3fb5;border-radius:2px}
+.klgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 12px}
+.klgrid .f>span:first-child{font-size:13px}.klgrid em{font-style:normal;color:var(--warn);font-size:12px}
+.klin{display:flex;align-items:center;gap:6px}.klin .inp{flex:1;min-width:0}.klin i{font-style:normal;color:var(--muted)}
+.klmud .inp{border-color:var(--warn);background:var(--warn-soft)}
+.kltot{margin:10px 0 0;font-size:14px}
+label.f .klin{display:flex!important;flex-direction:row!important;align-items:center}
+.klfonte{font-style:normal;color:var(--muted)!important;font-weight:400}.klro{display:block;padding:9px 11px;border:1px dashed var(--line);border-radius:10px;background:var(--bg);font-weight:600}
+.kllin{margin:10px 0 0;font-size:13px;color:var(--muted);line-height:1.4}.kllin b{color:var(--ink)}
+/* estimativa pelo KMZ */
+.kle .kletop{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin:4px 0 8px}.kle .kletop .f{min-width:150px;margin:0}
+.kletot{display:flex;flex-direction:column;align-items:flex-end;text-align:right}.kletot small{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}.kletot b{font-size:24px}.kletot span{font-size:12.5px;color:var(--muted)}
+.klet{width:100%;border-collapse:collapse;font-size:13px}.klet th{text-align:left;font-size:11.5px;color:var(--muted);font-weight:600;padding:6px;border-bottom:1px solid var(--line)}
+.klet td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}.klet td small{display:block;color:var(--muted);font-size:11.5px}.klet td.c{white-space:nowrap;font-weight:600}.klet td.rg{color:var(--muted);font-size:12.5px;min-width:160px}
+.klet .r{text-align:right;white-space:nowrap}.klet tr.klef td{background:var(--brand-soft);font-weight:700;color:var(--brand-ink)}.klet tfoot td{font-weight:700;font-size:14px;border-bottom:0;padding-top:10px}
+.klever{margin-top:12px;border-top:1px solid var(--line);padding-top:8px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}.klever ol{list-style:none;margin:0;padding:0;width:100%;display:flex;flex-direction:column;gap:4px}
+.klever li{display:grid;grid-template-columns:1fr auto;gap:0 10px;font-size:13px}.klever li small{grid-column:1/-1;color:var(--muted);font-size:11.5px}
+.klpg{border-top:1px solid var(--line);padding:8px 0}.klpg>b{display:block;margin-bottom:4px}.klpr{display:grid;grid-template-columns:1fr 130px;gap:2px 10px;align-items:center;margin:4px 0;font-size:13.5px}.klpr em{grid-column:1/-1;font-style:normal;font-size:12px;color:var(--warn)}
+@media(max-width:600px){.klet td.rg{min-width:110px}.klpr{grid-template-columns:1fr 110px}}
+.klet td:nth-child(2){min-width:200px}
+.modal:has(.kle){z-index:30}
+/* previsto × realizado */
+.klb{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}.klb>b{display:block;margin-bottom:6px}
+.klbh{margin:14px 0 6px;font-size:14px}.klbt{width:100%;border-collapse:collapse;font-size:13px}.klbt th{text-align:left;font-size:11.5px;color:var(--muted);font-weight:600;padding:6px;border-bottom:1px solid var(--line)}
+.klbt td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}.klbt td small{display:block;color:var(--muted);font-size:11.5px}.klbt .r{text-align:right;white-space:nowrap}.klbt tfoot td{font-weight:700;border-bottom:0}
+.klbt .linkbtn{font-size:12px;padding:0;margin-top:2px}
+@media(max-width:600px){.klbp .kpis .kpi b{font-size:20px;word-break:break-word}}.klbt td:first-child{min-width:170px}
+/* concluída fora da ferramenta */
+.ff .forab{display:block;font-size:12px;padding:0;margin-top:2px}.ff.fora small{display:block;color:var(--muted);font-size:12px}.ff.fora .linkbtn{font-size:12px;padding:0}
+.foralog{margin-top:6px;font-size:13px}.foralog summary{cursor:pointer;color:var(--muted)}.foralog ol{list-style:none;padding:0;margin:6px 0 0;display:flex;flex-direction:column;gap:6px}.foralog li{display:grid;grid-template-columns:140px 1fr;gap:8px}.foralog time{color:var(--muted)}.foralog small{color:var(--muted)}
+@media(max-width:600px){.foralog li{grid-template-columns:1fr;gap:0}}
+.forasec{margin-top:14px}
 </style>
 </head>
 <body>
@@ -1902,15 +1947,15 @@ const REGRA_FOTO={unica:'Obrigatória',opcional:'Se houver; várias fotos',multi
 const PERM_T=[
   ['Acompanhamento',[['painel','Painel de KPIs','t',[['p_geral','Visão geral','t'],['p_entregas','Entregas','t'],['p_rede','Rede executada','t'],['p_exec','Execução em campo','t'],['p_tempos','Tempos de atendimento','t',[['a_expurgo','Expurgar tempos das atividades','a']]],['p_equipes','Equipes','t'],
     ['p_fin','Financeiro','t',[['f_budget','Budget e ROI','t',[['a_budget','Definir o budget do mês','a']]],['f_det','Detalhamento das LPUs','t'],['f_aprov','Aprovação de LPU','t',[['a_aprovar','Aprovar, reprovar e devolver LPUs','a']]]]]]]]],
-  ['Operação',[['painelDia','Painel do dia','t'],['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar, editar e transferir atividades','a'],['a_retirar','Tirar o técnico da atividade e aguardar reagendamento','a'],['a_corrigir','Corrigir fases finalizadas por engano','a'],['a_improd','Liberar LPU de improdutiva e deslocamento','a'],['a_anexos','Enviar e apagar anexos','a']]],['ausencias','Ausências','t'],['relat','Histórico de clientes (atividades, atualizações e relatórios)','t'],['vist','Vistorias de lançamento','t',[['a_vistDisp','Dispensar vistoria','a']]],['geo','Geogrid · Cadastro de fibras','t',[['a_geoVal','Validar fusões','a'],['a_geoCad','Marcar cadastrado no Geogrid','a']]]]],
+  ['Operação',[['painelDia','Painel do dia','t'],['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar, editar e transferir atividades','a'],['a_foraFerr','Marcar fase concluída fora da ferramenta','a'],['a_retirar','Tirar o técnico da atividade e aguardar reagendamento','a'],['a_corrigir','Corrigir fases finalizadas por engano','a'],['a_improd','Liberar LPU de improdutiva e deslocamento','a'],['a_anexos','Enviar e apagar anexos','a']]],['ausencias','Ausências','t'],['relat','Histórico de clientes (atividades, atualizações e relatórios)','t'],['vist','Vistorias de lançamento','t',[['a_vistDisp','Dispensar vistoria','a']]],['geo','Geogrid · Cadastro de fibras','t',[['a_geoVal','Validar fusões','a'],['a_geoCad','Marcar cadastrado no Geogrid','a']]]]],
   ['Campo e equipes',[['campo','Visão do técnico','t'],['eqVer','Visão da empresa terceira','t'],['eqTec','Equipe técnica e Equipes NT','t',[['a_eqTec','Editar a equipe técnica, as Equipes NT e as trocas','a']]]]],
   ['Estoque',[['estoque','Estoque dos técnicos','t'],['estAtual','Atualizar estoque','t',[['a_bolsao','Publicar planilha do bolsão (SAP)','a'],['a_elleven','Importar movimentações do Elleven e do patrimônio','a'],['a_base','Saldo atual do Elleven (V-Task), data-base e patrimônio atual dos técnicos','a']]],['estHist','Movimentações','t']]],
   ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['kanban','Backlog de projetos','t'],['a_custo','Ver o custo previsto dos projetos (backlog e previsão)','a']]],
   ['GTD Manutenção',[['gPainel','Painel de KPIs do GTD','t',[['g_tempos','Tempos de atendimento do GTD','t',[['a_gExpurgo','Expurgar tempos dos chamados','a']]],['g_fin','Financeiro do GTD','t',[['gf_budget','Budget e consumo da manutenção (definir o budget usa a mesma permissão da Implantação)','t'],['gf_det','Detalhamento das LPUs do GTD','t'],['gAprov','Aprovação de LPU do GTD','t',[['a_gAprovar','Aprovar, reprovar e devolver LPUs do GTD','a']]]]]]],['gCham','Chamados (Kanban)','t',[['a_gDespachar','Despachar chamados para o técnico','a'],['a_gEditar','Agendar, editar e cancelar chamados','a'],['a_gValidar','Acesso NOC: validar chamados','a']]],['gAgenda','Agenda do GTD','t'],['gNovo','Criar chamado','t'],['gRel','Histórico do GTD (por cliente, inclusive cancelados)','t']]]];
 const PERM_ALL=(()=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));return o})();
 const _sem=l=>PERM_ALL.filter(k=>!l.includes(k));
-const PERM_PAD={supervisor:_sem(['a_budget','a_reagendar','a_base','a_projeto','a_gValidar']),
-  encarregado:_sem(['a_geoCad','a_vistDisp','a_corrigir','a_eqTec','a_custo','painel','p_tempos','a_expurgo','g_tempos','a_gExpurgo','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','g_fin','gf_budget','gf_det','gAprov','a_gAprovar']),
+const PERM_PAD={supervisor:_sem(['a_foraFerr','a_budget','a_reagendar','a_base','a_projeto','a_gValidar']),
+  encarregado:_sem(['a_foraFerr','a_geoCad','a_vistDisp','a_corrigir','a_eqTec','a_custo','painel','p_tempos','a_expurgo','g_tempos','a_gExpurgo','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','g_fin','gf_budget','gf_det','gAprov','a_gAprovar']),
   supply:['estAtual','a_bolsao'],delivery:['painelDia','agenda'],noc:['gCham','gAgenda','gNovo','gRel','a_gValidar'],visualizacao:['painelDia']};
 /* 18/10: permissões personalizadas salvas antes das funções novas (sem a marca _v18) recebem o padrão do papel nessas funções */
 const PERM_NOVAS={ausencias:['supervisor','encarregado'],campo:['supervisor','encarregado'],eqVer:['supervisor','encarregado'],eqTec:['supervisor','encarregado'],a_eqTec:['supervisor'],a_retirar:['supervisor','encarregado'],a_corrigir:['supervisor'],a_improd:['supervisor','encarregado'],a_custo:['supervisor'],vist:['supervisor','encarregado'],a_vistDisp:['supervisor'],geo:['supervisor','encarregado'],a_geoVal:['supervisor','encarregado']};
@@ -1969,7 +2014,7 @@ const diaExec=a=>a.ts&&a.ts.inicio?isoD(new Date(a.ts.inicio)):null;
 const diasExecAg=a=>{const L=(a.diario||[]).filter(x=>x.ts&&x.ts.inicio).map(x=>isoD(new Date(x.ts.inicio)));const d=diaExec(a);if(d&&!L.includes(d))L.push(d);return L};
 const diasExec=(e,filtro)=>new Set(S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&(!filtro||filtro(a))).flatMap(diasExecAg)).size;
 const realDias=(e,f)=>diasExec(e,a=>fasesOf(a).includes(f));
-const faseFim=(e,f)=>(S.agsExt&&S.agsExt.length?S.ags.concat(S.agsExt):S.ags).filter(a=>a.etiqueta===e&&a.ts&&a.ts.conclusao&&!['nao_concluida','cancelada'].includes(a.status)&&(a.fasesFin||[]).includes(f)).sort((a,b)=>a.ts.conclusao-b.ts.conclusao)[0]||null;
+const faseFim=(e,f)=>(S.agsExt&&S.agsExt.length?S.ags.concat(S.agsExt):S.ags).filter(a=>a.etiqueta===e&&a.ts&&a.ts.conclusao&&!['nao_concluida','cancelada'].includes(a.status)&&(a.fasesFin||[]).includes(f)).sort((a,b)=>a.ts.conclusao-b.ts.conclusao)[0]||foraFim(e,f);
 const pPor=e=>S.previsao.find(x=>x.etiqueta===e)||{};
 // Fases que precisam ser feitas antes da ativação:
 //  * Firewall: nenhuma (ativa direto)
@@ -1984,10 +2029,10 @@ const ativOk=(p,fz)=>!fz.includes('ativ')||!pendReq(p,fz).length;
 const canReag=()=>pode('a_reagendar');
 const vinc=t=>tecT(t)==='CLT'?'equipe própria':'terceiro';
 function faseFlags(p,gestao){const L=fasesProj(p).map(f=>{const fin=faseFim(p.etiqueta,f.k);
-    if(fin)return gestao?`<div class="ff ok"><b>✓ ${f.n}</b><span>Finalizada por ${esc(tecN(fin.tec))} (${vinc(fin.tec)}) em ${dBR(fin.data)}</span>${f.k==='ativ'&&(fin.ativSemFases||[]).length?`<span style="color:var(--warn);font-weight:600">Finalizada sem ${fin.ativSemFases.map(k=>FCURTO[k].toLowerCase()).join(', ')}</span>`:''}</div>`:`<span class="chip ok">✓ ${FCURTO[f.k]}</span>`;
-    if(f.k==='ativ'&&liberado(p))return gestao?`<div class="ff go"><b>${f.n}</b><span>Liberado para ativar o cliente</span></div>`:`<span class="chip go">Liberado para ativar</span>`;
+    if(fin&&fin.fora)return foraFlag(p,f,fin,gestao);if(fin)return gestao?`<div class="ff ok"><b>✓ ${f.n}</b><span>Finalizada por ${esc(tecN(fin.tec))} (${vinc(fin.tec)}) em ${dBR(fin.data)}</span>${f.k==='ativ'&&(fin.ativSemFases||[]).length?`<span style="color:var(--warn);font-weight:600">Finalizada sem ${fin.ativSemFases.map(k=>FCURTO[k].toLowerCase()).join(', ')}</span>`:''}</div>`:`<span class="chip ok">✓ ${FCURTO[f.k]}</span>`;
+    if(f.k==='ativ'&&liberado(p))return gestao?`<div class="ff go"><b>${f.n}</b><span>Liberado para ativar o cliente</span>${foraBtn(p,f)}</div>`:`<span class="chip go">Liberado para ativar</span>`;
     const ab=S.ags.find(a=>a.etiqueta===p.etiqueta&&fasesOf(a).includes(f.k)&&!FIM.includes(a.status)&&a.status!=='cancelada');
-    return gestao?`<div class="ff"><b>${f.n}</b><span>${ab?`${ST[ab.status][0]} para ${dBR(ab.data)}, ${esc(tecN(ab.tec))}`:'Pendente'}</span></div>`:''}).join('');
+    return gestao?`<div class="ff"><b>${f.n}</b><span>${ab?`${ST[ab.status][0]} para ${dBR(ab.data)}, ${esc(tecN(ab.tec))}`:'Pendente'}</span>${foraBtn(p,f)}</div>`:''}).join('');
   return gestao?`<div class="ffs">${L}</div>`:(L?`<div class="kmeta">${L}</div>`:'')}
 const FSTATUS={rua:'lançamento rua',interno:'lançamento interno',ext:'extensão de sinal',ativ:'ativação'};
 function progLabel(e){const p=pPor(e);if(faseFim(e,'ativ'))return '<span class="chip ok">Entregue</span>';
@@ -8171,6 +8216,360 @@ Object.assign(ACT,{geoF:el=>{ui.geoF=el.dataset.v;ui.geoSel=null;render()},geoSe
   geoCad:el=>{if(!pode('a_geoCad'))return semPerm();const a=getAg(el.dataset.id);if(!a||!a.fusoes||(a.fusoes.geo||{}).st!=='cad')return toast('O cadastro só libera depois da validação do encarregado.','bad');
     openModal(`<h3>Cadastrado no Geogrid</h3><p class="muted">Confirme que as fusões foram cadastradas no Geogrid.</p><label class="f" style="margin-top:10px"><span>Observação do cadastro (opcional)</span><textarea class="inp" id="geoCO" rows="2" placeholder="Ex.: rota e caixas ajustadas no Geogrid"></textarea></label><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="geoCadOk" data-id="${a.id}">Confirmar: cadastrado</button></div>`)},
   geoCadOk:el=>{if(!pode('a_geoCad'))return semPerm();const a=getAg(el.dataset.id),o=(($('geoCO')||{}).value||'').trim();if((a.fusoes.geo||{}).st!=='cad')return;a.fusoes.geo=Object.assign({},a.fusoes.geo,{st:'ok',cadEm:Date.now(),cadPor:meNome(),cadObs:o||null});geoLog(a,'Cadastrado no Geogrid',o);save();closeModal();render();toast('Registrado: cadastrado no Geogrid.')}});
+
+/* ---------- 21/10: KMZ de LANÇAMENTO → quantidades para a previsão de custo (etapa a) ----------
+   Lê o KMZ no navegador (JSZip + DOMParser), mede tudo por haversine (R = 6.371.000 m) e separa o cabo em
+   interno (cliente → 1º poste ou 1ª CS), subterrâneo (entre CS seguidas) e aéreo (o resto, inclui a subida CS → poste).
+   Elementos: pasta POSTES (sem nome ou "?") = poste; "CS…" = caixa subterrânea; "CE…/CEO…/CTO…" = caixa de emenda;
+   "SPL" = existe splitter na caixa (não é instalação); "NOVA RT"/"RT" = reserva técnica (não gera item).
+   Linhas: cabo = "DROP", "CABO" ou "xxF" (a metragem do nome é ignorada); "Rota" = duplicata (ignorada); "CORDOALHA" = 1 lance por linha. */
+const KL_R=6371000,KL_TOL=5;
+const klHav=(a,b)=>{const r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r,x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2;return 2*KL_R*Math.asin(Math.min(1,Math.sqrt(x)))};
+const klLen=c=>{let s=0;for(let i=1;i<c.length;i++)s+=klHav(c[i-1],c[i]);return s};
+const klN=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+const kl1=v=>Math.round((+v||0)*10)/10;
+/* KML → placemarks com pasta e cor do traço */
+function klParse(txt){const doc=new DOMParser().parseFromString(txt,'application/xml');if(doc.getElementsByTagName('parsererror').length)throw new Error('o arquivo não é um KML válido');
+  const kids=(el,n)=>[...el.children].filter(c=>c.localName===n),t1=(el,n)=>{const c=kids(el,n)[0];return c?c.textContent.trim():''},all=(el,n)=>[...el.getElementsByTagNameNS('*',n)];
+  const crd=s=>s.trim().split(/\s+/).map(t=>t.split(',').map(Number)).filter(a=>a.length>=2&&isFinite(a[0])&&isFinite(a[1])).map(a=>[a[1],a[0]]);
+  const est={};all(doc,'Style').forEach(s=>{const id=s.getAttribute('id');const c=all(s,'LineStyle')[0];if(id)est['#'+id]=c?t1(c,'color'):''});
+  all(doc,'StyleMap').forEach(m=>{const id=m.getAttribute('id');const p=kids(m,'Pair').find(p=>t1(p,'key')==='normal');if(id&&p)est['#'+id]=est[t1(p,'styleUrl')]||''});
+  const pasta=el=>{const o=[];let x=el.parentElement;while(x){if(x.localName==='Folder'){o.unshift(t1(x,'name'))}x=x.parentElement}return o};
+  const L=[],P=[];let ord=0;
+  all(doc,'Placemark').forEach(pm=>{const nome=t1(pm,'name'),ps=pasta(pm),cor=est[t1(pm,'styleUrl')]||'';
+    all(pm,'LineString').forEach(ls=>{const c=all(ls,'coordinates')[0];if(c){const k=crd(c.textContent);if(k.length>1)L.push({nome,pasta:ps,cor,c:k,o:ord++})}});
+    all(pm,'Point').forEach(pt=>{const c=all(pt,'coordinates')[0];if(c){const k=crd(c.textContent);if(k.length)P.push({nome,pasta:ps,ll:k[0],o:ord++})}})});
+  if(!L.length)throw new Error('não encontrei linhas no KMZ');return{L,P}}
+/* classificação pelos nomes */
+function klTipoPt(p){const n=klN(p.nome),emPoste=p.pasta.some(f=>/POSTE/.test(klN(f)));
+  if(/^(NOVA )?RT\b|RESERVA/.test(n))return 'rt';
+  if(/^SPL\b|SPLITTER/.test(n))return 'spl';
+  if(/^CS\b|^CS[\s\-_]?\d|CAIXA SUBTERR/.test(n))return 'cs';
+  if(/^(NOVA )?(CEO|CE|CTO|CDO)\b|^(CEO|CE|CTO)[\s\-_]?\d|CAIXA DE EMENDA/.test(n))return 'cx';
+  if(emPoste&&(!n||n==='?'||/^POSTE|^P?\d+$/.test(n)))return 'poste';
+  if(/^POSTE\b/.test(n))return 'poste';
+  return 'outro'}
+function klTipoLn(l){const n=klN(l.nome);if(/^ROTA\b/.test(n))return 'rota';if(/CORDOALHA/.test(n))return 'cord';if(/DROP|CABO|\b\d+\s*F(O)?\b|\d+FO\b/.test(n))return 'cabo';return 'outra'}
+/* distância de um ponto a uma polilinha (projeção local em metros) e posição ao longo dela */
+function klProj(ll,c){const r=Math.PI/180,k=Math.cos(ll[0]*r),xy=p=>[(p[1]-ll[1])*r*KL_R*k,(p[0]-ll[0])*r*KL_R];let best={d:1e12,s:0},acc=0;
+  for(let i=1;i<c.length;i++){const a=xy(c[i-1]),b=xy(c[i]),dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy,seg=Math.sqrt(L2);let t=L2?-(a[0]*dx+a[1]*dy)/L2:0;t=Math.max(0,Math.min(1,t));
+    const px=a[0]+t*dx,py=a[1]+t*dy,d=Math.hypot(px,py);if(d<best.d)best={d,s:acc+t*seg};acc+=seg}
+  return best}
+/* encadeia as linhas de cabo começando pela ponta mais perto do cliente */
+function klCadeia(Ls,ini){const rest=Ls.map(l=>l.c.slice());if(!rest.length)return{c:[],soltas:0};
+  let bi=0,rev=false,bd=1e12;rest.forEach((c,i)=>{[[c[0],false],[c[c.length-1],true]].forEach(([p,r])=>{const d=ini?klHav(ini,p):(i===0&&!r?0:1e11);if(d<bd){bd=d;bi=i;rev=r}})});
+  let out=rest.splice(bi,1)[0];if(rev)out.reverse();
+  for(;;){const fim=out[out.length-1];let j=-1,jr=false,jd=15;rest.forEach((c,i)=>{const a=klHav(fim,c[0]),b=klHav(fim,c[c.length-1]);if(a<jd){jd=a;j=i;jr=false}if(b<jd){jd=b;j=i;jr=true}});
+    if(j<0)break;let c=rest.splice(j,1)[0];if(jr)c.reverse();out=out.concat(c.slice(1))}
+  return{c:out,soltas:rest.length,soltasM:rest.reduce((s,c)=>s+klLen(c),0)}}
+/* análise completa */
+function klAnalisar(K,cliente){const av=[];
+  const P=K.P.map(p=>Object.assign({},p,{t:klTipoPt(p)})),Ln=K.L.map(l=>Object.assign({},l,{t:klTipoLn(l),m:klLen(l.c)}));
+  const cabos=Ln.filter(l=>l.t==='cabo'),cords=Ln.filter(l=>l.t==='cord');
+  if(!cabos.length)throw new Error('não encontrei a linha do cabo (nome com DROP, CABO ou xxF)');
+  /* cliente: nome do cliente; senão o 1º ponto da pasta do projeto que não é rede */
+  const nc=klN(cliente),pal=nc.split(/[^A-Z0-9]+/).filter(w=>w.length>=4&&!/^(LTDA|EIRELI|COMERCIO|SERVICOS|BRASIL|EQUIPAMENTOS)$/.test(w));
+  let cli=P.find(p=>p.t==='outro'&&nc&&(klN(p.nome)===nc||(pal[0]&&klN(p.nome).includes(pal[0]))));
+  if(!cli){const cand=P.filter(p=>p.t==='outro').sort((a,b)=>a.o-b.o);cli=cand[0]||null}
+  let ini=cli?cli.ll:null;
+  /* sem ponto de cliente: a ponta do cabo mais longe das caixas */
+  const cxs=P.filter(p=>p.t==='cx');
+  if(!ini){const ends=cabos.flatMap(l=>[l.c[0],l.c[l.c.length-1]]);ini=ends.sort((a,b)=>Math.min(...cxs.map(x=>klHav(x.ll,b)),1e9)-Math.min(...cxs.map(x=>klHav(x.ll,a)),1e9))[0];av.push('Ponto do cliente não identificado: usei a ponta do cabo mais longe da caixa.')}
+  const ch=klCadeia(cabos,ini),c=ch.c,total=klLen(c);if(ch.soltas)av.push(`${ch.soltas} trecho(s) de cabo não ligado(s) ao traçado principal (${kl1(ch.soltasM)} m) ficaram fora.`);
+  if(cli&&klHav(cli.ll,c[0])>30)av.push(`O ponto do cliente está a ${Math.round(klHav(cli.ll,c[0]))} m da ponta do cabo.`);
+  /* elementos de rede no traçado (até 5 m do cabo) */
+  /* posição do elemento ao longo do cabo: o vértice do traçado em que ele está (até 5 m); se nenhum vértice, a projeção na linha */
+  const cum=[0];for(let i=1;i<c.length;i++)cum.push(cum[i-1]+klHav(c[i-1],c[i]));
+  const noCabo=p=>{const r=klProj(p.ll,c);if(r.d>KL_TOL)return null;let vi=-1,vd=KL_TOL;c.forEach((v,i)=>{const d=klHav(v,p.ll);if(d<=vd){vd=d;vi=i}});return Object.assign({},p,{s:vi>=0?cum[vi]:r.s,d:r.d})};
+  const postes=P.filter(p=>p.t==='poste').map(noCabo).filter(Boolean).sort((a,b)=>a.s-b.s),css=P.filter(p=>p.t==='cs').map(noCabo).filter(Boolean).sort((a,b)=>a.s-b.s);
+  const foraPoste=P.filter(p=>p.t==='poste').length-postes.length;
+  const rede=postes.map(p=>({t:'poste',s:p.s})).concat(css.map(p=>({t:'cs',s:p.s}))).sort((a,b)=>a.s-b.s);
+  const interno=rede.length?rede[0].s:0;if(!rede.length)av.push('Nenhum poste ou CS a até 5 m do cabo: não deu para separar o interno.');
+  let sub=0;for(let i=1;i<rede.length;i++)if(rede[i-1].t==='cs'&&rede[i].t==='cs')sub+=rede[i].s-rede[i-1].s;
+  const aereo=Math.max(0,total-interno-sub);
+  /* cordoalha: cada linha é um lance; postes nas pontas e intermediários */
+  const pts=P.filter(p=>p.t==='poste'),lances=cords.map(l=>{const ps=pts.map(p=>({p,r:klProj(p.ll,l.c)})).filter(x=>x.r.d<=KL_TOL);
+    const pa=pts.map(p=>({p,d:klHav(p.ll,l.c[0])})).sort((a,b)=>a.d-b.d)[0],pb=pts.map(p=>({p,d:klHav(p.ll,l.c[l.c.length-1])})).sort((a,b)=>a.d-b.d)[0];
+    const pontas=new Set([pa&&pa.d<=KL_TOL?pa.p:null,pb&&pb.d<=KL_TOL?pb.p:null].filter(Boolean));
+    return{nome:l.nome,m:l.m,postes:new Set(ps.map(x=>x.p)),inter:ps.filter(x=>!pontas.has(x.p)).length}});
+  const emCord=new Set();lances.forEach(l=>l.postes.forEach(p=>emCord.add(p)));
+  const emO=new Set([...emCord].map(p=>p.o)),semCordL=postes.filter(p=>!emO.has(p.o)),semCord=semCordL.length;
+  /* poste da caixa de início = último poste do traçado (recebe encabeçamento, não é passagem) */
+  const ultPoste=postes.length?postes[postes.length-1]:null,passagem=semCordL.filter(p=>p!==ultPoste).length;
+  /* caixa de início: caixa mais perto da ponta do cabo do lado da rede */
+  const fim=c[c.length-1],cxIni=cxs.map(x=>({x,d:klHav(x.ll,fim)})).sort((a,b)=>a.d-b.d)[0];
+  const temSpl=!!(cxIni&&P.some(p=>p.t==='spl'&&klHav(p.ll,cxIni.x.ll)<=15));
+  if(!cxIni)av.push('Não achei a caixa de início (CE/CEO/CTO) no KMZ.');else if(cxIni.d>30)av.push(`A caixa mais perto da ponta do cabo (${cxIni.x.nome}) está a ${Math.round(cxIni.d)} m.`);
+  const nomeCabo=cabos.map(l=>l.nome).join(' + '),drop=/DROP/.test(klN(nomeCabo)),fo=(klN(nomeCabo).match(/(\d+)\s*F(O)?\b/)||[])[1];
+  const rot=(klN(nomeCabo).match(/\(([\d\.,]+)\s*M\)/)||[])[1];
+  return{av,cabo:{nome:nomeCabo,tipo:drop?'drop':'optico',fo:fo?+fo:null,rotulo:rot?+rot.replace(/\./g,'').replace(',','.'):null},cliente:cli?cli.nome:'',
+    q:{total:kl1(total),interno:kl1(interno),sub:kl1(sub),aereo:kl1(aereo),cord:kl1(cords.reduce((s,l)=>s+l.m,0)),lances:cords.length,
+       postes:postes.length,postesSemCord:semCord,postesPassagem:passagem,postesInter:lances.reduce((s,l)=>s+l.inter,0),cs:css.length,cxIni:cxIni?cxIni.x.nome:'',tipoCabo:drop?'drop':'optico'},
+    temSpl,foraPoste,
+    lancesDet:lances.map(l=>({nome:l.nome,m:kl1(l.m),postes:l.postes.size,inter:l.inter})),
+    geo:{c,postes:postes.map(p=>p.ll),css:css.map(p=>p.ll),cli:cli?cli.ll:c[0],cx:cxIni?cxIni.x.ll:null,cords:cords.map(l=>l.c),outrosPostes:P.filter(p=>p.t==='poste').map(p=>p.ll),
+      seg:{interno,sub:rede.map((r,i)=>i&&rede[i-1].t==='cs'&&r.t==='cs'?[rede[i-1].s,r.s]:null).filter(Boolean)}}}}
+/* corta a polilinha entre as distâncias a e b (para desenhar os trechos) */
+function klCorte(c,a,b){const o=[];let acc=0;for(let i=1;i<c.length;i++){const p=c[i-1],q=c[i],L=klHav(p,q);const s0=acc,s1=acc+L;
+    if(s1>=a&&s0<=b){const f=t=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];const ta=L?Math.max(0,(a-s0)/L):0,tb=L?Math.min(1,(b-s0)/L):1;if(!o.length)o.push(f(ta));o.push(f(tb))}acc=s1}return o}
+/* desenho simples em SVG (sem mapa de fundo): interno, aéreo, subterrâneo, cordoalha, postes, CS, cliente e caixa */
+function klSvg(R){const g=R.geo,all=g.c.concat(g.outrosPostes||[]),la=all.map(p=>p[0]),lo=all.map(p=>p[1]),mla=Math.min(...la),Mla=Math.max(...la),mlo=Math.min(...lo),Mlo=Math.max(...lo);
+  const k=Math.cos((mla+Mla)/2*Math.PI/180),W=640,H=360,pad=18,sx=(Mlo-mlo)*k||1e-9,sy=(Mla-mla)||1e-9,sc=Math.min((W-2*pad)/sx,(H-2*pad)/sy);
+  const X=p=>pad+((p[1]-mlo)*k)*sc+((W-2*pad)-sx*sc)/2,Y=p=>H-pad-(p[0]-mla)*sc-((H-2*pad)-sy*sc)/2,pl=c=>c.map(p=>X(p).toFixed(1)+','+Y(p).toFixed(1)).join(' ');
+  const tot=klLen(g.c),it=klCorte(g.c,0,g.seg.interno);
+  return `<svg class="klsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Traçado do KMZ: cabo, postes e caixas">
+   ${g.cords.map(c=>`<polyline points="${pl(c)}" class="klcord"/>`).join('')}
+   <polyline points="${pl(g.c)}" class="klaer"/>${g.seg.sub.map(([a,b])=>`<polyline points="${pl(klCorte(g.c,a,b))}" class="klsub"/>`).join('')}${it.length>1?`<polyline points="${pl(it)}" class="klint"/>`:''}
+   ${(g.outrosPostes||[]).map(p=>`<circle cx="${X(p).toFixed(1)}" cy="${Y(p).toFixed(1)}" r="2.6" class="klpf"/>`).join('')}
+   ${g.postes.map(p=>`<circle cx="${X(p).toFixed(1)}" cy="${Y(p).toFixed(1)}" r="3.6" class="klpo"/>`).join('')}
+   ${g.css.map(p=>`<rect x="${(X(p)-4).toFixed(1)}" y="${(Y(p)-4).toFixed(1)}" width="8" height="8" class="klcs"/>`).join('')}
+   ${g.cx?`<rect x="${(X(g.cx)-6).toFixed(1)}" y="${(Y(g.cx)-6).toFixed(1)}" width="12" height="12" rx="2" class="klcx"/>`:''}
+   <circle cx="${X(g.cli).toFixed(1)}" cy="${Y(g.cli).toFixed(1)}" r="7" class="klcli"/></svg>
+   <div class="klleg"><span><i class="li int"></i>Interno</span><span><i class="li aer"></i>Aéreo</span><span><i class="li sub"></i>Subterrâneo</span><span><i class="li cord"></i>Cordoalha</span><span><i class="dt po"></i>Poste no traçado</span><span><i class="dt cs"></i>CS</span><span><i class="dt cli"></i>Cliente</span><span><i class="dt cx"></i>Caixa de início</span></div>`}
+/* campos editáveis do resumo */
+const KL_CAMPOS=[['interno','Interno (cliente → 1º poste/CS)','m'],['aereo','Aéreo','m'],['sub','Subterrâneo (entre CS)','m'],['cord','Cordoalha','m'],['lances','Lances de cordoalha',''],
+  ['postes','Postes no traçado',''],['postesSemCord','Postes sem cordoalha',''],['postesInter','Postes intermediários da cordoalha',''],['cs','Caixas subterrâneas (CS)','']];
+const klFmt=v=>(+v||0).toLocaleString('pt-BR',{maximumFractionDigits:1});
+function klResumo(kl){const R=kl.R,q=kl.q;if(!R)return '';const lido=R.q,mud=k=>String(q[k])!==String(lido[k]);
+  const tot=kl1((+q.interno||0)+(+q.aereo||0)+(+q.sub||0));
+  return `<div class="klres"><div class="klhd"><b>Quantidades lidas do KMZ</b><small>Confira e corrija antes de salvar. O que você mudar fica marcado.</small></div>
+   ${R.av.length?`<div class="result warn" style="margin:8px 0">${R.av.map(esc).join('<br>')}</div>`:''}
+   <div class="klinfo"><span><small>Cabo</small><b>${esc(R.cabo.nome)}</b><em>${R.cabo.tipo==='drop'?'Drop':'Cabo óptico'}${R.cabo.fo?' '+R.cabo.fo+'F':''} · medido ${klFmt(R.q.total)} m${R.cabo.rotulo?` (o nome diz ${klFmt(R.cabo.rotulo)} m: ignorado)`:''}</em></span>
+    <span><small>Cliente</small><b>${esc(R.cliente||'—')}</b></span><span><small>Caixa de início</small><b>${esc(q.cxIni||'—')}</b></span></div>
+   ${klSvg(R)}
+   <div class="klgrid">${KL_CAMPOS.map(([k,n,u])=>`<label class="f ${mud(k)?'klmud':''}"><span>${n}${mud(k)?` <em>lido: ${klFmt(lido[k])}</em>`:''}</span><span class="klin"><input class="inp" inputmode="decimal" data-in="klQ" data-k="${k}" value="${esc(String(q[k]).replace('.',','))}">${u?`<i>${u}</i>`:''}</span></label>`).join('')}
+    <label class="f"><span>Tipo do cabo</span><select class="inp" data-ch="klSel" data-k="tipoCabo"><option value="drop" ${q.tipoCabo==='drop'?'selected':''}>Drop</option><option value="optico" ${q.tipoCabo==='optico'?'selected':''}>Cabo óptico</option></select></label>
+    <label class="f"><span>Tipo de ativação <em class="klfonte">da base de previsão</em></span><span class="klro">${esc(klAtivN(klAtivAtual()))}</span></label>
+    <label class="f"><span>Caixa de início</span><input class="inp" data-in="klQ" data-k="cxIni" value="${esc(q.cxIni||'')}"></label></div>
+   <p class="kltot">Cabo: <b id="klTot">${klFmt(tot)} m</b> (interno + aéreo + subterrâneo)${R.lancesDet.length?` · ${R.lancesDet.map(l=>`${klFmt(l.m)} m`).join(' + ')} de cordoalha`:''}</p></div>`}
+/* leitura do arquivo no cadastro do projeto */
+async function klLerArq(f,cliente){const t=await kmzTexto(await f.arrayBuffer(),f.name);const R=klAnalisar(klParse(t),cliente);return{R,q:Object.assign({},R.q)}}
+{const _ch=CH.kmzLArq;CH.kmzLArq=async el=>{const f=el.files&&el.files[0];await _ch(el);const W=ui.wiz;if(!f||!W||!W.kL||W.kL.arq!==f)return;
+  try{const cli=(ui.roiTmp&&ui.roiTmp.cliente)||((S.previsao.find(x=>x.id===W.id)||{}).cliente)||'';Object.assign(W.kL,await klLerArq(f,cli))}
+  catch(e){W.kL.R=null;toast('Anexo lido, mas sem quantidades: '+(e.message||e),'bad')}renderWiz()}}
+Object.assign(IN,{klQ:el=>{const W=ui.wiz,kl=W&&W.kL;if(!kl||!kl.q)return;const k=el.dataset.k;kl.q[k]=k==='cxIni'?el.value:String(el.value).replace(',','.');
+  const t=$('klTot');if(t)t.textContent=klFmt(kl1((+kl.q.interno||0)+(+kl.q.aereo||0)+(+kl.q.sub||0)))+' m';el.closest('label').classList.toggle('klmud',String(kl.q[k])!==String(kl.R.q[k]))}});
+Object.assign(CH,{klSel:el=>{const kl=ui.wiz&&ui.wiz.kL;if(!kl)return;kl.q[el.dataset.k]=el.value}});
+/* tipo de ativação vem da topologia do projeto na base de previsão (GPON ou Ponto a ponto), não do KMZ */
+function klAtivDe(top){const t=normK(top||'');return t==='gpon'?'gpon':t==='ponto a ponto'?'ptp':t||''}
+function klAtivAtual(){const W=ui.wiz||{},p=W.id?S.previsao.find(x=>x.id===W.id):null;return klAtivDe((ui.roiTmp&&ui.roiTmp.topologia)||(p&&p.topologia))}
+const klAtivN=a=>a==='gpon'?'GPON (sai de splitter)':a==='ptp'?'PTP · Ponto a ponto (equipamento rede metro)':a?a.replace(/^./,c=>c.toUpperCase())+' (sem regra de ativação por KMZ)':'Topologia não informada no projeto'
+/* mostra o resumo no bloco do KMZ de lançamento */
+/* sem tela de conferência: só uma linha dizendo o que foi lido; as quantidades são gravadas como lidas */
+function klLinha(kl){const q=kl.q,f=klFmt;return `<p class="kllin"><b>Projeto lido do KMZ:</b> ${kl.R.cabo.tipo==='drop'?'drop':'cabo óptico'+(kl.R.cabo.fo?' '+kl.R.cabo.fo+'F':'')} ${f(q.total)} m (interno ${f(q.interno)} · aéreo ${f(q.aereo)}${+q.sub?` · subterrâneo ${f(q.sub)}`:''}) · cordoalha ${f(q.cord)} m em ${q.lances} ${q.lances===1?'lance':'lances'} · ${q.postes} postes${+q.cs?` · ${q.cs} CS`:''}${q.cxIni?` · caixa de início ${esc(q.cxIni)}`:''}.</p>`}
+{const _b=kmzLBloco;kmzLBloco=function(W,p){const h=_b.apply(this,arguments);const kl=W.kL;if(!h||!kl||!kl.R)return h;return h.replace(/<\/div>$/,klLinha(kl)+'</div>')}}
+/* ao salvar o projeto, guarda as quantidades conferidas (a estimativa em R$ vem na etapa b) */
+{const _a=kmzLAplica;kmzLAplica=function(p,W){const kl=W.kL;if(kl&&kl.R){const num=k=>kl1(+String(kl.q[k]).replace(',','.')||0);
+    p.kl={arq:kl.nome,em:Date.now(),por:ME?ME.nome:'',ativ:klAtivDe(p.topologia),q:Object.assign({},kl.q,Object.fromEntries(KL_CAMPOS.map(([k])=>[k,num(k)]))),lido:kl.R.q,av:kl.R.av,cabo:kl.R.cabo}}
+  return _a.apply(this,arguments)}}
+
+/* ---------- 21/10: ESTIMATIVA DE CUSTO PELO KMZ × LPU (etapa b) ----------
+   Projetos com lançamento: quantidades lidas do KMZ de lançamento (p.kl.q) e do KMZ de extensão (p.klExt) × LPU da ferramenta.
+   Regras com parâmetros editáveis (ag_config, chave 'estimativa_kmz'); preço comum ou crítico pelo fator do projeto.
+   Cada cálculo salvo vira uma versão em ag_estimativas (histórico). Last mile sem lançamento, firewall e FWA seguem na regra antiga. */
+const KLP_PAD={acresc:10,intMin:30,intMult:2,sobraCS:5,encab:2,furos:2,fusoes:2,identFus:2,insercao:1,perif:3,extAte:3,extFaixa:10,extFaixaQtd:4,extPct:30};
+const KLP_N=[['Lançamento',[['acresc','Acréscimo sobre a metragem de lançamento','%'],['intMin','Interno curto: abaixo de','m'],['intMult','Interno curto: multiplicar por','×'],['sobraCS','Sobra de cabo por CS','m'],['encab','Encabeçamentos SEV0002 (fachada + poste da caixa)','un'],['furos','Perfurações SEV0020','un'],['fusoes','Fusões SEV0045 (caixa de início + terminador)','un'],['identFus','Identificação de fusão SEV0040','un'],['insercao','Inserção na caixa de início SEV0048','un']]],
+  ['Ativação',[['perif','Identificação de periférico SEV0066 (mínimo)','un']]],
+  ['Extensão de sinal',[['extAte','Até quantas caixas: todas reabrem e fundem','cx'],['extFaixa','Faixa fixa: até','cx'],['extFaixaQtd','Na faixa fixa: reaberturas e fusões','un'],['extPct','Acima da faixa: % das caixas (arredonda para cima)','%']]]];
+const klp=()=>Object.assign({},KLP_PAD,(S.cfg&&S.cfg.estimativa_kmz)||{});
+const KLE_FASE={lanc:'Lançamento',ext:'Extensão de sinal',ativ:'Ativação'};
+const kleVer=()=>kcVe();
+const lpuVer=()=>{let h=0;LPU.forEach(i=>{const t=i.cod+'|'+(i.valor||0)+'|'+(i.valorCritico||0);for(let k=0;k<t.length;k++)h=(h*31+t.charCodeAt(k))|0});return 'LPU '+LPU.length+' itens · '+(h>>>0).toString(36)};
+/* projeto entra na métrica nova? */
+function kleUsa(p){const tp=normK(p.topologia||'');if(['firewall','fwa'].includes(tp))return false;return !!(p.kl&&p.kl.q)}
+/* KMZ de extensão: soma de todos os trechos de cabo (sem "Rota" e sem cordoalha) e caixas de emenda CE/CEO no caminho */
+function klExtDe(K){const L=(K.L||[]).filter(l=>!/^ROTA\b|CORDOALHA/.test(klN(l.nome)));const m=L.reduce((s,l)=>s+klLen(l.c),0);
+  const cx=(K.P||[]).filter(p=>{const n=klN(p.nome);return /^(CEO|CE)\b|^(CEO|CE)[\s\-_]?\d|CAIXA DE EMENDA/.test(n)&&!/DIO|TERMINADOR|PTRO/.test(n)})
+    .filter(p=>L.some(l=>klProj([p.lat,p.lon],l.c).d<=15)).length;return{m:kl1(m),cx}}
+/* itens da estimativa */
+function kleCalc(p,P){P=P||klp();const q=p.kl.q,n=v=>+String(v==null?0:v).replace(',','.')||0,f=1+n(P.acresc)/100,fm=v=>klFmt(v),ac=`+${fm(P.acresc)}%`;
+  const crit=p.fator==='critico',L=[],fraco=[];
+  const add=(fase,grupo,cod,qt,regra)=>{qt=Math.round(qt*100)/100;if(!(qt>0))return;const it=kcItem(cod);if(!it){fraco.push(cod+' não está na LPU');return}
+    const u=crit&&it.valorCritico!=null?+it.valorCritico:+it.valor||0;L.push({fase,grupo,cod,desc:it.desc,med:it.medida,q:qt,u,v:Math.round(qt*u*100)/100,regra})};
+  /* Lançamento */
+  const qi=n(q.interno),qa=n(q.aereo),qs=n(q.sub),qc=n(q.cord),cs=n(q.cs),lan=n(q.lances),po=n(q.postes),inter=n(q.postesInter),semC=n(q.postesSemCord),pas=q.postesPassagem!=null?n(q.postesPassagem):Math.max(0,semC-1);
+  if(qi>0){const b=qi<n(P.intMin)?qi*n(P.intMult):qi;add('lanc','Interno',q.tipoCabo==='drop'?'SEV0016':'SEV0012',kl1(b*f),`${fm(qi)} m${qi<n(P.intMin)?` (< ${fm(P.intMin)} m: ×${fm(P.intMult)} = ${fm(b)} m)`:''} ${ac}`)}
+  if(qa>0)add('lanc','Aéreo','SEV0006',kl1(qa*f),`${fm(qa)} m ${ac}`);
+  if(cs>0){const b=qs+n(P.sobraCS)*cs;add('lanc','Subterrâneo','SEV0011',kl1(b*f),`${fm(qs)} m + ${fm(P.sobraCS)} m × ${cs} CS = ${fm(b)} m ${ac}`);add('lanc','Subterrâneo','SEV0022b',cs,'1 por CS')}
+  if(qc>0){add('lanc','Cordoalha','SEV0009',kl1(qc*f),`${fm(qc)} m ${ac}`);add('lanc','Cordoalha','SEV0007',kl1(qc),`${fm(qc)} m, sem acréscimo`);add('lanc','Cordoalha','SEV0003',2*lan,`2 por lance × ${lan}`);add('lanc','Cordoalha','SEV0004',inter,'postes intermediários dos lances')}
+  add('lanc','Postes','SEV0001',po,`1 por poste do traçado (${po}), com ou sem cordoalha`);if(po>0)add('lanc','Postes','SEV0002',n(P.encab),'fachada do cliente e poste da caixa');
+  add('lanc','Postes','SEV0005',po+cs,`1 por poste (${po})${cs?` e por CS (${cs})`:''}`);
+  add('lanc','Cliente','SEV0028',1,'terminador no cliente');add('lanc','Cliente','SEV0020',n(P.furos),'perfurações');
+  add('lanc','Ponta na caixa','SEV0045',n(P.fusoes),`caixa de início${q.cxIni?' ('+q.cxIni+')':''} + terminador`);add('lanc','Ponta na caixa','SEV0040',n(P.identFus),'identificação das fusões');add('lanc','Ponta na caixa','SEV0048',n(P.insercao),'inserção do cabo na caixa de início');
+  /* Extensão de sinal */
+  if(temExt(p)){const e=p.klExt||(p.kmFibra!=null&&p.kmFibra!==''?{m:+p.kmFibra,cx:+(p.kmz&&p.kmz.caixasInf!=null?p.kmz.caixasInf:p.caixas)||0,velho:true}:null);
+    if(!e)fraco.push('extensão sem KMZ lido');
+    else{const cx=Math.round(e.cx||0),nr=cx<=n(P.extAte)?cx:cx<=n(P.extFaixa)?Math.min(cx,n(P.extFaixaQtd)):Math.ceil(cx*n(P.extPct)/100);
+      if(e.velho)fraco.push('extensão pela metragem do cadastro (KMZ de extensão não lido pela regra nova)');
+      add('ext','Fibra','SEV0088',kl1(e.m),`${fm(e.m)} m de fibra no KMZ, sem acréscimo`);const rg=`${cx} ${cx===1?'caixa':'caixas'} no caminho → ${nr}`;
+      add('ext','Caixas','SEV0037',nr,rg);add('ext','Caixas','SEV0045',nr,rg);add('ext','Caixas','SEV0040',nr,'1 por fusão')}}
+  /* Ativação */
+  const at=klAtivDe(p.topologia);
+  if(at==='gpon'||at==='ptp'){add('ativ','Equipamento',at==='gpon'?'SEV0053':'SEV0059',1,at==='gpon'?'GPON: ONU':'PTP: equipamento rede metro');['SEV0062','SEV0060','SEV0058'].forEach(c=>add('ativ','Entrega',c,1,'1 por projeto'));add('ativ','Entrega','SEV0066',n(P.perif),'periféricos (mínimo)');add('ativ','Entrega','SEV0041',1,'medição de potência')}
+  else fraco.push('topologia sem regra de ativação por KMZ ('+(p.topologia||'não informada')+')');
+  /* Deslocamento pela região da LPU */
+  /* deslocamento: dias de campo previstos na base de previsão, em cada fase */
+  const ds=kcDesloc(p.cidade);if(ds){const dr=p.semRua?0:n(p.dRua),di=n(p.dInterno),de=temExt(p)?n(p.dExt):0,da=n(p.dAtiv);
+    add('lanc','Deslocamento',ds.cod,dr+di,`dias previstos: ${dr} rua + ${di} interno`);add('ext','Deslocamento',ds.cod,de,`${de} ${de===1?'dia previsto':'dias previstos'} de extensão`);add('ativ','Deslocamento',ds.cod,da,`${da} ${da===1?'dia previsto':'dias previstos'} de ativação`);
+    if(!(dr+di+de+da))fraco.push('sem dias previstos na base de previsão para o deslocamento')}
+  const tot=Math.round(L.reduce((s,x)=>s+x.v,0)*100)/100,porF={};L.forEach(x=>porF[x.fase]=Math.round(((porF[x.fase]||0)+x.v)*100)/100);
+  return{L,tot,porF,fraco,semDesl:!ds,fator:crit?'critico':'comum'}}
+/* versões salvas */
+const kleVers=etq=>(S.est||[]).filter(r=>r.etiqueta===etq).sort((a,b)=>b.versao-a.versao);
+async function kleSalvar(p,motivo){if(!kleVer()||!kleUsa(p))return null;const P=klp(),c=kleCalc(p,P),v=(kleVers(p.etiqueta)[0]||{}).versao||0;
+  const row={projeto_id:p.id,etiqueta:p.etiqueta,versao:v+1,kmz:p.kl.arq||'',kmz_ext:(p.kmz&&p.kmz.nome)||'',em:new Date().toISOString(),por:ME?ME.nome:'',motivo:motivo||'',
+    parametros:{regras:P,quantidades:p.kl.q,extensao:p.klExt||null,ativacao:klAtivDe(p.topologia),cidade:p.cidade||''},itens:c.L,total:c.tot,fator:c.fator,lpu_versao:lpuVer()};
+  const r=await sb.from('ag_estimativas').insert(row).select();if(r.error){toast('Estimativa não salva: '+r.error.message,'bad');return null}
+  S.est=(S.est||[]).concat(r.data&&r.data[0]?r.data[0]:row);return row}
+/* carrega estimativas e parâmetros (só coordenação e supervisão) */
+{const _c=carregar;carregar=async function(){const o=await _c.apply(this,arguments);if(kleVer()){try{const[e,g]=await Promise.all([sb.from('ag_estimativas').select('*'),sb.from('ag_config').select('*')]);
+    S.est=e.error?[]:(e.data||[]);S.cfg={};(g.error?[]:(g.data||[])).forEach(x=>S.cfg[x.chave]=x.valor)}catch(e){S.est=S.est||[];S.cfg=S.cfg||{}}}return o}}
+/* KMZ de extensão lido no cadastro → metragem e caixas pela regra nova */
+{const _r=kmzRecalc;kmzRecalc=function(){const o=_r.apply(this,arguments);const k=ui.wiz&&ui.wiz.k;if(k&&k.K){try{k.extq=klExtDe(k.K)}catch(e){k.extq=null}}return o}}
+{const _a=kmzAplica;kmzAplica=function(p,W){const o=_a.apply(this,arguments);const k=W.k;if(k&&k.extq&&!p.semExt)p.klExt=Object.assign({arq:k.nome||'',em:Date.now()},k.extq);return o}}
+/* ao salvar o cadastro com KMZ lido, grava uma nova versão da estimativa */
+{const _a=kmzLAplica;kmzLAplica=function(p,W){const novo=!!(W.kL&&W.kL.R),ext=!!(W.k&&W.k.extq);const o=_a.apply(this,arguments);
+  if((novo||ext)&&kleUsa(p))setTimeout(()=>kleSalvar(p,novo?'KMZ de lançamento importado':'KMZ de extensão importado').then(r=>{if(r)toast(`Estimativa pelo KMZ: ${brl(r.total)} (versão ${r.versao}).`)}),400);return o}}
+/* tela da estimativa */
+function kleHtml(p){const c=kleCalc(p),vs=kleVers(p.etiqueta),ult=vs[0],ed=ui.perfil==='coord'||pode('a_custo');
+  const difer=ult&&Math.abs((+ult.total||0)-c.tot)>0.005;
+  const fases=['lanc','ext','ativ'].filter(f=>c.L.some(x=>x.fase===f));
+  return `<div class="kle"><small class="kcl">ESTIMATIVA PELO KMZ · ${esc(p.etiqueta)}</small><h3 style="margin:2px 0 0">${esc(p.cliente||'')}</h3>
+   <p class="muted" style="margin:2px 0 8px">${esc([p.cidade,p.topologia].filter(Boolean).join(' · '))} · KMZ ${esc(p.kl.arq||'')}${p.klExt?` · extensão ${klFmt(p.klExt.m)} m, ${p.klExt.cx} caixas`:''}</p>
+   <div class="kletop"><label class="f"><span>Fator</span><select class="inp" data-ch="kleFator" data-etq="${esc(p.etiqueta)}" ${ed?'':'disabled'}><option value="comum" ${c.fator==='comum'?'selected':''}>Comum</option><option value="critico" ${c.fator==='critico'?'selected':''}>Crítico</option></select></label>
+    <div class="kletot"><small>Total previsto</small><b>${brl(c.tot)}</b><span>${fases.map(f=>`${KLE_FASE[f]} ${brl(c.porF[f])}`).join(' · ')}</span></div></div>
+   ${c.fraco.length?`<div class="result warn" style="margin:8px 0">${c.fraco.map(esc).join('<br>')}</div>`:''}${c.semDesl?`<p class="muted" style="margin:4px 0">Sem deslocamento: ${esc(p.cidade||'cidade não informada')} não está em nenhuma região de deslocamento da LPU.</p>`:''}
+   <div class="tablewrap"><table class="klet"><thead><tr><th>Código</th><th>Item</th><th>Como foi calculado</th><th class="r">Qtd</th><th class="r">Unitário</th><th class="r">Total</th></tr></thead>
+   ${fases.map(f=>`<tbody><tr class="klef"><td colspan="5">${KLE_FASE[f]}</td><td class="r">${brl(c.porF[f])}</td></tr>${c.L.filter(x=>x.fase===f).map(x=>`<tr><td class="c">${x.cod}</td><td>${esc(x.desc)}<small>${esc(x.grupo)}</small></td><td class="rg">${esc(x.regra||'')}</td><td class="r">${String(x.q).replace('.',',')}${x.med==='metro'?' m':''}</td><td class="r">${brl(x.u)}</td><td class="r">${brl(x.v)}</td></tr>`).join('')}</tbody>`).join('')}
+   <tfoot><tr><td colspan="5">Total (${c.fator==='critico'?'preço crítico':'preço comum'})</td><td class="r">${brl(c.tot)}</td></tr></tfoot></table></div>
+   <div class="klever"><b>Versões salvas</b>${difer?`<span class="chip warn">O cálculo atual difere da última versão salva</span>`:''}
+    ${vs.length?`<ol>${vs.slice(0,8).map(v=>`<li><span>v${v.versao} · ${dtBR(new Date(v.em).getTime())} · ${esc(v.por||'')}${v.motivo?' · '+esc(v.motivo):''}</span><b>${brl(v.total)}</b><small>${esc(v.fator==='critico'?'crítico':'comum')} · ${esc(v.lpu_versao||'')}</small></li>`).join('')}</ol>`:'<p class="muted" style="margin:4px 0">Nenhuma versão salva ainda.</p>'}</div>
+   <div class="actions"><button class="btn" data-act="close">Fechar</button>${ed?`<button class="btn" data-act="klePar">Parâmetros</button><button class="btn primary" data-act="kleSalvar" data-etq="${esc(p.etiqueta)}">Salvar nova versão</button>`:''}</div></div>`}
+function kleParHtml(){const P=klp(),ed=ui.perfil==='coord';
+  return `<div class="kle"><h3>Parâmetros da estimativa pelo KMZ</h3><p class="muted">Valem para os próximos cálculos. Cada versão salva guarda os parâmetros usados. Os preços vêm sempre da tabela LPU da ferramenta.${ed?'':' Só a coordenação altera.'}</p>
+   ${KLP_N.map(([g,L])=>`<div class="klpg"><b>${g}</b>${L.map(([k,n,u])=>`<label class="klpr"><span>${n}</span><span class="klin"><input class="inp" inputmode="decimal" id="klp_${k}" value="${esc(String(P[k]).replace('.',','))}" ${ed?'':'disabled'}><i>${u}</i></span>${String(P[k])!==String(KLP_PAD[k])?`<em>padrão ${String(KLP_PAD[k]).replace('.',',')}</em>`:''}</label>`).join('')}</div>`).join('')}
+   <div class="actions"><button class="btn" data-act="close">Voltar</button>${ed?`<button class="btn" data-act="klpPad">Voltar ao padrão</button><button class="btn primary" data-act="klpOk">Salvar parâmetros</button>`:''}</div></div>`}
+async function klpGravar(v){const r=await sb.from('ag_config').upsert({chave:'estimativa_kmz',valor:v,atualizado_por:ME?ME.nome:'',atualizado_em:new Date().toISOString()},{onConflict:'chave'});
+  if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return false}S.cfg=S.cfg||{};S.cfg.estimativa_kmz=v;return true}
+Object.assign(CH,{kleFator:async el=>{const p=S.previsao.find(x=>x.etiqueta===el.dataset.etq);if(!p)return;p.fator=el.value==='critico'?'critico':'comum';save();openModal(kleHtml(p),'wide')}});
+Object.assign(ACT,{
+  kleAbrir:el=>{if(!kleVer())return;const p=S.previsao.find(x=>x.etiqueta===el.dataset.etq);if(!p||!kleUsa(p))return toast('Projeto sem KMZ de lançamento lido.','bad');ui.kleEtq=p.etiqueta;openModal(kleHtml(p),'wide')},
+  kleSalvar:async el=>{const p=S.previsao.find(x=>x.etiqueta===el.dataset.etq);if(!p)return;const r=await kleSalvar(p,'Recalculado na estimativa');if(r){toast(`Versão ${r.versao} salva: ${brl(r.total)}.`);openModal(kleHtml(p),'wide')}},
+  klePar:()=>openModal(kleParHtml()),
+  klpPad:async()=>{if(ui.perfil!=='coord')return semPerm();if(await klpGravar(Object.assign({},KLP_PAD))){toast('Parâmetros de volta ao padrão.');openModal(kleParHtml())}},
+  klpOk:async()=>{if(ui.perfil!=='coord')return semPerm();const v={};for(const[,L]of KLP_N)for(const[k]of L){const x=+String(($('klp_'+k)||{}).value||'').replace(',','.');if(!isFinite(x)||x<0)return toast('Valor inválido em: '+L.find(z=>z[0]===k)[1],'bad');v[k]=x}
+    if(await klpGravar(v)){toast('Parâmetros salvos. Use "Salvar nova versão" para gravar a estimativa com eles.');const p=S.previsao.find(x=>x.etiqueta===ui.kleEtq);(p&&kleUsa(p)?openModal(kleHtml(p),'wide'):openModal(kleParHtml()))}}});
+/* acesso pela tela do custo previsto: projetos com KMZ lido ganham o botão da estimativa */
+{const _v=ACT.kcVer;ACT.kcVer=el=>{const p=S.previsao.find(x=>x.etiqueta===el.dataset.etq);if(p&&kleUsa(p)){ui.kleEtq=p.etiqueta;return openModal(kleHtml(p),'wide')}return _v(el)}}
+
+/* ---------- 21/10: PREVISÃO DO BUDGET PELA ESTIMATIVA DO KMZ (etapa c) ----------
+   Projetos com KMZ lido: previsão = soma das fases da estimativa que ainda não foram concluídas.
+   A LPU real de uma fase substitui a previsão dela (realizado × previsto): fase concluída sai da previsão;
+   fase com LPU parcial fica com o que falta (estimado − LPUs já lançadas).
+   LPU de técnico CLT entra no realizado da fase, mas não consome o budget terceirizado.
+   Last mile sem lançamento, firewall, FWA e projetos sem KMZ lido seguem na regra antiga (kcProj original). */
+const KLB_ATIV=new Set(['SEV0053','SEV0054','SEV0055','SEV0056','SEV0057','SEV0058','SEV0059','SEV0060','SEV0062','SEV0066']);
+const KLB_EXT=new Set(['SEV0088','SEV0037']);
+/* fase da estimativa concluída? (lançamento = rua e interno exigidos concluídos) */
+function klbFaseOk(p,f){const req=fasesReq(p).map(x=>x.k);
+  if(f==='lanc')return ['rua','interno'].filter(k=>req.includes(k)).every(k=>faseFim(p.etiqueta,k));
+  if(f==='ext')return !req.includes('ext')||!!faseFim(p.etiqueta,'ext');
+  return !!faseFim(p.etiqueta,'ativ')}
+/* valor de uma LPU repartido nas fases da estimativa pelos itens lançados */
+function klbLpuFases(l){const fs=l.fases||((getAg(l.ag)||{}).fases)||[],lan=fs.some(x=>x==='rua'||x==='interno'),out={};
+  const fb=lan?'lanc':fs.includes('ext')?'ext':fs.includes('ativ')?'ativ':'lanc';
+  (l.itens||[]).forEach(i=>{const v=(+i.unit||+i.valor||0)*(+i.qtd||0);if(!v)return;
+    const f=KLB_ATIV.has(i.cod)&&fs.includes('ativ')?'ativ':fs.includes('ext')&&(KLB_EXT.has(i.cod)||!lan)?'ext':fb;out[f]=(out[f]||0)+v});
+  const s=Object.values(out).reduce((a,b)=>a+b,0),t=+l.total||0;
+  if(s>0&&t)Object.keys(out).forEach(k=>out[k]=out[k]*t/s);else if(!s&&t)out[fb]=t;return out}
+/* previsto × realizado do projeto, por fase */
+function klbProj(p){const c=kleCalc(p),R={};
+  ['lanc','ext','ativ'].forEach(f=>{if(c.porF[f]!=null||f!=='ext')R[f]={est:c.porF[f]||0,aprov:0,aguard:0,clt:0}});
+  S.lpus.filter(l=>l.etiqueta===p.etiqueta&&l.status!=='reprovada').forEach(l=>{const clt=tecT(l.tec)!=='TERC';
+    Object.entries(klbLpuFases(l)).forEach(([f,v])=>{const r=R[f];if(!r)return;if(clt)r.clt+=v;else if(l.status==='aprovada')r.aprov+=v;else r.aguard+=v})});
+  let prev=0,aprov=0,aguard=0,clt=0;
+  Object.keys(R).forEach(f=>{const r=R[f];r.ok=klbFaseOk(p,f);const real=r.aprov+r.aguard+r.clt;r.real=real;r.prev=r.ok?0:Math.max(0,Math.round((r.est-real)*100)/100);
+    r.sit=r.ok?(real?'Concluída · LPU lançada':'Concluída · aguardando LPU'):real?'Em andamento · LPU parcial':'Pendente';prev+=r.prev;aprov+=r.aprov;aguard+=r.aguard;clt+=r.clt});
+  const r2=v=>Math.round(v*100)/100;
+  return{c,R,est:c.tot,prev:r2(prev),aprov:r2(aprov),aguard:r2(aguard),clt:r2(clt),saldo:r2(c.tot-aprov-aguard-clt-prev)}}
+/* backlog: a previsão de custo usa a estimativa para os projetos com KMZ */
+{const _k=kcProj;kcProj=function(p,t){if(!kleUsa(p))return _k.apply(this,arguments);const b=klbProj(p),pend=new Set(Object.keys(b.R).filter(f=>b.R[f].prev>0));
+  const L=b.c.L.filter(x=>pend.has(x.fase));return{L,comp:b.prev,prev:b.prev,fraco:b.c.fraco,kmz:true,b}}}
+Object.assign(KC_FN,{lanc:'Lançamento'});
+const klbMotivo=p=>{const tp=normK(p.topologia||'');return tp==='firewall'?'Firewall':tp==='fwa'?'FWA':(!fasesReq(p).some(f=>f.k==='rua'||f.k==='interno'))?(tp==='last mile'?'Last mile sem lançamento':'Sem lançamento'):'Sem KMZ de lançamento lido'};
+/* bloco previsto × realizado dentro da tela da estimativa */
+function klbHtml(p){const b=klbProj(p),F=Object.keys(b.R);
+  return `<div class="klb"><b>Previsto × realizado por fase</b><div class="tablewrap"><table class="klet"><thead><tr><th>Fase</th><th>Situação</th><th class="r">Estimado</th><th class="r">LPU aprovada</th><th class="r">LPU aguardando</th><th class="r">LPU CLT</th><th class="r">Histórico</th><th class="r">Previsão restante</th></tr></thead><tbody>
+   ${F.map(f=>{const r=b.R[f];return `<tr><td><b>${KLE_FASE[f]}</b></td><td>${esc(r.sit)}</td><td class="r">${brl(r.est)}</td><td class="r">${brl(r.aprov)}</td><td class="r">${brl(r.aguard)}</td><td class="r">${brl(r.clt)}</td><td class="r">${brl(r.hist||0)}</td><td class="r"><b>${brl(r.prev)}</b></td></tr>`}).join('')}</tbody>
+   <tfoot><tr><td colspan="2">Projeto</td><td class="r">${brl(b.est)}</td><td class="r">${brl(b.aprov)}</td><td class="r">${brl(b.aguard)}</td><td class="r">${brl(b.clt)}</td><td class="r">${brl(b.hist||0)}</td><td class="r">${brl(b.prev)}</td></tr></tfoot></table></div>
+   <p class="muted" style="margin:4px 0 0;font-size:12.5px">Histórico = valor realizado informado nas fases concluídas fora da ferramenta (pré-ferramenta). Saldo do projeto (estimado − realizado − previsão restante): <b style="color:${b.saldo<0?'var(--bad)':'var(--brand-ink)'}">${brl(b.saldo)}</b>. LPU de técnico CLT entra no realizado da fase, mas não consome o budget terceirizado.</p></div>`}
+{const _h=kleHtml;kleHtml=function(p){const h=_h.apply(this,arguments);return h.replace('<div class="klever">',klbHtml(p)+'<div class="klever">')}}
+/* painel do budget: previsão dos projetos em aberto, separada por métrica */
+function klbPainel(){if(!kcVe())return '';const L=S.previsao.filter(p=>p.etiqueta&&etapa(p)!=='entregue'),O=kcOrc();
+  const N=[],V=[];L.forEach(p=>{if(kleUsa(p)){const b=klbProj(p);if(b.est||b.prev)N.push({p,b})}else{const t=kTrab(p),c=kcProj(p,t),Ls=S.lpus.filter(l=>l.etiqueta===p.etiqueta&&l.status!=='reprovada'),te=l=>tecT(l.tec)==='TERC';
+    const v={p,prev:c.prev,aprov:Ls.filter(l=>te(l)&&l.status==='aprovada').reduce((s,l)=>s+(+l.total||0),0),aguard:Ls.filter(l=>te(l)&&l.status!=='aprovada').reduce((s,l)=>s+(+l.total||0),0),clt:Ls.filter(l=>!te(l)).reduce((s,l)=>s+(+l.total||0),0),hist:typeof foraVal==='function'?foraVal(p,['rua','interno','ext','ativ']):0,mot:klbMotivo(p),fraco:c.fraco};if(v.prev||v.aprov||v.aguard||v.clt||v.hist)V.push(v)}});
+  const s=(A,k)=>A.reduce((a,x)=>a+((x.b?x.b[k]:x[k])||0),0),pN=s(N,'prev'),pV=s(V,'prev'),tot=pN+pV,saldo=O.disp-tot;
+  N.sort((a,b)=>b.b.prev-a.b.prev);V.sort((a,b)=>b.prev-a.prev);
+  const cli=p=>`<b>${tvNomeEtq(p.cliente||'',p.etiqueta)}</b><small>${esc([p.cidade,p.topologia].filter(Boolean).join(' · '))}</small>`;
+  return `<section class="panel klbp"><div class="secth"><div><h3>Previsão dos projetos em aberto × budget</h3><span class="muted">O que ainda falta executar nos projetos do backlog, pela LPU. A LPU real de cada fase substitui a previsão dela.</span></div></div>
+   <div class="kpis" style="margin:10px 0">${kp(brl(pN),`Previsto · métrica KMZ (${N.length} ${N.length===1?'projeto':'projetos'})`)}${kp(brl(pV),`Previsto · métrica antiga (${V.length} ${V.length===1?'projeto':'projetos'})`)}${kp(brl(s(N,'aprov')+s(V,'aprov')),'Realizado nesses projetos (LPU aprovada)','ok')}${s(N,'hist')+s(V,'hist')?kp(brl(s(N,'hist')+s(V,'hist')),'Realizado histórico (pré-ferramenta)'):''}${kp(O.tO?brl(saldo):'—',O.tO?'Saldo: budget disponível do mês − previsto':'Budget do mês não definido',O.tO&&saldo<0?'bad':'')}</div>
+   <h4 class="klbh">Métrica nova: KMZ × LPU</h4>
+   <div class="tablewrap"><table class="klbt"><thead><tr><th>Projeto</th><th class="r">Estimado</th><th class="r">LPU aprovada</th><th class="r">LPU aguardando</th><th class="r">LPU CLT</th><th class="r">Histórico</th><th class="r">Previsão restante</th><th class="r">Saldo</th></tr></thead><tbody>
+   ${N.map(({p,b})=>`<tr><td>${cli(p)}<button class="linkbtn" data-act="kleAbrir" data-etq="${esc(p.etiqueta)}">ver estimativa</button></td><td class="r">${brl(b.est)}</td><td class="r">${brl(b.aprov)}</td><td class="r">${brl(b.aguard)}</td><td class="r">${brl(b.clt)}</td><td class="r">${brl(b.hist||0)}</td><td class="r"><b>${brl(b.prev)}</b></td><td class="r" style="color:${b.saldo<0?'var(--bad)':'inherit'}">${brl(b.saldo)}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhum projeto em aberto com KMZ de lançamento lido.</td></tr>'}</tbody>
+   ${N.length?`<tfoot><tr><td>Total</td><td class="r">${brl(s(N,'est'))}</td><td class="r">${brl(s(N,'aprov'))}</td><td class="r">${brl(s(N,'aguard'))}</td><td class="r">${brl(s(N,'clt'))}</td><td class="r">${brl(s(N,'hist'))}</td><td class="r">${brl(pN)}</td><td class="r">${brl(s(N,'saldo'))}</td></tr></tfoot>`:''}</table></div>
+   <h4 class="klbh">Métrica antiga</h4>
+   <div class="tablewrap"><table class="klbt"><thead><tr><th>Projeto</th><th>Por que</th><th class="r">LPU aprovada</th><th class="r">LPU aguardando</th><th class="r">LPU CLT</th><th class="r">Histórico</th><th class="r">Previsão restante</th></tr></thead><tbody>
+   ${V.map(v=>`<tr><td>${cli(v.p)}</td><td>${esc(v.mot)}${v.fraco&&v.fraco.length?`<small>${esc(v.fraco[0])}</small>`:''}</td><td class="r">${brl(v.aprov)}</td><td class="r">${brl(v.aguard)}</td><td class="r">${brl(v.clt)}</td><td class="r">${brl(v.hist||0)}</td><td class="r"><b>${brl(v.prev)}</b></td></tr>`).join('')||'<tr><td colspan="7" class="muted">Nenhum projeto na métrica antiga.</td></tr>'}</tbody>
+   ${V.length?`<tfoot><tr><td colspan="2">Total</td><td class="r">${brl(s(V,'aprov'))}</td><td class="r">${brl(s(V,'aguard'))}</td><td class="r">${brl(s(V,'clt'))}</td><td class="r">${brl(s(V,'hist'))}</td><td class="r">${brl(pV)}</td></tr></tfoot>`:''}</table></div>
+   <p class="muted" style="font-size:12.5px;margin-top:8px">Saldo do projeto = estimado − LPUs lançadas − previsão restante (negativo: o realizado passou do estimado). LPU CLT não consome o budget terceirizado.</p></section>`}
+{const _p=pBudget;pBudget=function(){const h=_p.apply(this,arguments);try{return h+klbPainel()}catch(e){return h}}}
+
+/* ---------- 21/10: FASES CONCLUÍDAS FORA DA FERRAMENTA (etapa d) ----------
+   Gestão com a permissão a_foraFerr marca uma fase do projeto como concluída antes/fora da ferramenta:
+   data, responsável, observação e, se quiser, o valor realizado. A fase passa a contar como concluída em toda a
+   ferramenta (faseFim), sai da previsão, não gera atividade nem LPU. O valor entra no realizado como
+   "histórico / pré-ferramenta", separado das LPUs. Tudo fica no registro do projeto (p.foraLog). */
+const FORA_FN={rua:'Lançamento na rua',interno:'Lançamento interno',ext:'Extensão de sinal',ativ:'Ativação'};
+/* usada por faseFim quando não há atividade concluída */
+function foraFim(e,f){const p=S.previsao&&S.previsao.find(x=>x.etiqueta===e),x=p&&p.fora&&p.fora[f];if(!x)return null;
+  return{id:'fora:'+e+':'+f,etiqueta:e,data:x.data,tec:null,status:'concluida',fases:[f],fasesFin:[f],ts:{conclusao:new Date(x.data+'T12:00:00').getTime()},fora:true,x}}
+const foraPode=()=>ui.perfil==='coord'||pode('a_foraFerr');
+function foraFlag(p,f,fin,gestao){const x=fin.x;if(!gestao)return `<span class="chip ok">✓ ${FCURTO[f.k]}</span>`;
+  return `<div class="ff ok fora"><b>✓ ${f.n}</b><span>Concluída fora da ferramenta em ${dBR(x.data)} · ${esc(x.resp)}${x.valor!=null?` · ${brl(x.valor)} (histórico)`:''}</span><small>Marcado por ${esc(x.por||'—')} em ${dtBR(x.em)}${x.obs?' · '+esc(x.obs):''}</small>${foraPode()?`<button class="linkbtn" data-act="foraDesm" data-etq="${esc(p.etiqueta)}" data-f="${f.k}">Desmarcar</button>`:''}</div>`}
+function foraBtn(p,f){if(!foraPode())return '';return `<button class="linkbtn forab" data-act="foraAbrir" data-etq="${esc(p.etiqueta)}" data-f="${f.k}">Concluída fora da ferramenta</button>`}
+function foraLogHtml(p){const L=(p.foraLog||[]).slice().reverse();if(!L.length)return '';
+  return `<details class="foralog"><summary>Registro das marcações (${L.length})</summary><ol>${L.map(l=>`<li><time>${dtBR(l.em)}</time><span>${esc(l.acao)} · ${esc(FORA_FN[l.fase]||l.fase)} · <b>${esc(l.por||'')}</b>${l.data?`<br><small>Conclusão ${dBR(l.data)} · ${esc(l.resp||'')}${l.valor!=null?' · '+brl(l.valor):''}${l.obs?' · '+esc(l.obs):''}</small>`:''}${l.motivo?`<br><small>Motivo: ${esc(l.motivo)}</small>`:''}</span></li>`).join('')}</ol></details>`}
+{const _f=faseFlags;faseFlags=function(p,gestao){const h=_f.apply(this,arguments);return gestao&&(p.foraLog||[]).length?h+foraLogHtml(p):h}}
+Object.assign(ACT,{
+  foraAbrir:el=>{if(!foraPode())return semPerm();const p=S.previsao.find(x=>x.etiqueta===el.dataset.etq),f=el.dataset.f;if(!p)return;
+    const ab=S.ags.filter(a=>a.etiqueta===p.etiqueta&&fasesOf(a).includes(f)&&!FIM.includes(a.status)&&a.status!=='cancelada');
+    openModal(`<h3>Concluída fora da ferramenta</h3><p class="muted">${esc(FORA_FN[f])} · ${tvNomeEtq(p.cliente||'',p.etiqueta)}. A fase passa a contar como concluída, sai da previsão de custo e não gera atividade nem LPU.</p>
+     ${ab.length?`<div class="result warn" style="margin:8px 0">Esta fase tem ${ab.length} ${ab.length===1?'atividade em aberto':'atividades em aberto'} na agenda (${ab.map(a=>dBR(a.data)).join(', ')}). Cancele na agenda se ela não vai mais acontecer.</div>`:''}
+     <div class="grid2 even" style="gap:0 12px;margin-top:8px"><label class="f"><span>Data de conclusão *</span><input class="inp" type="date" id="foData" max="${hoje()}"></label>
+      <label class="f"><span>Responsável pela execução *</span><input class="inp" id="foResp" placeholder="Ex.: equipe própria, Alfa Telecom"></label></div>
+     <label class="f"><span>Valor realizado (R$, opcional)</span><input class="inp" inputmode="decimal" id="foValor" placeholder="Ex.: 1.250,00"><small class="muted">Entra no realizado como histórico / pré-ferramenta, separado das LPUs.</small></label>
+     <label class="f"><span>Observação</span><textarea class="inp" id="foObs" rows="2" placeholder="Ex.: lançado em 2025, antes da ferramenta"></textarea></label>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="foraOk" data-etq="${esc(p.etiqueta)}" data-f="${f}">Marcar como concluída</button></div>`)},
+  foraOk:el=>{if(!foraPode())return semPerm();const p=S.previsao.find(x=>x.etiqueta===el.dataset.etq),f=el.dataset.f;if(!p)return;
+    const data=($('foData')||{}).value||'',resp=(($('foResp')||{}).value||'').trim(),obs=(($('foObs')||{}).value||'').trim(),vt=(($('foValor')||{}).value||'').trim();
+    if(!data)return toast('Informe a data de conclusão.','bad');if(data>hoje())return toast('A data de conclusão não pode ser futura.','bad');if(!resp)return toast('Informe o responsável pela execução.','bad');
+    let valor=null;if(vt){valor=+vt.replace(/\./g,'').replace(',','.');if(!isFinite(valor)||valor<0)return toast('Valor realizado inválido.','bad');valor=Math.round(valor*100)/100}
+    const x={data,resp,obs,valor,em:Date.now(),por:meNome()};p.fora=Object.assign({},p.fora,{[f]:x});
+    p.foraLog=(p.foraLog||[]).concat([Object.assign({acao:'Marcou como concluída fora da ferramenta',fase:f},x)]);save();closeModal();render();toast(`${FORA_FN[f]}: concluída fora da ferramenta.`)},
+  foraDesm:el=>{if(!foraPode())return semPerm();const p=S.previsao.find(x=>x.etiqueta===el.dataset.etq),f=el.dataset.f;if(!p||!p.fora||!p.fora[f])return;
+    openModal(`<h3>Desmarcar conclusão fora da ferramenta</h3><p class="muted">${esc(FORA_FN[f])} · ${tvNomeEtq(p.cliente||'',p.etiqueta)}. A fase volta a ficar pendente e entra de novo na previsão.</p>
+     <label class="f" style="margin-top:8px"><span>Motivo *</span><textarea class="inp" id="foMot" rows="2"></textarea></label>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="foraDesmOk" data-etq="${esc(p.etiqueta)}" data-f="${f}">Desmarcar</button></div>`)},
+  foraDesmOk:el=>{if(!foraPode())return semPerm();const p=S.previsao.find(x=>x.etiqueta===el.dataset.etq),f=el.dataset.f,m=(($('foMot')||{}).value||'').trim();if(!p)return;if(!m)return toast('Escreva o motivo.','bad');
+    const x=(p.fora||{})[f]||{};const o=Object.assign({},p.fora);delete o[f];p.fora=o;
+    p.foraLog=(p.foraLog||[]).concat([{acao:'Desmarcou a conclusão fora da ferramenta',fase:f,em:Date.now(),por:meNome(),motivo:m,data:x.data,resp:x.resp,valor:x.valor}]);save();closeModal();render();toast(`${FORA_FN[f]}: voltou a ficar pendente.`)}});
+/* realizado histórico (pré-ferramenta) na previsão × realizado */
+const foraVal=(p,fs)=>fs.reduce((s,f)=>s+((p.fora&&p.fora[f]&&p.fora[f].valor)||0),0);
+{const _k=klbProj;klbProj=function(p){const b=_k.apply(this,arguments);const map={lanc:['rua','interno'],ext:['ext'],ativ:['ativ']};let h=0;
+  Object.keys(b.R).forEach(f=>{const r=b.R[f],v=foraVal(p,map[f]||[]),fora=(map[f]||[]).some(k=>p.fora&&p.fora[k]);r.hist=v;h+=v;if(!r.ok&&v>0){const np=Math.max(0,Math.round((r.prev-v)*100)/100);b.prev=Math.round((b.prev-r.prev+np)*100)/100;b.saldo+=r.prev-np;r.prev=np;r.sit='Em andamento · parte concluída fora da ferramenta'}if(fora&&r.ok&&!v)b.saldo-=r.est-r.real;if(fora&&r.ok)r.sit='Concluída fora da ferramenta'+(v?' · histórico':'')});
+  b.hist=Math.round(h*100)/100;b.saldo=Math.round((b.saldo-b.hist)*100)/100;return b}}
+/* a ficha do projeto na agenda mostra as fases (com a marcação fora da ferramenta para quem pode) */
+{const _fp=fiProj;fiProj=function(p){const h=_fp.apply(this,arguments);return h+`<div class="forasec"><h3 class="lsub">Fases do projeto</h3>${faseFlags(p,1)}</div>`}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
