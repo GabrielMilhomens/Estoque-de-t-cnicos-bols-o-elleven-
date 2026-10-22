@@ -1724,6 +1724,24 @@ nav.tabs .ncatm,.ncatm{display:none}
 .lmdot{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}.lmdot.nv{background:#0f9d9a}.lmdot.nf{background:repeating-linear-gradient(90deg,#7a837d 0 5px,transparent 5px 8px)}.lmdot.kz{background:#1e63d6}
 .lmleg{display:flex;gap:12px;font-size:13px;color:var(--muted);margin:6px 0}
 .modal:has(#lmSlotG){z-index:30}
+.cliparts{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.cliparts.sm{margin:4px 0 0;gap:4px}
+.clip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 9px 3px 3px;font:600 12px Barlow,sans-serif;border:1px solid transparent}
+.clip b{border-radius:999px;padding:2px 7px;background:rgba(255,255,255,.65);color:inherit;font-weight:700}
+.cliparts.sm .clip{font-size:11px;padding:2px 7px 2px 2px}
+.clip.ok{background:var(--ok-soft,#e6f1d6);color:var(--ok,#2e5410)}.clip.warn{background:var(--warn-soft,#fbebd5);color:var(--warn,#9a5b12)}.clip.bad{background:var(--bad-soft,#f8e1dc);color:var(--bad,#a23b2a)}
+.clip.m{background:var(--bg);color:var(--muted);border-color:var(--line)}.clip.na{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+.clid{font:700 12px Barlow,sans-serif;border-radius:999px;padding:3px 9px;white-space:nowrap}.clid.pend{background:var(--warn-soft,#fbebd5);color:var(--warn,#9a5b12)}.clid.atr{background:var(--bad,#a23b2a);color:#fff}
+.geoi.cli.atr{box-shadow:inset 3px 0 0 var(--bad,#a23b2a)}.geoi.cli.pend{box-shadow:inset 3px 0 0 var(--warn,#9a5b12)}
+.clidl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px;margin:10px 0}.clidl dt{font-size:12px;color:var(--muted)}.clidl dd{margin:0;font-size:14px}
+.clih{margin:14px 0 6px;font:700 15px Barlow,sans-serif}
+.clirow{display:grid;grid-template-columns:1fr auto auto;gap:6px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}.clirow small{display:block;color:var(--muted)}
+@media(max-width:560px){.clirow{grid-template-columns:1fr auto}.clirow .chip{grid-column:1}}
+.clikp{margin:4px 0 12px}
+.cligeo{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+b.bad{color:var(--bad,#a23b2a)}
+.clikp .clikb{font:inherit;text-align:left;cursor:pointer;border:0;background:var(--surface);color:inherit;border-radius:0}
+.clikp .clikb:hover{background:var(--bg)}.clikp .clikb.on{box-shadow:inset 0 -3px 0 var(--brand,#8cbf3f);background:var(--brand-soft,#e6f1d6)}
+.clikp .clikb:focus-visible{outline:2px solid var(--brand,#8cbf3f);outline-offset:-2px}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -2572,7 +2590,7 @@ const anxDe=e=>S.anexos.filter(x=>x.etiqueta===e);
 /* os KMZ (lançamento e extensão) ficam até a ativação ser concluída */
 const anxFases=x=>x.tipo==='kmzL'||x.tipo==='kmzA'?['ativ']:[x.fase||'ativ'];
 const anxRegra=x=>{const fs=anxFases(x);return `excluído ao finalizar ${fs.map(k=>FCURTO[k].toLowerCase()).join(' e ')}`};
-function limparAnexos(e){const rem=S.anexos.filter(x=>x.etiqueta===e&&anxFases(x).every(k=>faseFim(e,k)));if(!rem.length)return [];
+function limparAnexos(e){const rem=S.anexos.filter(x=>x.etiqueta===e&&anxFases(x).every(k=>faseFim(e,k))&&!(typeof geoSegura==='function'&&geoSegura(e,x)));if(!rem.length)return [];
   S.anexos=S.anexos.filter(x=>!rem.includes(x));S.anexosLog=S.anexosLog||[];
   rem.forEach(x=>S.anexosLog.push({etiqueta:e,nome:x.nome,tipo:x.tipo,em:Date.now()}));
   (async()=>{try{await sb.storage.from('agenda').remove(rem.map(x=>x.path));await sb.from('ag_anexos').delete().in('id',rem.map(x=>x.id));await sb.from('ag_anexos_log').insert(rem.map(x=>({etiqueta:e,nome:x.nome,tipo:x.tipo})))}catch(err){console.warn(err)}})();
@@ -8748,7 +8766,7 @@ function finViews(FO,sub){if(!FO||FO.length<2)return '';const nA=S.lpus.filter(l
 /* atividade encerrada por continuação órfã: explica no detalhe */
 {const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);if(a&&a.status==='cancelada'&&a.encOutra&&r&&typeof r.act==='string')r.act=`<div class="result info" style="margin:0"><b>Encerrada automaticamente.</b> ${a.encOutra.fora?'As fases foram marcadas como concluídas fora da ferramenta':`As fases foram concluídas em outra atividade${a.encOutra.data?' de '+dBR(a.encOutra.data):''}`}, então esta continuação não precisa mais acontecer.</div>`+r.act;return r}}
 /* ---------- Cadastro Geogrid: tela com sub-itens (hoje: Cadastro de fibras) ---------- */
-const GEO_SUB=[['fibras','Cadastro de fibras']];
+const GEO_SUB=[['clientes','Cadastro de clientes'],['fibras','Cadastro de fibras'],['cabos','Cadastro de cabos']];
 const geoSubAt=()=>GEO_SUB.some(x=>x[0]===ui.geoSub)?ui.geoSub:GEO_SUB[0][0];
 function geoViews(){const s=geoSubAt();return `<div class="views" style="margin-bottom:14px;width:fit-content;max-width:100%">${GEO_SUB.map(([k,n])=>`<button data-act="geoSub" data-s="${k}" aria-current="${k===s}">${n}</button>`).join('')}</div>`}
 Object.assign(ACT,{geoSub:el=>{ui.geoSub=el.dataset.s;if(ui.tab!=='geo'){ui.cat='impl';ui.tab='geo'}ui.geoFech=false;document.body.classList.remove('menu');render();window.scrollTo(0,0)},
@@ -9136,6 +9154,131 @@ Object.assign(ACT,{
 <Folder><name>Alterações de trajeto (executado)</name>${(M.alt||[]).map((t,i)=>`<Placemark><name>Alteração ${i+1} - executado ${t.exec} m (projeto ${t.proj} m)</name><description>${tx(t.motivo)}${M.obs?' - '+tx(M.obs):''}</description><styleUrl>#ex</styleUrl><LineString><coordinates>${c(t.ll)}</coordinates></LineString></Placemark>`).join('')}</Folder></Document></kml>`;
     const b=new Blob([k],{type:'application/vnd.google-earth.kml+xml'}),u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download=`trajeto_${a.etiqueta}.kml`;document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}});
 {const _c=closeModal;closeModal=function(){if(document.getElementById('lmSlotG'))lmMapaFim();return _c.apply(this,arguments)}}
+
+/* ---------- 22/10: CADASTRO GEOGRID · CABOS e CLIENTES ----------
+   Cabos: uma linha por atividade que lançou cabo (rua/interno) com relatório. Mesmo fluxo das fibras:
+     técnico envia o relatório → encarregado valida (a_geoVal) → analista marca cadastrado com evidências (a_geoCad). Fica em a.lancGeo / a.lancGeoLog.
+   Clientes: Last Mile + rede própria com lançamento (firewall fora). Entra na fila quando a ativação conclui; antes aparece "em implantação".
+     Junta fibras (relatórios de fusões) e cabos (lançamentos) do cliente e mostra quantos dias está ativado sem cadastro.
+     O cadastro do cliente fica na atividade que concluiu a ativação (a.cliGeo / a.cliGeoLog).
+   KMZ de lançamento e de extensão só são apagados depois do cadastro no Geogrid (não se perde a informação). */
+const GEO_PRAZO=3;
+const geoPill=(st,M)=>`<span class="chip ${M[st][1]}">${M[st][0]}</span>`;
+const geoEvLista=(E,tipo,id)=>`<div class="geoev"><b>Evidências do cadastro</b>${E.length?`<ul>${E.map(e=>`<li><span>${/^image\//.test(e.tipo)?'Imagem':/pdf/.test(e.tipo)?'PDF':'Arquivo'} · ${esc(e.nome)}<small>${esc(e.por||'')} · ${dtBR(e.em)}</small></span><button class="btn sm" data-act="relVer" data-p="${esc(e.path)}">Abrir</button></li>`).join('')}</ul>`:'<p class="muted" style="margin:4px 0">Nenhuma evidência anexada.</p>'}${pode('a_geoCad')?`<button class="btn sm geoevb" data-act="g2EvAbre" data-t="${tipo}" data-id="${id}">Incluir evidência</button>`:''}</div>`;
+const geoLogHtml=L=>`<div class="geolog"><b>Registro</b><ol>${(L||[]).slice().reverse().map(l=>`<li><time>${dtBR(l.em)}</time><span>${esc(l.acao)} · <b>${esc(l.por||'')}</b>${l.obs?`<br><i>${esc(l.obs)}</i>`:''}</span></li>`).join('')||'<li class="muted">Sem registros.</li>'}</ol></div>`;
+
+/* ---------- cabos ---------- */
+const CAB_ST={and:['Aguardando relatório do técnico','info'],val:['Aguardando validação do encarregado','warn'],cad:['Validado · aguardando cadastro no Geogrid','ag'],ok:['Cadastrado no Geogrid','ok']};
+const CAB_F=[['all','Todos'],['and','Aguardando relatório'],['val','Aguardando validação'],['cad','Aguardando cadastro'],['ok','Cadastrado no Geogrid']];
+const cabFases=a=>(a.fasesFin||[]).filter(k=>k==='rua'||k==='interno');
+const cabEleg=a=>!a.refDe&&!a.unidaEm&&!a.ext&&(cabFases(a).length||(a.parcial&&(metrosAg(a)||0)>0))&&['relatorios','lpu','concluida','nao_concluida'].includes(a.status)&&!(a.status==='nao_concluida'&&!a.parcial);
+const cabSt=a=>a.status==='relatorios'?'and':((a.lancGeo||{}).st||'val');
+function cabLinhas(){return S.ags.filter(cabEleg).map(a=>({a,p:pPor(a.etiqueta)||{},st:cabSt(a),m:metrosAg(a),em:(a.ts&&a.ts.conclusao)||0})).sort((x,y)=>y.em-x.em)}
+const cabMed=(a,k)=>(a.medicoes||{})[k];
+function cabDet(x){const{a,p}=x,g=a.lancGeo||{},F=lmFasesL(a).length?lmFasesL(a):['rua'],med=a.medicoes||{},comb=lmComb(a);
+  const linhaF=f=>{const m=+med[f+':metros']||null,pv=lmPrev(a,f),li=med[f+':lote_ini:lote']||'',lf=med[f+':lote_fim:lote']||'';
+    return `<tr><td>${comb?'Rua + interno':faseN(f)}</td><td class="r"><b>${m!=null?lmFmt(m):'—'}</b></td><td class="r">${pv?lmFmt(pv.v)+` <small class="muted">${pv.fonte}</small>`:'—'}</td><td>${esc(li||'—')} · ${esc(med[f+':lote_ini:m']||'—')} m → ${esc(lf||'—')} · ${esc(med[f+':lote_fim:m']||'—')} m</td></tr>${med[f+':just']?`<tr><td colspan="4" class="muted">Justificativa: ${esc(med[f+':just'])}</td></tr>`:''}`};
+  const rsv=Object.keys(med).filter(k=>/:reserva:\d+:m$/.test(k)).map(k=>{const b=k.replace(/:m$/,''),e=med[b+':esp'];return `${esc(med[k])} m · ${e==='s'?'espinada':e==='n'?'<b class="bad">não espinada</b>':'—'}`});
+  const kz=anxKmz(a.etiqueta,'kmzL'),M=a.lancMapa;
+  let ac='';
+  if(x.st==='and')ac='<p class="geonote">O técnico concluiu e ainda não enviou o relatório de lançamento. A validação libera quando ele enviar.</p>';
+  else if(x.st==='val')ac=pode('a_geoVal')?`<div class="geobt"><button class="btn primary" data-act="g2Val" data-t="cab" data-id="${a.id}">Validar lançamento</button></div>`:'<p class="geonote">Aguardando a validação do encarregado. O cadastro só libera depois dela.</p>';
+  else if(x.st==='cad')ac=pode('a_geoCad')?`<div class="geobt"><span class="geonote">Validado por ${esc(g.valPor||'—')} em ${g.valEm?dtBR(g.valEm):'—'}.</span><button class="btn primary" data-act="g2Cad" data-t="cab" data-id="${a.id}">Cabo cadastrado no Geogrid</button></div>`:`<p class="geonote">Validado por ${esc(g.valPor||'—')}. Aguardando o analista cadastrar no Geogrid.</p>`;
+  else ac=`<p class="geonote ok">Cadastrado no Geogrid por ${esc(g.cadPor||'—')} em ${g.cadEm?dtBR(g.cadEm):'—'}.${g.cadObs?' Obs.: '+esc(g.cadObs):''}</p>`;
+  return `<article class="geodet"><div class="geodh"><div><h3>${esc(p.cliente||a.etiqueta)} · ID ${esc(p.protocolo||a.etiqueta)}</h3><small>Etiqueta ${esc(a.etiqueta)} · ${esc(fasesN(a))} · ${esc(typeof agResp==='function'?agResp(a):tecN(a.tec))} · ${dBR(a.data)}${a.parcial?' · não concluída (parcial)':''}</small></div>${geoPill(x.st,CAB_ST)}</div>
+   ${M?`<div class="geonovbox"><b>Alteração de trajeto</b><span>${lmMapaTxt(M)}. Cadastre o trajeto executado, não o do KMZ.</span></div>`:''}
+   <div class="tablewrap"><table class="geot"><thead><tr><th>Lançamento</th><th class="r">Lançado</th><th class="r">Previsto</th><th>Lote e metragem (início → término)</th></tr></thead><tbody>${F.map(linhaF).join('')}</tbody></table></div>
+   ${rsv.length?`<p class="geospl">Reservas técnicas: ${rsv.join(' · ')}</p>`:''}
+   <div class="geotools">${a.rel&&a.rel.foto&&a.rel.foto.path?`<button class="btn" data-act="relVer" data-p="${esc(a.rel.foto.path)}">Relatório de lançamento (PDF)</button>`:a.rel&&a.rel.parcial&&a.rel.parcial.path?`<button class="btn" data-act="relVer" data-p="${esc(a.rel.parcial.path)}">Relatório do que foi feito (PDF)</button>`:'<button class="btn" disabled>Relatório ainda não enviado</button>'}
+    ${kz?`<button class="btn" data-act="anxOpen" data-id="${kz.id}">Baixar KMZ do projeto</button>`:'<span class="muted">Sem KMZ de lançamento anexado.</span>'}${M?`<button class="btn" data-act="lmVerG" data-id="${a.id}">Ver alteração no mapa</button><button class="btn" data-act="lmKml" data-id="${a.id}">KML do trajeto</button>`:''}</div>
+   <div class="geoact">${ac}</div>${g.st==='ok'||(g.evid||[]).length?geoEvLista(g.evid||[],'cab',a.id):''}${geoLogHtml(a.lancGeoLog)}</article>`}
+function viewGeoCab(){const so=geoSoCad(),L=cabLinhas().filter(x=>!so||x.st==='cad'||x.st==='ok'),f=ui.cabF||'all',q=normK(ui.cabQ||''),cnt=k=>L.filter(x=>x.st===k).length;
+  const R=L.filter(x=>(f==='all'||x.st===f)&&(!q||normK([x.p.cliente,x.p.protocolo,x.a.etiqueta,tecN(x.a.tec),x.a.equipeNome].join(' ')).includes(q))),x=R.find(r=>r.a.id===ui.cabSel)||R[0];
+  const lista=R.map(r=>`<button class="geoi ${x&&r.a.id===x.a.id?'on':''}" data-act="cabSel" data-id="${r.a.id}"><span class="geoih"><b>${esc(r.p.cliente||r.a.etiqueta)}</b>${geoPill(r.st,CAB_ST)}</span><small>ID ${esc(r.p.protocolo||r.a.etiqueta)} · ${esc(fasesN(r.a))} · ${esc(tecN(r.a.tec))} · ${dBR(r.a.data)}</small><small>${r.m!=null?lmFmt(r.m)+' lançados':'sem metragem'}${r.a.lancMapa?' · <b class="geonov">trajeto alterado</b>':''}</small></button>`).join('')||'<p class="muted" style="padding:14px">Nenhum lançamento nesta situação.</p>';
+  return `<div class="toolbar"><div><h2>Cadastro Geogrid</h2><p class="muted">O que precisa ser cadastrado no Geogrid.</p></div></div>${geoViews()}<div class="geohd"><h3>Cadastro de cabos</h3><p class="muted">Cabos lançados pelos técnicos (rua e interno), com metragem, lote, reservas e alteração de trajeto. O encarregado valida e o analista do Geogrid marca como cadastrado, com as evidências.</p></div>
+   <div class="geobar"><div class="geochips">${CAB_F.filter(([k])=>k==='all'||cnt(k)).map(([k,n])=>`<button class="chip ${f===k?'go':''}" data-act="cabF" data-v="${k}" aria-pressed="${f===k}">${n} (${k==='all'?L.length:cnt(k)})</button>`).join('')}</div>
+    <input class="inp" type="search" id="cabQ" data-in="cabQ" placeholder="Cliente, ID, etiqueta ou técnico" value="${esc(ui.cabQ||'')}" aria-label="Buscar"></div>
+   <div class="geocols"><div class="geolist">${lista}</div>${x?cabDet(x):'<div class="geodet"><p class="muted">Escolha um lançamento na lista.</p></div>'}</div>`}
+
+/* ---------- clientes ---------- */
+const CLI_ST={impl:['Em implantação','info'],pend:['Ativado · aguardando cadastro','warn'],atr:['Atrasado','bad'],ok:['Cliente cadastrado','ok']};
+const CLI_F=[['pend','Aguardando cadastro'],['atr',`Mais de ${GEO_PRAZO} dias`],['impl','Em implantação'],['ok','Cadastrados'],['all','Todos']];
+/* filtros dos indicadores: cada número abre a lista que ele conta */
+const cliFaltaF=x=>x.stF==='pend'||x.stF==='falta',cliFaltaC=x=>x.stC==='pend'||x.stC==='falta';
+const cliOkMes=x=>x.st==='ok'&&x.g.cadEm&&isoD(new Date(x.g.cadEm)).slice(0,7)===hoje().slice(0,7);
+const CLI_FN={pend:x=>x.st==='pend'||x.st==='atr',atr:x=>x.st==='atr',impl:x=>x.st==='impl',ok:x=>x.st==='ok',all:()=>true,fib:cliFaltaF,cab:cliFaltaC,okmes:cliOkMes};
+const CLI_FT={fib:'Com fibras pendentes',cab:'Com cabos pendentes',okmes:'Cadastrados no mês'};
+const cliEleg=p=>{const t=normK(p.topologia||'');if(/firewall|fwa/.test(t))return false;return t==='last mile'||+p.metros>0||+p.dRua>0||+p.dInterno>0};
+const cliTemLanc=p=>+p.metros>0||+p.dRua>0||+p.dInterno>0;
+function cliLinha(p,GL,CL){const e=p.etiqueta,fim=faseFim(e,'ativ'),A=fim&&!fim.fora?getAg(fim.id):null,g=A?A.cliGeo||{}:(p.cliGeo||{}),hj=hoje();
+  const fus=(GL||geoLinhas()).filter(r=>r.a.etiqueta===e),cab=(CL||cabLinhas()).filter(r=>r.a.etiqueta===e);
+  const stF=!temExt(p)?'na':fus.length?(fus.every(r=>r.st==='ok')?'ok':'pend'):(faseFim(e,'ext')?'falta':'aguarda');
+  const stC=!cliTemLanc(p)?'na':cab.length?(cab.every(r=>r.st==='ok')?'ok':'pend'):((faseFim(e,'rua')||faseFim(e,'interno'))?'falta':'aguarda');
+  const dias=fim?Math.max(0,Math.round((new Date(hj+'T12:00:00')-new Date(fim.data+'T12:00:00'))/864e5)):null;
+  const st=!fim?'impl':g.st==='ok'?'ok':dias>GEO_PRAZO?'atr':'pend';
+  return{p,e,fim,A,g,fus,cab,stF,stC,st,dias}}
+const cliLinhas=()=>{const GL=geoLinhas(),CL=cabLinhas();return S.previsao.filter(p=>p.etiqueta&&cliEleg(p)).map(p=>cliLinha(p,GL,CL)).sort((x,y)=>{const o={atr:0,pend:1,impl:2,ok:3};return o[x.st]-o[y.st]||(y.dias||0)-(x.dias||0)})}
+const PART={ok:['Cadastrado','ok'],pend:['Pendente','warn'],falta:['Sem relatório','bad'],aguarda:['Não executado','m'],na:['Não se aplica','na']};
+const cliPart=(k,t)=>`<span class="clip ${PART[k][1]}" title="${t}: ${PART[k][0]}"><b>${t}</b>${PART[k][0]}</span>`;
+function cliDet(x){const{p,e,fim,A,g}=x,c=S.comp[e]||{},pi=p.inst||{};
+  const fusB=x.stF==='na'?'<p class="muted">Projeto sem extensão de sinal.</p>':x.fus.length?x.fus.map(r=>`<div class="clirow"><span><b>${dBR(r.a.data)} · ${esc(tecN(r.a.tec))}</b><small>${r.n} ${r.n===1?'fusão':'fusões'} em ${r.nc} ${r.nc===1?'caixa':'caixas'}${r.cli?` · fibra do cliente na ${esc(r.cli.cx)}: ${esc(r.cli.f.de)} → ${esc(r.cli.f.para)}`:''}${geoNovas(r.F)?` · <b class="geonov">${geoNovas(r.F)} caixa(s) fora do KMZ</b>`:''}</small></span>${geoPill(r.st,GEO_ST)}<button class="btn sm" data-act="cliIr" data-s="fibras" data-id="${r.a.id}">Abrir</button></div>`).join(''):`<p class="muted">${x.stF==='falta'?'Extensão concluída sem relatório de fusões na ferramenta.':'Extensão ainda não executada.'}</p>`;
+  const cabB=x.stC==='na'?'<p class="muted">Sem lançamento de cabo (Last Mile).</p>':x.cab.length?x.cab.map(r=>`<div class="clirow"><span><b>${dBR(r.a.data)} · ${esc(fasesN(r.a))} · ${esc(tecN(r.a.tec))}</b><small>${r.m!=null?lmFmt(r.m)+' lançados':'sem metragem'}${r.a.lancMapa?' · <b class="geonov">trajeto alterado</b>':''}</small></span>${geoPill(r.st,CAB_ST)}<button class="btn sm" data-act="cliIr" data-s="cabos" data-id="${r.a.id}">Abrir</button></div>`).join(''):`<p class="muted">${x.stC==='falta'?'Lançamento concluído sem relatório na ferramenta.':'Lançamento ainda não executado.'}</p>`;
+  const falta=[x.stF==='pend'||x.stF==='falta'?'fibras':'',x.stC==='pend'||x.stC==='falta'?'cabos':''].filter(Boolean);
+  let ac='';if(!fim)ac='<p class="geonote">Ainda em implantação. Entra na fila de cadastro quando a ativação for concluída.</p>';
+  else if(g.st==='ok')ac=`<p class="geonote ok">Cliente cadastrado no Geogrid por ${esc(g.cadPor||'—')} em ${g.cadEm?dtBR(g.cadEm):'—'}.${g.cadObs?' Obs.: '+esc(g.cadObs):''}</p>`;
+  else ac=`<div class="geobt"><span class="geonote">${x.dias===0?'Ativado hoje.':`Ativado há ${x.dias} ${x.dias===1?'dia':'dias'}.`}${falta.length?` Ainda falta cadastrar ${falta.join(' e ')}.`:''}</span>${pode('a_geoCad')?`<button class="btn primary" data-act="g2Cad" data-t="cli" data-id="${esc(e)}">Cliente cadastrado no Geogrid</button>`:''}</div>`;
+  return `<article class="geodet"><div class="geodh"><div><h3>${esc(p.cliente||e)} · ID ${esc(p.protocolo||e)}</h3><small>Etiqueta ${esc(e)} · ${esc(p.topologia||'—')} · ${esc(p.cidade||'')}${fim?` · ativado em ${dBR(fim.data)}${fim.fora?' (fora da ferramenta)':A?' por '+esc(typeof agResp==='function'?agResp(A):tecN(A.tec)):''}`:''}</small></div>${geoPill(x.st,CLI_ST)}</div>
+   <div class="cliparts">${cliPart(x.stF,'Fibras')}${cliPart(x.stC,'Cabos')}${cliPart(g.st==='ok'?'ok':fim?'pend':'aguarda','Cliente')}</div>
+   <dl class="clidl"><div><dt>Endereço</dt><dd>${esc(c.endereco||'—')}</dd></div><div><dt>POP</dt><dd>${esc(p.pop||'—')}</dd></div><div><dt>Porta</dt><dd>${esc(pi.porta||'—')}</dd></div><div><dt>Equipamento</dt><dd>${esc(p.equip||'—')}</dd></div><div><dt>Lançamento previsto</dt><dd>${+p.metros?lmFmt(+p.metros):'—'}</dd></div><div><dt>Caixas</dt><dd>${typeof caixasTxt==='function'?esc(caixasTxt(p)||'—'):'—'}</dd></div></dl>
+   <h4 class="clih">Fibras (extensão)</h4>${fusB}<h4 class="clih">Cabos (lançamento)</h4>${cabB}
+   <div class="geoact">${ac}</div>${g.st==='ok'||(g.evid||[]).length?geoEvLista(g.evid||[],'cli',e):''}${geoLogHtml(A?A.cliGeoLog:p.cliGeoLog)}</article>`}
+function viewGeoCli(){const L=cliLinhas(),f=CLI_FN[ui.cliF]?ui.cliF:'pend',q=normK(ui.cliQ||''),cnt=k=>L.filter(CLI_FN[k]).length;
+  const R=L.filter(x=>CLI_FN[f](x)&&(!q||normK([x.p.cliente,x.p.protocolo,x.e,x.p.cidade].join(' ')).includes(q))),x=R.find(r=>r.e===ui.cliSel)||R[0];
+  const kb=(k,l,c)=>{const n=cnt(k);return `<button type="button" class="kpi clikb ${n?c:'ok'} ${f===k?'on':''}" data-act="cliF" data-v="${k}" aria-pressed="${f===k}"><b>${n}</b><span>${l}</span></button>`};
+  const lista=R.map(r=>`<button class="geoi cli ${x&&r.e===x.e?'on':''} ${r.st}" data-act="cliSel" data-id="${esc(r.e)}"><span class="geoih"><b>${esc(r.p.cliente||r.e)}</b>${r.fim&&r.st!=='ok'?`<span class="clid ${r.st}">${r.dias===0?'hoje':r.dias+(r.dias===1?' dia':' dias')}</span>`:geoPill(r.st,CLI_ST)}</span><small>ID ${esc(r.p.protocolo||r.e)} · ${esc(r.p.topologia||'')}${r.fim?' · ativado '+dBR(r.fim.data).slice(0,5):''}</small><span class="cliparts sm">${cliPart(r.stF,'Fibras')}${cliPart(r.stC,'Cabos')}${cliPart(r.g.st==='ok'?'ok':r.fim?'pend':'aguarda','Cliente')}</span></button>`).join('')||'<p class="muted" style="padding:14px">Nenhum cliente nesta situação.</p>';
+  return `<div class="toolbar"><div><h2>Cadastro Geogrid</h2><p class="muted">O que precisa ser cadastrado no Geogrid.</p></div></div>${geoViews()}<div class="geohd"><h3>Cadastro de clientes</h3><p class="muted">Clientes Last Mile e de rede própria com lançamento. Cada cliente junta as fibras e os cabos dele. Entra na fila quando a ativação é concluída; passou de ${GEO_PRAZO} dias sem cadastro, fica em vermelho.</p></div>
+   <div class="kpis clikp" role="group" aria-label="Filtrar pelos indicadores">${kb('pend','Ativados sem cadastro','warn')}${kb('atr',`Mais de ${GEO_PRAZO} dias sem cadastro`,'bad')}${kb('fib','Clientes com fibras pendentes','warn')}${kb('cab','Clientes com cabos pendentes','warn')}${kb('okmes','Clientes cadastrados no mês','ok')}</div>
+   <div class="geobar"><div class="geochips">${CLI_FT[f]?`<button class="chip go" data-act="cliF" data-v="all" aria-label="Tirar o filtro">${CLI_FT[f]} (${cnt(f)}) ✕</button>`:''}${CLI_F.map(([k,n])=>`<button class="chip ${f===k?'go':''}" data-act="cliF" data-v="${k}" aria-pressed="${f===k}">${n} (${cnt(k)})</button>`).join('')}</div>
+    <input class="inp" type="search" id="cliQ" data-in="cliQ" placeholder="Cliente, ID, etiqueta ou cidade" value="${esc(ui.cliQ||'')}" aria-label="Buscar"></div>
+   <div class="geocols"><div class="geolist">${lista}</div>${x?cliDet(x):'<div class="geodet"><p class="muted">Escolha um cliente na lista.</p></div>'}</div>`}
+/* tela: sub-itens */
+{const _v=viewGeo;viewGeo=function(){const s=geoSubAt();if(s==='cabos')return viewGeoCab();if(s==='clientes')return viewGeoCli();return _v.apply(this,arguments)}}
+const refoc=id=>{const i=$(id);if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}};
+Object.assign(IN,{cabQ:el=>{ui.cabQ=el.value;clearTimeout(window._gq);window._gq=setTimeout(()=>{render();refoc('cabQ')},250)},cliQ:el=>{ui.cliQ=el.value;clearTimeout(window._gq);window._gq=setTimeout(()=>{render();refoc('cliQ')},250)}});
+/* registro, validar, cadastrar, evidências: cabo (atividade) e cliente (atividade da ativação ou projeto) */
+function g2Alvo(t,id){if(t==='cab'){const a=getAg(id);return a?{o:a,k:'lancGeo',lk:'lancGeoLog',ev:a}:null}
+  const p=S.previsao.find(x=>x.etiqueta===id);if(!p)return null;const fim=faseFim(id,'ativ'),A=fim&&!fim.fora?getAg(fim.id):null;return A?{o:A,k:'cliGeo',lk:'cliGeoLog',ev:A}:{o:p,k:'cliGeo',lk:'cliGeoLog',ev:{id:'cli-'+id}}}
+const g2Log=(T,acao,obs)=>{T.o[T.lk]=(T.o[T.lk]||[]).concat([Object.assign({em:Date.now(),acao,por:meNome()},obs?{obs}:{})])};
+Object.assign(ACT,{
+  cabF:el=>{ui.cabF=el.dataset.v;ui.cabSel=null;render()},cabSel:el=>{ui.cabSel=el.dataset.id;render()},
+  cliF:el=>{ui.cliF=el.dataset.v;ui.cliSel=null;render()},cliSel:el=>{ui.cliSel=el.dataset.id;render()},
+  cliIr:el=>{ui.geoSub=el.dataset.s;if(el.dataset.s==='fibras'){ui.geoF='all';ui.geoSel=el.dataset.id}else{ui.cabF='all';ui.cabSel=el.dataset.id}render();window.scrollTo(0,0)},
+  g2Val:el=>{if(!pode('a_geoVal'))return semPerm();openModal(`<h3>Validar lançamento</h3><p class="muted">Conferiu a metragem, o lote, as reservas e o trajeto? Depois de validado, o analista do Geogrid pode cadastrar o cabo.</p><label class="f" style="margin-top:10px"><span>Observação (opcional)</span><textarea class="inp" id="g2VO" rows="2"></textarea></label><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="g2ValOk" data-t="${el.dataset.t}" data-id="${esc(el.dataset.id)}">Validar</button></div>`)},
+  g2ValOk:el=>{if(!pode('a_geoVal'))return semPerm();const T=g2Alvo(el.dataset.t,el.dataset.id);if(!T)return;const o=(($('g2VO')||{}).value||'').trim();T.o[T.k]=Object.assign({},T.o[T.k],{st:'cad',valEm:Date.now(),valPor:meNome()});g2Log(T,'Validado pelo encarregado',o);save();closeModal();render();toast('Lançamento validado. O analista do Geogrid já pode cadastrar o cabo.')},
+  g2Cad:el=>{if(!pode('a_geoCad'))return semPerm();GEO_COLA=[];const t=el.dataset.t,T=g2Alvo(t,el.dataset.id);if(!T)return;if(t==='cab'&&(T.o[T.k]||{}).st!=='cad')return toast('O cadastro só libera depois da validação do encarregado.','bad');
+    const x=t==='cli'?cliLinha(S.previsao.find(p=>p.etiqueta===el.dataset.id)):null,av=x&&[x.stF==='pend'||x.stF==='falta'?'fibras':'',x.stC==='pend'||x.stC==='falta'?'cabos':''].filter(Boolean);
+    openModal(`<h3>${t==='cab'?'Cabo cadastrado no Geogrid':'Cliente cadastrado no Geogrid'}</h3><p class="muted">Confirme que ${t==='cab'?'o cabo foi cadastrado':'o cliente foi cadastrado'} no Geogrid.</p>${av&&av.length?`<div class="result warn" style="margin:8px 0">Ainda falta cadastrar ${av.join(' e ')} deste cliente. Pode confirmar o cliente mesmo assim.</div>`:''}
+     <label class="f" style="margin-top:10px"><span>Observação do cadastro (opcional)</span><textarea class="inp" id="geoCO" rows="2" placeholder="Para colar um print, use Ctrl+V aqui."></textarea></label><div id="geoCola" class="geocola" aria-live="polite"></div>${geoArqCampos()}
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="g2CadOk" data-t="${t}" data-id="${esc(el.dataset.id)}">Confirmar: cadastrado</button></div>`)},
+  g2CadOk:async el=>{if(!pode('a_geoCad'))return semPerm();const t=el.dataset.t,T=g2Alvo(t,el.dataset.id);if(!T)return;const o=(($('geoCO')||{}).value||'').trim(),fs=[...((($('geoEv')||{}).files)||[])].concat(GEO_COLA);
+    let ev=[];if(fs.length){el.disabled=true;toast('Enviando as evidências…');try{ev=await geoEvSobe(T.ev,fs)}catch(e){el.disabled=false;return toast('Não foi possível enviar as evidências: '+(e.message||e),'bad')}}
+    T.o[T.k]=Object.assign({},T.o[T.k],{st:'ok',cadEm:Date.now(),cadPor:meNome(),cadObs:o||null,evid:((T.o[T.k]||{}).evid||[]).concat(ev)});g2Log(T,(t==='cab'?'Cabo cadastrado no Geogrid':'Cliente cadastrado no Geogrid')+(ev.length?` (${ev.length} ${ev.length===1?'evidência':'evidências'})`:''),o);GEO_COLA=[];save();closeModal();render();toast('Registrado: cadastrado no Geogrid.')},
+  g2EvAbre:el=>{if(!pode('a_geoCad'))return semPerm();GEO_COLA=[];openModal(`<h3>Incluir evidência do cadastro</h3><p class="muted">Anexe fotos, prints ou PDF do cadastro no Geogrid.</p><label class="f" style="margin-top:10px"><span>Observação (opcional)</span><textarea class="inp" id="geoEO" rows="2" placeholder="Para colar um print, use Ctrl+V aqui."></textarea></label><div id="geoCola" class="geocola" aria-live="polite"></div>${geoArqCampos()}<div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="g2EvOk" data-t="${el.dataset.t}" data-id="${esc(el.dataset.id)}">Incluir</button></div>`)},
+  g2EvOk:async el=>{if(!pode('a_geoCad'))return semPerm();const T=g2Alvo(el.dataset.t,el.dataset.id);if(!T)return;const o=(($('geoEO')||{}).value||'').trim(),fs=[...((($('geoEv')||{}).files)||[])].concat(GEO_COLA);
+    if(!fs.length)return toast('Escolha, fotografe ou cole pelo menos um arquivo.','bad');el.disabled=true;toast('Enviando as evidências…');
+    try{const ev=await geoEvSobe(T.ev,fs);T.o[T.k]=Object.assign({},T.o[T.k],{evid:((T.o[T.k]||{}).evid||[]).concat(ev)});g2Log(T,`Incluiu ${ev.length} ${ev.length===1?'evidência':'evidências'} do cadastro`,o);GEO_COLA=[];save();closeModal();render();toast('Evidências incluídas.')}
+    catch(e){el.disabled=false;toast('Não foi possível enviar: '+(e.message||e),'bad')}}});
+/* detalhe da atividade de ativação: situação no Geogrid */
+{const _cb=corrBloco;corrBloco=function(a){const h=_cb.apply(this,arguments);if(!a||['terc','func','clt'].includes(ui.perfil)||!(a.fasesFin||[]).includes('ativ'))return h;const p=pPor(a.etiqueta);if(!p||!p.etiqueta||!cliEleg(p))return h;const x=cliLinha(p);
+  return h+`<div class="cligeo"><b>Geogrid</b><span class="cliparts sm">${cliPart(x.stF,'Fibras')}${cliPart(x.stC,'Cabos')}${cliPart(x.g.st==='ok'?'ok':'pend','Cliente')}</span>${pode('geo')||ui.perfil==='coord'?`<button class="btn sm" data-act="cliAbrir" data-id="${esc(a.etiqueta)}">Abrir no Cadastro Geogrid</button>`:''}</div>`}}
+Object.assign(ACT,{cliAbrir:el=>{closeModal();ui.cat='impl';ui.tab='geo';ui.geoSub='clientes';ui.cliF='all';ui.cliSel=el.dataset.id;ui.geoFech=false;render();window.scrollTo(0,0)}});
+/* KMZ só é apagado depois do cadastro no Geogrid */
+function geoSegura(e,x){if(x.tipo==='kmzL'){const C=S.ags.filter(a=>a.etiqueta===e&&cabEleg(a));return C.some(a=>cabSt(a)!=='ok')}
+  if(x.tipo==='kmzA'){const F=S.ags.filter(a=>a.etiqueta===e&&(a.fusoes||(a.fusoesParc&&a.fusoesParc.n)));return F.some(a=>!a.fusoes||((a.fusoes.geo||{}).st||'val')!=='ok')}return false}
+/* ao cadastrar (cabo ou fibras), apaga os KMZ que já podem sair */
+const geoLimpa=e=>{try{if(e&&faseFim(e,'ativ'))limparAnexos(e)}catch(x){}};
+{const _c=ACT.g2CadOk;ACT.g2CadOk=async el=>{const r=await _c(el);const T=g2Alvo(el.dataset.t,el.dataset.id);geoLimpa(T&&T.o&&T.o.etiqueta);return r}}
+{const _c=ACT.geoCadOk;ACT.geoCadOk=async el=>{const r=await _c(el);const a=getAg(el.dataset.id);geoLimpa(a&&a.etiqueta);return r}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
