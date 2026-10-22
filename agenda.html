@@ -1704,6 +1704,26 @@ nav.tabs .ncatm,.ncatm{display:none}
 .refchip{font:600 12px/1 Barlow,sans-serif;border-radius:999px;padding:4px 9px;white-space:nowrap}
 .refchip.p{background:color-mix(in srgb,var(--ok,#16a34a) 14%,transparent);color:var(--ok,#16a34a)}
 .refchip.r{background:color-mix(in srgb,var(--info,#2563eb) 12%,transparent);color:var(--info,#2563eb)}
+.refchip.s{background:color-mix(in srgb,var(--muted,#6b7280) 14%,transparent);color:var(--muted,#6b7280)}
+.saida{margin-top:10px;border:1px solid var(--line);border-left:3px solid var(--warn,#b45309);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.saida small{color:var(--muted)}.saida p{margin:0}.saida p span{font-weight:600}
+.passbt{width:100%;margin:0 0 10px;justify-content:center}
+.mgchip{display:inline-block;font:600 12px/1 Barlow,sans-serif;border-radius:999px;padding:4px 9px;background:color-mix(in srgb,var(--info,#2563eb) 12%,transparent);color:var(--info,#2563eb);vertical-align:middle}
+.rfmet:empty{display:none}.rfmet{margin:0 0 10px}
+.lmok,.lmw{border-radius:10px;padding:8px 10px;font-size:14px}.lmok{background:var(--ok-soft,#e6f1d6);color:var(--ok,#2e5410)}.lmw{background:var(--warn-soft,#fbebd5);color:var(--warn,#9a5b12)}
+.lmjust{margin:0 0 10px}.lmsec .btn{margin-top:4px}
+.rsvl{display:flex;flex-direction:column;gap:8px}
+.rsv{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 10px;align-items:end;border-top:1px solid var(--line);padding-top:8px}.rsv>b{align-self:center;font-size:13.5px}
+.rsvyn{display:flex;gap:4px}.rsvyn button{flex:1;font:600 14px Barlow,sans-serif;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 0;cursor:pointer}
+.rsvyn button.on{background:var(--ok-soft,#e6f1d6);color:var(--ok,#2e5410);border-color:transparent}.rsvyn button.on.n{background:var(--bad-soft,#f8e1dc);color:var(--bad,#a23b2a)}
+@media(max-width:420px){.rsv{grid-template-columns:1fr 1fr}.rsv>b{grid-column:1/-1}}
+.lmslot{height:min(62vh,520px);border-radius:12px;overflow:hidden;border:1px solid var(--line);margin:10px 0}
+#lmMap{width:100%;height:100%}#lmMap.drawing{cursor:crosshair}
+.lmbar{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.lmrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.lmdot{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}.lmdot.nv{background:#0f9d9a}.lmdot.nf{background:repeating-linear-gradient(90deg,#7a837d 0 5px,transparent 5px 8px)}.lmdot.kz{background:#1e63d6}
+.lmleg{display:flex;gap:12px;font-size:13px;color:var(--muted);margin:6px 0}
+.modal:has(#lmSlotG){z-index:30}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -1970,7 +1990,7 @@ const LPU_REGRAS = {
 const LPU_CONTAS=Object.keys(LPU_REGRAS);
 const lpuDaConta=c=>{const r=LPU_REGRAS[c]||LPU_REGRAS[LPU_CONTAS[0]];return LPU.filter(it=>{const n=parseInt(it.cod.replace(/\D/g,''));return r.intervalos.some(x=>n>=x.inicio&&n<=x.fim)||r.especificos.includes(it.cod)})};
 const REL=[{k:'foto',n:'Relatório fotográfico'},{k:'entrega',n:'Relatório de entrega de circuito'}];
-const relsDe=a=>{if(a.parcial)return[{k:'parcial',n:'Relatório do que foi feito'}];const f=(a.fases||[a.fase]);return REL.filter(r=>r.k==='entrega'?f.includes('ativ'):(a.fotosReq||[]).some(k=>!String(k).startsWith('ext:'))).concat(f.includes('vist')?[{k:'vist',n:'Relatório de vistoria'}]:[])};
+const relsDe=a=>{if(a.parcial)return[{k:'parcial',n:'Relatório do que foi feito'}];const f=(a.fases||[a.fase]);return REL.filter(r=>r.k==='entrega'?f.includes('ativ'):(a.fotosReq||[]).some(k=>!String(k).startsWith('ext:'))).concat(f.includes('ext')?[{k:'fus',n:'Relatório de fusões da extensão'}]:[]).concat(f.includes('vist')?[{k:'vist',n:'Relatório de vistoria'}]:[])};
 const FOTOS_LANC=[['lote_ini','Lote e metragem no início do lançamento','unica','lote'],['lote_fim','Lote e metragem no término do lançamento','unica','lote'],['reserva','Reservas técnicas','opcional',''],['local_ini','Local de início do lançamento','unica',''],['local_fim','Local de término do lançamento','unica','']];
 const FOTOS_EXT=[['sinal_ini','Nível de sinal na CEO/CTO de Ponto de acesso','unica','sinal'],['ceo_ini','CEO acomodada no início da extensão','unica',''],['sinal_fim','Nível de sinal na CEO/CTO de Ponto de derivação','unica','sinal'],['ceos','Todas as CEOs trabalhadas','multi','']];
 const fotosDaFase=k=>k==='rua'||k==='interno'?FOTOS_LANC:[];
@@ -2752,7 +2772,7 @@ function blocoAcao(a){
   const go=l=>`<button class="bigbtn" data-act="go" data-id="${a.id}" data-hold="2000">${l}</button>`;
   let act='';
   switch(a.status){
-    case 'agendada':{if(a.aguardaPrazo){act=`<div class="result warn"><b>Dia encerrado.</b> A gestão vai agendar a continuação e você recebe o aviso.</div>`;break}const bl=emAndamento(a.tec,a.id);if(bl){act=`<div class="result warn"><b>Atividade bloqueada.</b> Você está em campo em outra atividade: ${esc(bl.etiqueta)} (${fasesN(bl)}). Conclua a execução dela para iniciar esta. Relatórios e LPU podem ficar para depois.</div><button class="btn wide" data-act="abrir" data-id="${bl.id}">Ir para a atividade em andamento</button>`;break}const pd=pendDoc(a.tec,a.id);act=`${pd.length?`<div class="result warn" style="margin:0"><b>Pendências de envio:</b> ${pd.map(x=>`${esc(x.etiqueta)} (${x.status==='lpu'?'LPU':'relatórios'})`).join(', ')}. Você pode iniciar esta atividade e enviar depois.</div>`:''}<label class="f" style="margin:0"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta" style="font-size:17px;min-height:48px"></label><button class="bigbtn" data-act="go" data-id="${a.id}" id="goBtn" data-hold="2000" disabled>Segure para iniciar o deslocamento</button><p class="muted" id="etaHint" style="margin:-4px 0 0;font-size:13.5px">Informe a previsão de chegada para liberar o deslocamento.</p>`;break}
+    case 'agendada':{if(a.aguardaPrazo){act=`<div class="result warn"><b>Dia encerrado.</b> A gestão vai agendar a continuação e você recebe o aviso.</div>`;break}const bl=emAndamento(a.tec,a.id);if(bl){act=`<div class="result warn"><b>Atividade bloqueada.</b> Você está em campo em outra atividade: ${esc(bl.etiqueta)} (${fasesN(bl)}). Conclua a execução dela para iniciar esta. Relatórios e LPU podem ficar para depois.</div><button class="btn wide" data-act="abrir" data-id="${bl.id}">Ir para a atividade em andamento</button>`;break}const pd=pendDoc(a.tec,a.id).filter(x=>!mgPend(a).some(y=>y.id===x.id));act=`${pd.length?`<div class="result warn" style="margin:0"><b>Pendências de envio:</b> ${pd.map(x=>`${esc(x.etiqueta)} (${x.status==='lpu'?'LPU':'relatórios'})`).join(', ')}. Você pode iniciar esta atividade e enviar depois.</div>`:''}<label class="f" style="margin:0"><span>Previsão de chegada *</span><input type="time" id="eta" class="inp" required data-in="eta" style="font-size:17px;min-height:48px"></label><button class="bigbtn" data-act="go" data-id="${a.id}" id="goBtn" data-hold="2000" disabled>Segure para iniciar o deslocamento</button><p class="muted" id="etaHint" style="margin:-4px 0 0;font-size:13.5px">Informe a previsão de chegada para liberar o deslocamento.</p>`;break}
     case 'deslocamento':act=etaBox(a)+go('Segure: cheguei no local')+nok;break;
     case 'no_local':act=go('Segure: iniciar atividade')+nok;break;
     case 'execucao':{act=thAcoes(a,nok);break}
@@ -2819,13 +2839,13 @@ function metrosHtml(f){const D=ui.rf,a=parseFloat(String(D.campos[f+':lote_ini:m
 function fotoStatus(a){const D=ui.rf,I=itensFoto(a);let feitos=0,falta=[];I.forEach(i=>{const n=(D.fotos[i.k]||[]).length;let ok=i.tipo==='texto'?(!i.obrig||!!String(D.campos[i.k+':txt']||'').trim()):i.tipo==='medida'?true:i.tipo==='opcional'?(n>0||D.nao):n>0;if(ok&&i.campo==='lote')ok=!!(D.campos[i.k+':lote']||'').trim()&&!!String(D.campos[i.k+':m']||'').trim();if(ok&&i.campo==='sinal')ok=!!String(D.campos[i.k+':dbm']||'').trim();if(ok)feitos++;else falta.push(i)});return{feitos,total:I.length,falta}}
 function fotoView(a){const D=ui.rf,I=itensFoto(a),st=fotoStatus(a),fasesG=[...new Set(I.map(i=>i.f))];
   const cam='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>',gal='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>';
-  const item=i=>{const ok0=!st.falta.includes(i);
+  const item=i=>{const ok0=!st.falta.some(x=>x.k===i.k);
     if(i.tipo==='texto')return `<section class="rfi ${ok0&&i.obrig?'ok':''}"><div class="rfh"><b>${i.nome}</b><span class="chip ${i.obrig?(ok0?'ok':'warn'):''}">${i.obrig?(ok0?'Feito':'Obrigatório'):'Opcional'}</span></div><textarea class="inp" rows="3" data-in="rfCampo" data-ch="rfRe" data-k="${i.k}:txt" aria-label="${i.nome}" placeholder="${i.k==='parc:exec'?'Ex.: lancei 180 m da CEO até o poste 9 e deixei a reserva técnica':'Ex.: 2 postes, duto obstruído na entrada do prédio'}">${esc(D.campos[i.k+':txt']||'')}</textarea></section>`;
-    if(i.tipo==='medida')return `<section class="rfi"><div class="rfh"><b>${i.nome}</b><span class="chip">Se houve lançamento</span></div><div class="tgrid"><label class="f" style="margin:0"><span>Metragem no início</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-ch="rfRe" data-k="${i.lf}:lote_ini:m" value="${esc(D.campos[i.lf+':lote_ini:m']||'')}" placeholder="Ex.: 1000"></label><label class="f" style="margin:0"><span>Metragem no fim</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-ch="rfRe" data-k="${i.lf}:lote_fim:m" value="${esc(D.campos[i.lf+':lote_fim:m']||'')}" placeholder="Ex.: 1180"></label></div><div class="result ok" id="rfMetros-${i.lf}" style="margin:0">${metrosHtml(i.lf)}</div></section>`;
+    if(i.tipo==='medida')return `<section class="rfi"><div class="rfh"><b>${i.nome}</b><span class="chip">Se houve lançamento</span></div><div class="tgrid"><label class="f" style="margin:0"><span>Metragem no início</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-ch="rfRe" data-k="${i.lf}:lote_ini:m" value="${esc(D.campos[i.lf+':lote_ini:m']||'')}" placeholder="Ex.: 1000"></label><label class="f" style="margin:0"><span>Metragem no fim</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-ch="rfRe" data-k="${i.lf}:lote_fim:m" value="${esc(D.campos[i.lf+':lote_fim:m']||'')}" placeholder="Ex.: 1180"></label></div><div class="rfmet" id="rfMetros-${i.lf}" style="margin:0">${metrosHtml(i.lf)}</div></section>`;
     const fs=D.fotos[i.k]||[],n=fs.length,opc=i.tipo==='opcional',multi=i.tipo!=='unica',ok=ok0,pode=!(opc&&D.nao)&&(multi||n===0);
     return `<section class="rfi ${ok?'ok':''}"><div class="rfh"><b>${i.nome}</b><span class="chip ${ok?'ok':opc?'':'warn'}">${ok?'Feito':opc?'Se houver':'Obrigatória'}</span></div>
      ${i.dica?`<small class="muted">${i.dica}</small>`:''}${n?`<div class="rfth">${fs.map((u,x)=>`<div class="rft"><img src="${u}" alt="Foto ${x+1} de ${esc(i.nome)}"><button class="rfx" data-act="rfDel" data-k="${i.k}" data-i="${x}" aria-label="Remover foto ${x+1}">✕</button></div>`).join('')}</div>`:''}
-     ${i.campo==='lote'?`<div class="tgrid"><label class="f" style="margin:0"><span>Lote do cabo</span><input class="inp" data-in="rfCampo" data-ch="rfRe" data-k="${i.k}:lote" value="${esc(D.campos[i.k+':lote']||'')}" placeholder="Ex.: 2405-118"></label><label class="f" style="margin:0"><span>Metragem (m)</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-ch="rfRe" data-k="${i.k}:m" value="${esc(D.campos[i.k+':m']||'')}" placeholder="Ex.: 1250"></label></div>`:''}
+     ${/:reserva$/.test(i.k)&&n?rsvCampos(i,fs):''}${i.campo==='lote'?`<div class="tgrid"><label class="f" style="margin:0"><span>Lote do cabo</span><input class="inp" data-in="rfCampo" data-ch="rfRe" data-k="${i.k}:lote" value="${esc(D.campos[i.k+':lote']||'')}" placeholder="Ex.: 2405-118"></label><label class="f" style="margin:0"><span>Metragem (m)</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-ch="rfRe" data-k="${i.k}:m" value="${esc(D.campos[i.k+':m']||'')}" placeholder="Ex.: 1250"></label></div>`:''}
      ${i.campo==='sinal'?(()=>{const v=String(D.campos[i.k+':dbm']||''),pos=v?!v.startsWith('-'):!!(D.pos&&D.pos[i.k]),cls='dbmv-'+i.k.replace(':','-');return `<div class="f" style="margin:0"><span>Nível de sinal (dBm)</span><div class="dbm"><button class="dbms ${pos?'':'neg'}" data-act="rfSinal" data-k="${i.k}" aria-label="Sinal ${pos?'positivo':'negativo'}. Tocar para trocar">${pos?'+':'−'}</button><input class="inp" type="text" inputmode="decimal" data-in="rfDbm" data-ch="rfRe" data-k="${i.k}" value="${esc(v.replace(/^[-+]/,'').replace('.',','))}" placeholder="Ex.: 18,40" aria-label="Valor do nível de sinal em dBm"><span class="muted">dBm</span></div><small class="muted">Toque em ${pos?'+':'−'} para trocar o sinal. Valor registrado: <b class="${cls}">${v?esc(v.replace('.',','))+' dBm':'—'}</b></small></div>`})():''}
      ${opc&&!n?`<label class="chk" style="margin:0"><input type="checkbox" data-act="rfNao" ${D.nao?'checked':''}> Não houve reserva técnica</label>`:''}
      ${pode?`${n?'<small class="muted">Adicionar outra foto</small>':''}<div class="rfbt"><label class="rfb ${n?'':'pri'}">${cam}Câmera<input type="file" accept="image/*" capture="environment" data-ch="fotoArq" data-k="${i.k}" hidden></label><label class="rfb ${n?'':'pri'}">${gal}Galeria<input type="file" accept="image/*" ${multi?'multiple':''} data-ch="fotoArq" data-k="${i.k}" hidden></label></div>`:''}</section>`};
@@ -2833,7 +2853,7 @@ function fotoView(a){const D=ui.rf,I=itensFoto(a),st=fotoStatus(a),fasesG=[...ne
   <article class="tcard"><div class="tchd"><div class="tcl"><span class="tccli">${esc(cliN(a.etiqueta))}</span></div><span class="tcetq">${esc(a.etiqueta)}</span></div>
    <div class="tcband" style="background:${a.parcial?'var(--bad)':corFase(a)}"><span class="tck">${a.parcial?'NÃO FOI POSSÍVEL CONCLUIR':'RELATÓRIO FOTOGRÁFICO'}</span><span class="tcf">${a.parcial?'Relatório do que foi feito':fasesN({fases:fasesG})}</span></div>
    <div class="tcb"><div style="display:flex;justify-content:space-between;font-size:14px"><span>${a.parcial?'Itens obrigatórios':'Fotos obrigatórias'}</span><b>${st.feitos} de ${st.total}</b></div><div class="bbar thin"><i style="width:${st.total?st.feitos/st.total*100:0}%"></i></div></div></article>
-  ${fasesG.map(f=>`<h3 class="lsub">${f==='parc'?'Motivo: '+esc(a.motivo||''):faseN(f)}</h3>${I.filter(i=>i.f===f).map(item).join('')}${f==='rua'||f==='interno'?`<div class="result ok" id="rfMetros-${f}" style="margin-bottom:10px">${metrosHtml(f)}</div>`:''}`).join('')}
+  ${fasesG.map(f=>`<h3 class="lsub">${f==='parc'?'Motivo: '+esc(a.motivo||''):faseN(f)}</h3>${I.filter(i=>i.f===f).map(item).join('')}${f==='rua'||f==='interno'?`<div class="rfmet" id="rfMetros-${f}">${metrosHtml(f)}</div>${lmSecao(a,f)}`:''}`).join('')}
   ${st.falta.length?`<button class="bigbtn" disabled>${a.parcial?'Enviar relatório e seguir para a LPU':'Enviar relatório fotográfico'}</button><p class="muted" style="text-align:center;font-size:13.5px">Falta${st.falta.length>1?'m':''} ${st.falta.length} item(ns): ${st.falta.map(i=>esc(i.nome)).join('; ')}.</p>`:`<button class="bigbtn" data-act="rfEnviar" data-id="${a.id}">${a.parcial?'Enviar relatório e seguir para a LPU':'Enviar relatório fotográfico'}</button>`}`}
 function pdfFotos(a){const{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true}),m=14,W=210,H=297,p=pPor(a.etiqueta),D=ui.rf,I=itensFoto(a);let y=18;
   doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(40);doc.text(a.parcial?'Relatório da não conclusão':'Relatório fotográfico',m,y);doc.setDrawColor(140,191,63);doc.setLineWidth(.8);doc.line(m,y+3,W-m,y+3);
@@ -2841,7 +2861,7 @@ function pdfFotos(a){const{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'p',un
     body:[['Cliente',p.cliente||'','Etiqueta',a.etiqueta],['Fases',fasesN(a),'Técnico',tecN(a.tec)],['Data',dBR(hoje()),'Protocolo',p.protocolo||'']]});
   y=doc.lastAutoTable.finalY+6;const dados=[];if(a.parcial)dados.push(['Motivo da não conclusão',(a.motivo||'')+(a.obsMotivo?'. '+a.obsMotivo:'')]);I.forEach(i=>{if(i.tipo==='texto'&&String(D.campos[i.k+':txt']||'').trim())dados.push([i.nome,D.campos[i.k+':txt']]);if(i.campo==='lote')dados.push([faseN(i.f)+': '+i.nome,`Lote ${D.campos[i.k+':lote']||'—'}, metragem ${D.campos[i.k+':m']||'—'} m`]);if(i.campo==='sinal')dados.push([faseN(i.f)+': '+i.nome,`${D.campos[i.k+':dbm']||'—'} dBm`])});
   ['rua','interno'].forEach(f=>{const a1=parseFloat(String(D.campos[f+':lote_ini:m']||'').replace(',','.')),b1=parseFloat(String(D.campos[f+':lote_fim:m']||'').replace(',','.'));if(!isNaN(a1)&&!isNaN(b1))dados.push([faseN(f)+': metros lançados',Math.abs(b1-a1).toLocaleString('pt-BR')+' m'])});
-  if(D.nao&&I.some(i=>i.tipo==='opcional'))dados.push(['Reservas técnicas','Não houve reserva técnica']);
+  if(D.nao&&I.some(i=>i.tipo==='opcional'))dados.push(['Reservas técnicas','Não houve reserva técnica']);dados.push(...lmPdfLinhas(a,D,I));
   if(dados.length){doc.autoTable({startY:y,theme:'grid',head:[['Medição','Valor']],body:dados,headStyles:{fillColor:[140,191,63],fontSize:8.5},styles:{fontSize:8.5,cellPadding:2},margin:{left:m,right:m}});y=doc.lastAutoTable.finalY+6}
   const fw=(W-2*m-6)/2,fh=fw*0.75;let col=0;
   I.forEach(i=>{(D.fotos[i.k]||[]).forEach((u,x)=>{if(y+fh+10>H-12){doc.addPage();y=16;col=0}const xx=m+col*(fw+6);try{const pr=doc.getImageProperties(u),r=Math.min(fw/pr.width,fh/pr.height),w=pr.width*r,h=pr.height*r;doc.addImage(u,'JPEG',xx+(fw-w)/2,y+(fh-h)/2,w,h)}catch(e){}doc.setDrawColor(212,221,216);doc.setLineWidth(.3);doc.rect(xx,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`${i.f==='parc'?'':faseN(i.f)+': '}${i.nome}${(D.fotos[i.k]||[]).length>1?' ('+(x+1)+')':''}`,xx,y+fh+4,{maxWidth:fw});col++;if(col===2){col=0;y+=fh+10}})});
@@ -2972,7 +2992,7 @@ function viewAprov(emb){
   const AP=S.lpus.filter(l=>lpuNoPer(l,'a')),tot=s=>AP.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0),cnt=s=>AP.filter(l=>l.status===s).length;
   const rows=AP.filter(l=>l.status===ui.aTab).sort((a,b)=>b.data.localeCompare(a.data));
   const card=l=>{const a=getAg(l.ag)||{ts:{}},op=ui.aOpen===l.id,al=alertasCabo(getAg(l.ag),l),p=pPor(l.etiqueta),rel=metrosAg(getAg(l.ag)),lc=caboLpu(l),mp=metrosProj(l.etiqueta);
-    return `<div class="lcard"><button class="lhead" data-act="aOpen" data-id="${l.id}" aria-expanded="${op}"><div><b>${esc(l.etiqueta)}</b> <span>${esc(cliN(l.etiqueta))}</span>${l.dia?` <span class="chip info">LPU parcial · dia ${dBR(l.dia).slice(0,5)}</span>`:''}${l.parcial?' <span class="chip warn">Atividade não concluída</span>':''}${al.length?` <span class="chip bad">${al.length} ${al.length>1?'alertas':'alerta'} de cabo</span>`:''}<small>${esc(tecN(l.tec))} (${vinc(l.tec)}), ${fasesN(l)}, ${dBR(l.data)}</small>${aprovPor(l)?`<small class="aprovp">${aprovPor(l)}</small>`:''}</div><span class="val">${brl(l.total)}</span></button>
+    return `<div class="lcard"><button class="lhead" data-act="aOpen" data-id="${l.id}" aria-expanded="${op}"><div><b>${esc(l.etiqueta)}</b> <span>${esc(cliN(l.etiqueta))}</span>${l.dia?` <span class="chip info">LPU parcial · dia ${dBR(l.dia).slice(0,5)}</span>`:''}${l.parcial?' <span class="chip warn">Atividade não concluída</span>':''}${al.length?` <span class="chip bad">${al.length} ${al.length>1?'alertas':'alerta'}</span>`:''}<small>${esc(tecN(l.tec))} (${vinc(l.tec)}), ${fasesN(l)}, ${dBR(l.data)}</small>${aprovPor(l)?`<small class="aprovp">${aprovPor(l)}</small>`:''}</div><span class="val">${brl(l.total)}</span></button>
     ${op?`<div class="lbody">${(()=>{const h=(l.hist||[]).slice().reverse().find(x=>/pelo prestador/.test(x.acao));return h?`<div class="note" style="margin-top:12px"><b>Conferida pelo prestador:</b> ${esc(h.por)} em ${dtBR(h.em)}. Executada por ${esc(l.tecNome||tecN(l.tec))}.</div>`:''})()}${l.obs?`<div class="note" style="margin-top:12px"><b>Observação do técnico:</b> ${esc(l.obs)}</div>`:''}${l.parcial?`<div class="result warn" style="margin-top:12px"><b>LPU de atividade não concluída.</b> Motivo: ${esc(l.parcial.motivo)}${l.parcial.obs?'. '+esc(l.parcial.obs):''}. Confira se os serviços lançados correspondem ao que foi executado.</div>`:''}${al.length?`<div class="calert">${al.map(x=>`<div><b>${x.t}</b><span>${x.d}</span></div>`).join('')}</div>`:''}
      <div class="grid2 even" style="margin-top:12px"><section><h3 class="lsub" style="margin-top:0">Conferência de cabo</h3><div class="tablewrap"><table><thead><tr><th>Fonte</th><th class="r">Cabo</th><th>Detalhe</th></tr></thead><tbody>
       <tr><td>ROI do projeto</td><td class="r">${+p.metros?(+p.metros).toLocaleString('pt-BR')+' m':'—'}</td><td class="muted">Metros de cabo da Base de previsão</td></tr>
@@ -3372,7 +3392,7 @@ const ACT={
     if(a.status==='agendada'){const v=$('eta').value;if(!v){toast('Informe a previsão de chegada antes de iniciar o deslocamento.','bad');$('eta').focus();return}a.ts.desloc=n;a.ts.eta=ts(hoje(),v);delete a.ts.perto;a.status='deslocamento'}
     else if(a.status==='deslocamento'){a.ts.chegada=n;a.status='no_local'}
     else if(a.status==='no_local'){a.ts.inicio=n;a.status='execucao'}
-    else if(a.status==='execucao'){openModal(`<h3>Concluir atividade</h3><p class="muted">Marque as fases que ficaram finalizadas nesta atividade. Se alguma fase continua em outro dia, deixe desmarcada.</p><div class="fchk" style="margin-top:12px">${fasesOf(a).map(k=>`<label><input type="checkbox" class="fzFin" value="${k}" checked><span>${faseN(k)}</span></label>`).join('')}</div><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="concluirOk" data-id="${a.id}">Concluir atividade</button></div>`);return}
+    else if(a.status==='execucao'){openModal(`<h3>Concluir atividade</h3><p class="muted">Marque as fases que ficaram finalizadas nesta atividade. Se alguma fase continua em outro dia, deixe desmarcada.</p><div class="fchk" style="margin-top:12px">${fzFinHtml(a)}</div><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="concluirOk" data-id="${a.id}">Concluir atividade</button></div>`);return}
     save();render()},
   concluirOk:el=>{const a=getAg(el.dataset.id),ff=el.dataset.ff!==undefined?el.dataset.ff.split(',').filter(Boolean):[...document.querySelectorAll('.fzFin:checked')].map(x=>x.value),pr=ff.includes('ativ')?pendReq(pPor(a.etiqueta),ff):[];
     if(pr.length&&!el.dataset.forca){openModal(`<h3>Finalizar a ativação?</h3><div class="result warn">Ainda não foram finalizadas no sistema: <b>${pr.map(k=>faseN(k).toLowerCase()).join(', ')}</b>.</div><p class="muted" style="margin-top:10px">Se essas etapas já foram feitas ou não vão acontecer, você pode finalizar a ativação mesmo assim. A gestão verá que a ativação foi finalizada sem elas.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="concluirOk" data-id="${a.id}" data-ff="${ff.join(',')}" data-forca="1">Finalizar mesmo assim</button></div>`);return}
@@ -3391,7 +3411,7 @@ const ACT={
   confVoltar:()=>{const g=ui.sign;closeModal();if(g.tipo==='ajuste')openAjuste(g.id)},
   sgOk:async()=>{const g=ui.sign,nome=$('sgNome').value.trim();if(!nome){toast('Informe o nome do responsável.','bad');return}if(!ui.sgDraw){toast('Faça a assinatura no quadro.','bad');return}if($('sgDecl')&&!$('sgDecl').checked){toast('Marque a declaração para enviar.','bad');return}
     const ass={img:sigImg(),nome,em:Date.now()},itens=draftItens(g.key),d=lpuDraft(g.key),total=itens.reduce((s,i)=>s+i.unit*i.qtd,0);
-    if(g.tipo==='novo'){const a=getAg(g.id);closeModal();toast('Gerando o PDF da LPU…');const emp=ui.perfil==='func'&&ME.empresa?ME.empresa:null;const nl={id:uid(),obs:(d.obs||'').trim()||undefined,conta:d.conta,ag:a.id,etiqueta:a.etiqueta,fases:fasesOf(a),data:a.data,tec:a.tec,tecNome:tecN(a.tec),cliente:cliN(a.etiqueta),prestador:emp||(ui.perfil==='terc'&&a.tec!==ME.id?ME.id:undefined),itens,total,status:emp?'conferencia':'aguardando',assinatura:ass,hist:[{acao:a.parcial?'Enviada e assinada (atividade não concluída)':'Enviada e assinada',por:nome,em:Date.now()}]};const _dia=ui.lpuDia&&ui.lpuDia.id===a.id?ui.lpuDia.d:null;if(_dia){nl.dia=_dia;nl.data=_dia;nl.hist[0].acao='Enviada e assinada (LPU parcial do dia '+dBR(_dia)+', atividade em andamento)'}else if(a.parcial)nl.parcial={motivo:a.motivo||'',obs:a.obsMotivo||''};await subirPdfLpu(nl);if(!(await lpuGravar(nl)))return;if(_dia){const _x=(a.diario||[]).find(y=>y.data===_dia);if(_x)_x.lpuEnv=true;ui.lpuDia=null}else if(a.parcial)a.status='nao_concluida';else encerrar(a);S.lpus.push(nl);delete ui.draft[g.key];ui.lpuTela=null;ui.lpuP=1;save();await flushSync();render();window.scrollTo(0,0);toast(emp?'LPU assinada e enviada para a conferência do administrador da sua empresa.':'LPU assinada e enviada para aprovação da supervisão.')}
+    if(g.tipo==='novo'){const a=getAg(g.id);closeModal();toast('Gerando o PDF da LPU…');const emp=ui.perfil==='func'&&ME.empresa?ME.empresa:null;const nl={id:uid(),obs:(d.obs||'').trim()||undefined,conta:d.conta,ag:a.id,etiqueta:a.etiqueta,fases:mgFases(a),unidas:mgIds(a),data:a.data,tec:a.tec,tecNome:tecN(a.tec),cliente:cliN(a.etiqueta),prestador:emp||(ui.perfil==='terc'&&a.tec!==ME.id?ME.id:undefined),itens,total,status:emp?'conferencia':'aguardando',assinatura:ass,hist:[{acao:a.parcial?'Enviada e assinada (atividade não concluída)':'Enviada e assinada',por:nome,em:Date.now()}]};const _dia=ui.lpuDia&&ui.lpuDia.id===a.id?ui.lpuDia.d:null;if(_dia){nl.dia=_dia;nl.data=_dia;nl.hist[0].acao='Enviada e assinada (LPU parcial do dia '+dBR(_dia)+', atividade em andamento)'}else if(a.parcial)nl.parcial={motivo:a.motivo||'',obs:a.obsMotivo||''};await subirPdfLpu(nl);if(!(await lpuGravar(nl)))return;if(_dia){const _x=(a.diario||[]).find(y=>y.data===_dia);if(_x)_x.lpuEnv=true;ui.lpuDia=null}else if(a.parcial)a.status='nao_concluida';else encerrar(a);S.lpus.push(nl);delete ui.draft[g.key];ui.lpuTela=null;ui.lpuP=1;save();await flushSync();render();window.scrollTo(0,0);toast(emp?'LPU assinada e enviada para a conferência do administrador da sua empresa.':'LPU assinada e enviada para aprovação da supervisão.')}
     else{const l=S.lpus.find(x=>x.id===g.id);closeModal();toast('Gerando o PDF da LPU…');const tmp=Object.assign({},l,{conta:d.conta,itens,total,assinatura:ass});await subirPdfLpu(tmp);const conf=l.status==='conferencia';Object.assign(l,{conta:d.conta,itens,total,status:'aguardando',assinatura:ass,pdf_path:tmp.pdf_path||l.pdf_path});l.hist.push({acao:conf?'Corrigida, assinada e enviada pelo prestador':'Reenviada e assinada após ajuste',por:nome,em:Date.now()});delete ui.draft[g.key];save();render();toast('LPU corrigida, assinada e reenviada.')}},
   nao:el=>{const a=getAg(el.dataset.id);openModal(`<h3>Atividade não concluída</h3><p class="muted">${esc(a.etiqueta)}, ${fasesN(a)}</p><label class="f" style="margin-top:12px"><span>Motivo *</span><select id="mMot" class="inp"><option value="">Selecione</option>${MOTIVOS.map(m=>`<option>${m}</option>`).join('')}</select></label><label class="f"><span>Observação</span><textarea id="mObs" class="inp" rows="3" placeholder="O que ficou faltando e o que já foi feito"></textarea></label>${['no_local','execucao'].includes(a.status)?'<label class="chk" style="margin:4px 0 8px;align-items:flex-start"><input type="checkbox" id="mParc" style="margin-top:3px"><span><b>Fiz parte do serviço e quero lançar na LPU</b><small style="display:block;color:var(--muted)">Depois de registrar, você preenche a LPU só com o que foi executado.</small></span></label>':''}<p class="muted" style="font-size:13.5px">O encarregado recebe o aviso e faz o reagendamento.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="naoOk" data-id="${a.id}">Registrar não conclusão</button></div>`)},
   naoOk:el=>{const a=getAg(el.dataset.id),m=$('mMot').value;if(!m){toast('Selecione o motivo.','bad');return}
@@ -8205,7 +8225,7 @@ Object.assign(ACT,{
 /* durante a execução da extensão, o técnico já registra as fusões em tempo real */
 {const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);
   if(a&&['execucao','relatorios','lpu'].includes(a.status)&&fasesOf(a).includes('ext')&&r&&typeof r.act==='string'&&!(a.rel&&a.rel.fus)&&!a.parcial){const P=a.fusoesParc,ex=a.status==='execucao',n=P&&P.n;
-  r.act=`<section class="tbox fubox"><b>Fusões da extensão <small class="fuopc">opcional por enquanto</small></b><span>${n?`${n} ${n===1?'fusão confirmada':'fusões confirmadas'} em ${P.caixas.length} ${P.caixas.length===1?'caixa':'caixas'}. A gestão já vê.`:ex?'Registre as fusões no mapa enquanto trabalha. Confirme cada caixa ao terminar.':'Se fez fusões, registre no mapa e conclua o relatório de fusões.'}${!ex&&n?' Falta concluir o relatório de fusões.':''}</span><button class="btn primary wide" data-act="rel" data-id="${a.id}" data-r="fus">${ex?(n?'Continuar registrando fusões':'Registrar fusões no mapa'):(n?'Concluir o relatório de fusões':'Registrar fusões no mapa')}</button></section>`+r.act}return r}}
+  r.act=`<section class="tbox fubox"><b>Fusões da extensão <small class="fuopc">obrigatório</small></b><span>${n?`${n} ${n===1?'fusão confirmada':'fusões confirmadas'} em ${P.caixas.length} ${P.caixas.length===1?'caixa':'caixas'}. A gestão já vê.`:ex?'Registre as fusões no mapa enquanto trabalha. Confirme cada caixa ao terminar.':'Registre as fusões no mapa e conclua o relatório de fusões: ele é obrigatório para seguir para a LPU.'}${!ex&&n?' Falta concluir o relatório de fusões.':''}</span><button class="btn primary wide" data-act="rel" data-id="${a.id}" data-r="fus">${ex?(n?'Continuar registrando fusões':'Registrar fusões no mapa'):(n?'Concluir o relatório de fusões':'Registrar fusões no mapa')}</button></section>`+r.act}return r}}
 /* ---------- Geogrid · Cadastro de fibras (Operação) ----------
    Lê as fusões que o técnico confirma na atividade (a.fusoesParc, em andamento) e o relatório enviado (a.fusoes).
    Fluxo: técnico envia → encarregado valida (a_geoVal) → analista marca cadastrado no Geogrid (a_geoCad). Tudo vai para a.fusoesLog. */
@@ -8742,6 +8762,137 @@ Object.assign(ACT,{geoSub:el=>{ui.geoSub=el.dataset.s;if(ui.tab!=='geo'){ui.cat=
 {const _c=navChips;navChips=function(){if(ui.tab==='geo'){const s=geoSubAt();return `<div class="npchips" role="tablist" aria-label="Cadastro Geogrid">${GEO_SUB.map(([k,n])=>`<button class="nchip ${s===k?'on':''}" role="tab" aria-selected="${s===k}" data-act="geoSub" data-s="${k}">${n}</button>`).join('')}</div>`}return _c.apply(this,arguments)}}
 /* dia trabalhado de atividade cancelada: não diz mais que continua */
 const contCancTxt=a=>`<div class="result warn" style="margin:10px 0 0"><b>Continuação cancelada.</b> ${(a.diario||[]).length===1?'O dia trabalhado fica registrado':'Os dias trabalhados ficam registrados'}; as fases desta atividade continuam pendentes.</div>`;
+/* ---------- 21/10 noite: fase já concluída por outra atividade não conclui de novo ---------- */
+const fzOutra=(a,k)=>{const x=faseFim(a.etiqueta,k);return x&&x.id!==a.id?x:null};
+const fzOutraTxt=x=>x.fora?`concluída fora da ferramenta em ${dBR(x.data)}`:`já concluída por ${esc(x.equipe&&typeof agResp==='function'?agResp(x):tecN(x.tec))} em ${dBR(x.data).slice(0,5)}${x.ts&&x.ts.conclusao?' às '+hmA(x.ts.conclusao):''}`;
+function fzFinHtml(a){return fasesOf(a).map(k=>{const x=fzOutra(a,k);return x?`<label class="dis"><input type="checkbox" class="fzFin" value="${k}" disabled><span>${faseN(k)}<small style="color:var(--warn)">${fzOutraTxt(x)}</small></span></label>`:`<label><input type="checkbox" class="fzFin" value="${k}" checked><span>${faseN(k)}</span></label>`}).join('')}
+{const _c=ACT.concluirOk;ACT.concluirOk=el=>{const a=getAg(el.dataset.id);if(!a)return;
+  const ff0=el.dataset.ff!==undefined?el.dataset.ff.split(',').filter(Boolean):[...document.querySelectorAll('.fzFin:checked')].map(x=>x.value),dup=ff0.filter(k=>fzOutra(a,k)),ff=ff0.filter(k=>!dup.includes(k));
+  if(dup.length)a.fzDup=(a.fzDup||[]).concat(dup.map(k=>{const x=fzOutra(a,k);return{fase:k,por:x.id||null,em:Date.now()}}));
+  const r=_c({dataset:{id:el.dataset.id,ff:ff.join(','),forca:el.dataset.forca}});
+  if(dup.length)setTimeout(()=>toast(`${dup.map(k=>FCURTO[k]).join(', ')} já estava concluída em outra atividade: esta atividade não finaliza a fase de novo.`),400);return r}}
+
+/* ---------- 21/10 noite: REFORÇO DE EQUIPE ----------
+   A gestão agenda a equipe principal e adiciona equipes de reforço (botão no detalhe). O reforço vai só para ajudar:
+   não fica com nenhuma fase. A principal faz os relatórios e finaliza as fases; o reforço conclui o apoio e preenche só a LPU.
+   A principal recebe mensagem dizendo quem é o reforço (e o reforço, de quem é o apoio).
+   Passar para o reforço (só a gestão, no detalhe): se a principal precisa sair, a gestão preenche o relatório de saída
+   (motivo, o que foi feito, o que falta e fotos) e escolhe o reforço que fica. Esse reforço assume a atividade e finaliza
+   as fases; a equipe que saiu segue para a LPU do que fez. As duas recebem mensagem. Sem SQL.
+   Entregas e ativações contam 1 vez (faseFim). LPU: aviso de item do circuito repetido e de metros lançados pelas duas. */
+const REF_UNICO=['SEV0053','SEV0054','SEV0055','SEV0059','SEV0060','SEV0062','SEV0065'];
+const refTodas=()=>S.agsExt&&S.agsExt.length?S.ags.concat(S.agsExt):S.ags;
+const refAg=id=>refTodas().find(x=>x.id===id)||null;
+const refNomeDe=a=>a?(a.equipe?a.equipeNome||'Equipe':tecN(a.__tec0||a.tec)):'';
+const refPrinc=a=>a&&a.refDe?refAg(a.refDe):null;
+const refAtivo=a=>{if(!a||!a.refDe||a.saida)return false;const p=refPrinc(a);return !(p&&['cancelada','nao_concluida'].includes(p.status))};
+const refFilhos=a=>a?S.ags.filter(x=>x.refDe===a.id&&x.status!=='cancelada'&&!x.saida):[];
+const refGrupo=a=>{const g=a&&a.refDe?refAg(a.refDe):a;if(!g)return [];return [g].concat(S.ags.filter(x=>x.refDe===g.id&&x.status!=='cancelada'))};
+/* reforços ainda em campo (a lista da principal vem de refs, que o técnico enxerga, e da agenda, que a gestão enxerga) */
+const refAbertos=a=>{const M=new Map();(a.refs||[]).filter(r=>!r.saiu).forEach(r=>M.set(r.id,r.nome));refFilhos(a).forEach(x=>{if(FIM.includes(x.status)||['relatorios','lpu'].includes(x.status))M.delete(x.id);else M.set(x.id,refNomeDe(x))});return [...M].map(([id,nome])=>({id,nome}))};
+const refNomesFilhos=a=>{const L=refFilhos(a).map(refNomeDe);(a.refs||[]).filter(r=>!r.saiu).forEach(r=>{if(!L.includes(r.nome))L.push(r.nome)});return L};
+const hmS=v=>v?hmA(v):'';
+/* card da agenda: selo do grupo */
+{const _e=agEv;agEv=function(a){const h=_e.apply(this,arguments);if(!a||a.status==='cancelada'&&!a.saida)return h;
+  const t=a.saida?`Saiu às ${hmS(a.saida.em)} · passou para ${a.saida.paraNome}`:a.assumiu?`Assumiu de ${a.assumiu.deNome}${refNomesFilhos(a).length?' · reforço: '+refNomesFilhos(a).join(', '):''}`:a.refDe?`Reforço de ${a.refNome||refNomeDe(refPrinc(a))}`:refNomesFilhos(a).length?`Principal · reforço: ${refNomesFilhos(a).join(', ')}`:'';if(!t)return h;
+  const i=h.lastIndexOf('</button>');return i<0?h:h.slice(0,i)+`<span class="refsel">${esc(t)}</span>`+h.slice(i)}}
+/* relatório de saída (passagem) */
+function saidaHtml(x,tit){if(!x)return '';return `<div class="saida"><b>${tit}</b><small>${dtBR(x.em)}${x.por?' · '+esc(x.por):''} · motivo: ${esc(x.motivo||'')}${x.obs?' ('+esc(x.obs)+')':''}</small>${x.feito?`<p><span>Já feito:</span> ${esc(x.feito)}</p>`:''}${x.falta?`<p><span>Falta:</span> ${esc(x.falta)}</p>`:''}${(x.fotos||[]).length?`<div class="tools">${x.fotos.map((p,k)=>`<button class="btn sm" data-act="relVer" data-p="${esc(p)}">Foto ${k+1}</button>`).join('')}</div>`:''}</div>`}
+/* tela do técnico */
+{const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);if(!a||!r||typeof r.act!=='string')return r;const nt=h=>`<div class="result info refnota" style="margin:0 0 10px">${h}</div>`;
+  if(a.saida)r.act=nt(`<b>Vocês saíram e passaram a atividade para ${esc(a.saida.paraNome)}.</b> ${a.status==='lpu'?'Preencham a LPU só do que a sua equipe fez.':'A equipe que ficou finaliza as fases.'}`)+r.act;
+  else if(a.refDe&&refAtivo(a)&&!FIM.includes(a.status)&&!['relatorios','lpu'].includes(a.status))r.act=nt(`<b>Vocês vão como reforço de ${esc(a.refNome||refNomeDe(refPrinc(a)))}.</b> Ajudem no serviço. As fases, os relatórios e a entrega ficam com a equipe principal; aqui vocês só registram o apoio.`)+r.act;
+  else if(a.refDe&&a.status==='lpu')r.act=nt(`<b>Reforço de ${esc(a.refNome||refNomeDe(refPrinc(a)))}.</b> Lance na LPU só o que a sua equipe executou. Relatório de entrega e configuração do equipamento ficam com a equipe principal.`)+r.act;
+  else if(!a.refDe&&!FIM.includes(a.status)&&(a.assumiu||refNomesFilhos(a).length)){
+    r.act=(a.assumiu?nt(`<b>Vocês assumiram a atividade de ${esc(a.assumiu.deNome)}.</b> Agora vocês finalizam as fases e fazem os relatórios.`)+saidaHtml(a.assumiu,'Relatório de saída de '+esc(a.assumiu.deNome)):'')+
+      (refNomesFilhos(a).length?nt(`<b>${esc(refNomesFilhos(a).join(', '))} vai como reforço.</b> Vocês são a equipe principal: fazem os relatórios e finalizam as fases. Se precisarem sair antes de terminar, avisem a gestão.`):'')+
+      r.act}
+  return r}}
+/* concluir: o reforço conclui o apoio e vai direto para a LPU */
+{const _g=ACT.go;ACT.go=el=>{const a=getAg(el.dataset.id);if(a&&a.status==='execucao'&&refAtivo(a)){const pn=a.refNome||refNomeDe(refPrinc(a));
+  openModal(`<h3>Concluir o reforço</h3><p class="muted">Vocês estão como reforço de <b>${esc(pn)}</b>.</p><div class="result info" style="margin:10px 0 0">Ao concluir, fica registrado que a sua equipe terminou o apoio. Relatórios e fases ficam com a equipe principal; vocês preenchem só a LPU do que fizeram.</div><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="concluirOk" data-id="${a.id}" data-ff="">Concluir o reforço</button></div>`);return}return _g(el)}}
+{const _c=ACT.concluirOk;ACT.concluirOk=el=>{const a=getAg(el.dataset.id);if(!a)return;
+  if(refAtivo(a)){const r=_c({dataset:{id:el.dataset.id,ff:''}});a.fasesFin=[];a.status=semLpuAg(a)?'concluida':'lpu';save();render();setTimeout(()=>toast(semLpuAg(a)?'Reforço concluído.':'Reforço concluído. Agora preencha a LPU do que a sua equipe fez.'),350);return r}
+  const ck=$('fzRef');if(ck&&ck.checked&&ck.dataset.por){const p=refAg(ck.dataset.por);if(p&&p.id!==a.id){a.refDe=p.id;a.refNome=refNomeDe(p);a.refAuto=true;const r=_c(el);setTimeout(()=>toast(`Registrado: sua equipe foi reforço de ${a.refNome}. A fase conta uma vez só.`),700);return r}}
+  return _c(el)}}
+{const _f=fzFinHtml;fzFinHtml=function(a){const h=_f.apply(this,arguments),x=fasesOf(a).map(k=>fzOutra(a,k)).find(y=>y&&!y.fora);if(!x)return h;
+  return h+`<label class="chk refck" style="margin-top:10px;align-items:flex-start"><input type="checkbox" id="fzRef" data-por="${esc(x.id)}" ${x.data===a.data?'checked':''} style="margin-top:3px"><span><b>Trabalhamos juntos com ${esc(refNomeDe(x))} neste serviço</b><small class="muted" style="display:block">Registra a sua equipe como reforço. A fase continua contando uma vez só.</small></span></label>`}}
+/* passar a atividade para o reforço */
+const SAI_MOT=['Outra demanda urgente','Fim do expediente','Problema com veículo ou equipamento','Falta de material','Outro'];
+ui.passFotos=ui.passFotos||[];
+Object.assign(CH,{passFt:el=>{const f=[...(el.files||[])];ui.passFotos=(ui.passFotos||[]).concat(f).slice(0,6);const o=$('passFtL');if(o)o.textContent=ui.passFotos.length?ui.passFotos.length+(ui.passFotos.length===1?' foto':' fotos'):'';el.value=''}});
+Object.assign(ACT,{
+  passAbrir:el=>{const a=getAg(el.dataset.id);if(!a)return;if(['terc','func','clt'].includes(ui.perfil)||!refPode())return semPerm();const R=refAbertos(a);if(!R.length)return toast('Esta atividade não tem reforço em campo.','bad');ui.passFotos=[];
+    openModal(`<h3>Passar a atividade para o reforço</h3><p class="muted">${esc(a.etiqueta)} · ${esc(cliN(a.etiqueta)||'')} · ${fasesN(a)}</p>
+     <div class="result info" style="margin:10px 0">A equipe que fica assume a atividade: finaliza as fases e faz os relatórios. ${esc(refNomeDe(a))} sai com este relatório de saída e preenche a LPU só do que fez. As duas equipes recebem mensagem.</div>
+     <label class="f"><span>Quem fica com a atividade *</span><select class="inp" id="passPara">${R.length>1?'<option value="">Selecione</option>':''}${R.map(r=>`<option value="${esc(r.id)}">${esc(r.nome)}</option>`).join('')}</select></label>
+     <label class="f"><span>Motivo da saída *</span><select class="inp" id="passMot"><option value="">Selecione</option>${SAI_MOT.map(m=>`<option>${m}</option>`).join('')}</select></label>
+     <label class="f"><span>Detalhe do motivo</span><input class="inp" id="passObs" placeholder="Ex.: chamado de manutenção em Sumaré"></label>
+     <label class="f"><span>O que já foi feito *</span><textarea class="inp" id="passFeito" rows="3" placeholder="Ex.: interno lançado até o rack, DIO montado, falta fusão"></textarea></label>
+     <label class="f"><span>O que falta *</span><textarea class="inp" id="passFalta" rows="2"></textarea></label>
+     <div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Fotos de como ficou (opcional, até 6)</span><div class="tools"><label class="btn sm">Câmera<input type="file" accept="image/*" capture="environment" data-ch="passFt" hidden></label><label class="btn sm">Galeria<input type="file" accept="image/*" multiple data-ch="passFt" hidden></label><span class="muted" id="passFtL"></span></div></div>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="passOk" data-id="${a.id}">Passar a atividade</button></div>`)},
+  passOk:async el=>{if(!refPode())return semPerm();const a=getAg(el.dataset.id);if(!a||el.dataset.bus)return;const v=id=>(($(id)||{}).value||'').trim(),para=v('passPara'),mot=v('passMot'),feito=v('passFeito'),falta=v('passFalta');
+    if(!para)return toast('Escolha quem fica com a atividade.','bad');if(!mot)return toast('Escolha o motivo da saída.','bad');if(!feito)return toast('Escreva o que já foi feito.','bad');if(!falta)return toast('Escreva o que falta.','bad');
+    const R=refAbertos(a),pn=(R.find(r=>r.id===para)||{}).nome||'reforço';el.dataset.bus='1';el.textContent='Enviando…';
+    try{const fotos=[];for(const [k,f] of (ui.passFotos||[]).entries()){const b=await gReduz(f),path=`relatorios/${a.id}/saida/${Date.now()}-${k+1}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(up.error)throw up.error;fotos.push(path)}
+      const info={deNome:refNomeDe(a),paraNome:pn,motivo:mot,obs:v('passObs'),feito,falta,fotos,por:meNome(),em:Date.now(),
+        refs:[{id:a.id,nome:refNomeDe(a),saiu:true}].concat((a.refs||[]).filter(r=>r.id!==para&&!r.saiu))};
+      const n=getAg(para);if(!n)throw new Error('a atividade do reforço não foi encontrada');
+      const ini=!!(a.ts&&(a.ts.chegada||a.ts.inicio));a.saida=Object.assign({para},info);delete a.saida.refs;a.fasesFin=[];a.ts=a.ts||{};a.ts.conclusao=Date.now();a.refDe=para;a.refNome=pn;a.refs=(a.refs||[]).map(x=>x.id===para?Object.assign({},x,{assumiu:true}):x);
+      a.status=!ini?'cancelada':semLpuAg(a)?'concluida':'lpu';
+      {delete n.refDe;delete n.refNome;delete n.refAuto;n.assumiu=Object.assign({de:a.id},info);delete n.assumiu.refs;n.refs=info.refs;if(a.fotosReq)n.fotosReq=a.fotosReq;
+        S.ags.filter(x=>x.refDe===a.id&&x.id!==para&&x.id!==a.id).forEach(x=>{x.refDe=para;x.refNome=pn})}
+      save();refMsg([{agendamento:n.id,texto:`Vocês assumiram a atividade de ${info.deNome}. Motivo da saída: ${mot}${info.obs?' ('+info.obs+')':''}. Já feito: ${feito}. Falta: ${falta}. Agora vocês finalizam as fases e fazem os relatórios.`},{agendamento:a.id,texto:`A atividade foi passada para ${pn}, que finaliza as fases e faz os relatórios.${a.status==='lpu'?' Preencham a LPU só do que a sua equipe fez.':''}`}]);
+      closeModal();render();ui.passFotos=[];toast(`Atividade passada para ${pn}. As duas equipes foram avisadas.`)}
+    catch(e){delete el.dataset.bus;el.textContent='Passar a atividade';toast('Não foi possível passar a atividade: '+(e.message||e),'bad')}}});
+/* detalhe (gestão): grupo, adicionar reforço, passar, desfazer, registrar duplicada como reforço */
+const refPode=()=>pode('a_agendar');
+function refBloco(a){if(!a||a.status==='cancelada'&&!a.refDe&&!a.saida)return '';const G=refGrupo(a),gest=!['terc','func','clt'].includes(ui.perfil);let h='';
+  if(G.length>1){const P=G[0];h+=`<div class="refbox"><h3 class="lsub" style="margin-top:0">Equipes nesta atividade</h3>${G.map(x=>{const f=x.ts||{};return `<div class="refl${x.id===a.id?' at':''}"><b>${esc(refNomeDe(x))}</b><span class="refchip ${x.id===P.id?'p':x.saida?'s':'r'}">${x.id===P.id?(x.assumiu?'Principal (assumiu)':'Principal'):x.saida?'Saiu':'Reforço'}</span><small>${chip(x.status)}${f.desloc?' · saiu '+hmA(f.desloc):''}${x.saida?' · deixou a atividade '+hmA(x.saida.em):f.conclusao?' · concluiu '+hmA(f.conclusao):''}${x.id===P.id&&(x.fasesFin||[]).length?' · finalizou '+x.fasesFin.map(k=>FCURTO[k]).join(', '):''}${x.refAuto?' · registrado na conclusão':''}</small>${gest&&refPode()&&x.refDe&&!x.saida&&x.id===a.id?`<button class="linkbtn" data-act="refDesf" data-id="${x.id}">Desfazer reforço</button>`:''}</div>`}).join('')}<p class="muted" style="margin:6px 0 0;font-size:13px">O reforço não fica com fase: a principal faz os relatórios e finaliza. Cada equipe tem a própria LPU.</p></div>`}
+  if(a.saida)h+=saidaHtml(a.saida,'Relatório de saída · passou para '+esc(a.saida.paraNome));
+  if(a.assumiu)h+=saidaHtml(a.assumiu,'Assumiu de '+esc(a.assumiu.deNome)+' · relatório de saída');
+  const bts=[];
+  if(gest&&refPode()&&!a.refDe&&!FIM.includes(a.status)&&!['relatorios','lpu','cancelada'].includes(a.status)&&!a.ext)bts.push(`<button class="btn sm" data-act="refAbrir" data-id="${a.id}">Adicionar equipe de reforço</button>`);
+  if(gest&&refPode()&&!a.refDe&&!FIM.includes(a.status)&&!['relatorios','lpu','cancelada'].includes(a.status)&&refAbertos(a).length)bts.push(`<button class="btn sm" data-act="passAbrir" data-id="${a.id}">Passar para o reforço</button>`);
+  if(bts.length)h+=`<div class="tools" style="margin-top:10px">${bts.join('')}</div>`;
+  const dup=(a.fasesFin||[]).filter(k=>fzOutra(a,k)&&!fzOutra(a,k).fora);
+  if(gest&&dup.length&&!a.refDe){const x=fzOutra(a,dup[0]);h+=`<div class="result warn" style="margin-top:10px"><b>${dup.map(k=>FCURTO[k]).join(', ')} também foi finalizada por ${esc(refNomeDe(x))}${x.ts&&x.ts.conclusao?' às '+hmA(x.ts.conclusao):''}.</b> Conta uma vez só (a primeira conclusão). Se as equipes trabalharam juntas, registre esta como reforço.${refPode()?`<div style="margin-top:6px"><button class="btn sm" data-act="refCorr" data-id="${a.id}" data-por="${esc(x.id)}">Registrar como reforço de ${esc(refNomeDe(x))}</button></div>`:''}</div>`}
+  return h}
+{const _cb=corrBloco;corrBloco=function(a){return refBloco(a)+_cb.apply(this,arguments)}}
+function refOpcoes(a){const ja=refGrupo(a).map(x=>x.equipe?'eq:'+x.equipe:x.__tec0||x.tec),E=(typeof nteAtivas==='function'?nteAtivas():[]).filter(e=>!ja.includes('eq:'+e.id)),T=TEC.filter(t=>!ja.includes(t.id));
+  return `${E.length?`<optgroup label="Equipes NT">${E.map(e=>`<option value="eq:${e.id}">${esc(e.nome)} · ${esc((e.membros||[]).map(tecN).join(' + '))}</option>`).join('')}</optgroup>`:''}<optgroup label="Técnicos e terceiros">${T.map(t=>`<option value="${t.id}">${esc(t.nome)}</option>`).join('')}</optgroup>`}
+const refMsg=(L)=>flushSync().then(()=>sb.from('ag_mensagens').insert(L)).then(()=>{},()=>{});
+Object.assign(ACT,{
+  refAbrir:el=>{if(!refPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const d=a.data<hoje()?hoje():a.data;
+    openModal(`<h3>Adicionar equipe de reforço</h3><p class="muted">${esc(a.etiqueta)} · ${esc(cliN(a.etiqueta)||'')} · ${fasesN(a)}. Equipe principal: <b>${esc(refNomeDe(a))}</b>.</p>
+     <div class="result info" style="margin:10px 0">O reforço vai para ajudar e não fica com nenhuma fase: a equipe principal faz os relatórios e finaliza as fases. O reforço tem horários e LPU próprios. As duas equipes recebem mensagem avisando. Se a principal precisar sair, ela passa a atividade para o reforço.</div>
+     <label class="f"><span>Equipe ou técnico *</span><select class="inp" id="refQuem"><option value="">Selecione</option>${refOpcoes(a)}</select></label>
+     <label class="f"><span>Data *</span><input type="date" class="inp" id="refData" value="${d}"></label>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="refOk" data-id="${a.id}">Adicionar reforço</button></div>`)},
+  refOk:el=>{if(!refPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const q=($('refQuem')||{}).value||'',d=($('refData')||{}).value||'';
+    if(!q)return toast('Escolha a equipe ou o técnico de reforço.','bad');if(!d)return toast('Informe a data.','bad');
+    let tec=q,eqx=null,nome='',quem='';if(q.startsWith('eq:')){const e=nteDe(q.slice(3));if(!e)return;const c=nteComp(e,[d]);if(!c.pres.length)return toast('Os técnicos dessa equipe estão ausentes nesse dia.','bad');
+      tec=e.estoque&&c.pres.includes(e.estoque)?e.estoque:c.pres[0];eqx=nteCampos({eq:e.id,tec,data:d,dataFim:d,uteis:false});nome=e.nome;quem=`${e.nome} (${c.pres.map(tecN).join(' + ')})`}else{nome=tecN(tec);quem=nome}
+    const n0=S.ags.length;NTE_X=eqx;try{criarAgs(a.etiqueta,fasesOf(a),tec,[d],meNome(),Object.assign({refDe:a.id,refNome:refNomeDe(a)},a.obs?{obs:a.obs}:{}))}finally{NTE_X=null}
+    const nv=S.ags[S.ags.length-1];if(S.ags.length===n0||!nv)return;a.refs=(a.refs||[]).concat([{id:nv.id,nome}]);save();
+    refMsg([{agendamento:a.id,texto:`Reforço: ${quem} vai junto com vocês nesta atividade em ${dBR(d)}. Vocês continuam como equipe principal (relatórios e fases).`},{agendamento:nv.id,texto:`Vocês vão como reforço de ${refNomeDe(a)} em ${dBR(d)}. A equipe principal faz os relatórios e finaliza as fases; vocês preenchem só a LPU do que fizerem.`}]);
+    closeModal();render();toast(`${nome} adicionada como reforço de ${refNomeDe(a)} em ${dBR(d)}. As duas equipes foram avisadas.`)},
+  refDesf:el=>{if(!refPode())return semPerm();const a=getAg(el.dataset.id);if(!a||!a.refDe)return;if(!confirm('Desfazer o reforço? A atividade volta a ser independente e passa a poder finalizar as fases sozinha.'))return;
+    const p=getAg(a.refDe);if(p&&p.refs)p.refs=p.refs.filter(r=>r.id!==a.id);a.refHist=(a.refHist||[]).concat([{acao:'Reforço desfeito',de:a.refDe,por:meNome(),em:Date.now()}]);delete a.refDe;delete a.refNome;delete a.refAuto;save();closeModal();render();toast('Reforço desfeito.')},
+  refCorr:el=>{if(!refPode())return semPerm();const a=getAg(el.dataset.id),p=refAg(el.dataset.por);if(!a||!p)return;const dup=(a.fasesFin||[]).filter(k=>{const x=fzOutra(a,k);return x&&x.id===p.id});
+    a.fasesFin=(a.fasesFin||[]).filter(k=>!dup.includes(k));a.refDe=p.id;a.refNome=refNomeDe(p);
+    a.correcoes=(a.correcoes||[]).concat([{em:Date.now(),por:meNome(),papel:(PERFIS[ui.perfil]||{}).n||'',fases:dup,motivo:`Registrada como reforço de ${refNomeDe(p)}, que finalizou a fase.`}]);
+    if(S.ags.includes(p))p.refs=(p.refs||[]).concat([{id:a.id,nome:refNomeDe(a)}]);save();closeModal();render();toast(`${refNomeDe(a)} registrada como reforço de ${refNomeDe(p)}. ${dup.map(k=>FCURTO[k]).join(', ')} conta uma vez só.`)}});
+/* aprovação de LPU: itens do circuito repetidos e metros lançados pelas duas equipes */
+{const _al=alertasCabo;alertasCabo=function(a,l){const out=_al.apply(this,arguments);if(!a||!l)return out;const G=refGrupo(a),ids=G.filter(x=>x.id!==a.id).map(x=>x.id);
+  /* outras LPUs do mesmo grupo de reforço ou, se as equipes não foram ligadas, da mesma etiqueta no mesmo dia */
+  const O=S.lpus.filter(x=>x.id!==l.id&&x.ag!==a.id&&x.status!=='reprovada'&&(ids.includes(x.ag)||x.etiqueta===l.etiqueta&&x.data===l.data&&!x.dia&&!l.dia));if(!O.length)return out;
+  const nm=x=>refNomeDe(getAg(x.ag)),rep=(l.itens||[]).filter(i=>REF_UNICO.includes(i.cod)&&O.some(o=>(o.itens||[]).some(j=>j.cod===i.cod)));
+  if(rep.length)out.push({t:'Item do circuito lançado pelas duas equipes',d:`${rep.map(i=>`<b>${esc(i.cod)}</b> ${esc(i.desc)}`).join('; ')} também está na LPU de ${esc(O.filter(o=>(o.itens||[]).some(j=>rep.some(i=>i.cod===j.cod))).map(nm).join(', '))}. Esses itens são um por circuito e ${G.length>1?`ficam com a equipe principal (${esc(refNomeDe(G[0]))})`:'devem ser pagos para uma equipe só'}.`,curto:'Item repetido no reforço'});
+  const cab=(l.itens||[]).filter(i=>CABO_LPU.includes(i.cod)&&O.some(o=>(o.itens||[]).some(j=>j.cod===i.cod)));
+  if(cab.length)out.push({t:'Metros lançados pelas duas equipes',d:cab.map(i=>{const s=O.map(o=>((o.itens||[]).find(j=>j.cod===i.cod)||{}).qtd||0);return `<b>${esc(i.cod)}</b>: esta LPU ${(+i.qtd).toLocaleString('pt-BR')} m + ${O.map((o,k)=>`${esc(nm(o))} ${(+s[k]).toLocaleString('pt-BR')} m`).join(' + ')} = <b>${(i.qtd+s.reduce((x,y)=>x+y,0)).toLocaleString('pt-BR')} m</b>`}).join('<br>')+'. Confira se o mesmo trecho não foi cobrado duas vezes.',curto:'Metros no reforço'});
+  return out}}
 
 /* ---------- 21/10 noite: REABRIR LPU REPROVADA e DEVOLVER RELATÓRIO AO TÉCNICO ----------
    1) LPU reprovada por engano: a gestão com a_aprovar reabre para ajuste (status ajuste + histórico). O técnico corrige e reenvia.
@@ -8798,6 +8949,189 @@ function devHist(a){const D=a.relDevol||[];if(!D.length)return '';return `<div c
   const r=await sb.storage.from('agenda').list('relatorios/'+a.id);if(r.error){a.__relErr=r.error.message||String(r.error);return false}a.__relErr='';
   const f=(r.data||[]).filter(x=>/\.pdf$/i.test(x.name)&&!x.name.includes('/')&&!old.has('relatorios/'+a.id+'/'+x.name));if(!f.length)return false;
   a.rel=a.rel||{};a.rel.entrega={path:'relatorios/'+a.id+'/'+f[f.length-1].name,em:Date.now()};save();return true}}
+
+/* ---------- 22/10: RELATÓRIO E LPU PENDENTES DO MESMO CLIENTE VÃO JUNTO COM A NOVA ATIVIDADE ----------
+   Quando o técnico (ou a mesma equipe) inicia qualquer atividade de um cliente e tem, desse mesmo cliente, atividade anterior
+   com relatório ou LPU pendente (status relatorios ou lpu, sem LPU final enviada), a pendência antiga é unida à nova:
+   - a antiga sai das pendências (vai para concluída, ou não concluída se foi parcial) e guarda unidaEm = id da nova;
+   - a nova guarda unidas (data, fases, se faltava relatório) e passa a pedir as fotos das fases antigas no relatório;
+   - o técnico faz um relatório só e uma LPU com o total (a LPU leva as fases das duas e a lista das unidas).
+   Se a nova for cancelada ou retirada sem fazer nada, a gestão desfaz a união ao abrir a ferramenta. */
+const mgMesmo=(x,y)=>(x.__tec0||x.tec)===(y.__tec0||y.tec)||(!!x.equipe&&x.equipe===y.equipe);
+const mgPend=b=>S.ags.filter(a=>a.id!==b.id&&a.etiqueta===b.etiqueta&&mgMesmo(a,b)&&['relatorios','lpu'].includes(a.status)&&!a.unidaEm&&!S.lpus.some(l=>l.ag===a.id&&!l.dia&&l.status!=='reprovada'));
+const mgDe=b=>(b.unidas||[]).map(u=>getAg(u.id)).filter(Boolean);
+const mgFases=a=>{const s=new Set(fasesOf(a));(a.unidas||[]).forEach(u=>(u.fases||[]).forEach(k=>s.add(k)));return ALLF.map(f=>f.k).filter(k=>s.has(k))};
+const mgIds=a=>(a.unidas||[]).length?a.unidas.map(u=>u.id):undefined;
+const mgTxt=a=>(a.unidas||[]).map(u=>`${(u.fases||[]).map(k=>FCURTO[k]||k).join(' + ')} de ${dBR(u.data).slice(0,5)}${u.parcial?' (não concluída)':''}`).join('; ');
+function mgUnir(b){const P=mgPend(b);if(!P.length)return [];
+  P.forEach(a=>{const u={id:a.id,data:a.data,fases:(a.fasesFin||[]).length?a.fasesFin.slice():fasesOf(a),status:a.status,parcial:!!a.parcial,rel:a.status==='relatorios',em:Date.now()};
+    b.unidas=(b.unidas||[]).concat([u]);
+    if(u.rel&&a.fotosReq)b.fotosReq=[...new Set((b.fotosReq||[]).concat(a.fotosReq))];
+    a.unidaEm={id:b.id,data:b.data,em:Date.now(),status:a.status};a.status=a.parcial?'nao_concluida':'concluida';delete a.pendReag});
+  return P}
+/* inicia a atividade (sai para o cliente): une as pendências */
+{const _g=ACT.go;ACT.go=el=>{const b=getAg(el.dataset.id),ini=b&&b.status==='agendada';const r=_g(el);
+  if(b&&ini&&b.status==='deslocamento'){const P=mgUnir(b);if(P.length){save();render();setTimeout(()=>toast(`O relatório e a LPU pendentes de ${P.map(a=>dBR(a.data).slice(0,5)).join(', ')} agora vão junto com esta atividade: um relatório só e uma LPU com o total.`),400)}}return r}}
+/* tela do técnico */
+{const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);if(!a||!r||typeof r.act!=='string')return r;
+  if((a.unidas||[]).length&&!FIM.includes(a.status)&&a.status!=='cancelada')r.act=`<div class="result info mgnota" style="margin:0 0 10px"><b>Esta atividade inclui o que estava pendente de ${esc(mgTxt(a))}.</b> Faça um relatório só, com as fotos das duas, e uma LPU com o total do que foi feito.</div>`+r.act;
+  else if(a.status==='agendada'){const P=mgPend(a);if(P.length)r.act=`<div class="result warn mgnota" style="margin:0 0 10px"><b>Você tem relatório ou LPU pendente deste cliente (${P.map(x=>dBR(x.data).slice(0,5)).join(', ')}).</b> Ao iniciar esta atividade, a pendência passa a ser feita junto com ela: um relatório só e uma LPU com o total.</div>`+r.act}
+  return r}}
+/* detalhe (gestão e técnico) */
+{const _cb=corrBloco;corrBloco=function(a){const h=_cb.apply(this,arguments);if(!a)return h;let x='';
+  if(a.unidaEm){const b=getAg(a.unidaEm.id);x+=`<div class="result info" style="margin-top:10px"><b>Relatório e LPU feitos junto com a atividade de ${dBR(a.unidaEm.data)}.</b> Estavam pendentes quando o técnico iniciou outra atividade deste cliente${b?` (${esc(fasesN(b))}, ${esc(LST_TXT(b))})`:''}.${b?`<div style="margin-top:6px"><button class="btn sm" data-act="agOpen" data-id="${b.id}">Abrir a atividade de ${dBR(b.data).slice(0,5)}</button></div>`:''}</div>`}
+  if((a.unidas||[]).length)x+=`<div class="result info" style="margin-top:10px"><b>Inclui o relatório e a LPU pendentes de ${esc(mgTxt(a))}.</b> Um relatório só e uma LPU com o total.</div>`;
+  return x+h}}
+const LST_TXT=b=>{const m={agendada:'agendada',deslocamento:'a caminho',no_local:'no local',execucao:'em execução',relatorios:'relatório pendente',lpu:'LPU pendente',concluida:'concluída',nao_concluida:'não concluída',cancelada:'cancelada'};return m[b.status]||b.status};
+/* aprovação de LPU: avisa que a LPU inclui as atividades unidas e confere o cabo com o relatório das duas */
+{const _al=alertasCabo;alertasCabo=function(a,l){let out=_al.apply(this,arguments);if(!a||!l||!(a.unidas||[]).length)return out;
+  const U=mgDe(a),rel=[a].concat(U).map(metrosAg).filter(x=>x!=null),tot=rel.length?rel.reduce((s,x)=>s+x,0):null,lc=caboLpu(l);
+  out=out.filter(x=>!/Cabo da LPU diferente do relatório|LPU com cabo e sem metragem/.test(x.t));
+  if(tot!=null&&lc!==tot)out.unshift({t:'Cabo da LPU diferente dos relatórios',d:`Os relatórios desta atividade e das unidas informam <b>${tot.toLocaleString('pt-BR')} m</b> e a LPU cobra <b>${lc.toLocaleString('pt-BR')} m</b>: <b>${difTxt(lc-tot,tot)}</b> ${lc>tot?'a mais':'a menos'}.`,curto:`LPU ${difTxt(lc-tot)}`});
+  if(tot==null&&lc>0)out.unshift({t:'LPU com cabo e sem metragem no relatório',d:`A LPU cobra <b>${lc.toLocaleString('pt-BR')} m</b> de cabo, mas nenhum relatório das atividades unidas tem metragem.`,curto:'LPU sem metragem no relatório'});
+  return out}}
+{const _v=viewAprov;viewAprov=function(){const h=_v.apply(this,arguments);
+  return h.replace(/(<button class="lhead" data-act="aOpen" data-id="([^"]+)"[^>]*><div><b>[^<]*<\/b> <span>[^<]*<\/span>)/g,(m,x,id)=>{const l=S.lpus.find(y=>y.id===id),a=l&&getAg(l.ag);return a&&(a.unidas||[]).length?x+` <span class="mgchip">Inclui ${esc(a.unidas.map(u=>dBR(u.data).slice(0,5)).join(', '))}</span>`:x})}}
+/* nova cancelada ou retirada sem fazer nada: a gestão desfaz a união */
+function mgDesfazer(){let n=0;S.ags.filter(b=>(b.unidas||[]).length&&(b.status==='cancelada'||b.status==='nao_concluida'&&!b.parcial)&&!S.lpus.some(l=>l.ag===b.id&&l.status!=='reprovada')).forEach(b=>{
+  mgDe(b).forEach(a=>{if(a.unidaEm&&a.unidaEm.id===b.id){a.status=a.unidaEm.status;a.mgHist=(a.mgHist||[]).concat([{acao:'União desfeita',com:b.id,em:Date.now()}]);delete a.unidaEm;n++}});b.unidasDesf=b.unidas;delete b.unidas});return n}
+{const _c=carregar;carregar=async function(...x){const r=await _c(...x);try{if(['coord','sup','enc'].includes(ui.perfil)&&mgDesfazer())save()}catch(e){console.warn('mg',e)}return r}}
+
+/* ---------- 22/10: RELATÓRIO DE LANÇAMENTO MAIS COMPLETO e EXTENSÃO OBRIGATÓRIA ----------
+   1) Relatório de fusões da extensão obrigatório (trava a LPU): entra em relsDe; não concluída (parcial) continua sem exigir.
+   2) Metragem do cabo comparada com o previsto (KMZ de lançamento: rua = aéreo + subterrâneo, interno = interno; sem KMZ,
+      o ROI quando o relatório tem uma fase só). Diferença acima de 10% pede justificativa.
+   3) Reservas técnicas: cada foto é uma reserva, com metragem e "espinada?" (regra: reserva técnica deve ser espinada).
+   4) Trajeto atualizado no mapa: se o lançamento saiu do KMZ, o técnico desenha os trechos novos e marca os trechos do KMZ
+      que não foram feitos (a.lancMapa). O previsto se ajusta; a gestão vê no mapa e baixa o KML atualizado.
+   5) PDF com resumo: previsto × lançado, justificativa, reservas e trajeto atualizado. */
+const LM_TOL=10;
+const lmNum=v=>{const n=parseFloat(String(v==null?'':v).replace(/\./g,'').replace(',','.'));return isFinite(n)?n:NaN};
+const lmFmt=v=>Math.round(v).toLocaleString('pt-BR')+' m';
+/* rua + interno no mesmo agendamento = um lançamento só: metragem e local de início e fim uma vez (chaves da rua) */
+const lmComb=a=>!!a&&!a.parcial&&fasesOf(a).includes('rua')&&fasesOf(a).includes('interno');
+const LM_COMB_N='Lançamento (rua + interno)';
+function lmNomes(a,fn){if(!lmComb(a))return fn();const r=ALLF.find(f=>f.k==='rua'),o=r&&r.n;if(r)r.n=LM_COMB_N;try{return fn()}finally{if(r)r.n=o}}
+const lmFasesL=a=>lmComb(a)?['rua']:fasesOf(a).filter(k=>k==='rua'||k==='interno');
+const lmFaseMapa=a=>{const L=lmFasesL(a);return L.includes('rua')?'rua':L[0]||null};
+function lmLanc(f){const D=ui.rf;if(!D)return null;const a1=lmNum(D.campos[f+':lote_ini:m']),b1=lmNum(D.campos[f+':lote_fim:m']);return isNaN(a1)||isNaN(b1)?null:Math.abs(b1-a1)}
+/* previsto da fase: KMZ de lançamento (p.kl) ou ROI; mais o ajuste do trajeto no mapa */
+function lmPrev(a,f){const p=pPor(a.etiqueta)||{},q=p.kl&&p.kl.q,L=lmFasesL(a);let v=null,fonte='';
+  if(q){v=f==='rua'?(+q.aereo||0)+(+q.sub||0)+(lmComb(a)?(+q.interno||0):0):(+q.interno||0);fonte='KMZ'}else if(L.length===1&&+p.metros>0){v=+p.metros;fonte='ROI'}
+  if(v==null||!(v>0))return null;const M=a.lancMapa;if(M&&f===lmFaseMapa(a)){v=v+(M.mNovo||0)-(M.mNao||0);fonte+=' ajustado no mapa'}return{v:Math.max(0,v),fonte}}
+function lmDif(a,f){const l=lmLanc(f),p=lmPrev(a,f);if(l==null||!p)return null;const d=l-p.v,pc=p.v?d/p.v*100:0;return{l,p,d,pc,fora:Math.abs(pc)>LM_TOL}}
+/* caixa da metragem (substitui o "Metros lançados" antigo) */
+{const _m=metrosHtml;metrosHtml=function(f){const D=ui.rf;if(!D)return _m.apply(this,arguments);const a=getAg(D.ag),l=lmLanc(f);if(l==null)return '';
+  const x=a&&!a.parcial?lmDif(a,f):null;if(!x)return `<div class="lmok"><b>${lmFmt(l)} lançados</b> (término menos início)</div>`;
+  return `<div class="${x.fora?'lmw':'lmok'}"><b>${lmFmt(l)} lançados</b> · ${x.p.fonte} previa ${lmFmt(x.p.v)} (${x.d>=0?'+':''}${Math.round(x.pc)}%)${x.fora?`<br>Diferença acima de ${LM_TOL}%: explique o motivo abaixo.`:''}</div>`}}
+/* seção de cada fase: justificativa e trajeto no mapa */
+function lmSecao(a,f){if(!a||a.parcial||!['rua','interno'].includes(f))return '';const D=ui.rf,k=f+':just',M=a.lancMapa,mf=lmFaseMapa(a)===f;
+  const just=`<label class="f lmjust"><span>Justificativa da metragem ${lmPrev(a,f)?`<small class="muted">(obrigatória se passar de ${LM_TOL}% do previsto)</small>`:''}</span><textarea class="inp" rows="2" data-in="rfCampo" data-ch="rfRe" data-k="${k}" placeholder="Ex.: cliente mudou o ponto de entrada; desvio pela rua de trás">${esc(D.campos[k]||'')}</textarea></label>`;
+  const mapa=mf?`<section class="rfi lmsec ${M?'ok':''}"><div class="rfh"><b>Trajeto do lançamento</b><span class="chip ${M?'ok':''}">${M?'Atualizado no mapa':'Seguiu o KMZ'}</span></div>
+    ${M?`<small>${lmMapaTxt(M)}</small>`:anxKmz(a.etiqueta,'kmzL')?'<small class="muted">Se o cabo saiu do KMZ, desenhe a alteração de trajeto no mapa, como na vistoria: toque no cabo onde o desvio começa, o caminho feito e onde volta ao projeto.</small>':'<small class="muted">Projeto sem KMZ de lançamento anexado: não dá para desenhar a alteração. Explique na justificativa.</small>'}
+    ${anxKmz(a.etiqueta,'kmzL')?`<button class="btn wide" data-act="lmAbrir" data-id="${a.id}">${M?'Ver ou editar no mapa':'Mudou o trajeto? Desenhar alteração no mapa'}</button>`:''}</section>`:'';
+  return just+mapa}
+const lmMapaTxt=M=>{const A=M.alt||[];return `${A.length} ${A.length===1?'alteração de trajeto':'alterações de trajeto'}: projeto ${lmFmt(M.mNao||0)} → executado ${lmFmt(M.mNovo||0)} (${(M.mNovo||0)-(M.mNao||0)>=0?'+':''}${lmFmt((M.mNovo||0)-(M.mNao||0))})`+(A.length?' · '+[...new Set(A.map(a=>a.motivo))].map(esc).join('; '):'')+(M.obs?' · '+esc(M.obs):'')};
+/* status do relatório: reservas com metragem e espinada; justificativa quando passa de 10% */
+const lmRsv=k=>/:reserva$/.test(k);
+{const _s=fotoStatus;fotoStatus=function(a){const r=_s.apply(this,arguments),D=ui.rf;if(!D||!a||a.parcial)return r;const I=itensFoto(a);
+  I.filter(i=>lmRsv(i.k)&&!r.falta.includes(i)&&(D.fotos[i.k]||[]).length).forEach(i=>{const n=(D.fotos[i.k]||[]).length;let ok=true;for(let x=0;x<n;x++){if(!(lmNum(D.campos[i.k+':'+x+':m'])>0)||!D.campos[i.k+':'+x+':esp'])ok=false}if(!ok){r.feitos--;r.falta.push(Object.assign({},i,{nome:i.nome+': metragem e espinada de cada reserva'}))}});
+  lmFasesL(a).forEach(f=>{const x=lmDif(a,f);if(x&&x.fora&&!String(D.campos[f+':just']||'').trim()){r.total++;r.falta.push({k:f+':just',nome:`Justificativa da metragem (${faseN(f)})`})}});return r}}
+/* campos de cada reserva */
+function rsvCampos(i,fs){const D=ui.rf;return `<div class="rsvl">${fs.map((u,x)=>{const km=i.k+':'+x+':m',ke=i.k+':'+x+':esp',e=D.campos[ke]||'';return `<div class="rsv"><b>Reserva ${x+1}</b><label class="f" style="margin:0"><span>Metragem (m)</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-ch="rfRe" data-k="${km}" value="${esc(D.campos[km]||'')}" placeholder="Ex.: 20"></label><div class="f" style="margin:0"><span>Espinada?</span><div class="rsvyn"><button type="button" class="${e==='s'?'on':''}" data-act="rsvEsp" data-k="${ke}" data-v="s" aria-pressed="${e==='s'}">Sim</button><button type="button" class="${e==='n'?'on n':''}" data-act="rsvEsp" data-k="${ke}" data-v="n" aria-pressed="${e==='n'}">Não</button></div></div></div>`}).join('')}</div>`}
+Object.assign(ACT,{rsvEsp:el=>{const D=ui.rf;if(!D)return;D.campos[el.dataset.k]=el.dataset.v;salvarRascunhoFoto();render()}});
+/* apagar foto de reserva: os campos andam junto */
+{const _d=ACT.rfDel;ACT.rfDel=el=>{const D=ui.rf,k=el.dataset.k;if(D&&lmRsv(k)){const n=(D.fotos[k]||[]).length,i=+el.dataset.i;for(let x=i;x<n-1;x++){['m','esp'].forEach(c=>{D.campos[k+':'+x+':'+c]=D.campos[k+':'+(x+1)+':'+c]||''})}['m','esp'].forEach(c=>delete D.campos[k+':'+(n-1)+':'+c])}return _d(el)}}
+/* PDF: linhas do resumo */
+function lmPdfLinhas(a,D,I){const out=[];if(a.parcial)return out;
+  lmFasesL(a).forEach(f=>{const x=lmDif(a,f);if(x){out.push([faseN(f)+': previsto ('+x.p.fonte+')',lmFmt(x.p.v)]);out.push([faseN(f)+': diferença',`${x.d>=0?'+':''}${lmFmt(x.d)} (${x.d>=0?'+':''}${Math.round(x.pc)}%)${x.fora?' · acima de '+LM_TOL+'%':''}`])}
+    const j=String(D.campos[f+':just']||'').trim();if(j)out.push([faseN(f)+': justificativa da metragem',j])});
+  I.filter(i=>lmRsv(i.k)).forEach(i=>{const n=(D.fotos[i.k]||[]).length;for(let x=0;x<n;x++){const e=D.campos[i.k+':'+x+':esp'];out.push([`${faseN(i.f)}: reserva ${x+1}`,`${D.campos[i.k+':'+x+':m']||'—'} m · ${e==='s'?'espinada':e==='n'?'NÃO espinada':'—'}`])}});
+  const M=a.lancMapa;if(M)out.push(['Trajeto atualizado no mapa',lmMapaTxt(M).replace(/&[a-z#0-9]+;/g,' ')]);return out}
+/* tela do relatório: mapa toma o lugar quando aberto */
+{const _f=fotoView;fotoView=function(a){if(ui.lm&&ui.lm.ag===a.id)return lmView(a);const x=arguments;return lmNomes(a,()=>_f.apply(this,x))}}
+{const _p=pdfFotos;pdfFotos=function(a){const x=arguments;return lmNomes(a,()=>_p.apply(this,x))}}
+{const _i=itensFoto;itensFoto=function(a){const I=_i.apply(this,arguments);if(!lmComb(a))return I;const rua=new Set(I.filter(i=>i.f==='rua').map(i=>i.id));return I.filter(i=>!(i.f==='interno'&&rua.has(i.id)))}}
+
+/* ---------- mapa do trajeto: mesma alteração de trajeto da vistoria ----------
+   1. toque no cabo onde o desvio começa; 2. toque o caminho feito, poste a poste; 3. toque no cabo onde volta ao projeto e conclua.
+   O trecho do projeto que foi substituído fica tracejado em cinza; o executado, na cor da vistoria. Cada alteração tem motivo. */
+const LM={map:null,LY:{},M:null,R:null,nome:''};
+function lmHome(){let h=document.getElementById('lmHome');if(!h){h=document.createElement('div');h.id='lmHome';h.hidden=true;h.innerHTML='<div id="lmMap"></div>';document.body.appendChild(h)}return h}
+function lmMapaFim(){if(LM.map){try{LM.map.remove()}catch(e){}LM.map=null}const h=lmHome(),md=document.getElementById('lmMap');md.className='';md.innerHTML='';h.appendChild(md)}
+const lmLen=c=>{let s=0;for(let i=1;i<c.length;i++)s+=klHav(c[i-1],c[i]);return s};
+async function lmAbrirMapa(a,ro){await vtLib();const x=anxKmz(a.etiqueta,'kmzL');if(!x)throw new Error('o projeto não tem KMZ de lançamento anexado');
+  const M=vtModelo(await anxTexto(x));LM.M=M;LM.nome=x.nome;const S0=a.lancMapa||{};
+  LM.R={alt:(S0.alt||[]).filter(t=>M.cabos[t.li]).map(t=>({pts:t.ll.map(M.xy),li:t.li,m1:t.m1,m2:t.m2,motivo:t.motivo||'',postes:!!t.postes})),obs:S0.obs||'',draw:null,ro:!!ro}}
+const lmTol=()=>11*40075016*Math.cos(LM.M.lat0*Math.PI/180)/Math.pow(2,LM.map.getZoom()+8);
+function lmClique(ev){const R=LM.R,M=LM.M;if(!R||!R.draw||R.ro)return;const[x,y]=M.xy([ev.latlng.lat,ev.latlng.lng]),pr=vtProj(M,x,y);R.draw.err='';
+  if(!R.draw.pts.length){if(pr.d>lmTol()*2)R.draw.err='Toque em cima do cabo onde o desvio começa.';else{R.draw.pts.push(pr.xy);R.draw.li=pr.li;R.draw.m1=pr.m}}else R.draw.pts.push([x,y]);render()}
+Object.assign(ACT,{
+  lmAbrir:async el=>{const a=getAg(el.dataset.id);if(!a)return;ui.lm={ag:a.id,st:'carregando'};render();window.scrollTo(0,0);
+    try{await lmAbrirMapa(a);ui.lm={ag:a.id,st:'ok'};lmMapaFim();render()}catch(e){ui.lm={ag:a.id,st:'erro',msg:e.message||String(e)};render()}},
+  lmFechar:()=>{ui.lm=null;lmMapaFim();render();window.scrollTo(0,0)},
+  lmSalvar:()=>{const a=getAg(ui.lm.ag);if(!a)return;const R=LM.R,M=LM.M;if(R.draw){toast('Conclua ou cancele a alteração que está desenhando.','bad');return}
+    if(R.alt.some(t=>!t.motivo)){toast('Escolha o motivo de cada alteração.','bad');return}
+    if(!R.alt.length){delete a.lancMapa;save();ACT.lmFechar();toast('Sem alteração: o lançamento segue o KMZ.');return}
+    const alt=R.alt.map(t=>({ll:t.pts.map(p=>M.ll(p).map(v=>+v.toFixed(6))),li:t.li,m1:Math.round(t.m1*10)/10,m2:Math.round(t.m2*10)/10,proj:Math.round(t.m2-t.m1),exec:vtLen(t.pts),motivo:t.motivo,postes:t.postes?Math.max(0,t.pts.length-2):0}));
+    a.lancMapa={em:Date.now(),por:meNome(),kmz:LM.nome,alt,mNovo:alt.reduce((s,t)=>s+t.exec,0),mNao:alt.reduce((s,t)=>s+t.proj,0),obs:(R.obs||'').trim()};save();ACT.lmFechar();toast('Alteração de trajeto salva. O previsto da metragem foi ajustado.')}});
+Object.assign(IN,{lmObs:el=>{if(LM.R)LM.R.obs=el.value}});
+/* botões do mapa: mesmos da vistoria */
+document.addEventListener('click',ev=>{const b=ev.target.closest('[data-lm]');if(!b||!LM.R)return;const v=b.dataset.lm,R=LM.R,M=LM.M,d=b.dataset;
+  if(v==='tudo'){lmTudo();return}
+  if(v==='gps'){if(!navigator.geolocation){toast('Localização indisponível neste aparelho.','bad');return}navigator.geolocation.getCurrentPosition(p=>{if(LM.map)LM.map.setView([p.coords.latitude,p.coords.longitude],18)},()=>toast('Não foi possível obter a sua localização.','bad'),{enableHighAccuracy:true,timeout:8000});return}
+  if(v==='fundo'){try{localStorage.setItem('vtFundo',d.f)}catch(e){}lmFundo(d.f);render();return}
+  if(v==='dr'){R.draw={pts:[],postes:true,err:''};render();toast('Aproxime o mapa no trecho alterado.');return}
+  if(v==='drx'){R.draw=null;render();return}
+  if(v==='drz'){R.draw.pts.pop();R.draw.err='';render();return}
+  if(v==='drok'){const D=R.draw,last=D.pts[D.pts.length-1],pr=vtProj(M,last[0],last[1]);if(pr.d>30||pr.li!==D.li){D.err='O último ponto precisa ficar em cima do mesmo cabo, onde o caminho volta ao projeto.';render();return}
+    let pts=D.pts.slice(0,-1).concat([pr.xy]),m1=D.m1,m2=pr.m;if(m2<m1){[m1,m2]=[m2,m1];pts=pts.reverse()}R.alt.push({pts,li:D.li,m1,m2,motivo:'',postes:D.postes});R.draw=null;render();return}
+  if(v==='altrm'){R.alt.splice(+d.j,1);render();return}});
+document.addEventListener('change',ev=>{const t=ev.target,d=t.dataset||{};if(!LM.R)return;if(d.lmc==='drPost'&&LM.R.draw){LM.R.draw.postes=t.checked;return}if(d.lmc==='mot'){LM.R.alt[+d.j].motivo=t.value;render()}});
+function lmView(a){const V=ui.lm||{},back=`<button class="back" data-act="lmFechar">‹ Voltar para o relatório</button>`;
+  if(V.st==='carregando')return back+'<p class="muted pad">Abrindo o mapa…</p>';if(V.st==='erro')return back+`<div class="result bad">Não foi possível abrir o mapa: ${esc(V.msg||'')}</div>`;
+  const R=LM.R,M=LM.M,fn=fuFundoAtual(),fp=VT_ORDEM_FUNDO[(VT_ORDEM_FUNDO.indexOf(fn)+1)%VT_ORDEM_FUNDO.length];
+  const dr=R.draw?`<div class="vtdrw" role="status"><b>${!R.draw.pts.length?'1. Toque no cabo onde o desvio começa.':R.draw.pts.length<3?'2. Toque o caminho feito pela equipe, poste a poste.':'3. Toque no cabo onde volta ao projeto e conclua.'}</b><label class="vtdrp"><input type="checkbox" data-lmc="drPost" ${R.draw.postes?'checked':''}> Os pontos do caminho são postes</label><div class="vtdrb"><button type="button" data-lm="drz" ${R.draw.pts.length?'':'disabled'}>Desfazer</button><button type="button" data-lm="drx">Cancelar</button><button type="button" class="pri" data-lm="drok" ${R.draw.pts.length>=3?'':'disabled'}>Concluir</button></div>${R.draw.err?`<small class="vterr">${R.draw.err}</small>`:''}</div>`:'';
+  const alts=R.alt.length?`<div class="vtaltb">${R.alt.map((t,j)=>{const pm=Math.round(t.m2-t.m1),em=vtLen(t.pts),df=em-pm;return `<div class="vtalti"><div class="vtaltt"><span><b>Alteração ${j+1}</b> · ${esc(M.cabos[t.li].nome||'cabo')}<small>Projeto ${pm} m → executado ${em} m (${df>=0?'+':''}${df} m)${t.postes?` · ${Math.max(0,t.pts.length-2)} postes no caminho`:''}</small></span><button type="button" class="vtaltx" data-lm="altrm" data-j="${j}" aria-label="Excluir alteração ${j+1}">✕</button></div>
+     <select class="inp" data-lmc="mot" data-j="${j}"><option value="">Motivo da alteração…</option>${VT_MOT.map(m=>`<option ${t.motivo===m?'selected':''}>${m}</option>`).join('')}</select></div>`}).join('')}</div>`:'';
+  return `${back}<article class="tcard"><div class="tcband" style="background:${corFase(a)}"><span class="tck">ALTERAÇÃO DE TRAJETO</span><span class="tcf">${esc(cliN(a.etiqueta)||a.etiqueta)}</span></div>
+   <div class="tcb"><p class="muted" style="margin:0">KMZ ${esc(LM.nome)} · ${lmFmt(M.cabos.reduce((s,c)=>s+c.m,0))} de cabo no projeto.</p></div></article>
+   ${dr}<div class="vtmapw"><div id="lmSlot" class="lmslot"></div><div class="vtmt"><button type="button" data-lm="tudo">Ver tudo</button><button type="button" data-lm="gps">Perto de mim</button><button type="button" data-lm="fundo" data-f="${fp}">${VT_FUNDOS[fp].n}</button></div></div>
+   <div class="vtleg"><span><i class="lmdot kz"></i>Projeto (KMZ)</span><span><i class="lmdot nf"></i>Trecho substituído</span><span><i class="lmdot nv"></i>Executado</span></div>
+   ${R.draw?'':`<div class="vtmact"><button type="button" class="link" data-lm="dr">Desenhar alteração de trajeto</button></div>`}${alts}
+   <label class="f"><span>Observação</span><textarea class="inp" id="lmObs" rows="2" data-in="lmObs" placeholder="Opcional: detalhe da mudança">${esc(R.obs||'')}</textarea></label>
+   <button class="bigbtn" data-act="lmSalvar">Salvar alteração de trajeto</button>`}
+function lmFundo(f){const LL=window.L;if(!LM.map)return;LM.LY.fundo.clearLayers();const F=VT_FUNDOS[f];if(F&&F.u){LL.tileLayer(F.u,{maxNativeZoom:F.max,maxZoom:21,attribution:F.at,crossOrigin:true}).addTo(LM.LY.fundo);if(F.sob)LL.tileLayer(F.sob,{maxNativeZoom:F.max,maxZoom:21,crossOrigin:true}).addTo(LM.LY.fundo)}
+  const md=document.getElementById('lmMap');if(md)md.classList.toggle('vtliso',!F||!F.u)}
+function lmTudo(){const LL=window.L;if(!LM.map||!LM.M)return;LM.map.fitBounds(LL.latLngBounds(LM.M.cabos.flatMap(c=>c.ll).concat(LM.R.alt.flatMap(t=>t.pts.map(LM.M.ll)))),{padding:[18,18]})}
+function lmCriar(ro){const LL=window.L,div=document.getElementById('lmMap'),M=LM.M;if(!LL||!div||!M)return;const mp=LM.map=LL.map(div,{zoomControl:true,attributionControl:true,zoomSnap:.5,maxZoom:21,minZoom:3});mp.attributionControl.setPrefix(false);
+  LM.LY={fundo:LL.layerGroup().addTo(mp),base:LL.layerGroup().addTo(mp),alt:LL.layerGroup().addTo(mp),draw:LL.layerGroup().addTo(mp)};lmFundo(fuFundoAtual());
+  M.exist.forEach(l=>LL.polyline(l.ll,{color:'#d2691e',weight:12,opacity:.55,interactive:false}).addTo(LM.LY.base));
+  M.cords.forEach(l=>LL.polyline(l.ll,{color:'#9aa19c',weight:6,opacity:.9,interactive:false}).addTo(LM.LY.base));
+  M.cabos.forEach(l=>{LL.polyline(l.ll,{color:'#fff',weight:6,opacity:.9,interactive:false}).addTo(LM.LY.base);LL.polyline(l.ll,{color:vtCorCss(l.cor)||'#1e63d6',weight:3.5,opacity:1,interactive:false}).addTo(LM.LY.base)});
+  M.el.filter(e=>e.tipo==='poste').forEach(e=>LL.circleMarker(e.ll,{radius:4,color:'#1d2420',weight:1.5,fillColor:'#fff',fillOpacity:1,interactive:false}).addTo(LM.LY.base).bindTooltip(e.id,{direction:'top'}));
+  M.refs.forEach(r=>LL.marker(r.ll,{icon:LL.divIcon({className:'vtref',html:vtRefSVG(r.ref),iconSize:[22,22]}),keyboard:false,interactive:false}).addTo(LM.LY.base));
+  if(!ro)mp.on('click',lmClique);lmTudo();lmAtualiza()}
+function lmAtualiza(){const LL=window.L,R=LM.R,M=LM.M;if(!LM.map||!R)return;LM.LY.alt.clearLayers();
+  R.alt.forEach(t=>{const old=vtSubR(M,t.li,t.m1,t.m2).map(M.ll);LL.polyline(old,{color:'#f2f4f0',weight:7,interactive:false}).addTo(LM.LY.alt);LL.polyline(old,{color:'#7a837d',weight:3,dashArray:'5 5',interactive:false}).addTo(LM.LY.alt);LL.polyline(t.pts.map(M.ll),{color:VT_COR_EXEC,weight:4,interactive:false}).addTo(LM.LY.alt)});
+  LM.LY.draw.clearLayers();if(R.draw&&R.draw.pts.length){LL.polyline(R.draw.pts.map(M.ll),{color:VT_COR_EXEC,weight:3,dashArray:'6 5'}).addTo(LM.LY.draw);R.draw.pts.forEach(p=>LL.circleMarker(M.ll(p),{radius:5,color:VT_COR_EXEC,fillColor:'#fff',fillOpacity:1,weight:2}).addTo(LM.LY.draw))}
+  const md=document.getElementById('lmMap');if(md)md.classList.toggle('drawing',!!R.draw)}
+function lmPos(){const slot=document.getElementById('lmSlot')||document.getElementById('lmSlotG'),md=document.getElementById('lmMap');if(!md)return;
+  if(!slot){const h=lmHome();if(md.parentElement!==h){h.appendChild(md);if(LM.map){try{LM.map.remove()}catch(e){}LM.map=null}}return}
+  if(md.parentElement!==slot)slot.appendChild(md);if(!LM.map){if(window.L)lmCriar(slot.id==='lmSlotG')}else{LM.map.invalidateSize(false);lmAtualiza()}}
+{const _r=render;render=function(){const md=document.getElementById('lmMap'),h=document.getElementById('lmHome');if(md&&h&&md.parentElement!==h)h.appendChild(md);const o=_r.apply(this,arguments);try{lmPos()}catch(e){}return o}}
+/* gestão: ver no mapa e baixar o KML do trajeto */
+{const _cb=corrBloco;corrBloco=function(a){const h=_cb.apply(this,arguments),M=a&&a.lancMapa;if(!M)return h;
+  return `<div class="result warn" style="margin-top:10px"><b>Alteração de trajeto no lançamento</b> (${dtBR(M.em)}${M.por?' · '+esc(M.por):''}): ${lmMapaTxt(M)}.<div class="tools" style="margin-top:6px"><button class="btn sm" data-act="lmVerG" data-id="${a.id}">Ver no mapa</button><button class="btn sm" data-act="lmKml" data-id="${a.id}">Baixar KML do trajeto</button></div></div>`+h}}
+Object.assign(ACT,{
+  lmVerG:async el=>{const a=getAg(el.dataset.id);if(!a)return;openModal(`<h3>Alteração de trajeto do lançamento</h3><p class="muted">${esc(a.etiqueta)} · ${esc(cliN(a.etiqueta)||'')} · ${lmMapaTxt(a.lancMapa)}</p><div class="vtleg"><span><i class="lmdot kz"></i>Projeto (KMZ)</span><span><i class="lmdot nf"></i>Trecho substituído</span><span><i class="lmdot nv"></i>Executado</span></div><div id="lmSlotG" class="lmslot"></div><div class="actions"><button class="btn" data-act="lmFecharG">Fechar</button><button class="btn primary" data-act="lmKml" data-id="${a.id}">Baixar KML</button></div>`,'wide');
+    try{await lmAbrirMapa(a,true);lmMapaFim();lmPos()}catch(e){const s=document.getElementById('lmSlotG');if(s)s.innerHTML=`<p class="muted pad">Não foi possível abrir o mapa: ${esc(e.message||String(e))}</p>`}},
+  lmFecharG:()=>{lmMapaFim();closeModal()},
+  lmKml:el=>{const a=getAg(el.dataset.id),M=a&&a.lancMapa;if(!M)return;const c=l=>l.map(p=>`${p[1]},${p[0]},0`).join(' '),tx=v=>String(v||'').replace(/[<&]/g,' ');
+    const k=`<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Trajeto ${a.etiqueta}</name><Style id="ex"><LineStyle><color>ff9a9d0f</color><width>4</width></LineStyle></Style>
+<Folder><name>Alterações de trajeto (executado)</name>${(M.alt||[]).map((t,i)=>`<Placemark><name>Alteração ${i+1} - executado ${t.exec} m (projeto ${t.proj} m)</name><description>${tx(t.motivo)}${M.obs?' - '+tx(M.obs):''}</description><styleUrl>#ex</styleUrl><LineString><coordinates>${c(t.ll)}</coordinates></LineString></Placemark>`).join('')}</Folder></Document></kml>`;
+    const b=new Blob([k],{type:'application/vnd.google-earth.kml+xml'}),u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download=`trajeto_${a.etiqueta}.kml`;document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}});
+{const _c=closeModal;closeModal=function(){if(document.getElementById('lmSlotG'))lmMapaFim();return _c.apply(this,arguments)}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
