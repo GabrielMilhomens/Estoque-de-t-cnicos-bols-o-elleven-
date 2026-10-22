@@ -307,6 +307,7 @@ Não faz parte do projeto da agenda: roda no **outro projeto** Supabase da organ
   - **Rua + interno no mesmo agendamento = um lançamento só:** o relatório pede uma vez lote e metragem no início, lote e metragem no término, local de início e de término (e reservas, se houver). Usa as chaves da rua; a metragem fica gravada como total do lançamento.
   - **Metragem × previsto:** o relatório mostra os metros lançados e compara com o KMZ de lançamento (rua = aéreo + subterrâneo; interno = interno; rua + interno = soma) ou, sem KMZ e com uma fase só, com o ROI. Acima de 10% de diferença, pede justificativa obrigatória.
   - **Reservas técnicas:** cada foto é uma reserva, com metragem e "Espinada? Sim/Não" obrigatórios.
+  - **Fotos do lançamento (22/10):** campo obrigatório (pelo menos 1 foto) com Câmera e Galeria (várias de uma vez), depois do local de término; uma vez só em rua + interno; vale também para atividades já agendadas; sai no PDF. Não concluída (parcial) não pede.
   - **Alteração de trajeto no mapa (igual à vistoria):** com KMZ de lançamento anexado, o técnico desenha a alteração (toca no cabo onde o desvio começa, o caminho feito poste a poste e onde volta ao projeto) e escolhe o motivo (mesma lista da vistoria). Fica em `dados.lancMapa` (projeto × executado por alteração); o previsto da metragem se ajusta. A gestão vê no detalhe da atividade, com **Ver no mapa** e **Baixar KML do trajeto**.
   - **PDF:** traz previsto, diferença, justificativa, cada reserva e as alterações de trajeto.
   - **Correção:** os itens do relatório fotográfico apareciam como "Feito" mesmo faltando foto (o envio já travava certo); agora cada item mostra a situação real.
@@ -517,6 +518,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 22/10/2026 | **Fotos do lançamento** no relatório de lançamento: obrigatório, câmera ou galeria (várias fotos). Detalhes em 7. | `agenda.html` (sem SQL) |
 | 22/10/2026 | **Relatório de lançamento** (rua + interno como um lançamento só, metragem × KMZ com justificativa acima de 10%, reservas com metragem e espinada, alteração de trajeto no mapa igual à vistoria, PDF com resumo) e **relatório de fusões da extensão obrigatório** para seguir para a LPU. Detalhes em 7. | `agenda.html` (sem SQL) |
 | 22/10/2026 | **Relatório e LPU pendentes do mesmo cliente vão junto com a nova atividade**: ao iniciar, a pendência sai da lista do técnico e ele faz um relatório só e uma LPU com o total; aprovação mostra "Inclui dd/mm". Detalhes em 7. | `agenda.html` (sem SQL) |
 | 22/10/2026 | **Reforço de equipe**: mais de uma equipe na mesma atividade (o reforço não fica com fase; a principal finaliza), aviso às duas equipes, **passar para o reforço** pela gestão com relatório de saída, fase concluída em dobro bloqueada e correção "Registrar como reforço", alertas de LPU repetida no grupo. Detalhes em 7. | `agenda.html` (sem SQL) |

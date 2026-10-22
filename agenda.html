@@ -9052,6 +9052,10 @@ function lmPdfLinhas(a,D,I){const out=[];if(a.parcial)return out;
 {const _f=fotoView;fotoView=function(a){if(ui.lm&&ui.lm.ag===a.id)return lmView(a);const x=arguments;return lmNomes(a,()=>_f.apply(this,x))}}
 {const _p=pdfFotos;pdfFotos=function(a){const x=arguments;return lmNomes(a,()=>_p.apply(this,x))}}
 {const _i=itensFoto;itensFoto=function(a){const I=_i.apply(this,arguments);if(!lmComb(a))return I;const rua=new Set(I.filter(i=>i.f==='rua').map(i=>i.id));return I.filter(i=>!(i.f==='interno'&&rua.has(i.id)))}}
+/* 22/10: fotos do lançamento (várias, câmera ou galeria), em todo relatório de rua/interno */
+{const _i=itensFoto;itensFoto=function(a){const I=_i.apply(this,arguments);if(!a||a.parcial)return I;
+  lmFasesL(a).forEach(f=>{if(!I.some(i=>i.f===f))return;if(I.some(i=>i.k===f+':fotos'))return;let p=-1;I.forEach((i,x)=>{if(i.f===f)p=x});
+    I.splice(p+1,0,{k:f+':fotos',f,id:'fotos',nome:'Fotos do lançamento',tipo:'multi',campo:'',dica:'Fotos do cabo lançado, das ancoragens e do caminho. Tire na hora ou suba da galeria (pode escolher várias).'})});return I}}
 
 /* ---------- mapa do trajeto: mesma alteração de trajeto da vistoria ----------
    1. toque no cabo onde o desvio começa; 2. toque o caminho feito, poste a poste; 3. toque no cabo onde volta ao projeto e conclua.
