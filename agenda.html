@@ -9590,6 +9590,42 @@ Object.assign(ACT,{
 Object.assign(ACT,{grIrCli:el=>{const e=el.dataset.e;ui.cat='gtd';ui.tab='gRel';ui.gSel=null;ui.grQ=e;ui.grSit='';ui.grCat='';ui.grTec='';
   const L=G.ch.filter(c=>c.etiqueta===e).map(c=>gDiaDe(c)).sort();if(L.length&&L[0]<(ui.grIni||addD(hoje(),-30)))ui.grIni=L[0];ui.grOpen=ui.grOpen||{};ui.grOpen[e]=true;render();window.scrollTo(0,0)}});
 
+/* ---------- 23/10: ROI escaneado (PDF só com imagem) lido por OCR ----------
+   Quando o ROI vem impresso como imagem (ex.: "Microsoft Print to PDF"), o PDF não tem texto.
+   Agora a ferramenta desenha a página e lê a imagem com OCR (Tesseract, português) no próprio navegador,
+   monta as mesmas linhas e colunas que sairiam de um PDF com texto e segue o fluxo normal do ROI.
+   Nada é enviado para fora: o OCR roda no aparelho (só a biblioteca e o idioma são baixados na primeira vez). */
+const OCR_JS='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+let OCR_W=null;
+/* código SAP: 3 letras + 6 dígitos (o OCR às vezes troca 0 por O ou duplica um zero) */
+const OCR_COD=/^[A-Z]{3}[0-9OQD]{6,7}$/;
+const ocrCod=t=>OCR_COD.test(t)?t.slice(0,3)+t.slice(3).replace(/[OQD]/g,'0').slice(-6):t;
+const ocrLib=()=>window.Tesseract?Promise.resolve():new Promise((ok,er)=>{const s=document.createElement('script');s.src=OCR_JS;s.onload=ok;s.onerror=()=>er(new Error('Não foi possível carregar o leitor de imagem (OCR).'));document.head.appendChild(s)});
+const ocrMsg=t=>{const pv=$('roiPrev');if(pv)pv.innerHTML=`<p class="muted pad">${t}</p>`};
+async function ocrWorker(){await ocrLib();if(!OCR_W)OCR_W=Tesseract.createWorker('por',1,{logger:m=>{if(m.status==='recognizing text')ocrMsg(`PDF escaneado: lendo a imagem do ROI… ${Math.round((m.progress||0)*100)}%`)}}).catch(e=>{OCR_W=null;throw e});return OCR_W}
+/* palavras do OCR (em pixels) → linhas e células em pontos do PDF, no mesmo formato do pdfRead */
+function ocrLinhas(words,esc){
+  const W=words.filter(w=>w&&w.text&&w.text.trim()&&!/^[|\[\]_—–\-=~'"`.,:;]+$/.test(w.text.trim())&&(w.confidence==null||w.confidence>=30||OCR_COD.test(w.text.trim())))
+    .map(w=>({x:w.bbox.x0/esc,end:w.bbox.x1/esc,y:(w.bbox.y0+w.bbox.y1)/2/esc,h:(w.bbox.y1-w.bbox.y0)/esc,s:w.text.trim()})).sort((a,b)=>a.y-b.y);
+  const L=[];W.forEach(w=>{const l=L[L.length-1];if(l&&Math.abs(w.y-l.y)<=Math.max(3,Math.min(w.h,l.w[0].h)*0.6)){l.w.push(w);l.y=(l.y*(l.w.length-1)+w.y)/l.w.length}else L.push({y:w.y,w:[w]})});
+  const lines=[],rows=[];
+  L.forEach(l=>{const cells=[];l.w.sort((a,b)=>a.x-b.x).forEach(w=>{const c=cells[cells.length-1],gap=c?w.x-c.end:99,lim=Math.max(6,w.h*0.9);
+      if(c&&gap<lim){c.s+=' '+w.s;c.end=w.end}else cells.push({x:w.x,end:w.end,s:w.s})});
+    cells.forEach(c=>{c.s=c.s.replace(/\s+/g,' ').replace(/^\*\s*/,'* ').trim();c.s=c.s.replace(/\bR[S5]\s?(?=\d)/g,'R$ ');c.s=ocrCod(c.s).replace(/\bPONTA\s?([AB])\b/g,'PONTA $1')});rows.push(cells);lines.push(cells.map(c=>c.s).join('\t'))});
+  return{lines,rows}}
+async function pdfOcr(buf){
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise,out={lines:[],rows:[],ocr:true},n=Math.min(pdf.numPages,4);
+  ocrMsg('PDF escaneado: preparando o leitor de imagem (na primeira vez pode levar alguns segundos)…');const wk=await ocrWorker();
+  for(let i=1;i<=n;i++){const pg=await pdf.getPage(i),esc=3,vp=pg.getViewport({scale:esc}),cv=document.createElement('canvas');cv.width=Math.ceil(vp.width);cv.height=Math.ceil(vp.height);
+    const cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);await pg.render({canvasContext:cx,viewport:vp}).promise;
+    const {data}=await wk.recognize(cv);const r=ocrLinhas(data.words||[],esc);out.lines.push(...r.lines);out.rows.push(...r.rows)}
+  return out}
+{const _pr=pdfRead;pdfRead=async function(buf){const copia=buf&&buf.slice?buf.slice(0):buf,rd=await _pr(buf);if(rd&&rd.lines.join('').trim())return rd;
+  try{return await pdfOcr(copia)}catch(e){console.warn('ocr',e);return rd}}}
+/* aviso para conferir os números quando o ROI veio do OCR */
+{const _c=CH.roiPdf;CH.roiPdf=async el=>{const r=await _c(el);const pv=$('roiPrev');if(ui.roiTmp&&ui.roiTmp.__ocr&&pv&&!pv.querySelector('.ocrnote'))pv.insertAdjacentHTML('afterbegin','<p class="note ocrnote">ROI lido da imagem (PDF escaneado). Confira os valores e os materiais antes de avançar.</p>');return r}}
+{const _f=roiFromPdf;roiFromPdf=function(rd,nome){const r=_f(rd,nome);if(rd&&rd.ocr)r.__ocr=true;return r}}
+
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
