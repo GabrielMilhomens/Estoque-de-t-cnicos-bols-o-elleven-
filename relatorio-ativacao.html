@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Relatório de Ativação</title>
+<script>/* 22/10: validação de link em cliente já ativo usa este mesmo relatório com outro nome (?tipo=vlink) */
+var REL_VL=(function(){try{return new URLSearchParams(location.search).get('tipo')==='vlink'||window.__TIPO==='vlink'}catch(e){return false}})();
+var REL_NOME=REL_VL?'Relatório de Validação de Link':'Relatório de Entrega de Circuitos',REL_DATA=REL_VL?'Data da Validação':'Data de Entrega';
+if(REL_VL)document.title='Relatório de Validação de Link';
+document.addEventListener('DOMContentLoaded',function(){if(!REL_VL)return;var q=function(s){return document.querySelector(s)};
+ var c=q('#agCli');if(c&&c.textContent==='Relatório de entrega')c.textContent='Relatório de validação de link';
+ var b=q('.agband span');if(b)b.textContent='RELATÓRIO DE VALIDAÇÃO DE LINK';var bb=q('.agband b');if(bb)bb.textContent='Validação de link';
+ var h=q('.fhd .hi h1');if(h)h.textContent='Relatório de Validação de Link';var p=q('.fhd .hi p');if(p)p.textContent='Documento técnico de validação de link (cliente já ativo)';
+ var d=document.getElementById('f-data');var l=d&&d.parentNode.querySelector('label');if(l)l.firstChild.nodeValue='Data da Validação '});</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
@@ -788,8 +797,8 @@ function buildDocElement() {
   hdrWrap.appendChild(logoBox);
   const hdrTxt = document.createElement('div');
   hdrTxt.style.cssText = 'flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0;';
-  hdrTxt.innerHTML = `<div style="font-size:21px;font-weight:700;color:#3d3d3d;margin-bottom:4px;word-spacing:2px;white-space:normal">Relatório de Entrega de Circuitos</div>
-    <div style="font-size:12px;color:#777;word-spacing:2px;white-space:normal">Documento técnico de instalação e ativação</div>`;
+  hdrTxt.innerHTML = `<div style="font-size:21px;font-weight:700;color:#3d3d3d;margin-bottom:4px;word-spacing:2px;white-space:normal">${REL_NOME}</div>
+    <div style="font-size:12px;color:#777;word-spacing:2px;white-space:normal">${REL_VL?'Documento técnico de validação de link (cliente já ativo)':'Documento técnico de instalação e ativação'}</div>`;
   hdrWrap.appendChild(hdrTxt);
   root.appendChild(hdrWrap);
 
@@ -821,7 +830,7 @@ function buildDocElement() {
   infoGrid.appendChild(infoCell('Cliente', v('f-cliente')));
   infoGrid.appendChild(infoCell('Etiqueta / Designação', v('f-etiqueta')));
   infoGrid.appendChild(infoCell('Cidade / UF', cityUF));
-  infoGrid.appendChild(infoCell('Data de Entrega', dateFmt));
+  infoGrid.appendChild(infoCell(REL_DATA, dateFmt));
   infoGrid.appendChild(infoCell('Endereço Completo', v('f-end'), true));
   infoGrid.appendChild(infoCell('Técnico Responsável', v('f-tecnico')));
   infoGrid.appendChild(infoCell('Link Redundante', hasR ? 'Sim' : 'Não'));
@@ -964,7 +973,7 @@ function buildDocElement() {
   /* ── FOOTER ── */
   const foot = document.createElement('div');
   foot.style.cssText = 'border-top:1px solid #d4ddd8;padding:8px 22px;display:flex;justify-content:space-between;font-size:9px;color:#999;background:#f7faf8';
-  foot.innerHTML = `<span>Relatório de Entrega de Circuitos</span><span>Gerado em ${dateStr}</span>`;
+  foot.innerHTML = `<span>${REL_NOME}</span><span>Gerado em ${dateStr}</span>`;
   root.appendChild(foot);
 
   return root;
@@ -994,7 +1003,7 @@ async function doPDF() {
   const etiqueta = (document.getElementById('f-etiqueta').value||'').replace(/\s+/g,'_');
   const dataVal = document.getElementById('f-data').value; // yyyy-mm-dd
   const dataFmt = dataVal ? dataVal.split('-').reverse().join('-') : '';
-  const nameParts = [cliente, etiqueta, dataFmt].filter(Boolean);
+  const nameParts = [REL_VL?'Validacao_de_link':'', cliente, etiqueta, dataFmt].filter(Boolean);
   const fileName = nameParts.join('_');
   showSpinner('Preparando documento...');
   const el = buildDocElement();
@@ -1253,6 +1262,26 @@ document.getElementById('modal').addEventListener('click', e => {
     tot++;try{if(($('f-sig-nome')||{}).value&&!sigPad.isEmpty())ok++}catch(e){}
     $('agProgT').textContent=ok+' de '+tot;$('agProgB').style.width=(tot?Math.round(ok/tot*100):0)+'%'}
   prog();setInterval(prog,1500);
+})();
+</script>
+<script id="dados-da-atividade">
+/* 22/10: aberto pela atividade (?ag=), os dados do circuito já vêm preenchidos: aparecem num resumo, sem precisar digitar.
+   "Corrigir" mostra os campos para ajustar algum dado. */
+(function(){var P=new URLSearchParams(location.search);if(!P.get('ag')&&!window.__DEMO_ATIV)return;
+  window.addEventListener('load',function(){var $=function(i){return document.getElementById(i)},st=$('step-1');if(!st)return;var g=st.querySelector('.g2');if(!g)return;
+    if(!$('f-uf').value)$('f-uf').value='SP';
+    var ids=[['f-cliente','Cliente'],['f-etiqueta','Etiqueta'],['f-cidade','Cidade'],['f-uf','UF'],['f-end','Endereço'],['f-data',typeof REL_DATA!=='undefined'?REL_DATA:'Data'],['f-tecnico','Técnico']];
+    var falta=ids.filter(function(x){return (x[0]==='f-cliente'||x[0]==='f-cidade'||x[0]==='f-data')&&!$(x[0]).value});
+    if(falta.length)return; /* faltou algo obrigatório: deixa os campos à vista */
+    var esc=function(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+    var dt=function(v){return v&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v.split('-').reverse().join('/'):v};
+    var box=document.createElement('div');box.className='agauto';
+    function desenha(){box.innerHTML='<div class="agauto-h"><b>Dados da atividade</b><button type="button" class="agauto-b">Corrigir</button></div><dl>'+ids.filter(function(x){return $(x[0]).value}).map(function(x){var v=$(x[0]).value;return '<div'+(x[0]==='f-end'?' class="s2"':'')+'><dt>'+x[1]+'</dt><dd>'+esc(x[0]==='f-data'?dt(v):v)+'</dd></div>'}).join('')+'</dl><small>Preenchido automaticamente com os dados da atividade.</small>';
+      box.querySelector('.agauto-b').onclick=function(){g.hidden=false;box.hidden=true;var f=$('f-cliente');if(f)f.focus()}}
+    desenha();g.hidden=true;g.parentNode.insertBefore(box,g);
+    var st2=document.createElement('style');st2.textContent='.agauto{border:1px solid #d9e6c6;background:#f6faef;border-radius:12px;padding:12px 14px;margin:6px 0 14px}.agauto-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.agauto-b{font:600 13px inherit;border:1px solid #c9d6b4;background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}.agauto dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:0}.agauto dl .s2{grid-column:1/-1}.agauto dt{font-size:12px;color:#6b7280;margin:0}.agauto dd{margin:0;font-weight:600;color:#1f2937;word-break:break-word}.agauto small{display:block;margin-top:8px;color:#6b7280;font-size:12px}';document.head.appendChild(st2);
+    
+  });
 })();
 </script>
 </body>

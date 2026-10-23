@@ -2039,7 +2039,7 @@ const LPU_REGRAS = {
 const LPU_CONTAS=Object.keys(LPU_REGRAS);
 const lpuDaConta=c=>{const r=LPU_REGRAS[c]||LPU_REGRAS[LPU_CONTAS[0]];return LPU.filter(it=>{const n=parseInt(it.cod.replace(/\D/g,''));return r.intervalos.some(x=>n>=x.inicio&&n<=x.fim)||r.especificos.includes(it.cod)})};
 const REL=[{k:'foto',n:'Relatório fotográfico'},{k:'entrega',n:'Relatório de entrega de circuito'}];
-const relsDe=a=>{if(a.parcial)return[{k:'parcial',n:'Relatório do que foi feito'}];const f=(a.fases||[a.fase]);return REL.filter(r=>r.k==='entrega'?f.includes('ativ'):(a.fotosReq||[]).some(k=>!String(k).startsWith('ext:'))).concat(f.includes('ext')?[{k:'fus',n:'Relatório de fusões da extensão'}]:[]).concat(f.includes('vist')?[{k:'vist',n:'Relatório de vistoria'}]:[])};
+const relsDe=a=>relsVl(a,relsDe0(a));const relsDe0=a=>{if(a.parcial)return[{k:'parcial',n:'Relatório do que foi feito'}];const f=(a.fases||[a.fase]);return REL.filter(r=>r.k==='entrega'?f.includes('ativ'):(a.fotosReq||[]).some(k=>!String(k).startsWith('ext:'))).concat(f.includes('ext')?[{k:'fus',n:'Relatório de fusões da extensão'}]:[]).concat(f.includes('vist')?[{k:'vist',n:'Relatório de vistoria'}]:[])};
 const FOTOS_LANC=[['lote_ini','Lote e metragem no início do lançamento','unica','lote'],['lote_fim','Lote e metragem no término do lançamento','unica','lote'],['reserva','Reservas técnicas','opcional',''],['local_ini','Local de início do lançamento','unica',''],['local_fim','Local de término do lançamento','unica','']];
 const FOTOS_EXT=[['sinal_ini','Nível de sinal na CEO/CTO de Ponto de acesso','unica','sinal'],['ceo_ini','CEO acomodada no início da extensão','unica',''],['sinal_fim','Nível de sinal na CEO/CTO de Ponto de derivação','unica','sinal'],['ceos','Todas as CEOs trabalhadas','multi','']];
 const fotosDaFase=k=>k==='rua'||k==='interno'?FOTOS_LANC:[];
@@ -3450,7 +3450,7 @@ const ACT={
     const p=pPor(a.etiqueta);if(rem.length)setTimeout(()=>toast(`${rem.length} anexo(s) excluído(s) automaticamente: ${rem.map(x=>x.nome).join(', ')}.`),3300);toast(a.fasesFin.length&&a.fasesFin.every(isExtra)?`Atividade concluída: ${a.fasesFin.map(k=>FCURTO[k]).join(', ')}.`:a.fasesFin.length?`Fase(s) finalizada(s): ${a.fasesFin.map(k=>FCURTO[k]).join(', ')}.${liberado(p)?' Cliente liberado para ativação.':''}`:'Atividade concluída, fases seguem em andamento.')},
   rel:async el=>{if(el.dataset.r==='foto'||el.dataset.r==='parcial'){const id=el.dataset.id;let d=null;try{d=await IDB.get('rf:'+id)}catch(e){}ui.rf=Object.assign({ag:id,fotos:{},campos:{},nao:false},d||{});ui.rf.ag=id;render();window.scrollTo(0,0);return}
     const a=getAg(el.dataset.id),p=pPor(a.etiqueta),c=S.comp[a.etiqueta]||{},i=p.inst||{};
-    const q=new URLSearchParams({ag:a.id,cliente:p.cliente||'',etiqueta:a.etiqueta,cidade:p.cidade||'',uf:i.uf||'',endereco:c.endereco||'',tecnico:tecN(a.tec),data:hoje()});
+    const q=new URLSearchParams({ag:a.id,cliente:p.cliente||'',etiqueta:a.etiqueta,cidade:p.cidade||'',uf:i.uf||'',endereco:c.endereco||'',tecnico:tecN(a.tec),data:hoje(),tipo:vlTipo(a)});
     toast('Abrindo o relatório…');await flushSync();location.href='relatorio-ativacao.html?'+q.toString()},
   relOk:async el=>{const a=getAg(el.dataset.id),ok=await checarRelatorio(a);if(ok){closeModal();render();toast('Relatório recebido. Agora é só encerrar a atividade.')}else toast(a.__relErr?'Não foi possível verificar o relatório: '+a.__relErr+'. Saia e entre de novo na ferramenta e tente outra vez.':'O PDF ainda não chegou. Se ele foi salvo no celular, toque em "Enviar o PDF salvo no celular".','bad')},
   relEnviar:el=>{const a=getAg(el.dataset.id);{const tx=notaAdmLer('a',a.id);if(tx)a.notaAdm={texto:tx,em:Date.now(),por:ME?ME.nome:''}}a.status='lpu';a.ts=a.ts||{};a.ts.relatorios=Date.now();save();render()},
@@ -4912,12 +4912,12 @@ Object.assign(ACT,{
   pgXlsx:()=>{const b=pBase(),vv=verValor()&&!S.semValor;
     const A=b.all.slice().sort((x,y)=>x.data.localeCompare(y.data)).map(a=>{const p=pPor(a.etiqueta),t=a.ts||{},l=S.lpus.filter(x=>x.ag===a.id).pop();
       const o={'Data':dBR(a.data),'Etiqueta':a.etiqueta,'Cliente':cliN(a.etiqueta)||'','Cidade':p.cidade||'','Topologia':p.topologia||'','Fases':fasesN(a),'Técnico':tecN(a.tec),'Vínculo':vinc(a.tec),'Situação':(ST[a.status]||[a.status])[0],
-        'Atrasada':a.data<b.T&&!FIM.includes(a.status)&&a.status!=='cancelada'?'Sim':'Não','Dentro da previsão':a.status==='concluida'?(dentroPrev(a)?'Sim':'Não'):'','Aguardando reagendamento':a.pendReag?'Sim':'Não',
+        'Retrabalho (validação de link em cliente ativo)':vlRetrab(a)?'Sim':'Não','Atrasada':a.data<b.T&&!FIM.includes(a.status)&&a.status!=='cancelada'?'Sim':'Não','Dentro da previsão':a.status==='concluida'?(dentroPrev(a)?'Sim':'Não'):'','Aguardando reagendamento':a.pendReag?'Sim':'Não',
         'Saída':xHr(t.desloc),'Chegada':xHr(t.chegada),'Início':xHr(t.inicio),'Conclusão':xHr(t.conclusao),'Relatórios enviados':xHr(t.relatorios),'Encerramento':xHr(t.encerramento),
         'Motivo (não concluída)':a.motivo||'','Cabo no relatório (m)':metrosAg(a)??'','LPU':l?(LST[l.status]||[l.status])[0]:''};
       if(vv)o['Valor da LPU (R$)']=l?xR(l.total):'';return o});
     const E=b.efi.map(({p,f,tot,ia})=>{const o={'Data da ativação':dBR(f.data),'Etiqueta':p.etiqueta,'Cliente':p.cliente||'','Cidade':p.cidade||'','Topologia':p.topologia||'','POP':p.pop||'','Equipamento de acesso':p.equip||'','Dias de execução (todas as fases)':tot,'Dias de execução (interno + ativação)':ia,'Ativado por':tecN(f.tec)};if(!S.semValor)o['Valor mensal (R$)']=xR(p.valor);return o}).sort((x,y)=>x['Data da ativação'].split('/').reverse().join('').localeCompare(y['Data da ativação'].split('/').reverse().join('')));
-    const K=[['Atividades agendadas',b.ags.length],['Circuitos entregues',b.ent.length],['Valor mensal entregue (R$)',S.semValor?'—':xR(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0))],['Concluídas dentro da previsão (%)',pct(b.dentro.length,b.conc.length)],['Dias de execução por circuito',b.mTot==null?'':+b.mTot.toFixed(1)],['Atividades em atraso',b.atras.length],['Aguardando reagendamento',S.ags.filter(a=>a.pendReag).length],['Atividades canceladas no período',b.canc],['Atividades não concluídas no período',b.nao.length]].map(([Indicador,Valor])=>({Indicador,Valor}));
+    const K=[['Atividades agendadas',b.ags.length],['Retrabalho (validação de link em cliente já ativo)',b.ags.filter(vlRetrab).length],['Circuitos entregues',b.ent.length],['Valor mensal entregue (R$)',S.semValor?'—':xR(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0))],['Concluídas dentro da previsão (%)',pct(b.dentro.length,b.conc.length)],['Dias de execução por circuito',b.mTot==null?'':+b.mTot.toFixed(1)],['Atividades em atraso',b.atras.length],['Aguardando reagendamento',S.ags.filter(a=>a.pendReag).length],['Atividades canceladas no período',b.canc],['Atividades não concluídas no período',b.nao.length]].map(([Indicador,Valor])=>({Indicador,Valor}));
     xlsxBaixar(`visao_geral_implantacao_${ui.pIni}_a_${ui.pFim}`,[['Indicadores',K],['Atividades',A],['Entregas',E],['Filtros',xFiltros({'Tela':'Painel de KPIs · Visão geral (Implantação)','Período':dBR(ui.pIni)+' a '+dBR(ui.pFim),'Atividades exportadas':A.length,'Entregas':E.length})]],A.length+' atividades exportadas.')},
   /* Mão de obra de terceiros: ROI x LPU executada */
   moXlsx:()=>{const M=moCalc(),inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim;
@@ -5901,7 +5901,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
    ${agSec('Anexos',anx.length?anx.length+(anx.length===1?' arquivo':' arquivos'):'',anx.map(x=>anxLinha(x,0)).join(''))}
    ${agSec('Histórico de alterações',(a.edicoes||[]).length+'',edHist)}
    ${corrBloco(a)}${trfBoxA(a,ro)}</div>
-   <div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${pdEd?`<button class="btn primary" data-act="agEditar" data-id="${a.id}">Editar</button>`:''}${agPodeAddFase(a)?`<button class="btn primary" data-act="agAddFase" data-id="${a.id}">Adicionar fase</button>`:''}${a.status==='agendada'&&!ro&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${ro?'':`${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button>`}</div>`)}});
+   ${vlAviso(a)}<div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${pdEd?`<button class="btn primary" data-act="agEditar" data-id="${a.id}">Editar</button>`:''}${agPodeAddFase(a)?`<button class="btn primary" data-act="agAddFase" data-id="${a.id}">Adicionar fase</button>`:''}${a.status==='agendada'&&!ro&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${ro?'':`${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button>`}</div>`)}});
 
 /* 4. Editar agendamento futuro e Replicar com a mesma tela do agendamento */
 function agFormDe(a,modo){const p=pPor(a.etiqueta)||{},fz=modo==='rep'?fasesOf(a).filter(k=>!faseFim(a.etiqueta,k)):fasesOf(a).slice(),nec=p.roi?necessidade(p,fz):[];
@@ -6131,7 +6131,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
    ${quick?`<div class="agquick" style="margin-top:12px">${quick}</div>`:''}
    <p class="lbl2">Fases do projeto</p><div class="cafp">${agPassos(p)}</div>${diasTrab(a)}
    ${etaGestao(t,'a',a.id,a.status==='deslocamento')}${hzH}${upH}${tiles}${edHist}${corrBloco(a)}${trfBoxA(a,ro)}</div>
-   <div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${pdEd?`<button class="btn primary" data-act="agEditar" data-id="${a.id}">Editar</button>`:''}${agPodeAddFase(a)?`<button class="btn primary" data-act="agAddFase" data-id="${a.id}">Adicionar fase</button>`:''}${a.status==='agendada'&&!ro&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${ro?'':`${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button>`}</div>`)},
+   ${vlAviso(a)}<div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${pdEd?`<button class="btn primary" data-act="agEditar" data-id="${a.id}">Editar</button>`:''}${agPodeAddFase(a)?`<button class="btn primary" data-act="agAddFase" data-id="${a.id}">Adicionar fase</button>`:''}${a.status==='agendada'&&!ro&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${ro?'':`${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button>`}</div>`)},
   caTile:el=>{const on=el.getAttribute('aria-pressed')==='true',box=el.closest('.agdt2');box.querySelectorAll('.catile').forEach(b=>b.setAttribute('aria-pressed','false'));box.querySelectorAll('.capn').forEach(x=>x.hidden=true);if(!on){el.setAttribute('aria-pressed','true');const pn=box.querySelector(`.capn[data-k="${el.dataset.k}"]`);if(pn)pn.hidden=false}}});
 const endCurtoA=(e,cid)=>{const s=String(e||'').split(/,|\s-\s/)[0].trim();return s||cid||''};
 
@@ -9445,7 +9445,30 @@ const REL_ORD=[['parcial','Relatório da não conclusão'],['foto','Relatório f
 function relBtnsAll(a){if(!a)return '';const L=[a].concat(typeof mgDe==='function'?mgDe(a):[]),varias=L.length>1;
   return L.map(x=>{const R=x.rel||{},dt=varias?' · '+dBR(x.data):'';
     return REL_ORD.map(([k,n])=>{const r=R[k];if(!r||!r.path)return '';const q=k==='foto'&&r.fotos?` (${r.fotos} fotos)`:'';
-      return `<button class="btn sm" data-act="relVer" data-p="${esc(r.path)}">${n}${q}${dt}</button>`}).join('')}).join('')}
+      return `<button class="btn sm" data-act="relVer" data-p="${esc(r.path)}">${k==='entrega'&&typeof vlRetrab==='function'&&vlRetrab(x)?'Relatório de validação de link':n}${q}${dt}</button>`}).join('')}).join('')}
+/* ---------- 22/10: validação de link em cliente já ativo = retrabalho ----------
+   Atividade com "Validação de link" (sem a fase de ativação) num cliente cuja ativação já foi concluída antes:
+   - conta como retrabalho nos KPIs (Painel › Visão geral: indicador e lista; planilha: linha e coluna);
+   - o técnico preenche o relatório de ativação, com o nome "Relatório de validação de link" (relatorio-ativacao.html?tipo=vlink);
+   - o detalhe da atividade avisa que é retrabalho. */
+function vlAtiv(a){if(!a||!a.etiqueta)return null;const f=faseFim(a.etiqueta,'ativ');return f&&f.id!==a.id?f:null}
+function vlRetrab(a){if(!a)return false;const fz=fasesOf(a);if(!fz.includes('vlink')||fz.includes('ativ'))return false;const f=vlAtiv(a);return !!f&&(f.data||'')<=(a.data||'9')}
+function relsVl(a,L){if(!a||a.parcial||!vlRetrab(a)||L.some(r=>r.k==='entrega'))return L;return [{k:'entrega',n:'Relatório de validação de link'}].concat(L)}
+const vlTipo=a=>vlRetrab(a)?'vlink':'';
+const vlAviso=a=>{if(!vlRetrab(a))return '';const f=vlAtiv(a);return `<div class="result warn" style="margin:10px 0 0"><b>Retrabalho:</b> cliente já ativado em ${dBR(f.data)}. Esta validação de link conta como retrabalho nos KPIs e pede o relatório de validação de link.</div>`};
+/* Histórico de clientes: o PDF da validação aparece com o nome certo */
+{const _h=h19ItensAg;h19ItensAg=function(a){const I=_h.apply(this,arguments);if(!vlRetrab(a))return I;
+  return I.map(i=>i.ti==='Entrega de circuito enviado'?Object.assign({},i,{ti:'Relatório de validação de link enviado'}):i)}}
+/* Painel › Visão geral */
+function vlLista(){return S.ags.filter(a=>a.status!=='cancelada'&&a.data>=ui.pIni&&a.data<=ui.pFim&&vlRetrab(a)).sort((x,y)=>String(y.data).localeCompare(String(x.data)))}
+{const _g=pGeral;pGeral=function(){let h=_g.apply(this,arguments);try{const L=vlLista(),b=pBase(),pc=b.ags.length?Math.round(L.length/b.ags.length*1000)/10:0;
+  const tile=`<div class="kpi ${L.length?'bad':''}"><b>${L.length}</b><span>Retrabalho · validação de link em cliente ativo${L.length?` (${String(pc).replace('.',',')}% das atividades)`:''}</span></div>`;
+  const i=h.indexOf('<div class="kpis">');if(i>=0){const j=h.indexOf('</div>\n',i)>=0?null:null;const k=h.indexOf('<section class="panel"><div class="secth"><h3>Agendamentos por dia');
+    const fimK=h.lastIndexOf('</div>',k);if(fimK>i)h=h.slice(0,fimK)+tile+h.slice(fimK)}
+  const lpuV=a=>{const l=S.lpus.find(x=>x.ag===a.id);return l&&!S.semValor?brl(l.total):'—'};
+  const sec=`<section class="panel vlret"><div class="secth"><h3>Retrabalho · validação de link em cliente já ativo</h3><span class="muted">${L.length?L.length+' no período':'Nenhum no período'}</span></div>
+   ${L.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Ativado em</th><th>Técnico</th><th>Situação</th><th class="r">LPU</th></tr></thead><tbody>${L.map(a=>`<tr><td>${dBR(a.data)}</td><td><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b><br><small class="muted">${esc(a.etiqueta)}${a.obs?' · '+esc(String(a.obs).slice(0,80)):''}</small></td><td>${dBR(vlAtiv(a).data)}</td><td>${esc(tecN(a.tec))}</td><td>${esc((ST[a.status]||[a.status])[0])}</td><td class="r">${lpuV(a)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Validação de link agendada para cliente que já tinha a ativação concluída entra aqui.</p>'}</section>`;
+  h+=sec}catch(e){console.warn('vlink',e)}return h}}
 
 /* ---------- 22/10: adicionar fase em atividade já iniciada e trava contra atividade duplicada ----------
    Antes, com o técnico já em campo, o Editar some e só sobra Replicar, que cria OUTRA atividade (foi o que gerou 3 cards
