@@ -1773,6 +1773,24 @@ b.bad{color:var(--bad,#a23b2a)}
 .afl{display:flex;flex-direction:column;gap:8px;margin:12px 0}
 .afl .chk{display:flex;gap:8px;align-items:center;font-size:15px}
 .afex{margin:8px 0 10px;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+/* 23/10: áreas (4 botões) e Transmissão */
+.catsw.c4{grid-template-columns:1fr 1fr}.catsw.c4 button{font-size:12.5px;line-height:1.15;padding:4px 3px;min-height:34px}
+.txtipos{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:14px}
+.txtipos button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;cursor:pointer;font:inherit;color:var(--ink)}
+.txtipos button b{font:600 15px Barlow,sans-serif}.txtipos button small{color:var(--muted);font-size:12.5px}
+.txtipos button[aria-pressed="true"]{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand) inset;background:var(--soft,var(--bg))}
+.txtipos button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.txnovo .f{margin-bottom:10px}.txpopinfo{margin:-4px 0 10px;font-size:13px}
+.gbox.txinfo{border-left:4px solid #245F80;display:flex;flex-direction:column;gap:3px}
+.txckl{display:flex;flex-direction:column;gap:8px}
+.txcki{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.txcki>span{font-weight:600;flex:1 1 180px}.txcki.nok{border-color:var(--bad)}.txcki .inp{flex-basis:100%}
+.txck{display:flex;gap:4px}.txck button{min-height:36px;padding:4px 10px}
+.txck button[aria-pressed="true"][data-v="nok"]{background:var(--bad);border-color:var(--bad);color:#fff}
+.txexph{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.txexpd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.txexpd dt{font-size:12px;color:var(--muted);margin:0}.txexpd dd{margin:0;font-weight:600;word-break:break-word}.txexpd dd.falta{color:var(--warn)}
+@media(max-width:600px){.txexpd{grid-template-columns:1fr}}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -8649,6 +8667,8 @@ function klbHtml(p){const b=klbProj(p),F=Object.keys(b.R);
    <p class="muted" style="margin:4px 0 0;font-size:12.5px">Histórico = valor realizado informado nas fases concluídas fora da ferramenta (pré-ferramenta). Saldo do projeto (estimado − realizado − previsão restante): <b style="color:${b.saldo<0?'var(--bad)':'var(--brand-ink)'}">${brl(b.saldo)}</b>. LPU de técnico CLT entra no realizado da fase, mas não consome o budget terceirizado.</p></div>`}
 {const _h=kleHtml;kleHtml=function(p){const h=_h.apply(this,arguments);return h.replace('<div class="klever">',klbHtml(p)+'<div class="klever">')}}
 /* painel do budget: previsão dos projetos em aberto, separada por métrica */
+/* 23/10: mão de obra do ROI (campo "Custo mão de obra" lido do ROI) */
+const klbMO=p=>{const f=p&&p.roi&&p.roi.fin;return f&&f.custoMO!=null&&f.custoMO!==''&&!isNaN(+f.custoMO)?+f.custoMO:null};
 function klbPainel(){if(!kcVe())return '';const L=S.previsao.filter(p=>p.etiqueta&&etapa(p)!=='entregue'),O=kcOrc();
   const N=[],V=[];L.forEach(p=>{if(kleUsa(p)){const b=klbProj(p);if(b.est||b.prev)N.push({p,b})}else{const t=kTrab(p),c=kcProj(p,t),Ls=S.lpus.filter(l=>l.etiqueta===p.etiqueta&&l.status!=='reprovada'),te=l=>tecT(l.tec)==='TERC';
     const v={p,prev:c.prev,aprov:Ls.filter(l=>te(l)&&l.status==='aprovada').reduce((s,l)=>s+(+l.total||0),0),aguard:Ls.filter(l=>te(l)&&l.status!=='aprovada').reduce((s,l)=>s+(+l.total||0),0),clt:Ls.filter(l=>!te(l)).reduce((s,l)=>s+(+l.total||0),0),hist:typeof foraVal==='function'?foraVal(p,['rua','interno','ext','ativ']):0,mot:klbMotivo(p),fraco:c.fraco};if(v.prev||v.aprov||v.aguard||v.clt||v.hist)V.push(v)}});
@@ -8658,9 +8678,9 @@ function klbPainel(){if(!kcVe())return '';const L=S.previsao.filter(p=>p.etiquet
   return `<section class="panel klbp"><div class="secth"><div><h3>Previsão dos projetos em aberto × budget</h3><span class="muted">O que ainda falta executar nos projetos do backlog, pela LPU. A LPU real de cada fase substitui a previsão dela.</span></div></div>
    <div class="kpis" style="margin:10px 0">${kp(brl(pN),`Previsto · métrica KMZ (${N.length} ${N.length===1?'projeto':'projetos'})`)}${kp(brl(pV),`Previsto · métrica antiga (${V.length} ${V.length===1?'projeto':'projetos'})`)}${kp(brl(s(N,'aprov')+s(V,'aprov')),'Realizado nesses projetos (LPU aprovada)','ok')}${s(N,'hist')+s(V,'hist')?kp(brl(s(N,'hist')+s(V,'hist')),'Realizado histórico (pré-ferramenta)'):''}${kp(O.tO?brl(saldo):'—',O.tO?'Saldo: budget disponível do mês − previsto':'Budget do mês não definido',O.tO&&saldo<0?'bad':'')}</div>
    <h4 class="klbh">Métrica nova: KMZ × LPU</h4>
-   <div class="tablewrap"><table class="klbt"><thead><tr><th>Projeto</th><th class="r">Estimado</th><th class="r">LPU aprovada</th><th class="r">LPU aguardando</th><th class="r">LPU CLT</th><th class="r">Histórico</th><th class="r">Previsão restante</th><th class="r">Saldo</th></tr></thead><tbody>
-   ${N.map(({p,b})=>`<tr><td>${cli(p)}<button class="linkbtn" data-act="kleAbrir" data-etq="${esc(p.etiqueta)}">ver estimativa</button></td><td class="r">${brl(b.est)}</td><td class="r">${brl(b.aprov)}</td><td class="r">${brl(b.aguard)}</td><td class="r">${brl(b.clt)}</td><td class="r">${brl(b.hist||0)}</td><td class="r"><b>${brl(b.prev)}</b></td><td class="r" style="color:${b.saldo<0?'var(--bad)':'inherit'}">${brl(b.saldo)}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhum projeto em aberto com KMZ de lançamento lido.</td></tr>'}</tbody>
-   ${N.length?`<tfoot><tr><td>Total</td><td class="r">${brl(s(N,'est'))}</td><td class="r">${brl(s(N,'aprov'))}</td><td class="r">${brl(s(N,'aguard'))}</td><td class="r">${brl(s(N,'clt'))}</td><td class="r">${brl(s(N,'hist'))}</td><td class="r">${brl(pN)}</td><td class="r">${brl(s(N,'saldo'))}</td></tr></tfoot>`:''}</table></div>
+   <div class="tablewrap"><table class="klbt"><thead><tr><th>Projeto</th><th class="r" title="Custo de mão de obra informado no ROI do projeto">Mão de obra (ROI)</th><th class="r">Estimado</th><th class="r">LPU aprovada</th><th class="r">LPU aguardando</th><th class="r">LPU CLT</th><th class="r">Histórico</th><th class="r">Previsão restante</th><th class="r">Saldo</th></tr></thead><tbody>
+   ${N.map(({p,b})=>`<tr><td>${cli(p)}<button class="linkbtn" data-act="kleAbrir" data-etq="${esc(p.etiqueta)}">ver estimativa</button></td><td class="r">${klbMO(p)==null?'<span class="muted">—</span>':brl(klbMO(p))}</td><td class="r">${brl(b.est)}</td><td class="r">${brl(b.aprov)}</td><td class="r">${brl(b.aguard)}</td><td class="r">${brl(b.clt)}</td><td class="r">${brl(b.hist||0)}</td><td class="r"><b>${brl(b.prev)}</b></td><td class="r" style="color:${b.saldo<0?'var(--bad)':'inherit'}">${brl(b.saldo)}</td></tr>`).join('')||'<tr><td colspan="9" class="muted">Nenhum projeto em aberto com KMZ de lançamento lido.</td></tr>'}</tbody>
+   ${N.length?`<tfoot><tr><td>Total</td><td class="r">${brl(N.reduce((a,x)=>a+(klbMO(x.p)||0),0))}</td><td class="r">${brl(s(N,'est'))}</td><td class="r">${brl(s(N,'aprov'))}</td><td class="r">${brl(s(N,'aguard'))}</td><td class="r">${brl(s(N,'clt'))}</td><td class="r">${brl(s(N,'hist'))}</td><td class="r">${brl(pN)}</td><td class="r">${brl(s(N,'saldo'))}</td></tr></tfoot>`:''}</table></div>
    <h4 class="klbh">Métrica antiga</h4>
    <div class="tablewrap"><table class="klbt"><thead><tr><th>Projeto</th><th>Por que</th><th class="r">LPU aprovada</th><th class="r">LPU aguardando</th><th class="r">LPU CLT</th><th class="r">Histórico</th><th class="r">Previsão restante</th></tr></thead><tbody>
    ${V.map(v=>`<tr><td>${cli(v.p)}</td><td>${esc(v.mot)}${v.fraco&&v.fraco.length?`<small>${esc(v.fraco[0])}</small>`:''}</td><td class="r">${brl(v.aprov)}</td><td class="r">${brl(v.aguard)}</td><td class="r">${brl(v.clt)}</td><td class="r">${brl(v.hist||0)}</td><td class="r"><b>${brl(v.prev)}</b></td></tr>`).join('')||'<tr><td colspan="7" class="muted">Nenhum projeto na métrica antiga.</td></tr>'}</tbody>
