@@ -1847,6 +1847,23 @@ body.krfull-on{overflow:hidden}
 .krext{border-top:1px dashed var(--line,#dfe3dc);margin:8px 0 4px;padding-top:8px}
 .krextr{font-size:13px;margin:4px 0 0}
 .krgb{font-size:12.5px;margin:2px 0 6px}
+
+/* 23/10: Base de previsão › Validação */
+.kvseg{display:inline-flex;gap:4px;margin:0 0 10px}
+.kvseg button{font:600 14px Barlow,sans-serif;border:1px solid var(--line,#dfe3dc);background:var(--bg,#f4f6f2);color:var(--ink,#1d2b1d);border-radius:10px;padding:7px 14px;cursor:pointer}
+.kvseg button[aria-pressed="true"]{background:var(--brand,#7cb342);border-color:var(--brand,#7cb342);color:var(--on-brand,#fff)}
+.kvl{display:grid;gap:10px;margin-top:8px}
+.kvc{background:var(--surface,#fff);border:1px solid var(--line,#dfe3dc);border-radius:12px;padding:12px 14px}
+.kvc.sel{border-color:var(--brand,#7cb342);box-shadow:0 0 0 2px rgba(124,179,66,.25)}
+.kvh{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px}.kvh h3{margin:0;font-size:16px}.kvh p{margin:2px 0 0;font-size:13px}
+.kvchips{display:flex;flex-wrap:wrap;gap:4px;align-items:flex-start}
+.kvk{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:10px 0 6px}
+.kvk div{background:var(--bg,#f4f6f2);border-radius:8px;padding:6px 8px}.kvk span{display:block;font-size:12px;color:var(--muted,#5b6b5b)}.kvk b{font-size:15px}
+.kvk .roi b{color:var(--brand-ink,#4b7d1a)}
+.kvn{font-size:12.5px;margin:2px 0 6px}
+.kva{display:flex;flex-wrap:wrap;gap:6px}
+@media(max-width:800px){.kvk{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#kvFull{position:fixed;inset:0;z-index:200;background:var(--bg,#f4f6f2);display:flex;flex-direction:column}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -10045,32 +10062,45 @@ Object.assign(CH,{krQ:el=>{const E=krEd(),g=el.dataset.g,k=el.dataset.k,v=krNum(
   if(/^add\|/.test(k)){const a=E[g].add[+k.split('|')[1]];if(a){if(g==='mat')a.qtd=v;else a.q=v}}else E[g].q[k]=v;krAplica();krRe()}});
 /* PDF do ROI */
 async function krBaixar(nome,blob){if(typeof window.__baixar==='function')return window.__baixar(nome,blob);const a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500)}
-async function krPdf(parte){parte=parte||'all';const W=ui.wiz,C=krCalc();if(!C)return;if(!window.jspdf){toast('O gerador de PDF ainda está carregando. Tente de novo.','bad');return}
-  const g=id=>{const e=$(id);return e?e.value.trim():''},r=ui.roiTmp||{},cli=g('rp_cliente')||r.cliente||'',etq=g('rp_etiqueta')||r.etiqueta||'',prot=g('rp_protocolo')||r.protocolo||'';
+/* retrato do ROI (o que vai para o PDF e fica guardado no projeto ao salvar) */
+function krSnap(){const W=ui.wiz,C=krCalc();if(!C)return null;const g=id=>{const e=$(id);return e?e.value.trim():''},r=ui.roiTmp||{},P=krPrecos();
+  const edM=C.itens.filter(i=>i.orig!=null||i.add!=null).length+C.rem.length,edO=C.mo.L.filter(x=>x.orig!=null||x.add!=null).length+((C.mo.rem)||[]).length;
+  return{origem:'kmz',em:Date.now(),por:meNome(),cliente:g('rp_cliente')||r.cliente||'',etiqueta:g('rp_etiqueta')||r.etiqueta||'',protocolo:g('rp_protocolo')||r.protocolo||'',
+    tp:C.tp,sw:C.G?C.G.sw.cod:'',km:C.G?C.G.km:null,nome:W.kr.nome||'',ext:W.kr.ext?{nome:W.kr.ext.nome,m:W.kr.ext.m,cx:W.kr.ext.cx}:null,cid:C.cid||'',
+    valor:C.valor,taxa:C.taxa,valorMat:C.valorMat,custoMO:C.custoMO,custoTotal:C.custoTotal,roiIdx:C.roiIdx,
+    itens:C.itens.map(i=>({cod:i.cod,desc:i.desc,tipo:i.tipo,qtd:i.qtd,un:i.un,vu:i.vu,vt:i.vt,memo:i.memo||'',aj:i.orig!=null?'qtd':i.add!=null?'add':''})),
+    rem:C.rem.map(i=>i.cod||i.desc),mo:{L:C.mo.L.map(x=>({fase:x.fase,cod:x.cod,desc:x.desc,q:x.q,u:x.u,v:x.v,regra:x.regra||'',aj:x.orig!=null?'qtd':x.add!=null?'add':''})),fraco:C.mo.fraco||[],fator:C.mo.fator||'comum',rem:(C.mo.rem||[]).map(x=>x.cod)},
+    edM,edO,av:(W.kr.M&&W.kr.M.av)||[],semPreco:C.semPreco.map(i=>i.cod||i.desc),precoEm:P&&P.em||null}}
+async function krPdf(parte){const s=krSnap();if(!s)return;s.em=null;return krPdfDe(s,parte)}
+/* PDF a partir do retrato (no cadastro ou na visão de validação) */
+async function krPdfDe(C,parte){parte=parte||'all';if(!window.jspdf){toast('O gerador de PDF ainda está carregando. Tente de novo.','bad');return}
+  const cli=C.cliente,etq=C.etiqueta,prot=C.protocolo,pdfRoi=C.origem==='pdf';
   const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'}),Wd=210,M=12,verde=[124,179,66],cinza=[90,100,90];let y=M;
-  const hoje=new Date(),dt=hoje.toLocaleDateString('pt-BR')+' '+hoje.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  doc.setFillColor(...verde);doc.rect(0,0,Wd,3,'F');y=12;doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(30,40,30);doc.text(parte==='mat'?'Lista de materiais do projeto':parte==='mo'?'Mão de obra estimada pela LPU':'ROI — Lista de materiais e mão de obra estimada',M,y);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...cinza);doc.text(`Net Turbo · Ferramenta de Gestão O&M · gerado pelo KMZ em ${dt} por ${meNome()}`,M,y+5);y+=11;
-  const kv=[['Cliente',cli||'—'],['Etiqueta',etq||'—'],['Protocolo',prot||'—'],['Topologia',C.tp==='gpon'?'GPON':`Ponto a ponto · switch ${C.G.sw.cod} · POP → cliente ${String(C.G.km).replace('.',',')} km`],['KMZ',(W.kr.nome||'—')+(W.kr.ext?' · extensão: '+W.kr.ext.nome:'')],['Cidade',C.cid||'—']];
+  const fdt=t=>{const d=new Date(t);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})};
+  doc.setFillColor(...verde);doc.rect(0,0,Wd,3,'F');y=12;doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(30,40,30);doc.text(parte==='mat'?'Lista de materiais do projeto':parte==='mo'?(pdfRoi?'Mão de obra do ROI':'Mão de obra estimada pela LPU'):(pdfRoi?'ROI — Lista de materiais e mão de obra':'ROI — Lista de materiais e mão de obra estimada'),M,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...cinza);
+  doc.text(`Net Turbo · Ferramenta de Gestão O&M · ${pdfRoi?'ROI importado do PDF':'ROI gerado pelo KMZ'}${C.em?` em ${fdt(C.em)}${C.por?' por '+C.por:''}`:''} · emitido em ${fdt(Date.now())} por ${meNome()}`,M,y+5);y+=11;
+  const kv=[['Cliente',cli||'—'],['Etiqueta',etq||'—'],['Protocolo',prot||'—'],['Topologia',C.tp==='gpon'?'GPON':C.tp==='ptp'?`Ponto a ponto${C.sw?' · switch '+C.sw:''}${C.km!=null?' · POP → cliente '+String(C.km).replace('.',',')+' km':''}`:(C.topologia||'—')],['KMZ',pdfRoi?(C.nome||'—'):(C.nome||'—')+(C.ext?' · extensão: '+C.ext.nome:'')],['Cidade',C.cid||'—']];
+  if(pdfRoi)kv[4][0]='ROI';
   doc.autoTable({startY:y,theme:'plain',styles:{fontSize:9,cellPadding:1.2},columnStyles:{0:{fontStyle:'bold',cellWidth:24,textColor:cinza},2:{fontStyle:'bold',cellWidth:24,textColor:cinza}},margin:{left:M,right:M},
     body:[[kv[0][0],kv[0][1],kv[1][0],kv[1][1]],[kv[2][0],kv[2][1],kv[3][0],kv[3][1]],[kv[4][0],kv[4][1],kv[5][0],kv[5][1]]]});y=doc.lastAutoTable.finalY+3;
-  if(parte==='all'){const res=[['Valor mensal',krBrl(C.valor)],['Taxa de instalação',krBrl(C.taxa)],['Valor materiais',krBrl(C.valorMat)],['Custo mão de obra (LPU)',krBrl(C.custoMO)],['Custo total',krBrl(C.custoTotal)],['ROI (meses)',C.roiIdx==null?'—':String(C.roiIdx).replace('.',',')]];
+  if(parte==='all'){const res=[['Valor mensal',krBrl(C.valor)],['Taxa de instalação',krBrl(C.taxa)],['Valor materiais',krBrl(C.valorMat)],[pdfRoi?'Custo mão de obra':'Custo mão de obra (LPU)',krBrl(C.custoMO)],['Custo total',krBrl(C.custoTotal)],['ROI (meses)',C.roiIdx==null||C.roiIdx===''?'—':String(C.roiIdx).replace('.',',')]];
   doc.autoTable({startY:y,head:[res.map(x=>x[0])],body:[res.map(x=>x[1])],theme:'grid',styles:{fontSize:9,halign:'center',cellPadding:2},headStyles:{fillColor:verde,textColor:255,fontStyle:'bold'},bodyStyles:{fontStyle:'bold'},margin:{left:M,right:M}});y=doc.lastAutoTable.finalY+7}
   const sec=t=>{if(y>270){doc.addPage();y=M+4}doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(30,40,30);doc.text(t,M,y);y+=2};
   const mat=t=>C.itens.filter(i=>i.tipo===t).map(i=>[i.cod||'—',i.desc,t,(+i.qtd).toLocaleString('pt-BR')+(i.un==='M'?' m':''),i.vu==null?'sem preço':krBrl(i.vu),i.vt==null?'—':krBrl(i.vt)]);
+  const tipos=[...new Set(C.itens.map(i=>i.tipo))].sort();
   if(parte!=='mo'){sec('Lista de materiais');
-  doc.autoTable({startY:y,head:[['Código SAP','Produto','Tipo','Qtd','Valor un.','Valor total']],body:mat('PONTA A').concat(mat('PONTA B')),foot:[['','','','','Total',krBrl(C.valorMat)]],theme:'striped',
+  doc.autoTable({startY:y,head:[['Código SAP','Produto','Tipo','Qtd','Valor un.','Valor total']],body:[].concat(...tipos.map(mat)),foot:[['','','','','Total',krBrl(C.valorMat)]],theme:'striped',
     styles:{fontSize:8,cellPadding:1.6},headStyles:{fillColor:[60,72,60]},footStyles:{fillColor:[235,242,228],textColor:20,fontStyle:'bold'},columnStyles:{0:{cellWidth:22},2:{cellWidth:18},3:{halign:'right',cellWidth:18},4:{halign:'right',cellWidth:22},5:{halign:'right',cellWidth:24}},margin:{left:M,right:M}});
   y=doc.lastAutoTable.finalY+7}
-  if(parte!=='mat'){sec('Mão de obra estimada pela LPU');
-  const mo=C.mo||{L:[]};doc.autoTable({startY:y,head:[['Fase','Código','Serviço','Como foi calculado','Qtd','Valor un.','Total']],body:mo.L.map(x=>[KLE_FASE[x.fase]||x.fase,x.cod,x.desc,x.regra||'',(+x.q).toLocaleString('pt-BR'),krBrl(x.u),krBrl(x.v)]),
+  if(parte!=='mat'){sec(pdfRoi?'Mão de obra do ROI':'Mão de obra estimada pela LPU');
+  const mo=C.mo||{L:[]};doc.autoTable({startY:y,head:[['Fase','Código','Serviço','Como foi calculado','Qtd','Valor un.','Total']],body:mo.L.map(x=>[KLE_FASE[x.fase]||x.fase||'',x.cod,x.desc,x.regra||'',(+x.q).toLocaleString('pt-BR'),krBrl(x.u),krBrl(x.v)]),
     foot:[['','','','','','Total',krBrl(C.custoMO)]],theme:'striped',styles:{fontSize:7.5,cellPadding:1.4},headStyles:{fillColor:[60,72,60]},footStyles:{fillColor:[235,242,228],textColor:20,fontStyle:'bold'},
     columnStyles:{0:{cellWidth:20},1:{cellWidth:17},3:{cellWidth:44,textColor:cinza},4:{halign:'right',cellWidth:12},5:{halign:'right',cellWidth:20},6:{halign:'right',cellWidth:22}},margin:{left:M,right:M}});
   y=doc.lastAutoTable.finalY+7}
-  const edM=C.itens.filter(i=>i.orig!=null||i.add!=null).length+C.rem.length,edO=((C.mo&&C.mo.L)||[]).filter(x=>x.orig!=null||x.add!=null).length+((C.mo&&C.mo.rem)||[]).length;
-  const notas=[].concat(parte!=='mat'?(C.mo.fraco||[]):[]).concat(parte!=='mo'&&edM?[`${edM} ${edM>1?'ajustes':'ajuste'} do projetista na lista de materiais (inclusão, exclusão ou quantidade).`]:[]).concat(parte!=='mat'&&edO?[`${edO} ${edO>1?'ajustes':'ajuste'} do projetista na mão de obra (inclusão, exclusão ou quantidade).`]:[]).concat(parte!=='mo'?(W.kr.M.av||[]):[]).concat(parte!=='mo'&&C.semPreco.length?[`Itens sem preço na tabela (entram com valor zero): ${C.semPreco.map(i=>i.cod||i.desc).join(', ')}.`]:[]);
+  const notas=[].concat(parte!=='mat'?((C.mo&&C.mo.fraco)||[]):[]).concat(parte!=='mo'&&C.edM?[`${C.edM} ${C.edM>1?'ajustes':'ajuste'} do projetista na lista de materiais (inclusão, exclusão ou quantidade).`]:[]).concat(parte!=='mat'&&C.edO?[`${C.edO} ${C.edO>1?'ajustes':'ajuste'} do projetista na mão de obra (inclusão, exclusão ou quantidade).`]:[]).concat(parte!=='mo'?(C.av||[]):[]).concat(parte!=='mo'&&C.semPreco&&C.semPreco.length?[`Itens sem preço na tabela (entram com valor zero): ${C.semPreco.join(', ')}.`]:[]).concat(pdfRoi?['ROI importado do PDF: valores unitários pela tabela de preços atual; a mão de obra é o valor informado no ROI, sem detalhamento.']:[]);
   if(notas.length){sec('Observações');doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...cinza);notas.forEach(n=>{const L=doc.splitTextToSize('• '+n,Wd-2*M);if(y+L.length*3.6>285){doc.addPage();y=M+4}doc.text(L,M,y+3);y+=L.length*3.6+1})}
-  const P=krPrecos();const np=doc.getNumberOfPages();for(let i=1;i<=np;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(150);doc.text(`Preços: último preço de entrada${P&&P.em?' (tabela de '+new Date(P.em).toLocaleDateString('pt-BR')+')':''} · Mão de obra: estimativa KMZ × LPU (${C.mo&&C.mo.fator==='critico'?'preço crítico':'preço comum'}) · Página ${i} de ${np}`,M,292)}
+  const pe=C.precoEm||(krPrecos()||{}).em;const np=doc.getNumberOfPages();for(let i=1;i<=np;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(150);doc.text(`Preços: último preço de entrada${pe?' (tabela de '+new Date(pe).toLocaleDateString('pt-BR')+')':''} · Mão de obra: ${pdfRoi?'valor do ROI':'estimativa KMZ × LPU ('+((C.mo&&C.mo.fator)==='critico'?'preço crítico':'preço comum')+')'} · Página ${i} de ${np}`,M,292)}
   await krBaixar(`${parte==='mat'?'Lista de materiais':parte==='mo'?'Mao de obra LPU':'ROI'} ${etq||cli||'projeto'}.pdf`,doc.output('blob'))}
 
 /* tela cheia para conferir e ajustar a lista de materiais e a mão de obra */
@@ -10087,8 +10117,16 @@ function krFull(){let o=document.getElementById('krFull');const W=ui.wiz,R=W&&W.
   const b=o.querySelector('.krfb');if(b)b.scrollTop=sc}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('krFull')){e.stopPropagation();ACT.krFecha()}},true);
 /* ao salvar: projeto com KMZ de extensão fica "com extensão" e guarda metros e caixas para a estimativa */
-{const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,R=W&&W.kr,ext=R&&R.ext,etq=ui.roiTmp&&ui.roiTmp.etiqueta;const o=_s.apply(this,arguments);
+{const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,R=W&&W.kr,ext=R&&R.ext,etq=ui.roiTmp&&ui.roiTmp.etiqueta,kmzRoi=!!(R&&R.M&&W.roiModo==='kmz'),snap=kmzRoi?krSnap():null,novo=!W.id;if(snap){snap.etiqueta=etq||snap.etiqueta;snap.cliente=(ui.roiTmp&&ui.roiTmp.cliente)||snap.cliente;snap.protocolo=(ui.roiTmp&&ui.roiTmp.protocolo)||snap.protocolo}const o=_s.apply(this,arguments);
+  {const p=S.previsao.find(x=>(W.id&&x.id===W.id)||(etq&&x.etiqueta===etq));if(p&&snap){snap.cid=p.cidade||snap.cid;p.roiKmz=snap;if(!p.kl||p.kl.roi){const q=Object.assign({},R.M.kq);p.kl={arq:snap.nome,em:snap.em,por:snap.por,ativ:klAtivDe(p.topologia),q,lido:q,av:[],roi:true}}try{save()}catch(e){}if(typeof kvPos==='function')kvPos(p,novo)}}
   if(ext){const p=S.previsao.find(x=>(W.id&&x.id===W.id)||(etq&&x.etiqueta===etq));if(p){p.semExt=false;p.klExt={m:ext.m,cx:ext.cx,nome:ext.nome};try{save()}catch(e){}}}return o}}
+
+/* previsão de custo (Budget › métrica KMZ × LPU): projeto com ROI pelo KMZ usa a mão de obra do ROI
+   (com os ajustes do projetista) e soma o deslocamento calculado com a cidade e os dias previstos atuais */
+{const _k=kleCalc;kleCalc=function(p){const r=_k.apply(this,arguments),sn=p&&p.roiKmz;if(!sn||!sn.mo||!Array.isArray(sn.mo.L)||!r)return r;
+  const des=r.L.filter(x=>x.grupo==='Deslocamento'),base=sn.mo.L.filter(x=>!/^deslocamento/i.test(x.desc||'')).map(x=>Object.assign({grupo:'ROI'},x,{regra:(x.regra||'')+' · do ROI'}));
+  const L=base.concat(des),porF={};L.forEach(x=>porF[x.fase]=Math.round(((porF[x.fase]||0)+x.v)*100)/100);
+  return Object.assign({},r,{L,porF,tot:Math.round(L.reduce((s,x)=>s+x.v,0)*100)/100,fraco:r.fraco.filter(f=>/desloc/i.test(f)),doRoi:true})}}
 
 /* ---------- 23/10: previsão de dias por fase com acesso próprio ----------
    "Incluir e editar projetos" (a_projeto) não dá mais acesso aos dias previstos de rua, interno, extensão e ativação:
@@ -10096,6 +10134,65 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElement
 {const _c=CH.cell;CH.cell=function(el){const f=el.dataset.f,dias=BDIAS.includes(f),ok=dias?pode('a_prevDias'):(pode('a_projeto')&&pode('a_valor'));
   if(!ok){const p=S.previsao.find(x=>x.id===el.dataset.id);if(p)el.value=p[f]??'';toast(dias?'A previsão de dias é preenchida pelo O&M (acesso Previsão de dias por fase).':'Sem acesso para editar projetos.','bad');return}
   return _c.apply(this,arguments)}}
+
+/* ---------- 23/10: VISÃO DE VALIDAÇÃO DOS PROJETOS (Base de previsão › Validação) ----------
+   Para o time de validação (inclui e edita projetos): depois de incluir, vê cada projeto com o resumo do ROI
+   e baixa os PDFs (ROI completo, lista de materiais, mão de obra). Projeto com ROI pelo KMZ usa o retrato salvo
+   no cadastro (p.roiKmz); projeto com ROI importado do PDF monta o retrato pelos itens do ROI e a tabela de preços. */
+const kvData=t=>t?new Date(t).toLocaleDateString('pt-BR')+' '+new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
+function kvSnap(p){if(p.roiKmz)return Object.assign(JSON.parse(JSON.stringify(p.roiKmz)),{cliente:p.cliente||p.roiKmz.cliente,etiqueta:p.etiqueta,protocolo:p.protocolo||p.roiKmz.protocolo,cid:p.cidade||p.roiKmz.cid});
+  if(!p.roi)return null;const f=p.roi.fin||{},num=v=>v==null||v===''?null:+v;
+  const itens=(p.roi.itens||[]).filter(i=>!isMO(i)).map(i=>{const pr=krPr(i.cod);const vu=pr?pr.v:null;return{cod:i.cod||'',desc:i.desc,tipo:(i.tipo||'').toUpperCase()||'—',qtd:+i.qtd||0,un:/^m$/i.test(i.un||'')?'M':'UN',vu,vt:vu==null?null:Math.round(vu*(+i.qtd||0)*100)/100}});
+  const mo=num(f.custoMO);
+  return{origem:'pdf',em:null,por:'',cliente:p.cliente,etiqueta:p.etiqueta,protocolo:p.protocolo,tp:normK(p.topologia||'')==='gpon'?'gpon':normK(p.topologia||'')==='ponto a ponto'?'ptp':'',topologia:p.topologia,nome:p.roi.nome||'',cid:p.cidade||'',
+    valor:+p.valor||0,taxa:num(f.taxa)||0,valorMat:num(f.valorMat)!=null?num(f.valorMat):Math.round(itens.reduce((s,i)=>s+(i.vt||0),0)*100)/100,custoMO:mo||0,custoTotal:num(f.custoTotal)||0,roiIdx:num(f.roiIdx),
+    itens,mo:{L:mo?[{fase:'',cod:'—',desc:'Mão de obra informada no ROI',q:1,u:mo,v:mo,regra:''}]:[],fraco:[]},edM:0,edO:0,av:[],semPreco:itens.filter(i=>i.vu==null).map(i=>i.cod||i.desc)}}
+const kvOrdem=p=>(p.roiKmz&&p.roiKmz.em)||p.criadoEm||0;
+function viewBaseVal(){const q=(ui.baseQ||'').toLowerCase(),F=ui.kvF||'todos',val=pode('a_valor');
+  const all=S.previsao.filter(p=>!q||[p.protocolo,p.etiqueta,p.cliente,p.topologia,p.cidade].join(' ').toLowerCase().includes(q));
+  const grp={todos:all,kmz:all.filter(p=>p.roiKmz),pdf:all.filter(p=>!p.roiKmz&&p.roi),sem:all.filter(p=>!p.roi&&!p.roiKmz),inc:all.filter(p=>baseFalta(p).length)};
+  const L=(grp[F]||all).slice().sort((a,b)=>kvOrdem(b)-kvOrdem(a));
+  const R=v=>val?krBrl(v):'—';
+  const card=p=>{const s=kvSnap(p),fl=baseFalta(p),ori=p.roiKmz?'<span class="chip ok">ROI pelo KMZ</span>':p.roi?'<span class="chip">ROI do PDF</span>':'<span class="chip warn">Sem ROI</span>',sel=ui.kvSel===p.id;
+    return `<article class="kvc${sel?' sel':''}" id="kv_${p.id}"><div class="kvh"><div><h3><b>${esc(p.etiqueta||'—')}</b> · ${esc(p.cliente||'Cliente não informado')}</h3>
+      <p class="muted">${[p.protocolo&&'Protocolo '+esc(p.protocolo),esc(p.topologia||''),esc(p.cidade||''),p.pop&&'POP '+esc(p.pop)].filter(Boolean).join(' · ')}${p.roiKmz?` · incluído em ${kvData(p.roiKmz.em)}${p.roiKmz.por?' por '+esc(p.roiKmz.por):''}`:''}</p></div>
+      <div class="kvchips">${ori}${fl.length?`<span class="chip warn" title="${esc(fl.join(', '))}">Falta: ${esc(fl.map(x=>x.replace(/^Sem /,'').replace('previsão de dias','dias')).join(', '))}</span>`:'<span class="chip ok">Cadastro completo</span>'}</div></div>
+      ${s?`<div class="kvk"><div><span>Valor mensal</span><b>${R(s.valor)}</b></div><div><span>Taxa de instalação</span><b>${R(s.taxa)}</b></div><div><span>Materiais</span><b>${R(s.valorMat)}</b></div><div><span>Mão de obra${s.origem==='kmz'?' (LPU)':''}</span><b>${R(s.custoMO)}</b></div><div><span>Custo total</span><b>${R(s.custoTotal)}</b></div><div class="roi"><span>ROI (meses)</span><b>${s.roiIdx==null||s.roiIdx===''?'—':String(s.roiIdx).replace('.',',')}</b></div></div>
+      ${s.origem==='kmz'&&(s.edM||s.edO||s.ext)?`<p class="muted kvn">${[s.ext&&`com extensão (${kmN0(Math.round(s.ext.m))} m, ${s.ext.cx} ${s.ext.cx===1?'caixa':'caixas'})`,s.edM&&`${s.edM} ${s.edM>1?'ajustes':'ajuste'} na lista de materiais`,s.edO&&`${s.edO} ${s.edO>1?'ajustes':'ajuste'} na mão de obra`].filter(Boolean).join(' · ')}</p>`:''}
+      <div class="kva"><button class="btn sm primary" data-act="kvPdf" data-id="${p.id}" data-p="all">PDF do ROI completo</button><button class="btn sm" data-act="kvPdf" data-id="${p.id}" data-p="mat">PDF da lista de materiais</button><button class="btn sm" data-act="kvPdf" data-id="${p.id}" data-p="mo">PDF da mão de obra</button><button class="btn sm" data-act="kvVer" data-id="${p.id}">Ver materiais e mão de obra</button>${pode('a_projeto')?`<button class="btn sm" data-act="wiz" data-id="${p.id}">Editar cadastro</button>`:''}</div>`
+      :`<p class="muted kvn">Projeto sem ROI. ${pode('a_projeto')?'Use Editar cadastro para gerar pelo KMZ ou importar o PDF.':''}</p>${pode('a_projeto')?`<div class="kva"><button class="btn sm" data-act="wiz" data-id="${p.id}">Editar cadastro</button></div>`:''}`}</article>`};
+  return `<div class="toolbar"><div><h2>Base de previsão</h2><p class="muted">Validação: confira cada projeto incluído e baixe os PDFs do ROI, da lista de materiais e da mão de obra.</p></div>
+   <div class="tools"><input class="inp" type="search" id="baseQ" placeholder="Buscar etiqueta, protocolo, cliente ou cidade" data-in="baseQ" value="${esc(ui.baseQ||'')}">${pode('a_projeto')&&pode('a_valor')?'<button class="btn primary" data-act="wiz" data-id="">Incluir novo projeto</button>':''}</div></div>
+   ${kvSeg()}
+   <div class="chips" role="group" aria-label="Filtrar projetos" style="margin-top:0">${[['todos','Todos'],['kmz','ROI pelo KMZ'],['pdf','ROI do PDF'],['sem','Sem ROI'],['inc','Cadastro incompleto']].map(([k,n])=>`<button data-act="kvF" data-v="${k}" aria-current="${F===k}">${n} (${grp[k].length})</button>`).join('')}</div>
+   ${val?'':'<p class="result warn">Seu perfil não vê valores: os PDFs e o resumo saem sem os valores.</p>'}
+   <div class="kvl">${L.map(card).join('')||'<p class="muted pad">Nenhum projeto encontrado.</p>'}</div>`}
+const kvSeg=()=>`<div class="seg kvseg" role="tablist" aria-label="Visualização da base"><button type="button" data-act="kvModo" data-v="planilha" aria-pressed="${ui.baseV!=='val'}">Planilha</button><button type="button" data-act="kvModo" data-v="val" aria-pressed="${ui.baseV==='val'}">Validação (ROI e PDFs)</button></div>`;
+{const _v=viewBase;viewBase=function(){if(ui.baseV==='val')return viewBaseVal();const h=_v.apply(this,arguments);return h.replace('<div class="chips" role="group" aria-label="Filtrar projetos"',kvSeg()+'<div class="chips" role="group" aria-label="Filtrar projetos"')}}
+/* detalhe somente leitura (tela cheia) */
+function kvFull(){let o=document.getElementById('kvFull');const p=ui.kvVer&&S.previsao.find(x=>x.id===ui.kvVer),s=p&&kvSnap(p);
+  if(!s){if(o)o.remove();document.body.classList.remove('krfull-on');return}
+  if(!o){o=document.createElement('div');o.id='kvFull';o.className='krfullro';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');document.body.appendChild(o)}document.body.classList.add('krfull-on');
+  const tab=ui.kvTab||'mat',val=pode('a_valor'),R=v=>val?krBrl(v):'—',fq=v=>(+v).toLocaleString('pt-BR');
+  const mat=`<div class="tablewrap"><table class="kmmt"><thead><tr><th>Código SAP</th><th>Produto</th><th>Tipo</th><th class="r">Qtd</th><th class="r">Valor un.</th><th class="r">Total</th></tr></thead><tbody>${s.itens.map(i=>`<tr class="${i.aj?'kred':''}"><td>${esc(i.cod||'—')}</td><td style="white-space:normal">${esc(i.desc)}${i.memo?`<small class="muted krmemo">${esc(i.memo)}${i.aj==='qtd'?' · quantidade alterada pelo projetista':i.aj==='add'?'':''}</small>`:''}</td><td>${esc(i.tipo)}</td><td class="r">${fq(i.qtd)}${i.un==='M'?' m':''}</td><td class="r">${i.vu==null?'<span class="krsem">sem preço</span>':R(i.vu)}</td><td class="r"><b>${i.vt==null?'—':R(i.vt)}</b></td></tr>`).join('')}</tbody><tfoot><tr><td colspan="5" class="r"><b>Total</b></td><td class="r"><b>${R(s.valorMat)}</b></td></tr></tfoot></table></div>${s.rem&&s.rem.length?`<p class="muted kremv">Excluídos pelo projetista: ${esc(s.rem.join(', '))}</p>`:''}`;
+  const mo=`<div class="tablewrap"><table class="kmmt"><thead><tr><th>Fase</th><th>Serviço</th><th class="r">Qtd</th><th class="r">Valor un.</th><th class="r">Total</th></tr></thead><tbody>${s.mo.L.map(x=>`<tr class="${x.aj?'kred':''}"><td>${esc(KLE_FASE[x.fase]||x.fase||'—')}</td><td style="white-space:normal"><b>${esc(x.cod)}</b> ${esc(x.desc)}<small class="muted krmemo">${esc(x.regra||'')}${x.aj==='qtd'?' · quantidade alterada pelo projetista':''}</small></td><td class="r">${fq(x.q)}</td><td class="r">${R(x.u)}</td><td class="r"><b>${R(x.v)}</b></td></tr>`).join('')||'<tr><td colspan="5" class="muted">Sem mão de obra detalhada.</td></tr>'}</tbody><tfoot><tr><td colspan="4" class="r"><b>Total</b></td><td class="r"><b>${R(s.custoMO)}</b></td></tr></tfoot></table></div>${s.mo.rem&&s.mo.rem.length?`<p class="muted kremv">Serviços excluídos pelo projetista: ${esc(s.mo.rem.join(', '))}</p>`:''}`;
+  o.innerHTML=`<header class="krfh"><div class="krft"><h2>${esc(p.etiqueta)} · ${esc(p.cliente||'')}</h2><span class="muted">${s.origem==='kmz'?`ROI pelo KMZ · ${esc(s.nome||'')}${s.ext?' · extensão: '+esc(s.ext.nome):''}${s.em?' · '+kvData(s.em)+(s.por?' por '+esc(s.por):''):''}`:`ROI importado do PDF · ${esc(s.nome||'')}`}</span></div>
+    <div class="krfk"><div class="kpi"><b>${R(s.valorMat)}</b><span>Materiais</span></div><div class="kpi"><b>${R(s.custoMO)}</b><span>Mão de obra</span></div><div class="kpi"><b>${R(s.custoTotal)}</b><span>Custo total</span></div><div class="kpi ok"><b>${s.roiIdx==null||s.roiIdx===''?'—':String(s.roiIdx).replace('.',',')}</b><span>ROI (meses) · mensal ${R(s.valor)}</span></div></div>
+    <div class="krfa"><button class="btn sm" data-act="kvPdf" data-id="${p.id}" data-p="all">PDF do ROI completo</button><button class="btn sm" data-act="kvPdf" data-id="${p.id}" data-p="mat">PDF da lista de materiais</button><button class="btn sm" data-act="kvPdf" data-id="${p.id}" data-p="mo">PDF da mão de obra</button><button class="btn primary sm" data-act="kvFecha">Fechar</button></div>
+    <div class="seg krftabs" role="tablist"><button type="button" data-act="kvTab" data-v="mat" aria-pressed="${tab==='mat'}">Lista de materiais (${s.itens.length})</button><button type="button" data-act="kvTab" data-v="mo" aria-pressed="${tab==='mo'}">Mão de obra (${s.mo.L.length})</button></div></header>
+    <div class="krfb">${tab==='mat'?mat:mo}</div>`}
+/* depois de incluir: abre a validação com o projeto em destaque */
+function kvPos(p,novo){ui.tab='base';ui.baseV='val';ui.kvF='todos';ui.kvSel=p.id;setTimeout(()=>{render();const e=document.getElementById('kv_'+p.id);if(e)e.scrollIntoView({block:'center',behavior:'smooth'});toast(novo?'Projeto incluído. Confira o ROI e baixe os PDFs.':'Cadastro atualizado.')},60)}
+Object.assign(ACT,{
+  kvModo:el=>{ui.baseV=el.dataset.v;render()},
+  kvF:el=>{ui.kvF=el.dataset.v;render()},
+  kvPdf:el=>{const p=S.previsao.find(x=>x.id===el.dataset.id),s=p&&kvSnap(p);if(!s){toast('Projeto sem ROI.','bad');return}
+    if(!pode('a_valor')){s.valor=s.taxa=s.valorMat=s.custoMO=s.custoTotal=0;s.itens.forEach(i=>{i.vu=null;i.vt=null});s.mo.L.forEach(x=>{x.u=0;x.v=0})}
+    krPdfDe(s,el.dataset.p||'all')},
+  kvVer:el=>{ui.kvVer=el.dataset.id;ui.kvTab='mat';kvFull()},
+  kvTab:el=>{ui.kvTab=el.dataset.v;kvFull()},
+  kvFecha:()=>{ui.kvVer=null;kvFull()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('kvFull')){e.stopPropagation();ACT.kvFecha()}},true);
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
