@@ -1791,6 +1791,62 @@ b.bad{color:var(--bad,#a23b2a)}
 .txexpd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 .txexpd dt{font-size:12px;color:var(--muted);margin:0}.txexpd dd{margin:0;font-weight:600;word-break:break-word}.txexpd dd.falta{color:var(--warn)}
 @media(max-width:600px){.txexpd{grid-template-columns:1fr}}
+
+/* 23/10: lista de materiais pelo KMZ */
+.kmmat{margin-top:10px;border:1px solid var(--line,#dfe3dc);border-radius:10px;padding:8px 12px;background:var(--card,#fff)}
+.kmmat>summary{cursor:pointer;font-weight:600;color:var(--ink,#1d2b1d)}
+.kmmres{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.kmmres .kpi{flex:1 1 120px;min-width:110px}
+.kmmt td,.kmmt th{font-size:13px;vertical-align:top}
+.kmmt .kmdif{color:#a35a00;font-weight:600}
+.kmmt .kmso td{background:rgba(163,90,0,.06)}
+.kmav{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--muted,#5b6b5b)}
+.kmmt td:first-child{white-space:nowrap}
+.krt td:first-child{width:28px;padding-left:2px;padding-right:0}
+.kmmt td:nth-child(2){min-width:160px}
+.kmmt td:last-child{font-size:12px;min-width:150px}
+
+/* 23/10: ROI gerado pelo KMZ */
+.krseg{display:flex;gap:6px;margin:0 0 10px}
+.krseg button{flex:1;font:600 14px Barlow,sans-serif;border:1px solid var(--line,#dfe3dc);background:var(--bg,#f4f6f2);color:var(--ink,#1d2b1d);border-radius:10px;padding:8px 10px;cursor:pointer}
+.krseg button[aria-pressed="true"]{background:var(--brand,#7cb342);border-color:var(--brand,#7cb342);color:var(--on-brand,#fff)}
+.krbox{border:1px solid var(--line,#dfe3dc);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--surface,#fff)}
+.krprec{font-size:13px;margin:0 0 6px}
+.krprec .upl{position:relative;overflow:hidden;cursor:pointer;color:var(--brand-ink,#4b7d1a);text-decoration:underline}
+.krprec .upl input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.krres{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:8px 0}
+.krmemo{display:block;font-size:11.5px;margin-top:2px}
+.krsem{color:#a35a00;font-weight:600}
+.kmmt tr.krsemp td{background:rgba(163,90,0,.06)}
+.krres .kpi b{font-size:20px}
+.krt .krq{width:78px;min-height:32px;padding:4px 6px;text-align:right;font-size:13px}
+.krx{border:0;background:none;color:#b3261e;font-size:15px;cursor:pointer;padding:4px 6px;border-radius:6px}
+.krx:hover{background:rgba(179,38,30,.08)}
+.kradd{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 4px}
+.kradd>input:first-of-type{flex:1 1 240px;min-width:0}
+.kradd .krq{width:80px}
+.kradd select{width:auto}
+.krt tr.kred td{background:rgba(124,179,66,.08)}
+.kremv{font-size:12.5px;margin:4px 0}
+/* tela cheia: lista de materiais e mão de obra do ROI pelo KMZ */
+#krFull{position:fixed;inset:0;z-index:200;background:var(--bg,#f4f6f2);display:flex;flex-direction:column}
+body.krfull-on{overflow:hidden}
+.krfh{background:var(--surface,#fff);border-bottom:1px solid var(--line,#dfe3dc);padding:12px 20px 0;display:grid;grid-template-columns:1fr;gap:8px}
+.krft{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}.krft h2{margin:0;font-size:20px}
+.krfk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.krfk .kpi{padding:8px 12px}.krfk .kpi b{font-size:20px}
+.krfa{display:flex;flex-wrap:wrap;gap:6px}.krfa .btn.primary{margin-left:auto}
+.krftabs{display:flex;gap:4px;margin:4px 0 0}.krftabs button{flex:1;font:600 14px Barlow,sans-serif;border:1px solid var(--line,#dfe3dc);border-bottom:0;background:var(--bg,#f4f6f2);color:var(--ink,#1d2b1d);border-radius:10px 10px 0 0;padding:9px 10px;cursor:pointer}
+.krftabs button[aria-pressed="true"]{background:var(--brand,#7cb342);border-color:var(--brand,#7cb342);color:var(--on-brand,#fff)}
+.krfb{flex:1;overflow:auto;padding:4px 20px 30px;max-width:1400px;width:100%;margin:0 auto;box-sizing:border-box}
+#krFull .kmmt td,#krFull .kmmt th{font-size:14px}
+#krFull .kmmt td:nth-child(3){min-width:300px}
+#krFull .krmemo{font-size:12.5px}
+.krabre{width:100%;margin:6px 0 2px}
+@media(max-width:700px){.krfk{grid-template-columns:repeat(2,minmax(0,1fr))}.krfh{padding:10px 12px 0}.krfb{padding:4px 10px 24px}.krfa .btn.primary{margin-left:0;width:100%}.krftabs button{font-size:12.5px}}
+
+.krext{border-top:1px dashed var(--line,#dfe3dc);margin:8px 0 4px;padding-top:8px}
+.krextr{font-size:13px;margin:4px 0 0}
+.krgb{font-size:12.5px;margin:2px 0 6px}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -2071,12 +2127,12 @@ const PERM_T=[
   ['Operação',[['painelDia','Painel do dia','t'],['agenda','Agenda','t',[['a_agendar','Agendar e replicar atividades','a'],['a_reagendar','Reagendar atividades','a'],['a_cancelar','Cancelar, editar e transferir atividades','a'],['a_foraFerr','Marcar fase concluída fora da ferramenta','a'],['a_retirar','Tirar o técnico da atividade e aguardar reagendamento','a'],['a_corrigir','Corrigir fases finalizadas por engano','a'],['a_improd','Liberar LPU de improdutiva e deslocamento','a'],['a_anexos','Enviar e apagar anexos','a']]],['ausencias','Ausências','t'],['relat','Histórico de clientes (atividades, atualizações e relatórios)','t'],['vist','Vistorias de lançamento','t',[['a_vistDisp','Dispensar vistoria','a']]],['geo','Cadastro Geogrid (Cadastro de fibras)','t',[['a_geoVal','Validar fusões','a'],['a_geoCad','Marcar cadastrado no Geogrid','a']]]]],
   ['Campo e equipes',[['campo','Visão do técnico','t'],['eqVer','Visão da empresa terceira','t'],['eqTec','Equipe técnica e Equipes NT','t',[['a_eqTec','Editar a equipe técnica, as Equipes NT e as trocas','a']]]]],
   ['Estoque',[['estoque','Estoque dos técnicos','t'],['estAtual','Atualizar estoque','t',[['a_bolsao','Publicar planilha do bolsão (SAP)','a'],['a_elleven','Importar movimentações do Elleven e do patrimônio','a'],['a_base','Saldo atual do Elleven (V-Task), data-base e patrimônio atual dos técnicos','a']]],['estHist','Movimentações','t']]],
-  ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a']]],['prev','Previsão dos projetos','t'],['kanban','Backlog de projetos','t'],['a_custo','Ver o custo previsto dos projetos (backlog e previsão)','a']]],
+  ['Projetos',[['base','Base de previsão','t',[['a_valor','Ver valor mensal dos clientes','a'],['a_projeto','Incluir e editar projetos (exige ver valor mensal)','a'],['a_prevDias','Previsão de dias por fase (O&M)','a']]],['prev','Previsão dos projetos','t'],['kanban','Backlog de projetos','t'],['a_custo','Ver o custo previsto dos projetos (backlog e previsão)','a']]],
   ['GTD Manutenção',[['gPainel','Painel de KPIs do GTD','t',[['g_tempos','Tempos de atendimento do GTD','t',[['a_gExpurgo','Expurgar tempos dos chamados','a']]],['g_fin','Financeiro do GTD','t',[['gf_budget','Budget e consumo da manutenção (definir o budget usa a mesma permissão da Implantação)','t'],['gf_prest','Totais por prestador do GTD','t'],['gf_det','Detalhamento das LPUs do GTD','t'],['gAprov','Aprovação de LPU do GTD','t',[['a_gAprovar','Aprovar, reprovar e devolver LPUs do GTD','a']]]]]]],['gCham','Chamados (Kanban)','t',[['a_gDespachar','Despachar chamados para o técnico','a'],['a_gEditar','Agendar, editar e cancelar chamados','a'],['a_gValidar','Acesso NOC: validar chamados','a']]],['gAgenda','Agenda do GTD','t'],['gNovo','Criar chamado','t'],['gRel','Histórico do GTD (por cliente, inclusive cancelados)','t']]]];
 const PERM_ALL=(()=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));return o})();
 const _sem=l=>PERM_ALL.filter(k=>!l.includes(k));
 const PERM_PAD={supervisor:_sem(['a_foraFerr','a_budget','a_reagendar','a_base','a_projeto','a_gValidar']),
-  encarregado:_sem(['gf_prest','f_prest','a_foraFerr','a_geoCad','a_vistDisp','a_corrigir','a_eqTec','a_custo','painel','p_tempos','a_expurgo','g_tempos','a_gExpurgo','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','g_fin','gf_budget','gf_det','gAprov','a_gAprovar']),
+  encarregado:_sem(['a_prevDias','gf_prest','f_prest','a_foraFerr','a_geoCad','a_vistDisp','a_corrigir','a_eqTec','a_custo','painel','p_tempos','a_expurgo','g_tempos','a_gExpurgo','p_geral','p_entregas','p_rede','p_exec','p_equipes','p_fin','f_budget','a_budget','f_det','f_aprov','a_aprovar','estAtual','a_bolsao','a_elleven','a_base','a_projeto','gPainel','g_fin','gf_budget','gf_det','gAprov','a_gAprovar']),
   supply:['estAtual','a_bolsao'],delivery:['painelDia','agenda'],noc:['gCham','gAgenda','gNovo','gRel','a_gValidar'],visualizacao:['painelDia']};
 /* 18/10: permissões personalizadas salvas antes das funções novas (sem a marca _v18) recebem o padrão do papel nessas funções */
 const PERM_NOVAS={ausencias:['supervisor','encarregado'],campo:['supervisor','encarregado'],eqVer:['supervisor','encarregado'],eqTec:['supervisor','encarregado'],a_eqTec:['supervisor'],a_retirar:['supervisor','encarregado'],a_corrigir:['supervisor'],a_improd:['supervisor','encarregado'],a_custo:['supervisor'],vist:['supervisor','encarregado'],a_vistDisp:['supervisor'],geo:['supervisor','encarregado'],a_geoVal:['supervisor','encarregado'],f_prest:['supervisor'],gf_prest:['supervisor']};
@@ -2365,6 +2421,8 @@ const COLS=[['etiqueta','Etiqueta','t','Etiqueta',118],['cliente','Cliente (raz�
   ['cidade','Cidade','t','Cidade',112],['pop','POP','t','POP',124],['equip','Equipamento de acesso','t','Equipamento de acesso',150],['topologia','Topologia','s','Topologia',124],
   ['metros','Metros de cabo','n','Cabo (m)',88],['caixas','Caixas de emenda','n','Caixas',74],['kmFibra','KM de fibra (metros da rota do KMZ de extensão)','n','KM de fibra',92],
   ['dRua','Dias lanç. rua','n','Rua',66],['dInterno','Dias lanç. interno','n','Interno',72],['dExt','Dias extensão','n','Extensão',80],['dAtiv','Dias ativação','n','Ativação',80]];
+/* previsão de dias por fase: acesso próprio (a_prevDias), separado de incluir e editar projetos */
+const BDIAS=['dRua','dInterno','dExt','dAtiv'];
 const BGRUPOS=[['',1],['Projeto',3],['Local e rede',4],['Quantidades',3],['Previsão de dias por fase',5]];
 const baseFalta=p=>[!p.roi&&'Sem ROI',!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
 function viewBase(){
@@ -2377,12 +2435,12 @@ function viewBase(){
     if(p.semExt&&f==='kmFibra')return `<td class="ro r na ${cls}" title="Sem extensão de sinal">N/A</td>`;
     if(p.semExt&&f==='dExt')return `<td class="ro r na ${cls}" title="Sem extensão de sinal">N/A</td>`;
     if(p.semRua&&f==='dRua')return `<td class="ro r na ${cls}" title="Sem lançamento na rua: lançamento todo interno">N/A</td>`;
-    if(!ed)return `<td class="ro ${t==='n'?'r':''} ${cls}">${f==='valor'?brl(v):f==='etiqueta'?`<b>${esc(v)}</b>`:esc(v)}</td>`;
+    if(!(BDIAS.includes(f)?pode('a_prevDias'):ed))return `<td class="ro ${t==='n'?'r':''} ${cls}" ${BDIAS.includes(f)&&ed?'title="Previsão de dias: só quem tem o acesso Previsão de dias por fase (O&M)"':''}>${f==='valor'?brl(v):f==='etiqueta'?`<b>${esc(v)}</b>`:esc(v)}</td>`;
     if(t==='s')return `<td class="${cls}"><select data-ch="cell" data-id="${p.id}" data-f="${f}" aria-label="${l}">${TOPO.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select></td>`;
     return `<td class="${cls}"><input ${t==='n'?'type="number" min="0" step="any" inputmode="decimal" class="r"':'type="text"'} data-ch="cell" data-id="${p.id}" data-f="${f}" value="${esc(v)}" aria-label="${l}" title="${esc(v)}"></td>`};
   const tot=p=>fasesProj(p).reduce((s,f)=>s+(+p[f.p]||0),0);
   const larg=COLS.reduce((s,c)=>s+c[4],0)+70+250+(ed?44:0);
-  return `<div class="toolbar"><div><h2>Base de previsão</h2><p class="muted">${ed?'Use Incluir novo projeto: ROI, endereço de instalação e informações técnicas em sequência. Depois complete a previsão de dias por fase. As células podem ser editadas direto na tabela.':'Somente leitura para o seu perfil.'}</p></div>
+  return `<div class="toolbar"><div><h2>Base de previsão</h2><p class="muted">${ed?`Use Incluir novo projeto: ROI, endereço de instalação e informações técnicas em sequência. ${pode('a_prevDias')?'Depois complete a previsão de dias por fase. ':'A previsão de dias por fase é preenchida pelo O&M. '}As células podem ser editadas direto na tabela.`:pode('a_prevDias')?'Você pode preencher a previsão de dias por fase; o resto da base é somente leitura para o seu perfil.':'Somente leitura para o seu perfil.'}</p></div>
    <div class="tools"><input class="inp" type="search" id="baseQ" placeholder="Buscar etiqueta, protocolo, cliente ou cidade" data-in="baseQ" value="${esc(ui.baseQ)}">${ed?'<button class="btn" data-act="addRow">Adicionar manualmente</button><button class="btn primary" data-act="wiz" data-id="">Incluir novo projeto</button>':''}</div></div>
    <div class="chips" role="group" aria-label="Filtrar projetos" style="margin-top:0"><button data-act="baseF" data-v="todos" aria-current="${F==='todos'}">Todos (${all.length})</button><button data-act="baseF" data-v="inc" aria-current="${F==='inc'}">Cadastro incompleto (${inc.length})</button></div>
    <div class="tablewrap sheet basev"><table style="min-width:${larg}px"><colgroup>${COLS.map(c=>`<col style="width:${c[4]}px">`).join('')}<col style="width:70px"><col style="width:250px">${ed?'<col style="width:44px">':''}</colgroup>
@@ -9625,6 +9683,419 @@ async function pdfOcr(buf){
 /* aviso para conferir os números quando o ROI veio do OCR */
 {const _c=CH.roiPdf;CH.roiPdf=async el=>{const r=await _c(el);const pv=$('roiPrev');if(ui.roiTmp&&ui.roiTmp.__ocr&&pv&&!pv.querySelector('.ocrnote'))pv.insertAdjacentHTML('afterbegin','<p class="note ocrnote">ROI lido da imagem (PDF escaneado). Confira os valores e os materiais antes de avançar.</p>');return r}}
 {const _f=roiFromPdf;roiFromPdf=function(rd,nome){const r=_f(rd,nome);if(rd&&rd.ocr)r.__ocr=true;return r}}
+
+/* ---------- 23/10: LISTA DE MATERIAIS PELO KMZ DO PROJETO ----------
+   Lê o KMZ de lançamento (desenho do projeto) e monta a lista de materiais pelas regras de fixação da Implantação:
+   - tipo de poste pelo ícone (ou pela pasta/nome):
+       bolinha sombreada (shaded_dot)     = encabeçamento com fita de aço
+       círculo com ponto (placemark_circle) = passagem com fita de aço
+       rosca (donut)                      = encabeçamento com BAP
+       proibido (forbidden)               = passagem com BAP
+   - poste "com cordoalha" = a até 10 m de uma linha de cordoalha; "cabo drop fig 8" = a linha de cabo mais próxima tem DROP/FIG no nome
+   - por poste:
+       encab. fita: 1 fecho, 2 suportes 3x1, 2 alças vermelhas (drop fig 8: sem alça), 1 plaqueta
+       passagem fita: 1 fecho, 1 suporte 3x1, 1 plaqueta
+       encab. BAP: 1 abraçadeira BAP, 2 suportes BAP, 2 olhais retos, 2 parafusos M12, 1 plaqueta
+                   + 2 alças vermelhas sem cordoalha (drop fig 8: sem alça) / com cordoalha: 2 alças LPL e nenhuma vermelha
+       passagem BAP: 1 abraçadeira BAP, 1 suporte 3x1, 1 plaqueta (+ 1 alça LPL com cordoalha)
+   - fita de aço: 1 rolo a cada 20 postes com fita (encabeçamento ou passagem)
+   - fio isolado de espinar: 1 a cada 80 m de rede espinada (cordoalha + rede existente marcada para espinar)
+   - cabo: sempre a medida do desenho (nunca a metragem escrita no KMZ) + 5% de correção (50 m por km)
+     + 30 m em cada ponta + 30 m por reserva técnica; o tipo sai do nome ou da cor do traço
+     (preto 4FO — 144FO só se escrito no nome —, azul 12FO, rosa 24FO, ciano 72FO, verde drop fig 8 com a descrição do cabo)
+   - cordoalha: medida do desenho + 5% de correção + 5 m em cada ponta (nunca a metragem escrita no KMZ)
+   - rede espinada (fio de espinar): medida do desenho da cordoalha + rede existente marcada para espinar */
+const KM_MAT={
+  fita:['INS000196','FITA DE AÇO INOXIDÁVEL 0,5X19mmX25m (FUSIMEC)'],
+  fecho:['INS000194','FECHO EM AÇO INOX DENTADO DE 3/4'],
+  sup3:['INS000821','SUPORTE DIELÉTRICO ANCORAGEM ROLDANA 3x1'],
+  alcaV:['INS000336','ALÇA PREFORMADA 3 VIAS - 8mm - VERMELHA'],
+  alcaLA:['INS000337','ALÇA PREFORMADA 3 VIAS P/ CORDOALHA DE AÇO 3/16 - 4,8MM'],
+  alcaL:['INS000340','ALÇA PREFORMADA DIELÉTRICA 6,4 PLP'],
+  plaq:['INS000044','PLAQUETA DE IDENTIFICAÇÃO DE FO - NETTURBO'],
+  bap:['INS000002','ABRAÇADEIRA BAP TIPO 3'],
+  supBap:['INS000825','SUPORTE PARA BAP'],
+  olhal:['INS000197','OLHAL RETO M12 PARA SUPORTE BAP'],
+  paraf:['INS000483','PARAFUSO CABEÇA FRANCESA M12 PARA SUPORTE BAP'],
+  fio:['INS000195','FIO ISOLADO PARA ESPINAR'],
+  cordD:['INS000346','CORDOALHA DIELÉTRICA'],
+  cordA:['','CORDOALHA DE AÇO'],
+  drop4:['INS000995','CABO OPTICO DROP FIG8 4FO'],
+  drop1:['INS000095','CABO ÓPTICO DROP SM - 01FO']};
+/* cor do traço do cabo no KMZ (padrão construtivo): preto = 4FO (144FO também é preto, mas só vale se o projetista escrever 144FO no nome),
+   azul = 12FO, rosa = 24FO, ciano = 72FO, verde = drop fig 8 */
+const KM_CORFO={preto:'4',azul:'12',rosa:'24',ciano:'72'};
+const KM_CABO={'4':'INS000091','6':'INS000092','12':'INS000093','24':'INS000089','72':'INS000090','144':'INS000088'};
+const KM_CABO_D={'4':'CABO ÓPTICO ASU80 04FO NR','6':'CABO ÓPTICO ASU80 06FO NR','12':'CABO ÓPTICO ASU80 SM CFOA NR - 12FO','24':'CABO ÓPTICO AS80 SM - 24FO','72':'CABO ÓPTICO AS80 SM - 72FO','144':'CABO ÓPTICO AS80 SM - 144FO'};
+function kmCor(abgr){const h=String(abgr||'').trim().toLowerCase();if(!/^[0-9a-f]{8}$/.test(h))return{k:'',n:'sem cor'};
+  const r=parseInt(h.slice(6,8),16)/255,g=parseInt(h.slice(4,6),16)/255,b=parseInt(h.slice(2,4),16)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;
+  if(mx<0.25)return{k:'preto',n:'preto'};if(d<0.12)return l>0.85?{k:'branco',n:'branco'}:{k:'cinza',n:'cinza'};
+  let H=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;H=(H*60+360)%360;
+  const K=H<15||H>=345?'vermelho':H<45?'laranja':H<70?'amarelo':H<165?'verde':H<200?'ciano':H<265?'azul':H<300?'roxo':'rosa';return{k:K,n:K}}
+const KM_ORD=['fita','fecho','sup3','alcaV','alcaL','alcaLA','bap','supBap','olhal','paraf','plaq','fio'];
+const KM_PT={EF:'Encabeçamento com fita',PF:'Passagem com fita',EB:'Encabeçamento com BAP',PB:'Passagem com BAP'};
+const KM_ICO={'shaded_dot':'EF','placemark_circle':'PF','donut':'EB','forbidden':'PB'};
+const kmN=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+/* KML → pontos (com ícone) e linhas */
+function kmParse(txt){const doc=new DOMParser().parseFromString(txt,'application/xml');if(doc.getElementsByTagName('parsererror').length)throw new Error('o arquivo não é um KML válido');
+  const kids=(el,n)=>[...el.children].filter(c=>c.localName===n),t1=(el,n)=>{const c=kids(el,n)[0];return c?c.textContent.trim():''},all=(el,n)=>[...el.getElementsByTagNameNS('*',n)];
+  const crd=s=>s.trim().split(/\s+/).map(t=>t.split(',').map(Number)).filter(a=>a.length>=2&&isFinite(a[0])&&isFinite(a[1])).map(a=>[a[1],a[0]]);
+  const ico={};all(doc,'Style').forEach(s=>{const id=s.getAttribute('id'),h=all(s,'href')[0];if(id)ico['#'+id]=h?h.textContent.trim():''});
+  const lcor={},lc=st=>{const ls=st&&all(st,'LineStyle')[0];return ls?t1(ls,'color'):''};all(doc,'Style').forEach(s=>{const id=s.getAttribute('id');if(id)lcor['#'+id]=lc(s)});
+  all(doc,'StyleMap').forEach(m=>{const id=m.getAttribute('id'),p=kids(m,'Pair').find(p=>t1(p,'key')==='normal');if(id&&p){ico['#'+id]=ico[t1(p,'styleUrl')]||'';lcor['#'+id]=lcor[t1(p,'styleUrl')]||''}});
+  const pasta=el=>{const o=[];let x=el.parentElement;while(x){if(x.localName==='Folder')o.unshift(t1(x,'name'));x=x.parentElement}return o.join(' / ')};
+  const P=[],L=[];all(doc,'Placemark').forEach(pm=>{const nome=t1(pm,'name'),ps=pasta(pm),su=t1(pm,'styleUrl'),desc=t1(pm,'description').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();let ic=ico[su];const cor=lc(kids(pm,'Style')[0])||lcor[su]||'';
+    if(ic==null){const st=kids(pm,'Style')[0],h=st&&all(st,'href')[0];ic=h?h.textContent.trim():''}
+    all(pm,'Point').forEach(pt=>{const c=all(pt,'coordinates')[0];if(c){const k=crd(c.textContent);if(k.length)P.push({nome,pasta:ps,ic:(ic||'').split('/').pop().replace(/\.png$/i,''),ll:k[0]})}});
+    all(pm,'LineString').forEach(ls=>{const c=all(ls,'coordinates')[0];if(c){const k=crd(c.textContent);if(k.length>1)L.push({nome,pasta:ps,desc,cor,c:k})}})});
+  return{P,L}}
+const kmHav=(a,b)=>{const r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r,x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2;return 2*6371000*Math.asin(Math.min(1,Math.sqrt(x)))};
+const kmLen=c=>{let s=0;for(let i=1;i<c.length;i++)s+=kmHav(c[i-1],c[i]);return s};
+function kmDist(ll,c){const r=Math.PI/180,k=Math.cos(ll[0]*r),xy=p=>[(p[1]-ll[1])*r*6371000*k,(p[0]-ll[0])*r*6371000];let d=1e12;
+  for(let i=1;i<c.length;i++){const a=xy(c[i-1]),b=xy(c[i]),dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy;let t=L2?-(a[0]*dx+a[1]*dy)/L2:0;t=Math.max(0,Math.min(1,t));d=Math.min(d,Math.hypot(a[0]+t*dx,a[1]+t*dy))}return d}
+/* metragem escrita no nome: "FPS001 - 900M", "ODT006 - 1.850M", "CORDOALHA - 30M" */
+const kmMetroNome=n=>{const m=String(n||'').match(/(\d{1,3}(?:[.\s]\d{3})+|\d+)(?:,\d+)?\s*M\b/i);return m?+m[1].replace(/[.\s]/g,''):null};
+/* tipo do poste: ícone primeiro; senão pasta ou nome */
+function kmTipoPoste(p){const s=kmN(p.pasta+' '+p.nome);if(/EXISTENTE/.test(s))return null;
+  if(KM_ICO[p.ic])return KM_ICO[p.ic];
+  const enc=/ENCABE/.test(s),pas=/PASSAGEM/.test(s),fita=/FITA/.test(s),bap=/\bBAP\b/.test(s);
+  if((enc||pas)&&(fita||bap))return (enc?'E':'P')+(fita?'F':'B');return null}
+function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
+  const Ls=K.L.map(l=>Object.assign({},l,{m:kmLen(l.c),n:kmN(l.nome),f:kmN(l.pasta)}));
+  const cord=Ls.filter(l=>!ex(l)&&/CORDOALHA/.test(l.n+' '+l.f));
+  const cabo=Ls.filter(l=>!ex(l)&&!cord.includes(l)&&!/^ROTA\b/.test(l.n)&&(/\bCABOS?\b/.test(l.f)||/DROP|CABO|\b\d+\s*FO\b|^[A-Z]{3}\d{3}\b/.test(l.n)));
+  const exist=Ls.filter(l=>ex(l)),espinar=K.P.some(p=>/ESPINAR/.test(kmN(p.nome+' '+p.pasta)))||Ls.some(l=>/ESPINAR/.test(l.n));
+  /* postes */
+  const ps=[];K.P.forEach(p=>{const t=kmTipoPoste(p);if(!t)return;
+    let dc=1e9,cn=null;cord.forEach(l=>{const d=kmDist(p.ll,l.c);if(d<dc){dc=d;cn=l}});let near=null,nd=1e9;cabo.forEach(l=>{const d=kmDist(p.ll,l.c);if(d<nd){nd=d;near=l}});
+    ps.push({t,cord:dc<=10,aco:!!(dc<=10&&cn&&/ACO/.test(cn.n)),drop:!!(near&&/DROP|FIG/.test(near.n)),ll:p.ll})});
+  const q={};KM_ORD.forEach(k=>q[k]=0);const memo={};const add=(k,n,m)=>{if(!n)return;q[k]+=n;(memo[k]=memo[k]||[]).push(m)};
+  const cnt={};ps.forEach(p=>{const k=p.t+(p.t[1]==='B'?(p.cord?(p.aco?'ca':'c'):''):'')+(p.drop?'d':'');cnt[k]=(cnt[k]||0)+1});
+  const rot=k=>KM_PT[k.slice(0,2)]+(k.includes('ca')?' (com cordoalha de aço)':k.includes('c')?' (com cordoalha)':k[1]==='B'?' (sem cordoalha)':'')+(k.includes('d')?' · drop fig 8':'');
+  Object.entries(cnt).forEach(([k,n])=>{const t=k.slice(0,2),c=k.includes('c'),d=k.includes('d'),al=k.includes('ca')?'alcaLA':'alcaL',r=rot(k)+': '+n;
+    if(t==='EF'){add('fecho',n,r);add('sup3',2*n,r+' × 2');if(!d)add('alcaV',2*n,r+' × 2');add('plaq',n,r)}
+    if(t==='PF'){add('fecho',n,r);add('sup3',n,r);add('plaq',n,r)}
+    if(t==='EB'){add('bap',n,r);add('supBap',2*n,r+' × 2');add('olhal',2*n,r+' × 2');add('paraf',2*n,r+' × 2');if(c)add(al,2*n,r+' × 2');else if(!d)add('alcaV',2*n,r+' × 2');add('plaq',n,r)}
+    if(t==='PB'){add('bap',n,r);add('sup3',n,r);if(c)add(al,n,r);add('plaq',n,r)}});
+  const nFita=ps.filter(p=>p.t[1]==='F').length;if(nFita)add('fita',Math.ceil(nFita/20),`${nFita} postes com fita ÷ 20 (arredondado para cima)`);
+  /* cordoalha e cabos */
+  const mOf=l=>{const v=kmMetroNome(l.nome);return v!=null?v:Math.round(l.m)};
+  /* cordoalha: medida do desenho + 5% de correção + 5 m em cada ponta (lances que se tocam formam um trecho só) */
+  const kmTrechos=ls=>{const n=ls.length,pai=[...Array(n).keys()],f=i=>pai[i]===i?i:(pai[i]=f(pai[i]));
+    for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=ls[i].c,b=ls[j].c,E=[a[0],a[a.length-1]],F=[b[0],b[b.length-1]];if(E.some(x=>F.some(y=>kmHav(x,y)<=15))||E.some(x=>kmDist(x,b)<=5)||F.some(y=>kmDist(y,a)<=5))pai[f(i)]=f(j)}
+    return new Set(ls.map((_,i)=>f(i))).size};
+  const cordM={};[['D',cord.filter(l=>!/ACO/.test(l.n))],['A',cord.filter(l=>/ACO/.test(l.n))]].forEach(([k,ls])=>{if(!ls.length)return;const des=ls.reduce((s,l)=>s+l.m,0),cor=Math.round(des*0.05),t=kmTrechos(ls);
+    cordM[k]={q:Math.ceil(des+cor+10*t),memo:`desenho ${kmN0(Math.round(des))} m + 5% de correção (${kmN0(cor)} m) + ${t*2} pontas × 5 m · ${ls.length} ${ls.length>1?'lances':'lance'}`}});
+  const espM=Math.round(cord.reduce((s,l)=>s+l.m,0)+(espinar?exist.reduce((s,l)=>s+l.m,0):0));
+  if(espM)add('fio',Math.ceil(espM/80),`${kmN0(espM)} m de rede espinada ÷ 80 (arredondado para cima)`+(espinar&&exist.length?` · inclui ${kmN0(exist.reduce((s,l)=>s+Math.round(l.m),0))} m de rede existente marcada para espinar`:''));
+  /* cabos: sempre pela medida do desenho (a metragem escrita no KMZ é ignorada)
+     metragem = desenho + 5% (correção: 50 m por km) + 30 m em cada ponta do cabo + 30 m por reserva técnica */
+  const tipoCabo=l=>{const tx=kmN(l.nome+' '+(l.desc||'')),fo=((tx.match(/(\d+)\s*F\.?O\b/)||tx.match(/\b(\d+)\s*F\b/)||[])[1]||'').replace(/^0+/,''),c=kmCor(l.cor),drop=c.k==='verde'||/DROP|FIG\.?\s*8/.test(tx);
+    if(drop){const spec=String(l.desc||l.nome||'').replace(/\s*-?\s*[\d.,\s]+M\b.*$/i,'').trim(),cat=fo==='1'?KM_MAT.drop1:(!fo||fo==='4')?KM_MAT.drop4:null;
+      return{k:'drop'+(fo||'4'),cod:cat?cat[0]:'',desc:cat?cat[1]:('CABO ÓPTICO DROP FIG8'+(fo?' '+fo+'FO':'')+(spec&&!/^[A-Z]{3}\d{3}$/i.test(spec)?' · '+spec:'')),cor:'verde'}}
+    const pf=KM_CORFO[c.k],f=fo||pf||'';if(fo&&pf&&fo!==pf&&!(c.k==='preto'&&fo==='144'))av.push(`Cabo "${l.nome}": o nome diz ${fo}FO, mas a cor do traço (${c.n}) é de ${pf}FO no padrão. Usei ${fo}FO (o que está no nome).`);
+    if(!f)av.push(`Cabo "${l.nome}": cor do traço ${c.n} sem tipo definido no padrão e sem número de fibras no nome. Entrou como cabo sem tipo.`);
+    return{k:'fo'+(f||c.k),cod:KM_CABO[f]||'',desc:f?(KM_CABO_D[f]||`CABO ÓPTICO ${f}FO`):`CABO ÓPTICO (traço ${c.n})`,cor:c.n}};
+  const grp={};cabo.forEach(l=>{const t=tipoCabo(l);l.tp=t;(grp[t.k]=grp[t.k]||{t,ls:[]}).ls.push(l)});
+  /* pontas: trechos do mesmo tipo que se tocam (até 15 m) formam um cabo; cada cabo tem 2 pontas */
+  Object.values(grp).forEach(g=>{const n=g.ls.length,pai=[...Array(n).keys()],f=i=>pai[i]===i?i:(pai[i]=f(pai[i]));
+    for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=g.ls[i].c,b=g.ls[j].c,E=[a[0],a[a.length-1]],F=[b[0],b[b.length-1]];
+      if(E.some(x=>F.some(y=>kmHav(x,y)<=15))||E.some(x=>kmDist(x,b)<=5)||F.some(y=>kmDist(y,a)<=5))pai[f(i)]=f(j)}
+    g.cabos=new Set(g.ls.map((_,i)=>f(i))).size;g.des=g.ls.reduce((s,l)=>s+l.m,0);g.rt=0});
+  const rts=K.P.filter(p=>/^(NOVA )?RT\b|^R$|RESERVA/.test(kmN(p.nome))||/^r$/i.test(p.ic));let rtFora=0;
+  rts.forEach(p=>{let best=null,bd=1e9;cabo.forEach(l=>{const d=kmDist(p.ll,l.c);if(d<bd){bd=d;best=l}});if(best&&bd<=50)grp[best.tp.k].rt++;else rtFora++});
+  if(rtFora)av.push(`${rtFora} ${rtFora>1?'reservas técnicas longe':'reserva técnica longe'} de qualquer cabo (mais de 50 m): não ${rtFora>1?'entraram':'entrou'} na conta.`);
+  const cab={};Object.values(grp).forEach(g=>{const cor=Math.round(g.des*0.05),q=Math.ceil(g.des+cor+60*g.cabos+30*g.rt);
+    cab[g.t.k]={cod:g.t.cod,desc:g.t.desc,qtd:q,memo:`desenho ${kmN0(Math.round(g.des))} m + 5% de correção (${kmN0(cor)} m) + ${g.cabos*2} ${g.cabos*2>1?'pontas':'ponta'} × 30 m${g.rt?` + ${g.rt} ${g.rt>1?'reservas técnicas':'reserva técnica'} × 30 m`:''} · traço ${g.t.cor}`}});
+  const itens=[];KM_ORD.forEach(k=>{if(q[k])itens.push({k,cod:KM_MAT[k][0],desc:KM_MAT[k][1],qtd:q[k],un:'UN',memo:memo[k].join(' + ')})});
+  Object.values(cab).reverse().forEach(c=>itens.unshift({k:'cabo',cod:c.cod,desc:c.desc,qtd:c.qtd,un:'M',memo:c.memo}));
+  if(cordM.D)itens.splice(Object.keys(cab).length,0,{k:'cordD',cod:KM_MAT.cordD[0],desc:KM_MAT.cordD[1],qtd:cordM.D.q,un:'M',memo:cordM.D.memo});
+  if(cordM.A)itens.splice(Object.keys(cab).length,0,{k:'cordA',cod:KM_MAT.cordA[0],desc:KM_MAT.cordA[1],qtd:cordM.A.q,un:'M',memo:cordM.A.memo});
+  const ceo=K.P.filter(p=>{const s=kmN(p.nome+' '+p.pasta);return /\bCEO\b|CAIXA DE EMENDA/.test(s)&&!/EXISTENTE/.test(s)}).length;
+  if(ceo)av.push(`${ceo} ${ceo>1?'caixas de emenda (CEO) novas':'caixa de emenda (CEO) nova'} no desenho: os materiais da caixa não entram nesta lista.`);
+  if(!ps.length)av.push('Nenhum poste reconhecido. Os postes precisam estar com os ícones de encabeçamento/passagem com fita ou BAP (ou em pastas com esses nomes).');
+  if(!cabo.length)av.push('Nenhuma linha de cabo reconhecida (pasta CABO ou nome com CABO, DROP ou xxFO).');
+  
+  const cabM=cabo.reduce((s,l)=>s+l.m,0),dropM=cabo.filter(l=>l.tp&&/^drop/.test(l.tp.k)).reduce((s,l)=>s+l.m,0);
+  const kq={interno:0,sub:0,aereo:Math.round(cabM*10)/10,cord:Math.round(cord.reduce((s,l)=>s+l.m,0)*10)/10,lances:cord.length,postes:ps.length,
+    postesSemCord:ps.filter(p=>!p.cord).length,postesPassagem:ps.filter(p=>p.t[0]==='P'&&!p.cord).length,postesInter:ps.filter(p=>p.t[0]==='P'&&p.cord).length,cs:0,
+    cxIni:(K.P.find(p=>/^(NOVA )?(CEO|CE|CTO)\b|^(CEO|CE|CTO)[\s\-_]?\d/.test(kmN(p.nome))&&!/EXISTENTE/.test(kmN(p.nome)))||{}).nome||'',tipoCabo:cabM&&dropM>=cabM/2?'drop':'optico'};
+  return{kq,temDrop:dropM>0,itens,cnt:Object.fromEntries(Object.keys(KM_PT).map(t=>[t,ps.filter(p=>p.t===t).length])),cordP:ps.filter(p=>p.cord).length,postes:ps.length,espM,ceo,av,em:Date.now()}}
+const kmN0=v=>(+v||0).toLocaleString('pt-BR');
+/* comparação com os itens do ROI (pelo código; cabo e cordoalha também pela descrição) */
+function kmRoi(itens,roi){if(!roi||!roi.length)return null;const rk=i=>(i.cod||'').trim().toUpperCase(),ds=s=>kmN(s);
+  return itens.map(i=>{let r=roi.filter(x=>i.cod&&rk(x)===i.cod.toUpperCase());
+    if(!r.length&&i.k==='cabo')r=roi.filter(x=>/CABO/.test(ds(x.desc))&&!/PATCH|UTP|CAT/.test(ds(x.desc))&&(i.desc.match(/\d+FO/)||[''])[0]&&ds(x.desc).includes((i.desc.match(/\d+FO/)||[''])[0]));
+    if(!r.length&&(i.k==='cordD'||i.k==='cordA'))r=roi.filter(x=>/CORDOALHA/.test(ds(x.desc))&&(i.k==='cordA')===/ACO/.test(ds(x.desc)));
+    if(!r.length&&i.k==='alcaV')r=roi.filter(x=>/ALCA/.test(ds(x.desc))&&/VERMELH|CABO OPTICO|\bOPT/.test(ds(x.desc)));
+    return r.length?r.reduce((s,x)=>s+(+x.qtd||0),0):null})}
+function kmTabela(M,roi){const rq=kmRoi(M.itens,roi),dif=(a,b)=>b==null?'<td class="r muted">—</td>':`<td class="r ${a===b?'':'kmdif'}">${kmN0(b)}${a===b?'':` <small>(${b>a?'+':''}${kmN0(b-a)})</small>`}</td>`;
+  const sob=roi&&roi.length?roi.filter(x=>!/m[aã]o\s+de\s+obra/i.test((x.tipo||'')+' '+x.desc)&&!M.itens.some((i,j)=>rq[j]!=null&&(i.cod&&(x.cod||'').toUpperCase()===i.cod)))
+    .filter(x=>/FITA|FECHO|SUPORTE|ALCA|ALÇA|PLAQUETA|BAP|OLHAL|PARAFUSO|ESPINAR|CORDOALHA|CABO OPT|CABO ÓPT|DROP/i.test(x.desc)):[];
+  return `<div class="kmmres"><div class="kpi"><b>${M.postes}</b><span>Postes no desenho</span></div>${Object.entries(M.cnt).filter(([,n])=>n).map(([t,n])=>`<div class="kpi"><b>${n}</b><span>${KM_PT[t]}</span></div>`).join('')}${M.espM?`<div class="kpi"><b>${kmN0(M.espM)} m</b><span>Rede espinada</span></div>`:''}</div>
+   <div class="tablewrap"><table class="kmmt"><thead><tr><th>Código SAP</th><th>Material</th><th class="r">KMZ</th>${roi&&roi.length?'<th class="r">ROI</th>':''}<th>Como foi calculado</th></tr></thead><tbody>
+   ${M.itens.map((i,j)=>`<tr><td>${esc(i.cod||'—')}</td><td style="white-space:normal">${esc(i.desc)}</td><td class="r"><b>${kmN0(i.qtd)}</b> ${i.un==='M'?'m':''}</td>${roi&&roi.length?dif(i.qtd,rq[j]):''}<td style="white-space:normal" class="muted">${esc(i.memo)}</td></tr>`).join('')}
+   ${sob.map(x=>`<tr class="kmso"><td>${esc(x.cod||'—')}</td><td style="white-space:normal">${esc(x.desc)}</td><td class="r muted">—</td><td class="r kmdif">${kmN0(x.qtd)}</td><td class="muted">só no ROI</td></tr>`).join('')}
+   </tbody></table></div>
+   ${M.av.length?`<ul class="kmav">${M.av.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>`:''}
+   ${roi&&roi.length?'<p class="muted" style="font-size:13px;margin:6px 0 0">Na coluna ROI, o número entre parênteses é a diferença para o KMZ.</p>':''}`}
+async function kmCalcArq(buf,nome){return kmMat(kmParse(await kmzTexto(buf,nome)))}
+/* planilha */
+function kmXlsx(M,etq,roi){if(typeof XLSX==='undefined'){toast('A biblioteca de planilhas ainda está carregando. Tente de novo em instantes.','bad');return}
+  const rq=kmRoi(M.itens,roi)||[],tem=!!(roi&&roi.length);
+  const A=[['Código SAP','Material','Quantidade (KMZ)','Unidade'].concat(tem?['Quantidade (ROI)','Diferença ROI − KMZ']:[]).concat(['Como foi calculado'])].concat(M.itens.map((i,j)=>[i.cod||'',i.desc,i.qtd,i.un==='M'?'m':'un'].concat(tem?[rq[j]==null?'':rq[j],rq[j]==null?'':rq[j]-i.qtd]:[]).concat([i.memo])));
+  const B=[['Tipo de poste','Quantidade']].concat(Object.entries(M.cnt).map(([t,n])=>[KM_PT[t],n])).concat([['Postes com cordoalha',M.cordP],['Rede espinada (m)',M.espM]]);
+  const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(A);ws['!cols']=[{wch:12},{wch:48},{wch:16},{wch:9}].concat(tem?[{wch:16},{wch:18}]:[]).concat([{wch:70}]);XLSX.utils.book_append_sheet(wb,ws,'Materiais');
+  const w2=XLSX.utils.aoa_to_sheet(B);w2['!cols']=[{wch:34},{wch:12}];XLSX.utils.book_append_sheet(wb,w2,'Postes');
+  if(M.av.length){XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Observações']].concat(M.av.map(a=>[a]))),'Observações')}
+  const nm=`Materiais pelo KMZ - ${etq||'projeto'}.xlsx`;if(typeof krBaixar==='function'&&XLSX.write){krBaixar(nm,new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}))}else XLSX.writeFile(wb,nm)}
+/* no cadastro (etapa do KMZ de lançamento) */
+const kmRoiAt=p=>(ui.roiTmp&&ui.roiTmp.itens&&ui.roiTmp.itens.length?ui.roiTmp.itens:(p&&p.roi&&p.roi.itens)||[]);
+{const _b=kmzLBloco;kmzLBloco=function(W,p){let h=_b.apply(this,arguments);if(!h)return h;const kl=W.kL||{},ax=p&&anxKmz(p.etiqueta,'kmzL'),M=kl.mat||(!kl.arq&&p&&p.kmzMat)||null;
+  const corpo=M?`<details class="kmmat" ${kl.matAb?'open':''}><summary data-act="kmMatAb">Lista de materiais pelo KMZ · ${M.itens.length} itens${M.postes?` · ${M.postes} postes`:''}</summary>${kmTabela(M,kmRoiAt(p))}
+      <div class="actions" style="justify-content:flex-start;margin-top:8px"><button class="btn sm" data-act="kmMatXlsx">Baixar planilha</button></div></details>`
+    :kl.matErr?`<p class="result bad" style="margin-top:8px">Lista de materiais: ${esc(kl.matErr)}</p>`
+    :ax&&!kl.arq?`<button class="btn sm" data-act="kmMatAnx" style="margin-top:8px">Calcular lista de materiais pelo KMZ anexado</button>`:'';
+  return corpo?h.replace(/<\/div>\s*$/,corpo+'</div>'):h}}
+{const _c=CH.kmzLArq;CH.kmzLArq=async el=>{const f=el.files&&el.files[0];const r=await _c(el);const W=ui.wiz;if(!f||!W||!W.kL||W.kL.arq!==f)return r;
+  try{W.kL.mat=await kmCalcArq(await f.arrayBuffer(),f.name);W.kL.matErr='';W.kL.matAb=true}catch(e){W.kL.mat=null;W.kL.matErr=e.message||String(e)}renderWiz();return r}}
+Object.assign(ACT,{
+  kmMatAb:el=>{const W=ui.wiz;if(W){W.kL=W.kL||{};const d=el.closest('details');W.kL.matAb=!(d&&d.open)}},
+  kmMatAnx:async()=>{const W=ui.wiz,p=W&&W.id?S.previsao.find(x=>x.id===W.id):null,ax=p&&anxKmz(p.etiqueta,'kmzL');if(!ax)return;toast('Lendo o KMZ anexado…');
+    try{W.kL=W.kL||{};W.kL.mat=kmMat(kmParse(await anxTexto(ax)));W.kL.matErr='';W.kL.matAb=true;p.kmzMat=W.kL.mat;save()}catch(e){W.kL.matErr='não foi possível ler o KMZ anexado: '+(e.message||e)}renderWiz()},
+  kmMatXlsx:()=>{const W=ui.wiz,p=W&&W.id?S.previsao.find(x=>x.id===W.id):null,M=(W&&W.kL&&W.kL.mat)||(p&&p.kmzMat);if(!M)return;kmXlsx(M,(p&&p.etiqueta)||(ui.roiTmp&&ui.roiTmp.etiqueta)||'',kmRoiAt(p))}});
+/* grava a lista no projeto ao salvar o cadastro */
+{const _a=kmzLAplica;kmzLAplica=function(p,W){const kl=W&&W.kL;if(kl&&kl.mat&&p){p.kmzMat=kl.mat;try{save()}catch(e){}}return _a.apply(this,arguments)}}
+/* KMZ de lançamento (estimativa KMZ × LPU): linha dentro da pasta CABO/CABOS conta como cabo mesmo sem "CABO" no nome (ex.: "FPS001 - 900M") */
+{const _t=klTipoLn;klTipoLn=function(l){const t=_t(l);if(t==='outra'&&Array.isArray(l.pasta)&&l.pasta.some(f=>/^CABOS?$/.test(klN(f)))&&!/EXISTENTE/.test(klN(l.nome)))return 'cabo';return t}}
+
+/* ---------- 23/10: ROI GERADO PELO KMZ (o ROI oficial passa a sair da ferramenta) ----------
+   No cadastro do projeto (etapa ROI), o projetista envia o KMZ do projeto e a ferramenta monta:
+   - Ponta A: lista de materiais pelo KMZ (kmzmat.js), com o último preço de entrada de cada código SAP;
+   - Ponta B: kit da topologia (GPON: ONU + extensão + terminador + patch cord + bandeja + 4 porcas;
+              ponto a ponto: EDD + GBIC + cordão INS000166 + terminador + patch cord + bandeja + 4 porcas);
+   - Mão de obra: estimativa KMZ × LPU (a mesma regra de kle.js), com as quantidades lidas do desenho;
+   - ROI (meses) = (custo total − taxa de instalação) ÷ valor mensal. O projetista informa valor mensal e taxa.
+   O PDF "ROI" traz o resumo, a lista de materiais com valores e a mão de obra estimada pela LPU.
+   Tabela de preços: planilha "lista de materiais com valor" (Código, Item, Última data de entrada, Último preço de entrada),
+   importada pela coordenação e guardada em ag_config (chave 'precos_materiais'), fora do código publicado. */
+const KR_KIT={
+  gpon:[['eq',1,'Equipamento (ONU)'],['INS000192',1],['INS000138',1],['INS000086',1],['INS000017',1],['INS000494',4]],
+  ptp:[['sw',1,'Switch'],['eq',1,'GBIC do cliente'],['INS000166',1],['INS000138',1],['INS000086',1],['INS000017',1],['INS000494',4]]};
+const KR_EQ_PAD={gpon:'ATN000259',ptp:'ATN000305'};
+/* ponto a ponto: switch do cliente define a velocidade do GBIC (2104 = 1,25G; 4370 = 10G);
+   GBIC do POP: TX1550 (1,25G) ou TX1330 (10G); GBIC do cliente é o par (TX1310 / TX1270).
+   Alcance pela distância POP → cliente: até 15 km = 20 km; acima de 15 até 30 km = 40 km; acima de 30 até 40 km = 60 km. */
+const KR_SW={'2104':{cod:'ATN000122',n:'Switch Datacom 2104G2-EDD',v:'1G'},'4370':{cod:'ATN000130',n:'Switch Datacom DM4370 10GE',v:'10G'}};
+const KR_GB={'1G':{pop:{20:'ATN000306',40:'ATN000308'},cli:{20:'ATN000305',40:'ATN000307'}},'10G':{pop:{20:'ATN000323',40:'ATN000325',60:'ATN000327'},cli:{20:'ATN000322',40:'ATN000324',60:'ATN000326'}}};
+const krAlc=km=>km<=15?20:km<=30?40:60;
+function krDist(R){if(R.dist!=null&&R.dist!=='')return krNum(R.dist);const m=((R.M&&R.M.kq&&R.M.kq.aereo)||0)+(R.ext?R.ext.m:0);return Math.round(m/100)/10}
+function krGbics(R){const sw=KR_SW[R.sw||'2104'],km=krDist(R),alc=krAlc(km),t=KR_GB[sw.v],av=[];
+  if(km>40)av.push(`Distância POP → cliente de ${String(km).replace('.',',')} km passa do limite da regra (40 km): usei o GBIC de 60 km. Confira com a engenharia.`);
+  let a=alc;if(!t.pop[a]){const ks=Object.keys(t.pop).map(Number).sort((x,y)=>x-y);a=ks.find(x=>x>=alc)||ks[ks.length-1];av.push(`Não há GBIC ${sw.v==='1G'?'1,25G':'10G'} de ${alc} km na tabela: usei o de ${a} km. Confira o alcance ou troque para o switch 4370 (10G), ou escolha o GBIC manualmente.`)}
+  return{sw,km,alc,a,pop:a?t.pop[a]:'',cli:a?t.cli[a]:'',av}}
+const KR_TOPO=[['gpon','GPON'],['ptp','Ponto a ponto']];
+let KR_PR=null;
+const krPrecos=()=>(S.cfg&&S.cfg.precos_materiais&&S.cfg.precos_materiais.itens)?S.cfg.precos_materiais:KR_PR;
+/* quem cadastra projeto mas não é da gestão também lê a tabela de preços e os parâmetros da estimativa (ajuste 40 do banco) */
+async function krCarregaPrecos(){S.cfg=S.cfg||{};const falta=['precos_materiais','estimativa_kmz'].filter(k=>!S.cfg[k]);if(!falta.length)return krPrecos();
+  try{const r=await sb.from('ag_config').select('chave,valor').in('chave',falta);((r&&r.data)||[]).forEach(x=>{S.cfg[x.chave]=x.valor;if(x.chave==='precos_materiais')KR_PR=x.valor})}catch(e){}return krPrecos()}
+/* preço definido pela Implantação (vale sobre o último preço de entrada da planilha) */
+const KR_FIX={INS000995:['CABO OPTICO DROP FIG8 4FO',1.31]};
+const krPr=cod=>{if(!cod)return null;const c=String(cod).toUpperCase(),P=krPrecos(),f=(P&&P.fix&&P.fix[c])||KR_FIX[c],x=P&&P.itens?P.itens[c]:null;
+  if(f)return{desc:f[0]||(x&&x[0])||c,v:+f[1]||0,dt:'preço definido',fix:true};return x?{desc:x[0],v:+x[1]||0,dt:x[2]||''}:null};
+/* ajustes do projetista: incluir, excluir e mudar quantidade (materiais e mão de obra) */
+const krEd=()=>{const R=ui.wiz.kr;R.ed=R.ed||{mat:{del:{},q:{},add:[]},mo:{del:{},q:{},add:[]}};return R.ed};
+const krKm=i=>i.tipo+'|'+(i.cod||i.desc),krKo=x=>x.fase+'|'+x.cod;
+const krBrl=v=>(+v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const krNum=v=>{const t=String(v==null?'':v).trim();if(!t)return 0;return parseFloat(/,\d{1,2}$/.test(t)||t.includes(',')?t.replace(/\./g,'').replace(',','.'):t)||0};
+/* equipamentos que o projetista pode escolher (da tabela de preços) */
+function krEqOpts(tp){const P=krPrecos(),re=tp==='gpon'?/^ONU\b/i:/^GBIC\b|^TRANSCEPTOR/i;if(!P||!P.itens)return[[KR_EQ_PAD[tp],KR_EQ_PAD[tp]]];
+  return Object.entries(P.itens).filter(([c,x])=>re.test(x[0])).sort((a,b)=>a[1][0].localeCompare(b[1][0])).map(([c,x])=>[c,x[0]])}
+/* cálculo completo */
+function krCalc(){const W=ui.wiz,R=W&&W.kr;if(!R||!R.M)return null;const M=R.M,tp=R.topo||'gpon',eq=R.eq||KR_EQ_PAD[tp];
+  const pa=M.itens.map(i=>{const pr=krPr(i.cod);return{cod:i.cod||'',desc:(pr&&pr.desc)||i.desc,tipo:'PONTA A',qtd:i.qtd,un:i.un,vu:pr?pr.v:null,memo:i.memo}});
+  const G=tp==='ptp'?krGbics(R):null;
+  const pb=KR_KIT[tp].map(([c,q,l])=>{const cod=c==='sw'?G.sw.cod:c==='eq'?(tp==='ptp'?(R.eqMan&&R.eq?R.eq:G.cli):eq):c,pr=krPr(cod);return{cod,desc:(pr&&pr.desc)||l||cod,tipo:'PONTA B',qtd:q,un:'UN',vu:pr?pr.v:null,memo:'kit da ponta B ('+(tp==='gpon'?'GPON':'ponto a ponto')+')'+(c==='eq'&&G?` · ${G.a||G.alc} km (POP → cliente ${String(G.km).replace('.',',')} km)`:'')}});
+  if(G){const cod=R.popMan&&R.gpop?R.gpop:G.pop,pr=krPr(cod);if(cod)pb.push({cod,desc:(pr&&pr.desc)||cod,tipo:'PONTA B',qtd:1,un:'UN',vu:pr?pr.v:null,memo:`GBIC do POP (${G.sw.v==='1G'?'TX1550, 1,25G':'TX1330, 10G'}) · ${G.a||G.alc} km`,pop:true})}
+  const E=krEd(),base=pa.concat(pb),itens=[],rem=[];
+  base.forEach(i=>{const k=krKm(i);i.k=k;if(E.mat.del[k]){rem.push(i);return}if(E.mat.q[k]!=null){i.orig=i.qtd;i.qtd=E.mat.q[k]}itens.push(i)});
+  E.mat.add.forEach((a,ix)=>{const pr=krPr(a.cod);itens.push({k:'add|'+ix,add:ix,cod:a.cod,desc:(pr&&pr.desc)||a.desc||a.cod,tipo:a.tipo||'PONTA A',qtd:a.qtd,un:a.un||'UN',vu:pr?pr.v:null,memo:'incluído pelo projetista'})});
+  itens.forEach(i=>{i.vt=i.vu==null?null:Math.round(i.vu*i.qtd*100)/100});
+  const semPreco=itens.filter(i=>i.vu==null);
+  const valorMat=Math.round(itens.reduce((s,i)=>s+(i.vt||0),0)*100)/100;
+  /* mão de obra pela LPU */
+  const p0=W.id?S.previsao.find(x=>x.id===W.id):null,cid=(W.e&&W.e.cidade)||(p0&&p0.cidade)||'';
+  const pp={topologia:tp==='gpon'?'GPON':'Ponto a ponto',fator:(p0&&p0.fator)||'comum',cidade:cid,dRua:p0?p0.dRua:0,dInterno:p0?p0.dInterno:0,dExt:p0?p0.dExt:0,dAtiv:p0?p0.dAtiv:0,semExt:!R.ext,klExt:R.ext?{m:R.ext.m,cx:R.ext.cx}:null,kl:{q:M.kq}};
+  let mo=null;try{mo=kleCalc(pp)}catch(e){mo={L:[],tot:0,porF:{},fraco:['não foi possível calcular a mão de obra: '+(e.message||e)]}}
+  const crit=pp.fator==='critico',moRem=[];mo.L=mo.L.filter(x=>{const k=krKo(x);x.k=k;if(E.mo.del[k]){moRem.push(x);return false}if(E.mo.q[k]!=null){x.orig=x.q;x.q=E.mo.q[k];x.v=Math.round(x.q*x.u*100)/100}return true});
+  E.mo.add.forEach((a,ix)=>{const it=kcItem(a.cod);if(!it)return;const u=crit&&it.valorCritico!=null?+it.valorCritico:+it.valor||0;mo.L.push({k:'add|'+ix,add:ix,fase:a.fase||'lanc',grupo:'Incluído',cod:a.cod,desc:it.desc,med:it.medida,q:a.q,u,v:Math.round(a.q*u*100)/100,regra:'incluído pelo projetista'})});
+  mo.tot=Math.round(mo.L.reduce((s,x)=>s+x.v,0)*100)/100;mo.rem=moRem;
+  const custoMO=mo?mo.tot:0,custoTotal=Math.round((valorMat+custoMO)*100)/100,valor=krNum(R.valor),taxa=krNum(R.taxa);
+  const roiIdx=valor>0?Math.round((custoTotal-taxa)/valor*100)/100:null;
+  return{G,itens,rem,semPreco,valorMat,mo,custoMO,custoTotal,valor,taxa,roiIdx,tp,eq,cid}}
+/* leva o resultado para o ROI do cadastro (mesmo formato do ROI lido do PDF) */
+function krAplica(){const W=ui.wiz,C=krCalc();if(!C)return;const r0=ui.roiTmp||{},g=id=>{const e=$(id);return e?e.value.trim():null};
+  const cab=C.itens.filter(i=>i.un==='M'&&/CABO/i.test(i.desc));
+  ui.roiTmp=Object.assign({},r0,{nome:'ROI gerado pelo KMZ · '+(W.kr.nome||''),itens:[{cod:'',desc:'Mão de obra (estimativa KMZ × LPU)',qtd:1,un:'',tipo:'MAO DE OBRA'}].concat(C.itens.map(i=>({cod:i.cod,desc:i.desc,qtd:i.qtd,un:i.un==='M'?'M':'UN',tipo:i.tipo}))),
+    achados:[C.tp==='gpon'?'ONU':'GBIC'],cabos:cab.map(c=>({cod:c.cod,desc:c.desc,qtd:c.qtd,un:'m'})),metros:cab.reduce((s,c)=>s+c.qtd,0),topologia:C.tp==='gpon'?'GPON':'Ponto a ponto',
+    protocolo:g('rp_protocolo')??r0.protocolo??'',etiqueta:g('rp_etiqueta')??r0.etiqueta??'',cliente:g('rp_cliente')??r0.cliente??'',valor:C.valor,
+    taxa:C.taxa||'',custoTotal:C.custoTotal,custoMO:C.custoMO,valorMat:C.valorMat,custosAdic:0,roiIdx:C.roiIdx==null?'':C.roiIdx,kmz:true})}
+/* tela */
+function krTabela(C,parte){const r2=v=>v==null?'<span class="krsem">sem preço</span>':krBrl(v),fq=v=>(+v).toLocaleString('pt-BR');
+  const qIn=(g,k,v)=>`<input class="inp krq" inputmode="decimal" data-ch="krQ" data-g="${g}" data-k="${esc(k)}" value="${String(v).replace('.',',')}" aria-label="Quantidade">`;
+  const del=(g,k)=>`<button type="button" class="krx" data-act="krDel" data-g="${g}" data-k="${esc(k)}" title="Excluir" aria-label="Excluir item">✕</button>`;
+  const grp=t=>C.itens.filter(i=>i.tipo===t);
+  const tb=(t,L)=>`<h4 class="lsub" style="margin:12px 0 4px">${t}</h4><div class="tablewrap"><table class="kmmt krt"><thead><tr><th></th><th>Código SAP</th><th>Produto</th><th class="r">Qtd${L.some(i=>i.un==='M')?' (m)':''}</th><th class="r">Valor un.</th><th class="r">Total</th></tr></thead><tbody>
+    ${L.map(i=>`<tr class="${i.vu==null?'krsemp':''}${i.orig!=null||i.add!=null?' kred':''}"><td>${del('mat',i.k)}</td><td>${esc(i.cod||'—')}</td><td style="white-space:normal">${esc(i.desc)}${i.memo?`<small class="muted krmemo">${esc(i.memo)}${i.orig!=null?` · <b>quantidade alterada (calculado: ${fq(i.orig)})</b>`:''}</small>`:''}</td><td class="r">${qIn('mat',i.k,i.qtd)}</td><td class="r">${r2(i.vu)}</td><td class="r"><b>${r2(i.vt)}</b></td></tr>`).join('')||'<tr><td colspan="6" class="muted">Nenhum item.</td></tr>'}</tbody></table></div>`;
+  const P=krPrecos(),dl=P&&P.itens?`<datalist id="krDlMat">${Object.entries(P.itens).map(([c,x])=>`<option value="${esc(c)} · ${esc(x[0])}">`).join('')}</datalist>`:'';
+  const addMat=`<div class="kradd">${dl}<input class="inp" id="krAddCod" list="krDlMat" placeholder="Incluir material: código SAP ou nome"><input class="inp krq" id="krAddQ" inputmode="decimal" placeholder="Qtd"><select class="inp" id="krAddT"><option>PONTA A</option><option>PONTA B</option></select><button type="button" class="btn sm" data-act="krAddMat">Incluir</button></div>`;
+  const remM=C.rem.length?`<p class="muted kremv">Excluídos: ${C.rem.map(i=>`<button type="button" class="linkbtn" data-act="krVolta" data-g="mat" data-k="${esc(i.k)}" title="Voltar o item">${esc(i.cod||i.desc)}</button>`).join(', ')}</p>`:'';
+  const mo=C.mo||{L:[],porF:{},fraco:[],rem:[]};
+  const moT=`<h4 class="lsub" style="margin:12px 0 4px">Mão de obra estimada pela LPU</h4><div class="tablewrap"><table class="kmmt krt"><thead><tr><th></th><th>Fase</th><th>Serviço</th><th class="r">Qtd</th><th class="r">Valor un.</th><th class="r">Total</th></tr></thead><tbody>
+    ${mo.L.map(x=>`<tr class="${x.orig!=null||x.add!=null?'kred':''}"><td>${del('mo',x.k)}</td><td>${esc(KLE_FASE[x.fase]||x.fase)}</td><td style="white-space:normal"><b>${esc(x.cod)}</b> ${esc(x.desc)}<small class="muted krmemo">${esc(x.regra||'')}${x.orig!=null?` · <b>quantidade alterada (calculado: ${fq(x.orig)})</b>`:''}</small></td><td class="r">${qIn('mo',x.k,x.q)}</td><td class="r">${krBrl(x.u)}</td><td class="r"><b>${krBrl(x.v)}</b></td></tr>`).join('')||'<tr><td colspan="6" class="muted">Nenhum serviço calculado.</td></tr>'}</tbody></table></div>
+    <div class="kradd"><datalist id="krDlLpu">${LPU.map(i=>`<option value="${esc(i.cod)} · ${esc(i.desc)}">`).join('')}</datalist><input class="inp" id="krAddLpu" list="krDlLpu" placeholder="Incluir serviço da LPU: código ou nome"><input class="inp krq" id="krAddLq" inputmode="decimal" placeholder="Qtd"><select class="inp" id="krAddLf">${Object.entries(KLE_FASE).map(([k,n])=>`<option value="${k}">${n}</option>`).join('')}</select><button type="button" class="btn sm" data-act="krAddMo">Incluir</button></div>
+    ${mo.rem&&mo.rem.length?`<p class="muted kremv">Excluídos: ${mo.rem.map(x=>`<button type="button" class="linkbtn" data-act="krVolta" data-g="mo" data-k="${esc(x.k)}" title="Voltar o serviço">${esc(x.cod)}</button>`).join(', ')}</p>`:''}
+    ${mo.fraco&&mo.fraco.length?`<ul class="kmav">${mo.fraco.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:''}`;
+  const matT=tb('Ponta A · materiais da rede (pelo KMZ)',grp('PONTA A'))+tb('Ponta B · kit da topologia',grp('PONTA B'))+addMat+remM;
+  return parte==='mat'?matT:parte==='mo'?moT:matT+moT}
+function krPainel(){const W=ui.wiz,R=W.kr||{},P=krPrecos(),coord=['coord'].includes(ui.perfil);
+  const prec=`<p class="muted krprec">${P&&P.itens?`Tabela de preços: <b>${Object.keys(P.itens).length}</b> itens${P.em?` · atualizada em ${dtBR(P.em)}`:''}${P.por?` por ${esc(P.por)}`:''}`:'<b>Tabela de preços não carregada.</b> Os materiais saem sem valor.'}
+    ${coord?` · <span class="upl linkbtn">atualizar (planilha .xlsx)<input type="file" accept=".xlsx,.xls" data-ch="krPrecosArq"></span>`:''}</p>`;
+  let h=`<div class="krbox"><p class="muted" style="margin:0 0 8px">Envie o KMZ do projeto: a ferramenta monta a lista de materiais com valores, a mão de obra estimada pela LPU e o ROI. Você informa o valor mensal e a taxa de instalação e confere.</p>
+    <label class="f"><span>KMZ do projeto (.kmz ou .kml)</span><input type="file" class="inp" accept=".kmz,.kml" data-ch="krArq"></label>${R.nome?`<p class="muted" style="margin:-4px 0 8px;font-size:13px">Arquivo: <b>${esc(R.nome)}</b></p>`:''}${R.M?`<div class="krext"><label class="f" style="margin:0"><span>KMZ de extensão de sinal (quando houver)</span><input type="file" class="inp" accept=".kmz,.kml" data-ch="krExt"></label>
+      ${R.ext?`<p class="krextr"><b>${esc(R.ext.nome)}</b> · ${kmN0(Math.round(R.ext.m))} m de fibra e ${R.ext.cx} ${R.ext.cx===1?'caixa':'caixas'} de emenda no caminho · entra na mão de obra (extensão de sinal) <button type="button" class="linkbtn" data-act="krExtTira">remover</button></p>`:R.extErr?`<p class="result bad">${esc(R.extErr)}</p>`:'<p class="muted" style="font-size:12.5px;margin:2px 0 0">Sem extensão: deixe em branco.</p>'}</div>`:''}${prec}`;
+  if(R.err)h+=`<div class="result bad">${esc(R.err)}</div>`;
+  if(R.M){const C=krCalc(),tp=C.tp;
+    h+=`<div class="grid2 even" style="gap:0 12px;margin-top:6px"><label class="f"><span>Valor mensal (R$) *</span><input class="inp" inputmode="decimal" data-in="krV" data-k="valor" value="${esc(R.valor||'')}" placeholder="Ex.: 750"></label>
+      <label class="f"><span>Taxa de instalação (R$)</span><input class="inp" inputmode="decimal" data-in="krV" data-k="taxa" value="${esc(R.taxa||'')}" placeholder="0"></label>
+      <label class="f"><span>Topologia${R.topoAuto?' (pelo desenho)':''}</span><select class="inp" data-ch="krTopo">${KR_TOPO.map(([k,n])=>`<option value="${k}" ${k===tp?'selected':''}>${n}</option>`).join('')}</select></label>
+      ${tp==='gpon'?`<label class="f"><span>ONU</span><select class="inp" data-ch="krEq">${krEqOpts(tp).map(([c,n])=>`<option value="${c}" ${c===C.eq?'selected':''}>${esc(c)} · ${esc(n)}</option>`).join('')}</select></label>`
+      :`<label class="f"><span>Switch do cliente</span><select class="inp" data-ch="krSw">${Object.entries(KR_SW).map(([k,x])=>`<option value="${k}" ${k===(R.sw||'2104')?'selected':''}>${esc(x.cod)} · ${esc(x.n)} (GBIC ${x.v==='1G'?'1,25G':'10G'})</option>`).join('')}</select></label>
+      <label class="f"><span>Distância POP → cliente (km)${R.dist==null||R.dist===''?' · pelo KMZ':''}</span><input class="inp" inputmode="decimal" data-ch="krDist" value="${String(krDist(R)).replace('.',',')}"></label>
+      <label class="f"><span>GBIC do cliente</span><select class="inp" data-ch="krEq">${krEqOpts('ptp').map(([c,n])=>`<option value="${c}" ${c===(R.eqMan&&R.eq?R.eq:C.G.cli)?'selected':''}>${esc(c)} · ${esc(n)}</option>`).join('')}</select></label>
+      <label class="f"><span>GBIC do POP</span><select class="inp" data-ch="krGpop">${krEqOpts('ptp').map(([c,n])=>`<option value="${c}" ${c===(R.popMan&&R.gpop?R.gpop:C.G.pop)?'selected':''}>${esc(c)} · ${esc(n)}</option>`).join('')}</select></label>`}</div>
+      ${tp==='ptp'?`<p class="muted krgb">Regra: ${C.G.sw.v==='1G'?'switch 2104 → GBIC 1,25G (POP TX1550)':'switch 4370 → GBIC 10G (POP TX1330)'} · ${String(C.G.km).replace('.',',')} km → GBIC de ${C.G.alc} km (até 15 km = 20 km; até 30 km = 40 km; até 40 km = 60 km).${R.eqMan||R.popMan?' <b>GBIC escolhido manualmente.</b> <button type="button" class="linkbtn" data-act="krGbAuto">voltar para a regra</button>':''}</p>${C.G.av.map(a=>`<p class="result warn" style="margin:6px 0">${esc(a)}</p>`).join('')}`:''}
+     <div class="krres" id="krRes">${krResumo(C)}</div>
+     ${C.semPreco.length?`<p class="result warn" style="margin-top:8px">${C.semPreco.length} ${C.semPreco.length>1?'itens sem preço':'item sem preço'} na tabela (${esc(C.semPreco.map(i=>i.cod||i.desc).join(', '))}): ${C.semPreco.length>1?'entram':'entra'} com valor zero.</p>`:''}
+     <button type="button" class="btn primary krabre" data-act="krVer">Abrir lista de materiais e mão de obra (tela cheia)</button>
+     <div class="actions" style="justify-content:flex-start;margin:8px 0"><button class="btn primary sm" data-act="krPdf" data-p="all">PDF do ROI completo</button><button class="btn sm" data-act="krPdf" data-p="mat">PDF da lista de materiais</button><button class="btn sm" data-act="krPdf" data-p="mo">PDF da mão de obra (LPU)</button></div>
+     ${R.M.av&&R.M.av.length?`<ul class="kmav">${R.M.av.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>`:''}`}
+  return h+'</div>'}
+function krResumo(C){return `<div class="kpi"><b>${krBrl(C.valorMat)}</b><span>Materiais (pontas A e B)</span></div><div class="kpi"><b>${krBrl(C.custoMO)}</b><span>Mão de obra (LPU)</span></div><div class="kpi"><b>${krBrl(C.custoTotal)}</b><span>Custo total</span></div><div class="kpi ${C.roiIdx==null?'':'ok'}"><b>${C.roiIdx==null?'—':String(C.roiIdx).replace('.',',')}</b><span>ROI (meses)${C.roiIdx==null?' · informe o valor mensal':''}</span></div>`}
+/* etapa 1 do cadastro: escolha entre gerar pelo KMZ ou importar o PDF */
+{const _w=renderWiz;renderWiz=function(){const W=ui.wiz;if(W&&W.roiModo==null){const p=W.id?S.previsao.find(x=>x.id===W.id):null;W.roiModo=p&&p.roi&&!p.roi.kmz?'pdf':'kmz'}
+  const o=_w.apply(this,arguments);if(!W||W.step!==1)return o;
+  try{const pdf=document.querySelector('#modal input[data-ch="roiPdf"]');if(!pdf)return o;const lab=pdf.closest('label'),det=lab&&lab.nextElementSibling,intro=lab&&lab.previousElementSibling;
+    const seg=`<div class="seg krseg" role="tablist"><button type="button" data-act="krModo" data-v="kmz" aria-pressed="${W.roiModo==='kmz'}">Gerar pelo KMZ</button><button type="button" data-act="krModo" data-v="pdf" aria-pressed="${W.roiModo==='pdf'}">Importar PDF do ROI</button></div>`;
+    (intro||lab).insertAdjacentHTML('beforebegin',seg);
+    if(W.roiModo==='kmz'){[lab,det,intro].forEach(e=>{if(e&&e!==lab.parentElement)e.style.display='none'});lab.insertAdjacentHTML('beforebegin',krPainel())}}catch(e){console.warn('kroi',e)}return o}}
+const krRefresh=()=>{const C=krCalc();if(!C)return;const r=$('krRes');if(r)r.innerHTML=krResumo(C);krAplica();const pv=$('roiPrev');if(pv&&ui.roiTmp){const keep={};['rp_protocolo','rp_etiqueta','rp_cliente'].forEach(i=>{const e=$(i);if(e)keep[i]=e.value});pv.innerHTML=roiPreview(ui.roiTmp,ui.roiTarget);Object.entries(keep).forEach(([i,v])=>{const e=$(i);if(e)e.value=v})}};
+Object.assign(CH,{
+  krArq:async el=>{const f=el.files&&el.files[0];if(!f)return;const W=ui.wiz;W.kr=Object.assign(W.kr||{},{nome:f.name,arq:f,err:'',M:null});toast('Lendo o KMZ…');
+    try{await krCarregaPrecos();const txt=await kmzTexto(await f.arrayBuffer(),f.name),K=kmParse(txt),M=kmMat(K);if(!M.itens.length)throw new Error('não reconheci postes nem cabos no desenho');
+      W.kr.M=M;if(!W.kr.topoMan){W.kr.topo=M.temDrop?'gpon':'ptp';W.kr.topoAuto=true}
+      /* o mesmo KMZ fica como KMZ de lançamento do projeto (etapa 3) */
+      W.kL={arq:f,nome:f.name,total:null,mat:M,matAb:false};
+      /* informações técnicas que o desenho dá: POP pelo nome do arquivo e caixa de derivação */
+      const pop=(f.name.toUpperCase().match(/\b([A-Z]{2}-[A-Z]{3}-[A-Z]{3,4})\b/)||[])[1];if(pop&&W.t&&!W.t.pop)W.t.pop=pop;
+      const cx=K.P.find(p=>/^(NOVA )?(CEO|CE|CTO)\b|^(CEO|CE|CTO)[\s\-_]?\d/.test(kmN(p.nome))&&!/EXISTENTE/.test(kmN(p.nome)));
+      if(cx&&W.t&&!W.t.pd){W.t.pd=cx.nome;W.t.locPd=cx.ll[0].toFixed(7)+', '+cx.ll[1].toFixed(7)}
+      krAplica();toast('KMZ lido. Informe o valor mensal e confira.')}
+    catch(e){W.kr.err='Não foi possível ler o KMZ: '+(e.message||e)}renderWiz()},
+  krExt:async el=>{const f=el.files&&el.files[0];if(!f)return;const W=ui.wiz,R=W.kr;R.extErr='';toast('Lendo o KMZ de extensão…');
+    try{const txt=await kmzTexto(await f.arrayBuffer(),f.name),K=kmlLer(txt),e=klExtDe(K);if(!(e.m>0))throw new Error('não encontrei linhas de cabo no KMZ de extensão');
+      R.ext={nome:f.name,m:e.m,cx:e.cx};
+      /* o mesmo arquivo segue para a etapa 4 (Extensão), onde se marca início e término */
+      if(W.k){W.k.K=K;W.k.K.total=K.L.length?kmzRede(K).total:0;W.k.nome=f.name;W.k.arq=f;W.k.path='';W.k.msg='';try{kmzRecalc()}catch(x){}}
+      krAplica();toast(`Extensão: ${kmN0(Math.round(e.m))} m e ${e.cx} ${e.cx===1?'caixa':'caixas'} no caminho.`)}
+    catch(x){R.ext=null;R.extErr='Não foi possível ler o KMZ de extensão: '+(x.message||x)}krRe()},
+  krTopo:el=>{const R=ui.wiz.kr;R.topo=el.value;R.topoMan=true;R.topoAuto=false;R.eq=null;R.eqMan=false;R.popMan=false;krAplica();krRe()},
+  krEq:el=>{const R=ui.wiz.kr;R.eq=el.value;if(R.topo==='ptp')R.eqMan=true;krAplica();krRe()},
+  krGpop:el=>{const R=ui.wiz.kr;R.gpop=el.value;R.popMan=true;krAplica();krRe()},
+  krSw:el=>{const R=ui.wiz.kr;R.sw=el.value;R.eqMan=false;R.popMan=false;krAplica();krRe()},
+  krDist:el=>{const R=ui.wiz.kr;R.dist=el.value.trim();R.eqMan=false;R.popMan=false;krAplica();krRe()},
+  krPrecosArq:async el=>{const f=el.files&&el.files[0];if(!f)return;if(typeof XLSX==='undefined'||!XLSX.read){toast('A biblioteca de planilhas ainda está carregando.','bad');return}
+    try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true}),ws=wb.Sheets[wb.SheetNames[0]],A=XLSX.utils.sheet_to_json(ws,{header:1,raw:true});
+      const h=(A[0]||[]).map(x=>normK(String(x||''))),ic=h.findIndex(x=>/^codigo/.test(x)),ii=h.findIndex(x=>/^item|descri|produto/.test(x)),idt=h.findIndex(x=>/data/.test(x)),ip=h.findIndex(x=>/preco|valor/.test(x));
+      if(ic<0||ip<0)throw new Error('não achei as colunas Código e Último preço de entrada');
+      const it={},dt=v=>v instanceof Date?v.toISOString().slice(0,10):String(v||'').slice(0,10);
+      A.slice(1).forEach(r=>{const c=String(r[ic]||'').trim().toUpperCase();if(!c)return;const d=dt(r[idt]),v=typeof r[ip]==='number'?r[ip]:krNum(r[ip]);if(!it[c]||d>=it[c][2])it[c]=[String(r[ii]||'').trim(),v,d]});
+      const val={em:Date.now(),por:meNome(),arquivo:f.name,itens:it};const up=await sb.from('ag_config').upsert({chave:'precos_materiais',valor:val,atualizado_por:meNome(),atualizado_em:new Date().toISOString()},{onConflict:'chave'});
+      if(up&&up.error)throw up.error;S.cfg=S.cfg||{};S.cfg.precos_materiais=val;KR_PR=val;krAplica();krRe();toast(`Tabela de preços atualizada: ${Object.keys(it).length} itens.`)}
+    catch(e){toast('Não foi possível ler a planilha: '+(e.message||e),'bad')}}});
+Object.assign(IN,{krV:el=>{const R=ui.wiz.kr;R[el.dataset.k]=el.value;krRefresh()}});
+Object.assign(ACT,{
+  krGbAuto:()=>{const R=ui.wiz.kr;R.eqMan=false;R.popMan=false;krAplica();krRe()},
+  krExtTira:()=>{const R=ui.wiz.kr;R.ext=null;R.extErr='';krAplica();krRe()},
+  krModo:el=>{const W=ui.wiz;W.roiModo=el.dataset.v;renderWiz()},
+  krVer:()=>{const R=ui.wiz.kr;R.full=true;R.tab=R.tab||'mat';krFull()},
+  krFecha:()=>{const R=ui.wiz.kr;R.full=false;krFull();renderWiz()},
+  krTab:el=>{ui.wiz.kr.tab=el.dataset.v;krFull()},
+  krPdf:el=>krPdf(el&&el.dataset&&el.dataset.p||'all'),
+  krDel:el=>{const E=krEd(),g=el.dataset.g,k=el.dataset.k;if(/^add\|/.test(k)){E[g].add[+k.split('|')[1]]=null;E[g].add=E[g].add.filter(Boolean)}else E[g].del[k]=true;krAplica();krRe()},
+  krVolta:el=>{const E=krEd();delete E[el.dataset.g].del[el.dataset.k];krAplica();krRe()},
+  krAddMat:()=>{const v=($('krAddCod').value||'').trim(),q=krNum($('krAddQ').value),t=$('krAddT').value,cod=(v.match(/^([A-Z]{3}\d{6})/i)||[])[1];
+    if(!cod){toast('Escolha o material pela lista (código SAP).','bad');return}if(!(q>0)){toast('Informe a quantidade.','bad');return}
+    const pr=krPr(cod);krEd().mat.add.push({cod:cod.toUpperCase(),qtd:q,tipo:t,desc:pr?pr.desc:v.replace(/^[A-Z]{3}\d{6}\s*·?\s*/i,'')});krAplica();krRe();toast(`${cod.toUpperCase()} incluído.`)},
+  krAddMo:()=>{const v=($('krAddLpu').value||'').trim(),q=krNum($('krAddLq').value),f=$('krAddLf').value,cod=(v.match(/^([A-Z]{3}\d{3,4}[a-z]?)/i)||[])[1];
+    if(!cod||!kcItem(cod)){toast('Escolha o serviço pela lista da LPU.','bad');return}if(!(q>0)){toast('Informe a quantidade.','bad');return}
+    krEd().mo.add.push({cod,q,fase:f});krAplica();krRe();toast(`${cod} incluído na mão de obra.`)}});
+Object.assign(CH,{krQ:el=>{const E=krEd(),g=el.dataset.g,k=el.dataset.k,v=krNum(el.value);if(!(v>0)){toast('Quantidade inválida. Para tirar o item, use o ✕.','bad');renderWiz();return}
+  if(/^add\|/.test(k)){const a=E[g].add[+k.split('|')[1]];if(a){if(g==='mat')a.qtd=v;else a.q=v}}else E[g].q[k]=v;krAplica();krRe()}});
+/* PDF do ROI */
+async function krBaixar(nome,blob){if(typeof window.__baixar==='function')return window.__baixar(nome,blob);const a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500)}
+async function krPdf(parte){parte=parte||'all';const W=ui.wiz,C=krCalc();if(!C)return;if(!window.jspdf){toast('O gerador de PDF ainda está carregando. Tente de novo.','bad');return}
+  const g=id=>{const e=$(id);return e?e.value.trim():''},r=ui.roiTmp||{},cli=g('rp_cliente')||r.cliente||'',etq=g('rp_etiqueta')||r.etiqueta||'',prot=g('rp_protocolo')||r.protocolo||'';
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'}),Wd=210,M=12,verde=[124,179,66],cinza=[90,100,90];let y=M;
+  const hoje=new Date(),dt=hoje.toLocaleDateString('pt-BR')+' '+hoje.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  doc.setFillColor(...verde);doc.rect(0,0,Wd,3,'F');y=12;doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(30,40,30);doc.text(parte==='mat'?'Lista de materiais do projeto':parte==='mo'?'Mão de obra estimada pela LPU':'ROI — Lista de materiais e mão de obra estimada',M,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...cinza);doc.text(`Net Turbo · Ferramenta de Gestão O&M · gerado pelo KMZ em ${dt} por ${meNome()}`,M,y+5);y+=11;
+  const kv=[['Cliente',cli||'—'],['Etiqueta',etq||'—'],['Protocolo',prot||'—'],['Topologia',C.tp==='gpon'?'GPON':`Ponto a ponto · switch ${C.G.sw.cod} · POP → cliente ${String(C.G.km).replace('.',',')} km`],['KMZ',(W.kr.nome||'—')+(W.kr.ext?' · extensão: '+W.kr.ext.nome:'')],['Cidade',C.cid||'—']];
+  doc.autoTable({startY:y,theme:'plain',styles:{fontSize:9,cellPadding:1.2},columnStyles:{0:{fontStyle:'bold',cellWidth:24,textColor:cinza},2:{fontStyle:'bold',cellWidth:24,textColor:cinza}},margin:{left:M,right:M},
+    body:[[kv[0][0],kv[0][1],kv[1][0],kv[1][1]],[kv[2][0],kv[2][1],kv[3][0],kv[3][1]],[kv[4][0],kv[4][1],kv[5][0],kv[5][1]]]});y=doc.lastAutoTable.finalY+3;
+  if(parte==='all'){const res=[['Valor mensal',krBrl(C.valor)],['Taxa de instalação',krBrl(C.taxa)],['Valor materiais',krBrl(C.valorMat)],['Custo mão de obra (LPU)',krBrl(C.custoMO)],['Custo total',krBrl(C.custoTotal)],['ROI (meses)',C.roiIdx==null?'—':String(C.roiIdx).replace('.',',')]];
+  doc.autoTable({startY:y,head:[res.map(x=>x[0])],body:[res.map(x=>x[1])],theme:'grid',styles:{fontSize:9,halign:'center',cellPadding:2},headStyles:{fillColor:verde,textColor:255,fontStyle:'bold'},bodyStyles:{fontStyle:'bold'},margin:{left:M,right:M}});y=doc.lastAutoTable.finalY+7}
+  const sec=t=>{if(y>270){doc.addPage();y=M+4}doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(30,40,30);doc.text(t,M,y);y+=2};
+  const mat=t=>C.itens.filter(i=>i.tipo===t).map(i=>[i.cod||'—',i.desc,t,(+i.qtd).toLocaleString('pt-BR')+(i.un==='M'?' m':''),i.vu==null?'sem preço':krBrl(i.vu),i.vt==null?'—':krBrl(i.vt)]);
+  if(parte!=='mo'){sec('Lista de materiais');
+  doc.autoTable({startY:y,head:[['Código SAP','Produto','Tipo','Qtd','Valor un.','Valor total']],body:mat('PONTA A').concat(mat('PONTA B')),foot:[['','','','','Total',krBrl(C.valorMat)]],theme:'striped',
+    styles:{fontSize:8,cellPadding:1.6},headStyles:{fillColor:[60,72,60]},footStyles:{fillColor:[235,242,228],textColor:20,fontStyle:'bold'},columnStyles:{0:{cellWidth:22},2:{cellWidth:18},3:{halign:'right',cellWidth:18},4:{halign:'right',cellWidth:22},5:{halign:'right',cellWidth:24}},margin:{left:M,right:M}});
+  y=doc.lastAutoTable.finalY+7}
+  if(parte!=='mat'){sec('Mão de obra estimada pela LPU');
+  const mo=C.mo||{L:[]};doc.autoTable({startY:y,head:[['Fase','Código','Serviço','Como foi calculado','Qtd','Valor un.','Total']],body:mo.L.map(x=>[KLE_FASE[x.fase]||x.fase,x.cod,x.desc,x.regra||'',(+x.q).toLocaleString('pt-BR'),krBrl(x.u),krBrl(x.v)]),
+    foot:[['','','','','','Total',krBrl(C.custoMO)]],theme:'striped',styles:{fontSize:7.5,cellPadding:1.4},headStyles:{fillColor:[60,72,60]},footStyles:{fillColor:[235,242,228],textColor:20,fontStyle:'bold'},
+    columnStyles:{0:{cellWidth:20},1:{cellWidth:17},3:{cellWidth:44,textColor:cinza},4:{halign:'right',cellWidth:12},5:{halign:'right',cellWidth:20},6:{halign:'right',cellWidth:22}},margin:{left:M,right:M}});
+  y=doc.lastAutoTable.finalY+7}
+  const edM=C.itens.filter(i=>i.orig!=null||i.add!=null).length+C.rem.length,edO=((C.mo&&C.mo.L)||[]).filter(x=>x.orig!=null||x.add!=null).length+((C.mo&&C.mo.rem)||[]).length;
+  const notas=[].concat(parte!=='mat'?(C.mo.fraco||[]):[]).concat(parte!=='mo'&&edM?[`${edM} ${edM>1?'ajustes':'ajuste'} do projetista na lista de materiais (inclusão, exclusão ou quantidade).`]:[]).concat(parte!=='mat'&&edO?[`${edO} ${edO>1?'ajustes':'ajuste'} do projetista na mão de obra (inclusão, exclusão ou quantidade).`]:[]).concat(parte!=='mo'?(W.kr.M.av||[]):[]).concat(parte!=='mo'&&C.semPreco.length?[`Itens sem preço na tabela (entram com valor zero): ${C.semPreco.map(i=>i.cod||i.desc).join(', ')}.`]:[]);
+  if(notas.length){sec('Observações');doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...cinza);notas.forEach(n=>{const L=doc.splitTextToSize('• '+n,Wd-2*M);if(y+L.length*3.6>285){doc.addPage();y=M+4}doc.text(L,M,y+3);y+=L.length*3.6+1})}
+  const P=krPrecos();const np=doc.getNumberOfPages();for(let i=1;i<=np;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(150);doc.text(`Preços: último preço de entrada${P&&P.em?' (tabela de '+new Date(P.em).toLocaleDateString('pt-BR')+')':''} · Mão de obra: estimativa KMZ × LPU (${C.mo&&C.mo.fator==='critico'?'preço crítico':'preço comum'}) · Página ${i} de ${np}`,M,292)}
+  await krBaixar(`${parte==='mat'?'Lista de materiais':parte==='mo'?'Mao de obra LPU':'ROI'} ${etq||cli||'projeto'}.pdf`,doc.output('blob'))}
+
+/* tela cheia para conferir e ajustar a lista de materiais e a mão de obra */
+function krRe(){const W=ui.wiz,R=W&&W.kr;if(R&&R.full)krFull();else renderWiz()}
+function krFull(){let o=document.getElementById('krFull');const W=ui.wiz,R=W&&W.kr;
+  if(!R||!R.full||!R.M){if(o)o.remove();document.body.classList.remove('krfull-on');return}
+  if(!o){o=document.createElement('div');o.id='krFull';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Lista de materiais e mão de obra');document.body.appendChild(o)}
+  document.body.classList.add('krfull-on');const C=krCalc(),sc=o.querySelector('.krfb')?o.querySelector('.krfb').scrollTop:0,tab=R.tab||'mat',nm=C.itens.length,no=C.mo.L.length;
+  o.innerHTML=`<header class="krfh"><div class="krft"><h2>ROI pelo KMZ</h2><span class="muted">${esc(R.nome||'')} · ${C.tp==='gpon'?'GPON':'Ponto a ponto'}${R.ext?` · extensão: ${esc(R.ext.nome)} (${kmN0(Math.round(R.ext.m))} m, ${R.ext.cx} ${R.ext.cx===1?'caixa':'caixas'})`:' · sem extensão'}</span></div>
+    <div class="krfk">${krResumo(C)}</div>
+    <div class="krfa"><button class="btn sm" data-act="krPdf" data-p="all">PDF do ROI completo</button><button class="btn sm" data-act="krPdf" data-p="mat">PDF da lista de materiais</button><button class="btn sm" data-act="krPdf" data-p="mo">PDF da mão de obra (LPU)</button><button class="btn primary sm" data-act="krFecha">Concluir e voltar ao cadastro</button></div>
+    <div class="seg krftabs" role="tablist"><button type="button" role="tab" data-act="krTab" data-v="mat" aria-pressed="${tab==='mat'}">Lista de materiais (${nm}) · ${krBrl(C.valorMat)}</button><button type="button" role="tab" data-act="krTab" data-v="mo" aria-pressed="${tab==='mo'}">Mão de obra pela LPU (${no}) · ${krBrl(C.custoMO)}</button></div></header>
+    <div class="krfb">${krTabela(C,tab)}${tab==='mat'&&C.semPreco.length?`<p class="result warn">${C.semPreco.length} ${C.semPreco.length>1?'itens sem preço':'item sem preço'} na tabela: ${esc(C.semPreco.map(i=>i.cod||i.desc).join(', '))}.</p>`:''}</div>`;
+  const b=o.querySelector('.krfb');if(b)b.scrollTop=sc}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('krFull')){e.stopPropagation();ACT.krFecha()}},true);
+/* ao salvar: projeto com KMZ de extensão fica "com extensão" e guarda metros e caixas para a estimativa */
+{const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,R=W&&W.kr,ext=R&&R.ext,etq=ui.roiTmp&&ui.roiTmp.etiqueta;const o=_s.apply(this,arguments);
+  if(ext){const p=S.previsao.find(x=>(W.id&&x.id===W.id)||(etq&&x.etiqueta===etq));if(p){p.semExt=false;p.klExt={m:ext.m,cx:ext.cx,nome:ext.nome};try{save()}catch(e){}}}return o}}
+
+/* ---------- 23/10: previsão de dias por fase com acesso próprio ----------
+   "Incluir e editar projetos" (a_projeto) não dá mais acesso aos dias previstos de rua, interno, extensão e ativação:
+   esses campos exigem "Previsão de dias por fase (O&M)" (a_prevDias). Assim outro time pode cadastrar projetos e só o O&M preenche a previsão. */
+{const _c=CH.cell;CH.cell=function(el){const f=el.dataset.f,dias=BDIAS.includes(f),ok=dias?pode('a_prevDias'):(pode('a_projeto')&&pode('a_valor'));
+  if(!ok){const p=S.previsao.find(x=>x.id===el.dataset.id);if(p)el.value=p[f]??'';toast(dias?'A previsão de dias é preenchida pelo O&M (acesso Previsão de dias por fase).':'Sem acesso para editar projetos.','bad');return}
+  return _c.apply(this,arguments)}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
