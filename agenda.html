@@ -1742,6 +1742,37 @@ b.bad{color:var(--bad,#a23b2a)}
 .clikp .clikb{font:inherit;text-align:left;cursor:pointer;border:0;background:var(--surface);color:inherit;border-radius:0}
 .clikp .clikb:hover{background:var(--bg)}.clikp .clikb.on{box-shadow:inset 0 -3px 0 var(--brand,#8cbf3f);background:var(--brand-soft,#e6f1d6)}
 .clikp .clikb:focus-visible{outline:2px solid var(--brand,#8cbf3f);outline-offset:-2px}
+.catsw.c3{grid-template-columns:repeat(3,1fr)}.catsw.c3 button{font-size:12.5px;line-height:1.15;padding:4px 3px}
+.regeo{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;border:1px dashed var(--line);border-radius:10px;padding:8px 10px}.regeo.ok{border-style:solid;border-color:var(--ok,#5a8f1f);background:var(--ok-soft,#e6f1d6)}
+.regeo>span{flex:1 1 180px;display:flex;flex-direction:column}.regeo small{color:var(--muted)}.regeoin{flex:1 1 100%;font-size:13px}
+.recx{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.recxh{display:flex;justify-content:space-between;align-items:center}
+/* 22/10: orientações do despacho e prints da validação do NOC */
+.dndesp{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line,#d4ddd8)}
+.dnlab{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+.dnbox textarea{width:100%;min-height:72px;resize:vertical}
+.dntl{flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
+.dntl small{flex-basis:100%}
+.dnanx{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.dnai{position:relative;display:inline-flex}
+.dnai img{width:84px;height:84px;object-fit:cover;border-radius:8px;border:1px solid var(--line,#d4ddd8);background:var(--soft,#f3f6f1);display:block}
+.dnab{padding:0;border:0;background:none;cursor:pointer;border-radius:8px}
+.dnab:focus-visible{outline:2px solid #8cbf3f;outline-offset:2px}
+.dnarq{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:84px;height:84px;border:1px solid var(--line,#d4ddd8);border-radius:8px;padding:6px;text-align:center;background:var(--soft,#f3f6f1)}
+.dnarq small{font-size:10.5px;line-height:1.2;word-break:break-all;max-height:2.5em;overflow:hidden}
+.dnrm{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;border:0;background:#b3261e;color:#fff;font-size:15px;line-height:1;cursor:pointer}
+.dnit{padding:8px 0;border-top:1px solid var(--line,#e3e9e5)}
+.dnit:first-of-type{border-top:0}
+.dnit p{margin:4px 0 0;white-space:pre-wrap}
+.gbox.dnor{border-left:4px solid #2f6db5}
+.gbox.dnval.ok{border-left:4px solid #5a8f1c}
+.gbox.dnval.bad{border-left:4px solid #b3261e}
+.dnvb{justify-content:flex-end;margin-top:10px}
+.dntec .gbox{margin:10px 0}
+/* 22/10: adicionar fase / atividade duplicada */
+.afl{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.afl .chk{display:flex;gap:8px;align-items:center;font-size:15px}
+.afex{margin:8px 0 10px;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -2035,7 +2066,8 @@ const PERM_V22=['geo','a_geoVal'];
 const PERM_V23=['f_prest'];
 const PERM_V24=['gf_prest'];
 const PERM_V19=['vist','a_vistDisp'];
-const permDe=(papel,perm)=>!Array.isArray(perm)?(PERM_PAD[papel]||[]):perm.includes('_v24')?perm:perm.concat(Object.keys(PERM_NOVAS).filter(k=>PERM_NOVAS[k].includes(papel)&&!perm.includes(k)&&(!perm.includes('_v18')||(!perm.includes('_v19')&&PERM_V19.includes(k))||(!perm.includes('_v22')&&PERM_V22.includes(k))||(!perm.includes('_v23')&&PERM_V23.includes(k))||PERM_V24.includes(k))));
+const permDe0=(papel,perm)=>!Array.isArray(perm)?(PERM_PAD[papel]||[]):perm.includes('_v24')?perm:perm.concat(Object.keys(PERM_NOVAS).filter(k=>PERM_NOVAS[k].includes(papel)&&!perm.includes(k)&&(!perm.includes('_v18')||(!perm.includes('_v19')&&PERM_V19.includes(k))||(!perm.includes('_v22')&&PERM_V22.includes(k))||(!perm.includes('_v23')&&PERM_V23.includes(k))||PERM_V24.includes(k))));
+const permDe=(papel,perm)=>{const L=permDe0(papel,perm);return Array.isArray(perm)&&!perm.includes('_v25')&&!L.includes('m_gtd')&&['gPainel','gCham','gAgenda','gNovo','gRel'].some(x=>L.includes(x))?L.concat(['m_gtd']):L};
 const pode=k=>{if(!ME)return false;if(ui.perfil==='coord')return true;if(['clt','terc','func'].includes(ui.perfil))return false;if(ui.perfil==='deliv'&&GTD_KEYS.includes(k)&&!Array.isArray(ME.perm))return false;return permDe(ME.papel,ME.perm).includes(k)};
 const G_TABS=['painel','agenda','relat','vist','geo','estoque','estAtual','estHist','base','prev','kanban','painelDia','gPainel','gCham','gAgenda','gNovo','gRel','ausencias','eqTec','campo','eqVer'];
 const tabsDe=()=>['coord','clt','terc','func'].includes(ui.perfil)?PERFIS[ui.perfil].tabs.filter(t=>t!=='equipe'||(S.equipe||[]).length):[...new Set(G_TABS.filter(pode))];
@@ -3018,7 +3050,7 @@ function viewAprov(emb){
       <tr><td>LPU</td><td class="r"><b style="color:${al.some(x=>x.curto.startsWith('LPU'))?'var(--bad)':'inherit'}">${lc.toLocaleString('pt-BR')} m</b></td><td class="muted">${(l.itens||[]).filter(i=>CABO_LPU.includes(i.cod)).map(i=>esc(i.cod)+' '+esc(i.desc)).join('; ')||'Nenhum serviço de lançamento de cabo'}</td></tr>
       <tr><td>Total lançado no projeto</td><td class="r">${mp!=null?mp.toLocaleString('pt-BR')+' m':'—'}</td><td class="muted">Soma dos relatórios de todas as atividades</td></tr>
      </tbody></table></div></section>
-     <section><h3 class="lsub" style="margin-top:0">Relatórios da atividade</h3>${relBtns(getAg(l.ag))?`<div class="tools">${relBtns(getAg(l.ag))}</div>`:'<p class="muted">Nenhum relatório enviado nesta atividade.</p>'}</section></div>
+     <section><h3 class="lsub" style="margin-top:0">Relatórios da atividade</h3>${relBtnsAll(getAg(l.ag))?`<div class="tools">${relBtnsAll(getAg(l.ag))}</div>`:'<p class="muted">Nenhum relatório enviado nesta atividade.</p>'}</section></div>
      <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd</th><th class="r">Unitário</th><th class="r">Subtotal</th></tr></thead><tbody>${l.itens.map(i=>`<tr><td>${i.cod}</td><td>${esc(i.desc)}</td><td>${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.unit*i.qtd)}</td></tr>`).join('')}</tbody></table></div>
      <dl class="dl" style="margin-top:12px"><div><dt>Deslocamento</dt><dd>${fdur(dur(a.ts.desloc,a.ts.chegada))}</dd></div><div><dt>Execução</dt><dd>${fdur(dur(a.ts.inicio,a.ts.conclusao))}</dd></div><div><dt>Relatórios</dt><dd>${relsDe(a).every(r=>a.rel&&a.rel[r.k])?'Enviados':'Pendentes'}</dd></div><div><dt>Situação</dt><dd>${lchip(l.status)}${aprovPor(l)?`<br><small>${aprovPor(l)}</small>`:''}</dd></div></dl>
      <div class="hist">${(l.hist||[]).map(h=>`<div>${esc(h.acao)} por ${esc(h.por)} em ${dtBR(h.em)}${h.motivo?`: ${esc(h.motivo)}`:''}</div>`).join('')}</div>
@@ -3260,7 +3292,7 @@ const ACT={
   permFechar:()=>{ui.permSel=null;ui.permEd=null;render()},
   permPadrao:()=>{const pp=USR.pp.find(x=>x.user_id===ui.permSel);ui.permEd.set=(PERM_PAD[pp.papel]||[]).slice();render()},
   permSalvar:async()=>{const id=ui.permSel,pp=USR.pp.find(x=>x.user_id===id),L=ui.permEd.set.filter(k=>PERM_ALL.includes(k)),pad=PERM_PAD[pp.papel]||[],igual=pad.length===L.length&&pad.every(k=>L.includes(k));
-    const r=await sb.from('agenda_papeis').update({permissoes:igual?null:L.concat(['_v18','_v19','_v22','_v23','_v24'])}).eq('user_id',id);if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return}
+    const r=await sb.from('agenda_papeis').update({permissoes:igual?null:L.concat(['_v18','_v19','_v22','_v23','_v24','_v25'])}).eq('user_id',id);if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return}
     await carregarUsuarios();ui.permSel=null;ui.permEd=null;render();toast('Permissões salvas. Valem no próximo acesso do usuário (ou ao recarregar a agenda).')},
   estPub:async el=>{const k=el.dataset.k,I=EST.imp[k];if(!I||EST.bus.pub)return;if(!pode({bolsao:'a_bolsao',elleven:'a_elleven',base:'a_base'}[k])&&semPerm())return;
     if(k==='base'&&!ui.estBaseDt){toast('Informe a data e a hora do retrato.','bad');return}
@@ -4114,7 +4146,7 @@ function gtdLerChamado(txt) {
   r.faltando = falta;
   return r;
 }
-const GTD_CONTA='3.1.1.2.05.0006 - Serviços de Manutenção CLIENTE - REPARO EMERGENCIAL EM CLIENTES (MANUTENÇÃO)';
+let GTD_CONTA='3.1.1.2.05.0006 - Serviços de Manutenção CLIENTE - REPARO EMERGENCIAL EM CLIENTES (MANUTENÇÃO)';
 const GTD_T=['gPainel','gCham','gAgenda','gNovo','gRel','gAprov'];
 const GTD_KEYS=['gPainel','g_tempos','a_gExpurgo','gCham','a_gDespachar','a_gEditar','gAgenda','gNovo','gRel','gAprov','a_gAprovar','a_gValidar'];
 const NOC_PERM=['gCham','gAgenda','gNovo','gRel','a_gValidar'];
@@ -4483,7 +4515,7 @@ async function gRfoPdf(c,fotos){const{jsPDF}=window.jspdf,doc=new jsPDF({orienta
   const fw=(W-2*m-6)/2,fh=fw*0.75;let col=0;
   fotos.forEach((f,k)=>{if(y+fh+10>H-12){doc.addPage();y=16;col=0}const xx=m+col*(fw+6);try{const pr=doc.getImageProperties(f.data),q=Math.min(fw/pr.width,fh/pr.height),w=pr.width*q,h=pr.height*q;doc.addImage(f.data,'JPEG',xx+(fw-w)/2,y+(fh-h)/2,w,h)}catch(e){}
     doc.setDrawColor(212,221,216);doc.setLineWidth(.3);doc.rect(xx,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`Foto ${k+1}${f.leg?': '+f.leg:''}`,xx,y+fh+4,{maxWidth:fw});col++;if(col===2){col=0;y+=fh+10}});
-  const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, RFO O&M ${c.pom||''}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
+  await dnPdfNoc(doc,c);const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, RFO O&M ${c.pom||''}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
   return doc.output('blob')}
 
 /* LPU do chamado: mesma tela de 3 passos da Implantação, com a conta fixa */
@@ -4716,8 +4748,8 @@ Object.assign(CH,{
   gRfoFoto:async el=>{const id=el.dataset.id,R=(ui.gRfo||{})[id],fs=[...(el.files||[])].slice(0,12);if(!R||!fs.length)return;const c=G.ch.find(x=>x.id===id)||{};R.fotos=R.fotos||[];toast(fs.length>1?'Enviando '+fs.length+' fotos…':'Enviando a foto…');
     for(const f of fs){try{const d=await reduzirFoto(f,{etq:'OM'+(c.pom||''),cam:!!el.dataset.cam}),it={data:d,leg:''};R.fotos.push(it);const y=window.scrollY;render();window.scrollTo(0,y);
       const b=await (await fetch(d)).blob(),path=`chat/g/${id}/rfo/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(up.error)throw up.error;it.path=path;gRfoSalvar(id)}
-     catch(e){R.fotos=R.fotos.filter(x=>x.path);toast('Não foi possível enviar a foto: '+(e.message||e),'bad')}}
-    el.value='';const y=window.scrollY;render();window.scrollTo(0,y);toast('Fotos prontas. Elas entram no relatório do RFO.')},
+     catch(e){for(let k=R.fotos.length-1;k>=0;k--)if(!R.fotos[k].path)R.fotos.splice(k,1);el.__err=(e&&e.message)||String(e);toast('Não foi possível enviar a foto: '+el.__err,'bad')}}
+    el.value='';const y=window.scrollY;render();window.scrollTo(0,y);if(el.__err){toast('A foto não foi enviada ('+el.__err+'). Confira a conexão e tente de novo.','bad');el.__err=''}else toast('Fotos prontas. Elas entram no relatório do RFO.')},
   gRfoSel:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;R[el.dataset.k]=el.value;gRfoSalvar(el.dataset.id);if(el.dataset.k==='desfecho'){const y=window.scrollY;render();window.scrollTo(0,y)}},
   chatFoto:async el=>{const f=el.files&&el.files[0];if(!f)return;toast('Enviando a foto…');const ok=await gChatEnviar((($('chatTxt')||{}).value||'').trim(),f);if(ok){ui.chatTxt='';const i=$('chatTxt');if(i)i.value='';toast('Foto enviada.')}el.value=''}
 });
@@ -5869,7 +5901,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
    ${agSec('Anexos',anx.length?anx.length+(anx.length===1?' arquivo':' arquivos'):'',anx.map(x=>anxLinha(x,0)).join(''))}
    ${agSec('Histórico de alterações',(a.edicoes||[]).length+'',edHist)}
    ${corrBloco(a)}${trfBoxA(a,ro)}</div>
-   <div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${pdEd?`<button class="btn primary" data-act="agEditar" data-id="${a.id}">Editar</button>`:''}${a.status==='agendada'&&!ro&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${ro?'':`${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button>`}</div>`)}});
+   <div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${pdEd?`<button class="btn primary" data-act="agEditar" data-id="${a.id}">Editar</button>`:''}${agPodeAddFase(a)?`<button class="btn primary" data-act="agAddFase" data-id="${a.id}">Adicionar fase</button>`:''}${a.status==='agendada'&&!ro&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${ro?'':`${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button>`}</div>`)}});
 
 /* 4. Editar agendamento futuro e Replicar com a mesma tela do agendamento */
 function agFormDe(a,modo){const p=pPor(a.etiqueta)||{},fz=modo==='rep'?fasesOf(a).filter(k=>!faseFim(a.etiqueta,k)):fasesOf(a).slice(),nec=p.roi?necessidade(p,fz):[];
@@ -6099,7 +6131,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
    ${quick?`<div class="agquick" style="margin-top:12px">${quick}</div>`:''}
    <p class="lbl2">Fases do projeto</p><div class="cafp">${agPassos(p)}</div>${diasTrab(a)}
    ${etaGestao(t,'a',a.id,a.status==='deslocamento')}${hzH}${upH}${tiles}${edHist}${corrBloco(a)}${trfBoxA(a,ro)}</div>
-   <div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${pdEd?`<button class="btn primary" data-act="agEditar" data-id="${a.id}">Editar</button>`:''}${a.status==='agendada'&&!ro&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${ro?'':`${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button>`}</div>`)},
+   <div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${pdEd?`<button class="btn primary" data-act="agEditar" data-id="${a.id}">Editar</button>`:''}${agPodeAddFase(a)?`<button class="btn primary" data-act="agAddFase" data-id="${a.id}">Adicionar fase</button>`:''}${a.status==='agendada'&&!ro&&pode('a_cancelar')?`<button class="btn" data-act="cancelar" data-id="${a.id}">Cancelar agendamento</button>`:''}${a.pendReag&&canReag()?`<button class="btn primary" data-act="reag" data-id="${a.id}">Reagendar</button>`:''}${pode('a_agendar')?`<button class="btn" data-act="replicar" data-id="${a.id}">Replicar</button>`:''}${ro?'':`${gMsgBtn('a',a.id,' ')}<button class="btn" data-act="verProj" data-etq="${esc(a.etiqueta)}">Abrir projeto</button>`}</div>`)},
   caTile:el=>{const on=el.getAttribute('aria-pressed')==='true',box=el.closest('.agdt2');box.querySelectorAll('.catile').forEach(b=>b.setAttribute('aria-pressed','false'));box.querySelectorAll('.capn').forEach(x=>x.hidden=true);if(!on){el.setAttribute('aria-pressed','true');const pn=box.querySelector(`.capn[data-k="${el.dataset.k}"]`);if(pn)pn.hidden=false}}});
 const endCurtoA=(e,cid)=>{const s=String(e||'').split(/,|\s-\s/)[0].trim();return s||cid||''};
 
@@ -6601,7 +6633,7 @@ function r2Linhas(c,r){const L=[['Motivo do chamado',c.motivo||'—']];
   fotos.forEach((f,k)=>{if(y+fh+10>H-12){doc.addPage();y=16;col=0}const xx=m+col*(fw+6);try{const pr=doc.getImageProperties(f.data),q=Math.min(fw/pr.width,fh/pr.height),w=pr.width*q,h=pr.height*q;doc.addImage(f.data,'JPEG',xx+(fw-w)/2,y+(fh-h)/2,w,h)}catch(e){}
     doc.setDrawColor(212,221,216);doc.setLineWidth(.3);doc.rect(xx,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`Foto ${k+1}${f.leg?': '+f.leg:''}`,xx,y+fh+4,{maxWidth:fw});col++;if(col===2){col=0;y+=fh+10}});
   if(r.ex1&&r.ex1.path&&r2Tipo(r.cat)==='integ'&&r.desfecho==='Resolvido')await r2Ex1Pdf(doc,r.ex1);
-  const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, RFO O&M ${c.pom||''}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
+  await dnPdfNoc(doc,c);const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, RFO O&M ${c.pom||''}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
   return doc.output('blob')}}
 {const _g=ACT.gRfoGerar;ACT.gRfoGerar=async el=>{const id=el.dataset.id,R=(ui.gRfo||{})[id],c=G.ch.find(x=>x.id===id);if(!R||R.v!==2||!c)return _g(el);
   const F0=r2Faltas(c,R);if(F0.length){toast('Falta preencher: '+F0.join(', ')+'.','bad');const B=r2Blocos(c,R),b=B.find(x=>!x.ok);if(b){R.ab[b.k]=true;r2Re()}return}
@@ -9279,6 +9311,196 @@ function geoSegura(e,x){if(x.tipo==='kmzL'){const C=S.ags.filter(a=>a.etiqueta==
 const geoLimpa=e=>{try{if(e&&faseFim(e,'ativ'))limparAnexos(e)}catch(x){}};
 {const _c=ACT.g2CadOk;ACT.g2CadOk=async el=>{const r=await _c(el);const T=g2Alvo(el.dataset.t,el.dataset.id);geoLimpa(T&&T.o&&T.o.etiqueta);return r}}
 {const _c=ACT.geoCadOk;ACT.geoCadOk=async el=>{const r=await _c(el);const a=getAg(el.dataset.id);geoLimpa(a&&a.etiqueta);return r}}
+
+/* ---------- 22/10: GTD · orientações no despacho e prints na validação do NOC ----------
+   Despacho: a gestão escreve orientações para o técnico e anexa fotos, prints (Ctrl+V ou botão Colar) e arquivos.
+   Fica em c.orient=[{txt,anx:[{path,nome,tipo}],por,papel,em,desp}] e pode ser complementado depois do despacho.
+   Validação: o NOC escreve a observação e anexa prints. Validado → c.nocVal={obs,anx,por,em}; Não validado → entrada em c.naoVal com anx.
+   Aparece para o técnico, no detalhe da gestão, no PDF do RFO (página "Validação do NOC"), e no texto do RFO. Prints entram como imagem; PDFs anexados entram como páginas; outros arquivos ficam listados. */
+const DN={desp:{},val:{},add:{}};
+const DN_ACC='image/*,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.kmz,.kml';
+const dnImg=a=>/^image\//.test(a.tipo||'')||/\.(jpe?g|png|webp|gif)$/i.test(a.nome||a.path||'');
+const dnUrl={};
+function dnThumbs(L,rm){return (L||[]).length?`<div class="dnanx">${L.map((a,i)=>{const im=a instanceof File?/^image\//.test(a.type):dnImg(a),nm=a.name||a.nome||'arquivo';
+  const src=a instanceof File?(a.__u=a.__u||URL.createObjectURL(a)):'';
+  const corpo=im?(src?`<img src="${src}" alt="${esc(nm)}">`:`<img data-dnp="${esc(a.path)}" alt="${esc(nm)}">`):`<span class="dnarq">${_sv('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',18)}<small>${esc(nm)}</small></span>`;
+  const ab=a instanceof File?'':` data-act="relVer" data-p="${esc(a.path)}" title="Abrir ${esc(nm)}"`;
+  return `<span class="dnai">${a instanceof File?corpo:`<button type="button" class="dnab"${ab}>${corpo}</button>`}${rm?`<button type="button" class="dnrm" data-act="dnRm" data-k="${rm[0]}" data-id="${rm[1]}" data-i="${i}" aria-label="Remover ${esc(nm)}">×</button>`:''}</span>`}).join('')}</div>`:''}
+function dnCampos(k,id,ph){const L=DN[k][id]||[];
+  return `<div class="dnbox" data-dnk="${k}" data-dnid="${id}"><textarea class="inp" id="dn_${k}_${id}" rows="3" data-in="dnTxt" data-k="${k}" data-id="${id}" placeholder="${esc(ph)}">${esc(((ui.dnT||{})[k+id])||'')}</textarea>
+   <div class="tools dntl"><label class="btn sm">Anexar foto ou arquivo<input type="file" multiple accept="${DN_ACC}" hidden data-ch="dnArq" data-k="${k}" data-id="${id}"></label>
+   <label class="btn sm">Tirar foto<input type="file" accept="image/*" capture="environment" hidden data-ch="dnArq" data-k="${k}" data-id="${id}"></label>
+   <small class="muted">Para colar um print, clique na caixa de texto e use Ctrl+V.</small></div>
+   <div id="dnL_${k}_${id}">${dnThumbs(L,[k,id])}</div></div>`}
+function dnRedesenha(k,id){const b=document.getElementById(`dnL_${k}_${id}`);if(b)b.innerHTML=dnThumbs(DN[k][id]||[],[k,id])}
+function dnPoe(k,id,F){F=[...F].filter(f=>{if(f.size>10*1024*1024){toast(`${f.name} passa de 10 MB.`,'bad');return false}return true});if(!F.length)return;
+  const L=DN[k][id]=DN[k][id]||[];F.forEach((f,i)=>{const nm=f.name&&!/^image\.\w+$/.test(f.name)?f.name:`print-${L.length+1}.${(f.type.split('/')[1]||'png').replace('jpeg','jpg')}`;L.push(new File([f],nm,{type:f.type||'application/octet-stream'}))});
+  dnRedesenha(k,id);toast(F.length===1?'Anexo incluído.':F.length+' anexos incluídos.')}
+async function dnSobe(id,pasta,F){const out=[];for(const f of F){let blob=f,tipo=f.type||'application/octet-stream',nome=f.name||'arquivo';
+    if(/^image\//.test(tipo)&&!/gif$/.test(tipo)){try{const d=await gReduz(f);blob=await (await fetch(d)).blob();tipo='image/jpeg';nome=nome.replace(/\.\w+$/,'')+'.jpg'}catch(e){}}
+    const path=`chat/g/${id}/${pasta}/${Date.now()}-${out.length+1}-${nome.replace(/[^\w.-]+/g,'_').slice(-60)}`,r=await sb.storage.from('agenda').upload(path,blob,{contentType:tipo,upsert:false});
+    if(r.error)throw r.error;out.push({path,nome,tipo})}return out}
+const dnTxt=(k,id)=>((($(`dn_${k}_${id}`)||{}).value)||((ui.dnT||{})[k+id])||'').trim();
+const dnLimpa=(k,id)=>{delete DN[k][id];if(ui.dnT)delete ui.dnT[k+id]};
+Object.assign(IN,{dnTxt:el=>{(ui.dnT=ui.dnT||{})[el.dataset.k+el.dataset.id]=el.value}});
+Object.assign(CH,{dnArq:el=>{const F=[...(el.files||[])];el.value='';dnPoe(el.dataset.k,el.dataset.id,F)}});
+document.addEventListener('paste',e=>{const t=e.target&&e.target.closest&&e.target.closest('.dnbox');if(!t)return;const F=chatImgsDe(e.clipboardData);if(!F.length)return;e.preventDefault();dnPoe(t.dataset.dnk,t.dataset.dnid,F)});
+['dragover','drop'].forEach(ev=>document.addEventListener(ev,e=>{const t=e.target&&e.target.closest&&e.target.closest('.dnbox');if(!t||!e.dataTransfer)return;e.preventDefault();if(ev==='drop')dnPoe(t.dataset.dnk,t.dataset.dnid,[...(e.dataTransfer.files||[])])}));
+Object.assign(ACT,{
+  dnRm:el=>{const L=DN[el.dataset.k][el.dataset.id]||[];L.splice(+el.dataset.i,1);dnRedesenha(el.dataset.k,el.dataset.id)}});
+/* miniaturas dos anexos já enviados (link assinado em cache) */
+async function dnMini(){const L=[...document.querySelectorAll('img[data-dnp]:not([src])')];for(const im of L){const p=im.dataset.dnp;
+  try{let u=dnUrl[p]||(typeof G!=='undefined'&&G.fotos&&G.fotos[p]);if(!u){const s=await sb.storage.from('agenda').createSignedUrl(p,3600);if(s.error)continue;u=dnUrl[p]=s.data.signedUrl}im.src=u}catch(e){}}}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);setTimeout(dnMini,0);return o}}
+
+/* bloco de leitura (técnico e gestão) */
+const dnQuem=(x)=>[x.por,x.em?gQuando(x.em):''].filter(Boolean).join(' · ');
+function dnOrientHtml(c,tec){const L=c.orient||[];if(!L.length)return '';
+  return `<section class="gbox dnor"><b>${tec?'Orientações da gestão':'Orientações enviadas ao técnico'}</b>${L.map(o=>`<div class="dnit"><small class="muted">${esc(dnQuem(o))}${o.desp?' · no despacho':''}</small>${o.txt?`<p>${esc(o.txt)}</p>`:''}${dnThumbs(o.anx)}</div>`).join('')}</section>`}
+function dnValHtml(c,tec){const v=c.nocVal,nv=(c.naoVal||[]).filter(n=>n.anx&&n.anx.length||n.motivo);let h='';
+  if(v)h+=`<section class="gbox dnval ok"><b>Validação do NOC</b><div class="dnit"><small class="muted">Validado por ${esc(dnQuem(v))}</small>${v.obs?`<p>${esc(v.obs)}</p>`:''}${dnThumbs(v.anx)}</div></section>`;
+  const last=(c.naoVal||[]).slice(-1)[0];
+  if(!v&&tec&&last&&c.status==='atend'&&(last.anx||[]).length)h+=`<section class="gbox dnval bad"><b>O NOC não validou</b><div class="dnit"><small class="muted">${esc(dnQuem(last))}</small><p>${esc(last.motivo||'')}</p>${dnThumbs(last.anx)}</div></section>`;
+  if(!tec&&nv.some(n=>(n.anx||[]).length))h+=`<section class="gbox dnval bad"><b>Não validações do NOC</b>${nv.map(n=>`<div class="dnit"><small class="muted">${esc(dnQuem(n))}</small><p>${esc(n.motivo||'')}</p>${dnThumbs(n.anx)}</div>`).join('')}</section>`;
+  return h}
+const dnPodeOrient=c=>gPodeDesp()&&GTD_ABERTOS.includes(c.status);
+
+/* detalhe do chamado (gestão e NOC) */
+{const _d=gDetalhe;gDetalhe=function(c){let h=_d.apply(this,arguments);try{
+  h=h.replace('<small class="muted">O técnico recebe o aviso no celular.</small></section>',`<small class="muted">O técnico recebe o aviso no celular.</small>
+    <div class="dndesp"><span class="dnlab">Orientações para o técnico <small class="muted">(opcional)</small></span>${dnCampos('desp',c.id,'Ex.: cliente libera o acesso só depois das 14h; levar ONU reserva; falar com a Sra. Ana na recepção.')}</div></section>`);
+  h=h.replace(/<section class="gbox gval">[\s\S]*?<\/section>/,()=>`<section class="gbox gval"><b>O técnico pediu validação</b><span class="muted">Confira o link. Ao validar, o MTTR para e o técnico segue para o RFO e a LPU.</span>
+    ${dnCampos('val',c.id,'Observação da validação. Cole o print aqui (Ctrl+V). Obrigatória se não validado.')}
+    <div class="tools dnvb"><button class="btn danger" data-act="gNaoValidar" data-id="${c.id}">Não validado</button><button class="btn primary" data-act="gValidar" data-id="${c.id}">Validado</button></div></section>`);
+  const extra=dnOrientHtml(c,false)+(dnPodeOrient(c)&&c.tec?`<div class="tools" style="margin:-4px 0 12px"><button class="btn sm" data-act="dnAddAbre" data-id="${c.id}">${(c.orient||[]).length?'Enviar mais orientações':'Enviar orientações ao técnico'}</button></div>`:'')+dnValHtml(c,false);
+  if(extra){const k='<div class="gdet"><div class="stack">',i=h.indexOf(k);if(i>=0){const j=h.indexOf('</section>',i);if(j>=0)h=h.slice(0,j+10)+extra+h.slice(j+10)}}
+  }catch(e){console.warn('dnoc',e)}return h}}
+
+/* tela do técnico */
+{const _t=gTecView;gTecView=function(c){let h=_t.apply(this,arguments);try{const x=dnOrientHtml(c,true)+dnValHtml(c,true);if(!x)return h;
+  const i=h.indexOf('</article>',h.indexOf('tvtop'));if(i>=0)h=h.slice(0,i+10)+`<div class="dntec">${x}</div>`+h.slice(i+10)}catch(e){console.warn('dnoc',e)}return h}}
+
+/* despachar com orientações */
+{const _g=ACT.gDespachar;ACT.gDespachar=async el=>{const id=el.dataset.id,txt=dnTxt('desp',id),F=DN.desp[id]||[];
+  if(!txt&&!F.length)return _g(el);if(!gPodeDesp()&&semPerm())return;const v=($('gDespTec')||{}).value;if(!v){toast('Escolha o técnico.','bad');return}const nome=gTecN(v);
+  el.disabled=true;let anx=[];try{if(F.length){toast('Enviando os anexos…');anx=await dnSobe(id,'orient',F)}}catch(e){el.disabled=false;toast('Não foi possível enviar os anexos: '+(e.message||e),'bad');return}
+  const ok=await gAcao(id,c=>{if(c.status!=='aberto'){toast('O técnico já iniciou este chamado.','bad');return false}const troca=c.tec&&c.tec!==v;c.tec=v;c.aceite=null;c.ts.despacho=Date.now();c.despachadoPor=meNome();
+    c.orient=(c.orient||[]).concat([{txt,anx,por:meNome(),em:Date.now(),desp:true}]);gHist(c,(troca?'Técnico trocado para ':'Despachado para ')+nome+' com orientações',{obs:txt,anexos:anx.length})},`Chamado despachado para ${nome} com as orientações.`);
+  el.disabled=false;if(ok!==false)dnLimpa('desp',id)}}
+
+/* mais orientações depois do despacho */
+Object.assign(ACT,{
+  dnAddAbre:el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(!c)return;if(!gPodeDesp())return semPerm();
+    openModal(`<h3>Orientações para ${esc(gTecN(c.tec))}</h3><p class="muted">O&amp;M ${esc(c.pom||'—')} · ${esc(c.cliente||'')}. O técnico vê na tela do chamado e recebe um aviso no chat.</p>${dnCampos('add',c.id,'Escreva a orientação. Ctrl+V cola print.')}
+     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="dnAddOk" data-id="${c.id}">Enviar ao técnico</button></div>`)},
+  dnAddOk:async el=>{const id=el.dataset.id,txt=dnTxt('add',id),F=DN.add[id]||[];if(!txt&&!F.length){toast('Escreva a orientação ou anexe algo.','bad');return}
+    el.disabled=true;let anx=[];try{if(F.length){toast('Enviando os anexos…');anx=await dnSobe(id,'orient',F)}}catch(e){el.disabled=false;toast('Não foi possível enviar os anexos: '+(e.message||e),'bad');return}
+    const ok=await gAcao(id,c=>{if(!GTD_ABERTOS.includes(c.status)){toast('Este chamado já foi encerrado.','bad');return false}c.orient=(c.orient||[]).concat([{txt,anx,por:meNome(),em:Date.now()}]);gHist(c,'Orientações enviadas ao técnico',{obs:txt,anexos:anx.length})},'Orientações enviadas ao técnico.');
+    el.disabled=false;if(ok!==false){dnLimpa('add',id);closeModal();sb.from('ag_mensagens').insert({chamado:id,texto:'Nova orientação da gestão'+(txt?': '+txt.slice(0,300):'')+(anx.length?` (${anx.length} anexo${anx.length>1?'s':''} na tela do chamado)`:'')}).then(()=>{},()=>{})}}});
+
+/* validação do NOC com observação e prints */
+Object.assign(ACT,{
+  gValidar:async el=>{if(!gPodeValidar()&&semPerm())return;const id=el.dataset.id,obs=dnTxt('val',id),F=DN.val[id]||[];el.disabled=true;
+    let anx=[];try{if(F.length){toast('Enviando os prints…');anx=await dnSobe(id,'noc',F)}}catch(e){el.disabled=false;toast('Não foi possível enviar os prints: '+(e.message||e),'bad');return}
+    const ok=await gAcao(id,c=>{if(c.status!=='valid'){toast('Este chamado não está aguardando validação.','bad');return false}c.status='rfo';c.ts.validado=Date.now();c.validadoPor=meNome();
+      c.nocVal={obs,anx,por:meNome(),em:Date.now()};gHist(c,'Validado pelo NOC',obs||anx.length?{obs,anexos:anx.length}:undefined)},'Chamado validado. O MTTR parou.');
+    el.disabled=false;if(ok!==false)dnLimpa('val',id)},
+  gNaoValidar:async el=>{if(!gPodeValidar()&&semPerm())return;const id=el.dataset.id,m=dnTxt('val',id),F=DN.val[id]||[];if(!m){toast('Escreva o motivo da não validação.','bad');const t=$(`dn_val_${id}`);if(t)t.focus();return}
+    el.disabled=true;let anx=[];try{if(F.length){toast('Enviando os prints…');anx=await dnSobe(id,'noc',F)}}catch(e){el.disabled=false;toast('Não foi possível enviar os prints: '+(e.message||e),'bad');return}
+    const ok=await gAcao(id,c=>{if(c.status!=='valid'){toast('Este chamado não está aguardando validação.','bad');return false}c.status='atend';c.naoVal=(c.naoVal||[]).concat([{motivo:m,anx,por:meNome(),em:Date.now()}]);gHist(c,'Não validado pelo NOC',{motivo:m,anexos:anx.length})},'Devolvido ao técnico. O MTTR continua.');
+    el.disabled=false;if(ok!==false){dnLimpa('val',id);if(ui.gNv)delete ui.gNv[id]}}});
+
+/* RFO: texto e PDF */
+{const _x=gRfoTexto;gRfoTexto=function(c){const t=_x.apply(this,arguments),v=c&&c.nocVal;if(!v||typeof t!=='string')return t;
+  return t+`\n\nValidação do NOC: ${v.por||''}${v.em?' em '+new Date(v.em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}${v.obs?'\n'+v.obs:''}${(v.anx||[]).length?`\nAnexos da validação (${v.anx.length}): ${v.anx.map(a=>a.nome).join(', ')}. Estão no PDF do relatório.`:''}`}}
+async function dnPdfNoc(doc,c){const v=c&&c.nocVal;if(!v)return;const m=14,W=210,H=297;doc.addPage();let y=18;
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(40);doc.text('Validação do NOC',m,y);doc.setDrawColor(140,191,63);doc.setLineWidth(.6);doc.line(m,y+3,W-m,y+3);
+  doc.autoTable({startY:y+7,theme:'grid',styles:{fontSize:8.5,cellPadding:2},margin:{left:m,right:m},columnStyles:{0:{cellWidth:40,fontStyle:'bold',fillColor:[244,249,236]}},
+    body:[['Validado por',v.por||'—'],['Data e hora',v.em?new Date(v.em).toLocaleString('pt-BR'):'—'],['Observação',v.obs||'—']].concat((c.naoVal||[]).length?[['Não validações antes',(c.naoVal||[]).map(n=>`${n.em?new Date(n.em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''} · ${n.por||''}: ${n.motivo||''}`).join('\n')]]:[])});
+  y=doc.lastAutoTable.finalY+7;const im=(v.anx||[]).filter(dnImg),ar=(v.anx||[]).filter(a=>!dnImg(a));
+  if(ar.length){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90);doc.text('Anexos da validação: '+ar.map(a=>a.nome).join(', ')+(ar.some(dnPdf)?' (PDF nas páginas seguintes)':''),m,y,{maxWidth:W-2*m});y+=8}
+  if(im.length){doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Prints da validação',m,y);y+=4;
+  const fw=W-2*m,fh=110;for(const [k,a] of im.entries()){const d=await gImgData({path:a.path});if(!d)continue;let pr;try{pr=doc.getImageProperties(d)}catch(e){continue}
+    const q=Math.min(fw/pr.width,fh/pr.height),w=pr.width*q,h=pr.height*q;if(y+h+8>H-12){doc.addPage();y=16}
+    try{doc.addImage(d,'JPEG',m+(fw-w)/2,y,w,h)}catch(e){}doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`Print ${k+1}${a.nome?' · '+a.nome:''}`,m,y+h+4);y+=h+9}}
+  for(const a of ar.filter(dnPdf))await dnPdfAnexo(doc,a)}
+const dnPdf=a=>/pdf/.test(a.tipo||'')||/\.pdf$/i.test(a.nome||a.path||'');
+async function dnPdfAnexo(doc,a){const W=210,H=297,m=14,tit='Anexo da validação do NOC · '+(a.nome||'');
+  try{if(!window.pdfjsLib||!pdfjsLib.getDocument)throw new Error('leitor de PDF indisponível');const r=await sb.storage.from('agenda').createSignedUrl(a.path,120);if(r.error)throw r.error;
+    const buf=await (await fetch(r.data.signedUrl)).arrayBuffer(),pdf=await pdfjsLib.getDocument({data:buf}).promise,n=Math.min(pdf.numPages,8);
+    for(let i=1;i<=n;i++){const pg=await pdf.getPage(i),vp=pg.getViewport({scale:1.6}),cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;const cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);
+      await pg.render({canvasContext:cx,viewport:vp}).promise;doc.addPage();doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(40);doc.text(tit+` · página ${i} de ${pdf.numPages}`,m,12,{maxWidth:W-2*m});
+      const mw=W-2*m,mh=H-30,q=Math.min(mw/cv.width,mh/cv.height),w=cv.width*q,h=cv.height*q;doc.addImage(cv.toDataURL('image/jpeg',.82),'JPEG',m+(mw-w)/2,16,w,h)}
+    if(pdf.numPages>n){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90);doc.text(`Mostradas ${n} de ${pdf.numPages} páginas. O arquivo completo fica no chamado.`,m,H-12)}}
+  catch(e){doc.addPage();doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(40);doc.text(tit,m,18);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90);doc.text('Não foi possível incluir as páginas do PDF ('+(e.message||e)+'). O arquivo completo fica no chamado.',m,25,{maxWidth:W-2*m})}}
+/* a página entra antes do rodapé (rep no apply.py: await dnPdfNoc(doc,c) nos geradores do RFO) */
+
+/* Ver RFO (modal): validação do NOC com os prints e anexos */
+{const _v=ACT.gRfoVer;ACT.gRfoVer=el=>{_v(el);const c=G.ch.find(x=>x.id===el.dataset.id),v=c&&c.nocVal;if(!v||!(v.anx||[]).length)return;
+  const pre=document.querySelector('.modal pre.rfo');if(!pre)return;pre.insertAdjacentHTML('afterend',`<section class="gbox dnval ok" style="margin-top:10px"><b>Anexos da validação do NOC</b>${dnThumbs(v.anx)}</section>`);setTimeout(dnMini,0)}}
+/* ---------- 22/10: Aprovação de LPU › Relatórios da atividade mostra todos os relatórios ----------
+   Antes só apareciam não conclusão, fotográfico e entrega; faltavam o de fusões (extensão) e o de vistoria.
+   Também traz os relatórios das atividades unidas à LPU (mesma etiqueta, pendências unidas). */
+const REL_ORD=[['parcial','Relatório da não conclusão'],['foto','Relatório fotográfico'],['fus','Relatório de fusões (extensão)'],['vist','Relatório de vistoria'],['entrega','Relatório de entrega']];
+function relBtnsAll(a){if(!a)return '';const L=[a].concat(typeof mgDe==='function'?mgDe(a):[]),varias=L.length>1;
+  return L.map(x=>{const R=x.rel||{},dt=varias?' · '+dBR(x.data):'';
+    return REL_ORD.map(([k,n])=>{const r=R[k];if(!r||!r.path)return '';const q=k==='foto'&&r.fotos?` (${r.fotos} fotos)`:'';
+      return `<button class="btn sm" data-act="relVer" data-p="${esc(r.path)}">${n}${q}${dt}</button>`}).join('')}).join('')}
+
+/* ---------- 22/10: adicionar fase em atividade já iniciada e trava contra atividade duplicada ----------
+   Antes, com o técnico já em campo, o Editar some e só sobra Replicar, que cria OUTRA atividade (foi o que gerou 3 cards
+   da TECNOCLIN no mesmo dia). Agora:
+   - "Adicionar fase" na atividade iniciada (a caminho, no local ou em execução): a fase entra na MESMA atividade,
+     com as fotos do relatório e os materiais da fase; o técnico recebe o aviso no chat.
+   - Ao agendar ou replicar, se o cliente já tem atividade em aberto no mesmo dia, a ferramenta pergunta antes de criar outra
+     (e oferece adicionar a fase na existente).
+   - O botão de agendar fica travado enquanto salva (evita o duplo clique criar duas). */
+const AF_ST=['deslocamento','no_local','execucao'];
+const agPodeAddFase=a=>!!a&&AF_ST.includes(a.status)&&!a.parcial&&!['terc','func','clt'].includes(ui.perfil)&&pode('a_agendar');
+function afFaltam(a){const tem=new Set(fasesOf(a));return ALLF.filter(f=>!tem.has(f.k)&&FASES.some(x=>x.k===f.k))}
+function afAplica(a,novas){const fz=ALLF.map(f=>f.k).filter(k=>fasesOf(a).includes(k)||novas.includes(k));
+  const F=Object.assign(agFormDe(a,'edit'),{fases:fz}),pp=pPor(a.etiqueta)||{},c=S.comp[a.etiqueta]||{},falta=[];
+  if(novas.some(k=>k==='interno'||k==='ativ')){if(!(c.contato||'').trim())falta.push('contato');if(!(c.telefone||'').trim())falta.push('telefone')}
+  if(falta.length)return 'Preencha '+falta.join(' e ')+' em Dados complementares do cliente antes de incluir esta fase.';
+  const fr=fotosReqDe(F),antes=new Set(a.fotosReq||[]);fr.forEach(k=>antes.add(k));
+  let lista=null;try{if(pp.roi)lista=matLista(pp,F).map(n=>({cod:n.cod,desc:n.desc,qtd:n.qtd,ponta:n.ponta}))}catch(e){}
+  const nomes=novas.map(faseN).join(' + ');a.fases=fz;a.fotosReq=[...antes];if(lista)a.materiais=lista;
+  a.edicoes=(a.edicoes||[]).concat([{em:Date.now(),por:meNome(),mud:['fase adicionada com a atividade em andamento: '+nomes]}]);save();
+  sb.from('ag_mensagens').insert({agendamento:a.id,texto:`A gestão incluiu ${novas.length>1?'as fases':'a fase'} ${nomes} nesta atividade. Faça também ${novas.length>1?'essas fases':'essa fase'} e inclua no relatório.`}).then(()=>{},()=>{});
+  return ''}
+Object.assign(ACT,{
+  agAddFase:el=>{const a=getAg(el.dataset.id);if(!agPodeAddFase(a))return semPerm();const L=afFaltam(a);if(!L.length){toast('Esta atividade já tem todas as fases.','bad');return}
+    openModal(`<h3>Adicionar fase</h3><p class="muted">${esc(cliN(a.etiqueta)||a.etiqueta)} · ${esc(tecN(a.tec))} · hoje com <b>${esc(fasesN(a))}</b>. A fase entra nesta mesma atividade (não cria outra); o técnico recebe o aviso no chat e o relatório passa a pedir as fotos da fase.</p>
+     <div class="afl">${L.map(f=>`<label class="chk"><input type="checkbox" class="afK" value="${f.k}"> <span>${esc(f.n)}</span></label>`).join('')}</div>
+     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="agAddFaseOk" data-id="${a.id}">Adicionar à atividade</button></div>`)},
+  agAddFaseOk:el=>{const a=getAg(el.dataset.id);if(!agPodeAddFase(a))return semPerm();const novas=[...document.querySelectorAll('.afK:checked')].map(x=>x.value);
+    if(!novas.length){toast('Marque a fase que vai entrar.','bad');return}const er=afAplica(a,novas);if(er){toast(er,'bad');return}
+    closeModal();render();toast(`Fase incluída na atividade de ${tecN(a.tec)}.`)}});
+
+/* trava de duplicidade e de duplo clique ao agendar / replicar */
+let AF_LOCK=0;
+{const _ag=ACT.agendar;ACT.agendar=(...x)=>{const E=ui.agEd,F=ui.agForm||{};
+  if(E&&E.modo==='edit')return _ag(...x);
+  if(Date.now()-AF_LOCK<2500){toast('Aguarde: a atividade está sendo criada.');return}
+  const etq=ui.agSel,dias=F.data?diasRange(F.data,F.dataFim,F.uteis):[];
+  const ex=etq&&dias.length?S.ags.filter(a=>a.etiqueta===etq&&a.status!=='cancelada'&&!FIM.includes(a.status)&&dias.some(d=>naData(a,d))):[];
+  if(ex.length&&!F.__dupOk){const novas=(F.fases||[]).filter(k=>ex.every(a=>!fasesOf(a).includes(k)));const alvo=ex.find(agPodeAddFase);
+    openModal(`<h3>Este cliente já tem atividade nesse dia</h3><p class="muted">Confira antes de criar outra:</p>
+     <ul class="afex">${ex.map(a=>`<li><b>${esc(fasesN(a))}</b> · ${esc(tecN(a.tec))} · ${dBR(a.data)} · ${esc((ST[a.status]||[a.status])[0]||a.status)}</li>`).join('')}</ul>
+     <p class="muted">${alvo&&novas.length?`Se a ideia é só incluir <b>${esc(novas.map(faseN).join(' + '))}</b>, adicione na atividade que já está em andamento.`:'Se for para mudar a atividade existente, use Editar (antes do técnico sair) ou Adicionar fase (com o técnico em campo).'}</p>
+     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn" data-act="agDupSim">Criar outra mesmo assim</button>${alvo&&novas.length?`<button class="btn primary" data-act="agDupAdd" data-id="${alvo.id}" data-f="${novas.join(',')}">Adicionar na atividade existente</button>`:''}</div>`);return}
+  delete F.__dupOk;AF_LOCK=Date.now();try{return _ag(...x)}finally{setTimeout(()=>{AF_LOCK=0},2500)}}}
+Object.assign(ACT,{
+  agDupSim:()=>{closeModal();ui.agForm=ui.agForm||{};ui.agForm.__dupOk=true;ACT.agendar()},
+  agDupAdd:el=>{const a=getAg(el.dataset.id);if(!agPodeAddFase(a))return semPerm();const er=afAplica(a,el.dataset.f.split(','));if(er){toast(er,'bad');return}
+    closeModal();ui.agEd=null;ui.agForm={};ui.agSel=null;render();toast(`Fase incluída na atividade de ${tecN(a.tec)}. Nenhuma atividade nova foi criada.`)}});
+/* ---------- 22/10: chamados do GTD ficam no Histórico do GTD, não no Histórico de clientes da Implantação ----------
+   Na Implantação fica só o número de chamados do GTD com o atalho para o Histórico do GTD já filtrado pela etiqueta. */
+{const _b=h19Blocos;h19Blocos=function(){return _b.apply(this,arguments).filter(b=>!b.gtd)}}
+{const _d=h19Det;h19Det=function(e){let h=_d.apply(this,arguments);
+  return h.replace(/<div><span>Chamados GTD<\/span><b>(\d+)<\/b><\/div>/,(m,n)=>pode('gRel')?`<div><span>Chamados GTD</span><b><button type="button" class="linkbtn" data-act="grIrCli" data-e="${esc(e)}">${n} · ver no GTD</button></b></div>`:'')}}
+Object.assign(ACT,{grIrCli:el=>{const e=el.dataset.e;ui.cat='gtd';ui.tab='gRel';ui.gSel=null;ui.grQ=e;ui.grSit='';ui.grCat='';ui.grTec='';
+  const L=G.ch.filter(c=>c.etiqueta===e).map(c=>gDiaDe(c)).sort();if(L.length&&L[0]<(ui.grIni||addD(hoje(),-30)))ui.grIni=L[0];ui.grOpen=ui.grOpen||{};ui.grOpen[e]=true;render();window.scrollTo(0,0)}});
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
