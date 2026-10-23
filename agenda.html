@@ -10274,6 +10274,32 @@ let NT_CARD='';
   L.push(a.data===T?`Hoje às ${n.ini}`:a.data<T&&!FIM.includes(a.status)?(ntNaJanela(a)?`Iniciada em ${d} às ${n.ini}`:`Atrasada, era para ${d} às ${n.ini}`):`${d} às ${n.ini}`);
   L.push(`até ${n.fim}${ntVira(n)?' do dia seguinte':''}`);return L.join(', ')}}
 
+/* ===== 23/10: Reagendar e Replicar com as equipes NT (mesma gravação do Agendar: titular + membros + estoque) ===== */
+function rpOps(R){const eqs=typeof nteAtivas==='function'?nteAtivas():[],cur=R.eq?'eq:'+R.eq:R.tec,dias=nteDias(R);
+  const o=(v,t,dis)=>`<option value="${v}" ${v===cur?'selected':''} ${dis&&v!==cur?'disabled':''}>${esc(t)}</option>`;
+  return (eqs.length?`<optgroup label="Equipes NT">${eqs.map(e=>{const c=nteComp(e,dias);return o('eq:'+e.id,`${e.nome} (${c.m.map(id=>nmC(tecN(id))).join(' + ')})${!c.pres.length?' · ausentes':c.aus.length?' · só '+c.pres.map(id=>nmC(tecN(id))).join(', '):''}`,!c.pres.length)}).join('')}</optgroup>`:'')+
+    `<optgroup label="Técnicos">${TEC.map(t=>o(t.id,t.nome+(t.tipo==='TERC'?' (terceiro)':''))).join('')}</optgroup>`}
+{const _rr=renderRep;renderRep=function(){const R=ui.rp||{},_om=openModal;
+  openModal=function(h,...y){h=h.replace(/(<label class="f"><span>)Técnico(<\/span><select class="inp" data-ch="rpR" data-f="tec">)[\s\S]*?(<\/select>)/,(m,a,b,c)=>`${a}Técnico ou equipe${b}${rpOps(R)}${c}`);return _om.call(this,h,...y)};
+  try{return _rr.apply(this,arguments)}finally{openModal=_om}}}
+/* escolha: 'eq:ID' grava a equipe e usa como técnico o estoque da equipe (ou o 1º presente) */
+{const _c=CH.rpR;CH.rpR=function(el,...y){const R=ui.rp;if(R&&el.dataset.f==='tec'){const v=el.value||'';
+    if(v.startsWith('eq:')){const e=nteDe(v.slice(3));if(!e)return;const c=nteComp(e,nteDias(R));R.eq=e.id;R.est='';R.tec=e.estoque&&c.pres.includes(e.estoque)?e.estoque:c.pres[0]||c.m[0]||'';renderRep();return}
+    R.eq='';R.est=''}
+  const r=_c.call(this,el,...y);
+  if(R&&R.eq&&['data','dataFim','uteis'].includes(el.dataset.f)){const e=nteDe(R.eq),c=e&&nteComp(e,nteDias(R));if(c&&c.pres.length&&!c.pres.includes(R.tec)){R.tec=e.estoque&&c.pres.includes(e.estoque)?e.estoque:c.pres[0];renderRep()}}
+  return r}}
+/* abre já com a equipe da atividade original */
+['reag','replicar'].forEach(k=>{const _a=ACT[k];if(_a)ACT[k]=function(el){const r=_a.apply(this,arguments);const a=getAg(el&&el.dataset&&el.dataset.id);
+  if(a&&a.equipe&&ui.rp&&ui.rp.eq==null&&nteDe(a.equipe)){ui.rp.eq=a.equipe;ui.rp.tec=a.__tec0||a.tec;if(ui.rp.id===a.id&&document.querySelector('[data-act="repOk"]'))renderRep()}return r}});
+{const _ro=ACT.repOk;ACT.repOk=function(...x){const R=ui.rp||{};
+  if(!R.eq)return _ro.apply(this,x);
+  const e=nteDe(R.eq);if(!e){R.eq='';return _ro.apply(this,x)}
+  if(!nteComp(e,nteDias(R)).pres.length){toast('Os dois técnicos da equipe estão ausentes no período.','bad');return}
+  const nomeT=tecN(R.tec),_t=toast;NTE_X=nteCampos(R);
+  toast=function(m,...y){return _t.call(this,typeof m==='string'?m.split(nomeT).join(e.nome):m,...y)};
+  try{return _ro.apply(this,x)}finally{NTE_X=null;toast=_t}}}
+
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
