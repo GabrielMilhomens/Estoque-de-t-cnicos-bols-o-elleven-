@@ -2248,8 +2248,8 @@ function pBase(){const T=hoje(),inP=a=>a.data>=ui.pIni&&a.data<=ui.pFim,all=S.ag
     mTot:efi.length?efi.reduce((s,x)=>s+x.tot,0)/efi.length:null,mIA:efi.length?efi.reduce((s,x)=>s+x.ia,0)/efi.length:null}}
 function pGeral(){const b=pBase();
   const dias=[];for(let d=ui.pIni;d<=ui.pFim&&dias.length<62;d=addD(d,1))dias.push(d);
-  const porDia=dias.map(d=>({d,n:S.ags.filter(a=>a.data===d&&a.status!=='cancelada').length,c:S.ags.filter(a=>a.data===d&&a.status==='concluida').length}));const mxD=Math.max(1,...porDia.map(x=>x.n));
-  return `<div class="tools" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" data-act="pgXlsx" title="Indicadores, atividades e entregas do período">Baixar planilha</button></div><div class="kpis">${kp(b.ags.length,'Atividades agendadas')}${kp(b.ent.length,'Circuitos entregues','ok')}${kp(S.semValor?'—':brl(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(pct(b.dentro.length,b.conc.length)+'%','Concluídas dentro da previsão')}${kp(f1(b.mTot),'Dias de execução por circuito')}${kp(b.atras.length,'Atividades em atraso','warn')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
+  const porDia=dias.map(d=>({d,n:S.ags.filter(a=>naData(a,d)&&a.status!=='cancelada').length,c:S.ags.filter(a=>naData(a,d)&&a.status==='concluida').length}));const mxD=Math.max(1,...porDia.map(x=>x.n));
+  return `<div class="tools" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" data-act="pgXlsx" title="Indicadores, atividades e entregas do período">Baixar planilha</button></div><div class="kpis">${agKpis()}${kp(b.ent.length,'Circuitos entregues','ok')}${kp(S.semValor?'—':brl(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0)),'Valor mensal entregue','ok')}${kp(pct(b.dentro.length,b.conc.length)+'%','Concluídas dentro da previsão')}${kp(f1(b.mTot),'Dias de execução por circuito')}${kp(b.atras.length,'Atividades em atraso','warn')}${kp(S.ags.filter(a=>a.pendReag).length,'Aguardando reagendamento','warn')}</div>
   <section class="panel"><div class="secth"><h3>Agendamentos por dia</h3><span class="muted">${porDia.reduce((s,x)=>s+x.n,0)} no período. Verde claro = agendados, verde escuro = concluídos</span></div>
    <div class="dbars">${porDia.map(x=>`<div class="db1 ${x.d===hoje()?'hj':''}" title="${dBR(x.d)}: ${x.n} agendado(s), ${x.c} concluído(s)"><span class="dn">${x.n||''}</span><div class="dbw"><i style="height:${x.n/mxD*100}%"><b style="height:${x.n?x.c/x.n*100:0}%"></b></i></div><small>${dBR(x.d).slice(0,5)}</small><small class="ds">${DSEM[new Date(x.d+'T12:00:00').getDay()]}</small></div>`).join('')}</div></section>`}
 function pEntregas(){const b=pBase();
@@ -4912,12 +4912,12 @@ Object.assign(ACT,{
   pgXlsx:()=>{const b=pBase(),vv=verValor()&&!S.semValor;
     const A=b.all.slice().sort((x,y)=>x.data.localeCompare(y.data)).map(a=>{const p=pPor(a.etiqueta),t=a.ts||{},l=S.lpus.filter(x=>x.ag===a.id).pop();
       const o={'Data':dBR(a.data),'Etiqueta':a.etiqueta,'Cliente':cliN(a.etiqueta)||'','Cidade':p.cidade||'','Topologia':p.topologia||'','Fases':fasesN(a),'Técnico':tecN(a.tec),'Vínculo':vinc(a.tec),'Situação':(ST[a.status]||[a.status])[0],
-        'Retrabalho (validação de link em cliente ativo)':vlRetrab(a)?'Sim':'Não','Atrasada':a.data<b.T&&!FIM.includes(a.status)&&a.status!=='cancelada'?'Sim':'Não','Dentro da previsão':a.status==='concluida'?(dentroPrev(a)?'Sim':'Não'):'','Aguardando reagendamento':a.pendReag?'Sim':'Não',
+        'Retrabalho (validação de link em cliente ativo)':vlRetrab(a)?'Sim':'Não','Improdutiva':kdImprod(a)?'Sim':'Não','Atrasada':a.data<b.T&&!FIM.includes(a.status)&&a.status!=='cancelada'?'Sim':'Não','Dentro da previsão':a.status==='concluida'?(dentroPrev(a)?'Sim':'Não'):'','Aguardando reagendamento':a.pendReag?'Sim':'Não',
         'Saída':xHr(t.desloc),'Chegada':xHr(t.chegada),'Início':xHr(t.inicio),'Conclusão':xHr(t.conclusao),'Relatórios enviados':xHr(t.relatorios),'Encerramento':xHr(t.encerramento),
         'Motivo (não concluída)':a.motivo||'','Cabo no relatório (m)':metrosAg(a)??'','LPU':l?(LST[l.status]||[l.status])[0]:''};
       if(vv)o['Valor da LPU (R$)']=l?xR(l.total):'';return o});
     const E=b.efi.map(({p,f,tot,ia})=>{const o={'Data da ativação':dBR(f.data),'Etiqueta':p.etiqueta,'Cliente':p.cliente||'','Cidade':p.cidade||'','Topologia':p.topologia||'','POP':p.pop||'','Equipamento de acesso':p.equip||'','Dias de execução (todas as fases)':tot,'Dias de execução (interno + ativação)':ia,'Ativado por':tecN(f.tec)};if(!S.semValor)o['Valor mensal (R$)']=xR(p.valor);return o}).sort((x,y)=>x['Data da ativação'].split('/').reverse().join('').localeCompare(y['Data da ativação'].split('/').reverse().join('')));
-    const K=[['Atividades agendadas',b.ags.length],['Retrabalho (validação de link em cliente já ativo)',b.ags.filter(vlRetrab).length],['Circuitos entregues',b.ent.length],['Valor mensal entregue (R$)',S.semValor?'—':xR(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0))],['Concluídas dentro da previsão (%)',pct(b.dentro.length,b.conc.length)],['Dias de execução por circuito',b.mTot==null?'':+b.mTot.toFixed(1)],['Atividades em atraso',b.atras.length],['Aguardando reagendamento',S.ags.filter(a=>a.pendReag).length],['Atividades canceladas no período',b.canc],['Atividades não concluídas no período',b.nao.length]].map(([Indicador,Valor])=>({Indicador,Valor}));
+    const K=[['Agendamentos realizados (dias de atividade até hoje, sem canceladas)',agReal(ui.pIni,ui.pFim).real],['Previstos no restante do período',agReal(ui.pIni,ui.pFim).prev],['Improdutivas',agReal(ui.pIni,ui.pFim).imp.length],['Retrabalho (validação de link em cliente já ativo)',b.ags.filter(vlRetrab).length],['Circuitos entregues',b.ent.length],['Valor mensal entregue (R$)',S.semValor?'—':xR(b.ent.reduce((s,x)=>s+(+x.p.valor||0),0))],['Concluídas dentro da previsão (%)',pct(b.dentro.length,b.conc.length)],['Dias de execução por circuito',b.mTot==null?'':+b.mTot.toFixed(1)],['Atividades em atraso',b.atras.length],['Aguardando reagendamento',S.ags.filter(a=>a.pendReag).length],['Atividades canceladas no período',b.canc],['Atividades não concluídas no período',b.nao.length]].map(([Indicador,Valor])=>({Indicador,Valor}));
     xlsxBaixar(`visao_geral_implantacao_${ui.pIni}_a_${ui.pFim}`,[['Indicadores',K],['Atividades',A],['Entregas',E],['Filtros',xFiltros({'Tela':'Painel de KPIs · Visão geral (Implantação)','Período':dBR(ui.pIni)+' a '+dBR(ui.pFim),'Atividades exportadas':A.length,'Entregas':E.length})]],A.length+' atividades exportadas.')},
   /* Mão de obra de terceiros: ROI x LPU executada */
   moXlsx:()=>{const M=moCalc(),inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim;
@@ -9461,7 +9461,7 @@ const vlAviso=a=>{if(!vlRetrab(a))return '';const f=vlAtiv(a);return `<div class
   return I.map(i=>i.ti==='Entrega de circuito enviado'?Object.assign({},i,{ti:'Relatório de validação de link enviado'}):i)}}
 /* Painel › Visão geral */
 function vlLista(){return S.ags.filter(a=>a.status!=='cancelada'&&a.data>=ui.pIni&&a.data<=ui.pFim&&vlRetrab(a)).sort((x,y)=>String(y.data).localeCompare(String(x.data)))}
-{const _g=pGeral;pGeral=function(){let h=_g.apply(this,arguments);try{const L=vlLista(),b=pBase(),pc=b.ags.length?Math.round(L.length/b.ags.length*1000)/10:0;
+{const _g=pGeral;pGeral=function(){let h=_g.apply(this,arguments);try{const L=vlLista(),b=pBase(),nd=agDiasN(ui.pIni,ui.pFim),pc=nd?Math.round(L.length/nd*1000)/10:0;
   const tile=`<div class="kpi ${L.length?'bad':''}"><b>${L.length}</b><span>Retrabalho · validação de link em cliente ativo${L.length?` (${String(pc).replace('.',',')}% das atividades)`:''}</span></div>`;
   const i=h.indexOf('<div class="kpis">');if(i>=0){const j=h.indexOf('</div>\n',i)>=0?null:null;const k=h.indexOf('<section class="panel"><div class="secth"><h3>Agendamentos por dia');
     const fimK=h.lastIndexOf('</div>',k);if(fimK>i)h=h.slice(0,fimK)+tile+h.slice(fimK)}
@@ -9469,6 +9469,51 @@ function vlLista(){return S.ags.filter(a=>a.status!=='cancelada'&&a.data>=ui.pIn
   const sec=`<section class="panel vlret"><div class="secth"><h3>Retrabalho · validação de link em cliente já ativo</h3><span class="muted">${L.length?L.length+' no período':'Nenhum no período'}</span></div>
    ${L.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Ativado em</th><th>Técnico</th><th>Situação</th><th class="r">LPU</th></tr></thead><tbody>${L.map(a=>`<tr><td>${dBR(a.data)}</td><td><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b><br><small class="muted">${esc(a.etiqueta)}${a.obs?' · '+esc(String(a.obs).slice(0,80)):''}</small></td><td>${dBR(vlAtiv(a).data)}</td><td>${esc(tecN(a.tec))}</td><td>${esc((ST[a.status]||[a.status])[0])}</td><td class="r">${lpuV(a)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Validação de link agendada para cliente que já tinha a ativação concluída entra aqui.</p>'}</section>`;
   h+=sec}catch(e){console.warn('vlink',e)}return h}}
+/* ---------- 22/10: Visão geral conta os agendamentos que realmente aconteceram ----------
+   Cada dia de atividade conta 1 (2 dias = 2, 5 dias = 5), só até hoje e só se o técnico de fato saiu para a atividade.
+   Não contam: canceladas, dias futuros, dias depois de um encerramento antecipado e atividade que o técnico nem iniciou.
+   Improdutivas: dos agendamentos realizados, os que terminaram sem execução (improdutiva liberada para a LPU,
+   ou "não foi possível realizar" depois de sair, sem "fiz parte do serviço"). */
+const kdIni=a=>{const t=a.ts||{},v=t.desloc||t.chegada||t.inicio;return v?isoD(new Date(v)):(['relatorios','lpu','concluida'].includes(a.status)?a.data:null)};
+const kdImprod=a=>a.status!=='cancelada'&&(!!a.improd||(a.status==='nao_concluida'&&!a.parcial&&!!kdIni(a)));
+function agReal(ini,fim){const T=hoje(),R={real:0,prev:0,imp:[],ags:new Set()};
+  for(let d=ini;d<=fim;d=addD(d,1))S.ags.forEach(a=>{if(a.status==='cancelada'||!naData(a,d))return;
+    if(d>T){R.prev++;return}const i0=kdIni(a);if(!i0||d<i0){if(d===T&&!FIM.includes(a.status))R.prev++;return}R.real++;R.ags.add(a.id)});
+  S.ags.forEach(a=>{if(!kdImprod(a))return;const e=a.ts&&a.ts.encerramento,d=e?isoD(new Date(e)):a.data;if(d>=ini&&d<=fim)R.imp.push(a)});
+  return R}
+function agDiasN(ini,fim){return agReal(ini,fim).real}
+function agKpis(){const R=agReal(ui.pIni,ui.pFim),pc=R.real?Math.round(R.imp.length/R.real*1000)/10:0;
+  return `<div class="kpi"><b>${R.real}</b><span>Agendamentos realizados${R.prev?` <small class="muted">(+${R.prev} previsto${R.prev>1?'s':''} no período)</small>`:''}</span></div><div class="kpi ${R.imp.length?'warn':''}"><b>${R.imp.length}</b><span>Improdutivas${R.real?` (${String(pc).replace('.',',')}% dos realizados)`:''}</span></div>`}
+{const _g=pGeral;pGeral=function(){let h=_g.apply(this,arguments);try{const L=agReal(ui.pIni,ui.pFim).imp.sort((x,y)=>String(y.data).localeCompare(String(x.data)));
+  const lpuV=a=>{const l=S.lpus.find(x=>x.ag===a.id);return l&&!S.semValor?brl(l.total):'—'};
+  h+=`<section class="panel"><div class="secth"><h3>Improdutivas</h3><span class="muted">${L.length?L.length+' no período':'Nenhuma no período'}</span></div>
+   ${L.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Fases</th><th>Técnico</th><th>Motivo</th><th class="r">LPU</th></tr></thead><tbody>${L.map(a=>`<tr><td>${dBR(a.data)}</td><td><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b><br><small class="muted">${esc(a.etiqueta)}</small></td><td>${esc(fasesN(a))}</td><td>${esc(tecN(a.tec))}</td><td>${esc([a.motivo,a.obsMotivo].filter(Boolean).join('. ')||'—')}</td><td class="r">${lpuV(a)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Atividade em que o técnico saiu e não conseguiu executar nada entra aqui.</p>'}</section>`}catch(e){console.warn('kpi',e)}return h}}
+/* ---------- 22/10: Painel › Rede executada › Baixar planilha ----------
+   Mesmos números da tela (LPUs do período sem as reprovadas; equipes sem LPU entram pela metragem do relatório).
+   Abas: Resumo, Por técnico, Por semana, Por atividade (cabo, cordoalha, CEO, extensão, metragem do relatório) e Itens das LPUs. */
+const RX_ST={aguardando:'Aguardando aprovação',ajuste:'Em ajuste',aprovada:'Aprovada',relatorio:'Sem LPU (metragem do relatório)',registrada:'Registrada'};
+{const _p=pRede;pRede=function(){const h=_p.apply(this,arguments);
+  return `<div class="tools" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" data-act="pRedeXlsx" title="Cabo, cordoalha, CEO e extensão do período, por técnico, semana e atividade">Baixar planilha</button></div>`+h}}
+Object.assign(ACT,{pRedeXlsx:()=>{if(typeof XLSX==='undefined'){toast('A biblioteca de planilhas ainda está carregando. Tente de novo em instantes.','bad');return}
+  const inP=d=>d>=ui.pIni&&d<=ui.pFim,L=S.lpus.concat(relLpus()).filter(l=>l.status!=='reprovada'&&inP(l.data)).sort((a,b)=>String(a.data).localeCompare(String(b.data)));
+  if(!L.length){toast('Nenhuma LPU no período.','bad');return}
+  const vv=verValor()&&!S.semValor,COR=['SEV0009','SEV0010'],REA=['SEV0037'],EXT=['SEV0088'];
+  const q=(l,cods)=>(l.itens||[]).filter(i=>cods.includes(i.cod)).reduce((s,i)=>s+(+i.qtd||0),0),soma=(ls,c)=>ls.reduce((s,l)=>s+q(l,c),0);
+  const vin=t=>tecT(t)==='CLT'?'CLT':'Terceiro',lpus=L.filter(l=>!l.rel);
+  const resumo=[['Período',`${dBR(ui.pIni)} a ${dBR(ui.pFim)}`],['Cabo lançado (m)',soma(L,CABO_LPU)],['Cabo lançado · equipe própria (m)',soma(L.filter(l=>vin(l.tec)==='CLT'),CABO_LPU)],['Cabo lançado · terceiros (m)',soma(L.filter(l=>vin(l.tec)!=='CLT'),CABO_LPU)],
+    ['Cordoalha lançada (m)',soma(L,COR)],['Reaberturas e fechamentos de CEO',soma(L,REA)],['Extensão de fibra (m)',soma(L,EXT)],['LPUs no período',lpus.length],['LPUs aprovadas',lpus.filter(l=>l.status==='aprovada').length],
+    ['Atividades sem LPU (metragem do relatório)',L.length-lpus.length]].concat(vv?[['Valor das LPUs (R$)',xR(lpus.reduce((s,l)=>s+(+l.total||0),0))]]:[]).map(([Indicador,Valor])=>({Indicador,Valor}));
+  const tec=TEC.map(t=>{const lt=L.filter(l=>l.tec===t.id);if(!lt.length)return null;return{'Técnico ou prestador':t.nome,Vínculo:t.tipo==='CLT'?'CLT':'Terceiro',LPUs:lt.filter(l=>!l.rel).length,'Sem LPU (relatório)':lt.filter(l=>l.rel).length,
+    'Cabo lançado (m)':soma(lt,CABO_LPU),'Cordoalha (m)':soma(lt,COR),'Reaberturas e fechamentos de CEO':soma(lt,REA),'Extensão de fibra (m)':soma(lt,EXT)}}).filter(Boolean).sort((a,b)=>b['Cabo lançado (m)']-a['Cabo lançado (m)']);
+  const sem=[];for(let d=semanaIni(ui.pIni);d<=ui.pFim;d=addD(d,7)){const f=addD(d,6),x=L.filter(l=>l.data>=d&&l.data<=f);
+    sem.push({Semana:`${dBR(d)} a ${dBR(f)}`,'Cabo · equipe própria (m)':soma(x.filter(l=>vin(l.tec)==='CLT'),CABO_LPU),'Cabo · terceiros (m)':soma(x.filter(l=>vin(l.tec)!=='CLT'),CABO_LPU),'Cabo total (m)':soma(x,CABO_LPU),'Cordoalha (m)':soma(x,COR),'Reaberturas e fechamentos de CEO':soma(x,REA),'Extensão de fibra (m)':soma(x,EXT),LPUs:x.filter(l=>!l.rel).length})}
+  const ativ=L.map(l=>{const a=l.ag&&getAg(l.ag),p=pPor(l.etiqueta||(a&&a.etiqueta))||{},m=a&&typeof metrosAg==='function'?metrosAg(a):null;
+    const o={Data:dBR(l.data),Etiqueta:l.etiqueta||(a&&a.etiqueta)||'',Cliente:l.cliente||p.cliente||'',Cidade:p.cidade||'',Fases:a?fasesN(a):(l.fases||[]).map(faseN).join(' + '),
+      'Técnico ou prestador':tecN(l.tec),Vínculo:vin(l.tec),Situação:RX_ST[l.status]||l.status,'Cabo lançado (m)':q(l,CABO_LPU),'Cordoalha (m)':q(l,COR),'Reaberturas e fechamentos de CEO':q(l,REA),'Extensão de fibra (m)':q(l,EXT),'Metragem do relatório (m)':m||''};
+    if(vv)o['Valor da LPU (R$)']=l.rel?'':xR(l.total);return o});
+  const itens=[];lpus.forEach(l=>{const a=l.ag&&getAg(l.ag),p=pPor(l.etiqueta||(a&&a.etiqueta))||{};(l.itens||[]).forEach(i=>{if(!(+i.qtd))return;const o={Data:dBR(l.data),Etiqueta:l.etiqueta||'',Cliente:l.cliente||p.cliente||'','Técnico ou prestador':tecN(l.tec),Vínculo:vin(l.tec),Situação:RX_ST[l.status]||l.status,Código:i.cod,Serviço:i.desc||'',Unidade:i.medida||'',Quantidade:+i.qtd||0};
+    if(vv){o['Valor unitário (R$)']=xR(i.unit);o['Subtotal (R$)']=xR((+i.unit||0)*(+i.qtd||0))}itens.push(o)})});
+  xlsxBaixar(`rede_executada_${ui.pIni}_a_${ui.pFim}`,[['Resumo',resumo],['Por técnico',tec],['Por semana',sem],['Por atividade',ativ],['Itens das LPUs',itens],['Filtros',xFiltros({'Tela':'Painel de KPIs › Rede executada','Período':`${dBR(ui.pIni)} a ${dBR(ui.pFim)}`,'Regra':'LPUs enviadas no período pela data da atividade (aguardando, em ajuste e aprovadas; reprovadas não contam). Equipes sem LPU entram pela metragem do relatório.'})]],'Planilha da rede executada baixada.')}});
 
 /* ---------- 22/10: adicionar fase em atividade já iniciada e trava contra atividade duplicada ----------
    Antes, com o técnico já em campo, o Editar some e só sobra Replicar, que cria OUTRA atividade (foi o que gerou 3 cards
