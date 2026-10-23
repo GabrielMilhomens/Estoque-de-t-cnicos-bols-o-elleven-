@@ -1864,6 +1864,18 @@ body.krfull-on{overflow:hidden}
 .kva{display:flex;flex-wrap:wrap;gap:6px}
 @media(max-width:800px){.kvk{grid-template-columns:repeat(2,minmax(0,1fr))}}
 #kvFull{position:fixed;inset:0;z-index:200;background:var(--bg,#f4f6f2);display:flex;flex-direction:column}
+
+/* 23/10: atividade noturna */
+.ntbox{border:1px solid var(--line,#dfe3dc);border-radius:10px;padding:10px 12px;margin:0 0 12px;background:var(--surface,#fff)}
+.ntbox.on{border-color:var(--info,#2b6a99);background:var(--info-soft,#e7f0f7)}
+.chip.ntchip{white-space:nowrap}
+/* nos cards do Painel do dia e da agenda o selo fica compacto; na linha de status do técnico (.tvch) segue o tamanho das outras tags */
+.ntcard .chip.ntchip,.pdc .chip.ntchip,[data-act="agOpen"] .chip.ntchip{display:inline-block!important;width:auto!important;padding:2px 9px!important;line-height:1.4!important;height:auto!important;min-height:0!important;font-size:12px!important;font-weight:600!important;max-width:100%;flex:0 0 auto;align-self:flex-start;vertical-align:middle;margin:2px 0}
+.ntpd{margin:0 0 14px}.ntpdl{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.ntpdc{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid var(--line,#dfe3dc);background:var(--surface,#fff);border-radius:10px;padding:10px 12px;cursor:pointer;font:500 13.5px Barlow,sans-serif;color:var(--ink,#1d2b1d)}
+.ntpdc b{font-size:15px}.ntpdc .chip{align-self:flex-start;margin-top:4px}
+.ntcard{margin:4px 0 2px}.ntpd .secth{margin-bottom:6px}
+.tvch .chip.ntchip{display:block;margin:1px 0;align-self:center}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -2793,7 +2805,7 @@ const MOT_PRAZO=['Volume maior que o previsto','Infraestrutura parcialmente obst
 function diasRange(ini,fim,uteis){const out=[];if(!ini)return out;fim=fim&&fim>=ini?fim:ini;if(fim===ini)return [ini];let d=ini;while(d<=fim&&out.length<62){const w=new Date(d+'T12:00:00').getDay();if(!uteis||(w!==0&&w!==6))out.push(d);d=addD(d,1)}return out}
 function criarAgs(etq,fases,tec,dias,por,extra){const g=uid(),fz=ALLF.map(f=>f.k).filter(k=>fases.includes(k));dias.forEach(d=>S.ags.push(Object.assign({id:uid(),etiqueta:etq,fase:fz[0],fases:fz,data:d,tec,status:'agendada',ts:{},rel:{},criadoPor:por,grupo:g},extra||{})));return fz}
 const rangeHtml=(pre,ini,fim,uteis)=>`<div class="grid2 even" style="gap:0 12px"><label class="f"><span>Data de início</span><input type="date" class="inp" id="${pre}Ini" data-ch="${pre==='ag'?'agF':'rpR'}" data-f="data" value="${ini}"></label><label class="f"><span>Data de fim</span><input type="date" class="inp" id="${pre}Fim" data-ch="${pre==='ag'?'agF':'rpR'}" data-f="dataFim" value="${fim}" min="${ini}"></label></div>
-  <label class="chk" style="margin-top:-4px"><input type="checkbox" id="${pre}Ut" data-ch="${pre==='ag'?'agF':'rpR'}" data-f="uteis" ${uteis?'checked':''}> Somente dias úteis</label><p class="muted" id="${pre}Cnt" style="margin:-6px 0 12px;font-size:13.5px">${diasTxt(diasRange(ini,fim,uteis))}</p>`;
+  <label class="chk" style="margin-top:-4px"><input type="checkbox" id="${pre}Ut" data-ch="${pre==='ag'?'agF':'rpR'}" data-f="uteis" ${uteis?'checked':''}> Somente dias úteis</label><p class="muted" id="${pre}Cnt" style="margin:-6px 0 12px;font-size:13.5px">${diasTxt(diasRange(ini,fim,uteis))}</p>${typeof ntBloco==='function'?ntBloco(pre):''}`;
 const diasTxt=L=>!L.length?'Nenhum dia no intervalo.':L.length===1?`1 dia: ${dBR(L[0])}.`:`${L.length} dias, de ${dBR(L[0])} a ${dBR(L[L.length-1])}.`;
 function renderRep(){const R=ui.rp,a=getAg(R.id),p=pPor(a.etiqueta);
   const rg=R.modo==='reag';
@@ -10193,6 +10205,74 @@ Object.assign(ACT,{
   kvTab:el=>{ui.kvTab=el.dataset.v;kvFull()},
   kvFecha:()=>{ui.kvVer=null;kvFull()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('kvFull')){e.stopPropagation();ACT.kvFecha()}},true);
+
+/* ---------- 23/10: ATIVIDADE NOTURNA NA IMPLANTAÇÃO ----------
+   No agendamento (e em editar, replicar e reagendar): "Atividade noturna" com a janela (início e término; pode virar a meia-noite).
+   Gravado na atividade como dados.noturna = {ini:'22:00', fim:'05:00'}.
+   - Agenda, Painel do dia e telas do técnico mostram o selo "Noturna 22:00–05:00".
+   - LPU da atividade noturna: todos os itens no fator crítico (o seletor fica travado).
+   - Painel do dia (gestão de plantão): bloco "Atividades noturnas" com as noturnas de hoje e as de ontem que viraram a meia-noite e seguem abertas.
+   - Lembrete ao técnico antes da janela e regras do dia ajustadas na função agenda-lembretes; a rotina das 00:05
+     não cancela a noturna da véspera (ajuste 41 do banco). */
+const NT_PAD={ini:'22:00',fim:'05:00'};
+const ntDe=F=>F&&F.noturna?{ini:F.nIni||NT_PAD.ini,fim:F.nFim||NT_PAD.fim}:null;
+const ntVira=n=>!!n&&n.fim<=n.ini;
+const ntTxt=n=>n?`Noturna ${n.ini}–${n.fim}${ntVira(n)?' (dia seguinte)':''}`:'';
+const ntChip=n=>n?`<span class="chip info ntchip" title="Atividade noturna: janela ${esc(n.ini)} às ${esc(n.fim)}${ntVira(n)?' do dia seguinte':''}. LPU no fator crítico.">Atividade noturna · ${esc(n.ini)}–${esc(n.fim)}</span>`:'';
+/* bloco no formulário (agendar: pre 'ag'; replicar/reagendar: pre 'rp') */
+function ntBloco(pre){const F=pre==='ag'?(ui.agForm||{}):(ui.rp||{}),ch=pre==='ag'?'agF':'rpR',on=!!F.noturna,ini=F.nIni||NT_PAD.ini,fim=F.nFim||NT_PAD.fim,vira=fim<=ini;
+  return `<div class="ntbox ${on?'on':''}"><label class="chk" style="margin:0"><input type="checkbox" data-ch="${ch}" data-f="noturna" ${on?'checked':''}> <span><b>Atividade noturna</b></span></label>
+   ${on?`<div class="grid2 even" style="gap:0 12px;margin-top:8px"><label class="f" style="margin:0"><span>Início da janela</span><input type="time" class="inp" data-ch="${ch}" data-f="nIni" value="${esc(ini)}"></label><label class="f" style="margin:0"><span>Término da janela</span><input type="time" class="inp" data-ch="${ch}" data-f="nFim" value="${esc(fim)}"></label></div>
+     <p class="muted" style="margin:6px 0 0;font-size:13px">${ini===fim?'<b style="color:var(--bad,#b3261e)">Início e término iguais: ajuste a janela.</b>':vira?`Vira a meia-noite: começa no dia agendado às ${esc(ini)} e termina às ${esc(fim)} do dia seguinte.`:`Das ${esc(ini)} às ${esc(fim)} do dia agendado.`} A LPU desta atividade sai com <b>todos os itens no fator crítico</b>, e o técnico recebe o lembrete antes do início.</p>`:''}</div>`}
+/* gravação */
+let NT_CTX=null;
+{const _c=criarAgs;criarAgs=function(etq,fases,tec,dias,por,extra){if(NT_CTX)extra=Object.assign({},extra||{},{noturna:Object.assign({},NT_CTX)});return _c.call(this,etq,fases,tec,dias,por,extra)}}
+const ntValida=n=>{if(n&&n.ini===n.fim){toast('Atividade noturna: o início e o término da janela não podem ser iguais.','bad');return false}return true};
+{const _ag=ACT.agendar;ACT.agendar=function(...x){const F=ui.agForm||{},E=ui.agEd,n=ntDe(F);if(!ntValida(n))return;const ed=E&&E.modo==='edit'?E.id:null;
+  NT_CTX=n;let r;try{r=_ag.apply(this,x)}finally{NT_CTX=null}
+  if(ed){const a=getAg(ed);if(a&&ui.agEd==null){if(n)a.noturna=n;else delete a.noturna;save();render()}}return r}}
+{const _ro=ACT.repOk;if(_ro)ACT.repOk=function(...x){const n=ntDe(ui.rp||{});if(!ntValida(n))return;NT_CTX=n;try{return _ro.apply(this,x)}finally{NT_CTX=null}}}
+{const _f=agFormDe;agFormDe=function(a,modo){const F=_f.apply(this,arguments);if(a&&a.noturna){F.noturna=true;F.nIni=a.noturna.ini;F.nFim=a.noturna.fim}return F}}
+{const _r=ACT.replicar;if(_r)ACT.replicar=function(el){const o=_r.apply(this,arguments);const a=getAg(el&&el.dataset&&el.dataset.id);if(a&&a.noturna&&ui.rp&&ui.rp.noturna==null){ui.rp.noturna=true;ui.rp.nIni=a.noturna.ini;ui.rp.nFim=a.noturna.fim;try{renderRep()}catch(e){}}return o}}
+{const _r=ACT.reag;if(_r)ACT.reag=function(el){const o=_r.apply(this,arguments);const a=getAg(el&&el.dataset&&el.dataset.id);if(a&&a.noturna&&ui.rp&&ui.rp.noturna==null){ui.rp.noturna=true;ui.rp.nIni=a.noturna.ini;ui.rp.nFim=a.noturna.fim;try{renderRep()}catch(e){}}return o}}
+/* selo nas telas: cartões que abrem a atividade (agenda, técnico) */
+/* noturna da véspera que virou a meia-noite e ainda está dentro da janela (+2 h): não é atrasada */
+function ntNaJanela(a){const n=a&&a.noturna;if(!n||!ntVira(n)||a.data!==addD(hoje(),-1))return false;const [h,m]=n.fim.split(':').map(Number);return hmAgora()<=h*60+m+120}
+function ntNaoAtrasa(el,a){if(!ntNaJanela(a))return;const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);const L=[];while(w.nextNode())L.push(w.currentNode);
+  L.forEach(t=>{if(/Atrasada, era para/.test(t.nodeValue))t.nodeValue=t.nodeValue.replace(/Atrasada, era para (\S+)/,'Noturna iniciada em $1');else if(t.nodeValue.trim()==='Atrasada'&&t.parentElement&&t.parentElement.classList.contains('chip'))t.parentElement.style.display='none'})}
+function ntSelos(root){if(!root)return;const N=new Map(S.ags.filter(a=>a.noturna&&a.status!=='cancelada').map(a=>[a.id,a.noturna]));if(!N.size)return;
+  root.querySelectorAll('[data-act="agOpen"][data-id],[data-act="abrir"][data-id],.pdc[data-ag]').forEach(el=>{const n=N.get(el.dataset.id||el.dataset.ag);if(!n||(el.tagName==='BUTTON'&&/(^|\s)tv/.test(el.className)&&!el.classList.contains('tvnm'))||el.classList.contains('btn')||el.classList.contains('tvpri')||el.classList.contains('ntpdc')||el.querySelector('.ntchip'))return;ntNaoAtrasa(el.closest('article')||el,getAg(el.dataset.id||el.dataset.ag));
+    const ch=el.classList.contains('tvnm')&&el.closest('.tvcard')?el.closest('.tvcard').querySelector('.tvch'):null;if(ch){if(!ch.querySelector('.ntchip'))ch.insertAdjacentHTML('beforeend',ntChip(n));return}const alvo=el.querySelector('.pdh,.tvtt,.ach,.lh,h3,h4,b')||el;alvo.insertAdjacentHTML(alvo===el?'afterbegin':'beforeend',' '+ntChip(n))})}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{ntSelos(document.getElementById('app'));const m=document.querySelector('#modal .sheetm');if(m)ntSelos(m)}catch(e){console.warn('noturna',e)}return o}}
+/* detalhe da atividade (modal da agenda) */
+{const _o=ACT.agOpen;if(_o)ACT.agOpen=function(el){const o=_o.apply(this,arguments);try{const a=getAg(el.dataset.id),sh=document.querySelector('#modal .sheetm');if(a&&a.noturna&&sh&&!sh.querySelector('.ntchip')){const h=sh.querySelector('h3');if(h)h.insertAdjacentHTML('afterend',`<p style="margin:4px 0 8px">${ntChip(a.noturna)}</p>`)}}catch(e){}return o}}
+/* LPU da atividade noturna: tudo no fator crítico */
+function ntAgDaChave(k){if(!k)return null;k=String(k);let a=getAg(k);if(a)return a;if(k.startsWith('L:')){const l=S.lpus.find(x=>x.id===k.slice(2));return l?getAg(l.ag):null}return null}
+const ntCrit=d=>{Object.values(d.q||{}).forEach(v=>{if(v&&typeof v==='object')v.fator='critico'})};
+{const _d=lpuDraft;lpuDraft=function(key){const d=_d.apply(this,arguments),a=ntAgDaChave(key);if(a&&a.noturna){d.noturna=true;ntCrit(d);
+    if(!d.__ntProxy){const q=d.q;d.q=new Proxy(q,{set(t,k,v){if(v&&typeof v==='object')v.fator='critico';t[k]=v;return true}});d.__ntProxy=true}}return d}}
+{const _c=ACT.lpuCond;if(_c)ACT.lpuCond=function(el){const a=ntAgDaChave(ui.lpuTela);if(a&&a.noturna){const d=lpuDraft(ui.lpuTela);ntCrit(d);toast('Atividade noturna: todos os itens ficam no fator crítico.');render();return}return _c.apply(this,arguments)}}
+{const _f=CH.lpuFator;if(_f)CH.lpuFator=function(el){const a=ntAgDaChave(el.dataset.k);if(a&&a.noturna){el.value='critico';const d=lpuDraft(el.dataset.k);ntCrit(d);toast('Atividade noturna: todos os itens ficam no fator crítico.');try{lpuRefresh(el.dataset.k)}catch(e){}return}return _f.apply(this,arguments)}}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{const k=ui.lpuTela||(ui.sign&&ui.sign.key);const a=ntAgDaChave(k);if(a&&a.noturna){document.querySelectorAll('select[data-ch="lpuFator"]').forEach(s=>{if(s.querySelector('option[value="critico"]'))s.value='critico';s.disabled=true;s.title='Atividade noturna: fator crítico'});
+    const box=document.querySelector('.lpu,.lpuv,#app');if(box&&!document.querySelector('.ntlpu')){document.querySelectorAll('#app .lpseg').forEach(g=>{g.querySelectorAll('button').forEach(b=>{if(!/cr[ií]tic/i.test(b.textContent))b.disabled=true})});const h=document.querySelector('#app .lpn')||document.querySelector('#app h2,#app h3');if(h)h.insertAdjacentHTML(h.classList.contains('lpn')?'beforebegin':'afterend',`<p class="result ntlpu" style="margin:6px 0 10px">Atividade noturna (${esc(a.noturna.ini)}–${esc(a.noturna.fim)}): todos os itens desta LPU estão no <b>fator crítico</b>.</p>`)}}}catch(e){console.warn('noturna lpu',e)}return o}}
+/* Painel do dia: noturnas de ontem que viraram a meia-noite e seguem abertas + bloco de plantão */
+const NT_ABERTO=['agendada','deslocamento','no_local','execucao'];
+{const _l=pdLinhasLocais;pdLinhasLocais=function(d){const L=_l.apply(this,arguments),ids=new Set(L.map(r=>r.id)),ont=addD(d,-1);
+  S.ags.filter(a=>a.noturna&&ntVira(a.noturna)&&NT_ABERTO.includes(a.status)&&!ids.has(a.id)&&naData(a,ont)).forEach(a=>{const r=_l.call(this,ont).find(x=>x.id===a.id);if(r){r.ntOntem=true;L.push(r)}});
+  L.forEach(r=>{const a=getAg(r.id);if(a&&a.noturna)r.noturna=a.noturna});return L}}
+let NT_CARD='';
+{const _k=cardA;cardA=function(o){if(NT_CARD&&o){o=Object.assign({},o,{extra:`<div class="ntcard">${NT_CARD}</div>`+(o.extra||'')})}return _k.call(this,o)}}
+{const _c=pdCardA;pdCardA=function(r,f){if(r&&r.noturna)NT_CARD=' '+ntChip(r.noturna)+(r.ntOntem?' <span class="chip">começou ontem</span>':'');try{return _c.apply(this,arguments)}finally{NT_CARD=''}}}
+{const _v=viewPainelDia;viewPainelDia=function(){const h=_v.apply(this,arguments);if(ui.perfil==='visu')return h;const T=hoje(),ont=addD(T,-1);
+  const L=S.ags.filter(a=>a.noturna&&a.status!=='cancelada'&&(naData(a,T)||(ntVira(a.noturna)&&naData(a,ont)&&NT_ABERTO.includes(a.status))));if(!L.length)return h;
+  const st=a=>({agendada:'Aguardando início',deslocamento:'A caminho',no_local:'No local',execucao:'Em execução',relatorios:'Relatórios',lpu:'LPU',concluida:'Concluída',nao_concluida:'Não concluída'})[a.status]||a.status;
+  const bl=`<section class="ntpd"><div class="secth"><h3>Atividades noturnas</h3><span class="muted">${L.length} ${L.length>1?'atividades':'atividade'}</span></div><div class="ntpdl">${L.sort((a,b)=>(a.noturna.ini).localeCompare(b.noturna.ini)).map(a=>{const p=pPor(a.etiqueta)||{};return `<button type="button" class="ntpdc" data-act="agOpen" data-id="${a.id}"><b>${esc(p.cliente||a.etiqueta)}</b><span>${esc(fasesN(a))} · ${esc(tecN(a.tec))}</span><span>${esc(ntTxt(a.noturna))}${a.data!==T?' · começou em '+dBR(a.data).slice(0,5):''}</span><span class="chip ${['execucao','no_local','deslocamento'].includes(a.status)?'ok':a.status==='agendada'?'warn':''}">${esc(st(a))}</span></button>`}).join('')}</div></section>`;
+  let i=h.indexOf('<div class="pdfl"');if(i<0){const k=h.indexOf('<div class="kpis">');i=k>=0?h.indexOf('</div>',h.indexOf('</div>',k)+1)+6:-1;if(i<6)i=-1}return i>=0?h.slice(0,i)+bl+h.slice(i):bl+h}}
+/* linha de data do card do técnico: na noturna mostra a data e o horário de início do agendamento (e não a janela do cliente) */
+{const _a=apoioTxt;apoioTxt=function(a){if(!a||!a.noturna)return _a.apply(this,arguments);const n=a.noturna,T=hoje(),L=[],d=dBR(a.data).slice(0,5);
+  if(a.dias&&a.dias.length>1)L.push(diaIdx(a,a.data)+`, de ${dBR(a.dias[0]).slice(0,5)} a ${dBR(a.dias[a.dias.length-1]).slice(0,5)}`);
+  L.push(a.data===T?`Hoje às ${n.ini}`:a.data<T&&!FIM.includes(a.status)?(ntNaJanela(a)?`Iniciada em ${d} às ${n.ini}`:`Atrasada, era para ${d} às ${n.ini}`):`${d} às ${n.ini}`);
+  L.push(`até ${n.fim}${ntVira(n)?' do dia seguinte':''}`);return L.join(', ')}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
