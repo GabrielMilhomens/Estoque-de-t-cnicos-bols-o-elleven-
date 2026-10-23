@@ -9472,10 +9472,10 @@ function vlLista(){return S.ags.filter(a=>a.status!=='cancelada'&&a.data>=ui.pIn
 /* ---------- 22/10: Visão geral conta os agendamentos que realmente aconteceram ----------
    Cada dia de atividade conta 1 (2 dias = 2, 5 dias = 5), só até hoje e só se o técnico de fato saiu para a atividade.
    Não contam: canceladas, dias futuros, dias depois de um encerramento antecipado e atividade que o técnico nem iniciou.
-   Improdutivas: dos agendamentos realizados, os que terminaram sem execução (improdutiva liberada para a LPU,
-   ou "não foi possível realizar" depois de sair, sem "fiz parte do serviço"). */
+   Improdutivas: o técnico chegou ao local, não executou e encerrou como "não foi possível realizar". */
 const kdIni=a=>{const t=a.ts||{},v=t.desloc||t.chegada||t.inicio;return v?isoD(new Date(v)):(['relatorios','lpu','concluida'].includes(a.status)?a.data:null)};
-const kdImprod=a=>a.status!=='cancelada'&&(!!a.improd||(a.status==='nao_concluida'&&!a.parcial&&!!kdIni(a)));
+/* 23/10: improdutiva = chegou ao local, não executou e encerrou como "não foi possível realizar" (sem "fiz parte do serviço"). Saiu e não chegou não conta. */
+const kdImprod=a=>a.status!=='cancelada'&&!!(a.ts&&a.ts.chegada)&&(!!a.improd||(a.status==='nao_concluida'&&!a.parcial))
 function agReal(ini,fim){const T=hoje(),R={real:0,prev:0,imp:[],ags:new Set()};
   for(let d=ini;d<=fim;d=addD(d,1))S.ags.forEach(a=>{if(a.status==='cancelada'||!naData(a,d))return;
     if(d>T){R.prev++;return}const i0=kdIni(a);if(!i0||d<i0){if(d===T&&!FIM.includes(a.status))R.prev++;return}R.real++;R.ags.add(a.id)});
@@ -9487,7 +9487,7 @@ function agKpis(){const R=agReal(ui.pIni,ui.pFim),pc=R.real?Math.round(R.imp.len
 {const _g=pGeral;pGeral=function(){let h=_g.apply(this,arguments);try{const L=agReal(ui.pIni,ui.pFim).imp.sort((x,y)=>String(y.data).localeCompare(String(x.data)));
   const lpuV=a=>{const l=S.lpus.find(x=>x.ag===a.id);return l&&!S.semValor?brl(l.total):'—'};
   h+=`<section class="panel"><div class="secth"><h3>Improdutivas</h3><span class="muted">${L.length?L.length+' no período':'Nenhuma no período'}</span></div>
-   ${L.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Fases</th><th>Técnico</th><th>Motivo</th><th class="r">LPU</th></tr></thead><tbody>${L.map(a=>`<tr><td>${dBR(a.data)}</td><td><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b><br><small class="muted">${esc(a.etiqueta)}</small></td><td>${esc(fasesN(a))}</td><td>${esc(tecN(a.tec))}</td><td>${esc([a.motivo,a.obsMotivo].filter(Boolean).join('. ')||'—')}</td><td class="r">${lpuV(a)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Atividade em que o técnico saiu e não conseguiu executar nada entra aqui.</p>'}</section>`}catch(e){console.warn('kpi',e)}return h}}
+   ${L.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Fases</th><th>Técnico</th><th>Motivo</th><th class="r">LPU</th></tr></thead><tbody>${L.map(a=>`<tr><td>${dBR(a.data)}</td><td><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b><br><small class="muted">${esc(a.etiqueta)}</small></td><td>${esc(fasesN(a))}</td><td>${esc(tecN(a.tec))}</td><td>${esc([a.motivo,a.obsMotivo].filter(Boolean).join('. ')||'—')}</td><td class="r">${lpuV(a)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Atividade em que o técnico chegou ao local, não executou e encerrou como não foi possível realizar entra aqui.</p>'}</section>`}catch(e){console.warn('kpi',e)}return h}}
 /* ---------- 22/10: Painel › Rede executada › Baixar planilha ----------
    Mesmos números da tela (LPUs do período sem as reprovadas; equipes sem LPU entram pela metragem do relatório).
    Abas: Resumo, Por técnico, Por semana, Por atividade (cabo, cordoalha, CEO, extensão, metragem do relatório) e Itens das LPUs. */
