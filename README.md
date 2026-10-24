@@ -515,6 +515,7 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 - **Técnico:** "Dados do chamado" e "Endereço e localização do POP" no layout de ícones; relatório sem "Informações gerais".
 - **Painel de KPIs:** *Visão geral* só com os indicadores; uma aba para cada tipo (Manutenção corretiva, Manutenção preventiva, Expansão transceiver, Expansão infraestrutura, Cross Connect, GMUD, Outras) com os indicadores e a tabela do tipo; *Tempos de atendimento* como no GTD.
 - **Regras no banco:** ajuste 39. O endereço e as coordenadas dos POPs são completados no cadastro de POPs.
+- **Chamado de expansão pela Implantação (24/10):** cliente/etiqueta e POP da Transmissão com a mesma busca da abertura de chamados da Transmissão (a lista abre no campo e filtra enquanto digita, com setas e Enter). A lista de clientes mostra só os projetos **ponto a ponto** da Base de previsão.
 - **Cards do Painel de KPIs (24/10):** na *Visão geral* cada card abre o tipo de chamado já filtrado (ex.: "POPs com preventiva vencida" abre a Manutenção preventiva só com os vencidos); dentro de cada tipo os cards filtram a tabela e um novo toque mostra todos. Expansões e Cross Connect mostram também os chamados em aberto; Outras ganhou o card "Em aberto".
 - **POPs (24/10):** a aba mostra "POPs (N ativos · N inativos)" e a tela tem cards que filtram a lista: Todos, Ativos, Inativos, Sem endereço e Sem coordenadas.
 - **Histórico (24/10):** mostra todos os tipos (corretiva, preventiva, expansões, cross connect, GMUD e outras); o filtro "Todos os tipos de chamado" escolhe um tipo ou uma categoria da corretiva.
@@ -592,6 +593,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 24/10/2026 | Chamado de expansão pela Implantação: busca de cliente e de POP igual à da abertura de chamados da Transmissão, só com clientes ponto a ponto da Base de previsão. Detalhes em 7.3. | `agenda.html` (sem SQL). |
 | 24/10/2026 | Trilho de áreas: o "N" do topo trocado pelo símbolo do logo da Net Turbo. | `agenda.html` (sem SQL). |
 | 24/10/2026 | **Trilho de ícones para trocar de área** (celular: folha de baixo), **cards dos KPIs da Transmissão com filtro**, **POPs ativos e inativos**, **histórico da Transmissão com filtro por tipo**, relatório da Transmissão só em PDF (sem protocolos na preventiva e sem MTTR fora da corretiva) e **correção dos prints/fotos colados** que não abriam (despacho, validação do NOC e Transmissão). Detalhes em 5, 7.1 e 7.3. | `agenda.html` (sem SQL). Prints colados antes desta versão precisam ser anexados de novo. |
 | 24/10/2026 | **Visão do técnico no layout de ícones** (Implantação: Endereço e contato, Dados técnicos e anexos; GTD: Problema, Endereço e contato, Dados técnicos) e **endereço e localização dos POPs** da Transmissão. Detalhes em 7.2. | `agenda.html` e **`agenda_ajuste_42_pops_endereco.sql`** (rodar depois do ajuste 39; não subir no GitHub). |

@@ -1966,6 +1966,8 @@ body.krfull-on{overflow:hidden}
 .txoqx{margin:6px 0 0;font-size:15px;color:var(--muted);white-space:pre-line}
 .gdhD .car>span{white-space:pre-line}
 .gbox.txdesp{box-shadow:0 0 0 3px var(--brand);transition:box-shadow .3s}
+/* 24/10: busca de cliente e POP dentro do chamado de expansão: a lista abre no próprio formulário */
+.txcombo.inl .txcl{position:static;max-height:300px;overflow:auto;margin-top:4px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:none}
 /* 24/10: técnico no layout de ícones (Implantação e GTD) */
 .tlx .car{align-items:flex-start}.tl .car>span{flex:1}
 .tlx .car>.tvcp{flex:none;margin:-4px 0 -4px auto;align-self:center}
@@ -11108,15 +11110,36 @@ function txExpCard(c){const r=c.rfo||{},fim=(c.ts&&c.ts.rfo)||c.validadoEm,st=tx
   if(txExpFeita(c))L.push(['Equipamento e porta',[r.equip||c.txEquip,r.intf||c.txPorta].filter(Boolean).join(' · ')],['DIO e posição',[r.dio||c.txDio,(r.pos||c.txPos)?'posição '+(r.pos||c.txPos):''].filter(Boolean).join(' · ')],['Transceiver',r.obs||c.txObs||''],['Observações do técnico',r.detalhes||'']);
   return `<div class="txexpc ${txExpFeita(c)?'ok':''}"><b>${esc(c.cliente||'POP')}${txPomV(c)?' · O&amp;M '+esc(txPomV(c)):''}</b><dl>${L.filter(x=>x[1]).map(([a,b])=>`<div><dt>${a}</dt><dd>${esc(b)}</dd></div>`).join('')}</dl>
    ${c.rfoPdf?`<button class="btn sm" data-p="${esc(c.rfoPdf)}" data-act="relVer">Relatório da expansão (PDF)</button>`:''}</div>`}
+/* 24/10: cliente e POP do chamado de expansão com a mesma busca da abertura de chamados da Transmissão; só clientes ponto a ponto da Base de previsão */
+const txPtp=p=>/ponto\s*a\s*ponto|^\s*ptp\s*$/i.test(String((p&&p.topologia)||''));
+const txExpProj=()=>{const E=ui.txE||{};return E.etq&&S.previsao.find(x=>x.etiqueta===E.etq)};
+const TXCB={
+  cli:{L:q=>{q=normK(q||'').trim();return S.previsao.filter(x=>x.etiqueta&&txPtp(x)&&(!q||normK([x.etiqueta,x.cliente,x.cidade].join(' ')).includes(q))).slice(0,300).map(x=>({id:x.etiqueta,a:x.etiqueta+' · '+(x.cliente||''),b:x.cidade||''}))},
+    cur:()=>{const p=txExpProj();return p?p.etiqueta+' · '+(p.cliente||''):''},sel:()=>(ui.txE||{}).etq,
+    esc:id=>{txExpGuarda();ui.txE={etq:id};txExpRe()},vazio:'Nenhum cliente ponto a ponto com essa busca.'},
+  pop:{L:q=>txCbL(q).map(x=>({id:x.id,a:txPopN(x),b:x.cidade||''})),
+    cur:()=>{const p=txExpProj(),o=p&&(txPop((ui.txE||{}).pop)||txPopDeProj(p));return o?txPopN(o)+(o.cidade?' · '+o.cidade:''):''},sel:()=>{const p=txExpProj(),o=p&&(txPop((ui.txE||{}).pop)||txPopDeProj(p));return o&&o.id},
+    esc:id=>{txExpGuarda();ui.txE.pop=id;txExpRe()},vazio:'Nenhum POP com essa busca.'}};
+const txCbx=(k,ph)=>`<div class="txcombo inl"><input class="inp txcbx" id="txCbx_${k}" data-cb="${k}" value="${esc(TXCB[k].cur())}" placeholder="${esc(ph)}" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="txCbxDd_${k}"><svg class="txpopv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg><div class="txcl" id="txCbxDd_${k}" role="listbox" hidden></div></div>`;
+function txCbxAbre(k,q){const d=$('txCbxDd_'+k),i=$('txCbx_'+k);if(!d||!i)return;const L=TXCB[k].L(q),sel=TXCB[k].sel();ui.txCbxI=0;
+  d.innerHTML=L.map((x,n)=>`<div class="txco${n===0?' on':''}" role="option" data-cb="${k}" data-id="${esc(x.id)}" aria-selected="${sel===x.id}"><b>${esc(x.a)}</b><span>${esc(x.b)}</span></div>`).join('')||`<div class="txcv">${TXCB[k].vazio}</div>`;d.hidden=false;i.setAttribute('aria-expanded','true')}
+function txCbxFecha(k){const d=$('txCbxDd_'+k),i=$('txCbx_'+k);if(d)d.hidden=true;if(i){i.setAttribute('aria-expanded','false');i.value=TXCB[k].cur()}}
+document.addEventListener('focusin',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('txcbx')){t.select();txCbxAbre(t.dataset.cb,'')}});
+document.addEventListener('input',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('txcbx'))txCbxAbre(t.dataset.cb,t.value)});
+document.addEventListener('focusout',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('txcbx')){const k=t.dataset.cb;setTimeout(()=>{if(document.activeElement===t)return;txCbxFecha(k)},150)}});
+document.addEventListener('mousedown',e=>{const o=e.target.closest&&e.target.closest('.txcl .txco[data-cb]');if(o){e.preventDefault();TXCB[o.dataset.cb].esc(o.dataset.id)}});
+document.addEventListener('keydown',e=>{const t=e.target;if(!t||!t.classList||!t.classList.contains('txcbx'))return;const k=t.dataset.cb,d=$('txCbxDd_'+k),O=d?[...d.querySelectorAll('.txco')]:[];
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(d.hidden)txCbxAbre(k,t.value);if(!O.length)return;ui.txCbxI=Math.max(0,Math.min(O.length-1,(ui.txCbxI||0)+(e.key==='ArrowDown'?1:-1)));O.forEach((o,n)=>o.classList.toggle('on',n===ui.txCbxI));O[ui.txCbxI].scrollIntoView({block:'nearest'})}
+  else if(e.key==='Enter'){e.preventDefault();const o=O[ui.txCbxI||0];if(o)TXCB[k].esc(o.dataset.id)}else if(e.key==='Escape'){e.stopPropagation();txCbxFecha(k);t.blur()}});
 function txExpHtml(){const E=ui.txE||{},p=E.etq&&S.previsao.find(x=>x.etiqueta===E.etq),pop=p&&(txPop(E.pop)||txPopDeProj(p));
   const ja=p&&txExpDe(p.etiqueta),feitas=(ja||[]).filter(txExpFeita);E.feita=!!feitas.length;
   const dd=(l,v,ok)=>`<div><dt>${l}</dt><dd class="${ok===false?'falta':''}">${v?esc(v):'<span class="muted">não informado na Base de previsão</span>'}</dd></div>`;
   return `<h3>Chamado de expansão · Transmissão</h3><p class="muted">Escolha o cliente ou a etiqueta. Os dados vêm da Base de previsão e do ROI; informe só o DIO e a posição.</p>
-   <label class="f"><span>Cliente ou etiqueta</span><input class="inp" list="txExpL" id="txExpQ" data-ch="txExpQ" value="${p?esc(p.etiqueta+' · '+(p.cliente||'')):''}" placeholder="Digite o nome do cliente ou a etiqueta" autocomplete="off"><datalist id="txExpL">${S.previsao.filter(x=>x.etiqueta).slice(0,3000).map(x=>`<option value="${esc(x.etiqueta+' · '+(x.cliente||''))}">`).join('')}</datalist></label>
+   <div class="f"><span>Cliente ou etiqueta (ponto a ponto)</span>${txCbx('cli','Digite para buscar o cliente ou a etiqueta')}</div>
    ${p?`${feitas.length?`<div class="result warn" style="margin:6px 0"><b>A expansão deste cliente já foi realizada${(feitas[0].ts&&feitas[0].ts.rfo)||feitas[0].validadoEm?' em '+dBR(isoD(new Date((feitas[0].ts&&feitas[0].ts.rfo)||feitas[0].validadoEm))):''}.</b> Você pode abrir outro chamado, mas explique o motivo nas observações.</div>`:ja&&ja.length?'<div class="result info" style="margin:6px 0">Já existe chamado de expansão em andamento para esta etiqueta.</div>':''}
     ${ja&&ja.length?`<details class="txexpd2" open><summary>Chamados de expansão desta etiqueta (${ja.length})</summary>${ja.map(txExpCard).join('')}</details>`:''}
     <dl class="txexpd">${dd('Cliente',p.cliente)}${dd('Etiqueta',p.etiqueta)}${dd('Cidade',p.cidade)}${dd('POP (base)',p.pop)}${dd('Equipamento POP',p.equip,!!p.equip)}${dd('Porta',p.porta,!!p.porta)}</dl>
-    <label class="f"><span>POP da Transmissão *</span><select class="inp" id="txExpPop" data-ch="txExpPop"><option value="">${TXP.L.length?'Escolha o POP…':'Nenhum POP cadastrado'}</option>${TXP.L.filter(x=>x.ativo!==false).map(x=>`<option value="${x.id}" ${pop&&pop.id===x.id?'selected':''}>${esc(txPopN(x))}${x.cidade?' · '+esc(x.cidade):''}</option>`).join('')}</select>${pop?'':'<small class="muted">O POP da base não bate com a lista de POPs: escolha.</small>'}</label>
+    <div class="f"><span>POP da Transmissão *</span>${txCbx('pop',TXP.L.length?'Digite para buscar o POP (sigla, nome ou cidade)':'Nenhum POP cadastrado')}${pop?'':'<small class="muted">O POP da base não bate com a lista de POPs: escolha.</small>'}</div>
     ${!p.equip||!p.porta?`<div class="grid2 even" style="gap:0 12px"><label class="f"><span>Equipamento POP *</span><input class="inp" id="txExpEq" value="${esc(E.eq||p.equip||'')}" placeholder="Ex.: M-BR-CPL-ACM-AGG-01 (172.31.254.21)"></label><label class="f"><span>Porta *</span><input class="inp" id="txExpPt" value="${esc(E.pt||p.porta||'')}" placeholder="Ex.: XGE0/0/13"></label></div>`:''}
     <label class="f"><span>GBIC (do ROI)</span><input class="inp" id="txExpGb" value="${esc(E.gb!=null?E.gb:txGbicRoi(p))}" placeholder="${p.roi?'Nenhum item com TX1550 ou TX1330 no ROI: informe':'Projeto sem ROI: informe o GBIC'}"></label>
     <div class="grid2 even" style="gap:0 12px"><label class="f"><span>DIO *</span><input class="inp" id="txExpDio" value="${esc(E.dio||'')}" placeholder="Ex.: ACM#0000"></label><label class="f"><span>Posição *</span><input class="inp" id="txExpPos" value="${esc(E.pos||'')}" placeholder="Ex.: 68"></label></div>
@@ -11132,7 +11155,7 @@ Object.assign(CH,{
     if(!p){toast('Projeto não encontrado na Base de previsão. Escolha da lista.','bad');return}txExpGuarda();ui.txE={etq:p.etiqueta};txExpRe()},
   txExpPop:el=>{txExpGuarda();ui.txE.pop=el.value;txExpRe()}});
 Object.assign(ACT,{
-  txExpAbre:async el=>{if(!txPodeExpImpl())return semPerm();ui.txE={etq:el.dataset.e||ui.agSel||''};if(!TXP.ok)await txPopsCarregar();openModal(txExpHtml());setTimeout(()=>{const q=$('txExpQ');if(q&&!ui.txE.etq)q.focus()},50)},
+  txExpAbre:async el=>{if(!txPodeExpImpl())return semPerm();ui.txE={etq:el.dataset.e||ui.agSel||''};if(!TXP.ok)await txPopsCarregar();openModal(txExpHtml());setTimeout(()=>{const q=$('txCbx_cli');if(q&&!ui.txE.etq)q.focus()},50)},
   txExpCriar:async el=>{txExpGuarda();const E=ui.txE||{},p=S.previsao.find(x=>x.etiqueta===E.etq);if(!p)return;const pop=txPop(E.pop)||txPopDeProj(p),eq=String(p.equip||E.eq||'').trim(),pt=String(p.porta||E.pt||'').trim();
     const falta=[!pop&&'POP da Transmissão',!eq&&'equipamento POP',!pt&&'porta',!String(E.dio||'').trim()&&'DIO',!String(E.pos||'').trim()&&'posição',!E.sd&&'data sugerida',E.feita&&!String(E.obs||'').trim()&&'observações (a expansão já foi feita)'].filter(Boolean);if(falta.length){toast('Preencha: '+falta.join(', ')+'.','bad');return}
     const c={area:'tx',txTipo:'expT',txExtT:'Cliente',txCli:p.cliente||'',txEtq:p.etiqueta,txEquip:eq,txPorta:pt,txDio:String(E.dio).trim(),txPos:String(E.pos).trim(),txObs:String(E.gb||'').trim(),pop:pop.id,popSigla:pop.sigla||'',
