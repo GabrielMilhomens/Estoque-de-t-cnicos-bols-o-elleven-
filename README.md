@@ -214,6 +214,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 41. `agenda_ajuste_40_roi_kmz.sql` — política de leitura em `ag_config` das chaves `precos_materiais` e `estimativa_kmz` para qualquer usuário com papel na ferramenta (quem cadastra projeto sem ser da gestão monta o ROI pelo KMZ). Não depende do ajuste 39.
 42. `agenda_ajuste_41_atividade_noturna.sql` — `ag_cancelar_nao_iniciadas()` refeita: a rotina das 00:05 não cancela a atividade noturna da véspera cuja janela vira a meia-noite (fica para a rotina seguinte).
 43. `agenda_ajuste_42_pops_endereco.sql` — endereço, cidade, UF e coordenadas dos POPs da Transmissão pela sigla (lista de 24/10, 52 POPs); inclui os que ainda não existiam e não apaga endereço já cadastrado quando a lista vem sem. Termina com a conferência dos POPs ainda sem endereço ou coordenadas.
+44. `agenda_ajuste_43_avisos_transmissao.sql` — `ag_chamado_avisos` refeita: nos chamados da Transmissão os avisos usam o tipo/categoria e o POP no lugar do código interno, com "Novo chamado da Transmissão", "Técnico no POP", "Preencha o relatório" e sem "O MTTR continua" fora da corretiva; corrige os avisos já gravados. Os avisos do GTD não mudam.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -516,6 +517,7 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 - **Painel de KPIs:** *Visão geral* só com os indicadores; uma aba para cada tipo (Manutenção corretiva, Manutenção preventiva, Expansão transceiver, Expansão infraestrutura, Cross Connect, GMUD, Outras) com os indicadores e a tabela do tipo; *Tempos de atendimento* como no GTD.
 - **Regras no banco:** ajuste 39. O endereço e as coordenadas dos POPs são completados no cadastro de POPs.
 - **Chamado de expansão pela Implantação (24/10):** cliente/etiqueta e POP da Transmissão com a mesma busca da abertura de chamados da Transmissão (a lista abre no campo e filtra enquanto digita, com setas e Enter). A lista de clientes mostra só os projetos **ponto a ponto** da Base de previsão.
+- **Sem código interno (24/10):** o código gerado para os chamados da Transmissão (TXddmm-…) não aparece mais em lugar nenhum: chat, modais, mensagens e avisos mostram "Transmissão", o tipo ou a categoria e o POP; o Protocolo O&M só aparece quando foi informado. Os avisos do sino e do celular são montados no banco (ajuste 43).
 - **Cards do Painel de KPIs (24/10):** na *Visão geral* cada card abre o tipo de chamado já filtrado (ex.: "POPs com preventiva vencida" abre a Manutenção preventiva só com os vencidos); dentro de cada tipo os cards filtram a tabela e um novo toque mostra todos. Expansões e Cross Connect mostram também os chamados em aberto; Outras ganhou o card "Em aberto".
 - **POPs (24/10):** a aba mostra "POPs (N ativos · N inativos)" e a tela tem cards que filtram a lista: Todos, Ativos, Inativos, Sem endereço e Sem coordenadas.
 - **Histórico (24/10):** mostra todos os tipos (corretiva, preventiva, expansões, cross connect, GMUD e outras); o filtro "Todos os tipos de chamado" escolhe um tipo ou uma categoria da corretiva.
@@ -593,6 +595,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 24/10/2026 | Transmissão: o código interno (TXddmm-…) sai do chat, dos modais, das mensagens e dos avisos. Detalhes em 7.3. | `agenda.html` e **`agenda_ajuste_43_avisos_transmissao.sql`** (rodar no SQL Editor; não subir no GitHub). |
 | 24/10/2026 | Chamado de expansão pela Implantação: busca de cliente e de POP igual à da abertura de chamados da Transmissão, só com clientes ponto a ponto da Base de previsão. Detalhes em 7.3. | `agenda.html` (sem SQL). |
 | 24/10/2026 | Trilho de áreas: o "N" do topo trocado pelo símbolo do logo da Net Turbo. | `agenda.html` (sem SQL). |
 | 24/10/2026 | **Trilho de ícones para trocar de área** (celular: folha de baixo), **cards dos KPIs da Transmissão com filtro**, **POPs ativos e inativos**, **histórico da Transmissão com filtro por tipo**, relatório da Transmissão só em PDF (sem protocolos na preventiva e sem MTTR fora da corretiva) e **correção dos prints/fotos colados** que não abriam (despacho, validação do NOC e Transmissão). Detalhes em 5, 7.1 e 7.3. | `agenda.html` (sem SQL). Prints colados antes desta versão precisam ser anexados de novo. |

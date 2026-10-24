@@ -11361,6 +11361,13 @@ Object.assign(ACT,{txSugOk:el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(c)
   const naTx=txAt()&&!gTecPerfil(),gc=typeof gTecSel==='function'&&ui.tab==='campo'?gTecSel():null;
   if(naTx){document.querySelectorAll('#app [data-act="gRfoVer"]').forEach(b=>b.remove());document.querySelectorAll('#app details>pre.rfo').forEach(p=>p.parentElement.remove());document.querySelectorAll('#app pre.rfo').forEach(p=>p.remove())}
   else if(gc&&txDe(gc))document.querySelectorAll('#app pre.rfo').forEach(p=>p.remove())}catch(e){console.warn('txrel',e)}return o}}
+/* 24/10: o código interno da Transmissão (TXddmm-hhmmNN) nunca aparece: onde a tela escreve "O&M TX…" passa a "Transmissão" (chat, avisos, modais e mensagens) */
+const TX_COD=/O&(?:amp;)?M TX\d{4}-\d+/g;
+function txSemCod(root){if(!root)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),L=[];while(w.nextNode()){const n=w.currentNode;if(n.nodeValue.indexOf('TX')>=0&&/O&M TX\d{4}-\d+/.test(n.nodeValue))L.push(n)}
+  L.forEach(n=>{n.nodeValue=n.nodeValue.replace(/Protocolo O&M TX\d{4}-\d+/g,'Transmissão').replace(/O&M TX\d{4}-\d+/g,'Transmissão')})}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{txSemCod(document.body)}catch(e){}return o}}
+{const _m=openModal;openModal=function(h,...x){if(typeof h==='string')h=h.replace(/Protocolo O&(?:amp;)?M TX\d{4}-\d+/g,'Transmissão').replace(TX_COD,'Transmissão');return _m.call(this,h,...x)}}
+{const _t=window.toast;window.toast=function(m,...x){if(typeof m==='string')m=m.replace(TX_COD,'Transmissão');return _t.call(this,m,...x)}}
 
 /* ===== 24/10: visão do técnico da Implantação e do GTD no layout de ícones da Transmissão ===== 
    Endereço, Dados técnicos e Problema viram linhas com ícone, rótulo pequeno e valor (como "Dados do chamado" da Transmissão),
