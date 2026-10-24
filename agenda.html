@@ -1876,6 +1876,49 @@ body.krfull-on{overflow:hidden}
 .ntpdc b{font-size:15px}.ntpdc .chip{align-self:flex-start;margin-top:4px}
 .ntcard{margin:4px 0 2px}.ntpd .secth{margin-bottom:6px}
 .tvch .chip.ntchip{display:block;margin:1px 0;align-self:center}
+.txacanc{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);white-space:nowrap}
+.kb .ev.txkc{width:100%;margin-top:8px;text-align:left}
+.ev.txkc .cat{flex-wrap:wrap}.ev.txkc .kchat{margin-left:auto}
+.ev.txkc .txkt{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 4px}
+.kb .ev.gkc{width:100%;margin-top:8px;text-align:left}
+.ev.gkc .cat{flex-wrap:wrap}.ev.gkc .kchat{margin-left:auto}
+.ev.gkc .gckt{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 4px}
+.chip.info{display:inline-block;padding:2px 9px;margin:1px 0;border:1px solid transparent;gap:0}
+.ca2 .cas.info{margin:8px 0 0;padding:7px 0 0;border-bottom:0}
+/* cabeçalho do chamado do GTD (opções A, B, C) */
+.gdh .gdhac{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.gdh .gdhtg{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 0}
+.gdh .gdhtg .kcat{font-weight:600;font-size:13px}
+.gdet .stack>.gdh+.tools{margin:0 0 4px!important}
+.gdhA .cat{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px}
+.gdhA .cat>b{font:700 20px/1.15 "Barlow Condensed",Barlow,sans-serif;overflow-wrap:anywhere}
+.gdhA .cat .chip{font-style:normal;flex-shrink:0}
+.gdhA .car{font-size:15px}
+.gdhA .gdhmt{margin-top:10px}.gdhA .gdhmt small{display:block;color:var(--muted);font-size:12.5px}.gdhA .gdhmt b{font:700 28px/1.1 "Barlow Condensed",sans-serif}
+.gdhA .cas{display:block;margin-top:10px;padding-top:8px;border-top:1px solid var(--line);border-bottom:0;font-weight:700;font-size:14px;color:var(--muted)}
+.gdhA .cas.ok{color:var(--brand-ink)}.gdhA .cas.warn{color:var(--warn)}.gdhA .cas.bad{color:var(--bad)}.gdhA .cas.info{color:var(--info);margin:10px 0 0;padding:8px 0 0}
+.gdhB .gdhtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.gdhB h2,.gdhC h2{margin:0;font-size:22px;line-height:1.15}
+.gdhB .gdhgr{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.gdhB .gdhk{background:var(--bg);border-radius:10px;padding:9px 11px;min-width:0}
+.gdhB .gdhk>small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.gdhB .gdhk>span{font-weight:600;font-size:14.5px;overflow-wrap:anywhere}
+.gdhB .gdhk.mt b{font:700 26px/1.05 "Barlow Condensed",sans-serif}
+.gdhB .gdhsit{margin:10px 0 0;font-weight:700;font-size:14px;color:var(--muted)}
+.gdhB .gdhsit.ok{color:var(--brand-ink)}.gdhB .gdhsit.warn{color:var(--warn)}.gdhB .gdhsit.bad{color:var(--bad)}.gdhB .gdhsit.info{color:var(--info);display:block;margin:10px 0 0;padding:0;border:0}
+.gdhC{padding:0!important;overflow:hidden}
+.gdhC .gdhband{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 16px}
+.gdhC .gdhband b{display:block;font-size:16px}.gdhC .gdhband small{display:block;font-size:13px;opacity:.9}
+.gdhC .gdhbm{text-align:right;flex-shrink:0}.gdhC .gdhbm b{font:700 28px/1 "Barlow Condensed",sans-serif}
+.gdhC .gdhbody{padding:14px 16px 16px}
+.gdhC .gdhdl{margin:12px 0 0;display:grid;gap:0}
+.gdhC .gdhdl>div{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line)}
+.gdhC .gdhdl dt{color:var(--muted);font-size:14px}.gdhC .gdhdl dd{margin:0;font-weight:600;font-size:14.5px;text-align:right}
+.gdhA .car{display:flex;gap:8px;align-items:flex-start;margin-top:6px;font-size:15px}.gdhA .cai{width:17px;height:17px}
+.gdhD h3{margin:0 0 4px;font-size:16px}
+.gdhD .car>span{min-width:0;white-space:pre-line;overflow-wrap:anywhere}
+.gdhD .car>span>small{display:block;color:var(--muted);font-size:12.5px;line-height:1.2;margin-bottom:1px}
+.gdhD .car{margin-top:10px}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -5440,7 +5483,7 @@ function gTecView(c){if(ui.lpuTela==='G:'+c.id)return gLpuView(c);
   const probBody=`<p style="margin:0;font-size:16px;line-height:1.4">${esc(c.motivo||'—')}</p>${c.levar?`<div class="result ok" style="margin:0"><b>Levar:</b> ${esc(c.levar)}</div>`:''}${c.obs?`<div class="tobs"><b>Observações do NOC</b><span>${esc(c.obs)}</span></div>`:''}`;
   const endBody=tvEndBody({endereco:c.endereco,contato:c.contato,janela:c.janela,telefone:c.telefone||''},{coord:(()=>{const k=c.lat!=null&&c.lat!==''?[c.lat,c.lng]:coords(c.mapa||'');return k})(),rota:mapa,lblQuem:'Procurar por',extra:c.cidade&&!String(c.endereco||'').includes(c.cidade)?tvLinhaB('Cidade',esc(c.cidade)):''});
   const tecBody=`${c.equipamento?tvLinha('Equipamento',esc(c.equipamento)):''}${c.porta?tvLinha('Porta',`<span class="mono">${esc(c.porta)}</span>`,c.porta):''}${c.banda?tvLinha('Banda',esc(c.banda)):''}${c.entrega?tvLinha('Tipo de entrega',esc(c.entrega)):''}
-   ${pp?(pp.u?tvLinha('Usuário PPPoE',`<span class="mono">${esc(pp.u)}</span>`,pp.u):'')+(pp.resto?tvLinha('Outros dados do NOC',`<span class="mono" style="white-space:pre-line">${esc(pp.resto)}</span>`,pp.resto):'')+(pp.p?`<div class="tvrow"><div><span>Senha PPPoE</span><b class="mono">${sv?esc(pp.p):'••••••••'}</b></div><button class="tvcp txt" data-act="tvSenha" data-id="${c.id}">${sv?'Ocultar':'Mostrar'}</button><button class="tvcp" data-act="tvCopiar" data-v="${esc(pp.p)}" data-n="Senha" aria-label="Copiar senha">${TVI.copy}</button></div>`:''):c.ip?tvLinha('Dados IP / PPPoE',`<span class="mono" style="white-space:pre-line">${esc(c.ip)}</span>`,c.ip):''}
+   ${pp?(pp.u?tvLinha('Usuário PPPoE',`<span class="mono">${esc(pp.u)}</span>`,pp.u):'')+(pp.resto?tvLinha('Outros dados do NOC',`<span class="mono" style="white-space:pre-line">${esc(pp.resto)}</span>`,pp.resto):'')+(pp.p?`<div class="tvrow"><div><span>Senha PPPoE</span><b class="mono">${esc(pp.p)}</b></div><button class="tvcp" data-act="tvCopiar" data-v="${esc(pp.p)}" data-n="Senha" aria-label="Copiar senha">${TVI.copy}</button></div>`:''):c.ip?tvLinha('Dados IP / PPPoE',`<span class="mono" style="white-space:pre-line">${esc(c.ip)}</span>`,c.ip):''}
    ${!(c.equipamento||c.porta||c.ip||c.banda||c.entrega)?'<p class="muted" style="margin:0">Sem dados técnicos no chamado.</p>':''}`;
   const resTec=[c.equipamento,c.porta?'porta':'',pp||c.ip?'PPPoE':''].filter(Boolean).join(' · ')||'Ver dados';
   return `${tvHead('gFechar','g',c.id)}${top}
@@ -10299,6 +10342,106 @@ function rpOps(R){const eqs=typeof nteAtivas==='function'?nteAtivas():[],cur=R.e
   const nomeT=tecN(R.tec),_t=toast;NTE_X=nteCampos(R);
   toast=function(m,...y){return _t.call(this,typeof m==='string'?m.split(nomeT).join(e.nome):m,...y)};
   try{return _ro.apply(this,x)}finally{NTE_X=null;toast=_t}}}
+
+/* ===== 23/10: GTD Manutenção com o card e a Agenda no layout da Implantação =====
+   Card "Cliente - etiqueta" com o selo da situação; categoria e horário; O&M e protocolo do NOC; cidade; técnico;
+   marcações (prioridade, SLA, reincidente, mesmo endereço, aceite, recusa); MTTR; rodapé com a situação.
+   Agenda: Dia em grade de cards, Semana e Mês com os mesmos cards, lista do dia agrupada pela situação; busca e filtros. */
+const GC_GR=[['conc','Encerrados',c=>['concl','aprov'].includes(c.status)],['and','Em andamento',c=>['desloc','local','atend'].includes(c.status)],['pend','Validação, RFO ou LPU pendente',c=>['valid','rfo','lpu'].includes(c.status)],
+  ['ag','Despachados',c=>c.status==='aberto'&&!!c.tec],['nd','Não despachados',c=>c.status==='aberto'&&!c.tec],['canc','Cancelados',c=>c.status==='cancelado']];
+const gcHm=v=>v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
+function gcFoot(c){const t=c.ts||{},ag=c.agendaEm&&c.agendaEm>c.criadoEm;
+  if(c.status==='cancelado')return['Cancelado'+(t.cancelado?' às '+gcHm(t.cancelado):''),'ag'];
+  if(c.status==='concl')return['Encerrado · validado às '+gcHm(c.validadoEm),'ok'];
+  if(c.status==='aprov')return['Validado às '+gcHm(c.validadoEm)+' · LPU em aprovação','ok'];
+  if(c.status==='lpu')return['Validado às '+gcHm(c.validadoEm)+' · LPU pendente','ok'];
+  if(c.status==='rfo')return['Validado às '+gcHm(c.validadoEm)+' · RFO pendente','ok'];
+  if(c.status==='valid')return['Aguardando validação do NOC'+(t.pedido?' desde '+gcHm(t.pedido):''),'warn'];
+  if(c.status==='atend')return['Em atendimento desde '+gcHm(t.inicio||t.chegada),'warn'];
+  if(c.status==='local')return['No local desde '+gcHm(t.chegada),'warn'];
+  if(c.status==='desloc')return['Saiu às '+gcHm(t.desloc)+(t.eta?' · chega '+gcHm(t.eta):''),'info'];
+  const dC=c.criadoEm&&isoD(new Date(c.criadoEm))!==hoje()?'aberto em '+dBR(isoD(new Date(c.criadoEm))).slice(0,5)+' às ':'aberto às ';
+  if(!c.tec)return[ag?'Agendado para '+gcHm(c.agendaEm)+' · sem técnico':'Aguardando despacho · '+dC+gcHm(c.criadoEm),'bad'];
+  return[ag?'Aguardando saída · agendado '+gcHm(c.agendaEm):'Aguardando saída do técnico','ag']}
+const gcChip=c=>{const h=gChip(c),cls=(h.match(/class="chip ([^"]*)"/)||[])[1]||'';return[h.replace(/<[^>]+>/g,''),c.status==='aberto'?(c.tec?'ag':'bad'):['local','atend'].includes(c.status)?'warn':cls||'ag']};
+const gcTec=c=>c.tec?gTecN(c.tec)+(gTecV(c.tec)==='Terceiro'?' (terceiro)':''):'Não despachado';
+function gcCard(c,o2){const[st,sc]=gcChip(c),[ft,fc]=gcFoot(c);
+  return cardA(Object.assign({tag:'button',attrs:`data-act="gAbrir" data-id="${c.id}" title="${esc((c.cliente||'')+' - '+(c.etiqueta||c.pom||''))}"`,cls2:'ev evn gcc',cli:c.cliente||'Cliente',eti:c.etiqueta||('O&M '+(c.pom||'—')),chip:st,cls:sc,x:c.status==='cancelado',
+    fz:(c.categoria||'Sem categoria')+' · '+gcHm(gIni(c)),top:'O&M '+(c.pom||'—')+(c.pnoc?' · NOC '+c.pnoc:''),cid:c.cidade||'',tec:gcTec(c),foot:ft,fcls:fc},o2||{}))}
+const gcTags=c=>{const sla=gSla(c),rc=gRecusa(c),re=gReinc(c).length,me=gMesmoEnd(c).length;
+  return [c.prioridade&&c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:'',sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:'',re?'<span class="chip bad">Reincidente</span>':'',me?'<span class="chip info">Mesmo endereço</span>':'',
+    c.naoVal&&c.naoVal.length&&GTD_ABERTOS.includes(c.status)?'<span class="chip bad">Não validado</span>':'',gAceiteChip(c),rc?`<span class="chip bad">Recusado por ${esc(String(rc.nome||'técnico').split(' ')[0])}</span>`:''].filter(Boolean).join('')};
+/* Chamados (kanban) do GTD */
+{const _gc=gCard;gCard=function(c){if(typeof areaDe==='function'&&areaDe(c)!=='gtd')return _gc.apply(this,arguments);const mt=gMttr(c),tg=gcTags(c);
+  return gcCard(c,{cls2:'ev evn gcc gkc',fz:(c.categoria||'Sem categoria')+' · '+gQuando(gIni(c)),badge:gChatBtn(c),
+    extra:`${tg?`<span class="gckt">${tg}</span>`:''}${/^MTTR começa$/.test(mt.l)?'':cRow('dt',esc(mt.l+': '+mt.v))}`})}}
+/* Agenda do GTD */
+const gcQok=c=>{const q=normK(ui.gcQ||'').trim();if(!q)return true;return bTxt(c.cliente,c.etiqueta,c.pom,c.pnoc,c.cidade,c.tec?gTecN(c.tec):'',c.categoria).includes(q)};
+const gcTecOk=c=>{const f=ui.gTecF;if(!f||f==='all')return true;if(f==='sem')return !c.tec;if(f==='CLT'||f==='TERC')return !!c.tec&&(gTecV(c.tec)==='Terceiro')===(f==='TERC');return c.tec===f};
+const gcFilt=c=>(c.status!=='cancelado'||ui.gcCanc)&&gcTecOk(c)&&(!ui.gcCat||ui.gcCat==='all'||c.categoria===ui.gcCat)&&gcQok(c);
+const gcDoDia=x=>G.ch.filter(c=>gcFilt(c)&&gDiaDe(c)===x).sort((a,b)=>gIni(a)-gIni(b));
+const gcGrid=(L,ex)=>L.length?`<div class="caldia">${L.map(c=>gcCard(c,ex?{foot:gcFoot(c)[0]+' · '+ex(c)}:null)).join('')}</div>`:'';
+function viewGcAgenda(){if(G.erro)return `<h2>Agenda · GTD Manutenção</h2>${gErroBox()}`;
+  const T=hoje(),v=ui.gView||'dia',D=ui.gDia||T;ui.gView=v;ui.gDia=D;let titulo='',corpo='',qtd=0;
+  if(v==='dia'){const L=gcDoDia(D),atr=D===T?G.ch.filter(c=>gcFilt(c)&&c.status==='aberto'&&gDiaDe(c)<T):[];qtd=L.length;const d=new Date(D+'T12:00:00');titulo=`${DSEM[d.getDay()]}, ${dBR(D)}`;
+    corpo=`${atr.length?`<div class="agdh2" style="margin-top:0">De dias anteriores e ainda sem deslocamento <span class="chip warn">${atr.length}</span></div>${gcGrid(atr)}<div class="agdh2">${dBR(D)}</div>`:''}${gcGrid(L)||'<p class="muted pad">Nenhum chamado nesta data.</p>'}`}
+  else if(v==='semana'){const ini=semanaIni(D),dias=[...Array(7)].map((_,k)=>addD(ini,k));titulo=`Semana de ${dBR(dias[0]).slice(0,5)} a ${dBR(dias[6])}`;
+    corpo=`<div class="calw">${dias.map(x=>{const L=gcDoDia(x);qtd+=L.length;const d=new Date(x+'T12:00:00');return `<div class="dcol"><button class="dh ${x===T?'today':''}" data-act="gcDia" data-d="${x}">${DSEM[d.getDay()]} ${dBR(x).slice(0,5)}</button><div class="db">${L.map(c=>gcCard(c)).join('')}</div></div>`}).join('')}</div>`}
+  else{const d=new Date(D+'T12:00:00'),m1=isoD(new Date(d.getFullYear(),d.getMonth(),1)),ini=semanaIni(m1),mes=m1.slice(0,7);titulo=`${MES[d.getMonth()]} de ${d.getFullYear()}`;
+    corpo=`<div class="calm">${['seg','ter','qua','qui','sex','sáb','dom'].map(w=>`<div class="wd">${w}</div>`).join('')}${[...Array(42)].map((_,k)=>addD(ini,k)).map(x=>{const L=gcDoDia(x);if(x.slice(0,7)===mes)qtd+=L.length;return `<div class="mc ${x.slice(0,7)===mes?'':'out'}"><button class="mn ${x===T?'today':''}" data-act="gcDia" data-d="${x}">${+x.slice(8)}</button>${L.slice(0,3).map(c=>gcCard(c)).join('')}${L.length>3?`<button class="more" data-act="gcDia" data-d="${x}">+${L.length-3} mais</button>`:''}</div>`}).join('')}</div>`}
+  const tecs=G.tecs.length?G.tecs:TEC.map(t=>({id:t.id,nome:t.nome,vinculo:t.tipo==='TERC'?'terceiro':'clt'})),fil=(ui.gcCat&&ui.gcCat!=='all')||(ui.gTecF&&ui.gTecF!=='all')||ui.gcQ||ui.gcCanc,sel=id=>ui.gTecF===id?'selected':'';
+  return `<section class="panel"><div class="secth"><h2>Agenda · GTD Manutenção</h2><div class="tools"><div class="views">${[['dia','Dia'],['semana','Semana'],['mes','Mês']].map(([k,n])=>`<button data-act="gView" data-v="${k}" aria-current="${v===k}">${n}</button>`).join('')}</div>${pode('gNovo')?'<button class="btn primary" data-act="tab" data-t="gNovo">Criar chamado</button>':''}</div></div>
+   <div class="dayhead"><button class="btn" data-act="gDiaN" data-n="-1" aria-label="Anterior">‹</button><button class="btn" data-act="gHoje">Hoje</button><button class="btn" data-act="gDiaN" data-n="1" aria-label="Próximo">›</button><input type="date" class="inp" data-ch="gDia" value="${D}" aria-label="Data"><input type="search" class="inp agq" id="gcQ" data-in="gcQ" value="${esc(ui.gcQ||'')}" placeholder="Buscar cliente, etiqueta, O&amp;M, técnico ou cidade" aria-label="Buscar" autocomplete="off">
+    <select class="inp" data-ch="gcCat" aria-label="Categoria"><option value="all">Todas as categorias</option>${GTD_CATS.map(k=>`<option ${ui.gcCat===k?'selected':''}>${esc(k)}</option>`).join('')}</select>
+    <select class="inp" data-ch="gTecF" aria-label="Técnico"><option value="all">Todos os técnicos</option><option value="sem" ${sel('sem')}>Não despachados</option><option value="CLT" ${sel('CLT')}>Toda a equipe própria (CLT)</option><option value="TERC" ${sel('TERC')}>Todos os terceiros</option><optgroup label="Equipe própria (CLT)">${tecs.filter(t=>t.vinculo!=='terceiro').map(t=>`<option value="${t.id}" ${sel(t.id)}>${esc(t.nome)}</option>`).join('')}</optgroup><optgroup label="Terceiros">${tecs.filter(t=>t.vinculo==='terceiro').map(t=>`<option value="${t.id}" ${sel(t.id)}>${esc(t.nome)}</option>`).join('')}</optgroup></select>
+    <label class="txacanc"><input type="checkbox" data-ch="gcCanc" ${ui.gcCanc?'checked':''}> Mostrar cancelados</label>
+    ${fil?'<button class="btn" data-act="gcLimpar">Limpar filtros</button>':''}</div>
+   <div class="secth"><h3 style="text-transform:none">${titulo.charAt(0).toUpperCase()+titulo.slice(1)}</h3><span class="muted">${qtd} chamado(s)</span></div>${corpo}
+   <p class="muted" style="font-size:13px;margin-top:10px">Atendimento hoje aparece no dia da criação; agendados, no dia e horário marcados.</p></section>`}
+function gcDiaHtml(d){const L=gcDoDia(d),dw=new Date(d+'T12:00:00'),F=ui.gcGF||'all',Gr=GC_GR.map(([k,t,fn])=>[k,t,L.filter(fn)]).filter(x=>x[2].length);
+  const bloco=([k,t,X])=>{const c=`<div class="gdl">${X.map(c=>gcCard(c)).join('')}</div>`;return k==='canc'&&F==='all'?`<details class="gdg"><summary>${t} · ${X.length}</summary>${c}</details>`:`<p class="gdt">${t} · ${X.length}</p>${c}`};
+  return `<h3>${DSEM[dw.getDay()].charAt(0).toUpperCase()+DSEM[dw.getDay()].slice(1)}, ${dBR(d)}</h3><p class="muted">${L.length} ${L.length===1?'chamado':'chamados'}</p>
+   ${Gr.length>1?`<div class="gdf">${[['all','Todos',L.length]].concat(Gr.map(([k,t,X])=>[k,t,X.length])).map(([k,t,n])=>`<button data-act="gcGF" data-k="${k}" data-d="${d}" aria-pressed="${F===k}">${t} · ${n}</button>`).join('')}</div>`:''}
+   ${Gr.filter(x=>F==='all'||F===x[0]).map(bloco).join('')||'<p class="muted">Nenhum chamado.</p>'}
+   <div class="actions"><button class="btn" data-act="gcVer" data-d="${d}">Ver na visão de dia</button><button class="btn primary" data-act="close">Fechar</button></div>`}
+const gcModal=d=>{const h=gcDiaHtml(d),m=document.querySelector('#modal .sheetm');if(m&&document.querySelector('#modal [data-act="gcVer"]'))m.innerHTML=h;else openModal(h)};
+Object.assign(ACT,{gcDia:el=>{ui.gcGF='all';gcModal(el.dataset.d)},gcGF:el=>{ui.gcGF=el.dataset.k;gcModal(el.dataset.d)},
+  gcVer:el=>{closeModal();ui.gDia=el.dataset.d;ui.gView='dia';render()},gcLimpar:()=>{ui.gcCat='all';ui.gTecF='all';ui.gcQ='';ui.gcCanc=false;render()}});
+Object.assign(CH,{gcCat:el=>{ui.gcCat=el.value;render()},gcCanc:el=>{ui.gcCanc=el.checked;render()}});
+Object.assign(IN,{gcQ:el=>{ui.gcQ=el.value;render();refoca('gcQ')}});
+{const _g=ACT.gAbrir;ACT.gAbrir=function(el){if(document.querySelector('#modal [data-act="gcVer"]'))closeModal();return _g.apply(this,arguments)}}
+{const _v=viewGAgenda;viewGAgenda=function(){const a=typeof areaAt==='function'?areaAt():'gtd';return !a||a==='gtd'?viewGcAgenda():_v.apply(this,arguments)}}
+
+/* ===== 23/10: topo do chamado do GTD no layout do card da lista (opção A) e os dados do chamado logo abaixo, no mesmo layout ===== */
+function gdhDados(c){const[st,sc]=gcChip(c),[ft,fc]=gcFoot(c),mt=gMttr(c),sla=gSla(c);
+  const tags=[c.prioridade&&c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:'',sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:''].filter(Boolean).join('');
+  const quando=c.agendaEm?'Agendado '+gQuando(c.agendaEm):'Atendimento hoje';
+  const tec=c.tec?esc(gTecN(c.tec))+` <small class="muted">${gTecV(c.tec)}</small>`:'<span style="color:var(--bad)">Não despachado</span>';
+  const acoes=`<div class="gdhac">${gMsgBtn('g',c.id,'',gVeGtd()?'Chat com técnico':'')}${gVeGtd()?`<button class="btn sm" data-act="salaAbrir" data-id="${c.id}" title="Abre a conversa com este chamado citado">${esc(salaNome())}</button>`:''}</div>`;
+  return{st,sc,ft,fc,mt,tags,quando,tec,acoes,id:`O&amp;M ${esc(c.pom||'—')}`,noc:`NOC ${esc(c.pnoc||'—')}`,criado:'aberto '+gQuando(c.criadoEm)}}
+/* A: o mesmo card da lista e da agenda */
+function gdhA(c){const d=gdhDados(c);
+  return `<section class="panel gdh gdhA"><div class="cat"><b>${esc(c.cliente||'Cliente')} - ${esc(c.etiqueta||'—')}</b><i class="chip ${d.sc}">${esc(d.st)}</i></div>
+   ${cRow('fz',`<b>${esc(c.categoria||'Sem categoria')}</b>`)}${cRow('top',`${d.id} · ${d.noc}`)}${cRow('hr',esc(d.criado.charAt(0).toUpperCase()+d.criado.slice(1)))}${cRow('cid',esc(c.cidade||'—'))}${cRow('tec',d.tec)}${cRow('dt',esc(d.quando))}
+   ${d.tags?`<div class="gdhtg">${d.tags}</div>`:''}
+   <div class="gdhmt"><small>${esc(d.mt.l)}</small><b>${esc(d.mt.v)}</b></div>
+   <span class="cas ${d.fc}">${esc(d.ft)}</span>${d.acoes}</section>`}
+/* dados do chamado logo abaixo, no mesmo layout (ícone, rótulo e valor) */
+Object.assign(ICA,{msg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',hr:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  eqp:'<rect x="2" y="13" width="20" height="7" rx="2"/><path d="M6 16.5h.01M10 16.5h.01M7 13l-2-6M17 13l2-6"/>',vel:'<path d="M12 14l4-4"/><path d="M3.3 16a9 9 0 1 1 17.4 0"/>',
+  key:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2M17 6l3 3M14 9l2 2"/>',nota:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+  lst:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',hash:'<path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/>'});
+function gdhDadosSec(c){const L=[['msg','Motivo',c.motivo],['cid','Endereço',c.endereco],['hr','Janela informada',c.janela],['tec','Procurar por',c.contato],['eqp','Equipamento',c.equipamento],['top','Porta',c.porta],['top','OLT',c.olt],['vel','Banda',c.banda],
+    ['key','Dados IP / PPPoE',c.ip],['mat','Tipo de entrega',c.entrega],['nota','Observações',c.obs],['lst','Dados extras',(c.extras||[]).join('\n')]].filter(x=>x[2]);
+  return `<section class="panel gdh gdhA gdhD"><h3>Dados do chamado</h3>${L.map(([k,l,v])=>`<div class="car">${icA(k)}<span><small>${l}</small>${esc(v)}</span></div>`).join('')||'<p class="muted">Sem dados.</p>'}
+   ${c.mapa?`<div class="gdhac"><a class="btn sm" href="${esc(c.mapa)}" target="_blank" rel="noopener">Abrir localização no mapa</a></div>`:''}</section>`}
+{const _d=gDetalhe;gDetalhe=function(c){let h=_d.apply(this,arguments);if(typeof areaDe==='function'&&areaDe(c)!=='gtd')return h;
+  try{const k='<div class="gdet"><div class="stack">',i=h.indexOf(k);if(i<0)return h;const a=i+k.length,j=h.indexOf('</section>',a);if(j<0)return h;
+    let rest=h.slice(j+10),ori='';rest=rest.replace(/<div class="tools" style="margin:-4px 0 12px">(<button class="btn sm" data-act="dnAddAbre"[\s\S]*?<\/button>)<\/div>/,(m,b)=>{ori=b;return ''});
+    let hd=gdhA(c);if(ori){const q=hd.lastIndexOf('</div></section>');if(q>=0)hd=hd.slice(0,q)+ori+hd.slice(q)}
+    rest=rest.replace(/<section class="panel"><h3 class="lsub" style="margin-top:0">Dados do chamado<\/h3>[\s\S]*?<\/section>/,'');
+    let agd='';rest=rest.replace(/<section class="gbox ag">[\s\S]*?<\/section>/,m=>{agd=m;return ''});
+    h=h.slice(0,a)+hd+gdhDadosSec(c)+agd+rest}catch(e){console.warn('gdh',e)}return h}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
