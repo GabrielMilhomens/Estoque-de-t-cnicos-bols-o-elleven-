@@ -108,7 +108,8 @@ Para um ambiente interno sem acesso à internet pública, essas bibliotecas prec
 | `ag_sala_vistos` | Até onde cada pessoa leu a conversa da gestão (`visto_em`), usado no contador de mensagens novas do botão. |
 | `ag_expurgos_gtd` | O mesmo de `ag_expurgos` para os chamados do GTD (etapas `desloc`, `espera`, `atend`, `valid`, `rfo`). Lê quem enxerga o GTD; grava quem tem "Expurgar tempos dos chamados" (ajuste 18). |
 | `ag_ausencias` | Ausências da equipe (ajuste 24): técnico, período `de`/`ate`, horário opcional `hora_de`/`hora_ate` (ajuste 28: só um período de cada dia) e observação, com quem lançou gravado pelo banco. Leem gestão da Implantação, gestão do GTD e NOC; lançam e removem encarregado, supervisor e coordenador. Quem está ausente num dia não aparece como livre no agendamento nem como disponível no GTD. |
-| `ag_equipe` | Equipe técnica (ajuste 25): uma linha por técnico com `impl` (atua na Implantação), `servicos` (`rua`, `interno`, `ext`, `ativ`, `outras`) e `gtd` (atua no GTD), mais quem alterou e quando (gravados pelo banco). Leem gestão da Implantação, gestão do GTD e NOC; alteram supervisor e coordenador. Técnico sem linha = sem área (técnico novo começa sem nada). |
+| `ag_equipe` | Equipe técnica (ajuste 25): uma linha por técnico com `impl` (atua na Implantação), `servicos` (`rua`, `interno`, `ext`, `ativ`, `outras`) e `gtd` (atua no GTD) e `tx` (atua na Transmissão, ajuste 39), mais quem alterou e quando (gravados pelo banco). Leem gestão da Implantação, gestão do GTD e NOC; alteram supervisor e coordenador. Técnico sem linha = sem área (técnico novo começa sem nada). |
+| `ag_pops` | POPs da Transmissão (ajuste 39): sigla, nome, cidade, UF, endereço, coordenadas e `dados jsonb` (acesso, contato, equipamentos do POP). Todos os usuários logados leem; a gestão cadastra e edita. Já vem com os 49 POPs da lista (sigla e cidade). |
 | `ag_equipes_nt` / `ag_equipes_trocas` | Equipes NT (ajuste 31): nome, `membros` (dois técnicos CLT), `estoque` (dono do estoque da equipe) e `ativo`; trocas temporárias com `equipe`, `sai`, `entra`, `de`, `ate`. A atividade da equipe guarda `equipe`, `equipeNome`, `membros`, `membrosNomes`, `estoque` e `estoqueNome` em `dados`; o titular fica em `tecnico`. |
 | `estoque_patrimonio` / `movimentacoes_patrimonio` / `patrimonio_nomes` | Patrimônio dos técnicos (ajuste 32): equipamento com número de série que está com cada técnico, histórico por serial e de-para de nome para CPF/CNPJ. |
 | `ag_anexos`, `ag_anexos_log` | Anexos dos projetos (KMZ e outros) e log das exclusões automáticas. |
@@ -209,8 +210,9 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 37. `agenda_ajuste_36_estimativa_kmz.sql` — tabelas `ag_estimativas` (versões da estimativa pelo KMZ; coordenação e supervisão leem e incluem) e `ag_config` (parâmetros; gestão lê, só a coordenação grava). Rodar antes de publicar o `agenda.html` de 21/10.
 38. `agenda_ajuste_37_cnpj_prestador.sql` — coluna `agenda_papeis.cnpj_empresa` (CNPJ da empresa terceira, no cadastro do administrador) e função `ag_cnpjs()` (gestão lê todos; o técnico lê o próprio cadastro e o da empresa). Rodar antes de publicar o `agenda.html` de 21/10 (tarde).
 39. `agenda_ajuste_38_continuacao_e_sem_lpu.sql` — coluna `agenda_papeis.sem_lpu` (técnico fora do contrato de LPU), `ag_cnpjs()` refeita devolvendo `sem_lpu`, função `ag_fases_concluidas()` e trigger `ag_fechar_continuacao_orfa` (agendamento ainda "agendada" cujas fases já foram concluídas em outra atividade da etiqueta vira cancelada com `dados.encOutra`); corrige os casos que já existem. Rodar antes de publicar o `agenda.html` de 21/10 (noite).
-40. `agenda_ajuste_40_roi_kmz.sql` — política de leitura em `ag_config` das chaves `precos_materiais` e `estimativa_kmz` para qualquer usuário com papel na ferramenta (quem cadastra projeto sem ser da gestão monta o ROI pelo KMZ). Não depende do ajuste 39.
-41. `agenda_ajuste_41_atividade_noturna.sql` — `ag_cancelar_nao_iniciadas()` refeita: a rotina das 00:05 não cancela a atividade noturna da véspera cuja janela vira a meia-noite (fica para a rotina seguinte).
+40. `agenda_ajuste_39_transmissao.sql` — Transmissão: tabela `ag_pops` com a carga dos 49 POPs, coluna `ag_equipe.tx`, `ag_chamado_guard` refeita (na Transmissão o relatório encerra direto, sem LPU; preventiva, expansões, cross connect e outras são concluídas em campo sem validação do NOC; corretiva e GMUD seguem a regra do GTD) e regras para quem opera a Implantação abrir e consultar os chamados de Expansão transceiver. **Rodar antes de usar a Transmissão.**
+41. `agenda_ajuste_40_roi_kmz.sql` — política de leitura em `ag_config` das chaves `precos_materiais` e `estimativa_kmz` para qualquer usuário com papel na ferramenta (quem cadastra projeto sem ser da gestão monta o ROI pelo KMZ). Não depende do ajuste 39.
+42. `agenda_ajuste_41_atividade_noturna.sql` — `ag_cancelar_nao_iniciadas()` refeita: a rotina das 00:05 não cancela a atividade noturna da véspera cuja janela vira a meia-noite (fica para a rotina seguinte).
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -234,6 +236,8 @@ Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create 
 **Categorias:** quem tem telas da Implantação e do GTD vê no topo do menu a troca **Implantação | GTD Manutenção**; os grupos do menu (Acompanhamento, Operação, Financeiro) mostram as telas da categoria escolhida. O técnico vê os chamados do GTD e as atividades da Implantação juntos em Minhas atividades, no mesmo layout (desde 11/10, ver 7.2).
 
 **GTD na matriz de permissões (supervisor e encarregado):** Painel de KPIs do GTD → Financeiro do GTD → Budget e consumo, Detalhamento das LPUs e Aprovação de LPU do GTD (ação: aprovar); Chamados (ações: despachar; agendar, editar e cancelar; **Acesso NOC: validar chamados**), Agenda do GTD, Criar chamado e Histórico do GTD. Definir o budget usa a mesma permissão da Implantação ("Definir o budget do mês"). Padrão do supervisor: tudo, menos validar. Padrão do encarregado: chamados, despacho, edição, agenda, criar, relatórios e validar (sem painel e sem financeiro). A coordenação define quem tem o Acesso NOC.
+
+**Áreas de manutenção (Transmissão, 24/10):** em **Usuários e acessos → Permissões**, o grupo *Áreas de manutenção* tem as caixas **GTD Manutenção** e **Transmissão**; o seletor do topo mostra **Implantação | GTD Manutenção | Transmissão** conforme o que a pessoa tem. Coordenação e NOC veem todas as áreas. Os técnicos de cada área são marcados em **Administração › Equipe técnica** (coluna **Transmissão**); o técnico sempre vê os chamados atribuídos a ele, de qualquer área.
 
 A coordenação pode personalizar, por usuário, as telas e ações da gestão em **Usuários e acessos → Permissões**. Usuários novos de gestão (inclusive Delivery) começam sem nenhuma tela. As ações sensíveis (aprovar LPU, definir budget, importar estoque, saldo base) também são validadas no banco por `ag_pode()`.
 
@@ -494,6 +498,22 @@ Não faz parte do projeto da agenda: roda no **outro projeto** Supabase da organ
 
 ---
 
+### 7.3 Transmissão (POPs, 24/10)
+
+Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `dados.area = 'tx'`). No `agenda.html`, o código fica nos blocos comentados "Transmissão".
+
+- **Tipos de chamado:** Manutenção corretiva, Manutenção preventiva, Expansão transceiver, Expansão infraestrutura, Cross Connect, GMUD e Outras. Chamados e Agenda usam os mesmos cards do GTD; a lista de Chamados mostra só a corretiva.
+- **Corretiva:** três categorias (Indisponibilidade, Verificação, Acompanhamento) com uma pergunta em cada segundo nível (qual equipamento, equipamento e interface, qual AP, cliente ou backbone afetado; "Outros" com texto livre; "Parceiro" pede o nome). Campo **Problema** aceita imagens coladas. Busca de POP (lista com busca no computador, folha de baixo no celular). **Colar a "Solicitação de deslocamento" do NOC** preenche o formulário (a porta vai para o alvo; data e horário passam para Agendar). Escolha **Atendimento hoje** ou **Agendar data e horário**. Protocolos NOC e O&M.
+- **RFO da corretiva:** resultado, causa raiz (11 opções), ação (10 opções), troca de material com fotos antes/depois, nova visita (aviso "aguardando agendamento de nova visita" na Agenda), tempos normalizados na validação do NOC e foto de evidência.
+- **Preventiva:** sem Protocolo O&M; ciclo de 60 dias por POP. Nos demais tipos o Protocolo O&M é **opcional**.
+- **Expansão transceiver:** tipo (Cliente, GPON, XGSPON, BACKBONE); cliente e etiqueta só no tipo Cliente; "O que fazer" gerado pelo tipo. **Pela Implantação:** menu Operação → *Chamado de expansão* (Abrir chamado / Histórico de expansões), com data sugerida obrigatória e aviso quando a expansão já foi feita (Observações obrigatórias). A Transmissão recebe o aviso na Agenda e escolhe **Aceitar data** ou **Outra data**; as duas abrem a tela de despacho. O histórico mostra o aceite ou a nova data.
+- **Cross Connect:** identificação do cross, equipamento do POP, porta, Patch Panel, posição, número de série / ID do cross e transceiver opcional; "O que fazer" = "Fazer cross connect com …"; relatório com fotos da porta e do patch panel (PDF "Cross Connect em POP").
+- **Técnico:** "Dados do chamado" e "Endereço e localização do POP" no layout de ícones; relatório sem "Informações gerais".
+- **Painel de KPIs:** *Visão geral* só com os indicadores; uma aba para cada tipo (Manutenção corretiva, Manutenção preventiva, Expansão transceiver, Expansão infraestrutura, Cross Connect, GMUD, Outras) com os indicadores e a tabela do tipo; *Tempos de atendimento* como no GTD.
+- **Regras no banco:** ajuste 39. O endereço e as coordenadas dos POPs são completados no cadastro de POPs.
+
+---
+
 ### 7.2 Layout único do técnico (Implantação e Manutenção GTD, 11/10)
 
 - **Lista (Minhas atividades):** chamados do GTD e atividades da Implantação juntos, nas abas **Hoje**, **Próximos dias** e **Encerradas**, com o filtro **Tudo · Manutenção GTD · Implantação** (aparece quando o técnico tem chamados do GTD). Ordem: aguardando aceite, em campo, agendadas, aguardando o NOC, relatório/RFO e LPU. Cada cartão mostra o tipo (**Implantação · etiqueta** ou **Manutenção GTD · Protocolo O&M**), a situação, o cliente, o que fazer (fase ou categoria), quando, o endereço, a **próxima ação** e o botão de mensagens. Ações direto no cartão: Recusar / Aceitar (o aceite abre o chamado para informar a previsão), Cheguei no local, Iniciar atividade ou atendimento e Pedir validação ao NOC; as demais abrem a atividade.
@@ -563,6 +583,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 24/10/2026 | **Transmissão em produção** (POPs: corretiva com RFO, preventiva, expansões transceiver e infraestrutura, Cross Connect, GMUD e Outras; chamado de expansão aberto pela Implantação; Painel de KPIs com abas por tipo; área Transmissão nas permissões e na Equipe técnica). Detalhes em 7.3. | `agenda.html` e **`agenda_ajuste_39_transmissao.sql`** (rodar uma vez no SQL Editor antes de liberar; não subir no GitHub). Depois: marcar em Permissões quem usa a Transmissão e, na Equipe técnica, os técnicos da Transmissão. |
 | 23/10/2026 | **GTD Manutenção no layout da Implantação** (cards em Chamados, Agenda Dia/Semana/Mês com cards e filtros, topo do chamado com os dados e o agendamento logo abaixo), **senha PPPoE visível para o técnico** e correção dos selos azuis. Detalhes em 7. | `agenda.html` (sem SQL). Subir `agenda.html` e `README.md`. |
 | 23/10/2026 | **Equipes NT no Reagendar e no Replicar** (NT1, NT2… aparecem na lista e a atividade é gravada com equipe, membros e estoque). Detalhes em 7. | `agenda.html` (sem SQL). Subir `agenda.html` e `README.md`. |
 | 23/10/2026 | **Atividade noturna na Implantação** (janela de horário, tag, LPU no fator crítico, bloco no Painel do dia, lembretes à noite). Detalhes em 7. | `agenda.html` + `agenda_ajuste_41_atividade_noturna.sql` (SQL Editor) + função `agenda-lembretes` (publicar o `agenda-lembretes.ts` atualizado no Supabase). SQL e `.ts` não vão para o GitHub. Subir `agenda.html` e `README.md`. |
