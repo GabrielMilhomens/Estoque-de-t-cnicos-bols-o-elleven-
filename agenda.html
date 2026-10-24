@@ -1966,6 +1966,12 @@ body.krfull-on{overflow:hidden}
 .txoqx{margin:6px 0 0;font-size:15px;color:var(--muted);white-space:pre-line}
 .gdhD .car>span{white-space:pre-line}
 .gbox.txdesp{box-shadow:0 0 0 3px var(--brand);transition:box-shadow .3s}
+/* 24/10: técnico no layout de ícones (Implantação e GTD) */
+.tlx .car{align-items:flex-start}.tl .car>span{flex:1}
+.tlx .car>.tvcp{flex:none;margin:-4px 0 -4px auto;align-self:center}
+.tlx .car .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px}
+.tlsub{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px}
+.tlanx{border-top:1px solid var(--line);margin-top:12px}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -11267,6 +11273,49 @@ Object.assign(ACT,{txSugOk:el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(c)
 /* imagens das observações e do "o que fazer" nos dados do chamado e na tela do técnico */
 {const _t=gTecView;gTecView=function(c){let h=_t.apply(this,arguments);if(!txDe(c)||!(c.obsAnx||[]).length)return h;
   const k='<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="g:txd"';return h.includes(k)?h.replace(k,`<div class="tobs txobsi"><b>Imagens das observações</b>${dnThumbs(c.obsAnx)}</div>`+k):h}}
+
+/* ===== 24/10: visão do técnico da Implantação e do GTD no layout de ícones da Transmissão ===== 
+   Endereço, Dados técnicos e Problema viram linhas com ícone, rótulo pequeno e valor (como "Dados do chamado" da Transmissão),
+   mantendo os botões de copiar, ligar, mapa e a rota. */
+let TL_CTX=null;
+const tlR=(ic,l,v,bt)=>v?`<div class="car">${icA(ic)}<span><small>${esc(l)}</small>${v}</span>${bt||''}</div>`:'';
+const tlBox=(h,cls)=>h?`<div class="gdhA gdhD txdtec tlx ${cls||''}">${h}</div>`:'';
+const tlSub=t=>`<div class="tlsub">${esc(t)}</div>`;
+const tlCv=k=>k?`${(+k[0]).toFixed(6).replace(/0+$/,'')}, ${(+k[1]).toFixed(6).replace(/0+$/,'')}`:'';
+function tlEnd(d,o){const tel=String(d.telefone||'').replace(/\D/g,''),cv=tlCv(o.coord);
+  const rota=o.rota||(cv?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(cv):d.endereco?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(d.endereco):'');
+  const h=tlR('cid','Endereço',esc(d.endereco||'Endereço não informado'),d.endereco?tvCpB(d.endereco,'Endereço'):'')+tlR('map','Cidade',d.cidade?esc(d.cidade):'')+tlR('gps','Coordenadas',cv?`<span class="mono">${esc(cv)}</span>`:'',cv?tvCpB(cv,'Coordenadas'):'')
+    +tlR('tec',o.lblQuem||'Quem vai receber',esc(d.contato||''))+tlR('tel','Telefone',esc(d.telefone||''),tel?`<a class="tvcp txt" href="tel:${tel}">${IC.tel}Ligar</a>`:'')+tlR('hr','Janela informada',esc(d.janela||''))+tlR('key','Acesso',esc(d.acesso||''));
+  return tlBox(h)+(rota?`<div class="tcbt"><a class="tcbtn" href="${esc(rota)}" target="_blank" rel="noopener">${IC.rota}${o.rotaTxt||'Rota até o cliente'}</a></div>`:'')}
+/* Implantação: dados técnicos e anexos */
+function tlTecImpl(a){const p=pPor(a.etiqueta)||{},c=S.comp[a.etiqueta]||{},anx=anxDe(a.etiqueta),pi=p.inst||{},SD=svcDe(p),sv=SD.svc;
+  const mp=loc=>loc?`<a class="tvcp txt" href="${esc(mapUrl(loc))}" target="_blank" rel="noopener">Mapa</a>`:'';
+  const eq=String(p.equip||'').replace(/^\((.*)\)$/,'$1'),nt=SD.notas.join('. '),cobs=svcLimpa(c.obs,sv);
+  const h=tlR('lst','Serviços a entregar',sv.map((x,i)=>`${i+1}. ${esc(x)}`).join('\n'))+tlR('fz','Topologia',esc(p.topologia||''))+tlR('cabo','Cabo',+p.metros?(+p.metros)+' m':'')
+    +tlR('top','POP',esc(p.pop||''),p.pop?tvCpB(p.pop,'POP'):'')+tlR('eqp','Equipamento de acesso',esc(eq),eq?tvCpB(eq,'Equipamento'):'')+tlR('top','Porta',pi.porta?`<span class="mono">${esc(pi.porta)}</span>`:'',pi.porta?tvCpB(pi.porta,'Porta'):'')
+    +tlR('cid','Ponto de acesso',esc(pi.pa||''),mp(pi.locPa))+(p.semExt?'':tlR('cid','Ponto de derivação',esc(pi.pd||''),mp(pi.locPd)))
+    +tlR('nota','Observação do agendamento',esc(a.obs||''))+tlR('nota','Observações do projeto',esc(cobs))+(nt&&!cobs.includes(nt)?tlR('nota','Observações técnicas',esc(nt)):'');
+  const ax=anx.length?anx.map(x=>anxLinha(x,0)).join(''):'<p class="muted" style="margin:4px 0 0">Nenhum anexo.</p>';
+  return (h?tlBox(h):'<p class="muted" style="margin:0">Sem dados técnicos no projeto.</p>')+`<div class="tlanx">${tlSub('Anexos')}${ax}</div>`}
+/* GTD: problema, endereço e dados técnicos */
+function tlProbG(c){const h=tlR('msg','Problema',esc(c.motivo||'—'))+tlR('mat','Levar',esc(c.levar||''))+tlR('nota','Observações do NOC',esc(c.obs||''));
+  return tlBox(h)+(typeof dnThumbs==='function'&&(c.probAnx||[]).length?dnThumbs(c.probAnx):'')}
+function tlTecG(c){const pp=tvPppoe(c.ip);let h=tlR('eqp','Equipamento',esc(c.equipamento||''))+tlR('top','Porta',c.porta?`<span class="mono">${esc(c.porta)}</span>`:'',c.porta?tvCpB(c.porta,'Porta'):'')+tlR('vel','Banda',esc(c.banda||''))+tlR('mat','Tipo de entrega',esc(c.entrega||''));
+  if(pp)h+=tlR('tec','Usuário PPPoE',pp.u?`<span class="mono">${esc(pp.u)}</span>`:'',pp.u?tvCpB(pp.u,'Usuário PPPoE'):'')+tlR('key','Senha PPPoE',pp.p?`<span class="mono">${esc(pp.p)}</span>`:'',pp.p?tvCpB(pp.p,'Senha'):'')+tlR('nota','Outros dados do NOC',pp.resto?`<span class="mono">${esc(pp.resto)}</span>`:'',pp.resto?tvCpB(pp.resto,'Outros dados do NOC'):'');
+  else h+=tlR('key','Dados IP / PPPoE',c.ip?`<span class="mono">${esc(c.ip)}</span>`:'',c.ip?tvCpB(c.ip,'Dados IP / PPPoE'):'');
+  return h?tlBox(h):'<p class="muted" style="margin:0">Sem dados técnicos no chamado.</p>'}
+{const _a=tvAcc;tvAcc=function(k,padrao,ico,tit,sub,body){const X=TL_CTX;if(X)try{
+    if(X.t==='a'){const a=X.v,c=S.comp[a.etiqueta]||{};
+      if(k==='a:end')body=tlEnd({endereco:c.endereco,contato:c.contato,telefone:c.telefone,janela:c.janela,acesso:c.acesso},{coord:coordOf(c.coord)});
+      else if(k==='a:tec')body=tlTecImpl(a)}
+    else if(X.t==='g'){const c=X.v;
+      if(k==='g:prob')body=tlProbG(c);
+      else if(k==='g:tec')body=tlTecG(c);
+      else if(k==='g:end'){const mapa=c.mapa||(c.endereco?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.endereco):'');
+        body=tlEnd({endereco:c.endereco,contato:c.contato,telefone:c.telefone,janela:c.janela,cidade:c.cidade&&!String(c.endereco||'').includes(c.cidade)?c.cidade:''},{coord:c.lat!=null&&c.lat!==''?[c.lat,c.lng]:coords(c.mapa||''),rota:mapa,lblQuem:'Procurar por'})}}}catch(e){console.warn('tl',e)}
+  return _a.apply(this,[k,padrao,ico,tit,sub,body])}}
+{const _d=detalhe;detalhe=function(a){const o=TL_CTX;TL_CTX={t:'a',v:a};try{return _d.apply(this,arguments)}finally{TL_CTX=o}}}
+{const _g=gTecView;gTecView=function(c){const o=TL_CTX;TL_CTX=c&&!(typeof txDe==='function'&&txDe(c))&&!(typeof areaDe==='function'&&areaDe(c)!=='gtd')?{t:'g',v:c}:null;try{return _g.apply(this,arguments)}finally{TL_CTX=o}}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
