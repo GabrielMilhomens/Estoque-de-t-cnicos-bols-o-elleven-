@@ -215,6 +215,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 42. `agenda_ajuste_41_atividade_noturna.sql` — `ag_cancelar_nao_iniciadas()` refeita: a rotina das 00:05 não cancela a atividade noturna da véspera cuja janela vira a meia-noite (fica para a rotina seguinte).
 43. `agenda_ajuste_42_pops_endereco.sql` — endereço, cidade, UF e coordenadas dos POPs da Transmissão pela sigla (lista de 24/10, 52 POPs); inclui os que ainda não existiam e não apaga endereço já cadastrado quando a lista vem sem. Termina com a conferência dos POPs ainda sem endereço ou coordenadas.
 44. `agenda_ajuste_43_avisos_transmissao.sql` — `ag_chamado_avisos` refeita: nos chamados da Transmissão os avisos usam o tipo/categoria e o POP no lugar do código interno, com "Novo chamado da Transmissão", "Técnico no POP", "Preencha o relatório" e sem "O MTTR continua" fora da corretiva; corrige os avisos já gravados. Os avisos do GTD não mudam.
+45. `agenda_ajuste_44_funcoes_sem_login.sql` — nenhuma função `ag_` executa sem login (papel `anon`), mantendo exatamente o acesso de quem já podia entre os logados; `ag_avisar`, `ag_chamar_avisos`, `ag_destinos`, `ag_fases_concluidas` e `ag_pode_de` passam a ser só internas (antes, só com o link dava para mandar aviso falso para a equipe). Termina com duas conferências: funções abertas sem login e tabelas sem regras de acesso (o esperado é nenhuma linha nas duas).
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -551,6 +552,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 ## 9. Pontos de atenção
 
+- **Segurança com só o link (24/10):** o endereço do Supabase e a chave pública ficam no `agenda.html` por projeto; a proteção dos dados está nas regras de acesso das tabelas e no Storage privado. Toda função nova do banco deve ser criada com `revoke execute ... from public, anon` e `grant execute ... to authenticated` só se o site chamar por `rpc`; funções usadas só por gatilhos ficam sem `grant`. Depois de qualquer ajuste SQL, rodar as duas conferências do fim do ajuste 44.
+
 - **Plano do Supabase (Pro, desde 08/10/2026):** 100 GB de arquivos para a organização, 8 GB de banco por projeto, 250 GB de tráfego por mês, backup diário guardado por 7 dias e sem pausa por inatividade. Custa a partir de US$ 25/mês; cada projeto além do primeiro custa a partir de US$ 10/mês (a organização tem dois: este e o de preventivas e agendamentos). O limite de gastos vem ligado: ao chegar no incluído, o Supabase não cobra a mais. As medidas de economia continuam valendo e não precisam ser desfeitas: fotos novas reduzidas (seção 4.4), compactação em `armazenamento.html` e retenção de 30 dias no projeto de preventivas (seção 6.2).
 - **Segredos nos scripts:** os ajustes 02 e 03 gravam o `CRON_SECRET` dentro de funções do banco. Em produção, a recomendação é migrar esse valor para o Supabase Vault.
 - **Chave pública no front-end:** a chave `anon` é pública por natureza; a proteção dos dados depende das políticas RLS, que precisam ser preservadas em qualquer migração.
@@ -595,6 +598,8 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/10/2026 | Correção do ajuste 43: criar chamado já com técnico dava "column reference nome is ambiguous" (variável do aviso com o mesmo nome da coluna de perfis). | **`agenda_ajuste_43_avisos_transmissao.sql`** corrigido: rodar de novo no SQL Editor. Sem mudança no `agenda.html`. |
+| 24/10/2026 | **Segurança:** funções do banco deixam de responder para quem não fez login (antes, com só o link, dava para mandar aviso falso para a equipe e ler alguns identificadores). Detalhes em 9. | **`agenda_ajuste_44_funcoes_sem_login.sql`** (rodar no SQL Editor; não subir no GitHub). Sem mudança no `agenda.html`. |
 | 24/10/2026 | Transmissão: o código interno (TXddmm-…) sai do chat, dos modais, das mensagens e dos avisos. Detalhes em 7.3. | `agenda.html` e **`agenda_ajuste_43_avisos_transmissao.sql`** (rodar no SQL Editor; não subir no GitHub). |
 | 24/10/2026 | Chamado de expansão pela Implantação: busca de cliente e de POP igual à da abertura de chamados da Transmissão, só com clientes ponto a ponto da Base de previsão. Detalhes em 7.3. | `agenda.html` (sem SQL). |
 | 24/10/2026 | Trilho de áreas: o "N" do topo trocado pelo símbolo do logo da Net Turbo. | `agenda.html` (sem SQL). |
