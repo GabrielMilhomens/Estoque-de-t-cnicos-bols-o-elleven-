@@ -11394,7 +11394,7 @@ function tlTecImpl(a){const p=pPor(a.etiqueta)||{},c=S.comp[a.etiqueta]||{},anx=
   return (h?tlBox(h):'<p class="muted" style="margin:0">Sem dados técnicos no projeto.</p>')+`<div class="tlanx">${tlSub('Anexos')}${ax}</div>`}
 /* GTD: problema, endereço e dados técnicos */
 function tlProbG(c){const h=tlR('msg','Problema',esc(c.motivo||'—'))+tlR('mat','Levar',esc(c.levar||''))+tlR('nota','Observações do NOC',esc(c.obs||''));
-  return tlBox(h)+(typeof dnThumbs==='function'&&(c.probAnx||[]).length?dnThumbs(c.probAnx):'')}
+  return tlBox(h)+(typeof dnThumbs==='function'&&(c.probAnx||[]).length?dnThumbs(c.probAnx):'')+(typeof dnThumbs==='function'&&(c.obsAnx||[]).length?'<div class="tlsub">Prints das observações</div>'+dnThumbs(c.obsAnx):'')}
 function tlTecG(c){const pp=tvPppoe(c.ip);let h=tlR('eqp','Equipamento',esc(c.equipamento||''))+tlR('top','Porta',c.porta?`<span class="mono">${esc(c.porta)}</span>`:'',c.porta?tvCpB(c.porta,'Porta'):'')+tlR('vel','Banda',esc(c.banda||''))+tlR('mat','Tipo de entrega',esc(c.entrega||''));
   if(pp)h+=tlR('tec','Usuário PPPoE',pp.u?`<span class="mono">${esc(pp.u)}</span>`:'',pp.u?tvCpB(pp.u,'Usuário PPPoE'):'')+tlR('key','Senha PPPoE',pp.p?`<span class="mono">${esc(pp.p)}</span>`:'',pp.p?tvCpB(pp.p,'Senha'):'')+tlR('nota','Outros dados do NOC',pp.resto?`<span class="mono">${esc(pp.resto)}</span>`:'',pp.resto?tvCpB(pp.resto,'Outros dados do NOC'):'');
   else h+=tlR('key','Dados IP / PPPoE',c.ip?`<span class="mono">${esc(c.ip)}</span>`:'',c.ip?tvCpB(c.ip,'Dados IP / PPPoE'):'');
@@ -11447,6 +11447,67 @@ const mesFim=()=>{const [y,m]=hoje().split('-').map(Number),d=new Date(y,m,0).ge
 const PER_MES=[['pIni','pFim'],['gpIni','gpFim'],['grIni','grFim'],['txIni','txFim'],['rIni','rFim'],['mDe','mAte'],['mIni','mFim']];
 function perMesAplica(){if(ui.__perMes===hoje().slice(0,7))return;ui.__perMes=hoje().slice(0,7);const a=mesIni(),b=mesFim();PER_MES.forEach(([i,f])=>{ui[i]=a;ui[f]=b})}
 {const _r=render;render=function(){try{perMesAplica()}catch(e){}return _r.apply(this,arguments)}}
+
+/* ===== 25/10: Criar chamado do GTD no mesmo layout da criação da Transmissão =====
+   Um formulário só: colar a solicitação do NOC (preenche sozinho ao colar), cliente, local, categoria, problema com prints,
+   dados técnicos, prioridade, protocolos, quando atender e observações do NOC / levar com prints. */
+DN.gprob=DN.gprob||{};DN.gobs=DN.gobs||{};
+const gnBase=()=>({motivo:'',cliente:'',etiqueta:'',endereco:'',cidade:'',pnoc:'',pom:'',equipamento:'',porta:'',banda:'',ip:'',entrega:'',obs:'',levar:'',contato:'',janela:'',extras:[],faltando:[],categoria:'',prioridade:'Normal',modo:'hoje',agD:hoje(),agH:'08:00'});
+const gnF=()=>ui.gF||(ui.gF=gnBase());
+const gnArea=()=>(ui.gArea||'gtd')==='gtd';
+/* texto do NOC colado: preenche o formulário (o que já foi digitado e veio vazio no texto fica) */
+function gnAplica(txt){txt=String(txt||'').trim();if(!txt)return;const F=gnF(),p=gtdLerChamado(txt),ag=gAgendaDe(p);p.ip=p.dados;delete p.dados;
+  ['motivo','cliente','etiqueta','endereco','cidade','pnoc','pom','equipamento','porta','olt','banda','ip','entrega','contato','janela','mapa','parceiro'].forEach(k=>{if(String(p[k]||'').trim())F[k]=p[k]});
+  if(p.lat!=null){F.lat=p.lat;F.lng=p.lng}F.extras=p.extras||[];if(p.possivelImprodutiva)F.possivelImprodutiva=true;
+  if(p.categoria)F.categoria=p.categoria;if(p.prioridade)F.prioridade=p.prioridade;if(ag){F.modo='agendado';F.agD=isoD(new Date(ag));F.agH=hm(ag)}
+  ui.dnT=ui.dnT||{};if(p.motivo)ui.dnT.gprobnovo=p.motivo;const ob=[p.obs,p.levar?'Levar: '+p.levar:''].filter(Boolean).join('\n');if(ob)ui.dnT.gobsnovo=ob;
+  ui.gTxt=txt;F._lido=txt;F._cheios=['cliente','etiqueta','endereco','cidade','pnoc','pom','equipamento','porta','banda','ip','entrega','contato','janela','motivo'].filter(k=>String(p[k]||'').trim()).length;
+  const y=window.scrollY;render();window.scrollTo(0,y);toast('Texto lido: confira os campos.')}
+document.addEventListener('paste',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-in="gnCola"]'))return;setTimeout(()=>gnAplica(t.value),30)});
+document.addEventListener('focusout',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-in="gnCola"]'))return;const F=gnF();if(t.value.trim()&&t.value.trim()!==F._lido)gnAplica(t.value)});
+Object.assign(IN,{gnCola:el=>{ui.gTxt=el.value}});
+Object.assign(CH,{gnSel:el=>{gnF()[el.dataset.k]=el.value;const y=window.scrollY;render();window.scrollTo(0,y)}});
+{const _v=viewGNovo;viewGNovo=function(){if(G.erro||!gnArea())return _v.apply(this,arguments);const F=gnF();
+  const inp=(k,lb,ph,type)=>`<label class="f"><span>${lb}</span><input class="inp" ${type?`type="${type}"`:''} data-in="gF" data-k="${k}" value="${esc(F[k]||'')}" placeholder="${esc(ph||'')}"></label>`;
+  const ta=(k,lb,ph,r)=>`<label class="f"><span>${lb}</span><textarea class="inp" rows="${r||2}" data-in="gF" data-k="${k}" placeholder="${esc(ph||'')}">${esc(F[k]||'')}</textarea></label>`;
+  const sel=(k,lb,L,ph)=>`<label class="f"><span>${lb}</span><select class="inp" data-ch="gnSel" data-k="${k}">${ph!=null?`<option value="">${ph}</option>`:''}${L.map(v=>`<option ${F[k]===v?'selected':''}>${esc(v)}</option>`).join('')}</select></label>`;
+  const fake=Object.assign({},F,{id:'_novo',criadoEm:Date.now()}),re=F.etiqueta?gReinc(fake):[],me=F.endereco?gMesmoEnd(fake):[],dup=F.pom&&G.ch.filter(x=>x.pom===F.pom&&x.status!=='cancelado');
+  const sug=gtdSugerir(F.motivo||((ui.dnT||{}).gprobnovo)||'',F.obs);
+  const avisos=`${dup&&dup.length?`<div class="result bad" style="margin:0 0 10px">Já existe chamado com o protocolo O&amp;M ${esc(F.pom)} (${dup.map(x=>GST[gStK(x)][0].toLowerCase()).join(', ')}).</div>`:''}${re.length?`<div class="result bad" style="margin:0 0 10px"><b>Reincidência:</b> a etiqueta ${esc(F.etiqueta)} teve ${re.length} chamado(s) nos últimos 30 dias (${re.map(x=>'O&amp;M '+esc(x.pom)+', '+dBR(isoD(new Date(x.criadoEm)))).join('; ')}).</div>`:''}${me.length?`<div class="result info" style="margin:0 0 10px">Mesmo endereço de chamado em aberto: ${me.map(x=>'O&amp;M '+esc(x.pom)+' ('+esc(x.cliente)+')').join(', ')}.</div>`:''}${F.possivelImprodutiva?'<div class="result warn" style="margin:0 0 10px">Possível improdutiva sinalizada no texto.</div>':''}`;
+  const lido=F._lido?`<div class="gnok" style="margin:-4px 0 10px">${TVI.ok}Texto lido · ${F._cheios||0} campos preenchidos. Confira abaixo.</div>`:'';
+  return `<div class="toolbar"><div><h2>Criar chamado · Manutenção GTD</h2><p class="muted">Chamado de manutenção no cliente: entra em Não despachados e a gestão do GTD despacha o técnico.</p></div>${F._lido||F.cliente?'<div class="tools"><button class="btn" data-act="gnLimpar">Limpar formulário</button></div>':''}</div>
+   <section class="panel txnovo gnovo">
+    <label class="f txnoc"><span>Colar a solicitação de deslocamento do NOC (opcional)</span><textarea class="inp mono" rows="4" data-in="gnCola" placeholder="Solicitação de deslocamento:&#10;Motivo: …&#10;Cliente: … - ETIQUETA&#10;Endereço: …&#10;Localização: link do mapa&#10;Protocolo NOC / O&amp;M: …&#10;Equipamento / Porta / Banda: …&#10;Dados IP / PPPoE: …&#10;Obs: …">${esc(ui.gTxt||'')}</textarea><small class="muted">Cole o texto: cliente, etiqueta, endereço, localização, categoria, problema, protocolos, dados técnicos, data e horário e observações são preenchidos. Confira e ajuste o que precisar.</small></label>
+    ${lido}
+    <div class="grid2 even" style="gap:0 12px">${inp('cliente','Cliente *','Nome do cliente')}${inp('etiqueta','Etiqueta','Ex.: GT1SYTMW')}</div>
+    ${ta('endereco','Endereço','Rua, número, bairro')}
+    <div class="grid2 even" style="gap:0 12px">${inp('cidade','Cidade','Ex.: Campinas')}${inp('contato','Contato no local','Nome e telefone')}</div>
+    ${F.mapa?`<p class="muted txpopinfo"><a class="linkbtn" href="${esc(F.mapa)}" target="_blank" rel="noopener">Localização lida do link · abrir no mapa</a></p>`:''}
+    <div class="grid2 even" style="gap:0 12px">${sel('categoria','Categoria *',GTD_CATS,'Escolha…')}${sel('prioridade','Prioridade',['Normal','Alta','Escalonado'])}</div>
+    ${!F.categoria&&sug?`<small class="muted" style="display:block;margin:-6px 0 10px">Sugestão pelo problema: <b>${esc(sug)}</b></small>`:''}
+    <div class="f txprob"><span>Problema *</span>${dnCampos('gprob','novo','Descreva o problema. Cole prints aqui (Ctrl+V) ou anexe fotos.')}</div>
+    <div class="grid2 even" style="gap:0 12px">${inp('equipamento','Equipamento','Ex.: ZTE F612')}${inp('porta','Porta','Ex.: CAS-OLT-02 1/1/13 onu 13')}</div>
+    <div class="grid2 even" style="gap:0 12px">${inp('banda','Banda','Ex.: 500 Mbps')}${inp('entrega','Tipo de entrega','Ex.: GPON, ponto a ponto')}</div>
+    ${ta('ip','Dados IP / PPPoE','Usuário, senha, IP, VLAN')}
+    <div class="grid2 even" style="gap:0 12px">${inp('pnoc','Protocolo NOC','Ex.: 148812')}${inp('pom','Protocolo O&amp;M','Ex.: 149120')}</div>
+    <div class="f"><span>Quando *</span><div class="tvops txck" role="group">${[['hoje','Atendimento hoje'],['agendado','Agendar data e horário']].map(([v,n])=>`<button type="button" data-act="tvGF" data-k="modo" data-v="${v}" aria-pressed="${(F.modo||'hoje')===v}">${n}</button>`).join('')}</div></div>
+    ${F.modo==='agendado'?`<div class="grid2 even" style="gap:0 12px">${inp('agD','Data *','','date')}${inp('agH','Horário *','','time')}</div><small class="muted" style="display:block;margin:-4px 0 10px">O MTTR e o SLA começam no horário agendado. O chamado aparece na Agenda.</small>`:'<small class="muted" style="display:block;margin:-4px 0 10px">O MTTR começa na criação do chamado. Indisponibilidade tem SLA de 4 horas.</small>'}
+    ${inp('janela','Janela informada pelo NOC','Ex.: manhã a partir das 8h')}
+    <div class="f txprob"><span>Observações do NOC / levar</span>${dnCampos('gobs','novo','Ex.: técnico autorizado, horário do cliente, levar ONU reserva. Cole prints aqui (Ctrl+V) ou anexe fotos.')}</div>
+    ${avisos}
+    <div class="actions" style="justify-content:flex-start"><button class="btn primary" data-act="gnCriar">Criar chamado</button></div></section>`}}
+Object.assign(ACT,{
+  gnLimpar:()=>{ui.gF=null;ui.gTxt='';dnLimpa('gprob','novo');dnLimpa('gobs','novo');render()},
+  gnCriar:async el=>{const F=gnF();F.motivo=dnTxt('gprob','novo');F.obs=dnTxt('gobs','novo');F.levar='';
+    if(!String(F.cliente||'').trim()||!String(F.motivo||'').trim()||!F.categoria){toast('Preencha: '+[!String(F.cliente||'').trim()&&'cliente',!F.categoria&&'categoria',!String(F.motivo||'').trim()&&'problema'].filter(Boolean).join(', ')+'.','bad');return}
+    const PA=(DN.gprob.novo||[]).slice(),PO=(DN.gobs.novo||[]).slice();delete F._lido;delete F._cheios;
+    await ACT.gCriar(el);if(ui.gF)return;/* não criou: o formulário continua */
+    dnLimpa('gprob','novo');dnLimpa('gobs','novo');const id=ui.gSel;
+    if(id&&(PA.length||PO.length)){try{toast('Enviando as imagens…');const a1=PA.length?await dnSobe(id,'problema',PA):[],a2=PO.length?await dnSobe(id,'obs',PO):[];await gAcao(id,x=>{if(a1.length)x.probAnx=a1;if(a2.length)x.obsAnx=a2});toast('Chamado criado em Não despachados. A gestão do GTD foi avisada.')}catch(e){toast('Chamado criado, mas as imagens não foram enviadas: '+(e.message||e),'bad')}}}});
+/* prints do problema e das observações no detalhe da gestão */
+{const _d=gdhDadosSec;gdhDadosSec=function(c){let h=_d.apply(this,arguments);try{
+  if((c.probAnx||[]).length){const k='<small>Motivo</small>'+esc(c.motivo);h=h.replace(k,k+dnThumbs(c.probAnx))}
+  if((c.obsAnx||[]).length){const k='<small>Observações</small>'+esc(c.obs);h=h.includes(k)?h.replace(k,k+dnThumbs(c.obsAnx)):h.replace('</h3>','</h3><div class="car">'+icA('nota')+'<span><small>Observações</small>'+dnThumbs(c.obsAnx)+'</span></div>')}}catch(e){}return h}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
