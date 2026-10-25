@@ -520,6 +520,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 - **Regras no banco:** ajuste 39. O endereço e as coordenadas dos POPs são completados no cadastro de POPs.
 - **Chamado de expansão pela Implantação (24/10):** cliente/etiqueta e POP da Transmissão com a mesma busca da abertura de chamados da Transmissão (a lista abre no campo e filtra enquanto digita, com setas e Enter). A lista de clientes mostra só os projetos **ponto a ponto** da Base de previsão.
 - **Sem código interno (24/10):** o código gerado para os chamados da Transmissão (TXddmm-…) não aparece mais em lugar nenhum: chat, modais, mensagens e avisos mostram "Transmissão", o tipo ou a categoria e o POP; o Protocolo O&M só aparece quando foi informado. Os avisos do sino e do celular são montados no banco (ajuste 43).
+- **GMUD (25/10):** na abertura, **janela da GMUD** com início e fim (data e horário; o fim precisa ser depois do início), gravada em `txJanFim` (o início é o `agendaEm`) e mostrada no card, nos dados do chamado (gestão e técnico), no relatório e no PDF. As GMUDs aparecem em **Chamados** junto com as corretivas (gestão e NOC, que valida). No relatório do técnico, início da GMUD, horário da validação e responsável do NOC são **só leitura**, vindos dos botões e da validação do NOC.
+- **Expansão infraestrutura (25/10):** o tipo (Energia, Equipamento, DIO, Periférico) é escolhido na abertura e o técnico não altera. Em Energia o técnico marca um ou mais itens (Retificadora, Bateria chumbo, Bateria lítio), cada um com a sua quantidade; relatório, PDF e KPIs mostram "Retificadora (1), Bateria lítio (4)" e o total.
 - **Cards do Painel de KPIs (24/10):** na *Visão geral* cada card abre o tipo de chamado já filtrado (ex.: "POPs com preventiva vencida" abre a Manutenção preventiva só com os vencidos); dentro de cada tipo os cards filtram a tabela e um novo toque mostra todos. Expansões e Cross Connect mostram também os chamados em aberto; Outras ganhou o card "Em aberto".
 - **POPs (24/10):** a aba mostra "POPs (N ativos · N inativos)" e a tela tem cards que filtram a lista: Todos, Ativos, Inativos, Sem endereço e Sem coordenadas.
 - **Histórico (24/10):** mostra todos os tipos (corretiva, preventiva, expansões, cross connect, GMUD e outras); o filtro "Todos os tipos de chamado" escolhe um tipo ou uma categoria da corretiva.
@@ -607,6 +609,8 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/10/2026 | GMUD: janela com início e fim, GMUD em Chamados (gestão e NOC) e horários/responsável da validação só leitura para o técnico. Detalhes em 7.3. | `agenda.html` (sem SQL). |
+| 25/10/2026 | Expansão infraestrutura: tipo travado para o técnico e Energia com vários itens e quantidade por item. Detalhes em 7.3. | `agenda.html` (sem SQL). |
 | 25/10/2026 | **Criar chamado do GTD no layout da Transmissão** (colar preenche sozinho, prints no problema e nas observações). Detalhes em 7.1. | `agenda.html` (sem SQL). |
 | 25/10/2026 | **Filtros de período no mês atual:** todos abrem de 01 ao último dia do mês corrente. Detalhes em 7.4. | `agenda.html` (sem SQL). |
 | 25/10/2026 | Correção do ajuste 43: criar chamado já com técnico dava "column reference nome is ambiguous" (variável do aviso com o mesmo nome da coluna de perfis). | **`agenda_ajuste_43_avisos_transmissao.sql`** corrigido: rodar de novo no SQL Editor. Sem mudança no `agenda.html`. |
