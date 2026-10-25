@@ -2026,6 +2026,34 @@ body.krfull-on{overflow:hidden}
 .agninfo{display:block;margin-top:4px;font-size:13.5px}
 .agnf .fh2{flex-wrap:wrap;row-gap:6px}.agnf .fh2>div:first-child{flex:1 1 220px;min-width:0}
 .agnf .fh2{position:relative;padding-right:40px}.agnf .fh2>.icon{position:absolute;top:2px;right:0}
+/* 25/10: etiquetas atuadas sem entrega em cartões */
+.pd2os{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.pd2o{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;cursor:pointer;font:inherit;color:var(--ink)}
+.pd2o:hover{background:var(--bg)}
+.pd2o.on{background:var(--brand-soft);border-color:var(--brand);box-shadow:inset 0 -3px 0 var(--brand)}
+.pd2o span b{display:block;font-size:15px}.pd2o span small{color:var(--muted);font-size:12.5px}
+.pd2o em{font:700 24px 'Barlow Condensed',Barlow,sans-serif;font-style:normal}
+.pd2o>.pdtr{grid-column:1/-1;display:block;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.pd2o>.pdtr>i{display:block;height:100%;border-radius:3px}
+.pd2cs{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px}
+.pd2c{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface);display:flex;flex-direction:column;gap:10px}
+.pd2c.s-pr{border-left:4px solid var(--warn)}.pd2c.s-nc{border-left:4px solid var(--bad)}.pd2c.s-ag{border-left:4px solid var(--info)}.pd2c.s-aa{border-left:4px solid var(--line)}
+.pd2h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.pd2h b{display:block;font-size:16px}.pd2h small{display:block;color:var(--muted);font-size:13px;margin-top:1px}
+.pd2h .chip{flex:none}
+.pd2tl{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.pd2s{flex:0 0 10px;height:2px;background:var(--line)}
+.pd2f{font-size:12.5px;font-weight:700;border-radius:999px;padding:3px 10px;border:1.5px dashed var(--line);color:var(--muted);background:var(--surface)}
+.pd2f.at{border-style:solid;border-color:currentColor}
+.pd2f.at.f-rua{color:#6B8E23}.pd2f.at.f-interno{color:#2F7D6D}.pd2f.at.f-ext{color:#7B5A9E}.pd2f.at.f-ativ{color:#245F80}
+.pd2f.ok{border-style:solid;color:#fff;background:#3F6B12;border-color:#3F6B12}
+.pd2f.ok.f-rua{background:#6B8E23;border-color:#6B8E23}.pd2f.ok.f-interno{background:#2F7D6D;border-color:#2F7D6D}.pd2f.ok.f-ext{background:#7B5A9E;border-color:#7B5A9E}.pd2f.ok.f-ativ{background:#245F80;border-color:#245F80}
+.pd2f.prox{border-style:solid;border-color:var(--warn);color:var(--warn);background:var(--warn-soft,#F6E9D3)}
+.pd2i .car{display:flex;gap:9px;align-items:flex-start;margin-top:8px;font-size:15px}.pd2i .cai{width:17px;height:17px;flex:none;margin-top:2px}.pd2i .car>span{min-width:0;overflow-wrap:anywhere}.pd2i .car>span>small,.pd2i .car span small:first-child{display:block;color:var(--muted);font-size:12px;line-height:1.2}
+.pd2a{display:flex;justify-content:flex-end}
+.pd2leg{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 10px}
+.pd2leg .pd2f{font-weight:600}
+@media(max-width:600px){.pd2cs{grid-template-columns:1fr}}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -11590,6 +11618,33 @@ Object.assign(ACT,{agnAb:el=>{ui.agnAb=ui.agnAb||{};const k=el.dataset.k;ui.agnA
 {const _p=ACT.pick;ACT.pick=function(){const r=_p.apply(this,arguments);if(AGN_ON())ui.fTab='ag';return r}}
 /* "Somente dias úteis" desmarcado também no reagendar e no replicar */
 ['reag','replicar'].forEach(k=>{const _a=ACT[k];if(_a)ACT[k]=function(){const r=_a.apply(this,arguments);if(ui.rp&&!ui.rp.__u){ui.rp.uteis=false;ui.rp.__u=1;try{renderRep()}catch(e){}}return r}});
+
+/* ===== 25/10: "Etiquetas com atuação no período e não entregues" com cards que filtram e lista em cartões =====
+   Os indicadores e o "Onde estão" filtram a lista (tocar de novo mostra todas). Cada etiqueta vira um cartão com as fases do projeto
+   (finalizada, com atuação no período, próxima), o próximo passo, a última atuação, os técnicos e o atalho para a Agenda. */
+const PD2_SIT={ag:'Com próxima atividade agendada',nc:'Última atividade não concluída',pr:'Parada',aa:'Aguardando agendamento'};
+function pd2Bloco(U){const F=PA_SIT[ui.pdF]?ui.pdF:'',P=PD_ORD.includes(ui.pdP)?ui.pdP:'',V=U.filter(x=>(!F||x.sit===F)&&(!P||x.prox===P)),cnt=k=>U.filter(x=>x.sit===k).length,porF={};U.forEach(x=>{porF[x.prox]=(porF[x.prox]||0)+1});const mxF=Math.max(1,...Object.values(porF));
+  const kb=(k,v,l,c)=>`<button type="button" class="kpi kbtn ${c||''}" data-act="pd2F" data-v="${k}" aria-pressed="${F===k}" title="${k&&F===k?'Mostrar todas':'Filtrar a lista'}"><b>${v}</b><span>${l}</span></button>`;
+  const ond=PD_ORD.filter(k=>porF[k]).map(k=>{const np=U.filter(x=>x.prox===k&&x.sit==='pr').length;return `<button type="button" class="pd2o${P===k?' on':''}" data-act="pd2P" data-v="${k}" aria-pressed="${P===k}"><span><b>Falta ${(FCURTO[k]||k).toLowerCase()}</b><small>${np?np+(np===1?' parada':' paradas'):'nenhuma parada'}</small></span><em>${porF[k]}</em><i class="pdtr"><i class="f-${k}" style="width:${porF[k]/mxF*100}%"></i></i></button>`}).join('');
+  const filt=[F&&PD2_SIT[F],P&&'falta '+(FCURTO[P]||P).toLowerCase()].filter(Boolean).join(' · ');
+  const card=x=>{const p=x.p||{},at=new Set(x.fz.map(([k])=>k)),fin=k=>!!faseFim(x.e,k);
+    const tl=PD_ORD.filter(k=>!(p.etiqueta&&naoAplica(p,k))).map(k=>{const st=fin(k)?'ok':k===x.prox?'prox':at.has(k)?'at':'';return `<span class="pd2f f-${k} ${st}" title="${st==='ok'?'Finalizada':st==='prox'?'Próxima fase':st==='at'?'Com atuação no período':'Pendente'}">${FCURTO[k]||k}${st==='ok'?' ✓':''}</span>`}).join('<i class="pd2s"></i>');
+    const pr=x.sit==='pr',btn=['aa','pr','nc'].includes(x.sit)?'Agendar '+(FCURTO[x.prox]||x.prox).toLowerCase():'Abrir na Agenda';
+    return `<article class="pd2c s-${x.sit}"><div class="pd2h"><div><b>${esc(x.e)}</b><small>${esc(cliN(x.e)||'')}${p.cidade?' · '+esc(p.cidade):''}${p.topologia?' · '+esc(p.topologia):''}</small></div><span class="chip ${PA_SIT[x.sit][1]}">${PA_SIT[x.sit][0]}</span></div>
+     <div class="pd2tl">${tl}</div>
+     <div class="pd2i">${cRow('dt','<small>Próximo passo</small>'+esc(x.info))}${cRow('hr',`<small>Última atuação</small>${x.ult?dBR(x.ult):'—'} <span class="${pr?'pdpar':'muted'}">· há ${x.dias} ${x.dias===1?'dia':'dias'}</span>`)}${x.tecs?cRow('tec','<small>Técnicos no período</small>'+esc(x.tecs)):''}${x.sit==='nc'&&x.mot?cRow('obs','<small>Motivo da não conclusão</small>'+esc(x.mot)):''}</div>
+     ${pode('agenda')||ui.perfil==='coord'?`<div class="pd2a"><button class="btn sm ${['aa','pr','nc'].includes(x.sit)?'primary':''}" data-act="kOpen" data-etq="${esc(x.e)}" data-k="${esc(x.prox)}">${btn}</button></div>`:''}</article>`};
+  return `<h3 class="lsub" style="margin-top:22px">Etiquetas com atuação no período e não entregues</h3>
+  <div class="kpis">${kb('',U.length,'Com atuação no período e não entregues','warn')}${kb('ag',cnt('ag'),'Com próxima atividade agendada')}${kb('nc',cnt('nc'),'Última atividade não concluída',cnt('nc')?'bad':'')}${kb('pr',cnt('pr'),`Paradas (sem agenda, mais de ${PD_PARADA} dias)`,cnt('pr')?'warn':'')}${kb('aa',cnt('aa'),'Aguardando agendamento')}</div>
+  ${U.length?`<section class="panel"><div class="secth"><h3>Onde estão</h3><span class="muted">Pela próxima fase que falta · toque para filtrar</span></div><div class="pd2os">${ond}</div>
+    <p class="muted" style="font-size:13px;margin:10px 0 0">Entra a etiqueta com qualquer atividade no período (todas as fases), concluída ou não, e sem ativação finalizada até hoje. Parada: sem atividade agendada e sem atuação há mais de ${PD_PARADA} dias.</p></section>
+   <section class="panel"><div class="secth"><h3>Lista</h3><span class="muted">${V.length} de ${U.length} etiquetas${filt?' · '+esc(filt)+` · <button type="button" class="linkbtn" data-act="pd2Limpa">Mostrar todas</button>`:''}</span></div>
+    <div class="pd2leg"><span class="pd2f ok">✓ finalizada</span><span class="pd2f at">com atuação no período</span><span class="pd2f prox">próxima fase</span><span class="pd2f">pendente</span></div>
+    <div class="pd2cs">${V.map(card).join('')||'<p class="muted">Nenhuma etiqueta com esse filtro.</p>'}</div></section>`:'<p class="muted">Nenhuma etiqueta com atuação no período sem entrega.</p>'}`}
+{const _h=pdHtml;pdHtml=function(){const h=_h.apply(this,arguments),k='<h3 class="lsub" style="margin-top:22px">Etiquetas com atuação no período e não entregues</h3>',i=h.indexOf(k);return i<0?h:h.slice(0,i)+pd2Bloco(pdAtuadas())}}
+Object.assign(ACT,{pd2F:el=>{const v=el.dataset.v||'';ui.pdF=ui.pdF===v?'':v;const y=window.scrollY;render();window.scrollTo(0,y)},
+  pd2P:el=>{const v=el.dataset.v||'';ui.pdP=ui.pdP===v?'':v;const y=window.scrollY;render();window.scrollTo(0,y)},
+  pd2Limpa:()=>{ui.pdF='';ui.pdP='';const y=window.scrollY;render();window.scrollTo(0,y)}});
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
