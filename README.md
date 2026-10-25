@@ -526,6 +526,14 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 ---
 
+### 7.4 Período padrão dos filtros (25/10)
+
+- Todos os filtros de período abrem no **mês atual, do dia 01 ao último dia** (em outubro, 01/10 a 31/10; em novembro, 01/11 a 30/11). O usuário muda como quiser e a escolha vale até sair da ferramenta ou virar o mês.
+- Vale para: Painel de KPIs da Implantação, do GTD (com Financeiro e Tempos de atendimento) e da Transmissão; Histórico do GTD e da Transmissão; Relatórios por cliente; Movimentações do estoque; Gestão financeira do técnico.
+- Não muda: as filas de aprovação de LPU (continuam mostrando tudo o que está pendente) e as datas de formulários (agendar, ausência etc.). No `agenda.html`, bloco comentado "filtros de período abrem no mês atual".
+
+---
+
 ### 7.2 Layout único do técnico (Implantação e Manutenção GTD, 11/10)
 
 - **Lista (Minhas atividades):** chamados do GTD e atividades da Implantação juntos, nas abas **Hoje**, **Próximos dias** e **Encerradas**, com o filtro **Tudo · Manutenção GTD · Implantação** (aparece quando o técnico tem chamados do GTD). Ordem: aguardando aceite, em campo, agendadas, aguardando o NOC, relatório/RFO e LPU. Cada cartão mostra o tipo (**Implantação · etiqueta** ou **Manutenção GTD · Protocolo O&M**), a situação, o cliente, o que fazer (fase ou categoria), quando, o endereço, a **próxima ação** e o botão de mensagens. Ações direto no cartão: Recusar / Aceitar (o aceite abre o chamado para informar a previsão), Cheguei no local, Iniciar atividade ou atendimento e Pedir validação ao NOC; as demais abrem a atividade.
@@ -598,6 +606,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/10/2026 | **Filtros de período no mês atual:** todos abrem de 01 ao último dia do mês corrente. Detalhes em 7.4. | `agenda.html` (sem SQL). |
 | 25/10/2026 | Correção do ajuste 43: criar chamado já com técnico dava "column reference nome is ambiguous" (variável do aviso com o mesmo nome da coluna de perfis). | **`agenda_ajuste_43_avisos_transmissao.sql`** corrigido: rodar de novo no SQL Editor. Sem mudança no `agenda.html`. |
 | 24/10/2026 | **Segurança:** funções do banco deixam de responder para quem não fez login (antes, com só o link, dava para mandar aviso falso para a equipe e ler alguns identificadores). Detalhes em 9. | **`agenda_ajuste_44_funcoes_sem_login.sql`** (rodar no SQL Editor; não subir no GitHub). Sem mudança no `agenda.html`. |
 | 24/10/2026 | Transmissão: o código interno (TXddmm-…) sai do chat, dos modais, das mensagens e dos avisos. Detalhes em 7.3. | `agenda.html` e **`agenda_ajuste_43_avisos_transmissao.sql`** (rodar no SQL Editor; não subir no GitHub). |

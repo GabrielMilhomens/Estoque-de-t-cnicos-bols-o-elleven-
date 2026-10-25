@@ -11438,6 +11438,16 @@ function arSheet(cats){let el=$('arsheet');if(!el){el=document.createElement('di
 Object.assign(ACT,{arAbrir:()=>{ui.arSh=true;render()},arFechar:()=>{ui.arSh=false;render()}});
 {const _g=ACT.gCat;ACT.gCat=function(){ui.arSh=false;return _g.apply(this,arguments)}}
 
+/* ===== 25/10: todos os filtros de período abrem no mês atual (dia 01 ao último dia); o usuário muda como quiser =====
+   Vale para: Painel de KPIs da Implantação, do GTD (e Financeiro e Tempos) e da Transmissão, Histórico do GTD/Transmissão,
+   Relatórios por cliente, Movimentações do estoque e a Gestão financeira do técnico.
+   Não muda as filas de aprovação de LPU (continuam mostrando tudo o que está pendente) nem campos de data de formulário. */
+const mesIni=()=>hoje().slice(0,8)+'01';
+const mesFim=()=>{const [y,m]=hoje().split('-').map(Number),d=new Date(y,m,0).getDate();return hoje().slice(0,8)+String(d).padStart(2,'0')};
+const PER_MES=[['pIni','pFim'],['gpIni','gpFim'],['grIni','grFim'],['txIni','txFim'],['rIni','rFim'],['mDe','mAte'],['mIni','mFim']];
+function perMesAplica(){if(ui.__perMes===hoje().slice(0,7))return;ui.__perMes=hoje().slice(0,7);const a=mesIni(),b=mesFim();PER_MES.forEach(([i,f])=>{ui[i]=a;ui[f]=b})}
+{const _r=render;render=function(){try{perMesAplica()}catch(e){}return _r.apply(this,arguments)}}
+
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
