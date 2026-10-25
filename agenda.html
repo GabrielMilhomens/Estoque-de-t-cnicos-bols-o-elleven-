@@ -2013,6 +2013,19 @@ body.krfull-on{overflow:hidden}
 .ari .ario{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
 .arit{flex:1;display:flex;flex-direction:column}.arit b{font-size:16px}.arit small{font-size:13px;color:var(--muted)}
 .arok{color:var(--brand-ink,#3F6B12)}
+/* 25/10: Agendar da Implantação no layout de Criar chamado */
+.agnf .agnbody{display:flex;flex-direction:column;gap:10px}
+.agnf .fh2 .chip{flex:none}
+.agnf .agnsec{margin:0}
+.agnf .agnsec .taccb{padding-top:10px}
+.agnh{display:flex;align-items:center;gap:10px;margin:8px 0 2px;font:700 20px 'Barlow Condensed',Barlow,sans-serif}
+.agnh::after{content:"";flex:1;height:1px;background:var(--line)}
+.agnf .agb2.agnflat{border:0;background:none;box-shadow:none;padding:0}
+.agnf .agb2.agnflat>.agb2b{padding:0;border:0}
+.agnl{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:2px 0 6px}
+.agninfo{display:block;margin-top:4px;font-size:13.5px}
+.agnf .fh2{flex-wrap:wrap;row-gap:6px}.agnf .fh2>div:first-child{flex:1 1 220px;min-width:0}
+.agnf .fh2{position:relative;padding-right:40px}.agnf .fh2>.icon{position:absolute;top:2px;right:0}
 /* KMZ de lançamento: resumo das quantidades */
 .klres{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
 .klhd{display:flex;flex-direction:column;gap:2px}.klhd small{color:var(--muted)}
@@ -11521,6 +11534,62 @@ Object.assign(ACT,{
 {const _d=gdhDadosSec;gdhDadosSec=function(c){let h=_d.apply(this,arguments);try{
   if((c.probAnx||[]).length){const k='<small>Motivo</small>'+esc(c.motivo);h=h.replace(k,k+dnThumbs(c.probAnx))}
   if((c.obsAnx||[]).length){const k='<small>Observações</small>'+esc(c.obs);h=h.includes(k)?h.replace(k,k+dnThumbs(c.obsAnx)):h.replace('</h3>','</h3><div class="car">'+icA('nota')+'<span><small>Observações</small>'+dnThumbs(c.obsAnx)+'</span></div>')}}catch(e){}return h}}
+
+/* ===== 25/10: Agendar da Implantação no layout de Criar chamado (Transmissão e GTD) =====
+   Um formulário só: projeto escolhido, Dados do projeto, Dados complementares e Anexos em blocos que abrem e fecham,
+   e o Agendamento em sequência (o que será feito, quando e quem, material recolhido, fotos e observação).
+   Técnico ou equipe numa lista única agrupada pela ocupação. "Somente dias úteis" começa desmarcado (também no reagendar e no replicar). */
+const agnSemAgendar=h=>String(h).replace(/<button class="btn primary" data-act="fTab" data-t="ag">Agendar<\/button>/g,'').replace(/<div class="fift"( style="[^"]*")?>\s*<\/div>/g,'');
+function agnSec(k,ic,tit,res,body){ui.agnAb=ui.agnAb||{comp:1};const o=!!ui.agnAb[k];
+  return `<section class="tacc agnsec${o?' on':''}" id="agn_${k}"><button class="tacch" data-act="agnAb" data-k="${k}" aria-expanded="${o}"><span class="taci">${ic}</span><span class="tact"><b>${tit}</b><small>${res}</small></span><span class="tacs">${o?IC.up:IC.dn}</span></button>${o?`<div class="taccb">${body}</div>`:''}</section>`}
+function agnPronto(p){const c=S.comp[p.etiqueta]||{},v=k=>String(c[k]||'').trim(),precisa=!faseFim(p.etiqueta,'ativ')&&fiFalta(p).some(f=>f.k==='interno'||f.k==='ativ');
+  if(!v('endereco'))return ['Falta o endereço','bad'];if(precisa&&(!v('contato')||!v('telefone')))return ['Faltam dados complementares','warn'];return ['Pronto para agendar','ok']}
+/* técnico ou equipe: lista única agrupada (livres, com atividade, não fazem, equipes NT, ausentes) */
+function agnTecSel(F,dias){if(!TEC.length)return '<p class="note">Nenhum técnico cadastrado.</p>';
+  const conf=eqConf(),svc=[...new Set((F.fases||[]).map(eqSvc))],svN=svc.map(k=>EQ_N[k].toLowerCase()).join(' e ');
+  const L=TEC.filter(t=>!conf||eqDe(t.id).impl||t.id===F.tec).map(t=>{const x=Object.assign({t},agTecInfo(t,dias));
+    if(conf&&x.g!=='aus'&&!eqFaz(t.id,F.fases)){const e=eqDe(t.id),falta=e.impl?svc.filter(k=>!(e.servicos||[]).includes(k)):[];x.g='nfaz';x.tag=e.impl?'Não faz '+falta.map(k=>EQ_N[k].toLowerCase()).join(', '):'Fora da Implantação';x.txt+=' · '+eqResumo(t.id)}return x});
+  const um=dias.length<=1,pf=conf&&svc.length?' (fazem '+svN+')':'';
+  const opt=x=>`<option value="${x.t.id}" ${!F.eq&&x.t.id===F.tec?'selected':''} ${x.g==='aus'?'disabled':''}>${esc(x.t.nome)} · ${x.t.tipo==='TERC'?'terceiro':'CLT'}${x.g==='nfaz'?' · '+esc(x.tag):''} · ${esc(x.txt)}</option>`;
+  const grp=(g,n)=>{const G=L.filter(x=>x.g===g);return G.length?`<optgroup label="${esc(n)}">${G.map(opt).join('')}</optgroup>`:''};
+  const EQ=typeof nteAtivas==='function'?nteAtivas():[];
+  const eqOpt=e=>{const c=nteComp(e,dias),g=!c.pres.length?'aus':'';return `<option value="eq:${e.id}" ${F.eq===e.id?'selected':''} ${g?'disabled':''}>${esc(e.nome)} · ${esc(c.m.map(tecN).join(' + '))}${c.aus.length&&c.pres.length?' · só '+esc(nmC(tecN(c.pres[0]))):''}${g?' · ausentes':''}</option>`};
+  const sel=F.eq?null:L.find(x=>x.t.id===F.tec),eq=F.eq&&nteDe(F.eq),ec=eq&&nteComp(eq,dias),per=!dias.length?'':um?'em '+dBR(dias[0]).slice(0,5):`de ${dBR(dias[0]).slice(0,5)} a ${dBR(dias[dias.length-1]).slice(0,5)}`;
+  const info=eq?`<small class="muted agninfo">Equipe NT · ${esc(ec.m.map(tecN).join(' + '))}${ec.aus.length&&ec.pres.length?' · '+esc(ec.aus.map(tecN).join(', '))+' ausente, vai só com '+esc(ec.pres.map(tecN).join(', ')):''}</small>`:sel?`<small class="muted agninfo">${esc(sel.tag||'')}${sel.tag?' · ':''}${esc(sel.txt)}</small>`:'';
+  return `<label class="f" style="margin:0"><span>Técnico ou equipe *${per?` <b class="muted" style="font-weight:500">· ocupação ${per}</b>`:''}</span><select class="inp" data-ch="agF" data-f="tec"><option value="">Escolha o técnico ou a equipe…</option>
+    ${grp('livre',(um?'Livres no dia':'Livres no período')+pf)}${grp('parc',um?'Com atividade no dia':'Com atividade em algum dia')}${grp('nfaz','Não fazem '+(svN||'este serviço'))}${EQ.length?`<optgroup label="Equipes NT">${EQ.map(eqOpt).join('')}</optgroup>`:''}${grp('aus','Ausentes')}</select></label>${info}
+    ${sel&&sel.g==='nfaz'?`<div class="result warn" style="margin:6px 0 0"><b>${esc(sel.t.nome)} não está marcado para ${esc(svN||'este serviço')}.</b> Dá para agendar mesmo assim.</div>`:''}
+    ${eq&&!ec.pres.length?'<div class="result bad" style="margin:6px 0 0">Os dois técnicos da equipe estão ausentes no período. Ajuste o período ou escolha outro técnico.</div>':''}`}
+{const _tb=agTecBloco;agTecBloco=function(F,dias){return ui.__agn?agnTecSel(F,dias):_tb.apply(this,arguments)}}
+/* agendamento em sequência: blocos 1, 2 e 4 abertos e sem cabeçalho; material continua recolhível */
+{const _ag=agendForm;agendForm=function(p){if(!ui.__agn)return _ag.apply(this,arguments);const F=ui.agForm,novo=F.etq!==p.etiqueta;
+  if(novo){_ag.apply(this,arguments);F.uteis=false}
+  ui.agBk=Object.assign({3:0},ui.agBk||{},{1:1,2:1,4:1});let h=_ag.apply(this,arguments);
+  const LB={1:'O que será feito *',2:'Quando *',4:'Fotos exigidas e observação'};
+  h=h.replace(/<div class="agbk agb2 on"><button class="agb2h" data-act="agBk" data-k="([124])"[^>]*>[\s\S]*?<\/button>/g,(m,k)=>`<div class="agbk agb2 on agnflat"><span class="agnl">${LB[k]}</span>`);
+  h=h.replace(/<p class="agb2l">Técnico[^<]*<\/p>/,'');
+  return h}}
+{const _f=fichaA;fichaA=function(p,usado){if(!AGN_ON())return _f.apply(this,arguments);
+  const e=p.etiqueta,n=anxDe(e).length,c=S.comp[e]||{},[pt,pc]=agnPronto(p),L=anxDe(e),kmzF=[+p.metros>0&&!L.some(x=>x.tipo==='kmzL')&&'KMZ de lançamento',temExt(p)&&!L.some(x=>x.tipo==='kmzA')&&'KMZ de extensão'].filter(Boolean);
+  const rP=[topoTxt(p),p.valor?brl(p.valor)+' por mês':'',+p.metros>0?(+p.metros).toLocaleString('pt-BR')+' m de cabo':'sem cabo para lançar'].filter(Boolean).join(' · ');
+  const rC=String(c.endereco||'').trim()?endCurto(c.endereco):'Falta o endereço';
+  const rA=(n?n+(n===1?' arquivo':' arquivos'):'Nenhum anexo')+(kmzF.length?' · falta '+kmzF.join(' e '):'');
+  ui.__agn=true;let ag;try{ag=fiAg(p)}finally{ui.__agn=false}
+  return `<div class="ficha fi2 agnf"><div class="fh2"><div><b>${esc(p.cliente?p.cliente+' - '+p.etiqueta:p.etiqueta)}</b><span>Protocolo ${esc(p.protocolo||'—')}${p.topologia?' · '+esc(p.topologia):''}${p.cidade?' · '+esc(p.cidade):''}</span></div>${fiChip(p)}<span class="chip ${pc}">${pt}</span><button class="icon" data-act="unpick" aria-label="Fechar ficha">✕</button></div>
+   <div class="fbody agnbody">
+    ${agnSec('proj',IC.doc,'Dados do projeto',esc(rP),agnSemAgendar(fiProj(p)))}
+    ${agnSec('comp',IC.pin,'Dados complementares',esc(rC),agnSemAgendar(fiComp(p,usado)))}
+    ${agnSec('anx',`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.5l-8.5 8.5a6 6 0 0 1-8.5-8.5L12.5 4a4 4 0 0 1 5.7 5.7L9.6 18.3a2 2 0 0 1-2.8-2.8l8-8"/></svg>`,`Anexos${n?' ('+n+')':''}`,esc(rA),agnSemAgendar(anexosEdit(p)))}
+    <div class="agnh"><span>Agendamento</span></div>
+    ${ag}</div></div>`}}
+const AGN_ON=()=>ui.cat==='impl';
+Object.assign(ACT,{agnAb:el=>{ui.agnAb=ui.agnAb||{};const k=el.dataset.k;ui.agnAb[k]=!ui.agnAb[k];const y=window.scrollY;render();window.scrollTo(0,y)}});
+/* atalhos que levavam às abas (ex.: "Preencher agora", "Anexar agora") abrem o bloco e rolam até ele */
+{const _t=ACT.fTab;ACT.fTab=function(el){const t=el&&el.dataset&&el.dataset.t;if(AGN_ON()&&ui.agSel&&['proj','comp','anx'].includes(t)){ui.agnAb=ui.agnAb||{};ui.agnAb[t]=1;ui.fTab='ag';render();setTimeout(()=>{const s=document.getElementById('agn_'+t);if(s)s.scrollIntoView({behavior:'smooth',block:'start'})},40);return}if(AGN_ON()&&t==='ag'){ui.fTab='ag';render();return}return _t.apply(this,arguments)}}
+/* ficha sempre no modo de agendamento (sem abas) */
+{const _p=ACT.pick;ACT.pick=function(){const r=_p.apply(this,arguments);if(AGN_ON())ui.fTab='ag';return r}}
+/* "Somente dias úteis" desmarcado também no reagendar e no replicar */
+['reag','replicar'].forEach(k=>{const _a=ACT[k];if(_a)ACT[k]=function(){const r=_a.apply(this,arguments);if(ui.rp&&!ui.rp.__u){ui.rp.uteis=false;ui.rp.__u=1;try{renderRep()}catch(e){}}return r}});
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}

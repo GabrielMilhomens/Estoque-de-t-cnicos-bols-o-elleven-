@@ -529,6 +529,15 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 ---
 
+### 7.5 Agendar da Implantação no layout de Criar chamado (25/10)
+
+- A ficha do Novo agendamento deixa de ter abas. Ao escolher o projeto aparecem três blocos que abrem e fecham, com resumo na linha do título: **Dados do projeto** (fases, Concluída fora da ferramenta, rede, valores, ROI), **Dados complementares** (abre aberto; editar continua igual) e **Anexos** (KMZ e outros arquivos). Ao lado do nome do projeto, o selo "Pronto para agendar", "Faltam dados complementares" ou "Falta o endereço".
+- O **Agendamento** vem em sequência, sem caixas numeradas: O que será feito, Quando (datas, uma atividade em vários dias ou uma por dia, atividade noturna), **Técnico ou equipe** numa lista única agrupada (livres, com atividade, não fazem o serviço, equipes NT, ausentes desabilitados) com a ocupação de quem foi escolhido, Material (recolhido), Fotos exigidas e observação, resumo e botão.
+- **Somente dias úteis** começa desmarcado (também no reagendar e no replicar); o operador marca se quiser pular sábado, domingo e feriado.
+- Os atalhos "Preencher agora" e "Anexar agora" abrem o bloco e rolam até ele. Regras de agendamento, avisos (ausência, continuação aberta, cliente com atividade no dia) e o que é gravado não mudaram. No `agenda.html`, bloco comentado "Agendar da Implantação no layout de Criar chamado".
+
+---
+
 ### 7.4 Período padrão dos filtros (25/10)
 
 - Todos os filtros de período abrem no **mês atual, do dia 01 ao último dia** (em outubro, 01/10 a 31/10; em novembro, 01/11 a 30/11). O usuário muda como quiser e a escolha vale até sair da ferramenta ou virar o mês.
@@ -609,6 +618,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/10/2026 | **Agendar da Implantação no layout de Criar chamado** (sem abas: Dados do projeto, Dados complementares e Anexos em blocos; agendamento em sequência; técnico em lista única) e **Somente dias úteis desmarcado por padrão** (agendar, reagendar e replicar). Detalhes em 7.5. | `agenda.html` (sem SQL). |
 | 25/10/2026 | GMUD: janela com início e fim, GMUD em Chamados (gestão e NOC) e horários/responsável da validação só leitura para o técnico. Detalhes em 7.3. | `agenda.html` (sem SQL). |
 | 25/10/2026 | Expansão infraestrutura: tipo travado para o técnico e Energia com vários itens e quantidade por item. Detalhes em 7.3. | `agenda.html` (sem SQL). |
 | 25/10/2026 | **Criar chamado do GTD no layout da Transmissão** (colar preenche sozinho, prints no problema e nas observações). Detalhes em 7.1. | `agenda.html` (sem SQL). |
