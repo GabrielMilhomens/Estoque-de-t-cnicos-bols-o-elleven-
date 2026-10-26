@@ -2022,7 +2022,7 @@ body.krfull-on{overflow:hidden}
 .actions.pxact{position:sticky;bottom:0;z-index:5;background:var(--bg);padding:10px 0;margin-top:10px;border-top:1px solid var(--line)}
 @media(max-width:900px){.pxtabs{top:calc(59px + env(safe-area-inset-top,0px))}.actions.pxact{bottom:64px}}
 @media(max-width:760px){.pxtabs button{padding:7px 9px;min-height:50px}.pxtabs button b{font-size:14px}.pxtabs button small{font-size:11.5px}}
-/* 25/10: Agendar da Implantação no layout de Criar chamado */
+.salaedb{border:0;background:transparent;color:inherit;opacity:.6;cursor:pointer;padding:2px 3px;vertical-align:middle;border-radius:6px}.salaedb:hover{opacity:1;background:var(--bg)}.salaedt{font-style:normal;opacity:.75;margin-right:2px}.salaedw{display:flex;flex-direction:column;gap:6px;margin:4px 0;min-width:240px}.salaedw textarea{min-height:56px}.salaedw span{display:flex;gap:6px;justify-content:flex-end}/* 25/10: Agendar da Implantação no layout de Criar chamado */
 .agnf .agnbody{display:flex;flex-direction:column;gap:10px}
 .agnf .fh2 .chip{flex:none}
 .agnf .agnsec{margin:0}
@@ -11661,6 +11661,110 @@ Object.assign(ACT,{pd2F:el=>{const v=el.dataset.v||'';ui.pdF=ui.pdF===v?'':v;con
    PERM_ALL era montada antes de area.js/tx.js acrescentarem "GTD Manutenção" (m_gtd) e "Transmissão" (m_tx);
    o Salvar permissões filtra por PERM_ALL e descartava essas chaves. Aqui PERM_ALL passa a ter todas as chaves de PERM_T. */
 {const add=k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)},w=L=>L.forEach(n=>{add(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]))}
+
+/* ---------- 26/10: Chat com NOC separado por área (GTD Manutenção | Transmissão) e edição de mensagens ----------
+   ag_sala.area ('gtd' | 'tx'); a conversa aberta segue a área escolhida no topo. Cada área tem o próprio contador
+   (ag_sala_vistos.visto_em = GTD, visto_tx = Transmissão) e os avisos vão só para quem tem a área.
+   Quem escreveu pode editar o texto da própria mensagem (aparece "editada"). Banco: agenda_ajuste_46_chat_noc_por_area.sql. */
+const salaA=()=>ui.chat&&ui.chat.t==='s'?(ui.chat.id==='tx'?'tx':'gtd'):(ui.cat==='gtd'&&ui.gArea==='tx'?'tx':'gtd');
+const salaK=()=>salaA()==='tx'?'s:tx':SALA_K;
+const salaVC=()=>salaA()==='tx'?'visto_tx':'visto_em';
+const salaAN=()=>salaA()==='tx'?'Transmissão':'GTD Manutenção';
+const salaRef_=()=>salaA()==='tx'?'sala:tx':'sala';
+const SALA_AJ46='Rode o script agenda_ajuste_46_chat_noc_por_area.sql no Supabase para separar o Chat com NOC por área.';
+const salaErr=e=>/area|visto_tx|editado_em/i.test(String((e&&e.message)||e))?SALA_AJ46:salaFalta(e)?SALA_AJ:'Não foi possível carregar a conversa: '+((e&&e.message)||e);
+const salaQ=q=>salaA()==='tx'?q.eq('area','tx'):q.neq('area','tx');
+const salaCN=c=>c&&txDe(c)?esc(c.cliente||'POP')+' · '+esc(txTipoN(txT(c))):'O&amp;M '+esc((c&&c.pom)||'—');
+const salaRefC=(c,id)=>c&&txDe(c)?`<button class="salaref" data-act="salaVerCh" data-id="${id}" title="Abrir o chamado"><span class="salarefh"><b>${esc(c.cliente||'POP')}</b>${gChip(c)}${gPrioChip(c)}</span><span class="salarefc">${esc(txTipoN(txT(c)))}${c.categoria&&txT(c)==='corr'?' · '+esc(c.categoria):''} · ${esc(gTecN(c.tec))}</span></button>`:gSalaRef(c,id);
+const salaPodeEd=m=>!!(m&&ME&&m.autor===ME.id&&m.texto&&!(m.anexo&&m.anexo.auto));
+const salaEdBox=m=>`<div class="salaedw"><textarea class="inp" id="salaEdTxt" rows="2" aria-label="Editar a mensagem">${esc(m.texto||'')}</textarea><span><button type="button" class="btn sm" data-act="salaEdX">Cancelar</button><button type="button" class="btn sm primary" data-act="salaEdOk" data-id="${m.id}">Salvar</button></span></div>`;
+G.salaVistoA={};
+async function gSalaContar(){if(!ME)return;const A=salaA(),c=salaVC();
+  try{const v=await sb.from('ag_sala_vistos').select('*').eq('user_id',ME.id).maybeSingle();if(v.error)throw v.error;
+    const vis=(v.data&&v.data[c])||G.salaVistoA[A]||(A==='tx'&&v.data&&v.data.visto_em)||'1970-01-01T00:00:00Z';G.salaVistoA[A]=vis;G.salaVisto=vis;
+    const r=await salaQ(sb.from('ag_sala').select('id,autor,em').gt('em',vis).neq('autor',ME.id)).limit(500);if(r.error)throw r.error;
+    G.salaNova=(r.data||[]).length;G.salaOk=true;G.salaErro=''}
+  catch(e){G.salaOk=false;G.salaNova=0;G.salaErro=salaErr(e)}}
+async function gSalaCarregar(quieto){const k=salaK();if(G.msgBus[k])return;G.msgBus[k]=true;const L0=G.msgs[k],antes=(L0||[]).length;
+  try{let r;
+    if(L0&&L0.length){r=await salaQ(sb.from('ag_sala').select('*').gt('em',L0[L0.length-1].em)).order('em');if(r.error)throw r.error;const ids=new Set(L0.map(m=>m.id));G.msgs[k]=L0.concat((r.data||[]).filter(m=>!ids.has(m.id)))}
+    else{r=await salaQ(sb.from('ag_sala').select('*')).order('em',{ascending:false}).limit(300);if(r.error)throw r.error;G.msgs[k]=(r.data||[]).reverse()}
+    G.salaErro='';G.salaOk=true;
+    await Promise.all(G.msgs[k].filter(m=>m.foto&&!G.fotos[m.foto]).map(async m=>{const s=await sb.storage.from('agenda').createSignedUrl(m.foto,3600);if(!s.error)G.fotos[m.foto]=s.data.signedUrl}))}
+  catch(e){G.msgs[k]=G.msgs[k]||[];G.salaErro=salaErr(e);if(!quieto)toast(G.salaErro,'bad')}
+  G.msgBus[k]=false;if(gChatK()===k){if($('chatList')){if(!quieto||(G.msgs[k]||[]).length!==antes)gChatPintar()}else render();gSalaVistas()}}
+async function gSalaVistas(){const rf=salaRef_(),ids=G.avisos.filter(a=>!a.lida&&a.ref===rf).map(a=>a.id);
+  if(ids.length){G.avisos.forEach(a=>{if(ids.includes(a.id))a.lida=true});gSinoAtualizar();sb.from('ag_avisos').update({lida:true}).in('id',ids).then(()=>{})}
+  const A=salaA(),L=G.msgs[salaK()]||[],ult=L.length?L[L.length-1].em:null;G.salaNova=0;if(!ult||(G.salaVistoA[A]&&G.salaVistoA[A]>=ult))return;G.salaVistoA[A]=ult;G.salaVisto=ult;
+  try{await sb.from('ag_sala_vistos').upsert({user_id:ME.id,[salaVC()]:ult},{onConflict:'user_id'})}catch(e){}}
+const salaGuardaVisto=em=>{const A=salaA();G.salaVistoA[A]=em;G.salaVisto=em;sb.from('ag_sala_vistos').upsert({user_id:ME.id,[salaVC()]:em},{onConflict:'user_id'}).then(()=>{})};
+async function gSalaEnviar(texto,foto){const row={texto:texto||null,chamado:ui.salaCh||null,area:salaA()};
+  if(foto){try{const b=await gReduz(foto),path=`chat/g/sala/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(up.error)throw up.error;row.foto=path}catch(e){toast('Não foi possível enviar a foto: '+(e.message||e),'bad');return false}}
+  const r=await sb.from('ag_sala').insert(row).select().maybeSingle();
+  if(r.error){toast(/area/i.test(r.error.message||'')?SALA_AJ46:salaFalta(r.error)?SALA_AJ:'Não foi possível enviar: '+r.error.message,'bad');return false}
+  const k=salaK();if(r.data&&!(G.msgs[k]||[]).some(m=>m.id===r.data.id)){G.msgs[k]=(G.msgs[k]||[]).concat([r.data]);if(r.data.foto){const s=await sb.storage.from('agenda').createSignedUrl(r.data.foto,3600);if(!s.error)G.fotos[r.data.foto]=s.data.signedUrl}}
+  if(r.data)salaGuardaVisto(r.data.em);
+  if(ui.salaCh){ui.salaCh=null;ui.chatTxt='';render()}else gChatPintar();
+  const el=$('chatList');if(el)el.scrollTop=el.scrollHeight;return true}
+async function chxEnviar(texto,anexo){const ch=ui.chat;if(!ch)return false;const sala=ch.t==='s',row={texto,anexo};
+  if(sala){row.chamado=ui.salaCh||null;row.area=salaA()}else row[ch.t==='g'?'chamado':'agendamento']=ch.id;
+  const r=await sb.from(sala?'ag_sala':'ag_mensagens').insert(row).select().maybeSingle();
+  if(r.error){toast(sala&&/area/i.test(r.error.message||'')?SALA_AJ46:/anexo/i.test(r.error.message||'')?CHX_AJ:'Não foi possível enviar: '+r.error.message,'bad');return false}
+  const k=gChatK();if(r.data&&!(G.msgs[k]||[]).some(m=>m.id===r.data.id)){G.msgs[k]=(G.msgs[k]||[]).concat([r.data]);if(!sala)G.nMsg[k]=G.msgs[k].length}
+  if(sala&&r.data){salaGuardaVisto(r.data.em);if(ui.salaCh){ui.salaCh=null;render()}}
+  gChatPintar();const el=$('chatList');if(el)el.scrollTop=el.scrollHeight;return true}
+function gSalaLista(){const L=G.msgs[salaK()];
+  if(G.salaErro&&!(L&&L.length))return `<div class="result bad" style="margin:auto 0">${esc(G.salaErro)}</div>`;
+  if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
+  if(!L.length)return `<div class="salavz"><b>Nenhuma mensagem ainda</b><span>Use esta conversa para combinar prioridades entre a gestão ${salaA()==='tx'?'da Transmissão':'do GTD'} e o NOC. Para falar de um chamado, toque em <b>Citar</b> ao lado dele ou escolha em "Citar chamado".</span></div>`;
+  let dia='',prev=null;const hj=hoje(),on=addD(hj,-1);
+  return L.map(m=>{const t=new Date(m.em),d=isoD(t),eu=!!(ME&&m.autor===ME.id);let h='';
+    if(d!==dia){dia=d;prev=null;h+=`<div class="saladia"><span>${d===hj?'Hoje':d===on?'Ontem':dBR(d)}</span></div>`}
+    const cont=!!(prev&&prev.autor===m.autor&&t-new Date(prev.em)<5*60000);prev=m;
+    const hue=salaHue(m.autor),c=m.chamado?G.ch.find(x=>x.id===m.chamado):null;
+    const foto=m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):'';
+    h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?salaRefC(c,m.chamado):''}${ui.salaEd===m.id?salaEdBox(m):chxMsgTxt(m)}${chxAnexo(m)}${foto}<small class="salahr">${m.editado_em?'<i class="salaedt">editada</i> ':''}${salaHora(m.em)}${eu&&salaPodeEd(m)&&ui.salaEd!==m.id?` <button type="button" class="salaedb" data-act="salaEd" data-id="${m.id}" aria-label="Editar a mensagem" title="Editar">${_sv('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',13)}</button>`:''}</small></div></div>`;return h}).join('')}
+function viewSala(){const k=salaK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
+  const ab=G.ch.filter(c=>GTD_ABERTOS.includes(c.status)).sort(gSalaOrd),cit=ui.salaCh&&G.ch.find(x=>x.id===ui.salaCh);
+  const nEsc=ab.filter(c=>c.prioridade==='Escalonado').length,nAlta=ab.filter(c=>c.prioridade==='Alta').length,nND=ab.filter(c=>c.status==='aberto'&&!c.tec).length;
+  const cam=_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16),gal=_sv('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',16);
+  return `<div class="salav"><section class="salam" aria-label="${esc(salaNome())}">
+   <div class="salah"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><span class="salaico" aria-hidden="true">${_sv(SALA_ICO,20)}</span><div><b>${esc(salaNome())} · ${salaAN()}</b><small class="muted">Coordenação, supervisão, encarregados ${salaA()==='tx'?'da Transmissão':'do GTD'} e NOC. Os técnicos não veem esta conversa.</small></div>${chxArqsBtn()}</div>
+   <div class="chatl salal" id="chatList" aria-live="polite">${gSalaLista()}</div>
+   <div class="chatc salac">${cit?`<div class="salacit"><span>Sobre o chamado <b>${salaCN(cit)}</b> · ${esc(cit.cliente||'')}</span><button class="icon" data-act="salaTirar" aria-label="Tirar o chamado citado">✕</button></div>`:''}
+    <textarea class="inp" id="chatTxt" rows="2" data-in="chatTxt" placeholder="${ui.perfil==='noc'?'Mensagem para o O&amp;M':'Mensagem para o NOC'}" aria-label="Mensagem">${esc(ui.chatTxt||'')}</textarea>
+    <div class="tools"><select class="inp salasel" data-ch="salaChSel" aria-label="Citar um chamado"><option value="">Citar chamado…</option>${ab.map(c=>`<option value="${c.id}" ${ui.salaCh===c.id?'selected':''}>${salaCN(c)}${txDe(c)?'':' · '+esc((c.cliente||'').slice(0,40))}${c.prioridade!=='Normal'?' · '+esc(c.prioridade):''}</option>`).join('')}</select>
+     <label class="btn sm chatfoto">${cam} Câmera<input type="file" accept="image/*" capture="environment" data-ch="chatFoto" hidden></label><label class="btn sm chatfoto">${gal} Galeria<input type="file" accept="image/*" data-ch="chatFoto" hidden></label>${chxBtns()}<button type="button" class="btn primary" data-act="chatEnviar">Enviar</button></div>
+    <small class="muted chatdica">Enter envia; Shift + Enter pula linha.</small></div></section>
+   <aside class="salaside" aria-label="Chamados em aberto"><div class="secth"><h3>Chamados em aberto</h3><span class="chip">${ab.length}</span></div>
+    <p class="muted salares">${nEsc} escalonado${nEsc===1?'':'s'} · ${nAlta} alta${nAlta===1?'':'s'} · ${nND} não despachado${nND===1?'':'s'}</p>
+    <input class="inp" type="search" id="salaQ" data-in="salaQ" placeholder="Buscar O&amp;M, cliente ou técnico" autocomplete="off">
+    <div class="salalst">${ab.map(c=>`<div class="salaitem" data-q="${esc(normK([c.pom,c.cliente,c.cidade,gTecN(c.tec),c.categoria].join(' ')))}"><button class="salaabre" data-act="salaVerCh" data-id="${c.id}"><span class="salarefh"><b>${salaCN(c)}</b>${gPrioChip(c)}</span><span>${esc(c.cliente||'')}</span><small class="muted">${esc(c.categoria||'')} · ${esc(gTecN(c.tec))}</small>${gChip(c)}</button><button class="btn sm" data-act="salaCitar" data-id="${c.id}" aria-label="Citar ${salaCN(c)} na conversa">Citar</button></div>`).join('')||'<p class="muted">Nenhum chamado em aberto.</p>'}</div></aside></div>`}
+
+/* abrir a conversa da área escolhida (aviso ?sala=tx abre a da Transmissão) */
+{const _a=ACT.salaAbrir;ACT.salaAbrir=function(el){const r=_a.apply(this,arguments);if(ui.chat&&ui.chat.t==='s'&&ui.gArea==='tx'){ui.chat={t:'s',id:'tx'};render();gChatCarregar()}return r}}
+{const _g=gIr;gIr=function(url){let s=null;try{s=new URL(url||'',location.href).searchParams.get('sala')}catch(e){}
+  if(s==='tx'&&gVeGtd()){ui.cat='gtd';ui.gArea='tx';ui.tab='gCham';ui.gSel=null;ui.chat={t:'s',id:'tx'};ui.chatTxt='';render();window.scrollTo(0,0);gChatCarregar();return}
+  if(s==='1'&&ui.gArea==='tx')ui.gArea='gtd';return _g.apply(this,arguments)}}
+/* mensagem nova: recarrega a conversa aberta (qualquer área) ou só o contador */
+{const _r=gRec;gRec=function(tipo,p){if(tipo==='sala'){if(ui.chat&&ui.chat.t==='s'){gChatCarregar(true);return}gSalaContar().then(gSalaBadge);return}return _r.apply(this,arguments)}}
+/* trocar de área atualiza o contador do botão */
+{const _c=ACT.gCat;ACT.gCat=function(){const r=_c.apply(this,arguments);gSalaContar().then(gSalaBadge);return r}}
+/* edição: tempo real das alterações */
+let RTSALA=null;
+function salaTempoReal(){if(RTSALA||!ME||!gVeGtd())return;try{RTSALA=sb.channel('sala_ed').on('postgres_changes',{event:'UPDATE',schema:'public',table:'ag_sala'},p=>{const m=p&&p.new;if(!m)return;
+  ['s:gestao','s:tx'].forEach(k=>{const L=G.msgs[k];if(!L)return;const i=L.findIndex(x=>x.id===m.id);if(i>=0){L[i]=Object.assign({},L[i],m);if(gChatK()===k&&ui.salaEd!==m.id)gChatPintar()}})}).subscribe()}catch(e){}}
+{const _c=carregar;carregar=async function(){const r=await _c.apply(this,arguments);salaTempoReal();return r}}
+Object.assign(ACT,{
+  salaEd:el=>{ui.salaEd=el.dataset.id;gChatPintar();const t=$('salaEdTxt');if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length)}},
+  salaEdX:()=>{ui.salaEd=null;gChatPintar()},
+  salaEdOk:async el=>{const id=el.dataset.id,k=salaK(),L=G.msgs[k]||[],m=L.find(x=>x.id===id),t=(($('salaEdTxt')||{}).value||'').trim();if(!m)return;
+    if(!t&&!m.foto&&!m.anexo){toast('A mensagem não pode ficar vazia.','bad');return}
+    if(t===(m.texto||'')){ui.salaEd=null;gChatPintar();return}
+    el.disabled=true;const r=await sb.from('ag_sala').update({texto:t||null}).eq('id',id).select().maybeSingle();el.disabled=false;
+    if(r.error||!r.data){toast(r.error&&/editado_em|policy|permission|row-level/i.test(r.error.message||'')?SALA_AJ46:'Não foi possível editar: '+((r.error&&r.error.message)||'sem permissão'),'bad');return}
+    Object.assign(m,r.data);if(!m.editado_em)m.editado_em=new Date().toISOString();ui.salaEd=null;gChatPintar();toast('Mensagem editada.')}});
+document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='salaEdTxt'){if(e.key==='Escape'){e.preventDefault();ACT.salaEdX()}else if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();const b=document.querySelector('[data-act="salaEdOk"]');if(b)ACT.salaEdOk(b)}}},true);
 
 /* ---------- 26/10: permissões da Transmissão item por item + abas por área ----------
    Antes: "Transmissão" (m_tx) era uma caixa só e as telas eram as do grupo GTD Manutenção (as mesmas para as duas áreas).

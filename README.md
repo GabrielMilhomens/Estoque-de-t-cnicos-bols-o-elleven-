@@ -217,6 +217,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 44. `agenda_ajuste_43_avisos_transmissao.sql` — `ag_chamado_avisos` refeita: nos chamados da Transmissão os avisos usam o tipo/categoria e o POP no lugar do código interno, com "Novo chamado da Transmissão", "Técnico no POP", "Preencha o relatório" e sem "O MTTR continua" fora da corretiva; corrige os avisos já gravados. Os avisos do GTD não mudam.
 45. `agenda_ajuste_44_funcoes_sem_login.sql` — nenhuma função `ag_` executa sem login (papel `anon`), mantendo exatamente o acesso de quem já podia entre os logados; `ag_avisar`, `ag_chamar_avisos`, `ag_destinos`, `ag_fases_concluidas` e `ag_pode_de` passam a ser só internas (antes, só com o link dava para mandar aviso falso para a equipe). Termina com duas conferências: funções abertas sem login e tabelas sem regras de acesso (o esperado é nenhuma linha nas duas).
 46. `agenda_ajuste_45_permissoes_transmissao.sql` — permissões da Transmissão item por item: `ag_pode` entende as chaves `tx_*` (validar, editar e expurgar na Transmissão valem no banco), nova `ag_pode_exato` (interna), `ag_destinos` com os grupos `tx_gestao` e `tx_noc`, e avisos dos chamados, das mensagens e do chat NOC separados por área (Transmissão para quem tem a Transmissão; GTD para quem tem o GTD). Listas antigas (caixa Transmissão + telas do GTD) continuam valendo. Pode rodar de novo; termina com uma conferência (as três funções com "false").
+47. `agenda_ajuste_46_chat_noc_por_area.sql` — Chat com NOC por área: `ag_sala.area` ('gtd' ou 'tx', mensagens antigas que citam chamado da Transmissão migradas para 'tx'), `ag_sala_vistos.visto_tx` (contador da Transmissão), `ag_sala.editado_em`, trigger `ag_sala_edita` e política `agsala_update` (só o autor edita, só o texto) e `ag_sala_aviso` por área (GTD: `gtd_gestao` + `noc`, aviso `?sala=1`; Transmissão: `tx_gestao` + `tx_noc`, aviso `?sala=tx`). Rodar **antes** de publicar o `agenda.html` de 26/10. Pode rodar de novo; termina com a contagem de mensagens por área.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -510,6 +511,7 @@ Não faz parte do projeto da agenda: roda no **outro projeto** Supabase da organ
 
 ---
 
+- **Chat com NOC por área e edição (26/10):** o GTD Manutenção e a Transmissão têm conversas separadas (a aberta segue a área escolhida no topo; título "Chat com NOC · Transmissão"), cada uma com o próprio contador de mensagens novas e avisos só para quem tem a área (o da Transmissão abre direto a conversa da Transmissão). Na Transmissão o chamado citado aparece pelo POP e pelo tipo, sem o código interno. Quem escreveu pode **editar** o texto da própria mensagem pelo lápis ao lado da hora (Enter salva, Esc cancela); a mensagem fica marcada como "editada" e os outros veem a alteração em tempo real. Módulo `salaarea`; banco: ajuste 46.
 ### 7.3 Transmissão (POPs, 24/10)
 
 Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `dados.area = 'tx'`). No `agenda.html`, o código fica nos blocos comentados "Transmissão".
@@ -624,6 +626,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 26/10/2026 | **Chat com NOC separado por área** (GTD Manutenção e Transmissão, com contador e avisos próprios) e **edição das próprias mensagens** (marcadas como editadas). Detalhes em 7.1. | `agenda.html` + **`agenda_ajuste_46_chat_noc_por_area.sql`** (rodar no SQL Editor ANTES de publicar o agenda.html; não subir no GitHub). |
 | 26/10/2026 | **Painel do dia:** coluna **No local** separada de **Em execução** (Em execução só depois de iniciar o atendimento), número No local no topo e números do topo como filtro (com Mostrar todas). Detalhes em 7. | `agenda.html` (sem SQL). |
 | 26/10/2026 | **Correção:** no Chamado de expansão · Transmissão aberto pela Implantação, a **Porta** passa a vir do cadastro do cliente na Base de previsão (Informações técnicas › Porta); antes aparecia "não informado". Porta "N/A" continua pedindo para digitar. | `agenda.html` (sem SQL). |
 | 26/10/2026 | **Permissões por área:** abas Implantação, GTD Manutenção e Transmissão (contagem de telas, marcar/desmarcar tudo, abas e Salvar fixos); Transmissão liberada item por item como o GTD; caixas de Áreas de manutenção saem (a área libera pelas telas marcadas); avisos separados por área. Detalhes em 5. | `agenda.html` + **`agenda_ajuste_45_permissoes_transmissao.sql`** (rodar no SQL Editor; não subir no GitHub). |
