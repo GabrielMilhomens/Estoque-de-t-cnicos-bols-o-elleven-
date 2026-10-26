@@ -11804,7 +11804,7 @@ function pvFull(){let o=document.getElementById('pvFull');const p=ui.pvVer&&S.pr
     <div class="krfa">${K.length===1?`<button class="btn sm primary" data-act="anxOpen" data-id="${K[0].id}">Baixar KMZ</button>`:K.length?`<button class="btn sm primary" data-act="pvIrKmz">Baixar KMZ (${K.length})</button>`:''}${s?`<button class="btn sm" data-act="kvPdf" data-id="${p.id}" data-p="all">PDF do ROI completo</button><button class="btn sm" data-act="kvVer" data-id="${p.id}">Materiais e mão de obra</button>`:''}
      ${pvSt(p)==='pend'&&pvPodeVal()?`<button class="btn sm primary" data-act="pvAprov" data-id="${p.id}">Aprovar</button><button class="btn sm pvrep" data-act="pvReprov" data-id="${p.id}">Reprovar</button>`:''}${pvSt(p)==='reprov'&&pode('a_projInc')?`<button class="btn sm primary" data-act="pvReenv" data-id="${p.id}">Reenviar para validação</button>`:''}${(()=>{const Ls=ui.pvLista||[],ix=Ls.indexOf(p.id);return ix>=0&&Ls.length>1?`<span class="pvnav"><button class="btn sm" data-act="pvNav" data-d="-1" ${ix===0?"disabled":""} aria-label="Projeto anterior">‹</button><span class="muted">${ix+1} de ${Ls.length}</span><button class="btn sm" data-act="pvNav" data-d="1" ${ix===Ls.length-1?"disabled":""} aria-label="Próximo projeto">›</button></span>`:""})()}<button class="btn sm" data-act="pvFecha">Fechar</button></div></header>
    <div class="krfb pvb">${pvBloco(p).replace(/<div class="kva">[\s\S]*?<\/div>/,'')}
-    ${sec('Dados do projeto',dl([['Etiqueta',esc(p.etiqueta)],['Cliente',esc(p.cliente||'')],['Protocolo',esc(p.protocolo||'')],['Topologia',esc(p.topologia||'')],['Cidade',esc(p.cidade||'')],val&&['Valor mensal',brl(p.valor)],['Lançamento (ROI)',(+p.metros||0).toLocaleString('pt-BR')+' m'],['Caixas de emenda',esc(caixasTxt(p))],
+    ${sec('Dados do projeto',dl([['Etiqueta',esc(p.etiqueta)],['Cliente',esc(p.cliente||'')],['Protocolo',esc(p.protocolo||'')],['Topologia',esc(p.topologia||'')],['Cidade',esc(p.cidade||'')],val&&['Valor mensal',brl(p.valor)],[kmzCabo(p)?'Cabo a lançar (KMZ)':'Lançamento (ROI)',(+p.metros||0).toLocaleString('pt-BR')+' m'+(kmzCabo(p)?' <small class="muted">desenho + 5% + 30 m em cada ponta</small>':'')],['Caixas de emenda',esc(caixasTxt(p))],
       ...(val?FIN.filter(([k])=>fin[k]!==undefined&&fin[k]!=='').map(([k,l,m])=>[l,m?brl(fin[k]):String(fin[k]).replace('.',',')]):[]),p.roi&&p.roi.nome&&['ROI',esc(p.roi.nome)+(p.roiKmz?' (pelo KMZ)':' (do PDF)')]]))}
     ${sec('Endereço de instalação e contato',dl([['Endereço',esc(c.endereco||'')],['Coordenada',c.coord?esc(c.coord)+mapa(c.coord):''],['Contato',esc(c.contato||'')],['Telefone',esc(c.telefone||'')],['Janela',esc(c.janela||'')],['Acesso',esc(c.acesso||'')],['Observações',esc(c.obs||'')]]))}
     ${sec('Informações técnicas',dl([svc.length&&['Serviços a serem ativados',svc.map(esc).join('<br>')],['POP',esc(p.pop||'')],['Equipamento de acesso',esc(p.equip||'')],['Porta',esc(I.porta||'')],['Ponto de acesso',I.pa?esc(I.pa)+(I.locPa?' · '+lk(I.locPa):''):''],['Ponto de derivação',I.pd&&!p.semExt?esc(I.pd)+(I.locPd?' · '+lk(I.locPd):''):''],['Lançamento na rua',p.semRua?'Não tem (todo interno)':'Previsto'],['Extensão de sinal',ext],p.migGpon!=null&&['Migração de GPON',p.migGpon===true||p.migGpon==='sim'?'Sim':'Não, cliente novo'],p.lmLanc&&['Last mile com lançamento',esc(p.lmLanc)],['Observações técnicas',(I.notas||[]).map(esc).join('<br>')]]))}
@@ -11822,6 +11822,18 @@ const pvSoKmz=()=>pvProj()||(ui.tab==='base'&&ui.baseV==='val');
 {const _w=renderWiz;renderWiz=function(){const W=ui.wiz,so=W&&pvSoKmz();if(so)W.roiModo='kmz';const o=_w.apply(this,arguments);
   if(so)document.querySelectorAll('#modal .krseg').forEach(e=>e.remove());return o}}
 {const _k=ACT.krModo;if(_k)ACT.krModo=function(el){if(pvSoKmz()&&el&&el.dataset&&el.dataset.v==='pdf')return;return _k.apply(this,arguments)}}
+
+/* ---------- 26/10: cabo a lançar pelo KMZ de lançamento ----------
+   Quando o projeto tem a lista de materiais do KMZ de lançamento (p.kmzMat), a metragem do projeto (p.metros, usada no
+   Backlog, na Previsão, na ficha, no app do técnico e nos relatórios) passa a ser a soma dos cabos dessa lista:
+   desenho + 5% de correção + 30 m em cada ponta (+ 30 m por reserva técnica). Antes ficava a medida do desenho ou a do ROI. */
+const kmzCabo=p=>{const L=(p&&p.kmzMat&&p.kmzMat.itens)||[];return Math.round(L.filter(i=>i.k==='cabo'&&String(i.un||'').toUpperCase()==='M').reduce((s,i)=>s+(+i.qtd||0),0))};
+const kmzCaboAplica=p=>{const m=kmzCabo(p);if(m>0&&+p.metros!==m){p.metros=m;return true}return false};
+{const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,id=W&&W.id,etq=ui.roiTmp&&ui.roiTmp.etiqueta;const o=_s.apply(this,arguments);
+  const p=(id&&S.previsao.find(x=>x.id===id))||(etq&&S.previsao.find(x=>x.etiqueta===etq));if(p&&kmzCaboAplica(p)){save();render()}return o}}
+/* projetos que já tinham o KMZ lido: a gestão do O&M acerta a metragem uma vez ao abrir */
+{const _c=carregar;carregar=async function(){const r=await _c.apply(this,arguments);
+  try{if(['coord','sup','enc'].includes(ui.perfil)&&(ui.perfil==='coord'||pode('a_projeto'))){let n=0;S.previsao.forEach(p=>{if(!(p.val&&p.val.st&&p.val.st!=='aprov')&&kmzCaboAplica(p))n++});if(n)save()}}catch(e){console.warn('kmzCabo',e)}return r}}
 
 /* ---------- 26/10: permissões das áreas gravam ----------
    PERM_ALL era montada antes de area.js/tx.js acrescentarem "GTD Manutenção" (m_gtd) e "Transmissão" (m_tx);
