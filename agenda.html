@@ -10023,8 +10023,15 @@ function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
   const rts=K.P.filter(p=>/^(NOVA )?RT\b|^R$|RESERVA/.test(kmN(p.nome))||/^r$/i.test(p.ic));let rtFora=0;
   rts.forEach(p=>{let best=null,bd=1e9;cabo.forEach(l=>{const d=kmDist(p.ll,l.c);if(d<bd){bd=d;best=l}});if(best&&bd<=50)grp[best.tp.k].rt++;else rtFora++});
   if(rtFora)av.push(`${rtFora} ${rtFora>1?'reservas técnicas longe':'reserva técnica longe'} de qualquer cabo (mais de 50 m): não ${rtFora>1?'entraram':'entrou'} na conta.`);
-  const cab={};Object.values(grp).forEach(g=>{const cor=Math.round(g.des*0.05),q=Math.ceil(g.des+cor+60*g.cabos+30*g.rt);
-    cab[g.t.k]={cod:g.t.cod,desc:g.t.desc,qtd:q,memo:`desenho ${kmN0(Math.round(g.des))} m + 5% de correção (${kmN0(cor)} m) + ${g.cabos*2} ${g.cabos*2>1?'pontas':'ponta'} × 30 m${g.rt?` + ${g.rt} ${g.rt>1?'reservas técnicas':'reserva técnica'} × 30 m`:''} · traço ${g.t.cor}`}});
+  /* 26/10: cada passagem do aéreo para o subterrâneo (poste ↔ CS ao longo do cabo) soma 10 m de cabo */
+  const csP=K.P.filter(p=>/^CS\b|^CS[\s\-_]?\d|CAIXA SUBTERR/.test(kmN(p.nome))||/CAIXA SUBTERR|^CS\b/.test(kmN(p.pasta||'')));
+  const kmTrans=l=>{const c=l.c,cum=[0];for(let i=1;i<c.length;i++)cum.push(cum[i-1]+kmHav(c[i-1],c[i]));
+    const pos=ll=>{const r=Math.PI/180,k=Math.cos(ll[0]*r),xy=v=>[(v[1]-ll[1])*r*6371000*k,(v[0]-ll[0])*r*6371000];let bd=1e12,bs=0;for(let i=1;i<c.length;i++){const A=xy(c[i-1]),B=xy(c[i]),dx=B[0]-A[0],dy=B[1]-A[1],L2=dx*dx+dy*dy,t=L2?Math.max(0,Math.min(1,-(A[0]*dx+A[1]*dy)/L2)):0,px=A[0]+t*dx,py=A[1]+t*dy,d=Math.hypot(px,py);if(d<bd){bd=d;bs=cum[i-1]+t*(cum[i]-cum[i-1])}}return bs};
+    const seq=ps.filter(x=>kmDist(x.ll,c)<=8).map(x=>({t:'p',s:pos(x.ll)})).concat(csP.filter(x=>kmDist(x.ll,c)<=8).map(x=>({t:'c',s:pos(x.ll)}))).sort((a,b)=>a.s-b.s);
+    let n=0;for(let i=1;i<seq.length;i++)if(seq[i].t!==seq[i-1].t)n++;return n};
+  Object.values(grp).forEach(g=>{g.trans=g.ls.reduce((s,l)=>s+kmTrans(l),0)});
+  const cab={};Object.values(grp).forEach(g=>{const cor=Math.round(g.des*0.05),q=Math.ceil(g.des+cor+60*g.cabos+30*g.rt+10*g.trans);
+    cab[g.t.k]={cod:g.t.cod,desc:g.t.desc,qtd:q,memo:`desenho ${kmN0(Math.round(g.des))} m + 5% de correção (${kmN0(cor)} m) + ${g.cabos*2} ${g.cabos*2>1?'pontas':'ponta'} × 30 m${g.rt?` + ${g.rt} ${g.rt>1?'reservas técnicas':'reserva técnica'} × 30 m`:''}${g.trans?` + ${g.trans} ${g.trans>1?'passagens':'passagem'} aéreo/subterrâneo × 10 m`:''} · traço ${g.t.cor}`}});
   const itens=[];KM_ORD.forEach(k=>{if(q[k])itens.push({k,cod:KM_MAT[k][0],desc:KM_MAT[k][1],qtd:q[k],un:'UN',memo:memo[k].join(' + ')})});
   Object.values(cab).reverse().forEach(c=>itens.unshift({k:'cabo',cod:c.cod,desc:c.desc,qtd:c.qtd,un:'M',memo:c.memo}));
   if(cordM.D)itens.splice(Object.keys(cab).length,0,{k:'cordD',cod:KM_MAT.cordD[0],desc:KM_MAT.cordD[1],qtd:cordM.D.q,un:'M',memo:cordM.D.memo});
@@ -10035,7 +10042,7 @@ function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
   if(!cabo.length)av.push('Nenhuma linha de cabo reconhecida (pasta CABO ou nome com CABO, DROP ou xxFO).');
   
   const cabM=cabo.reduce((s,l)=>s+l.m,0),dropM=cabo.filter(l=>l.tp&&/^drop/.test(l.tp.k)).reduce((s,l)=>s+l.m,0);
-  const kq={interno:0,sub:0,aereo:Math.round(cabM*10)/10,cord:Math.round(cord.reduce((s,l)=>s+l.m,0)*10)/10,lances:cord.length,postes:ps.length,
+  const kq={caboTot:Object.values(cab).reduce((t,x)=>t+x.qtd,0),trans:Object.values(grp).reduce((t,g)=>t+(g.trans||0),0),interno:0,sub:0,aereo:Math.round(cabM*10)/10,cord:Math.round(cord.reduce((s,l)=>s+l.m,0)*10)/10,lances:cord.length,postes:ps.length,
     postesSemCord:ps.filter(p=>!p.cord).length,postesPassagem:ps.filter(p=>p.t[0]==='P'&&!p.cord).length,postesInter:ps.filter(p=>p.t[0]==='P'&&p.cord).length,cs:0,
     cxIni:(K.P.find(p=>/^(NOVA )?(CEO|CE|CTO)\b|^(CEO|CE|CTO)[\s\-_]?\d/.test(kmN(p.nome))&&!/EXISTENTE/.test(kmN(p.nome)))||{}).nome||'',tipoCabo:cabM&&dropM>=cabM/2?'drop':'optico'};
   return{kq,temDrop:dropM>0,itens,cnt:Object.fromEntries(Object.keys(KM_PT).map(t=>[t,ps.filter(p=>p.t===t).length])),cordP:ps.filter(p=>p.cord).length,postes:ps.length,espM,ceo,av,em:Date.now()}}
@@ -11834,6 +11841,20 @@ const kmzCaboAplica=p=>{const m=kmzCabo(p);if(m>0&&+p.metros!==m){p.metros=m;ret
 /* projetos que já tinham o KMZ lido: a gestão do O&M acerta a metragem uma vez ao abrir */
 {const _c=carregar;carregar=async function(){const r=await _c.apply(this,arguments);
   try{if(['coord','sup','enc'].includes(ui.perfil)&&(ui.perfil==='coord'||pode('a_projeto'))){let n=0;S.previsao.forEach(p=>{if(!(p.val&&p.val.st&&p.val.st!=='aprov')&&kmzCaboAplica(p))n++});if(n)save()}}catch(e){console.warn('kmzCabo',e)}return r}}
+/* estimativa de mão de obra pelo KMZ: o lançamento (aéreo, interno, subterrâneo) usa a mesma metragem de cabo da lista
+   de materiais (desenho + 5% + 30 m em cada ponta + reservas + 10 m por passagem aéreo/subterrâneo), repartida pelo desenho de cada trecho */
+const KLE_CAB={SEV0006:'aereo',SEV0011:'sub',SEV0012:'interno',SEV0016:'interno'};
+const kleCaboTot=p=>{const q=(p&&p.kl&&p.kl.q)||{};if(+q.caboTot>0)return +q.caboTot;const m=kmzCabo(p);if(m>0)return m;
+  const it=((p&&p.roiKmz&&p.roiKmz.itens)||[]).filter(i=>/CABO/i.test(i.desc||'')&&(i.un==='M'||/^m$/i.test(i.un||'')));return Math.round(it.reduce((s,i)=>s+(+i.qtd||0),0))};
+{const _k=kleCalc;kleCalc=function(p,P){const r=_k.apply(this,arguments);try{if(!r||!p||!p.kl||!p.kl.q)return r;
+    const C=kleCaboTot(p),q=p.kl.q,n=v=>+String(v==null?0:v).replace(',','.')||0,d={aereo:n(q.aereo),interno:n(q.interno),sub:n(q.sub)},D=d.aereo+d.interno+d.sub;if(!(C>0&&D>0))return r;
+    const PP=P||klp(),cs=n(q.cs),fm=v=>klFmt(v),trans=n(q.trans);let mud=false;
+    const L=r.L.map(x=>{const t=KLE_CAB[x.cod];if(!t||x.fase!=='lanc'||!(d[t]>0))return x;let qt=Math.round(C*d[t]/D);
+      if(t==='interno'&&d.interno<n(PP.intMin))qt=Math.max(qt,Math.round(d.interno*n(PP.intMult)));if(t==='sub'&&cs)qt+=Math.round(n(PP.sobraCS)*cs);
+      if(qt===x.q)return x;mud=true;const parte=D>d[t]?` (parte ${t==='aereo'?'aérea':t==='sub'?'subterrânea':'interna'}: ${fm(d[t])} de ${fm(D)} m desenhados)`:'';
+      return Object.assign({},x,{q:qt,v:Math.round(qt*x.u*100)/100,regra:`${fm(d[t])} m desenhados → ${fm(qt)} m de cabo da lista de materiais do KMZ (desenho + 5% + 30 m em cada ponta${trans?' + 10 m por passagem aéreo/subterrâneo':''})${parte}${t==='sub'&&cs?` + ${fm(PP.sobraCS)} m × ${cs} CS`:''}`})});
+    if(!mud)return r;const porF={};L.forEach(x=>porF[x.fase]=Math.round(((porF[x.fase]||0)+x.v)*100)/100);
+    return Object.assign({},r,{L,porF,tot:Math.round(L.reduce((s,x)=>s+x.v,0)*100)/100})}catch(e){console.warn('kleCabo',e);return r}}}
 
 /* ---------- 26/10: permissões das áreas gravam ----------
    PERM_ALL era montada antes de area.js/tx.js acrescentarem "GTD Manutenção" (m_gtd) e "Transmissão" (m_tx);
