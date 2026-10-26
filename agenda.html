@@ -2013,6 +2013,15 @@ body.krfull-on{overflow:hidden}
 .ari .ario{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
 .arit{flex:1;display:flex;flex-direction:column}.arit b{font-size:16px}.arit small{font-size:13px;color:var(--muted)}
 .arok{color:var(--brand-ink,#3F6B12)}
+.pxtabs{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:6px;background:var(--bg);padding:8px 0 10px;margin:4px 0 6px}
+.pxtabs button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-height:54px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;text-align:left}
+.pxtabs button b{font-size:15.5px;font-weight:600;line-height:1.2}.pxtabs button small{font-size:12.5px;color:var(--muted)}.pxtabs button small.on{color:var(--brand-ink);font-weight:600}
+.pxtabs button[aria-selected="true"]{border-color:var(--brand);box-shadow:inset 0 -3px 0 var(--brand);background:var(--brand-soft,var(--surface))}
+.pgrp.pxoff{display:none}
+.pxall{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;font-size:14px}
+.actions.pxact{position:sticky;bottom:0;z-index:5;background:var(--bg);padding:10px 0;margin-top:10px;border-top:1px solid var(--line)}
+@media(max-width:900px){.pxtabs{top:calc(59px + env(safe-area-inset-top,0px))}.actions.pxact{bottom:64px}}
+@media(max-width:760px){.pxtabs button{padding:7px 9px;min-height:50px}.pxtabs button b{font-size:14px}.pxtabs button small{font-size:11.5px}}
 /* 25/10: Agendar da Implantação no layout de Criar chamado */
 .agnf .agnbody{display:flex;flex-direction:column;gap:10px}
 .agnf .fh2 .chip{flex:none}
@@ -11645,6 +11654,65 @@ function pd2Bloco(U){const F=PA_SIT[ui.pdF]?ui.pdF:'',P=PD_ORD.includes(ui.pdP)?
 Object.assign(ACT,{pd2F:el=>{const v=el.dataset.v||'';ui.pdF=ui.pdF===v?'':v;const y=window.scrollY;render();window.scrollTo(0,y)},
   pd2P:el=>{const v=el.dataset.v||'';ui.pdP=ui.pdP===v?'':v;const y=window.scrollY;render();window.scrollTo(0,y)},
   pd2Limpa:()=>{ui.pdF='';ui.pdP='';const y=window.scrollY;render();window.scrollTo(0,y)}});
+
+/* ---------- 26/10: permissões das áreas gravam ----------
+   PERM_ALL era montada antes de area.js/tx.js acrescentarem "GTD Manutenção" (m_gtd) e "Transmissão" (m_tx);
+   o Salvar permissões filtra por PERM_ALL e descartava essas chaves. Aqui PERM_ALL passa a ter todas as chaves de PERM_T. */
+{const add=k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)},w=L=>L.forEach(n=>{add(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]))}
+
+/* ---------- 26/10: permissões da Transmissão item por item + abas por área ----------
+   Antes: "Transmissão" (m_tx) era uma caixa só e as telas eram as do grupo GTD Manutenção (as mesmas para as duas áreas).
+   Agora a Transmissão tem o próprio grupo (tx_*), igual ao GTD: Painel, Tempos, Chamados (despachar, editar, validar),
+   Agenda, Criar chamado e Histórico e POPs. As caixas "Áreas de manutenção" saem: a área fica liberada quando alguma
+   tela dela está marcada (m_gtd / m_tx continuam gravadas, calculadas no Salvar).
+   Na tela, o motor do GTD continua usando as chaves g*: para supervisor e encarregado, ME.perm passa a ser a lista
+   "efetiva" da área aberta (na Transmissão, gCham = tx_cham etc.); a lista gravada fica em ME.pBase.
+   Tela de permissões com abas Implantação | GTD Manutenção | Transmissão (sem rolar tudo).
+   Banco: agenda_ajuste_45_permissoes_transmissao.sql (ag_pode entende as chaves tx_* e os avisos vão para quem tem a área). */
+const PX_MAP={gPainel:'tx_painel',g_tempos:'tx_tempos',a_gExpurgo:'tx_a_expurgo',gCham:'tx_cham',a_gDespachar:'tx_a_desp',a_gEditar:'tx_a_edit',a_gValidar:'tx_a_valid',gAgenda:'tx_agenda',gNovo:'tx_novo',gRel:'tx_hist'};
+const PX_TX=['Transmissão',[['tx_painel','Painel de KPIs da Transmissão','t',[['tx_tempos','Tempos de atendimento da Transmissão','t',[['tx_a_expurgo','Expurgar tempos dos chamados','a']]]]],
+  ['tx_cham','Chamados (Kanban)','t',[['tx_a_desp','Despachar chamados para o técnico','a'],['tx_a_edit','Agendar, editar e cancelar chamados e editar POPs','a'],['tx_a_valid','Acesso NOC: validar corretivas e GMUD','a']]],
+  ['tx_agenda','Agenda da Transmissão','t'],['tx_novo','Criar chamado','t'],['tx_hist','Histórico e POPs','t']]];
+const pxKeys=g=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});w(g[1]);return o};
+const PX_TK=pxKeys(PX_TX),PX_GK=pxKeys(PERM_T.find(g=>g[0]==='GTD Manutenção')||['',[]]);
+/* grupos: Transmissão logo depois do GTD; "Áreas de manutenção" só fica se sobrar outra área (Rede Externa) */
+{AREA_PERM[1]=AREA_PERM[1].filter(n=>n[0]!=='m_gtd'&&n[0]!=='m_tx');const ia=PERM_T.indexOf(AREA_PERM);if(!AREA_PERM[1].length&&ia>=0)PERM_T.splice(ia,1);
+  const ig=PERM_T.findIndex(g=>g[0]==='GTD Manutenção');PERM_T.splice(ig>=0?ig+1:PERM_T.length,0,PX_TX);
+  const add=k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)},w=L=>L.forEach(n=>{add(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));add('m_gtd');add('m_tx')}
+const PX_AREA=gn=>gn==='GTD Manutenção'||gn==='Áreas de manutenção'?'gtd':gn==='Transmissão'?'tx':'impl';
+const pxPapelTx=p=>p==='supervisor'||p==='encarregado';
+/* lista gravada antes de 26/10 (Transmissão marcada + telas do GTD): vira as telas tx_* equivalentes */
+function pxNorm(set){let s=set.slice();if(s.includes('m_tx')&&!s.some(k=>PX_TK.includes(k))){Object.entries(PX_MAP).forEach(([g,t])=>{if(s.includes(g))s.push(t)});if(!s.includes('m_gtd'))s=s.filter(k=>!PX_GK.includes(k))}return s}
+const pxDeriva=s=>{s=s.filter(k=>k!=='m_gtd'&&k!=='m_tx');if(s.some(k=>PX_GK.includes(k)))s.push('m_gtd');if(s.some(k=>PX_TK.includes(k)))s.push('m_tx');return s};
+/* permissões efetivas da área aberta */
+function permEff(){if(!ME||!['sup','enc'].includes(ui.perfil))return;if(!('pBase' in ME))ME.pBase=ME.perm;
+  const b=pxNorm(permDe(ME.papel,ME.pBase)),hG=b.some(k=>PX_GK.includes(k)),hT=b.some(k=>PX_TK.includes(k));
+  let a=ui.gArea==='tx'||ui.gArea==='gtd'?ui.gArea:(hG?'gtd':hT?'tx':'gtd');if(a==='gtd'&&!hG&&hT)a='tx';if(a==='tx'&&!hT&&hG)a='gtd';
+  const e=b.filter(k=>!PX_GK.includes(k)&&!PX_TK.includes(k)&&k!=='m_gtd'&&k!=='m_tx');
+  if(a==='tx')Object.entries(PX_MAP).forEach(([g,t])=>{if(b.includes(t))e.push(g)});else e.push(...b.filter(k=>PX_GK.includes(k)));
+  if(hG)e.push('m_gtd');if(hT)e.push('m_tx');ME.perm=e}
+{const _c=carregar;carregar=async function(){permEff();return _c.apply(this,arguments)}}
+{const _r=render;render=function(){try{permEff();if(typeof areaFix==='function'){areaFix();permEff()}}catch(e){console.warn('permEff',e)}return _r.apply(this,arguments)}}
+{const _g=ACT.gCat;ACT.gCat=function(el){const v=el&&el.dataset&&el.dataset.v;if(v==='tx'||v==='gtd'){ui.gArea=v;permEff()}return _g.apply(this,arguments)}}
+/* tela de permissões */
+{const _v=viewPermissoes;viewPermissoes=function(){const id=ui.permSel,pp=USR&&USR.pp.find(x=>x.user_id===id);if(!pp)return _v.apply(this,arguments);
+  if(!(ui.permEd&&ui.permEd.id===id))ui.permEd={id,set:pxNorm(permDe(pp.papel,pp.permissoes))};
+  const tira=!pxPapelTx(pp.papel),it=PERM_T.indexOf(PX_TX);if(tira&&it>=0)PERM_T.splice(it,1);let h;try{h=_v.apply(this,arguments)}finally{if(tira&&it>=0)PERM_T.splice(it,0,PX_TX)}
+  const P=new Set(ui.permEd.set),PT=PERM_T.filter(g=>!(tira&&g===PX_TX)&&!(pp.papel==='delivery'&&g[0]==='GTD Manutenção'));
+  const AB=[['impl','Implantação'],['gtd','GTD Manutenção'],['tx','Transmissão']].filter(([k])=>PT.some(g=>PX_AREA(g[0])===k));
+  if(AB.length<2)return h;if(!AB.some(a=>a[0]===ui.permAba))ui.permAba=AB[0][0];
+  const telas=k=>{let n=0,t=0;PT.filter(g=>PX_AREA(g[0])===k).forEach(g=>{const w=(L,ok)=>L.forEach(x=>{if(x[2]==='t'){t++;if(ok&&P.has(x[0]))n++}if(x[3])w(x[3],ok&&P.has(x[0]))});w(g[1],true)});return [n,t]};
+  const bar=`<div class="pxtabs" role="tablist" aria-label="Área">${AB.map(([k,n])=>{const[q,t]=telas(k);return `<button role="tab" data-act="pxAba" data-v="${k}" aria-selected="${ui.permAba===k}"><b>${n}</b><small class="${q?'on':''}">${q?q+' de '+t+' telas':'sem acesso'}</small></button>`}).join('')}</div>`;
+  const[q,t]=telas(ui.permAba),nm=AB.find(a=>a[0]===ui.permAba)[1];
+  const tudo=`<div class="pxall"><span class="muted">${nm}: ${q?q+' de '+t+' telas liberadas':'nenhuma tela liberada'}</span><span><button class="btn sm" data-act="pxTudo" data-v="1">Marcar tudo</button> <button class="btn sm" data-act="pxTudo" data-v="">Desmarcar tudo</button></span></div>`;
+  h=h.replace(/<section class="pgrp"><div class="pgh"><b>([^<]*)<\/b>/g,(m,gn)=>`<section class="pgrp${PX_AREA(gn)===ui.permAba?'':' pxoff'}" data-pa="${PX_AREA(gn)}"><div class="pgh"><b>${gn}</b>`);
+  h=h.replace('<div class="pwrap">',bar+'<div class="pwrap">').replace('<div class="pcol">','<div class="pcol">'+tudo);
+  return h.replace('<div class="actions">','<div class="actions pxact">')}}
+Object.assign(ACT,{pxAba:el=>{ui.permAba=el.dataset.v;render();const b=document.querySelector('.pxtabs');if(b&&b.getBoundingClientRect().top<0)b.scrollIntoView({block:'start'})},
+  pxTudo:el=>{const E=ui.permEd;if(!E)return;const ks=[];PERM_T.filter(g=>PX_AREA(g[0])===ui.permAba).forEach(g=>ks.push(...pxKeys(g)));const s=new Set(E.set);ks.forEach(k=>el.dataset.v?s.add(k):s.delete(k));if(el.dataset.v&&s.has('a_projeto'))s.add('a_valor');E.set=[...s];render()}});
+{const _s=ACT.permSalvar;ACT.permSalvar=function(){if(ui.permEd)ui.permEd.set=pxDeriva(ui.permEd.set);return _s.apply(this,arguments)}}
+{const _p=CH.permCopia;if(_p)CH.permCopia=function(el){const r=_p.apply(this,arguments);if(ui.permEd)ui.permEd.set=pxNorm(ui.permEd.set);return r}}
+{const _p=ACT.permFechar;if(_p)ACT.permFechar=function(){ui.permAba=null;return _p.apply(this,arguments)}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
