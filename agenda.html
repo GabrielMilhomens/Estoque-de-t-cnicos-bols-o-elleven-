@@ -2146,6 +2146,7 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 #klab .klnav{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:14px}
 @media (max-width:600px){#klab .kltipo{grid-template-columns:1fr}}
 #klab.klwiz{z-index:235}body:has(#klab.klwiz) #toast{z-index:245}.krseg{flex-wrap:wrap}
+#klab .krt td:nth-last-child(-n+2),#klab .krt th:nth-last-child(-n+2){white-space:nowrap}#klab .kradd{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}#klab .kradd .inp:first-of-type{flex:1;min-width:200px}#klab .kradd .krq{width:80px}
 .pdcol.loc{background:var(--warn-soft)}@media(min-width:1100px){.pdcols{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.kpis.pdk7{grid-template-columns:repeat(7,minmax(0,1fr))}}@media(min-width:1100px){.pdcol{padding:10px 8px}.pdcols .pdc2 .cat{flex-wrap:wrap;flex-direction:row;justify-content:flex-start}.pdcols .pdc2 .cat>b{flex:1 1 100%}.pdcols .pdc2 .cat>*:not(b){margin-left:0}}.pdkf{margin-top:14px}.pdkf .pdct span{display:flex;align-items:center;gap:10px}.pdkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-items:start}</style>
 </head>
 <body>
@@ -4493,7 +4494,7 @@ const gCatDe=t=>GTD_T.includes(t)?'gtd':'impl';
 const gGest=()=>['coord','sup','enc'].includes(ui.perfil);
 const gVeGtd=()=>gGest()||ui.perfil==='noc';
 const gTecPerfil=()=>['clt','terc','func'].includes(ui.perfil);
-const gPodeValidar=()=>ui.perfil==='noc'||ui.perfil==='coord'||(gGest()&&pode('a_gValidar'));
+const gPodeValidar=()=>(ui.perfil==='noc'&&pode('a_gValidar'))||ui.perfil==='coord'||(gGest()&&pode('a_gValidar'));
 const gPodeDesp=()=>gGest()&&pode('a_gDespachar');
 const gPodeEditar=()=>gGest()&&pode('a_gEditar');
 const gStK=c=>c.status==='aberto'&&c.tec?'desp':c.status;
@@ -10678,7 +10679,7 @@ function gdhDadosSec(c){const L=[['msg','Motivo',c.motivo],['cid','Endereço',c.
    Cada área se registra com areaReg({k, n (nome), c (curto), ve() (quem vê), cats, sug, conta, texto(root), rot}).
    A gestão e o NOC veem só os chamados da área escolhida no seletor do topo; o técnico vê todos os seus. */
 const AREAS=[];
-const gtdVeA=()=>!!ME&&(ui.perfil==='coord'||ui.perfil==='noc'||pode('m_gtd'));
+const gtdVeA=()=>!!ME&&(ui.perfil==='coord'||pode('m_gtd'));
 const areaDe=c=>(c&&c.area)||'gtd';
 const areaCfg=k=>AREAS.find(a=>a.k===k);
 const areaAt=()=>ui.cat==='gtd'?(ui.gArea||'gtd'):null;
@@ -10758,7 +10759,7 @@ const txT=c=>txDe(c)?(c.txTipo||'corr'):null;
 /* agendada sem validação do NOC (preventiva, expansões e outras); corretiva e GMUD passam pela validação do NOC */
 const txNocV=c=>txDe(c)&&['corr','gmud'].includes(txT(c));
 const txAg=c=>txDe(c)&&!txNocV(c);
-const txVe=()=>!!ME&&(ui.perfil==='coord'||ui.perfil==='noc'||pode('m_tx'));
+const txVe=()=>!!ME&&(ui.perfil==='coord'||pode('m_tx'));/* 27/10: NOC também pela permissão (o padrão do NOC tem a Transmissão) */
 const txAt=()=>areaAt()==='tx';
 function txSug(m,o){const t=gtdNorm((m||'')+' '+(o||''));if(/parceiro|acompanh/.test(t))return 'Acompanhamento';if(/verific/.test(t))return 'Verificação';return 'Indisponibilidade';
   if(/energia|concessionaria|sem luz|queda de energia/.test(t))return 'Falha de energia (concessionária)';if(/retificador|bateria|nobreak|ups/.test(t))return 'Falha de retificador ou baterias';
@@ -10795,9 +10796,11 @@ const txTecOpts=sel=>txTecs(sel).map(t=>`<option value="${t.id}" ${t.id===sel?'s
 
 /* ---------- criar: corretiva (NOC e gestão) e agendadas (gestão) ---------- */
 const txPodeAg=()=>!['noc','clt','terc','func'].includes(ui.perfil)&&(ui.perfil==='coord'||pode('gNovo'));
-function txFNovo(t){const F=ui.txF=ui.txF||{tipo:txPodeAg()?'':'corr',pop:'',cat:'',prio:'Normal',pnoc:'',motivo:'',data:hoje(),hora:'08:00',tec:'',ttipo:'',cli:'',etq:'',itipo:'',gid:''};if(t)F.tipo=t;if(!txPodeAg())F.tipo='corr';return F}
+/* 27/10: tipos que o NOC pode abrir (permissões tx_n_*); sem técnico: vão para Não despachados e a gestão despacha */
+const txNocTipos=()=>ui.perfil==='noc'?TX_TIPOS.map(x=>x[0]).filter(k=>pode('tx_n_'+k)):null;
+function txFNovo(t){const F=ui.txF=ui.txF||{tipo:txPodeAg()?'':'corr',pop:'',cat:'',prio:'Normal',pnoc:'',motivo:'',data:hoje(),hora:'08:00',tec:'',ttipo:'',cli:'',etq:'',itipo:'',gid:''};if(t)F.tipo=t;const NT=txNocTipos();if(NT){if(!NT.includes(F.tipo))F.tipo=NT.length===1?NT[0]:''}else if(!txPodeAg())F.tipo='corr';return F}
 function viewTxNovo(){const F=txFNovo(),_jf=(F.jaFeito=F.tipo==='expT'&&F.ttipo==='Cliente'&&txExpDe(F.etq).some(txExpFeita)),pops=TXP.L.filter(p=>p.ativo!==false),ag=F.tipo&&F.tipo!=='corr';
-  const tp=TX_TIPOS.filter(([k])=>k==='corr'||txPodeAg());
+  const NT=txNocTipos(),tp=TX_TIPOS.filter(([k])=>txPodeAg()||(NT?NT.includes(k):k==='corr'));
   const inp=(k,lb,ph,type)=>`<label class="f"><span>${lb}</span><input class="inp" ${type?`type="${type}"`:''} data-in="txF" data-k="${k}" value="${esc(F[k]||'')}" placeholder="${esc(ph||'')}"></label>`;
   const ta=(k,lb,ph)=>`<label class="f"><span>${lb}</span><textarea class="inp" rows="3" data-in="txF" data-k="${k}" placeholder="${esc(ph||'')}">${esc(F[k]||'')}</textarea></label>`;
   const sel=(k,lb,L,ph)=>`<label class="f"><span>${lb}</span><select class="inp" data-ch="txF" data-k="${k}"><option value="">${ph||'Escolha…'}</option>${L.map(v=>{const[val,n]=Array.isArray(v)?v:[v,v];return `<option value="${esc(val)}" ${F[k]===val?'selected':''}>${esc(n)}</option>`}).join('')}</select></label>`;
@@ -10814,7 +10817,7 @@ function viewTxNovo(){const F=txFNovo(),_jf=(F.jaFeito=F.tipo==='expT'&&F.ttipo=
       ${F.qd==='ag'?`<div class="grid2 even" style="gap:0 12px">${inp('data','Data *','','date')}${inp('hora','Horário *','','time')}</div><small class="muted" style="display:block;margin:-4px 0 10px">O MTTR e o SLA começam no horário agendado.</small>`:''}
       <div class="f txprob"><span>Observações do NOC / levar</span>${dnCampos('obsn','novo','Ex.: levar rádio Mimosa, LAN protect e fonte PoE. Cole prints aqui (Ctrl+V) ou anexe fotos.')}</div>`
     :`${F.tipo==='gmud'?`<div class="grid2 even" style="gap:0 12px">${inp('data','Início da janela · data *','','date')}${inp('hora','Início da janela · horário *','','time')}</div><div class="grid2 even" style="gap:0 12px">${inp('dataF','Fim da janela · data *','','date')}${inp('horaF','Fim da janela · horário *','','time')}</div><small class="muted" style="display:block;margin:-4px 0 10px">Ex.: começa 25/10 às 22:00 e vai até 26/10 às 06:00.</small>`:`<div class="grid2 even" style="gap:0 12px">${inp('data','Data *','','date')}${inp('hora','Horário','','time')}</div>`}
-      <label class="f"><span>Técnico *</span><select class="inp" data-ch="txF" data-k="tec"><option value="">Escolha o técnico…</option>${txTecOpts(F.tec)}</select></label>
+      ${ui.perfil==='noc'?'<p class="muted" style="margin:0 0 10px">A gestão da Transmissão escolhe o técnico: o chamado entra em Não despachados.</p>':`<label class="f"><span>Técnico *</span><select class="inp" data-ch="txF" data-k="tec"><option value="">Escolha o técnico…</option>${txTecOpts(F.tec)}</select></label>`}
       ${F.tipo==='expT'?`      ${sel('ttipo','Tipo *',TX_EXT_T)}${F.ttipo==='Cliente'?`<div class="grid2 even" style="gap:0 12px">${inp('cli','Cliente *','Nome do cliente')}${inp('etq','Etiqueta *','Ex.: GT1SYTMW')}</div>`:''}
       <div class="grid2 even" style="gap:0 12px">${inp('equip','Equipamento POP'+(F.ttipo==='Cliente'?' *':''),'Ex.: M-BR-CPL-ACM-AGG-01 (172.31.254.21)')}${inp('porta','Porta'+(F.ttipo==='Cliente'?' *':''),'Ex.: XGE0/0/13')}</div>
       <div class="grid2 even" style="gap:0 12px">${inp('dio','DIO'+(F.ttipo==='Cliente'?' *':''),'Ex.: ACM#0000')}${inp('pos','Posição'+(F.ttipo==='Cliente'?' *':''),'Ex.: 68')}</div>
@@ -10827,8 +10830,8 @@ function viewTxNovo(){const F=txFNovo(),_jf=(F.jaFeito=F.tipo==='expT'&&F.ttipo=
       ${F.tipo==='gmud'?inp('gid','ID da GMUD *','Ex.: GMUD-2026-0123'):''}
       ${F.tipo==='prev'?'':inp('pomU','Protocolo O&M (opcional)','Ex.: 149120')}
       ${F.jaFeito?'<div class="result warn" style="margin:0 0 10px"><b>A expansão deste cliente já foi realizada.</b> Você pode agendar outra, mas explique o motivo nas observações.</div>':''}<div class="f txprob"><span>${F.tipo==='prev'||F.tipo==='gmud'||F.tipo==='cross'||(F.tipo==='expT'&&F.ttipo==='Cliente')?(F.tipo==='gmud'?'O que será executado':F.tipo==='cross'?'Observações (opcional)':F.tipo==='expT'?'Observações'+(F.jaFeito?' *':' (opcional)'):'Observações para a preventiva'):'O que precisa ser feito *'}</span>${dnCampos('prob','novo',(F.tipo==='prev'?'Opcional: pendências da última visita, pontos de atenção':F.tipo==='gmud'?'Resumo da mudança (opcional)':F.tipo==='outra'?'Ex.: trocar o sensor de porta do POP':'Descreva o serviço')+'. Cole prints aqui (Ctrl+V) ou anexe fotos.')}</div>`}
-    <div class="actions" style="justify-content:flex-start"><button class="btn primary" data-act="txCriar">${ag?'Agendar e enviar ao técnico':'Criar chamado'}</button></div></section>`;
-  return `<div class="toolbar"><div><h2>Criar · Transmissão</h2><p class="muted">${txPodeAg()?'Corretiva: chamado para o POP, que a gestão despacha e o NOC valida. Preventiva, expansões e outras: agendadas direto para o técnico.':'Abra o chamado de manutenção corretiva para o POP. A gestão da Transmissão despacha o técnico.'}</p></div></div>
+    <div class="actions" style="justify-content:flex-start"><button class="btn primary" data-act="txCriar">${ag&&ui.perfil!=='noc'?'Agendar e enviar ao técnico':'Criar chamado'}</button></div></section>`;
+  return `<div class="toolbar"><div><h2>Criar · Transmissão</h2><p class="muted">${txPodeAg()?'Corretiva: chamado para o POP, que a gestão despacha e o NOC valida. Preventiva, expansões e outras: agendadas direto para o técnico.':(txNocTipos()||[]).length>1?'Escolha o tipo e abra o chamado para o POP. A gestão da Transmissão despacha o técnico.':(txNocTipos()||['corr']).length===0?'Nenhum tipo de chamado liberado para você. Fale com a coordenação.':'Abra o chamado de manutenção corretiva para o POP. A gestão da Transmissão despacha o técnico.'}</p></div></div>
    ${TXP.err?`<div class="result bad">${esc(TXP.err)}</div>`:''}
    <div class="txtipos" role="group" aria-label="Tipo">${tp.map(([k,n])=>`<button type="button" data-act="txTipo" data-v="${k}" aria-pressed="${F.tipo===k}"><b>${n}</b><small>${{corr:'NOC abre para o POP',prev:'Checklist do POP',expT:'Cliente, porta GPON/XGSPON, backbone',expI:'Energia, equipamento, DIO, periférico',cross:'Interconexão no POP',gmud:'Mudança programada',outra:'Ex.: trocar um sensor'}[k]}</small></button>`).join('')}</div>
    ${corpo}`}
@@ -10888,21 +10891,21 @@ Object.assign(ACT,{
   txTipo:el=>{txFNovo(el.dataset.v);render()},
   txCriar:async el=>{const F=txFNovo(),p=txPop(F.pop),ag=F.tipo!=='corr';
     const corr=F.tipo==='corr';F.motivo=dnTxt('prob','novo');F.jaFeito=F.tipo==='expT'&&F.ttipo==='Cliente'&&txExpDe(F.etq).some(txExpFeita);if(corr)F.obsN=dnTxt('obsn','novo');
-    const falta=[!p&&'POP',corr&&!F.cat&&'categoria',corr&&F.cat&&!F.sub&&'categoria 2',corr&&F.sub==='Outros'&&!String(F.subTxt||'').trim()&&(F.cat==='Acompanhamento'?'quem vai ao POP':'descrição da verificação'),corr&&F.cat==='Acompanhamento'&&F.sub==='Parceiro'&&!String(F.parc||'').trim()&&'nome do parceiro',corr&&F.cat==='Indisponibilidade'&&TX_ALVO[F.sub]&&!String(F.alvo||'').trim()&&TX_ALVO[F.sub][0].replace(' *','').replace('?','').toLowerCase(),corr&&!String(F.motivo||'').trim()&&'problema',F.jaFeito&&!String(F.motivo||'').trim()&&'observações (a expansão já foi feita)',corr&&F.qd==='ag'&&!F.data&&'data do agendamento',corr&&F.qd==='ag'&&!F.hora&&'horário do agendamento',!corr&&!String(F.motivo||'').trim()&&(F.tipo==='outra'||(F.tipo==='expT'&&F.ttipo!=='Cliente')||F.tipo==='expI')&&'o que fazer',F.tipo==='gmud'&&!String(F.gid||'').trim()&&'ID da GMUD',ag&&!F.data&&'data',ag&&!F.tec&&'técnico',F.tipo==='expT'&&!F.ttipo&&'tipo',...(F.tipo==='expT'&&F.ttipo==='Cliente'?[['cli','cliente'],['etq','etiqueta'],['equip','equipamento POP'],['porta','porta'],['dio','DIO'],['pos','posição'],['obs','transceiver (OBS)']].filter(([k])=>!String(F[k]||'').trim()).map(x=>x[1]):[]),...(F.tipo==='cross'?[['xid','identificação do cross'],['equip','equipamento POP'],['porta','porta'],['dio','patch panel'],['pos','posição'],['xsn','número de série / ID do cross']].filter(([k])=>!String(F[k]||'').trim()).map(x=>x[1]):[]),F.tipo==='expI'&&!F.itipo&&'tipo'].filter(Boolean);
+    const falta=[!p&&'POP',corr&&!F.cat&&'categoria',corr&&F.cat&&!F.sub&&'categoria 2',corr&&F.sub==='Outros'&&!String(F.subTxt||'').trim()&&(F.cat==='Acompanhamento'?'quem vai ao POP':'descrição da verificação'),corr&&F.cat==='Acompanhamento'&&F.sub==='Parceiro'&&!String(F.parc||'').trim()&&'nome do parceiro',corr&&F.cat==='Indisponibilidade'&&TX_ALVO[F.sub]&&!String(F.alvo||'').trim()&&TX_ALVO[F.sub][0].replace(' *','').replace('?','').toLowerCase(),corr&&!String(F.motivo||'').trim()&&'problema',F.jaFeito&&!String(F.motivo||'').trim()&&'observações (a expansão já foi feita)',corr&&F.qd==='ag'&&!F.data&&'data do agendamento',corr&&F.qd==='ag'&&!F.hora&&'horário do agendamento',!corr&&!String(F.motivo||'').trim()&&(F.tipo==='outra'||(F.tipo==='expT'&&F.ttipo!=='Cliente')||F.tipo==='expI')&&'o que fazer',F.tipo==='gmud'&&!String(F.gid||'').trim()&&'ID da GMUD',ag&&!F.data&&'data',ag&&ui.perfil!=='noc'&&!F.tec&&'técnico',F.tipo==='expT'&&!F.ttipo&&'tipo',...(F.tipo==='expT'&&F.ttipo==='Cliente'?[['cli','cliente'],['etq','etiqueta'],['equip','equipamento POP'],['porta','porta'],['dio','DIO'],['pos','posição'],['obs','transceiver (OBS)']].filter(([k])=>!String(F[k]||'').trim()).map(x=>x[1]):[]),...(F.tipo==='cross'?[['xid','identificação do cross'],['equip','equipamento POP'],['porta','porta'],['dio','patch panel'],['pos','posição'],['xsn','número de série / ID do cross']].filter(([k])=>!String(F[k]||'').trim()).map(x=>x[1]):[]),F.tipo==='expI'&&!F.itipo&&'tipo'].filter(Boolean);
     if(F.tipo==='gmud'){if(!F.hora)falta.push('início da janela (horário)');if(!F.dataF||!F.horaF)falta.push('fim da janela');else if(F.data&&new Date(F.dataF+'T'+F.horaF+':00')<=new Date(F.data+'T'+(F.hora||'00:00')+':00'))falta.push('fim da janela depois do início')}
     if(falta.length){toast('Preencha: '+falta.join(', ')+'.','bad');return}
-    const agEm=ag?new Date(F.data+'T'+(F.hora||'08:00')+':00').getTime():null,quem=ag?gTecN(F.tec):'';
+    const noc=ui.perfil==='noc',agEm=ag?new Date(F.data+'T'+(F.hora||'08:00')+':00').getTime():null,quem=ag&&!noc?gTecN(F.tec):'';
     const c={area:'tx',txTipo:F.tipo,pop:p.id,cliente:txPopN(p),etiqueta:'',popSigla:p.sigla||'',cidade:p.cidade||'',endereco:[p.endereco,p.cidade&&p.uf?p.cidade+' - '+p.uf:p.cidade].filter(Boolean).join(', '),lat:p.lat,lng:p.lng,contato:p.contato||'',telefone:p.telefone||'',
       categoria:F.tipo==='corr'?F.cat:txTipoN(F.tipo),prioridade:F.tipo==='corr'?F.prio||'Normal':'Normal',pom:String(F.pomU||'').trim()||txPom(),pnoc:F.tipo==='corr'?String(F.pnoc||'').trim():'',
-      motivo:String(F.motivo||'').trim()||(F.tipo==='prev'?'Manutenção preventiva do POP (checklist completo).':F.tipo==='gmud'?'Executar a GMUD '+String(F.gid||'').trim()+'.':''),status:'aberto',tec:ag?F.tec:null,agendaEm:agEm,quando:ag?'agendado':'hoje',ts:ag?{despacho:Date.now()}:{},naoVal:[],
-      criadoPorNome:meNome(),criadoPapel:ui.perfil==='noc'?'NOC':'O&M',hist:[{acao:ag?`${txTipoN(F.tipo)} agendada para ${quem}`:'Chamado criado',por:meNome(),em:Date.now()}]};
+      motivo:String(F.motivo||'').trim()||(F.tipo==='prev'?'Manutenção preventiva do POP (checklist completo).':F.tipo==='gmud'?'Executar a GMUD '+String(F.gid||'').trim()+'.':''),status:'aberto',tec:ag&&!noc?F.tec:null,agendaEm:agEm,quando:ag?'agendado':'hoje',ts:ag&&!noc?{despacho:Date.now()}:{},naoVal:[],
+      criadoPorNome:meNome(),criadoPapel:ui.perfil==='noc'?'NOC':'O&M',hist:[{acao:ag&&!noc?`${txTipoN(F.tipo)} agendada para ${quem}`:ag?`${txTipoN(F.tipo)} aberta pelo NOC para ${dBR(F.data)}${F.hora?' às '+F.hora:''}`:'Chamado criado',por:meNome(),em:Date.now()}]};
     if(F.tipo==='expT'){c.txExtT=F.ttipo;[['cli','txCli'],['etq','txEtq'],['equip','txEquip'],['porta','txPorta'],['dio','txDio'],['pos','txPos'],['obs','txObs']].forEach(([k,x])=>{if(String(F[k]||'').trim())c[x]=String(F[k]).trim()});if(!c.motivo)c.motivo=txExpResumo(c)}if(corr){if(F.qd==='ag'){c.agendaEm=new Date(F.data+'T'+(F.hora||'08:00')+':00').getTime();c.quando='agendado'}if(String(F.obsN||'').trim()){const ob=String(F.obsN).trim();if(/^levar\b/i.test(ob))c.levar=ob.replace(/^levar\s*/i,'');else c.obs=ob}
-      c.txSub=F.sub;if(F.sub==='Outros')c.txSubTxt=String(F.subTxt||'').trim();if(F.sub==='Parceiro')c.txParc=String(F.parc||'').trim();if(F.cat==='Indisponibilidade'&&TX_ALVO[F.sub]){c.txAlvo=String(F.alvo||'').trim();if(['Interface','AP'].includes(F.sub)&&String(F.afet||'').trim())c.txAfet=String(F.afet).trim()}}if(F.tipo==='cross'){[['xid','txXid'],['equip','txEquip'],['porta','txPorta'],['dio','txDio'],['pos','txPos'],['xsn','txXsn'],['obs','txObs']].forEach(([k,x])=>{if(String(F[k]||'').trim())c[x]=String(F[k]).trim()})}if(F.tipo==='expI')c.txInfT=F.itipo;if(F.tipo==='gmud'){c.txGmud=String(F.gid).trim();c.categoria='GMUD '+c.txGmud;c.txJanFim=new Date(F.dataF+'T'+F.horaF+':00').getTime()}if(ag)c.despachadoPor=meNome();
+      c.txSub=F.sub;if(F.sub==='Outros')c.txSubTxt=String(F.subTxt||'').trim();if(F.sub==='Parceiro')c.txParc=String(F.parc||'').trim();if(F.cat==='Indisponibilidade'&&TX_ALVO[F.sub]){c.txAlvo=String(F.alvo||'').trim();if(['Interface','AP'].includes(F.sub)&&String(F.afet||'').trim())c.txAfet=String(F.afet).trim()}}if(F.tipo==='cross'){[['xid','txXid'],['equip','txEquip'],['porta','txPorta'],['dio','txDio'],['pos','txPos'],['xsn','txXsn'],['obs','txObs']].forEach(([k,x])=>{if(String(F[k]||'').trim())c[x]=String(F[k]).trim()})}if(F.tipo==='expI')c.txInfT=F.itipo;if(F.tipo==='gmud'){c.txGmud=String(F.gid).trim();c.categoria='GMUD '+c.txGmud;c.txJanFim=new Date(F.dataF+'T'+F.horaF+':00').getTime()}if(ag&&!noc)c.despachadoPor=meNome();
     el.disabled=true;const r=await sb.from('ag_chamados').insert(gParaRow(c)).select().maybeSingle();el.disabled=false;if(r.error){toast('Não foi possível criar: '+r.error.message,'bad');return}
     const nv=r.data?gDeRow(r.data):null;if(nv)gTroca(nv);
     const PA=DN.prob.novo||[],PO=corr?(DN.obsn.novo||[]):[];if(nv&&(PA.length||PO.length)){try{toast('Enviando as imagens…');const a1=PA.length?await dnSobe(nv.id,'problema',PA):[],a2=PO.length?await dnSobe(nv.id,'obs',PO):[];await gAcao(nv.id,x=>{if(a1.length)x.probAnx=a1;if(a2.length)x.obsAnx=a2})}catch(e){toast('Chamado criado, mas as imagens não foram enviadas: '+(e.message||e),'bad')}}
     dnLimpa('prob','novo');dnLimpa('obsn','novo');ui.txF=null;ui.tab='gCham';ui.gSel=nv?nv.id:null;render();window.scrollTo(0,0);
-    toast(ag?`${txTipoN(F.tipo)} agendada para ${quem}. O técnico recebe o aviso.`:'Chamado criado em Não despachados. A gestão da Transmissão foi avisada.')}});
+    toast(ag&&!noc?`${txTipoN(F.tipo)} agendada para ${quem}. O técnico recebe o aviso.`:'Chamado criado em Não despachados. A gestão da Transmissão foi avisada.')}});
 
 /* ---------- gestão: detalhe do chamado ---------- */
 {const _d=gDetalhe;gDetalhe=function(c){let h=_d.apply(this,arguments);if(!txDe(c))return h;try{
@@ -12082,13 +12085,21 @@ const KL_SPL=['1x2','1x4','1x8','1x16','1x32','5/95','10/90','15/85','20/80','30
 function klSplCod(t){const P=krPrecos(),k=String(t||'').toUpperCase().replace(/\s/g,''),rx=k.includes('/')?new RegExp(k.split('/').join('\\s*/\\s*')):new RegExp('\\b'+k.replace('X','\\s*X\\s*')+'\\b');
   if(!P||!P.itens)return null;const f=Object.entries(P.itens).find(([c,x])=>/SPLITTER/i.test(x[0])&&rx.test(String(x[0]).toUpperCase()));return f?f[0]:null}
 /* prévia de valores: materiais do desenho × tabela de preços + mão de obra pela LPU (mesma regra do ROI pelo KMZ) */
-function klValores(){const D=KLB.D,M=KLB.M;if(!D||!M)return null;
-  const mat=M.itens.map(i=>{const pr=krPr(i.cod);return{cod:i.cod||'',desc:(pr&&pr.desc)||i.desc,qtd:i.qtd,un:i.un,vu:pr?pr.v:null}});
-  D.X.filter(x=>x.k==='ceo'&&x.spl).forEach(x=>{const cod=klSplCod(x.spl),pr=krPr(cod);mat.push({cod:cod||'',desc:(pr&&pr.desc)||('SPLITTER '+x.spl.toUpperCase()),qtd:1,un:'UN',vu:pr?pr.v:null,spl:x.nome})});
+/* 27/10: ajustes do projetista na prévia (mesma estrutura do ROI pelo KMZ: krEd): incluir, mudar quantidade e excluir */
+const klEdVazio=()=>({mat:{del:{},q:{},add:[]},mo:{del:{},q:{},add:[]}});
+const klEd=()=>KLB.ed=KLB.ed||klEdVazio();
+function klValores(){const D=KLB.D,M=KLB.M;if(!D||!M)return null;const E=klEd();
+  const base=M.itens.map(i=>{const pr=krPr(i.cod);return{k:'PONTA A|'+(i.cod||i.desc),cod:i.cod||'',desc:(pr&&pr.desc)||i.desc,qtd:i.qtd,un:i.un,vu:pr?pr.v:null}});
+  D.X.filter(x=>x.k==='ceo'&&x.spl).forEach(x=>{const cod=klSplCod(x.spl),pr=krPr(cod);base.push({k:'spl|'+x.nome,cod:cod||'',desc:(pr&&pr.desc)||('SPLITTER '+x.spl.toUpperCase()),qtd:1,un:'UN',vu:pr?pr.v:null,spl:x.nome})});
+  const mat=[],rem=[];base.forEach(i=>{if(E.mat.del[i.k]){rem.push(i);return}if(E.mat.q[i.k]!=null){i.orig=i.qtd;i.qtd=E.mat.q[i.k]}mat.push(i)});
+  E.mat.add.forEach((a,ix)=>{if(a.spl)return;const pr=krPr(a.cod);mat.push({k:'add|'+ix,add:ix,cod:a.cod,desc:(pr&&pr.desc)||a.desc||a.cod,qtd:a.qtd,un:a.un||'UN',vu:pr?pr.v:null})});
   mat.forEach(i=>{i.vt=i.vu==null?null:Math.round(i.vu*i.qtd*100)/100});const vMat=Math.round(mat.reduce((s,i)=>s+(i.vt||0),0)*100)/100;
   let mo=null;try{mo=kleCalc({topologia:KLB.topo||'GPON',fator:KLB.crit?'critico':'comum',cidade:KLB.cid||'',dRua:0,dInterno:0,dExt:0,dAtiv:0,semExt:!KLB.ext,klExt:KLB.ext?{m:KLB.ext.m,cx:KLB.ext.cx}:null,kl:{q:M.kq}})}catch(e){mo={L:[],tot:0,fraco:['não foi possível calcular a mão de obra: '+(e.message||e)]}}
-  if(KLB.mel&&mo&&mo.L){mo.L=mo.L.filter(x=>x.fase!=='ativ'&&x.grupo!=='Cliente');mo.tot=Math.round(mo.L.reduce((s,x)=>s+x.v,0)*100)/100;mo.mel=true}
-  return{mat,vMat,mo,tot:Math.round((vMat+(mo.tot||0))*100)/100,sem:mat.filter(i=>i.vu==null)}}
+  if(KLB.mel&&mo&&mo.L)mo.L=mo.L.filter(x=>x.fase!=='ativ'&&x.grupo!=='Cliente');
+  const crit=!!KLB.crit,moRem=[];mo.L=(mo.L||[]).filter(x=>{const k=x.fase+'|'+x.cod;x.k=k;if(E.mo.del[k]){moRem.push(x);return false}if(E.mo.q[k]!=null){x.orig=x.q;x.q=E.mo.q[k];x.v=Math.round(x.q*x.u*100)/100}return true});
+  E.mo.add.forEach((a,ix)=>{const it=kcItem(a.cod);if(!it)return;const u=crit&&it.valorCritico!=null?+it.valorCritico:+it.valor||0;mo.L.push({k:'add|'+ix,add:ix,fase:a.fase||'lanc',cod:a.cod,desc:it.desc,q:a.q,u,v:Math.round(a.q*u*100)/100,regra:'incluído pelo projetista'})});
+  mo.tot=Math.round(mo.L.reduce((s,x)=>s+x.v,0)*100)/100;mo.rem=moRem;
+  return{mat,rem,vMat,mo,tot:Math.round((vMat+(mo.tot||0))*100)/100,sem:mat.filter(i=>i.vu==null)}}
 async function klabRefaz(manter){const D=KLB.D;if(!D)return;D.tot=Math.round(klCum(D.c).cum.slice(-1)[0]);
   D.tr.forEach(t=>{const a=labProj(D.c,t.a).s,b=labProj(D.c,t.b).s;t.c=klSub(D.c,Math.min(a,b),Math.max(a,b));t.m=Math.round(Math.abs(b-a))});
   D.cordU.forEach(x=>{const A=labProj(D.c,x.a),B=labProj(D.c,x.b);x.c=A.d<25&&B.d<25&&Math.abs(B.s-A.s)>=5?klSub(D.c,Math.min(A.s,B.s),Math.max(A.s,B.s)):[x.a,x.b];x.m=Math.round(kmLen(x.c))});
@@ -12155,13 +12166,22 @@ async function klabMapa(){const D=KLB.D,box=document.getElementById('klMap');if(
   m.on('click',toque);linha.on('click',ev=>{LL.DomEvent.stop(ev);toque(ev)});
   box.classList.toggle('klmira',!!KLB.modo);
   if(vw)m.setView(vw.c,vw.z,{animate:false});else m.fitBounds(LL.latLngBounds(D.c.concat(D.P.map(p=>p.ll))),{padding:[30,30]})}
+function klEdHtml(V){const b=krBrl,fq=v=>(+v).toLocaleString('pt-BR'),F=typeof KLE_FASE!=='undefined'?KLE_FASE:{lanc:'Lançamento',ext:'Extensão',ativ:'Ativação'},ab=KLB.edAb||{};
+  const qIn=(g,k,v)=>`<input class="inp krq" inputmode="decimal" data-ch="klabQ" data-g="${g}" data-k="${esc(k)}" value="${String(v).replace('.',',')}" aria-label="Quantidade">`;
+  const del=(g,k)=>`<button type="button" class="krx" data-act="klabEdDel" data-g="${g}" data-k="${esc(k)}" title="Excluir" aria-label="Excluir item">✕</button>`;
+  const P=krPrecos(),dlM=P&&P.itens?`<datalist id="klDlMat">${Object.entries(P.itens).map(([c,x])=>`<option value="${esc(c)} · ${esc(x[0])}">`).join('')}</datalist>`:'';
+  const volta=(g,L)=>L&&L.length?`<p class="muted kremv">Excluídos: ${L.map(i=>`<button type="button" class="linkbtn" data-act="klabEdVolta" data-g="${g}" data-k="${esc(i.k)}" title="Voltar o item">${esc(i.cod||i.desc)}</button>`).join(', ')}</p>`:'';
+  const nEd=V.mat.filter(i=>i.orig!=null||i.add!=null).length+V.rem.length,nEo=V.mo.L.filter(x=>x.orig!=null||x.add!=null).length+(V.mo.rem||[]).length;
+  return `<details class="klvd" data-g="mat"${ab.mat?' open':''}><summary>Materiais (${V.mat.length})${nEd?` · ${nEd} ${nEd>1?'ajustes':'ajuste'}`:''} · incluir, mudar quantidade ou excluir</summary><div class="tblwrap"><table class="tbl kltbl krt"><thead><tr><th></th><th>Código</th><th>Material</th><th style="text-align:right">Qtd</th><th style="text-align:right">Unitário</th><th style="text-align:right">Total</th></tr></thead><tbody>${V.mat.map(i=>`<tr class="${i.orig!=null||i.add!=null?'kred':''}"><td>${del('mat',i.k)}</td><td>${esc(i.cod)}</td><td>${esc(i.desc)}${i.spl?` <small class="muted">(${esc(i.spl)})</small>`:''}${i.orig!=null?`<br><small class="muted"><b>quantidade alterada (calculado: ${fq(i.orig)})</b></small>`:i.add!=null?'<br><small class="muted"><b>incluído</b></small>':''}</td><td style="text-align:right">${qIn('mat',i.k,i.qtd)}</td><td style="text-align:right">${i.vu==null?'<span class="krsem">sem preço</span>':b(i.vu)}</td><td style="text-align:right">${i.vt==null?'':b(i.vt)}</td></tr>`).join('')}</tbody></table></div>
+    ${volta('mat',V.rem)}<div class="kradd">${dlM}<input class="inp" id="klAddCod" list="klDlMat" placeholder="Incluir material: código SAP ou nome"><input class="inp krq" id="klAddQ" inputmode="decimal" placeholder="Qtd"><button type="button" class="btn sm" data-act="klabAddMat">Incluir</button></div></details>
+   <details class="klvd" data-g="mo"${ab.mo?' open':''}><summary>Mão de obra pela LPU (${(V.mo.L||[]).length})${nEo?` · ${nEo} ${nEo>1?'ajustes':'ajuste'}`:''} · incluir, mudar quantidade ou excluir</summary><div class="tblwrap"><table class="tbl kltbl krt"><thead><tr><th></th><th>Fase</th><th>Serviço</th><th style="text-align:right">Qtd</th><th style="text-align:right">Unitário</th><th style="text-align:right">Total</th></tr></thead><tbody>${(V.mo.L||[]).map(x=>`<tr class="${x.orig!=null||x.add!=null?'kred':''}"><td>${del('mo',x.k)}</td><td>${esc(F[x.fase]||x.fase)}</td><td><b>${esc(x.cod)}</b> ${esc(x.desc)}<br><small class="muted">${esc(x.regra||'')}${x.orig!=null?` · <b>quantidade alterada (calculado: ${fq(x.orig)})</b>`:''}</small></td><td style="text-align:right">${qIn('mo',x.k,x.q)}</td><td style="text-align:right">${b(x.u)}</td><td style="text-align:right">${b(x.v)}</td></tr>`).join('')}</tbody></table></div>
+    ${volta('mo',V.mo.rem)}<div class="kradd"><datalist id="klDlLpu">${(typeof LPU!=='undefined'&&Array.isArray(LPU)?LPU:[]).filter(i=>i&&i.cod).map(i=>`<option value="${esc(i.cod)} · ${esc(i.desc)}">`).join('')}</datalist><input class="inp" id="klAddLpu" list="klDlLpu" placeholder="Incluir serviço da LPU: código ou nome"><input class="inp krq" id="klAddLq" inputmode="decimal" placeholder="Qtd"><select class="inp" id="klAddLf" aria-label="Fase">${Object.entries(F).map(([k,n])=>`<option value="${k}">${n}</option>`).join('')}</select><button type="button" class="btn sm" data-act="klabAddMo">Incluir</button></div></details>`}
 function klValHtml(){const V=KLB.V;if(!V)return '';const b=krBrl,fq=v=>(+v).toLocaleString('pt-BR'),F={lanc:'Lançamento',ext:'Extensão',ativ:'Ativação'};
   return `<section class="klval"><h3 style="margin:14px 0 8px">Prévia de valores do projetado</h3>
    <div class="klkpi"><div><small>Materiais</small><b>${b(V.vMat)}</b></div><div><small>Mão de obra (LPU${KLB.crit?', crítico':''}${KLB.mel?', sem ativação e sem cliente':''})</small><b>${b(V.mo.tot||0)}</b></div><div class="t"><small>Total</small><b>${b(V.tot)}</b></div></div>
    ${V.sem.length?`<p class="result warn" style="margin:8px 0">${V.sem.length} ${V.sem.length>1?'materiais sem preço':'material sem preço'} na tabela: ${V.sem.map(i=>esc(i.desc)).join(', ')}. Não entram no total.</p>`:''}
    ${V.mo.fraco&&V.mo.fraco.length?`<p class="muted" style="font-size:13px;margin:6px 0">Mão de obra: ${V.mo.fraco.map(esc).join('; ')}.</p>`:''}
-   <details class="klvd"><summary>Materiais com valor (${V.mat.length})</summary><div class="tblwrap"><table class="tbl kltbl"><thead><tr><th>Código</th><th>Material</th><th style="text-align:right">Qtd</th><th style="text-align:right">Unitário</th><th style="text-align:right">Total</th></tr></thead><tbody>${V.mat.map(i=>`<tr><td>${esc(i.cod)}</td><td>${esc(i.desc)}${i.spl?` <small class="muted">(${esc(i.spl)})</small>`:''}</td><td style="text-align:right">${fq(i.qtd)} ${esc(i.un)}</td><td style="text-align:right">${i.vu==null?'<span class="krsem">sem preço</span>':b(i.vu)}</td><td style="text-align:right">${i.vt==null?'':b(i.vt)}</td></tr>`).join('')}</tbody></table></div></details>
-   <details class="klvd"><summary>Mão de obra pela LPU (${(V.mo.L||[]).length} serviços)</summary><div class="tblwrap"><table class="tbl kltbl"><thead><tr><th>Fase</th><th>Código</th><th>Serviço</th><th style="text-align:right">Qtd</th><th style="text-align:right">Unitário</th><th style="text-align:right">Total</th></tr></thead><tbody>${(V.mo.L||[]).map(x=>`<tr><td>${F[x.fase]||x.fase}</td><td>${esc(x.cod)}</td><td>${esc(x.desc)}<br><small class="muted">${esc(x.regra||'')}</small></td><td style="text-align:right">${fq(x.q)}</td><td style="text-align:right">${b(x.u)}</td><td style="text-align:right">${b(x.v)}</td></tr>`).join('')}</tbody></table></div></details>
+   ${klEdHtml(V)}
    <p class="muted" style="font-size:12.5px;margin:6px 0 0">Só o que está desenhado (ponta A e lançamento). Não entram o kit da ponta B (ONU/GBIC)${KLB.ext?'':', a extensão de sinal (envie o KMZ da extensão no formulário)'} e o deslocamento sem cidade.</p></section>`}
 function klabResDes(){const el=document.getElementById('klRes');if(!el)return;const D=KLB.D,M=KLB.M;
   if(KLB.erro&&!D){el.innerHTML=`<div class="result bad"><b>Não consegui seguir as ruas:</b> ${esc(KLB.erro)}. Confira se o serviço de rotas foi publicado com a ação "tracado" e tente de novo.<div class="tools" style="margin-top:8px"><button type="button" class="btn sm" data-act="klabGera" data-l="1">Desenhar em L mesmo assim</button></div></div>`;return}
@@ -12200,7 +12220,7 @@ Object.assign(ACT,{
       /* ponto longe da rua encontrada: o trecho até a rua sai em linha reta (avisa para conferir) */KLB.avRota=R.ors?[['cli',kmHav(cli,R.c[0])],['cx',kmHav(cx,R.c[R.c.length-1])]].filter(x=>x[1]>30).map(([k,d])=>`${k==='cli'?(mel?'a caixa de origem':'o cliente'):'a caixa'} ficou a ${kmN0(Math.round(d))} m da rua usada no traçado: o trecho até a rua sai em linha reta, confira e ajuste`):[];
       /* no laboratório: reservas e trechos de rede existente viram listas editáveis */
       D.rts=D.rt?[D.rt]:[];D.rt=null;D.tr=[];D.cordU=[];D.seg=[];D.cordRt=[];D.X=[];D.rts.forEach(r=>klRtRegra(D,r));if(D.esp){const ps=D.P.filter(p=>!p.esq).map(p=>({p,s:labProj(D.c,p.ll).s})).sort((a,b)=>a.s-b.s);if(ps.length>1)D.tr.push({tipo:'esp',a:ps[0].p.ll,b:ps[ps.length-1].p.ll})}D.rede=null;D.esp=false;
-      Object.assign(KLB,{D,cxn,ors:R.ors,erro:'',modo:'',sel:null,etapa:'des',info:{tipo:mel?'me':'at',at:{},me:{}},nome:`TESTE_${cxn.replace(/[^\w\-]/g,'_')}_${new Date().toISOString().slice(0,10)}.kmz`});await klabRefaz(false)}
+      Object.assign(KLB,{D,cxn,ors:R.ors,erro:'',modo:'',sel:null,etapa:'des',ed:klEdVazio(),info:{tipo:mel?'me':'at',at:{},me:{}},nome:`TESTE_${cxn.replace(/[^\w\-]/g,'_')}_${new Date().toISOString().slice(0,10)}.kmz`});await klabRefaz(false)}
     catch(e){toast('Não foi possível desenhar: '+(e.message||e),'bad')}finally{el.disabled=false}},
   klabBaixa:()=>{if(!KLB.kmz)return;const u=URL.createObjectURL(KLB.kmz),a=document.createElement('a');a.href=u;a.download=KLB.nome||'teste.kmz';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}});
 
@@ -12282,12 +12302,18 @@ function klExtLab(K){const L=(K.L||[]).filter(l=>!/^ROTA\b|CORDOALHA/.test(klN(l
    O KMZ desenhado leva a marca "padrao_construtivo_2610": a leitura usa as regras novas (esquinas, plaquetas, interno e subterrâneo). */
 function klabForm(){const F=KLB.form;if(!F)return;Object.entries(F).forEach(([k,v])=>{if(k==='crit'||k==='esp'){const e=$(k==='crit'?'klCrit':'klEsp');if(e)e.checked=!!v;return}const e=$(k);if(e&&v!=null&&v!=='')e.value=v});klExtMostra()}
 Object.assign(ACT,{
-  klabWiz:()=>{const W=ui.wiz;if(!W)return;if(KLB.wizRef!==W){Object.assign(KLB,{wizRef:W,D:null,M:null,V:null,kml:'',kmz:null,ext:null,extF:null,extErr:'',erro:'',modo:'',sel:null,etapa:'des',info:null,mel:false,form:null});
+  klabWiz:()=>{const W=ui.wiz;if(!W)return;if(KLB.wizRef!==W){KLB.wizNovo=true;Object.assign(KLB,{wizRef:W,D:null,M:null,V:null,kml:'',kmz:null,ext:null,extF:null,extErr:'',erro:'',modo:'',sel:null,etapa:'des',info:null,mel:false,form:null});
       const etq=(ui.roiTmp&&ui.roiTmp.etiqueta)||'',cli=(S.comp[etq]||{}).coord||'',t=W.t||{};KLB.form={klCli:cli,klCx:t.locPd||'',klCxN:t.pd||'',klTopo:W.kr&&W.kr.topo==='ptp'?'Ponto a ponto':'GPON',klCid:(W.e&&W.e.cidade)||''}}
-    KLB.wiz=true;const o=document.getElementById('klab');if(o)o.remove();klabTela();klabForm();document.body.classList.add('krfull-on');KLB.manter=false;klabRes()},
+    const restaura=KLB.wizRef===W&&!KLB.D&&W.kr&&W.kr.desD||(KLB.wizNovo&&W.kr&&W.kr.desD);KLB.wizNovo=false;
+    KLB.wiz=true;KLB.ed=W.kr&&W.kr.ed?JSON.parse(JSON.stringify(W.kr.ed)):klEdVazio();KLB.ed.mat.add=KLB.ed.mat.add.filter(a=>!a.spl);
+    if(restaura)klDeserial(W.kr.desD);const o=document.getElementById('klab');if(o)o.remove();klabTela();klabForm();document.body.classList.add('krfull-on');KLB.manter=false;
+    if(restaura&&KLB.D)klabRefaz(false);else klabRes()},
   klabUsar:async el=>{const W=ui.wiz;if(!W||!KLB.kmz)return;el.disabled=true;
     try{const etq=((ui.roiTmp&&ui.roiTmp.etiqueta)||'PROJETO').replace(/[^\w\-]/g,'_'),f=new File([KLB.kmz],`${etq}_desenho.kmz`,{type:'application/vnd.google-earth.kmz'});
-      W.kr=Object.assign(W.kr||{},{topo:KLB.topo==='Ponto a ponto'?'ptp':'gpon',topoMan:true});
+      const ed=JSON.parse(JSON.stringify(klEd()));ed.mat.add=ed.mat.add.filter(a=>!a.spl);
+      /* splitter da CEO (só existe no desenho): entra como material incluído */
+      (KLB.D.X||[]).filter(x=>x.k==='ceo'&&x.spl&&!ed.mat.del['spl|'+x.nome]).forEach(x=>{const cod=klSplCod(x.spl),pr=krPr(cod);ed.mat.add.push({cod:cod||'',qtd:ed.mat.q['spl|'+x.nome]||1,tipo:'PONTA A',desc:(pr&&pr.desc)||('SPLITTER '+x.spl.toUpperCase()),spl:x.nome})});
+      W.kr=Object.assign(W.kr||{},{topo:KLB.topo==='Ponto a ponto'?'ptp':'gpon',topoMan:true,ed,desD:klSerial()});
       ACT.klabFecha();W.roiModo='des';await CH.krArq({files:[f],value:''});if(KLB.extF)await CH.krExt({files:[KLB.extF],value:''});
       if(W.kr)W.kr.des=true;renderWiz();toast('Desenho usado no cadastro. Informe o valor mensal e confira.')}
     catch(e){toast('Não foi possível usar o desenho: '+(e.message||e),'bad')}finally{el.disabled=false}}});
@@ -12301,6 +12327,57 @@ Object.assign(ACT,{
       <button type="button" class="btn ${feito?'':'primary'}" data-act="klabWiz">${feito?'Editar o desenho':'Abrir o desenho'}</button></div>`;
     let h=box;if(feito)h+=krPainel().replace(/<label class="f"><span>KMZ do projeto \(\.kmz ou \.kml\)<\/span>[\s\S]*?<\/label>/,'').replace(/<p class="muted" style="margin:-4px 0 8px;font-size:13px">Arquivo:[\s\S]*?<\/p>/,'').replace(/<p class="muted" style="margin:0 0 8px">Envie o KMZ do projeto:[\s\S]*?<\/p>/,'');
     seg.insertAdjacentHTML('afterend',h)}catch(e){console.warn('klabWiz',e)}return o}}
+
+/* ajustes na prévia */
+function klEdRe(){KLB.V=klValores();KLB.manter=true;const ab={};document.querySelectorAll('#klRes details.klvd').forEach(d=>{ab[d.dataset.g]=d.open});KLB.edAb=ab;const sc=document.querySelector('#klab .klb'),st=sc?sc.scrollTop:0;klabRes();const sc2=document.querySelector('#klab .klb');if(sc2)sc2.scrollTop=st}
+CH.klabQ=el=>{const E=klEd(),g=el.dataset.g,k=el.dataset.k,v=krNum(el.value);if(!(v>0)){toast('Quantidade inválida. Para tirar o item, use o ✕.','bad');klEdRe();return}
+  if(/^add\|/.test(k)){const a=E[g].add[+k.split('|')[1]];if(a){if(g==='mat')a.qtd=v;else a.q=v}}else E[g].q[k]=v;klEdRe()};
+Object.assign(ACT,{
+  klabEdDel:el=>{const E=klEd(),g=el.dataset.g,k=el.dataset.k;if(/^add\|/.test(k)){E[g].add[+k.split('|')[1]]=null;E[g].add=E[g].add.filter(Boolean)}else E[g].del[k]=true;klEdRe()},
+  klabEdVolta:el=>{delete klEd()[el.dataset.g].del[el.dataset.k];klEdRe()},
+  klabAddMat:()=>{const v=(($('klAddCod')||{}).value||'').trim(),q=krNum(($('klAddQ')||{}).value),cod=(v.match(/^([A-Z]{3}\d{6})/i)||[])[1];
+    if(!cod){toast('Escolha o material pela lista (código SAP).','bad');return}if(!(q>0)){toast('Informe a quantidade.','bad');return}
+    const pr=krPr(cod);klEd().mat.add.push({cod:cod.toUpperCase(),qtd:q,tipo:'PONTA A',desc:pr?pr.desc:v.replace(/^[A-Z]{3}\d{6}\s*·?\s*/i,'')});KLB.edAb=Object.assign({},KLB.edAb,{mat:true});klEdRe();toast(`${cod.toUpperCase()} incluído.`)},
+  klabAddMo:()=>{const v=(($('klAddLpu')||{}).value||'').trim(),q=krNum(($('klAddLq')||{}).value),f=(($('klAddLf')||{}).value)||'lanc',cod=(v.match(/^([A-Z]{3}\d{3,4}[a-z]?)/i)||[])[1];
+    if(!cod||!kcItem(cod)){toast('Escolha o serviço pela lista da LPU.','bad');return}if(!(q>0)){toast('Informe a quantidade.','bad');return}
+    klEd().mo.add.push({cod,q,fase:f});KLB.edAb=Object.assign({},KLB.edAb,{mo:true});klEdRe();toast(`${cod} incluído na mão de obra.`)}});
+/* desenho guardado no projeto (para corrigir depois): pontos como listas; ao voltar, as pontas de cordoalha, trechos e cabos
+   são religadas aos postes (arrastar o poste continua levando tudo junto) */
+function klSerial(){const D=KLB.D;if(!D)return null;const r=v=>v==='C'?'C':[+(+v[0]).toFixed(7),+(+v[1]).toFixed(7)];
+  return{v:1,c:D.c.map(r),P:D.P.map(p=>({t:p.t,ll:r(p.ll),esq:!!p.esq,nome:p.nome||''})),cords:D.cords.map(x=>({nome:x.nome,c:x.c.map(r)})),esq:(D.esq||[]).map(e=>({ll:r(e.ll),s:e.s,d:e.d})),
+    rts:D.rts.map(x=>({ll:r(x.ll),semCord:!!x.semCord})),tr:D.tr.map(t=>({tipo:t.tipo,a:r(t.a),b:r(t.b)})),cordU:D.cordU.map(x=>({a:r(x.a),b:r(x.b)})),seg:D.seg.map(g=>({a:r(g.a),b:r(g.b),cabo:g.cabo})),
+    X:D.X.map(x=>({k:x.k,ll:r(x.ll),nome:x.nome,spl:x.spl||''})),cabo:D.cabo,mel:!!KLB.mel,form:KLB.form||null,topo:KLB.topo,cid:KLB.cid,crit:!!KLB.crit,cxn:KLB.cxn,orig:KLB.orig||'',ors:!!KLB.ors,ext:KLB.ext?{nome:KLB.ext.nome,m:KLB.ext.m,cx:KLB.ext.cx,nomes:KLB.ext.nomes||[],longe:KLB.ext.longe||[]}:null}}
+function klDeserial(S){if(!S||!S.c)return null;const P=S.P.map(p=>({t:p.t,ll:p.ll.slice(),esq:p.esq,nome:p.nome,s:0}));
+  const liga=v=>{if(v==='C')return 'C';const q=P.find(p=>Math.abs(p.ll[0]-v[0])<1e-6&&Math.abs(p.ll[1]-v[1])<1e-6);return q?q.ll:v.slice()};
+  const D={c:S.c.map(v=>v.slice()),P,cords:S.cords.map(x=>({nome:x.nome,c:x.c.map(liga)})),esq:S.esq.map(e=>({ll:e.ll.slice(),s:e.s,d:e.d})),rts:S.rts.map(x=>({ll:x.ll.slice(),semCord:x.semCord})),
+    tr:S.tr.map(t=>({tipo:t.tipo,a:liga(t.a),b:liga(t.b)})),cordU:S.cordU.map(x=>({a:liga(x.a),b:liga(x.b)})),seg:S.seg.map(g=>({a:liga(g.a),b:liga(g.b),cabo:g.cabo})),X:S.X.map(x=>({k:x.k,ll:x.ll.slice(),nome:x.nome,spl:x.spl||''})),
+    cabo:S.cabo,cordRt:[],pecas:[],rt:null,rede:null,esp:false,drop:S.cabo==='drop',tot:0};
+  Object.assign(KLB,{D,mel:!!S.mel,form:S.form||KLB.form,topo:S.topo,cid:S.cid,crit:!!S.crit,cxn:S.cxn,orig:S.orig||'',ors:S.ors!==false,ext:S.ext||null,erro:'',modo:'',sel:null,etapa:'des'});return D}
+
+/* ---------- 27/10: ROI pelo KMZ e desenho: corrigir depois de salvo ----------
+   1) Projeto desenhado pelas coordenadas também guarda o retrato do ROI (antes só "Gerar pelo KMZ" guardava).
+   2) O retrato guarda os ajustes do projetista (materiais e LPU incluídos, quantidades e exclusões) e o desenho.
+   3) Ao abrir o cadastro de um projeto com ROI pelo KMZ (ex.: reprovado pelo O&M, "Corrigir"), a etapa ROI volta como
+      estava: lista de materiais e mão de obra com os ajustes (tela cheia para incluir, mudar e excluir), valor mensal,
+      taxa, extensão e, no desenhado, "Editar o desenho" abre o desenho salvo. Também dá para enviar outro KMZ. */
+{const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,des=W&&W.roiModo==='des'&&W.kr&&W.kr.M,etq=ui.roiTmp&&ui.roiTmp.etiqueta,id=W&&W.id,R=W&&W.kr;
+  if(des)W.roiModo='kmz';let o;try{o=_s.apply(this,arguments)}finally{if(des&&ui.wiz===W)W.roiModo='des'}
+  try{const p=S.previsao.find(x=>(id&&x.id===id)||(etq&&x.etiqueta===etq));if(p&&p.roiKmz&&R&&R.M){p.roiKmz.ed=R.ed?JSON.parse(JSON.stringify(R.ed)):null;p.roiKmz.des=R.desD||null;p.roiKmz.desenho=!!R.des;save()}}catch(e){console.warn('roiedit',e)}
+  return o}}
+/* ajustes de retratos antigos (sem "ed"): reconstruídos pelas marcas de cada item */
+function reEdDe(R){if(R.ed)return JSON.parse(JSON.stringify(R.ed));const E={mat:{del:{},q:{},add:[]},mo:{del:{},q:{},add:[]}};
+  (R.itens||[]).forEach(i=>{if(i.aj==='add')E.mat.add.push({cod:i.cod,qtd:i.qtd,tipo:i.tipo||'PONTA A',desc:i.desc,un:i.un});else if(i.aj==='qtd')E.mat.q[(i.tipo||'PONTA A')+'|'+(i.cod||i.desc)]=i.qtd});
+  (R.rem||[]).forEach(c=>{E.mat.del['PONTA A|'+c]=true});
+  ((R.mo&&R.mo.L)||[]).forEach(x=>{if(x.aj==='add')E.mo.add.push({cod:x.cod,q:x.q,fase:x.fase});else if(x.aj==='qtd')E.mo.q[x.fase+'|'+x.cod]=x.q});return E}
+function reRestaura(){const W=ui.wiz;if(!W||!W.id||(W.kr&&W.kr.M))return false;const p=S.previsao.find(x=>x.id===W.id),R=p&&p.roiKmz;
+  if(!R||R.origem!=='kmz'||!p.kmzMat||!(p.kmzMat.itens||[]).length)return false;
+  W.kr=Object.assign(W.kr||{},{M:JSON.parse(JSON.stringify(p.kmzMat)),nome:R.nome||'',valor:R.valor!=null&&R.valor!==''?String(R.valor).replace('.',','):'',taxa:R.taxa?String(R.taxa).replace('.',','):'',
+    topo:R.tp||'gpon',topoMan:true,ext:R.ext||null,ed:reEdDe(R),des:!!(R.desenho||R.des),desD:R.des||null,salvo:true});
+  if(R.sw)W.kr.sw=String(R.sw).replace(/^ATN000122$/,'2104').replace(/^ATN000130$/,'4370');W.roiModo=W.kr.des?'des':'kmz';return true}
+{const _w=ACT.wiz;ACT.wiz=function(){const r=_w.apply(this,arguments);try{if(reRestaura()){try{krAplica()}catch(e){}renderWiz()}}catch(e){console.warn('roiedit',e)}return r}}
+/* aviso na etapa ROI de um projeto já salvo */
+{const _p=krPainel;krPainel=function(){const h=_p.apply(this,arguments),R=ui.wiz&&ui.wiz.kr;if(!R||!R.salvo||!R.M)return h;
+  return h.replace('<div class="krbox">','<div class="krbox"><p class="result ok" style="margin:0 0 8px">ROI salvo no projeto. Para corrigir: <b>Abrir lista de materiais e mão de obra</b> (incluir, mudar quantidade ou excluir)'+(R.des?', <b>Editar o desenho</b>':'')+' ou envie outro KMZ. Os preços são os da tabela atual.</p>')}}
 
 /* ---------- 26/10: permissões das áreas gravam ----------
    PERM_ALL era montada antes de area.js/tx.js acrescentarem "GTD Manutenção" (m_gtd) e "Transmissão" (m_tx);
@@ -12434,7 +12511,7 @@ document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='salaEdTxt'){
 const PX_MAP={gPainel:'tx_painel',g_tempos:'tx_tempos',a_gExpurgo:'tx_a_expurgo',gCham:'tx_cham',a_gDespachar:'tx_a_desp',a_gEditar:'tx_a_edit',a_gValidar:'tx_a_valid',gAgenda:'tx_agenda',gNovo:'tx_novo',gRel:'tx_hist'};
 const PX_TX=['Transmissão',[['tx_painel','Painel de KPIs da Transmissão','t',[['tx_tempos','Tempos de atendimento da Transmissão','t',[['tx_a_expurgo','Expurgar tempos dos chamados','a']]]]],
   ['tx_cham','Chamados (Kanban)','t',[['tx_a_desp','Despachar chamados para o técnico','a'],['tx_a_edit','Agendar, editar e cancelar chamados e editar POPs','a'],['tx_a_valid','Acesso NOC: validar corretivas e GMUD','a']]],
-  ['tx_agenda','Agenda da Transmissão','t'],['tx_novo','Criar chamado','t'],['tx_hist','Histórico e POPs','t']]];
+  ['tx_agenda','Agenda da Transmissão','t'],['tx_novo','Criar chamado','t',[['tx_n_corr','NOC pode abrir: Manutenção corretiva','a'],['tx_n_prev','NOC pode abrir: Manutenção preventiva','a'],['tx_n_expT','NOC pode abrir: Expansão transceiver','a'],['tx_n_expI','NOC pode abrir: Expansão infraestrutura','a'],['tx_n_cross','NOC pode abrir: Cross Connect','a'],['tx_n_gmud','NOC pode abrir: GMUD','a'],['tx_n_outra','NOC pode abrir: Outras','a']]],['tx_hist','Histórico e POPs','t']]];
 const pxKeys=g=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3])});w(g[1]);return o};
 const PX_TK=pxKeys(PX_TX),PX_GK=pxKeys(PERM_T.find(g=>g[0]==='GTD Manutenção')||['',[]]);
 /* grupos: Transmissão logo depois do GTD; "Áreas de manutenção" só fica se sobrar outra área (Rede Externa) */
@@ -12442,24 +12519,28 @@ const PX_TK=pxKeys(PX_TX),PX_GK=pxKeys(PERM_T.find(g=>g[0]==='GTD Manutenção')
   const ig=PERM_T.findIndex(g=>g[0]==='GTD Manutenção');PERM_T.splice(ig>=0?ig+1:PERM_T.length,0,PX_TX);
   const add=k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)},w=L=>L.forEach(n=>{add(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));add('m_gtd');add('m_tx')}
 const PX_AREA=gn=>gn==='GTD Manutenção'||gn==='Áreas de manutenção'?'gtd':gn==='Transmissão'?'tx':'impl';
-const pxPapelTx=p=>p==='supervisor'||p==='encarregado';
+const pxPapelTx=p=>p==='supervisor'||p==='encarregado'||p==='noc';
+/* 27/10: NOC com a aba Transmissão nas permissões. Padrão do NOC: Chamados, Agenda, Criar chamado, Histórico e validar,
+   nas duas áreas. Lista do NOC gravada antes (sem nenhuma chave da Transmissão e sem a marca tx_v27) continua vendo a
+   Transmissão com as mesmas telas do GTD. */
+PERM_PAD.noc=[...new Set(PERM_PAD.noc.concat(['tx_cham','tx_agenda','tx_novo','tx_n_corr','tx_hist','tx_a_valid']))];
 /* lista gravada antes de 26/10 (Transmissão marcada + telas do GTD): vira as telas tx_* equivalentes */
-function pxNorm(set){let s=set.slice();if(s.includes('m_tx')&&!s.some(k=>PX_TK.includes(k))){Object.entries(PX_MAP).forEach(([g,t])=>{if(s.includes(g))s.push(t)});if(!s.includes('m_gtd'))s=s.filter(k=>!PX_GK.includes(k))}return s}
+function pxNorm(set,papel){let s=set.slice();if(papel==='noc'&&!s.includes('tx_v27')&&!s.includes('m_tx')&&!s.some(k=>PX_TK.includes(k))){Object.entries(PX_MAP).forEach(([g,t])=>{if(s.includes(g))s.push(t)});if(s.includes('tx_novo'))s.push('tx_n_corr');if(s.some(k=>PX_TK.includes(k)))s.push('m_tx')}if(s.includes('m_tx')&&!s.some(k=>PX_TK.includes(k))){Object.entries(PX_MAP).forEach(([g,t])=>{if(s.includes(g))s.push(t)});if(!s.includes('m_gtd'))s=s.filter(k=>!PX_GK.includes(k))}return s}
 const pxDeriva=s=>{s=s.filter(k=>k!=='m_gtd'&&k!=='m_tx');if(s.some(k=>PX_GK.includes(k)))s.push('m_gtd');if(s.some(k=>PX_TK.includes(k)))s.push('m_tx');return s};
 /* permissões efetivas da área aberta */
-function permEff(){if(!ME||!['sup','enc'].includes(ui.perfil))return;if(!('pBase' in ME))ME.pBase=ME.perm;
-  const b=pxNorm(permDe(ME.papel,ME.pBase)),hG=b.some(k=>PX_GK.includes(k)),hT=b.some(k=>PX_TK.includes(k));
+function permEff(){if(!ME||!['sup','enc','noc'].includes(ui.perfil))return;if(!('pBase' in ME))ME.pBase=ME.perm;
+  const b=pxNorm(permDe(ME.papel,ME.pBase),ME.papel),hG=b.some(k=>PX_GK.includes(k)),hT=b.some(k=>PX_TK.includes(k));
   let a=ui.gArea==='tx'||ui.gArea==='gtd'?ui.gArea:(hG?'gtd':hT?'tx':'gtd');if(a==='gtd'&&!hG&&hT)a='tx';if(a==='tx'&&!hT&&hG)a='gtd';
   const e=b.filter(k=>!PX_GK.includes(k)&&!PX_TK.includes(k)&&k!=='m_gtd'&&k!=='m_tx');
-  if(a==='tx')Object.entries(PX_MAP).forEach(([g,t])=>{if(b.includes(t))e.push(g)});else e.push(...b.filter(k=>PX_GK.includes(k)));
+  if(a==='tx'){Object.entries(PX_MAP).forEach(([g,t])=>{if(b.includes(t))e.push(g)});e.push(...b.filter(k=>/^tx_n_/.test(k)))}else e.push(...b.filter(k=>PX_GK.includes(k)));
   if(hG)e.push('m_gtd');if(hT)e.push('m_tx');ME.perm=e}
 {const _c=carregar;carregar=async function(){permEff();return _c.apply(this,arguments)}}
 {const _r=render;render=function(){try{permEff();if(typeof areaFix==='function'){areaFix();permEff()}}catch(e){console.warn('permEff',e)}return _r.apply(this,arguments)}}
 {const _g=ACT.gCat;ACT.gCat=function(el){const v=el&&el.dataset&&el.dataset.v;if(v==='tx'||v==='gtd'){ui.gArea=v;permEff()}return _g.apply(this,arguments)}}
 /* tela de permissões */
 {const _v=viewPermissoes;viewPermissoes=function(){const id=ui.permSel,pp=USR&&USR.pp.find(x=>x.user_id===id);if(!pp)return _v.apply(this,arguments);
-  if(!(ui.permEd&&ui.permEd.id===id))ui.permEd={id,set:pxNorm(permDe(pp.papel,pp.permissoes))};
-  const tira=!pxPapelTx(pp.papel),it=PERM_T.indexOf(PX_TX);if(tira&&it>=0)PERM_T.splice(it,1);let h;try{h=_v.apply(this,arguments)}finally{if(tira&&it>=0)PERM_T.splice(it,0,PX_TX)}
+  if(!(ui.permEd&&ui.permEd.id===id))ui.permEd={id,set:pxNorm(permDe(pp.papel,pp.permissoes),pp.papel)};
+  const tira=!pxPapelTx(pp.papel),it=PERM_T.indexOf(PX_TX),nn=PX_TX[1].find(n=>n[0]==='tx_novo'),fil=nn&&nn[3],soNoc=pp.papel!=='noc'&&fil;if(tira&&it>=0)PERM_T.splice(it,1);if(soNoc)nn.length=3;let h;try{h=_v.apply(this,arguments)}finally{if(tira&&it>=0)PERM_T.splice(it,0,PX_TX);if(soNoc)nn[3]=fil}
   const P=new Set(ui.permEd.set),PT=PERM_T.filter(g=>!(tira&&g===PX_TX)&&!(pp.papel==='delivery'&&g[0]==='GTD Manutenção'));
   const AB=[['impl','Implantação'],['gtd','GTD Manutenção'],['tx','Transmissão']].filter(([k])=>PT.some(g=>PX_AREA(g[0])===k));
   if(AB.length<2)return h;if(!AB.some(a=>a[0]===ui.permAba))ui.permAba=AB[0][0];
@@ -12472,8 +12553,8 @@ function permEff(){if(!ME||!['sup','enc'].includes(ui.perfil))return;if(!('pBase
   return h.replace('<div class="actions">','<div class="actions pxact">')}}
 Object.assign(ACT,{pxAba:el=>{ui.permAba=el.dataset.v;render();const b=document.querySelector('.pxtabs');if(b&&b.getBoundingClientRect().top<0)b.scrollIntoView({block:'start'})},
   pxTudo:el=>{const E=ui.permEd;if(!E)return;const ks=[];PERM_T.filter(g=>PX_AREA(g[0])===ui.permAba).forEach(g=>ks.push(...pxKeys(g)));const s=new Set(E.set);ks.forEach(k=>el.dataset.v?s.add(k):s.delete(k));if(el.dataset.v&&s.has('a_projeto'))s.add('a_valor');E.set=[...s];render()}});
-{const _s=ACT.permSalvar;ACT.permSalvar=function(){if(ui.permEd)ui.permEd.set=pxDeriva(ui.permEd.set);return _s.apply(this,arguments)}}
-{const _p=CH.permCopia;if(_p)CH.permCopia=function(el){const r=_p.apply(this,arguments);if(ui.permEd)ui.permEd.set=pxNorm(ui.permEd.set);return r}}
+{const _s=ACT.permSalvar;ACT.permSalvar=function(){if(ui.permEd){ui.permEd.set=pxDeriva(ui.permEd.set.filter(k=>k!=='tx_v27'));const pp=USR&&USR.pp.find(x=>x.user_id===ui.permEd.id);if(pp&&pp.papel==='noc'){const S0=ui.permEd.set.filter(k=>!/^m_|^_v/.test(k)),P=PERM_PAD.noc;if(!(S0.length===P.length&&P.every(k=>S0.includes(k))))ui.permEd.set.push('tx_v27')}}return _s.apply(this,arguments)}}
+{const _p=CH.permCopia;if(_p)CH.permCopia=function(el){const r=_p.apply(this,arguments);if(ui.permEd){const pp=USR&&USR.pp.find(x=>x.user_id===ui.permEd.id);ui.permEd.set=pxNorm(ui.permEd.set,pp&&pp.papel)}return r}}
 {const _p=ACT.permFechar;if(_p)ACT.permFechar=function(){ui.permAba=null;return _p.apply(this,arguments)}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
