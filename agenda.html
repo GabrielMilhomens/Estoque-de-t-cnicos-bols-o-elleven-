@@ -11982,11 +11982,11 @@ function kaSvg(D){if(!D)return '';const T=kaPlano(D.c[0]),pts=D.c.concat(D.P.map
    SHA-256 do e-mail do login; o e-mail não fica escrito na página). Desenha o traçado do cliente até a caixa pelas
    ruas (agenda-rota, ação "tracado"), mostra no mapa (Esri), monta a lista de materiais e baixa o .kmz.
    NADA é gravado: não cria projeto, não sobe arquivo, não escreve no banco. A regra de esquinas vale só aqui dentro. */
-const KL_H='14569851c6f21e75306348adc69dca2b7b0466485482ba1291debcb135c44a8b';
+const KL_H=['78ac78a3204210a898394294cd599cb1a375bf9d4e49db78474e02ed3fd63bbb','14569851c6f21e75306348adc69dca2b7b0466485482ba1291debcb135c44a8b'];
 const KLB={ok:null,uid:null,D:null,M:null,kml:'',kmz:null,nome:'',erro:'',map:null,fundo:'ruas',ors:false};
 async function klabPode(){const uid=ME&&ME.id;if(!uid)return false;if(KLB.uid===uid&&KLB.ok!==null)return KLB.ok;KLB.uid=uid;KLB.ok=false;
   try{const{data}=await sb.auth.getSession(),e=String((data&&data.session&&data.session.user&&data.session.user.email)||'').trim().toLowerCase();
-    if(e&&window.crypto&&crypto.subtle){const h=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(e)))].map(b=>b.toString(16).padStart(2,'0')).join('');KLB.ok=h===KL_H}}
+    if(e&&window.crypto&&crypto.subtle){const h=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(e)))].map(b=>b.toString(16).padStart(2,'0')).join('');KLB.ok=KL_H.includes(h)}}
   catch(x){KLB.ok=false}return KLB.ok}
 const KL_ICO='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>';
 function klabBotao(){if(!KLB.ok||!ME)return;document.querySelectorAll('[data-act="conta"],[data-act="navConta"]').forEach(b=>{const pai=b.parentElement;if(!pai||pai.querySelector('.klabBtn'))return;

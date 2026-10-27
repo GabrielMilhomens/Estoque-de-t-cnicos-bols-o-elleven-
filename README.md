@@ -71,6 +71,7 @@ Sistema web de gestão das atividades de campo de O&M em duas categorias: **Impl
 
 | Biblioteca | Versão | Uso |
 |---|---|---|
+| 27/10/2026 | **Laboratório de KMZ:** passa a reconhecer o e-mail corporativo de login do Gabriel (o botão não aparecia porque só o e-mail pessoal estava liberado). Continua guardado só como hash. | `agenda.html`. |
 | 27/10/2026 | **Laboratório de KMZ** (teste do desenho automático do KMZ pelas coordenadas do cliente e da caixa, no padrão construtivo, com mapa, lista de materiais e download do `.kmz`), visível só para o Gabriel e sem gravar nada. Ação `tracado` (caminho mais curto) no serviço de rotas. Detalhes em 6.1 e 7. | `agenda.html` e `agenda-rota.ts` (publicar de novo a Edge Function `agenda-rota`). Sem SQL. |
 | `@supabase/supabase-js` | 2 (jsDelivr) | Autenticação, banco, Storage, Realtime e chamada da Edge Function |
 | jsPDF | 2.5.1 | Geração de PDFs (LPU, relatórios fotográficos, relatório de não conclusão) |
