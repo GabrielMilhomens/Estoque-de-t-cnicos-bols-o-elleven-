@@ -2135,6 +2135,9 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 .klposte{background:none;border:0}.klposte i{display:block;margin:3px;border-radius:50%;border-style:solid;box-sizing:border-box;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 .klpin.klx span{border-radius:5px}.klpin.klesp span{border-radius:4px;color:#111}
 #klab .klico{display:inline-flex;gap:4px;align-items:center}#klab .klico select{width:auto;min-height:32px;padding:4px 8px;font-size:13.5px}
+#klab .klkpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}#klab .klkpi div{border:1px solid var(--line);border-radius:10px;padding:8px 12px;display:flex;flex-direction:column}#klab .klkpi small{color:var(--muted);font-size:12.5px}#klab .klkpi b{font-size:19px}#klab .klkpi .t{background:var(--brand-soft,#eef6e4);border-color:var(--brand)}
+#klab .klvd{margin-top:8px}#klab .klvd summary{cursor:pointer;font-weight:600;color:var(--info)}
+@media (max-width:600px){#klab .klkpi{grid-template-columns:1fr}}
 .pdcol.loc{background:var(--warn-soft)}@media(min-width:1100px){.pdcols{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.kpis.pdk7{grid-template-columns:repeat(7,minmax(0,1fr))}}@media(min-width:1100px){.pdcol{padding:10px 8px}.pdcols .pdc2 .cat{flex-wrap:wrap;flex-direction:row;justify-content:flex-start}.pdcols .pdc2 .cat>b{flex:1 1 100%}.pdcols .pdc2 .cat>*:not(b){margin-left:0}}.pdkf{margin-top:14px}.pdkf .pdct span{display:flex;align-items:center;gap:10px}.pdkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-items:start}</style>
 </head>
 <body>
@@ -12015,6 +12018,9 @@ function klabTela(){let o=document.getElementById('klab');if(o)return o;o=docume
     <label class="f"><span>Nome da caixa</span><input class="inp" id="klCxN" placeholder="CTO N8I4"></label>
     <label class="f"><span>Cabo</span><select class="inp" id="klCabo"><option value="drop">Drop fig. 8 (4FO)</option><option value="fo4">Cabo 4FO</option><option value="fo12">Cabo 12FO</option></select></label>
     <label class="f"><span>Vão médio entre postes (m)</span><input class="inp" id="klVao" type="number" min="15" max="80" value="35"></label>
+    <label class="f"><span>Topologia (mão de obra de ativação)</span><select class="inp" id="klTopo"><option value="GPON">GPON</option><option value="Ponto a ponto">Ponto a ponto</option></select></label>
+    <label class="f"><span>Cidade (deslocamento da LPU)</span><input class="inp" id="klCid" placeholder="Opcional"></label>
+    <label class="chk"><input type="checkbox" id="klCrit"> Região crítica (valor crítico da LPU)</label>
     <label class="chk"><input type="checkbox" id="klEsp"> Todo o trecho espinado na rede existente</label>
     <div class="tools"><button type="button" class="btn primary" data-act="klabGera">Desenhar traçado</button></div>
     <p class="muted klnota">Cole a coordenada como no Google Maps (latitude, longitude). O traçado segue as ruas pelo caminho mais curto; postes, esquinas e reserva técnica seguem o padrão construtivo.</p></section>
@@ -12029,16 +12035,32 @@ function klProj(c,ll){const{T,X,cum}=klCum(c),p=T.xy(ll);let bd=1e12,bs=0,bp=X[0
 function klSub(c,a,b){const{T,X,cum}=klCum(c),em=s=>{let i=1;while(i<cum.length-1&&cum[i]<s)i++;const L=cum[i]-cum[i-1]||1,t=Math.max(0,Math.min(1,(s-cum[i-1])/L));return T.ll([X[i-1][0]+t*(X[i][0]-X[i-1][0]),X[i-1][1]+t*(X[i][1]-X[i-1][1])])};
   const o=[em(a)];for(let i=0;i<cum.length;i++)if(cum[i]>a&&cum[i]<b)o.push(c[i]);o.push(em(b));return o}
 /* refaz o KML, a lista de materiais e o arquivo a partir do desenho editado */
+/* o cabo passa pelo poste movido: entre o poste anterior e o seguinte do traçado, o cabo vai em linha reta pelo novo lugar */
+function klCaboPoste(D,p,old){if(p.esq)return;const q0=klProj(D.c,old);if(q0.d>25)return;const tot=klCum(D.c).cum.slice(-1)[0];
+  const ps=D.P.filter(q=>q!==p&&!q.esq).map(q=>Object.assign({q},klProj(D.c,q.ll))).filter(x=>x.d<25).concat((D.esq||[]).map(e=>klProj(D.c,e.ll)).filter(x=>x.d<3));/* a esquina também segura o cabo: ele não corta a curva */let a=null,b=null;ps.forEach(x=>{if(x.s<q0.s-0.5&&(!a||x.s>a.s))a=x;if(x.s>q0.s+0.5&&(!b||x.s<b.s))b=x});
+  const sa=a?a.s:0,sb=b?b.s:tot,pre=sa>0?klSub(D.c,0,sa):[D.c[0]],suf=sb<tot?klSub(D.c,sb,tot):[D.c[D.c.length-1]];
+  pre[0]=D.c[0];D.c=pre.concat([p.ll.slice()],suf).filter((v,i,A)=>i===0||kmHav(v,A[i-1])>=0.3)}
 /* pares de postes vizinhos (ao longo do cabo) de cada reserva técnica: cordoalha entre eles */
 function klRtPar(D,r){const s=klProj(D.c,r.ll).s,ps=D.P.map(p=>({p,s:klProj(D.c,p.ll).s})).sort((a,b)=>a.s-b.s);let A=null,B=null;ps.forEach(x=>{if(x.s<=s)A=x;else if(!B)B=x});return A&&B?[A.p,B.p]:null}
 function klRtRegra(D,r){const par=klRtPar(D,r);if(par)par.forEach(p=>{p.t='EB'})}
+const KL_SPL=['1x2','1x4','1x8','1x16','1x32','5/95','10/90','15/85','20/80','30/70','40/60','50/50'];
+/* splitter da CEO: código pela tabela de preços (descrição com SPLITTER e o tipo) */
+function klSplCod(t){const P=krPrecos(),k=String(t||'').toUpperCase().replace(/\s/g,''),rx=k.includes('/')?new RegExp(k.split('/').join('\\s*/\\s*')):new RegExp('\\b'+k.replace('X','\\s*X\\s*')+'\\b');
+  if(!P||!P.itens)return null;const f=Object.entries(P.itens).find(([c,x])=>/SPLITTER/i.test(x[0])&&rx.test(String(x[0]).toUpperCase()));return f?f[0]:null}
+/* prévia de valores: materiais do desenho × tabela de preços + mão de obra pela LPU (mesma regra do ROI pelo KMZ) */
+function klValores(){const D=KLB.D,M=KLB.M;if(!D||!M)return null;
+  const mat=M.itens.map(i=>{const pr=krPr(i.cod);return{cod:i.cod||'',desc:(pr&&pr.desc)||i.desc,qtd:i.qtd,un:i.un,vu:pr?pr.v:null}});
+  D.X.filter(x=>x.k==='ceo'&&x.spl).forEach(x=>{const cod=klSplCod(x.spl),pr=krPr(cod);mat.push({cod:cod||'',desc:(pr&&pr.desc)||('SPLITTER '+x.spl.toUpperCase()),qtd:1,un:'UN',vu:pr?pr.v:null,spl:x.nome})});
+  mat.forEach(i=>{i.vt=i.vu==null?null:Math.round(i.vu*i.qtd*100)/100});const vMat=Math.round(mat.reduce((s,i)=>s+(i.vt||0),0)*100)/100;
+  let mo=null;try{mo=kleCalc({topologia:KLB.topo||'GPON',fator:KLB.crit?'critico':'comum',cidade:KLB.cid||'',dRua:0,dInterno:0,dExt:0,dAtiv:0,semExt:true,klExt:null,kl:{q:M.kq}})}catch(e){mo={L:[],tot:0,fraco:['não foi possível calcular a mão de obra: '+(e.message||e)]}}
+  return{mat,vMat,mo,tot:Math.round((vMat+(mo.tot||0))*100)/100,sem:mat.filter(i=>i.vu==null)}}
 async function klabRefaz(manter){const D=KLB.D;if(!D)return;D.tot=Math.round(klCum(D.c).cum.slice(-1)[0]);
   D.tr.forEach(t=>{const a=klProj(D.c,t.a).s,b=klProj(D.c,t.b).s;t.c=klSub(D.c,Math.min(a,b),Math.max(a,b));t.m=Math.round(Math.abs(b-a))});
   D.cordRt=[];D.rts.forEach((r,i)=>{const par=klRtPar(D,r);if(par)D.cordRt.push({nome:`CORDOALHA RT ${i+1}`,c:[par[0].ll,par[1].ll]})});
-  const K=Object.assign({},D,{cords:D.cords.concat(D.cordRt,D.cordU.map((x,i)=>({nome:`CORDOALHA ${i+1}`,c:[x.a,x.b]})))});
+  const K=Object.assign({},D,{X:D.X.map(x=>x.k==='ceo'&&x.spl?Object.assign({},x,{nome:x.nome+' - SPLITTER '+x.spl.toUpperCase()}):x).concat(D.X.filter(x=>x.k==='ceo'&&x.spl).map(x=>({k:'spl',ll:x.ll,nome:'SPLITTER '+x.spl.toUpperCase()+' ('+x.nome+')'}))),cords:D.cords.concat(D.cordRt,D.cordU.map((x,i)=>({nome:`CORDOALHA ${i+1}`,c:[x.a,x.b]})))});
   const kml=kaKml(K,{cabo:D.cabo,caixa:KLB.cxn,cliente:'',titulo:'TESTE - traçado automático '+KLB.cxn}),o=window.KM_ESQ;window.KM_ESQ=true;let M=null;try{M=kmMat(kmParse(kml))}finally{window.KM_ESQ=o}
-  Object.assign(KLB,{kml,M,kmz:await kaKmz(kml),manter:!!manter});klabRes()}
-const KL_X=[['poste','Poste (encabeçamento fita)'],['cs','Caixa subterrânea (CS)'],['ceo','Caixa de emenda (CEO nova)'],['cto','CTO nova'],['spl','Splitter'],['info','Informação (texto)']];
+  Object.assign(KLB,{kml,M,kmz:await kaKmz(kml),manter:!!manter});try{await krCarregaPrecos()}catch(e){}KLB.V=klValores();klabRes()}
+const KL_X=[['poste','Poste (encabeçamento fita)'],['cs','Caixa subterrânea (CS)'],['ceo','Caixa de emenda (CEO nova)'],['cto','CTO nova'],['info','Informação (texto)']];
 const KL_XI={cs:['■','#6b7280'],ceo:['E','#2563eb'],cto:['T','#db2777'],spl:['▲','#7c3aed'],info:['i','#0891b2']};
 const KL_PAR={esp:'trecho espinado',ex:'trecho em rede existente (sem espinar)',cord:'cordoalha'};
 function klHint(){const m=KLB.modo;if(m==='rt')return 'Toque no cabo onde vai a reserva técnica (no meio do vão, fora de poste e de esquina). Os 2 postes do vão viram encabeçamento BAP e entra cordoalha entre eles.';
@@ -12049,7 +12071,7 @@ async function klabMapa(){const D=KLB.D,box=document.getElementById('klMap');if(
   try{await vtLib()}catch(e){box.innerHTML='<p class="muted" style="padding:12px">Não foi possível carregar o mapa. O KMZ pode ser baixado normalmente.</p>';return}
   let vw=null;if(KLB.map){if(KLB.manter)vw={c:KLB.map.getCenter(),z:KLB.map.getZoom()};try{KLB.map.remove()}catch(e){}KLB.map=null}
   const LL=window.L,m=LL.map(box,{zoomControl:true}),F=VT_FUNDOS[KLB.fundo]||VT_FUNDOS.ruas;KLB.map=m;
-  LL.tileLayer(F.u,{maxNativeZoom:F.max,maxZoom:21,attribution:F.at,crossOrigin:true}).addTo(m);if(F.sob)LL.tileLayer(F.sob,{maxNativeZoom:F.max,maxZoom:21,crossOrigin:true}).addTo(m);
+  LL.tileLayer(F.u,{maxNativeZoom:KLB.fundo==='sat'?18:F.max,maxZoom:21,attribution:F.at,crossOrigin:true}).addTo(m);if(F.sob)LL.tileLayer(F.sob,{maxNativeZoom:KLB.fundo==='sat'?18:F.max,maxZoom:21,crossOrigin:true}).addTo(m);
   const cab=(KA_CABO[D.cabo]||KA_CABO.drop)[1],cor='#'+cab.slice(6,8)+cab.slice(4,6)+cab.slice(2,4);
   const btn=(t,f,cls)=>{const b=document.createElement('button');b.type='button';b.className='btn sm'+(cls?' '+cls:'');b.textContent=t;b.onclick=e=>{e.stopPropagation();m.closePopup();f()};return b};
   const pop=(ll,tit,fill)=>{const b=document.createElement('div');b.className='klpop';b.innerHTML=`<b>${tit}</b>`;fill(b);LL.popup({minWidth:210}).setLatLng(ll).setContent(b).openOn(m)};
@@ -12064,7 +12086,7 @@ async function klabMapa(){const D=KLB.D,box=document.getElementById('klMap');if(
   D.P.forEach(p=>{const sel=KLB.sel===p.ll,r=p.t[0]==='E'?16:13;
     const mk=LL.marker(p.ll,{draggable:true,icon:LL.divIcon({className:'klposte',html:`<i style="width:${r}px;height:${r}px;background:${klCor(p.t)};border-color:${sel?'#dc2626':'#1f2a22'};border-width:${sel?3:1.5}px"></i>`,iconSize:[r+6,r+6],iconAnchor:[(r+6)/2,(r+6)/2]})}).addTo(m)
       .bindTooltip((KL_TP.find(x=>x[0]===p.t)||['',''])[1]+(p.esq?' · esquina':'')+' · arraste para mudar de lugar');
-    mk.on('dragend',()=>{set(p.ll,mk.getLatLng());klabRefaz(true)});
+    mk.on('dragend',()=>{const old=p.ll.slice();set(p.ll,mk.getLatLng());klCaboPoste(D,p,old);klabRefaz(true)});
     mk.on('click',ev=>{LL.DomEvent.stop(ev);const md=KLB.modo;
       if(KL_PAR[md]){if(!KLB.sel){KLB.sel=p.ll;KLB.manter=true;klabRes();return}if(KLB.sel===p.ll){toast('Escolha outro poste para o fim.','bad');return}
         if(md==='cord'){D.cordU.push({a:KLB.sel,b:p.ll});KLB.sel=null;KLB.modo='';klabRefaz(true);return}
@@ -12077,9 +12099,10 @@ async function klabMapa(){const D=KLB.D,box=document.getElementById('klMap');if(
   D.rts.forEach(r=>{const mk=LL.marker(r.ll,{icon:di('R','#dc2626','Reserva técnica'),draggable:true,zIndexOffset:300}).addTo(m).bindTooltip('RT 30M · arraste para mudar de lugar');
     mk.on('dragend',()=>{const q=klProj(D.c,[mk.getLatLng().lat,mk.getLatLng().lng]);r.ll=q.ll;klRtRegra(D,r);klabRefaz(true)});
     mk.on('click',ev=>{LL.DomEvent.stop(ev);pop(r.ll,'Reserva técnica (30 m)',b=>b.appendChild(btn('Remover reserva',()=>{D.rts.splice(D.rts.indexOf(r),1);klabRefaz(true)},'klrem')))})});
-  D.X.forEach(x=>{const[h,c]=KL_XI[x.k]||['?','#555'],mk=LL.marker(x.ll,{icon:di(h,c,x.nome,'klx'),draggable:true,zIndexOffset:200}).addTo(m).bindTooltip(x.nome+' · arraste para mudar de lugar');
+  D.X.forEach(x=>{const[h,c]=KL_XI[x.k]||['?','#555'],mk=LL.marker(x.ll,{icon:di(h,c,x.nome,'klx'),draggable:true,zIndexOffset:200}).addTo(m).bindTooltip(x.nome+(x.spl?' · splitter '+x.spl:'')+' · arraste para mudar de lugar');
     mk.on('dragend',()=>{set(x.ll,mk.getLatLng());klabRefaz(true)});
     mk.on('click',ev=>{LL.DomEvent.stop(ev);pop(x.ll,(KL_X.find(k=>k[0]===x.k)||['',''])[1],b=>{const i=document.createElement('input');i.className='inp';i.value=x.nome;i.setAttribute('aria-label','Nome');i.onchange=()=>{x.nome=i.value.trim()||x.nome;klabRefaz(true)};b.appendChild(i);
+      if(x.k==='ceo'){const l=document.createElement('label');l.className='f';l.innerHTML='<span>Splitter na caixa</span>';const sl=document.createElement('select');sl.className='inp';sl.innerHTML='<option value="">Sem splitter</option>'+KL_SPL.map(t=>`<option value="${t}" ${x.spl===t?'selected':''}>${t.includes('/')?'Desbalanceado '+t:'Balanceado '+t}</option>`).join('');sl.onchange=()=>{x.spl=sl.value;m.closePopup();klabRefaz(true)};l.appendChild(sl);b.appendChild(l)}
       b.appendChild(btn('Remover',()=>{D.X.splice(D.X.indexOf(x),1);klabRefaz(true)},'klrem'))})})});
   const cm=LL.marker(D.c[0],{icon:di('C','#16a34a','Cliente'),draggable:true,zIndexOffset:500}).addTo(m).bindTooltip('Cliente · arraste para dentro do imóvel para aumentar o cabo interno');
   cm.on('dragend',()=>{const g=cm.getLatLng();D.c[0]=[g.lat,g.lng];klabRefaz(true)});
@@ -12087,10 +12110,18 @@ async function klabMapa(){const D=KLB.D,box=document.getElementById('klMap');if(
   const toque=e=>{const md=KLB.modo,ll=[e.latlng.lat,e.latlng.lng];
     if(md==='rt'){const q=klProj(D.c,ll);if(q.d>40){toast('Toque mais perto do cabo.','bad');return}
       if(D.P.some(p=>kmHav(p.ll,q.ll)<4))toast('A reserva ficou em cima de um poste: o padrão pede no meio do vão. Arraste o R se precisar.','warn');const r={ll:q.ll};D.rts.push(r);klRtRegra(D,r);KLB.modo='';klabRefaz(true);return}
-    if(md==='ico'){const k=KLB.icoK||'poste';if(k==='poste')D.P.push({t:'EF',ll,s:0});else{const n=D.X.filter(x=>x.k===k).length+1;D.X.push({k,ll,nome:{cs:'CS',ceo:'CEO NOVA',cto:'CTO NOVA',spl:'SPLITTER',info:'INFORMAÇÃO'}[k]+' '+n})}KLB.modo='';klabRefaz(true)}};
+    if(md==='ico'){const k=KLB.icoK||'poste';if(k==='poste'){const np={t:'EF',ll,s:0};D.P.push(np);const q=klProj(D.c,ll);if(q.d<25)klCaboPoste(D,np,q.ll)}else{const n=D.X.filter(x=>x.k===k).length+1;D.X.push({k,ll,nome:{cs:'CS',ceo:'CEO NOVA',cto:'CTO NOVA',spl:'SPLITTER',info:'INFORMAÇÃO'}[k]+' '+n})}KLB.modo='';klabRefaz(true)}};
   m.on('click',toque);linha.on('click',ev=>{LL.DomEvent.stop(ev);toque(ev)});
   box.classList.toggle('klmira',!!KLB.modo);
   if(vw)m.setView(vw.c,vw.z,{animate:false});else m.fitBounds(LL.latLngBounds(D.c.concat(D.P.map(p=>p.ll))),{padding:[30,30]})}
+function klValHtml(){const V=KLB.V;if(!V)return '';const b=krBrl,fq=v=>(+v).toLocaleString('pt-BR'),F={lanc:'Lançamento',ext:'Extensão',ativ:'Ativação'};
+  return `<section class="klval"><h3 style="margin:14px 0 8px">Prévia de valores do projetado</h3>
+   <div class="klkpi"><div><small>Materiais</small><b>${b(V.vMat)}</b></div><div><small>Mão de obra (LPU${KLB.crit?', crítico':''})</small><b>${b(V.mo.tot||0)}</b></div><div class="t"><small>Total</small><b>${b(V.tot)}</b></div></div>
+   ${V.sem.length?`<p class="result warn" style="margin:8px 0">${V.sem.length} ${V.sem.length>1?'materiais sem preço':'material sem preço'} na tabela: ${V.sem.map(i=>esc(i.desc)).join(', ')}. Não entram no total.</p>`:''}
+   ${V.mo.fraco&&V.mo.fraco.length?`<p class="muted" style="font-size:13px;margin:6px 0">Mão de obra: ${V.mo.fraco.map(esc).join('; ')}.</p>`:''}
+   <details class="klvd"><summary>Materiais com valor (${V.mat.length})</summary><div class="tblwrap"><table class="tbl kltbl"><thead><tr><th>Código</th><th>Material</th><th style="text-align:right">Qtd</th><th style="text-align:right">Unitário</th><th style="text-align:right">Total</th></tr></thead><tbody>${V.mat.map(i=>`<tr><td>${esc(i.cod)}</td><td>${esc(i.desc)}${i.spl?` <small class="muted">(${esc(i.spl)})</small>`:''}</td><td style="text-align:right">${fq(i.qtd)} ${esc(i.un)}</td><td style="text-align:right">${i.vu==null?'<span class="krsem">sem preço</span>':b(i.vu)}</td><td style="text-align:right">${i.vt==null?'':b(i.vt)}</td></tr>`).join('')}</tbody></table></div></details>
+   <details class="klvd"><summary>Mão de obra pela LPU (${(V.mo.L||[]).length} serviços)</summary><div class="tblwrap"><table class="tbl kltbl"><thead><tr><th>Fase</th><th>Código</th><th>Serviço</th><th style="text-align:right">Qtd</th><th style="text-align:right">Unitário</th><th style="text-align:right">Total</th></tr></thead><tbody>${(V.mo.L||[]).map(x=>`<tr><td>${F[x.fase]||x.fase}</td><td>${esc(x.cod)}</td><td>${esc(x.desc)}<br><small class="muted">${esc(x.regra||'')}</small></td><td style="text-align:right">${fq(x.q)}</td><td style="text-align:right">${b(x.u)}</td><td style="text-align:right">${b(x.v)}</td></tr>`).join('')}</tbody></table></div></details>
+   <p class="muted" style="font-size:12.5px;margin:6px 0 0">Só o que está desenhado (ponta A e lançamento). Não entram o kit da ponta B (ONU/GBIC), a extensão de sinal e o deslocamento sem cidade.</p></section>`}
 function klabRes(){const el=document.getElementById('klRes');if(!el)return;const D=KLB.D,M=KLB.M;
   if(KLB.erro&&!D){el.innerHTML=`<div class="result bad"><b>Não consegui seguir as ruas:</b> ${esc(KLB.erro)}. Confira se o serviço de rotas foi publicado com a ação "tracado" e tente de novo.<div class="tools" style="margin-top:8px"><button type="button" class="btn sm" data-act="klabGera" data-l="1">Desenhar em L mesmo assim</button></div></div>`;return}
   if(!D){el.innerHTML='<div class="klvazio muted">Informe as coordenadas e toque em <b>Desenhar traçado</b>.</div>';return}
@@ -12105,6 +12136,7 @@ function klabRes(){const el=document.getElementById('klRes');if(!el)return;const
    <p class="kaleg">${leg.map(([t,n])=>`<span><i style="background:${klCor(t)}"></i>${n.toLowerCase()}: ${cnt(t)}</span>`).join('')}${D.cords.length?'<span><i class="kal"></i>cordoalha em cruz</span>':''}${D.rts.length?'<span><i style="background:#dc2626"></i>reserva técnica</span>':''}${D.cordRt.length||D.cordU.length?'<span><i style="background:#fff;border:1px solid #111"></i>cordoalha (RT e adicionada)</span>':''}${D.tr.some(t=>t.tipo==='esp')?'<span><i style="background:#f59e0b;opacity:.6"></i>rede existente espinada (faixa contínua)</span>':''}${D.tr.some(t=>t.tipo==='ex')?'<span><i style="background:repeating-linear-gradient(90deg,#f59e0b 0 2px,transparent 2px 5px)"></i>rede existente sem espinar (faixa tracejada)</span>':''}</p>
    ${D.tr.length?`<ul class="kltr">${D.tr.map((t,i)=>`<li><span><b>${KL_TR[t.tipo]}</b> · ${kmN0(t.m||0)} m</span><button type="button" class="btn sm ghost" data-act="klabTrDel" data-i="${i}">Remover trecho</button></li>`).join('')}</ul>`:''}
    ${M&&M.av&&M.av.length?`<details class="klav"><summary>${M.av.length} ${M.av.length>1?'observações':'observação'} da leitura</summary><ul>${M.av.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></details>`:''}
+   ${klValHtml()}
    <h3 style="margin:14px 0 6px">Lista de materiais (como a ferramenta leria este KMZ)</h3>
    <div class="tblwrap"><table class="tbl kltbl"><thead><tr><th>Código</th><th>Material</th><th style="text-align:right">Qtd</th><th>Como foi calculado</th></tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.cod||'')}</td><td>${esc(i.desc)}</td><td style="text-align:right;white-space:nowrap"><b>${kmN0(i.qtd)}</b> ${esc(i.un)}</td><td class="muted" style="font-size:12.5px">${esc(i.memo||'')}</td></tr>`).join('')}</tbody></table></div>`;
   klabMapa()}
@@ -12117,7 +12149,7 @@ Object.assign(ACT,{
   klabGera:async el=>{if(!(await klabPode()))return;const v=id=>(($(id)||{}).value||'').trim(),cli=kaLL(v('klCli')),cx=kaLL(v('klCx'));
     if(!cli||!cx){toast('Informe as duas coordenadas no formato -22.90561, -47.06094.','bad');return}
     const dist=kmHav(cli,cx);if(dist>3000){toast(`Os pontos estão a ${kmN0(Math.round(dist))} m: confira as coordenadas (máximo 3 km).`,'bad');return}
-    const cabo=v('klCabo')||'drop',vao=+v('klVao')||35,esp=!!($('klEsp')||{}).checked,cxn=v('klCxN')||'CTO';el.disabled=true;toast('Desenhando o traçado…');
+    KLB.topo=v('klTopo')||'GPON';KLB.cid=v('klCid');KLB.crit=!!($('klCrit')||{}).checked;const cabo=v('klCabo')||'drop',vao=+v('klVao')||35,esp=!!($('klEsp')||{}).checked,cxn=v('klCxN')||'CTO';el.disabled=true;toast('Desenhando o traçado…');
     try{const R=await kaRota(cli,cx);if(!R.ors&&!el.dataset.l){KLB.D=null;KLB.M=null;KLB.erro=R.erro||'o serviço de rotas não respondeu';klabRes();return}
       const D=kaDesenho(cli,cx,{rota:R.ors?R.c:R.c.slice(1,-1),vao,cabo,esp});
       /* no laboratório: reservas e trechos de rede existente viram listas editáveis */
