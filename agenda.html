@@ -2127,6 +2127,11 @@ label.f .klin{display:flex!important;flex-direction:row!important;align-items:ce
 #klab .kltbl td{vertical-align:top}#klab .klav{margin-top:8px;font-size:13.5px}#klab .klav ul{margin:6px 0 0;padding-left:18px}
 body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 @media (max-width:900px){#klab .klb{grid-template-columns:1fr;padding:10px}#klab .klh{padding:8px 12px}#klab .klmap{height:55vh}}
+#klab .kled{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+#klab .klhint{font-size:13.5px;color:var(--muted);margin:0 0 8px}#klab .klhint.on{color:var(--text,#1f2a22);background:var(--warn-soft,#fff4d6);border-radius:8px;padding:6px 10px}
+#klab .klmap.klmira{cursor:crosshair}#klab .klmap.klmira .leaflet-interactive{cursor:pointer}
+.klpop{display:flex;flex-direction:column;gap:6px;font-size:14px}.klpopg{display:grid;grid-template-columns:1fr 1fr;gap:4px}.klpop .btn{justify-content:center;white-space:normal;line-height:1.2}.klpop .klrem{color:var(--bad);border-color:var(--bad)}
+#klab .kltr{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}#klab .kltr li{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:4px 4px 4px 10px;font-size:14px}
 .pdcol.loc{background:var(--warn-soft)}@media(min-width:1100px){.pdcols{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.kpis.pdk7{grid-template-columns:repeat(7,minmax(0,1fr))}}@media(min-width:1100px){.pdcol{padding:10px 8px}.pdcols .pdc2 .cat{flex-wrap:wrap;flex-direction:row;justify-content:flex-start}.pdcols .pdc2 .cat>b{flex:1 1 100%}.pdcols .pdc2 .cat>*:not(b){margin-left:0}}.pdkf{margin-top:14px}.pdkf .pdct span{display:flex;align-items:center;gap:10px}.pdkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-items:start}</style>
 </head>
 <body>
@@ -10019,7 +10024,7 @@ function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
   const esqL=cord.filter(l=>/ESQUINA/.test(l.n+' '+l.f)),esqLances=[],esqs=[];
   if(window.KM_ESQ)cabo.forEach(l=>kmEsquinas(l.c).forEach(T=>{if(esqs.some(e=>kmHav(e.ll,T.ll)<25))return;const E={ll:T.ll,d:Math.round(T.d),lances:[],postes:0};esqs.push(E);
     const desen=esqL.filter(x=>kmDist(T.ll,x.c)<=25);
-    const pz=ps.filter(x=>kmHav(x.ll,T.ll)<=35).sort((a,b)=>kmHav(a.ll,T.ll)-kmHav(b.ll,T.ll)).slice(0,4);pz.forEach(x=>{x.t='EB';x.cord=true;x.aco=false;x.esq=true});E.postes=pz.length;
+    const pz=ps.filter(x=>kmHav(x.ll,T.ll)<=35).sort((a,b)=>kmHav(a.ll,T.ll)-kmHav(b.ll,T.ll)).slice(0,4);/* 27/10: com a cordoalha da esquina já desenhada, vale o tipo de poste do desenho */if(!desen.length)pz.forEach(x=>{x.t='EB';x.cord=true;x.aco=false;x.esq=true});else pz.forEach(x=>{x.esq=true});E.postes=pz.length;
     if(desen.length){desen.forEach(x=>{x.usado=true;E.lances.push(Math.round(x.m)+5)});return}
     if(cord.some(x=>!esqL.includes(x)&&kmDist(T.ll,x.c)<=20)){E.desenhada=true;return}
     if(pz.length===4){const pr=[[[0,1],[2,3]],[[0,2],[1,3]],[[0,3],[1,2]]].map(P=>({P,t:P.reduce((t,[a,b])=>t+kmHav(pz[a].ll,pz[b].ll),0)})).sort((a,b)=>b.t-a.t)[0].P;pr.forEach(([a,b])=>E.lances.push(Math.round(kmHav(pz[a].ll,pz[b].ll))+5))}
@@ -10046,8 +10051,10 @@ function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
   if(esqLances.length){const t=esqLances.reduce((a,b)=>a+b,0),ne=esqs.filter(e=>e.lances.length).length,mm=`esquinas: ${esqLances.length} ${esqLances.length>1?'lances':'lance'} em cruz em ${ne} ${ne>1?'esquinas':'esquina'} (poste a poste + 5 m: ${esqLances.map(kmN0).join(' + ')} m)`;
     if(cordM.D){cordM.D.q+=t;cordM.D.memo+=' + '+mm}else cordM.D={q:t,memo:mm}}
   if(esqs.length)av.push(`${esqs.length} ${esqs.length>1?'esquinas':'esquina'} no traçado (mudança de direção de 60° ou mais): ${esqs.map(e=>e.desenhada?'cordoalha já desenhada':`${e.postes} ${e.postes===1?'poste':'postes'} com encabeçamento BAP e ${e.lances.length} ${e.lances.length===1?'lance':'lances'} de cordoalha em cruz`).join('; ')}.`);
-  const espM=Math.round(cord.reduce((s,l)=>s+l.m,0)+(espinar?exist.reduce((s,l)=>s+l.m,0):0));
-  if(espM)add('fio',Math.ceil(espM/80),`${kmN0(espM)} m de rede espinada ÷ 80 (arredondado para cima)`+(espinar&&exist.length?` · inclui ${kmN0(exist.reduce((s,l)=>s+Math.round(l.m),0))} m de rede existente marcada para espinar`:''));
+  /* 27/10: se a rede existente está separada em trechos, só os marcados ESPINAR contam para o fio de espinar */
+  const espL=window.KM_ESQ?exist.filter(l=>/ESPINAR/.test(l.n)):[],exE=espL.length?espL:(espinar?exist:[]);
+  const espM=Math.round(cord.reduce((s,l)=>s+l.m,0)+exE.reduce((s,l)=>s+l.m,0));
+  if(espM)add('fio',Math.ceil(espM/80),`${kmN0(espM)} m de rede espinada ÷ 80 (arredondado para cima)`+(exE.length?` · inclui ${kmN0(exE.reduce((s,l)=>s+Math.round(l.m),0))} m de rede existente marcada para espinar`:''));
   /* cabos: sempre pela medida do desenho (a metragem escrita no KMZ é ignorada)
      metragem = desenho + 5% (correção: 50 m por km) + 30 m em cada ponta do cabo + 30 m por reserva técnica */
   const tipoCabo=l=>{const tx=kmN(l.nome+' '+(l.desc||'')),fo=((tx.match(/(\d+)\s*F\.?O\b/)||tx.match(/\b(\d+)\s*F\b/)||[])[1]||'').replace(/^0+/,''),c=kmCor(l.cor),drop=c.k==='verde'||/DROP|FIG\.?\s*8/.test(tx);
@@ -11957,11 +11964,12 @@ function kaKml(d,o){const cab=KA_CABO[o.cabo]||KA_CABO.drop,co=v=>`${v[1].toFixe
 <description>Traçado automático (anteprojeto) gerado na Ferramenta de Gestão O&amp;M em ${new Date().toLocaleString('pt-BR')}, padrão construtivo IOP.2.5.1.001. Postes estimados: conferir no local.</description>
 <Folder><name>CLIENTE</name>${pt('CLIENTE'+(o.cliente?' - '+o.cliente:''),d.c[0],KA_HREF.cli)}</Folder>
 <Folder><name>CAIXAS</name>${pt(cxN.trim(),d.c[d.c.length-1],KA_HREF.cx)}</Folder>
-<Folder><name>POSTES</name>${d.P.map(p=>pt(p.nome,p.ll,KA_HREF[p.t])).join('')}</Folder>
-${d.rt?`<Folder><name>RESERVA TÉCNICA</name>${pt('RT 30M',d.rt.ll,KA_HREF.rt)}</Folder>`:''}
+<Folder><name>POSTES</name>${d.P.map(p=>pt('',p.ll,KA_HREF[p.t])).join('')}</Folder>
+${(d.rts||(d.rt?[d.rt]:[])).length?`<Folder><name>RESERVA TÉCNICA</name>${(d.rts||[d.rt]).map(r=>pt('RT 30M',r.ll,KA_HREF.rt)).join('')}</Folder>`:''}
 <Folder><name>CABOS</name>${ln(cab[0]+(d.esp?' (ESPINADO)':''),d.c,cab[1],4)}</Folder>
 ${d.cords.length?`<Folder><name>CORDOALHA</name>${d.cords.map(x=>ln(x.nome+' - DIELÉTRICA',x.c,'ffffffff',4)).join('')}</Folder>`:''}
 ${d.rede?`<Folder><name>REDE EXISTENTE</name>${ln('REDE EXISTENTE (ESPINAR)',d.rede,'b300a5ff',15)}${pt('AGRUPAMENTO ESPINAR',d.rede[Math.floor(d.rede.length/2)],KA_HREF.esp,'ff00ffff')}</Folder>`:''}
+${d.tr&&d.tr.length?`<Folder><name>REDE EXISTENTE</name>${d.tr.filter(t=>t.c&&t.c.length>1).map((t,i)=>t.tipo==='esp'?ln(`REDE EXISTENTE (ESPINAR) ${i+1}`,t.c,'b300a5ff',15)+pt('AGRUPAMENTO ESPINAR',t.c[Math.floor(t.c.length/2)],KA_HREF.esp,'ff00ffff'):ln(`REDE EXISTENTE ${i+1}`,t.c,'b300a5ff',15)).join('')}</Folder>`:''}
 </Document></kml>`}
 async function kaKmz(kml){const Z=await kmzLib(),z=new Z();z.file('doc.kml',kml);return z.generateAsync({type:'blob',mimeType:'application/vnd.google-earth.kmz',compression:'DEFLATE'})}
 /* desenho do traçado gerado (prévia) */
@@ -11978,7 +11986,9 @@ function kaSvg(D){if(!D)return '';const T=kaPlano(D.c[0]),pts=D.c.concat(D.P.map
    <p class="kaleg"><span><i style="background:#1f5f2a"></i>encabeçamento fita</span>${D.P.some(p=>p.t==='PF')?'<span><i style="background:#fff"></i>passagem fita</span>':''}${D.P.some(p=>p.t==='PB')?'<span><i style="background:#d6b48a"></i>passagem BAP</span>':''}<span><i style="background:#7a3b00"></i>encabeçamento BAP</span>${D.cords.length?'<span><i class="kal"></i>cordoalha em cruz</span>':''}${D.rt?'<span><i style="background:#dc2626"></i>reserva técnica 30 m</span>':''}${D.rede?'<span><i style="background:#f59e0b;opacity:.6"></i>rede existente (espinar)</span>':''}</p>`}
 
 /* ---------- 27/10: LABORATÓRIO DE KMZ (teste do desenho automático, só o Gabriel) ----------
-   Botão com ícone de mapa no topo (ou ?lab=kmz no endereço) aparece só para a conta do Gabriel (conferida pelo hash
+   Botão com ícone de mapa no topo (ou ?lab=kmz no endereço) aparece só para a conta do Gabriel.
+   Edição no mapa (27/10): tocar no poste muda o tipo ou remove; + Reserva técnica; trechos em rede existente (espinado ou não);
+   arrastar o C do cliente aumenta o cabo interno; arrastar a RT muda o lugar (conferida pelo hash
    SHA-256 do e-mail do login; o e-mail não fica escrito na página). Desenha o traçado do cliente até a caixa pelas
    ruas (agenda-rota, ação "tracado"), mostra no mapa (Esri), monta a lista de materiais e baixa o .kmz.
    NADA é gravado: não cria projeto, não sobe arquivo, não escreve no banco. A regra de esquinas vale só aqui dentro. */
@@ -12000,36 +12010,72 @@ function klabTela(){let o=document.getElementById('klab');if(o)return o;o=docume
     <label class="f"><span>Nome da caixa</span><input class="inp" id="klCxN" placeholder="CTO N8I4"></label>
     <label class="f"><span>Cabo</span><select class="inp" id="klCabo"><option value="drop">Drop fig. 8 (4FO)</option><option value="fo4">Cabo 4FO</option><option value="fo12">Cabo 12FO</option></select></label>
     <label class="f"><span>Vão médio entre postes (m)</span><input class="inp" id="klVao" type="number" min="15" max="80" value="35"></label>
-    <label class="chk"><input type="checkbox" id="klEsp"> Será espinado na rede existente</label>
+    <label class="chk"><input type="checkbox" id="klEsp"> Todo o trecho espinado na rede existente</label>
     <div class="tools"><button type="button" class="btn primary" data-act="klabGera">Desenhar traçado</button></div>
     <p class="muted klnota">Cole a coordenada como no Google Maps (latitude, longitude). O traçado segue as ruas pelo caminho mais curto; postes, esquinas e reserva técnica seguem o padrão construtivo.</p></section>
   <section class="klr" id="klRes"><div class="klvazio muted">Informe as coordenadas e toque em <b>Desenhar traçado</b>.</div></section></div>`;
   document.body.appendChild(o);return o}
 const klCor=t=>({EF:'#1f5f2a',PF:'#ffffff',EB:'#7a3b00',PB:'#d6b48a'}[t]||'#999');
+const KL_TP=[['EF','Encabeçamento fita'],['PF','Passagem fita'],['EB','Encabeçamento BAP'],['PB','Passagem BAP']];
+const KL_TR={esp:'Espinado na rede existente',ex:'Rede existente (sem espinar)'};
+/* posição ao longo do cabo (m) e trecho do cabo entre duas posições */
+function klCum(c){const T=kaPlano(c[0]),X=c.map(T.xy),cum=[0];for(let i=1;i<X.length;i++)cum.push(cum[i-1]+Math.hypot(X[i][0]-X[i-1][0],X[i][1]-X[i-1][1]));return{T,X,cum}}
+function klProj(c,ll){const{T,X,cum}=klCum(c),p=T.xy(ll);let bd=1e12,bs=0,bp=X[0];for(let i=1;i<X.length;i++){const A=X[i-1],B=X[i],dx=B[0]-A[0],dy=B[1]-A[1],L2=dx*dx+dy*dy,t=L2?Math.max(0,Math.min(1,((p[0]-A[0])*dx+(p[1]-A[1])*dy)/L2)):0,q=[A[0]+t*dx,A[1]+t*dy],d=Math.hypot(q[0]-p[0],q[1]-p[1]);if(d<bd){bd=d;bs=cum[i-1]+t*(cum[i]-cum[i-1]);bp=q}}return{s:bs,d:bd,ll:T.ll(bp)}}
+function klSub(c,a,b){const{T,X,cum}=klCum(c),em=s=>{let i=1;while(i<cum.length-1&&cum[i]<s)i++;const L=cum[i]-cum[i-1]||1,t=Math.max(0,Math.min(1,(s-cum[i-1])/L));return T.ll([X[i-1][0]+t*(X[i][0]-X[i-1][0]),X[i-1][1]+t*(X[i][1]-X[i-1][1])])};
+  const o=[em(a)];for(let i=0;i<cum.length;i++)if(cum[i]>a&&cum[i]<b)o.push(c[i]);o.push(em(b));return o}
+/* refaz o KML, a lista de materiais e o arquivo a partir do desenho editado */
+async function klabRefaz(manter){const D=KLB.D;if(!D)return;D.tot=Math.round(klCum(D.c).cum.slice(-1)[0]);
+  D.tr.forEach(t=>{const a=klProj(D.c,t.a).s,b=klProj(D.c,t.b).s;t.c=klSub(D.c,Math.min(a,b),Math.max(a,b));t.m=Math.round(Math.abs(b-a))});
+  const kml=kaKml(D,{cabo:D.cabo,caixa:KLB.cxn,cliente:'',titulo:'TESTE - traçado automático '+KLB.cxn}),o=window.KM_ESQ;window.KM_ESQ=true;let M=null;try{M=kmMat(kmParse(kml))}finally{window.KM_ESQ=o}
+  Object.assign(KLB,{kml,M,kmz:await kaKmz(kml),manter:!!manter});klabRes()}
+function klHint(){const m=KLB.modo;return m==='rt'?'Toque no cabo onde vai a reserva técnica (no meio do vão, fora de poste e de esquina).':m==='esp'||m==='ex'?(KLB.sel?'Agora toque no poste <b>final</b> do trecho.':`Trecho <b>${KL_TR[m].toLowerCase()}</b>: toque no poste <b>inicial</b> do trecho.`):'Toque num poste para mudar o tipo. Arraste o <b>C</b> para dentro do cliente para aumentar o cabo interno e arraste o <b>R</b> para mudar a reserva de lugar.'}
 async function klabMapa(){const D=KLB.D,box=document.getElementById('klMap');if(!D||!box)return;
   try{await vtLib()}catch(e){box.innerHTML='<p class="muted" style="padding:12px">Não foi possível carregar o mapa. O KMZ pode ser baixado normalmente.</p>';return}
-  if(KLB.map){try{KLB.map.remove()}catch(e){}KLB.map=null}
+  let vw=null;if(KLB.map){if(KLB.manter)vw={c:KLB.map.getCenter(),z:KLB.map.getZoom()};try{KLB.map.remove()}catch(e){}KLB.map=null}
   const LL=window.L,m=LL.map(box,{zoomControl:true}),F=VT_FUNDOS[KLB.fundo]||VT_FUNDOS.ruas;KLB.map=m;
   LL.tileLayer(F.u,{maxNativeZoom:F.max,maxZoom:21,attribution:F.at,crossOrigin:true}).addTo(m);if(F.sob)LL.tileLayer(F.sob,{maxNativeZoom:F.max,maxZoom:21,crossOrigin:true}).addTo(m);
   const cab=(KA_CABO[D.cabo]||KA_CABO.drop)[1],cor='#'+cab.slice(6,8)+cab.slice(4,6)+cab.slice(2,4);
-  if(D.rede)LL.polyline(D.rede,{color:'#f59e0b',weight:12,opacity:.45}).addTo(m).bindTooltip('Rede existente (espinar)');
-  LL.polyline(D.c,{color:'#111',weight:7,opacity:.55}).addTo(m);LL.polyline(D.c,{color:cor==='#000000'?'#333':cor,weight:4}).addTo(m).bindTooltip(`${(KA_CABO[D.cabo]||KA_CABO.drop)[0]} · ${kmN0(D.tot)} m desenhados`);
-  D.cords.forEach(x=>{LL.polyline(x.c,{color:'#111',weight:6}).addTo(m);LL.polyline(x.c,{color:'#fff',weight:3}).addTo(m).bindTooltip(x.nome)});
-  D.P.forEach(p=>LL.circleMarker(p.ll,{radius:p.t[0]==='E'?7:5.5,color:'#1f2a22',weight:1.5,fillColor:klCor(p.t),fillOpacity:1}).addTo(m).bindTooltip(p.nome));
-  const di=(h,c)=>LL.divIcon({className:'klpin',html:`<span style="background:${c}">${h}</span>`,iconSize:[22,22],iconAnchor:[11,11]});
-  if(D.rt)LL.marker(D.rt.ll,{icon:di('R','#dc2626')}).addTo(m).bindTooltip('RT 30M (reserva técnica)');
-  LL.marker(D.c[0],{icon:di('C','#16a34a')}).addTo(m).bindTooltip('Cliente');LL.marker(D.c[D.c.length-1],{icon:di('X','#ca8a04')}).addTo(m).bindTooltip(KLB.cxn||'Caixa');
-  m.fitBounds(LL.latLngBounds(D.c.concat(D.P.map(p=>p.ll))),{padding:[30,30]})}
+  D.tr.forEach(t=>{if(t.c)LL.polyline(t.c,{color:'#f59e0b',weight:18,opacity:.6,dashArray:t.tipo==='ex'?'2 10':null,lineCap:t.tipo==='ex'?'butt':'round'}).addTo(m).bindTooltip(`${KL_TR[t.tipo]} · ${kmN0(t.m)} m`)});
+  LL.polyline(D.c,{color:'#111',weight:7,opacity:.55}).addTo(m);
+  const linha=LL.polyline(D.c,{color:cor==='#000000'?'#333':cor,weight:4}).addTo(m).bindTooltip(`${(KA_CABO[D.cabo]||KA_CABO.drop)[0]} · ${kmN0(D.tot)} m desenhados`);
+  D.cords.forEach(x=>{LL.polyline(x.c,{color:'#111',weight:6}).addTo(m);LL.polyline(x.c,{color:'#fff',weight:3}).addTo(m).bindTooltip('Cordoalha em cruz')});
+  const btn=(t,f,cls)=>{const b=document.createElement('button');b.type='button';b.className='btn sm'+(cls?' '+cls:'');b.textContent=t;b.onclick=e=>{e.stopPropagation();m.closePopup();f()};return b};
+  D.P.forEach((p,i)=>{const sel=KLB.sel&&kmHav(KLB.sel,p.ll)<0.5;
+    const mk=LL.circleMarker(p.ll,{radius:p.t[0]==='E'?8:6.5,color:sel?'#dc2626':'#1f2a22',weight:sel?3:1.5,fillColor:klCor(p.t),fillOpacity:1}).addTo(m).bindTooltip((KL_TP.find(x=>x[0]===p.t)||['',''])[1]+(p.esq?' · esquina':''));
+    mk.on('click',ev=>{LL.DomEvent.stop(ev);const md=KLB.modo;
+      if(md==='esp'||md==='ex'){if(!KLB.sel){KLB.sel=p.ll;KLB.manter=true;klabRes();return}
+        const a=klProj(D.c,KLB.sel).s,b=klProj(D.c,p.ll).s;if(Math.abs(b-a)<5){toast('Escolha outro poste para o fim do trecho.','bad');return}
+        const lo=Math.min(a,b),hi=Math.max(a,b);D.tr.push({tipo:md,a:a<b?KLB.sel:p.ll,b:a<b?p.ll:KLB.sel});
+        if(md==='esp'){const dent=D.P.filter(q=>!q.esq).map(q=>({q,s:klProj(D.c,q.ll).s})).filter(x=>x.s>=lo-1&&x.s<=hi+1).sort((x,y)=>x.s-y.s);dent.forEach((x,k)=>{x.q.t=k===0||k===dent.length-1?'EB':'PB'})}
+        KLB.sel=null;KLB.modo='';klabRefaz(true);return}
+      const box=document.createElement('div');box.className='klpop';box.innerHTML=`<b>Tipo do poste${p.esq?' (esquina)':''}</b>`;const g=document.createElement('div');g.className='klpopg';
+      KL_TP.forEach(([k,n])=>g.appendChild(btn(n,()=>{p.t=k;klabRefaz(true)},p.t===k?'primary':'')));box.appendChild(g);
+      box.appendChild(btn('Remover poste',()=>{D.P.splice(D.P.indexOf(p),1);klabRefaz(true)},'klrem'));LL.popup({minWidth:210}).setLatLng(p.ll).setContent(box).openOn(m)})});
+  const di=(h,c,t)=>LL.divIcon({className:'klpin',html:`<span style="background:${c}" title="${t}">${h}</span>`,iconSize:[24,24],iconAnchor:[12,12]});
+  D.rts.forEach(r=>{const mk=LL.marker(r.ll,{icon:di('R','#dc2626','Reserva técnica'),draggable:true}).addTo(m).bindTooltip('RT 30M · arraste para mudar de lugar');
+    mk.on('dragend',()=>{const q=klProj(D.c,[mk.getLatLng().lat,mk.getLatLng().lng]);r.ll=q.ll;klabRefaz(true)});
+    mk.on('click',ev=>{LL.DomEvent.stop(ev);const box=document.createElement('div');box.className='klpop';box.innerHTML='<b>Reserva técnica (30 m)</b>';box.appendChild(btn('Remover reserva',()=>{D.rts.splice(D.rts.indexOf(r),1);klabRefaz(true)},'klrem'));LL.popup().setLatLng(r.ll).setContent(box).openOn(m)})});
+  const cm=LL.marker(D.c[0],{icon:di('C','#16a34a','Cliente'),draggable:true,zIndexOffset:500}).addTo(m).bindTooltip('Cliente · arraste para dentro do imóvel para aumentar o cabo interno');
+  cm.on('dragend',()=>{const g=cm.getLatLng();D.c[0]=[g.lat,g.lng];klabRefaz(true)});
+  LL.marker(D.c[D.c.length-1],{icon:di('X','#ca8a04',KLB.cxn||'Caixa'),interactive:false,zIndexOffset:-500}).addTo(m);/* não interativo: o toque passa para o poste da caixa */
+  const addRt=e=>{if(KLB.modo!=='rt')return;const q=klProj(D.c,[e.latlng.lat,e.latlng.lng]);if(q.d>40){toast('Toque mais perto do cabo.','bad');return}
+    if(D.P.some(p=>kmHav(p.ll,q.ll)<4))toast('A reserva ficou em cima de um poste: o padrão pede no meio do vão. Arraste o R se precisar.','warn');D.rts.push({ll:q.ll});KLB.modo='';klabRefaz(true)};
+  m.on('click',addRt);linha.on('click',ev=>{LL.DomEvent.stop(ev);addRt(ev)});
+  box.classList.toggle('klmira',!!KLB.modo);
+  if(vw)m.setView(vw.c,vw.z,{animate:false});else m.fitBounds(LL.latLngBounds(D.c.concat(D.P.map(p=>p.ll))),{padding:[30,30]})}
 function klabRes(){const el=document.getElementById('klRes');if(!el)return;const D=KLB.D,M=KLB.M;
   if(KLB.erro&&!D){el.innerHTML=`<div class="result bad"><b>Não consegui seguir as ruas:</b> ${esc(KLB.erro)}. Confira se o serviço de rotas foi publicado com a ação "tracado" e tente de novo.<div class="tools" style="margin-top:8px"><button type="button" class="btn sm" data-act="klabGera" data-l="1">Desenhar em L mesmo assim</button></div></div>`;return}
   if(!D){el.innerHTML='<div class="klvazio muted">Informe as coordenadas e toque em <b>Desenhar traçado</b>.</div>';return}
-  const cnt=t=>D.P.filter(p=>p.t===t).length,leg=[['EF','encabeçamento fita'],['PF','passagem fita'],['EB','encabeçamento BAP'],['PB','passagem BAP']].filter(([t])=>cnt(t));
-  const it=(M&&M.itens)||[];
-  el.innerHTML=`<div class="result ${KLB.ors?'ok':'bad'}" style="margin:0"><b>${KLB.ors?'Traçado pelas ruas':'Traçado em L (sem seguir as ruas)'}:</b> ${kmN0(D.tot)} m desenhados, ${D.P.length} postes${D.esq.length?`, ${D.esq.length} ${D.esq.length>1?'esquinas':'esquina'} com cordoalha em cruz`:''}${D.rt?', reserva técnica de 30 m perto do cliente':''}${D.esp?', espinado na rede existente':''}.</div>
+  const cnt=t=>D.P.filter(p=>p.t===t).length,leg=KL_TP.filter(([t])=>cnt(t)),it=(M&&M.itens)||[],md=KLB.modo,interno=Math.round(klProj(D.c,(D.P.slice().sort((a,b)=>klProj(D.c,a.ll).s-klProj(D.c,b.ll).s)[0]||{ll:D.c[0]}).ll).s);
+  const mb=(k,n)=>`<button type="button" class="btn sm${md===k?' primary':''}" data-act="klabModo" data-v="${k}" aria-pressed="${md===k}">${n}</button>`;
+  el.innerHTML=`<div class="result ${KLB.ors?'ok':'bad'}" style="margin:0"><b>${KLB.ors?'Traçado pelas ruas':'Traçado em L (sem seguir as ruas)'}:</b> ${kmN0(D.tot)} m desenhados (${kmN0(interno)} m do cliente ao primeiro poste), ${D.P.length} postes${D.esq.length?`, ${D.esq.length} ${D.esq.length>1?'esquinas':'esquina'} com cordoalha em cruz`:''}${D.rts.length?`, ${D.rts.length} ${D.rts.length>1?'reservas técnicas':'reserva técnica'}`:''}${D.tr.length?`, ${D.tr.length} ${D.tr.length>1?'trechos':'trecho'} em rede existente`:''}.</div>
    <div class="klbar"><div class="seg" role="group" aria-label="Fundo do mapa">${[['ruas','Ruas'],['sat','Satélite']].map(([k,n])=>`<button type="button" class="btn sm${KLB.fundo===k?' primary':''}" data-act="klabFundo" data-v="${k}" aria-pressed="${KLB.fundo===k}">${n}</button>`).join('')}</div>
     <button type="button" class="btn primary" data-act="klabBaixa">Baixar o KMZ</button></div>
+   <div class="kled" role="toolbar" aria-label="Editar o desenho">${mb('rt','+ Reserva técnica')}${mb('esp','+ Trecho espinado')}${mb('ex','+ Trecho em rede existente (sem espinar)')}${md?`<button type="button" class="btn sm ghost" data-act="klabModo" data-v="">Cancelar</button>`:''}</div>
+   <p class="klhint${md?' on':''}">${klHint()}</p>
    <div id="klMap" class="klmap"></div>
-   <p class="kaleg">${leg.map(([t,n])=>`<span><i style="background:${klCor(t)}"></i>${n}: ${cnt(t)}</span>`).join('')}${D.cords.length?'<span><i class="kal"></i>cordoalha em cruz</span>':''}${D.rt?'<span><i style="background:#dc2626"></i>reserva técnica</span>':''}</p>
+   <p class="kaleg">${leg.map(([t,n])=>`<span><i style="background:${klCor(t)}"></i>${n.toLowerCase()}: ${cnt(t)}</span>`).join('')}${D.cords.length?'<span><i class="kal"></i>cordoalha em cruz</span>':''}${D.rts.length?'<span><i style="background:#dc2626"></i>reserva técnica</span>':''}${D.tr.some(t=>t.tipo==='esp')?'<span><i style="background:#f59e0b;opacity:.6"></i>rede existente espinada (faixa contínua)</span>':''}${D.tr.some(t=>t.tipo==='ex')?'<span><i style="background:repeating-linear-gradient(90deg,#f59e0b 0 2px,transparent 2px 5px)"></i>rede existente sem espinar (faixa tracejada)</span>':''}</p>
+   ${D.tr.length?`<ul class="kltr">${D.tr.map((t,i)=>`<li><span><b>${KL_TR[t.tipo]}</b> · ${kmN0(t.m||0)} m</span><button type="button" class="btn sm ghost" data-act="klabTrDel" data-i="${i}">Remover trecho</button></li>`).join('')}</ul>`:''}
    ${M&&M.av&&M.av.length?`<details class="klav"><summary>${M.av.length} ${M.av.length>1?'observações':'observação'} da leitura</summary><ul>${M.av.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></details>`:''}
    <h3 style="margin:14px 0 6px">Lista de materiais (como a ferramenta leria este KMZ)</h3>
    <div class="tblwrap"><table class="tbl kltbl"><thead><tr><th>Código</th><th>Material</th><th style="text-align:right">Qtd</th><th>Como foi calculado</th></tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.cod||'')}</td><td>${esc(i.desc)}</td><td style="text-align:right;white-space:nowrap"><b>${kmN0(i.qtd)}</b> ${esc(i.un)}</td><td class="muted" style="font-size:12.5px">${esc(i.memo||'')}</td></tr>`).join('')}</tbody></table></div>`;
@@ -12037,15 +12083,18 @@ function klabRes(){const el=document.getElementById('klRes');if(!el)return;const
 Object.assign(ACT,{
   klab:async()=>{if(!(await klabPode())){toast('Tela de teste não liberada para este usuário.','bad');return}klabTela();document.body.classList.add('krfull-on');klabRes()},
   klabFecha:()=>{const o=document.getElementById('klab');if(KLB.map){try{KLB.map.remove()}catch(e){}KLB.map=null}if(o)o.remove();document.body.classList.remove('krfull-on')},
-  klabFundo:el=>{KLB.fundo=el.dataset.v;klabRes()},
+  klabFundo:el=>{KLB.fundo=el.dataset.v;KLB.manter=true;klabRes()},
+  klabModo:el=>{const v=el.dataset.v||'';KLB.modo=KLB.modo===v?'':v;KLB.sel=null;KLB.manter=true;klabRes()},
+  klabTrDel:el=>{const D=KLB.D;if(!D)return;D.tr.splice(+el.dataset.i,1);klabRefaz(true)},
   klabGera:async el=>{if(!(await klabPode()))return;const v=id=>(($(id)||{}).value||'').trim(),cli=kaLL(v('klCli')),cx=kaLL(v('klCx'));
     if(!cli||!cx){toast('Informe as duas coordenadas no formato -22.90561, -47.06094.','bad');return}
     const dist=kmHav(cli,cx);if(dist>3000){toast(`Os pontos estão a ${kmN0(Math.round(dist))} m: confira as coordenadas (máximo 3 km).`,'bad');return}
     const cabo=v('klCabo')||'drop',vao=+v('klVao')||35,esp=!!($('klEsp')||{}).checked,cxn=v('klCxN')||'CTO';el.disabled=true;toast('Desenhando o traçado…');
     try{const R=await kaRota(cli,cx);if(!R.ors&&!el.dataset.l){KLB.D=null;KLB.M=null;KLB.erro=R.erro||'o serviço de rotas não respondeu';klabRes();return}
-      const D=kaDesenho(cli,cx,{rota:R.ors?R.c:R.c.slice(1,-1),vao,cabo,esp}),kml=kaKml(D,{cabo,caixa:cxn,cliente:'',titulo:'TESTE - traçado automático '+cxn});
-      const o=window.KM_ESQ;window.KM_ESQ=true;let M=null;try{M=kmMat(kmParse(kml))}finally{window.KM_ESQ=o}
-      Object.assign(KLB,{D,M,kml,kmz:await kaKmz(kml),cxn,ors:R.ors,erro:'',nome:`TESTE_${cxn.replace(/[^\w\-]/g,'_')}_${new Date().toISOString().slice(0,10)}.kmz`});klabRes()}
+      const D=kaDesenho(cli,cx,{rota:R.ors?R.c:R.c.slice(1,-1),vao,cabo,esp});
+      /* no laboratório: reservas e trechos de rede existente viram listas editáveis */
+      D.rts=D.rt?[D.rt]:[];D.rt=null;D.tr=[];if(D.esp){const ps=D.P.filter(p=>!p.esq).map(p=>({p,s:klProj(D.c,p.ll).s})).sort((a,b)=>a.s-b.s);if(ps.length>1)D.tr.push({tipo:'esp',a:ps[0].p.ll,b:ps[ps.length-1].p.ll})}D.rede=null;D.esp=false;
+      Object.assign(KLB,{D,cxn,ors:R.ors,erro:'',modo:'',sel:null,nome:`TESTE_${cxn.replace(/[^\w\-]/g,'_')}_${new Date().toISOString().slice(0,10)}.kmz`});await klabRefaz(false)}
     catch(e){toast('Não foi possível desenhar: '+(e.message||e),'bad')}finally{el.disabled=false}},
   klabBaixa:()=>{if(!KLB.kmz)return;const u=URL.createObjectURL(KLB.kmz),a=document.createElement('a');a.href=u;a.download=KLB.nome||'teste.kmz';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}});
 
