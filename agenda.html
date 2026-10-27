@@ -10096,6 +10096,14 @@ function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
     const seq=ps.filter(x=>kmDist(x.ll,c)<=8).map(x=>({t:'p',s:pos(x.ll)})).concat(csP.filter(x=>kmDist(x.ll,c)<=8).map(x=>({t:'c',s:pos(x.ll)}))).sort((a,b)=>a.s-b.s);
     let n=0;for(let i=1;i<seq.length;i++)if(seq[i].t!==seq[i-1].t)n++;return n};
   Object.values(grp).forEach(g=>{g.trans=g.ls.reduce((s,l)=>s+kmTrans(l),0)});
+  /* 27/10 (com a regra nova): partes do cabo pelo desenho: subterrânea = entre duas CS seguidas; interna = do cliente até
+     o primeiro poste ou CS; o resto é aéreo. Conta também as CS no caminho do cabo. */
+  let kI=0,kS=0,kCs=0;if(window.KM_ESQ){const cli=K.P.find(p=>/^CLIENTE\b/.test(kmN(p.nome))||/^CLIENTE$/.test(kmN(p.pasta||''))),usa=new Set();
+    cabo.forEach(l=>{const c=l.c,cum=[0];for(let i=1;i<c.length;i++)cum.push(cum[i-1]+kmHav(c[i-1],c[i]));const T=cum[cum.length-1];
+      const pos=ll=>{const r=Math.PI/180,k=Math.cos(ll[0]*r),xy=v=>[(v[1]-ll[1])*r*6371000*k,(v[0]-ll[0])*r*6371000];let bd=1e12,bs=0;for(let i=1;i<c.length;i++){const A=xy(c[i-1]),B=xy(c[i]),dx=B[0]-A[0],dy=B[1]-A[1],L2=dx*dx+dy*dy,t=L2?Math.max(0,Math.min(1,-(A[0]*dx+A[1]*dy)/L2)):0,d=Math.hypot(A[0]+t*dx,A[1]+t*dy);if(d<bd){bd=d;bs=cum[i-1]+t*(cum[i]-cum[i-1])}}return bs};
+      const pts=ps.filter(x=>kmDist(x.ll,c)<=8).map(x=>({t:'p',s:pos(x.ll)})).concat(csP.filter(x=>kmDist(x.ll,c)<=8).map(x=>{usa.add(x);return{t:'c',s:pos(x.ll)}})).sort((a,b)=>a.s-b.s);
+      for(let i=1;i<pts.length;i++)if(pts[i].t==='c'&&pts[i-1].t==='c')kS+=pts[i].s-pts[i-1].s;
+      if(cli&&pts.length){const d0=kmHav(c[0],cli.ll),d1=kmHav(c[c.length-1],cli.ll);if(Math.min(d0,d1)<=30)kI+=d0<=d1?pts[0].s:T-pts[pts.length-1].s}});kCs=usa.size}
   const cab={};Object.values(grp).forEach(g=>{const cor=Math.round(g.des*0.05),q=Math.ceil(g.des+cor+60*g.cabos+30*g.rt+10*g.trans);
     cab[g.t.k]={cod:g.t.cod,desc:g.t.desc,qtd:q,memo:`desenho ${kmN0(Math.round(g.des))} m + 5% de correção (${kmN0(cor)} m) + ${g.cabos*2} ${g.cabos*2>1?'pontas':'ponta'} × 30 m${g.rt?` + ${g.rt} ${g.rt>1?'reservas técnicas':'reserva técnica'} × 30 m`:''}${g.trans?` + ${g.trans} ${g.trans>1?'passagens':'passagem'} aéreo/subterrâneo × 10 m`:''} · traço ${g.t.cor}`}});
   const itens=[];KM_ORD.forEach(k=>{if(q[k])itens.push({k,cod:KM_MAT[k][0],desc:KM_MAT[k][1],qtd:q[k],un:'UN',memo:memo[k].join(' + ')})});
@@ -10108,8 +10116,8 @@ function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
   if(!cabo.length)av.push('Nenhuma linha de cabo reconhecida (pasta CABO ou nome com CABO, DROP ou xxFO).');
   
   const cabM=cabo.reduce((s,l)=>s+l.m,0),dropM=cabo.filter(l=>l.tp&&/^drop/.test(l.tp.k)).reduce((s,l)=>s+l.m,0);
-  const kq={caboTot:Object.values(cab).reduce((t,x)=>t+x.qtd,0),trans:Object.values(grp).reduce((t,g)=>t+(g.trans||0),0),interno:0,sub:0,aereo:Math.round(cabM*10)/10,cord:Math.round((cordN.reduce((s,l)=>s+l.m,0)+esqLances.reduce((a,b)=>a+b-5,0))*10)/10,lances:cordN.length+esqLances.length,esquinas:esqs.length,postes:ps.length,
-    postesSemCord:ps.filter(p=>!p.cord).length,postesPassagem:ps.filter(p=>p.t[0]==='P'&&!p.cord).length,postesInter:ps.filter(p=>p.t[0]==='P'&&p.cord).length,cs:0,
+  const kq={caboTot:Object.values(cab).reduce((t,x)=>t+x.qtd,0),trans:Object.values(grp).reduce((t,g)=>t+(g.trans||0),0),interno:Math.round(kI*10)/10,sub:Math.round(kS*10)/10,aereo:Math.round(Math.max(0,cabM-kI-kS)*10)/10,cord:Math.round((cordN.reduce((s,l)=>s+l.m,0)+esqLances.reduce((a,b)=>a+b-5,0))*10)/10,lances:cordN.length+esqLances.length,esquinas:esqs.length,postes:ps.length,
+    postesSemCord:ps.filter(p=>!p.cord).length,postesPassagem:ps.filter(p=>p.t[0]==='P'&&!p.cord).length,postesInter:ps.filter(p=>p.t[0]==='P'&&p.cord).length,cs:kCs,
     cxIni:(K.P.find(p=>/^(NOVA )?(CEO|CE|CTO)\b|^(CEO|CE|CTO)[\s\-_]?\d/.test(kmN(p.nome))&&!/EXISTENTE/.test(kmN(p.nome)))||{}).nome||'',tipoCabo:cabM&&dropM>=cabM/2?'drop':'optico'};
   return{kq,esq:esqs.map(e=>({ll:e.ll,d:e.d,postes:e.postes,lances:e.lances,desenhada:!!e.desenhada})),temDrop:dropM>0,itens,cnt:Object.fromEntries(Object.keys(KM_PT).map(t=>[t,ps.filter(p=>p.t===t).length])),cordP:ps.filter(p=>p.cord).length,postes:ps.length,espM,ceo,av,em:Date.now()}}
 const kmN0=v=>(+v||0).toLocaleString('pt-BR');
@@ -11949,10 +11957,12 @@ function kaDesenho(cli,cx,o){const vao=Math.max(15,+o.vao||35),T=kaPlano(cli),dr
   const em=s=>{s=Math.max(0,Math.min(tot,s));let i=1;while(i<cum.length-1&&cum[i]<s)i++;const L=cum[i]-cum[i-1]||1,t=(s-cum[i-1])/L;return [X[i-1][0]+t*(X[i][0]-X[i-1][0]),X[i-1][1]+t*(X[i][1]-X[i-1][1])]};
   const esq=kmEsquinas(c),P=[],cords=[];
   /* esquina: os 4 postes do cruzamento com encabeçamento BAP e cordoalha em cruz (5.5.1 / 5.5.2) */
-  esq.forEach((e,n)=>{const V=T.xy(e.ll),A=em(e.s-15),u0=[V[0]-A[0],V[1]-A[1]],L=Math.hypot(u0[0],u0[1])||1,u=[u0[0]/L,u0[1]/L],w=[-u[1],u[0]],a=9;
-    const q=[[1,1],[1,-1],[-1,-1],[-1,1]].map(([i,j])=>T.ll([V[0]+a*(i*u[0]+j*w[0]),V[1]+a*(i*u[1]+j*w[1])]));
+  /* 27/10: a cruz segue o cabo: um lance na direção de chegada e outro na de saída, cruzando na esquina;
+     os 4 postes ficam nas pontas (2 deles no próprio caminho do cabo) */
+  esq.forEach((e,n)=>{const V=T.xy(e.ll),A=em(e.s-15),B=em(e.s+15),un=(p,q)=>{const d=[q[0]-p[0],q[1]-p[1]],L=Math.hypot(d[0],d[1])||1;return [d[0]/L,d[1]/L]},u=un(A,V),w=un(V,B),a=9;
+    const q=[[V[0]-a*u[0],V[1]-a*u[1]],[V[0]+a*u[0],V[1]+a*u[1]],[V[0]-a*w[0],V[1]-a*w[1]],[V[0]+a*w[0],V[1]+a*w[1]]].map(T.ll);
     q.forEach((ll,k)=>P.push({t:'EB',s:e.s,esq:true,nome:`POSTE ESQUINA ${n+1}.${k+1} - ENCABEÇAMENTO BAP`,ll}));
-    cords.push({nome:`CORDOALHA ESQUINA ${n+1} A`,c:[q[0],q[2]]},{nome:`CORDOALHA ESQUINA ${n+1} B`,c:[q[1],q[3]]})});
+    cords.push({nome:`CORDOALHA ESQUINA ${n+1} A`,c:[q[0],e.ll,q[1]]},{nome:`CORDOALHA ESQUINA ${n+1} B`,c:[q[2],e.ll,q[3]]})});
   const longeEsq=s=>esq.every(e=>Math.abs(e.s-s)>18);
   /* postes ao longo do traçado: o primeiro a 15 m do cliente, um a cada vão, o último na caixa */
   const s0=Math.min(15,tot/2),L=[{s:s0,ll:T.ll(em(s0)),pt:'cliente'}];
@@ -12029,6 +12039,7 @@ function klabTela(){let o=document.getElementById('klab');if(o)return o;o=docume
     <label class="f"><span>Topologia (mão de obra de ativação)</span><select class="inp" id="klTopo"><option value="GPON">GPON</option><option value="Ponto a ponto">Ponto a ponto</option></select></label>
     <label class="f"><span>Cidade (deslocamento da LPU)</span><input class="inp" id="klCid" placeholder="Opcional"></label>
     <label class="chk"><input type="checkbox" id="klCrit"> Região crítica (valor crítico da LPU)</label>
+    <label class="f"><span>KMZ da extensão de sinal (se houver)</span><input class="inp" type="file" id="klExt" accept=".kmz,.kml" data-ch="klabExt"></label><div id="klExtR" class="muted" style="font-size:13px;margin:-4px 0 8px"></div>
     <label class="chk"><input type="checkbox" id="klEsp"> Todo o trecho espinado na rede existente</label>
     <div class="tools"><button type="button" class="btn primary" data-act="klabGera">Desenhar traçado</button></div>
     <p class="muted klnota">Cole a coordenada como no Google Maps (latitude, longitude). O traçado segue as ruas pelo caminho mais curto; postes, esquinas e reserva técnica seguem o padrão construtivo.</p></section>
@@ -12068,7 +12079,7 @@ function klValores(){const D=KLB.D,M=KLB.M;if(!D||!M)return null;
   const mat=M.itens.map(i=>{const pr=krPr(i.cod);return{cod:i.cod||'',desc:(pr&&pr.desc)||i.desc,qtd:i.qtd,un:i.un,vu:pr?pr.v:null}});
   D.X.filter(x=>x.k==='ceo'&&x.spl).forEach(x=>{const cod=klSplCod(x.spl),pr=krPr(cod);mat.push({cod:cod||'',desc:(pr&&pr.desc)||('SPLITTER '+x.spl.toUpperCase()),qtd:1,un:'UN',vu:pr?pr.v:null,spl:x.nome})});
   mat.forEach(i=>{i.vt=i.vu==null?null:Math.round(i.vu*i.qtd*100)/100});const vMat=Math.round(mat.reduce((s,i)=>s+(i.vt||0),0)*100)/100;
-  let mo=null;try{mo=kleCalc({topologia:KLB.topo||'GPON',fator:KLB.crit?'critico':'comum',cidade:KLB.cid||'',dRua:0,dInterno:0,dExt:0,dAtiv:0,semExt:true,klExt:null,kl:{q:M.kq}})}catch(e){mo={L:[],tot:0,fraco:['não foi possível calcular a mão de obra: '+(e.message||e)]}}
+  let mo=null;try{mo=kleCalc({topologia:KLB.topo||'GPON',fator:KLB.crit?'critico':'comum',cidade:KLB.cid||'',dRua:0,dInterno:0,dExt:0,dAtiv:0,semExt:!KLB.ext,klExt:KLB.ext?{m:KLB.ext.m,cx:KLB.ext.cx}:null,kl:{q:M.kq}})}catch(e){mo={L:[],tot:0,fraco:['não foi possível calcular a mão de obra: '+(e.message||e)]}}
   return{mat,vMat,mo,tot:Math.round((vMat+(mo.tot||0))*100)/100,sem:mat.filter(i=>i.vu==null)}}
 async function klabRefaz(manter){const D=KLB.D;if(!D)return;D.tot=Math.round(klCum(D.c).cum.slice(-1)[0]);
   D.tr.forEach(t=>{const a=klProj(D.c,t.a).s,b=klProj(D.c,t.b).s;t.c=klSub(D.c,Math.min(a,b),Math.max(a,b));t.m=Math.round(Math.abs(b-a))});
@@ -12142,7 +12153,7 @@ function klValHtml(){const V=KLB.V;if(!V)return '';const b=krBrl,fq=v=>(+v).toLo
    ${V.mo.fraco&&V.mo.fraco.length?`<p class="muted" style="font-size:13px;margin:6px 0">Mão de obra: ${V.mo.fraco.map(esc).join('; ')}.</p>`:''}
    <details class="klvd"><summary>Materiais com valor (${V.mat.length})</summary><div class="tblwrap"><table class="tbl kltbl"><thead><tr><th>Código</th><th>Material</th><th style="text-align:right">Qtd</th><th style="text-align:right">Unitário</th><th style="text-align:right">Total</th></tr></thead><tbody>${V.mat.map(i=>`<tr><td>${esc(i.cod)}</td><td>${esc(i.desc)}${i.spl?` <small class="muted">(${esc(i.spl)})</small>`:''}</td><td style="text-align:right">${fq(i.qtd)} ${esc(i.un)}</td><td style="text-align:right">${i.vu==null?'<span class="krsem">sem preço</span>':b(i.vu)}</td><td style="text-align:right">${i.vt==null?'':b(i.vt)}</td></tr>`).join('')}</tbody></table></div></details>
    <details class="klvd"><summary>Mão de obra pela LPU (${(V.mo.L||[]).length} serviços)</summary><div class="tblwrap"><table class="tbl kltbl"><thead><tr><th>Fase</th><th>Código</th><th>Serviço</th><th style="text-align:right">Qtd</th><th style="text-align:right">Unitário</th><th style="text-align:right">Total</th></tr></thead><tbody>${(V.mo.L||[]).map(x=>`<tr><td>${F[x.fase]||x.fase}</td><td>${esc(x.cod)}</td><td>${esc(x.desc)}<br><small class="muted">${esc(x.regra||'')}</small></td><td style="text-align:right">${fq(x.q)}</td><td style="text-align:right">${b(x.u)}</td><td style="text-align:right">${b(x.v)}</td></tr>`).join('')}</tbody></table></div></details>
-   <p class="muted" style="font-size:12.5px;margin:6px 0 0">Só o que está desenhado (ponta A e lançamento). Não entram o kit da ponta B (ONU/GBIC), a extensão de sinal e o deslocamento sem cidade.</p></section>`}
+   <p class="muted" style="font-size:12.5px;margin:6px 0 0">Só o que está desenhado (ponta A e lançamento). Não entram o kit da ponta B (ONU/GBIC)${KLB.ext?'':', a extensão de sinal (envie o KMZ da extensão no formulário)'} e o deslocamento sem cidade.</p></section>`}
 function klabResDes(){const el=document.getElementById('klRes');if(!el)return;const D=KLB.D,M=KLB.M;
   if(KLB.erro&&!D){el.innerHTML=`<div class="result bad"><b>Não consegui seguir as ruas:</b> ${esc(KLB.erro)}. Confira se o serviço de rotas foi publicado com a ação "tracado" e tente de novo.<div class="tools" style="margin-top:8px"><button type="button" class="btn sm" data-act="klabGera" data-l="1">Desenhar em L mesmo assim</button></div></div>`;return}
   if(!D){el.innerHTML='<div class="klvazio muted">Informe as coordenadas e toque em <b>Desenhar traçado</b>.</div>';return}
@@ -12234,6 +12245,13 @@ Object.assign(ACT,{
     ['cep','logradouro','numero','bairro','cidade','uf','pop','equip','porta','pa','locPa','pd','locPd'].forEach(k=>{if(r[k]&&A[k]!==r[k]){A[k]=r[k];n++}});if(r.notas&&r.notas.length){A.notas=r.notas.join('. ');n++}
     klabRes();toast(n?`${n} campo(s) preenchido(s). Confira.`:'Não achei dados para preencher nesse texto.',n?'':'bad')},
   klabFim:()=>{toast('Teste concluído. Nada foi gravado na ferramenta.');KLB.etapa='des';KLB.manter=true;klabRes()}});
+
+/* KMZ da extensão de sinal: fibra e caixas no caminho entram na mão de obra (fase Extensão), como no ROI pelo KMZ */
+function klExtMostra(){const e=document.getElementById('klExtR');if(!e)return;e.innerHTML=KLB.ext?`Extensão: <b>${kmN0(Math.round(KLB.ext.m))} m</b> de fibra e <b>${KLB.ext.cx}</b> ${KLB.ext.cx===1?'caixa':'caixas'} no caminho (${esc(KLB.ext.nome)}). <button type="button" class="link" data-act="klabExtTira">Tirar</button>`:(KLB.extErr?`<span style="color:var(--bad)">${esc(KLB.extErr)}</span>`:'')}
+CH.klabExt=async el=>{const f=el.files&&el.files[0];if(!f)return;KLB.extErr='';toast('Lendo o KMZ de extensão…');
+  try{const K=kmlLer(await kmzTexto(await f.arrayBuffer(),f.name)),e=klExtDe(K);if(!(e.m>0))throw new Error('não encontrei linhas de cabo no KMZ de extensão');KLB.ext={nome:f.name,m:e.m,cx:e.cx};toast(`Extensão: ${kmN0(Math.round(e.m))} m e ${e.cx} ${e.cx===1?'caixa':'caixas'} no caminho.`)}
+  catch(x){KLB.ext=null;KLB.extErr='Não foi possível ler o KMZ de extensão: '+(x.message||x)}el.value='';klExtMostra();if(KLB.D){KLB.V=klValores();KLB.manter=true;klabRes()}};
+ACT.klabExtTira=()=>{KLB.ext=null;KLB.extErr='';klExtMostra();if(KLB.D){KLB.V=klValores();KLB.manter=true;klabRes()}};
 
 /* ---------- 26/10: permissões das áreas gravam ----------
    PERM_ALL era montada antes de area.js/tx.js acrescentarem "GTD Manutenção" (m_gtd) e "Transmissão" (m_tx);
