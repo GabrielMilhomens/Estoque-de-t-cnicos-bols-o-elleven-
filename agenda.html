@@ -2145,6 +2145,7 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 #klab .klcola{margin-bottom:10px}#klab .klcola summary{cursor:pointer;color:var(--info);font-weight:600}#klab .klcola textarea{margin-top:6px}
 #klab .klnav{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:14px}
 @media (max-width:600px){#klab .kltipo{grid-template-columns:1fr}}
+#klab.klwiz{z-index:235}body:has(#klab.klwiz) #toast{z-index:245}.krseg{flex-wrap:wrap}
 .pdcol.loc{background:var(--warn-soft)}@media(min-width:1100px){.pdcols{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.kpis.pdk7{grid-template-columns:repeat(7,minmax(0,1fr))}}@media(min-width:1100px){.pdcol{padding:10px 8px}.pdcols .pdc2 .cat{flex-wrap:wrap;flex-direction:row;justify-content:flex-start}.pdcols .pdc2 .cat>b{flex:1 1 100%}.pdcols .pdc2 .cat>*:not(b){margin-left:0}}.pdkf{margin-top:14px}.pdkf .pdct span{display:flex;align-items:center;gap:10px}.pdkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-items:start}</style>
 </head>
 <body>
@@ -10001,7 +10002,8 @@ function kmParse(txt){const doc=new DOMParser().parseFromString(txt,'application
     if(ic==null){const st=kids(pm,'Style')[0],h=st&&all(st,'href')[0];ic=h?h.textContent.trim():''}
     all(pm,'Point').forEach(pt=>{const c=all(pt,'coordinates')[0];if(c){const k=crd(c.textContent);if(k.length)P.push({nome,pasta:ps,ic:(ic||'').split('/').pop().replace(/\.png$/i,''),ll:k[0]})}});
     all(pm,'LineString').forEach(ls=>{const c=all(ls,'coordinates')[0];if(c){const k=crd(c.textContent);if(k.length>1)L.push({nome,pasta:ps,desc,cor,c:k})}})});
-  return{P,L}}
+  /* 27/10: KMZ desenhado na ferramenta (padrão construtivo): a leitura usa as regras novas (esquinas, plaquetas, interno/subterrâneo) */
+  return{P,L,regra:/padrao_construtivo_2610/.test(txt)}}
 const kmHav=(a,b)=>{const r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r,x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2;return 2*6371000*Math.asin(Math.min(1,Math.sqrt(x)))};
 const kmLen=c=>{let s=0;for(let i=1;i<c.length;i++)s+=kmHav(c[i-1],c[i]);return s};
 function kmDist(ll,c){const r=Math.PI/180,k=Math.cos(ll[0]*r),xy=p=>[(p[1]-ll[1])*r*6371000*k,(p[0]-ll[0])*r*6371000];let d=1e12;
@@ -10022,7 +10024,7 @@ function kmEsquinas(c,jan){jan=jan||15;if(!c||c.length<3)return [];const r=Math.
   const cand=[];for(let i=1;i<X.length-1;i++){const s=cum[i];if(s<30||T-s<30)continue;/* a virada da fachada para a rua (perto das pontas) não é esquina */const A=em(s-jan),V=X[i],B=em(s+jan),h1=Math.atan2(V[1]-A[1],V[0]-A[0]),h2=Math.atan2(B[1]-V[1],B[0]-V[0]);
     let d=Math.abs(h2-h1)*180/Math.PI;if(d>180)d=360-d;if(d>=60)cand.push({i,s,d,ll:c[i],u:[(V[0]-A[0]),(V[1]-A[1])]})}
   const out=[];cand.sort((a,b)=>b.d-a.d).forEach(x=>{if(!out.some(y=>Math.abs(y.s-x.s)<25))out.push(x)});return out.sort((a,b)=>a.s-b.s)}
-function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
+function kmMat(K){const KMN=!!(window.KM_ESQ||(K&&K.regra));const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
   const Ls=K.L.map(l=>Object.assign({},l,{m:kmLen(l.c),n:kmN(l.nome),f:kmN(l.pasta)}));
   const cord=Ls.filter(l=>!ex(l)&&/CORDOALHA/.test(l.n+' '+l.f));
   const cabo=Ls.filter(l=>!ex(l)&&!cord.includes(l)&&!/^ROTA\b/.test(l.n)&&(/\bCABOS?\b/.test(l.f)||/DROP|CABO|\b\d+\s*FO\b|^[A-Z]{3}\d{3}\b/.test(l.n)));
@@ -10035,7 +10037,7 @@ function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
      cordoalha em cruz (2 lances nas diagonais), cada lance = distância de poste a poste + 5 m. Lances já desenhados
      com ESQUINA no nome (pasta CORDOALHA) seguem a mesma regra; cordoalha comum já desenhada na esquina é respeitada. */
   const esqL=cord.filter(l=>/ESQUINA/.test(l.n+' '+l.f)),esqLances=[],esqs=[];
-  if(window.KM_ESQ)cabo.forEach(l=>kmEsquinas(l.c).forEach(T=>{if(esqs.some(e=>kmHav(e.ll,T.ll)<25))return;const E={ll:T.ll,d:Math.round(T.d),lances:[],postes:0};esqs.push(E);
+  if(KMN)cabo.forEach(l=>kmEsquinas(l.c).forEach(T=>{if(esqs.some(e=>kmHav(e.ll,T.ll)<25))return;const E={ll:T.ll,d:Math.round(T.d),lances:[],postes:0};esqs.push(E);
     const desen=esqL.filter(x=>kmDist(T.ll,x.c)<=25);
     const pz=ps.filter(x=>kmHav(x.ll,T.ll)<=35).sort((a,b)=>kmHav(a.ll,T.ll)-kmHav(b.ll,T.ll)).slice(0,4);/* 27/10: com a cordoalha da esquina já desenhada, vale o tipo de poste do desenho */if(!desen.length)pz.forEach(x=>{x.t='EB';x.cord=true;x.aco=false;x.esq=true});else pz.forEach(x=>{x.esq=true});E.postes=pz.length;
     if(desen.length){desen.forEach(x=>{x.usado=true;E.lances.push(Math.round(x.m)+5)});return}
@@ -10065,7 +10067,7 @@ function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
     if(cordM.D){cordM.D.q+=t;cordM.D.memo+=' + '+mm}else cordM.D={q:t,memo:mm}}
   if(esqs.length)av.push(`${esqs.length} ${esqs.length>1?'esquinas':'esquina'} no traçado (mudança de direção de 60° ou mais): ${esqs.map(e=>e.desenhada?'cordoalha já desenhada':`${e.postes} ${e.postes===1?'poste':'postes'} com encabeçamento BAP e ${e.lances.length} ${e.lances.length===1?'lance':'lances'} de cordoalha em cruz`).join('; ')}.`);
   /* 27/10: se a rede existente está separada em trechos, só os marcados ESPINAR contam para o fio de espinar */
-  const espL=window.KM_ESQ?exist.filter(l=>/ESPINAR/.test(l.n)):[],exE=espL.length?espL:(espinar?exist:[]);
+  const espL=KMN?exist.filter(l=>/ESPINAR/.test(l.n)):[],exE=espL.length?espL:(espinar?exist:[]);
   const espM=Math.round(cord.reduce((s,l)=>s+l.m,0)+exE.reduce((s,l)=>s+l.m,0));
   if(espM)add('fio',Math.ceil(espM/80),`${kmN0(espM)} m de rede espinada ÷ 80 (arredondado para cima)`+(exE.length?` · inclui ${kmN0(exE.reduce((s,l)=>s+Math.round(l.m),0))} m de rede existente marcada para espinar`:''));
   /* cabos: sempre pela medida do desenho (a metragem escrita no KMZ é ignorada)
@@ -10086,7 +10088,7 @@ function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
   rts.forEach(p=>{let best=null,bd=1e9;cabo.forEach(l=>{const d=kmDist(p.ll,l.c);if(d<bd){bd=d;best=l}});if(best&&bd<=50)grp[best.tp.k].rt++;else rtFora++});
   if(rtFora)av.push(`${rtFora} ${rtFora>1?'reservas técnicas longe':'reserva técnica longe'} de qualquer cabo (mais de 50 m): não ${rtFora>1?'entraram':'entrou'} na conta.`);
   /* 26/10 (padrão construtivo 5.6.2 / 5.7.3 / 5.7.4): 1 plaqueta por reserva técnica e 1 por cabo que entra na caixa (CTO/CEO) */
-  if(window.KM_ESQ){const nrt=rts.length-rtFora;if(nrt)add('plaq',nrt,`reserva técnica: ${nrt} (1 por RT)`);
+  if(KMN){const nrt=rts.length-rtFora;if(nrt)add('plaq',nrt,`reserva técnica: ${nrt} (1 por RT)`);
     const cxs=K.P.filter(p=>/^(NOVA )?(CEO|CE|CTO)\b|^(CEO|CE|CTO)[\s\-_]?\d/.test(kmN(p.nome)));let nc=0;
     cabo.forEach(l=>[l.c[0],l.c[l.c.length-1]].forEach(e=>{if(cxs.some(x=>kmHav(x.ll,e)<=30))nc++}));if(nc)add('plaq',nc,`cabo entrando na caixa (CTO/CEO): ${nc} (1 por cabo)`)}
   /* 26/10: cada passagem do aéreo para o subterrâneo (poste ↔ CS ao longo do cabo) soma 10 m de cabo */
@@ -10098,7 +10100,7 @@ function kmMat(K){const av=[],ex=l=>/EXISTENTE/.test(kmN(l.pasta+' '+l.nome));
   Object.values(grp).forEach(g=>{g.trans=g.ls.reduce((s,l)=>s+kmTrans(l),0)});
   /* 27/10 (com a regra nova): partes do cabo pelo desenho: subterrânea = entre duas CS seguidas; interna = do cliente até
      o primeiro poste ou CS; o resto é aéreo. Conta também as CS no caminho do cabo. */
-  let kI=0,kS=0,kCs=0;if(window.KM_ESQ){const cli=K.P.find(p=>/^CLIENTE\b/.test(kmN(p.nome))||/^CLIENTE$/.test(kmN(p.pasta||''))),usa=new Set();
+  let kI=0,kS=0,kCs=0;if(KMN){const cli=K.P.find(p=>/^CLIENTE\b/.test(kmN(p.nome))||/^CLIENTE$/.test(kmN(p.pasta||''))),usa=new Set();
     cabo.forEach(l=>{const c=l.c,cum=[0];for(let i=1;i<c.length;i++)cum.push(cum[i-1]+kmHav(c[i-1],c[i]));const T=cum[cum.length-1];
       const pos=ll=>{const r=Math.PI/180,k=Math.cos(ll[0]*r),xy=v=>[(v[1]-ll[1])*r*6371000*k,(v[0]-ll[0])*r*6371000];let bd=1e12,bs=0;for(let i=1;i<c.length;i++){const A=xy(c[i-1]),B=xy(c[i]),dx=B[0]-A[0],dy=B[1]-A[1],L2=dx*dx+dy*dy,t=L2?Math.max(0,Math.min(1,-(A[0]*dx+A[1]*dy)/L2)):0,d=Math.hypot(A[0]+t*dx,A[1]+t*dy);if(d<bd){bd=d;bs=cum[i-1]+t*(cum[i]-cum[i-1])}}return bs};
       const pts=ps.filter(x=>kmDist(x.ll,c)<=8).map(x=>({t:'p',s:pos(x.ll)})).concat(csP.filter(x=>kmDist(x.ll,c)<=8).map(x=>{usa.add(x);return{t:'c',s:pos(x.ll)}})).sort((a,b)=>a.s-b.s);
@@ -11900,8 +11902,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElement
 {const _r=render;render=function(){const o=_r.apply(this,arguments);if(ui.pvVer)try{pvFull()}catch(e){}return o}}
 /* 26/10: na Validação o ROI é só pelo KMZ (sem "Importar PDF do ROI") */
 const pvSoKmz=()=>pvProj()||(ui.tab==='base'&&ui.baseV==='val');
-{const _w=renderWiz;renderWiz=function(){const W=ui.wiz,so=W&&pvSoKmz();if(so)W.roiModo='kmz';const o=_w.apply(this,arguments);
-  if(so)document.querySelectorAll('#modal .krseg').forEach(e=>e.remove());return o}}
+{const _w=renderWiz;renderWiz=function(){const W=ui.wiz,so=W&&pvSoKmz();if(so&&W.roiModo!=='des')W.roiModo='kmz';const o=_w.apply(this,arguments);
+  /* validação: sem PDF do ROI (fica Gerar pelo KMZ e, desde 27/10, Desenhar pelas coordenadas) */if(so)document.querySelectorAll('#modal .krseg [data-v="pdf"]').forEach(e=>e.remove());return o}}
 {const _k=ACT.krModo;if(_k)ACT.krModo=function(el){if(pvSoKmz()&&el&&el.dataset&&el.dataset.v==='pdf')return;return _k.apply(this,arguments)}}
 
 /* ---------- 26/10: cabo a lançar pelo KMZ de lançamento ----------
@@ -11989,6 +11991,7 @@ function kaKml(d,o){const cab=KA_CABO[o.cabo]||KA_CABO.drop,co=v=>`${v[1].toFixe
   const cxN=/^(NOVA )?(CEO|CE|CTO)\b|^(CEO|CE|CTO)[\s\-_]?\d/i.test(o.caixa||'')?o.caixa:'CTO '+(o.caixa||'');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${kaEsc(o.titulo)}</name>
 <description>Traçado automático (anteprojeto) gerado na Ferramenta de Gestão O&amp;M em ${new Date().toLocaleString('pt-BR')}, padrão construtivo IOP.2.5.1.001. Postes estimados: conferir no local.</description>
+<ExtendedData><Data name="ferramenta_regra"><value>padrao_construtivo_2610</value></Data></ExtendedData>
 ${o.origem?'':`<Folder><name>CLIENTE</name>${pt('CLIENTE'+(o.cliente?' - '+o.cliente:''),d.c[0],KA_HREF.cli)}</Folder>`}
 <Folder><name>CAIXAS</name>${o.origem?pt(kaCxNome(o.origem,'CEO'),d.c[0],KA_HREF.cx):''}${pt(o.origem?kaCxNome(o.caixa,'CEO'):cxN.trim(),d.c[d.c.length-1],KA_HREF.cx)}</Folder>
 <Folder><name>POSTES</name>${d.P.map(p=>pt('',p.ll,KA_HREF[p.t])).join('')}</Folder>
@@ -12030,10 +12033,10 @@ const KL_ICO='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke
 function klabBotao(){if(!KLB.ok||!ME)return;document.querySelectorAll('[data-act="conta"],[data-act="navConta"]').forEach(b=>{const pai=b.parentElement;if(!pai||pai.querySelector('.klabBtn'))return;
   const x=document.createElement('button');x.className='wic klabBtn';x.dataset.act='klab';x.title='Laboratório de KMZ (teste: só você vê, nada é gravado)';x.setAttribute('aria-label','Laboratório de KMZ');x.innerHTML=KL_ICO;pai.insertBefore(x,b)})}
 {const _r=render;render=function(){const r=_r.apply(this,arguments);if(ME){if(KLB.ok&&KLB.uid===ME.id)klabBotao();else klabPode().then(ok=>{if(ok){klabBotao();if(/[?&]lab=kmz\b/.test(location.search)&&!KLB.aberto){KLB.aberto=true;ACT.klab()}}})}return r}}
-function klabTela(){let o=document.getElementById('klab');if(o)return o;o=document.createElement('div');o.id='klab';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Laboratório de KMZ');
-  const roi=ui.roiTmp||{};o.innerHTML=`<header class="klh"><div><h2>Laboratório de KMZ</h2><small>Teste do desenho automático. Só você vê esta tela e nada é gravado na ferramenta.</small></div><button type="button" class="btn" data-act="klabFecha">Fechar</button></header>
+function klabTela(){let o=document.getElementById('klab');if(o)return o;o=document.createElement('div');o.id='klab';if(KLB.wiz)o.className='klwiz';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Laboratório de KMZ');
+  const roi=ui.roiTmp||{};o.innerHTML=`<header class="klh"><div><h2>${KLB.wiz?'Desenhar o projeto pelas coordenadas':'Laboratório de KMZ'}</h2><small>${KLB.wiz?'O desenho segue o padrão construtivo. Ao terminar, use o desenho no cadastro.':'Teste do desenho automático. Só você vê esta tela e nada é gravado na ferramenta.'}</small></div><button type="button" class="btn" data-act="klabFecha">Fechar</button></header>
   <div class="klb"><section class="klf"><h3>Pontos</h3>
-    <label class="f"><span>Tipo de projeto</span><select class="inp" id="klTipo" data-ch="klabTipoF"><option value="at">Atendimento ao cliente</option><option value="me">Melhoria de rede (caixa a caixa)</option></select></label>
+    <label class="f"${KLB.wiz?' hidden':''}><span>Tipo de projeto</span><select class="inp" id="klTipo" data-ch="klabTipoF"><option value="at">Atendimento ao cliente</option><option value="me">Melhoria de rede (caixa a caixa)</option></select></label>
     <label class="f"><span id="klCliL">Coordenada do cliente *</span><input class="inp" id="klCli" inputmode="decimal" placeholder="-22.90561, -47.06094"></label>
     <label class="f" id="klCliNW" hidden><span>Nome da caixa de origem</span><input class="inp" id="klCliN" placeholder="CE1262"></label>
     <label class="f"><span id="klCxL">Coordenada da caixa de derivação *</span><input class="inp" id="klCx" inputmode="decimal" placeholder="-22.90380, -47.05830"></label>
@@ -12177,20 +12180,21 @@ function klabResDes(){const el=document.getElementById('klRes');if(!el)return;co
      return L.length?`<ul class="kltr">${L.join('')}</ul>`:''})()}
    ${M&&M.av&&M.av.length?`<details class="klav"><summary>${M.av.length} ${M.av.length>1?'observações':'observação'} da leitura</summary><ul>${M.av.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></details>`:''}
    ${klValHtml()}
-   <div class="klconf"><div><b>Desenho, materiais e valores conferidos?</b><small class="muted">Siga para as informações do cliente ou do projeto de melhoria.</small></div><button type="button" class="btn primary" data-act="klabEtapa" data-v="info">Confirmar projeto e seguir</button></div>
+   ${KLB.wiz?`<div class="klconf"><div><b>Desenho, materiais e valores conferidos?</b><small class="muted">O KMZ desenhado entra no cadastro como o KMZ do projeto e o processo segue normalmente (ROI, dados do cliente, fases).</small></div><button type="button" class="btn primary" data-act="klabUsar">Usar este desenho no cadastro</button></div>`:`<div class="klconf"><div><b>Desenho, materiais e valores conferidos?</b><small class="muted">Siga para as informações do cliente ou do projeto de melhoria.</small></div><button type="button" class="btn primary" data-act="klabEtapa" data-v="info">Confirmar projeto e seguir</button></div>`}
+
    <h3 style="margin:14px 0 6px">Lista de materiais (como a ferramenta leria este KMZ)</h3>
    <div class="tblwrap"><table class="tbl kltbl"><thead><tr><th>Código</th><th>Material</th><th style="text-align:right">Qtd</th><th>Como foi calculado</th></tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.cod||'')}</td><td>${esc(i.desc)}</td><td style="text-align:right;white-space:nowrap"><b>${kmN0(i.qtd)}</b> ${esc(i.un)}</td><td class="muted" style="font-size:12.5px">${esc(i.memo||'')}</td></tr>`).join('')}</tbody></table></div>`;
   klabMapa()}
 Object.assign(ACT,{
-  klab:async()=>{if(!(await klabPode())){toast('Tela de teste não liberada para este usuário.','bad');return}klabTela();document.body.classList.add('krfull-on');klabRes()},
+  klab:async()=>{if(!(await klabPode())){toast('Tela de teste não liberada para este usuário.','bad');return}if(KLB.wiz){KLB.wiz=false;KLB.wizRef=null;KLB.D=null;KLB.M=null;KLB.V=null;KLB.ext=null;KLB.extF=null}klabTela();document.body.classList.add('krfull-on');klabRes()},
   klabFecha:()=>{const o=document.getElementById('klab');if(KLB.map){try{KLB.map.remove()}catch(e){}KLB.map=null}if(o)o.remove();document.body.classList.remove('krfull-on')},
   klabFundo:el=>{KLB.fundo=el.dataset.v;KLB.manter=true;klabRes()},
   klabModo:el=>{const v=el.dataset.v||'';KLB.modo=KLB.modo===v?'':v;KLB.sel=null;KLB.manter=true;klabRes()},
   klabTrDel:el=>{const D=KLB.D;if(!D)return;D.tr.splice(+el.dataset.i,1);klabRefaz(true)},
-  klabGera:async el=>{if(!(await klabPode()))return;const v=id=>(($(id)||{}).value||'').trim(),cli=kaLL(v('klCli')),cx=kaLL(v('klCx'));
+  klabGera:async el=>{if(!KLB.wiz&&!(await klabPode()))return;const v=id=>(($(id)||{}).value||'').trim(),cli=kaLL(v('klCli')),cx=kaLL(v('klCx'));
     if(!cli||!cx){toast('Informe as duas coordenadas no formato -22.90561, -47.06094.','bad');return}
     const dist=kmHav(cli,cx);if(dist>3000){toast(`Os pontos estão a ${kmN0(Math.round(dist))} m: confira as coordenadas (máximo 3 km).`,'bad');return}
-    const mel=v('klTipo')==='me';KLB.mel=mel;KLB.orig=mel?(v('klCliN')||'CEO ORIGEM'):'';KLB.topo=v('klTopo')||'GPON';KLB.cid=v('klCid');KLB.crit=!!($('klCrit')||{}).checked;const cabo=v('klCabo')||'drop',vao=+v('klVao')||35,esp=!!($('klEsp')||{}).checked,cxn=v('klCxN')||(mel?'CEO DESTINO':'CTO');el.disabled=true;toast('Desenhando o traçado…');
+    KLB.form=['klTipo','klCli','klCliN','klCx','klCxN','klCabo','klVao','klTopo','klCid'].reduce((o,id)=>(o[id]=v(id),o),{crit:!!($('klCrit')||{}).checked,esp:!!($('klEsp')||{}).checked});const mel=!KLB.wiz&&v('klTipo')==='me';KLB.mel=mel;KLB.orig=mel?(v('klCliN')||'CEO ORIGEM'):'';KLB.topo=v('klTopo')||'GPON';KLB.cid=v('klCid');KLB.crit=!!($('klCrit')||{}).checked;const cabo=v('klCabo')||'drop',vao=+v('klVao')||35,esp=!!($('klEsp')||{}).checked,cxn=v('klCxN')||(mel?'CEO DESTINO':'CTO');el.disabled=true;toast('Desenhando o traçado…');
     try{const R=await kaRota(cli,cx);if(!R.ors&&!el.dataset.l){KLB.D=null;KLB.M=null;KLB.erro=R.erro||'o serviço de rotas não respondeu';klabRes();return}
       const D=kaDesenho(cli,cx,{rota:R.ors?R.c:R.c.slice(1,-1),vao,cabo,esp,mel});
       /* no laboratório: reservas e trechos de rede existente viram listas editáveis */
@@ -12238,7 +12242,7 @@ function klabResResumo(){const el=document.getElementById('klRes'),I=KLB.info,D=
    <section class="pvsec" style="margin-top:10px"><h3>Projeto desenhado</h3>${dl([['Cabos',cab],['Postes',String(D.P.length)],['Esquinas',D.esq.length?String(D.esq.length):''],['Reservas técnicas',D.rts.length?String(D.rts.length):''],['Caixa de derivação',KLB.cxn]])}
     <div class="klkpi" style="margin-top:8px"><div><small>Materiais</small><b>${b(V.vMat)}</b></div><div><small>Mão de obra${at?'':' (sem ativação e sem cliente)'}</small><b>${b(V.mo.tot||0)}</b></div><div class="t"><small>Custo total${roi!=null?` · ROI ${String(roi).replace('.',',')} meses`:''}</small><b>${b(V.tot)}</b></div></div></section>
    <div class="klnav"><button type="button" class="btn" data-act="klabEtapa" data-v="info">Voltar</button><span><button type="button" class="btn" data-act="klabBaixa">Baixar o KMZ</button> <button type="button" class="btn primary" data-act="klabFim">Concluir o teste</button></span></div>`}
-function klabRes(){const e=KLB.etapa||'des';if(!KLB.D||e==='des'){klabResDes();const el=document.getElementById('klRes');if(KLB.D&&el&&!el.querySelector('.klpassos'))el.insertAdjacentHTML('afterbegin',klPassos());return}
+function klabRes(){const e=KLB.etapa||'des';if(!KLB.D||e==='des'){klabResDes();const el=document.getElementById('klRes');if(KLB.D&&el&&!KLB.wiz&&!el.querySelector('.klpassos'))el.insertAdjacentHTML('afterbegin',klPassos());return}
   if(KLB.map){KLB.vwSalvo={c:KLB.map.getCenter(),z:KLB.map.getZoom()};try{KLB.map.remove()}catch(x){}KLB.map=null}
   if(e==='info')klabResInfo();else klabResResumo();const el=document.getElementById('klRes');if(el)el.scrollIntoView({block:'start'})}
 Object.assign(ACT,{
@@ -12255,9 +12259,9 @@ Object.assign(ACT,{
 /* KMZ da extensão de sinal: fibra e caixas no caminho entram na mão de obra (fase Extensão), como no ROI pelo KMZ */
 function klExtMostra(){const e=document.getElementById('klExtR');if(!e)return;e.innerHTML=KLB.ext?`Extensão: <b>${kmN0(Math.round(KLB.ext.m))} m</b> de fibra e <b>${KLB.ext.cx}</b> ${KLB.ext.cx===1?'caixa de emenda':'caixas de emenda'} no caminho (${esc(KLB.ext.nome)})${KLB.ext.nomes&&KLB.ext.nomes.length?`<br><small>${KLB.ext.nomes.map(esc).join(', ')}</small>`:''}${KLB.ext.longe&&KLB.ext.longe.length?`<br><small style="color:var(--warn)">Longe da rota (não contadas): ${KLB.ext.longe.map(esc).join(', ')}</small>`:''}. <button type="button" class="link" data-act="klabExtTira">Tirar</button>`:(KLB.extErr?`<span style="color:var(--bad)">${esc(KLB.extErr)}</span>`:'')}
 CH.klabExt=async el=>{const f=el.files&&el.files[0];if(!f)return;KLB.extErr='';toast('Lendo o KMZ de extensão…');
-  try{const K=kmlLer(await kmzTexto(await f.arrayBuffer(),f.name)),e=klExtLab(K);if(!(e.m>0))throw new Error('não encontrei linhas de cabo no KMZ de extensão');KLB.ext={nome:f.name,m:e.m,cx:e.cx,nomes:e.nomes,longe:e.longe};toast(`Extensão: ${kmN0(Math.round(e.m))} m e ${e.cx} ${e.cx===1?'caixa':'caixas'} no caminho.`)}
+  try{const K=kmlLer(await kmzTexto(await f.arrayBuffer(),f.name)),e=klExtLab(K);if(!(e.m>0))throw new Error('não encontrei linhas de cabo no KMZ de extensão');KLB.ext={nome:f.name,m:e.m,cx:e.cx,nomes:e.nomes,longe:e.longe};KLB.extF=f;toast(`Extensão: ${kmN0(Math.round(e.m))} m e ${e.cx} ${e.cx===1?'caixa':'caixas'} no caminho.`)}
   catch(x){KLB.ext=null;KLB.extErr='Não foi possível ler o KMZ de extensão: '+(x.message||x)}el.value='';klExtMostra();if(KLB.D){KLB.V=klValores();KLB.manter=true;klabRes()}};
-ACT.klabExtTira=()=>{KLB.ext=null;KLB.extErr='';klExtMostra();if(KLB.D){KLB.V=klValores();KLB.manter=true;klabRes()}};
+ACT.klabExtTira=()=>{KLB.ext=null;KLB.extF=null;KLB.extErr='';klExtMostra();if(KLB.D){KLB.V=klValores();KLB.manter=true;klabRes()}};
 
 /* tipo de projeto no formulário: melhoria de rede vai de caixa a caixa (sem cliente) */
 CH.klabTipoF=el=>{const me=el.value==='me',t=(id,v)=>{const e=$(id);if(e)e.textContent=v};t('klCliL',me?'Coordenada da caixa de origem *':'Coordenada do cliente *');t('klCxL',me?'Coordenada da caixa de destino *':'Coordenada da caixa de derivação *');t('klCxNL',me?'Nome da caixa de destino':'Nome da caixa');
@@ -12269,6 +12273,33 @@ function klExtLab(K){const L=(K.L||[]).filter(l=>!/^ROTA\b|CORDOALHA/.test(klN(l
   (K.P||[]).forEach(p=>{const n=klN(p.nome)+' '+klN(p.desc||'');if(!(/(^|\s)(CEO|CE)[\s\-_]?\d|(^|\s)(CEO|CE)\b|CAIXA DE EMENDA/.test(n))||/DIO|TERMINADOR|PTRO/.test(n))return;
     const d=Math.min(...L.map(l=>klProj([p.lat,p.lon],l.c).d));(d<=40?ok:longe).push(p.nome)});
   return{m:kl1(m),cx:ok.length,nomes:ok,longe}}
+
+/* ---------- 27/10: DESENHAR O PROJETO PELAS COORDENADAS no cadastro (Incluir novo projeto) ----------
+   Terceira opção ao lado de "Gerar pelo KMZ" e "Importar PDF do ROI" (na Validação: ao lado de "Gerar pelo KMZ").
+   Abre a mesma tela de desenho do laboratório, para quem cadastra projetos; ao terminar, "Usar este desenho no cadastro"
+   entra como o KMZ do projeto (lista de materiais, mão de obra, ROI e KMZ de lançamento) e o processo segue igual.
+   O KMZ desenhado leva a marca "padrao_construtivo_2610": a leitura usa as regras novas (esquinas, plaquetas, interno e subterrâneo). */
+function klabForm(){const F=KLB.form;if(!F)return;Object.entries(F).forEach(([k,v])=>{if(k==='crit'||k==='esp'){const e=$(k==='crit'?'klCrit':'klEsp');if(e)e.checked=!!v;return}const e=$(k);if(e&&v!=null&&v!=='')e.value=v});klExtMostra()}
+Object.assign(ACT,{
+  klabWiz:()=>{const W=ui.wiz;if(!W)return;if(KLB.wizRef!==W){Object.assign(KLB,{wizRef:W,D:null,M:null,V:null,kml:'',kmz:null,ext:null,extF:null,extErr:'',erro:'',modo:'',sel:null,etapa:'des',info:null,mel:false,form:null});
+      const etq=(ui.roiTmp&&ui.roiTmp.etiqueta)||'',cli=(S.comp[etq]||{}).coord||'',t=W.t||{};KLB.form={klCli:cli,klCx:t.locPd||'',klCxN:t.pd||'',klTopo:W.kr&&W.kr.topo==='ptp'?'Ponto a ponto':'GPON',klCid:(W.e&&W.e.cidade)||''}}
+    KLB.wiz=true;const o=document.getElementById('klab');if(o)o.remove();klabTela();klabForm();document.body.classList.add('krfull-on');KLB.manter=false;klabRes()},
+  klabUsar:async el=>{const W=ui.wiz;if(!W||!KLB.kmz)return;el.disabled=true;
+    try{const etq=((ui.roiTmp&&ui.roiTmp.etiqueta)||'PROJETO').replace(/[^\w\-]/g,'_'),f=new File([KLB.kmz],`${etq}_desenho.kmz`,{type:'application/vnd.google-earth.kmz'});
+      W.kr=Object.assign(W.kr||{},{topo:KLB.topo==='Ponto a ponto'?'ptp':'gpon',topoMan:true});
+      ACT.klabFecha();W.roiModo='des';await CH.krArq({files:[f],value:''});if(KLB.extF)await CH.krExt({files:[KLB.extF],value:''});
+      if(W.kr)W.kr.des=true;renderWiz();toast('Desenho usado no cadastro. Informe o valor mensal e confira.')}
+    catch(e){toast('Não foi possível usar o desenho: '+(e.message||e),'bad')}finally{el.disabled=false}}});
+{const _k=ACT.krModo;ACT.krModo=function(el){if(el&&el.dataset&&el.dataset.v==='des'){const W=ui.wiz;if(W){W.roiModo='des';renderWiz()}return}return _k.apply(this,arguments)}}
+{const _w=renderWiz;renderWiz=function(){const o=_w.apply(this,arguments),W=ui.wiz;if(!W||W.step!==1)return o;
+  try{const seg=document.querySelector('#modal .krseg');if(!seg)return o;if(!seg.querySelector('[data-v="des"]'))seg.insertAdjacentHTML('beforeend',`<button type="button" data-act="krModo" data-v="des" aria-pressed="${W.roiModo==='des'}">Desenhar pelas coordenadas</button>`);
+    if(W.roiModo!=='des')return o;seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v==='des')));
+    const pdf=document.querySelector('#modal input[data-ch="roiPdf"]'),lab=pdf&&pdf.closest('label'),det=lab&&lab.nextElementSibling,intro=lab&&lab.previousElementSibling;
+    [lab,det,intro].forEach(e=>{if(e&&e!==seg)e.style.display='none'});document.querySelectorAll('#modal .krbox').forEach(e=>e.remove());
+    const R=W.kr||{},feito=R.des&&R.M,box=`<div class="krbox kldes"><p class="muted" style="margin:0 0 8px">${feito?`KMZ desenhado na ferramenta: <b>${esc(R.nome||'')}</b>.`:'Sem KMZ pronto? Informe a coordenada do cliente e da caixa de derivação: a ferramenta desenha pelas ruas no padrão construtivo (postes, esquinas, reserva técnica), você ajusta no mapa e confere materiais e valores.'}</p>
+      <button type="button" class="btn ${feito?'':'primary'}" data-act="klabWiz">${feito?'Editar o desenho':'Abrir o desenho'}</button></div>`;
+    let h=box;if(feito)h+=krPainel().replace(/<label class="f"><span>KMZ do projeto \(\.kmz ou \.kml\)<\/span>[\s\S]*?<\/label>/,'').replace(/<p class="muted" style="margin:-4px 0 8px;font-size:13px">Arquivo:[\s\S]*?<\/p>/,'').replace(/<p class="muted" style="margin:0 0 8px">Envie o KMZ do projeto:[\s\S]*?<\/p>/,'');
+    seg.insertAdjacentHTML('afterend',h)}catch(e){console.warn('klabWiz',e)}return o}}
 
 /* ---------- 26/10: permissões das áreas gravam ----------
    PERM_ALL era montada antes de area.js/tx.js acrescentarem "GTD Manutenção" (m_gtd) e "Transmissão" (m_tx);
