@@ -12193,7 +12193,7 @@ Object.assign(ACT,{
   klabTrDel:el=>{const D=KLB.D;if(!D)return;D.tr.splice(+el.dataset.i,1);klabRefaz(true)},
   klabGera:async el=>{if(!KLB.wiz&&!(await klabPode()))return;const v=id=>(($(id)||{}).value||'').trim(),cli=kaLL(v('klCli')),cx=kaLL(v('klCx'));
     if(!cli||!cx){toast('Informe as duas coordenadas no formato -22.90561, -47.06094.','bad');return}
-    const dist=kmHav(cli,cx);if(dist>3000){toast(`Os pontos estão a ${kmN0(Math.round(dist))} m: confira as coordenadas (máximo 3 km).`,'bad');return}
+    const dist=kmHav(cli,cx);if(dist>15000){toast(`Os pontos estão a ${kmN0(Math.round(dist))} m em linha reta: confira as coordenadas (máximo 15 km).`,'bad');return}
     KLB.form=['klTipo','klCli','klCliN','klCx','klCxN','klCabo','klVao','klTopo','klCid'].reduce((o,id)=>(o[id]=v(id),o),{crit:!!($('klCrit')||{}).checked,esp:!!($('klEsp')||{}).checked});const mel=!KLB.wiz&&v('klTipo')==='me';KLB.mel=mel;KLB.orig=mel?(v('klCliN')||'CEO ORIGEM'):'';KLB.topo=v('klTopo')||'GPON';KLB.cid=v('klCid');KLB.crit=!!($('klCrit')||{}).checked;const cabo=v('klCabo')||'drop',vao=+v('klVao')||35,esp=!!($('klEsp')||{}).checked,cxn=v('klCxN')||(mel?'CEO DESTINO':'CTO');el.disabled=true;toast('Desenhando o traçado…');
     try{const R=await kaRota(cli,cx);if(!R.ors&&!el.dataset.l){KLB.D=null;KLB.M=null;KLB.erro=R.erro||'o serviço de rotas não respondeu';klabRes();return}
       const D=kaDesenho(cli,cx,{rota:R.ors?R.c:R.c.slice(1,-1),vao,cabo,esp,mel});
