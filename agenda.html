@@ -12307,6 +12307,17 @@ Object.assign(ACT,{
    o Salvar permissões filtra por PERM_ALL e descartava essas chaves. Aqui PERM_ALL passa a ter todas as chaves de PERM_T. */
 {const add=k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)},w=L=>L.forEach(n=>{add(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]))}
 
+/* ---------- 27/10: abrir/baixar arquivo no iPhone ----------
+   O Safari do iPhone bloqueia a janela aberta depois de esperar o link do arquivo (o toque "vence" durante a espera),
+   por isso às vezes o KMZ não baixava. Agora a janela é aberta na hora do toque e recebe o link quando ele fica pronto;
+   se o navegador não deixar abrir janela, o arquivo abre na própria aba. */
+async function abreLink(gerar){let w=null;try{w=window.open('','_blank')}catch(e){w=null}
+  try{const u=await gerar();if(!u){if(w)w.close();return}if(w&&!w.closed){w.location.href=u}else{const a=document.createElement('a');a.href=u;a.rel='noopener';document.body.appendChild(a);a.click();a.remove()}}
+  catch(e){if(w)try{w.close()}catch(x){}toast('Não foi possível abrir o arquivo: '+(e.message||e),'bad')}}
+Object.assign(ACT,{
+  anxOpen:el=>{const x=S.anexos.find(a=>a.id===el.dataset.id);if(!x)return;return abreLink(async()=>{const r=await sb.storage.from('agenda').createSignedUrl(x.path,120,{download:x.nome});if(r.error)throw r.error;return r.data.signedUrl})},
+  relVer:el=>abreLink(async()=>{const r=await sb.storage.from('agenda').createSignedUrl(el.dataset.p,300);if(r.error)throw r.error;return r.data.signedUrl})});
+
 /* ---------- 26/10: Chat com NOC separado por área (GTD Manutenção | Transmissão) e edição de mensagens ----------
    ag_sala.area ('gtd' | 'tx'); a conversa aberta segue a área escolhida no topo. Cada área tem o próprio contador
    (ag_sala_vistos.visto_em = GTD, visto_tx = Transmissão) e os avisos vão só para quem tem a área.
