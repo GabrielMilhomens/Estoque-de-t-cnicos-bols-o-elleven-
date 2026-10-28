@@ -3414,8 +3414,12 @@ const normK=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().t
 const coords=u=>{const m=String(u||'').match(/(-?\d{1,3}\.\d+)\s*[+,\s]\s*(-?\d{1,3}\.\d+)/);return m?[+m[1],+m[2]]:null};
 const mapUrl=u=>{const c=coords(u);return c?`https://www.google.com/maps/search/?api=1&query=${c[0]},${c[1]}`:u};
 function buildEnd(e){const rua=[e.logradouro,e.numero].filter(Boolean).join(', ');const b=[rua,e.bairro,[e.cidade,e.uf].filter(Boolean).join('/')].filter(Boolean).join(', ');return b?b+(e.cep?`, CEP ${e.cep}`:''):''}
-function semExtOf(t){if(!(t.pa||'').trim()||!(t.pd||'').trim())return null;const c1=coords(t.locPa),c2=coords(t.locPd);const mesmaLoc=c1&&c2?Math.abs(c1[0]-c2[0])<1e-6&&Math.abs(c1[1]-c2[1])<1e-6:(t.locPa||'').trim()===(t.locPd||'').trim();return normK(t.pa)===normK(t.pd)&&mesmaLoc}
-const extNote=t=>{const v=semExtOf(t);return v===true?'<p class="note">Ponto de acesso e de derivação iguais: projeto sem extensão de sinal. A fase sai do fluxo.</p>':v===false?'<p class="note">Pontos diferentes: projeto com extensão de sinal.</p>':'<p class="muted">Informe os pontos de acesso e de derivação para o sistema definir se há extensão de sinal.</p>'};
+/* 28/10: extensão de sinal pela localização: com as duas localizações, decide pela distância entre elas (até 10 m = mesmo ponto, sem extensão), sem olhar os nomes */
+const SEMEXT_TOL=10;
+const extDist=t=>{const a=coords(t.locPa),b=coords(t.locPd);if(!a||!b)return null;const R=6371000,r=x=>x*Math.PI/180,dl=r(b[0]-a[0]),dn=r(b[1]-a[1]),h=Math.sin(dl/2)**2+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+function semExtOf(t){const d=extDist(t);if(d!=null)return d<=SEMEXT_TOL;if(!(t.pa||'').trim()||!(t.pd||'').trim())return null;return normK(t.pa)===normK(t.pd)&&(t.locPa||'').trim()===(t.locPd||'').trim()}
+const extDTxt=t=>{const d=extDist(t);return d==null||d<1?'':d<1000?` (${Math.round(d)} m entre eles)`:` (${(d/1000).toFixed(1).replace('.',',')} km entre eles)`};
+const extNote=t=>{const v=semExtOf(t);return v===true?`<p class="note">Localização do ponto de acesso igual à do ponto de derivação${extDTxt(t)}: projeto sem extensão de sinal. A fase sai do fluxo.</p>`:v===false?`<p class="note">Localizações diferentes${extDTxt(t)}: projeto com extensão de sinal.</p>`:'<p class="muted">Informe a localização do ponto de acesso e do ponto de derivação para o sistema definir se há extensão de sinal.</p>'};
 function parseInst(txt){
   const r={notas:[]};let last=null;
   String(txt||'').split(/\r?\n/).forEach(l=>{const s=l.trim();if(!s||/^-{2,}/.test(s))return;
@@ -3431,7 +3435,7 @@ function parseInst(txt){
 function instPreview(r){
   const has=r.endereco||r.pop||r.equip||r.pa;if(!has)return '';
   const dd=(l,v)=>v?`<div><dt>${l}</dt><dd>${esc(v)}</dd></div>`:'';
-  const ext=r.semExt===true?'<p class="note" style="margin:10px 0 0">Ponto de acesso e de derivação iguais: projeto sem extensão de sinal. A fase sai do fluxo e a previsão dela fica zerada.</p>':r.semExt===false?'<p class="note" style="margin:10px 0 0">Pontos diferentes: projeto com extensão de sinal.</p>':'';
+  const ext=r.semExt===true?`<p class="note" style="margin:10px 0 0">Localização do ponto de acesso igual à do ponto de derivação${extDTxt(r)}: projeto sem extensão de sinal. A fase sai do fluxo e a previsão dela fica zerada.</p>`:r.semExt===false?`<p class="note" style="margin:10px 0 0">Localizações diferentes${extDTxt(r)}: projeto com extensão de sinal.</p>`:'';
   return `<div class="prev"><dl class="dl">${dd('Endereço',r.endereco)}${dd('Cidade',r.cidade)}${dd('POP',r.pop)}${dd('Equipamento de acesso',r.equip)}${dd('Porta',r.porta)}${dd('Ponto de acesso',r.pa)}${dd('Ponto de derivação',r.pd)}${dd('Observações',r.notas.join('. '))}</dl>${ext}</div>`;
 }
 
@@ -10425,7 +10429,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElement
 /* ao salvar: projeto com KMZ de extensão fica "com extensão" e guarda metros e caixas para a estimativa */
 {const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,R=W&&W.kr,ext=R&&R.ext,etq=ui.roiTmp&&ui.roiTmp.etiqueta,kmzRoi=!!(R&&R.M&&W.roiModo==='kmz'),snap=kmzRoi?krSnap():null,novo=!W.id;if(snap){snap.etiqueta=etq||snap.etiqueta;snap.cliente=(ui.roiTmp&&ui.roiTmp.cliente)||snap.cliente;snap.protocolo=(ui.roiTmp&&ui.roiTmp.protocolo)||snap.protocolo}const o=_s.apply(this,arguments);
   {const p=S.previsao.find(x=>(W.id&&x.id===W.id)||(etq&&x.etiqueta===etq));if(p&&snap){snap.cid=p.cidade||snap.cid;p.roiKmz=snap;if(!p.kl||p.kl.roi){const q=Object.assign({},R.M.kq);p.kl={arq:snap.nome,em:snap.em,por:snap.por,ativ:klAtivDe(p.topologia),q,lido:q,av:[],roi:true}}try{save()}catch(e){}if(typeof kvPos==='function')kvPos(p,novo)}}
-  if(ext){const p=S.previsao.find(x=>(W.id&&x.id===W.id)||(etq&&x.etiqueta===etq));if(p){p.semExt=false;p.klExt={m:ext.m,cx:ext.cx,nome:ext.nome};try{save()}catch(e){}}}return o}}
+  if(ext){const p=S.previsao.find(x=>(W.id&&x.id===W.id)||(etq&&x.etiqueta===etq));if(p){/* 28/10: com as localizações iguais, quem manda é a localização (sem extensão) */if(semExtOf(Object.assign({},p.inst||{},W.t||{}))!==true)p.semExt=false;p.klExt={m:ext.m,cx:ext.cx,nome:ext.nome};try{save()}catch(e){}}}return o}}
 
 /* previsão de custo (Budget › métrica KMZ × LPU): projeto com ROI pelo KMZ usa a mão de obra do ROI
    (com os ajustes do projetista) e soma o deslocamento calculado com a cidade e os dias previstos atuais */
@@ -11628,7 +11632,9 @@ function perMesAplica(){if(ui.__perMes===hoje().slice(0,7))return;ui.__perMes=ho
 DN.gprob=DN.gprob||{};DN.gobs=DN.gobs||{};
 const gnBase=()=>({motivo:'',cliente:'',etiqueta:'',endereco:'',cidade:'',pnoc:'',pom:'',equipamento:'',porta:'',banda:'',ip:'',entrega:'',obs:'',levar:'',contato:'',janela:'',extras:[],faltando:[],categoria:'',prioridade:'Normal',modo:'hoje',agD:hoje(),agH:'08:00'});
 const gnF=()=>ui.gF||(ui.gF=gnBase());
-const gnArea=()=>(ui.gArea||'gtd')==='gtd';
+/* 27/10: a Rede Externa usa o mesmo formulário (sem os dados técnicos de CPE) */
+const gnArea=()=>['gtd','re'].includes(ui.gArea||'gtd');
+const gnRE=()=>ui.gArea==='re';
 /* texto do NOC colado: preenche o formulário (o que já foi digitado e veio vazio no texto fica) */
 function gnAplica(txt){txt=String(txt||'').trim();if(!txt)return;const F=gnF(),p=gtdLerChamado(txt),ag=gAgendaDe(p);p.ip=p.dados;delete p.dados;
   ['motivo','cliente','etiqueta','endereco','cidade','pnoc','pom','equipamento','porta','olt','banda','ip','entrega','contato','janela','mapa','parceiro'].forEach(k=>{if(String(p[k]||'').trim())F[k]=p[k]});
@@ -11648,24 +11654,25 @@ Object.assign(CH,{gnSel:el=>{gnF()[el.dataset.k]=el.value;const y=window.scrollY
   const fake=Object.assign({},F,{id:'_novo',criadoEm:Date.now()}),re=F.etiqueta?gReinc(fake):[],me=F.endereco?gMesmoEnd(fake):[],dup=F.pom&&G.ch.filter(x=>x.pom===F.pom&&x.status!=='cancelado');
   const sug=gtdSugerir(F.motivo||((ui.dnT||{}).gprobnovo)||'',F.obs);
   const avisos=`${dup&&dup.length?`<div class="result bad" style="margin:0 0 10px">Já existe chamado com o protocolo O&amp;M ${esc(F.pom)} (${dup.map(x=>GST[gStK(x)][0].toLowerCase()).join(', ')}).</div>`:''}${re.length?`<div class="result bad" style="margin:0 0 10px"><b>Reincidência:</b> a etiqueta ${esc(F.etiqueta)} teve ${re.length} chamado(s) nos últimos 30 dias (${re.map(x=>'O&amp;M '+esc(x.pom)+', '+dBR(isoD(new Date(x.criadoEm)))).join('; ')}).</div>`:''}${me.length?`<div class="result info" style="margin:0 0 10px">Mesmo endereço de chamado em aberto: ${me.map(x=>'O&amp;M '+esc(x.pom)+' ('+esc(x.cliente)+')').join(', ')}.</div>`:''}${F.possivelImprodutiva?'<div class="result warn" style="margin:0 0 10px">Possível improdutiva sinalizada no texto.</div>':''}`;
+  const RE0=gnRE();
   const lido=F._lido?`<div class="gnok" style="margin:-4px 0 10px">${TVI.ok}Texto lido · ${F._cheios||0} campos preenchidos. Confira abaixo.</div>`:'';
-  return `<div class="toolbar"><div><h2>Criar chamado · Manutenção GTD</h2><p class="muted">Chamado de manutenção no cliente: entra em Não despachados e a gestão do GTD despacha o técnico.</p></div>${F._lido||F.cliente?'<div class="tools"><button class="btn" data-act="gnLimpar">Limpar formulário</button></div>':''}</div>
+  return `<div class="toolbar"><div><h2>Criar chamado · ${RE0?'Rede Externa':'Manutenção GTD'}</h2><p class="muted">${RE0?'Chamado de rede externa: entra em Não despachados e a gestão da Rede Externa despacha o técnico.':'Chamado de manutenção no cliente: entra em Não despachados e a gestão do GTD despacha o técnico.'}</p></div>${F._lido||F.cliente?'<div class="tools"><button class="btn" data-act="gnLimpar">Limpar formulário</button></div>':''}</div>
    <section class="panel txnovo gnovo">
     <label class="f txnoc"><span>Colar a solicitação de deslocamento do NOC (opcional)</span><textarea class="inp mono" rows="4" data-in="gnCola" placeholder="Solicitação de deslocamento:&#10;Motivo: …&#10;Cliente: … - ETIQUETA&#10;Endereço: …&#10;Localização: link do mapa&#10;Protocolo NOC / O&amp;M: …&#10;Equipamento / Porta / Banda: …&#10;Dados IP / PPPoE: …&#10;Obs: …">${esc(ui.gTxt||'')}</textarea><small class="muted">Cole o texto: cliente, etiqueta, endereço, localização, categoria, problema, protocolos, dados técnicos, data e horário e observações são preenchidos. Confira e ajuste o que precisar.</small></label>
     ${lido}
-    <div class="grid2 even" style="gap:0 12px">${inp('cliente','Cliente *','Nome do cliente')}${inp('etiqueta','Etiqueta','Ex.: GT1SYTMW')}</div>
+    <div class="grid2 even" style="gap:0 12px">${inp('cliente',RE0?'Cliente ou local afetado *':'Cliente *',RE0?'Ex.: CTO 12 · Jd. Primavera (14 clientes)':'Nome do cliente')}${inp('etiqueta','Etiqueta','Ex.: GT1SYTMW')}</div>
     ${ta('endereco','Endereço','Rua, número, bairro')}
     <div class="grid2 even" style="gap:0 12px">${inp('cidade','Cidade','Ex.: Campinas')}${inp('contato','Contato no local','Nome e telefone')}</div>
     ${F.mapa?`<p class="muted txpopinfo"><a class="linkbtn" href="${esc(F.mapa)}" target="_blank" rel="noopener">Localização lida do link · abrir no mapa</a></p>`:''}
     <div class="grid2 even" style="gap:0 12px">${sel('categoria','Categoria *',GTD_CATS,'Escolha…')}${sel('prioridade','Prioridade',['Normal','Alta','Escalonado'])}</div>
     ${!F.categoria&&sug?`<small class="muted" style="display:block;margin:-6px 0 10px">Sugestão pelo problema: <b>${esc(sug)}</b></small>`:''}
     <div class="f txprob"><span>Problema *</span>${dnCampos('gprob','novo','Descreva o problema. Cole prints aqui (Ctrl+V) ou anexe fotos.')}</div>
-    <div class="grid2 even" style="gap:0 12px">${inp('equipamento','Equipamento','Ex.: ZTE F612')}${inp('porta','Porta','Ex.: CAS-OLT-02 1/1/13 onu 13')}</div>
+    ${RE0?'':`<div class="grid2 even" style="gap:0 12px">${inp('equipamento','Equipamento','Ex.: ZTE F612')}${inp('porta','Porta','Ex.: CAS-OLT-02 1/1/13 onu 13')}</div>
     <div class="grid2 even" style="gap:0 12px">${inp('banda','Banda','Ex.: 500 Mbps')}${inp('entrega','Tipo de entrega','Ex.: GPON, ponto a ponto')}</div>
-    ${ta('ip','Dados IP / PPPoE','Usuário, senha, IP, VLAN')}
+    ${ta('ip','Dados IP / PPPoE','Usuário, senha, IP, VLAN')}`}
     <div class="grid2 even" style="gap:0 12px">${inp('pnoc','Protocolo NOC','Ex.: 148812')}${inp('pom','Protocolo O&amp;M','Ex.: 149120')}</div>
     <div class="f"><span>Quando *</span><div class="tvops txck" role="group">${[['hoje','Atendimento hoje'],['agendado','Agendar data e horário']].map(([v,n])=>`<button type="button" data-act="tvGF" data-k="modo" data-v="${v}" aria-pressed="${(F.modo||'hoje')===v}">${n}</button>`).join('')}</div></div>
-    ${F.modo==='agendado'?`<div class="grid2 even" style="gap:0 12px">${inp('agD','Data *','','date')}${inp('agH','Horário *','','time')}</div><small class="muted" style="display:block;margin:-4px 0 10px">O MTTR e o SLA começam no horário agendado. O chamado aparece na Agenda.</small>`:'<small class="muted" style="display:block;margin:-4px 0 10px">O MTTR começa na criação do chamado. Indisponibilidade tem SLA de 4 horas.</small>'}
+    ${F.modo==='agendado'?`<div class="grid2 even" style="gap:0 12px">${inp('agD','Data *','','date')}${inp('agH','Horário *','','time')}</div><small class="muted" style="display:block;margin:-4px 0 10px">O MTTR e o SLA começam no horário agendado. O chamado aparece na Agenda.</small>`:`<small class="muted" style="display:block;margin:-4px 0 10px">O MTTR começa na criação do chamado.${RE0?'':' Indisponibilidade tem SLA de 4 horas.'}</small>`}
     ${inp('janela','Janela informada pelo NOC','Ex.: manhã a partir das 8h')}
     <div class="f txprob"><span>Observações do NOC / levar</span>${dnCampos('gobs','novo','Ex.: técnico autorizado, horário do cliente, levar ONU reserva. Cole prints aqui (Ctrl+V) ou anexe fotos.')}</div>
     ${avisos}
@@ -11677,7 +11684,7 @@ Object.assign(ACT,{
     const PA=(DN.gprob.novo||[]).slice(),PO=(DN.gobs.novo||[]).slice();delete F._lido;delete F._cheios;
     await ACT.gCriar(el);if(ui.gF)return;/* não criou: o formulário continua */
     dnLimpa('gprob','novo');dnLimpa('gobs','novo');const id=ui.gSel;
-    if(id&&(PA.length||PO.length)){try{toast('Enviando as imagens…');const a1=PA.length?await dnSobe(id,'problema',PA):[],a2=PO.length?await dnSobe(id,'obs',PO):[];await gAcao(id,x=>{if(a1.length)x.probAnx=a1;if(a2.length)x.obsAnx=a2});toast('Chamado criado em Não despachados. A gestão do GTD foi avisada.')}catch(e){toast('Chamado criado, mas as imagens não foram enviadas: '+(e.message||e),'bad')}}}});
+    if(id&&(PA.length||PO.length)){try{toast('Enviando as imagens…');const a1=PA.length?await dnSobe(id,'problema',PA):[],a2=PO.length?await dnSobe(id,'obs',PO):[];await gAcao(id,x=>{if(a1.length)x.probAnx=a1;if(a2.length)x.obsAnx=a2});toast('Chamado criado em Não despachados. A gestão '+(gnRE()?'da Rede Externa':'do GTD')+' foi avisada.')}catch(e){toast('Chamado criado, mas as imagens não foram enviadas: '+(e.message||e),'bad')}}}});
 /* prints do problema e das observações no detalhe da gestão */
 {const _d=gdhDadosSec;gdhDadosSec=function(c){let h=_d.apply(this,arguments);try{
   if((c.probAnx||[]).length){const k='<small>Motivo</small>'+esc(c.motivo);h=h.replace(k,k+dnThumbs(c.probAnx))}
@@ -12399,6 +12406,41 @@ function reRestaura(){const W=ui.wiz;if(!W||!W.id||(W.kr&&W.kr.M))return false;c
 /* aviso na etapa ROI de um projeto já salvo */
 {const _p=krPainel;krPainel=function(){const h=_p.apply(this,arguments),R=ui.wiz&&ui.wiz.kr;if(!R||!R.salvo||!R.M)return h;
   return h.replace('<div class="krbox">','<div class="krbox"><p class="result ok" style="margin:0 0 8px">ROI salvo no projeto. Para corrigir: <b>Abrir lista de materiais e mão de obra</b> (incluir, mudar quantidade ou excluir)'+(R.des?', <b>Editar o desenho</b>':'')+' ou envie outro KMZ. Os preços são os da tabela atual.</p>')}}
+
+/* ---------- 28/10: KM de fibra e caixas do KMZ de extensão sem precisar "Recalcular" ----------
+   No desenho pelas coordenadas (e no ROI pelo KMZ), o KMZ de extensão é lido antes da etapa 3, quando ainda não há
+   a localização dos pontos de derivação e de acesso: a rota de A até B não fechava e o KM de fibra e as caixas ficavam vazios.
+   1) Ao salvar o cadastro: recalcula a rota com as localizações já preenchidas; se ainda não fechar, usa os metros e as
+      caixas do KMZ de extensão inteiro (os mesmos da LPU).
+   2) Ao abrir a etapa Extensão com o KMZ já anexado, ele é lido sozinho (sem o botão Recalcular).
+   3) Planilha: projetos com KMZ de extensão anexado e sem KM de fibra ganham o botão "Preencher pelos KMZs anexados". */
+function extDoKmz(K,ini,fim){let r=null;try{r=kmzCalcular(K,ini,fim)}catch(e){}
+  if(r&&r.ok)return{m:Math.round(r.metros),cx:r.pontos.filter(x=>x.tipo==='cx').length,r};
+  const e=klExtDe(K);return e&&e.m>0?{m:Math.round(e.m),cx:e.cx||0,r:null}:null}
+{const _a=kmzAplica;kmzAplica=function(p,W){const k=W&&W.k;
+  try{if(k&&!p.semExt){if(k.K&&!(k.res&&k.res.ok)&&W===ui.wiz){try{kmzRecalc()}catch(e){}}
+    const e=W.kr&&W.kr.ext;if(k.metros===''&&k.K){const x=extDoKmz(k.K,k.ini||(W.t||{}).locPd,k.fim||(W.t||{}).locPa);if(x){k.metros=String(x.m);if(k.caixas===''||k.caixas==='0'&&x.cx)k.caixas=String(x.cx)}}
+    else if(k.metros===''&&e&&e.m>0){k.metros=String(Math.round(e.m));if(k.caixas==='')k.caixas=String(e.cx||0)}}}catch(x){console.warn('extauto',x)}
+  return _a.apply(this,arguments)}}
+{const _r=renderWiz;renderWiz=function(){const o=_r.apply(this,arguments);const W=ui.wiz,k=W&&W.k;
+  if(W&&W.step===4&&k&&k.anx&&!k.K&&!k.arq&&!k._auto&&ACT.kmzAnexado){k._auto=1;setTimeout(()=>ACT.kmzAnexado(),0)}return o}}
+/* planilha: preencher em lote */
+const extPend=()=>S.previsao.filter(p=>!p.semExt&&temExt(p)&&(p.kmFibra==null||p.kmFibra==='')&&anxKmz(p.etiqueta,'kmzA'));
+{const _v=viewBase;viewBase=function(){const h=_v.apply(this,arguments);if(ui.baseV==='val'||!(pode('a_projeto')&&pode('a_valor')))return h;const L=extPend();if(!L.length)return h;
+  return h.replace('<div class="seg kvseg"',`<div class="result info extpend"><b>${L.length} ${L.length===1?'projeto tem':'projetos têm'} KMZ de extensão anexado sem KM de fibra e caixas na planilha</b> (${L.slice(0,6).map(p=>esc(p.etiqueta)).join(', ')}${L.length>6?'…':''}). <button class="btn sm" data-act="extLote">Preencher pelos KMZs anexados</button></div><div class="seg kvseg"`)}}
+ACT.extLote=async el=>{const L=extPend();if(!L.length)return;el.disabled=true;let ok=0;const er=[];
+  for(const p of L){try{toast(`Lendo o KMZ de ${p.etiqueta} (${ok+er.length+1} de ${L.length})…`);const K=kmlLer(await anxTexto(anxKmz(p.etiqueta,'kmzA'))),i=p.inst||{};
+      const x=extDoKmz(K,(p.kmz||{}).ini||i.locPd,(p.kmz||{}).fim||i.locPa);if(!x)throw new Error('sem linhas de cabo');
+      p.kmFibra=x.m;p.caixas=x.cx;if(x.r)p.kmz=Object.assign({},p.kmz||{},{ini:(p.kmz||{}).ini||i.locPd,fim:(p.kmz||{}).fim||i.locPa,metros:x.r.metros,offIni:Math.round(x.r.offIni||0),offFim:Math.round(x.r.offFim||0),rota:x.r.rota,
+        pontos:x.r.pontos.map(y=>({nome:y.nome,pasta:y.pasta,tipo:y.tipo,lat:+(+y.lat).toFixed(7),lon:+(+y.lon).toFixed(7),d:Math.round(y.d),s:Math.round(y.s),cx:y.tipo==='cx'})),caixasInf:x.cx,em:Date.now(),por:ME?ME.nome:''});
+      ok++}catch(e){er.push(p.etiqueta+': '+(e.message||e))}}
+  save();render();toast(`${ok} ${ok===1?'projeto preenchido':'projetos preenchidos'}${er.length?'. Sem cálculo: '+er.join('; '):''}.`,er.length?'bad':'')};
+/* 28/10: projetos já cadastrados como "com extensão" cuja localização do ponto de acesso é a mesma do ponto de derivação */
+const extDiv=()=>S.previsao.filter(p=>p.semExt===false&&semExtOf(p.inst||{})===true);
+{const _v=viewBase;viewBase=function(){const h=_v.apply(this,arguments);if(ui.baseV==='val'||!(pode('a_projeto')&&pode('a_valor')))return h;const L=extDiv();if(!L.length)return h;
+  return h.replace('<div class="seg kvseg"',`<div class="result warn extdiv"><b>${L.length} ${L.length===1?'projeto está':'projetos estão'} com extensão de sinal, mas a localização do ponto de acesso é a mesma do ponto de derivação</b> (${L.slice(0,6).map(p=>esc(p.etiqueta)).join(', ')}${L.length>6?'…':''}). <button class="btn sm" data-act="extDivOk">Marcar como sem extensão</button></div><div class="seg kvseg"`)}}
+ACT.extDivOk=()=>{const L=extDiv();if(!L.length)return;if(!confirm(`Marcar ${L.length} ${L.length===1?'projeto':'projetos'} como sem extensão de sinal? A fase de extensão sai do fluxo e a previsão dela fica zerada.`))return;
+  L.forEach(p=>{p.semExt=true;p.dExt=0;p.caixas=1});save();render();toast(`${L.length} ${L.length===1?'projeto marcado':'projetos marcados'} como sem extensão de sinal.`)};
 
 /* ---------- 26/10: permissões das áreas gravam ----------
    PERM_ALL era montada antes de area.js/tx.js acrescentarem "GTD Manutenção" (m_gtd) e "Transmissão" (m_tx);
