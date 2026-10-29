@@ -4001,7 +4001,11 @@ async function syncAgora(){SYNC_PEND=false;const r=curRows();
       if(rem.length){const q=await sb.from(TBL[k]).delete().in(KEYS[k],rem);if(q.error)throw q.error;rem.forEach(x=>SNAP[k].delete(x))}}
     setSt('Tudo salvo')}
   catch(e){console.error(e);setSt('Erro ao salvar',1);toast('Não foi possível salvar: '+(e.message||e)+'. Os dados foram recarregados.','bad');await carregar();render()}}
-async function todas(q){let out=[],de=0;for(;;){const r=await q().range(de,de+999);if(r.error)throw r.error;out=out.concat(r.data||[]);if(!r.data||r.data.length<1000)break;de+=1000}return out}
+/* 29/10: tempo esgotado no banco (statement timeout): tenta de novo com páginas menores e diz qual tabela falhou */
+async function todas(q){let out=[],de=0,tam=1000;const tab=(()=>{try{const u=q().url;return String(u&&u.pathname||u||'').split('/').pop()}catch(e){return ''}})();
+  for(;;){let r=null,erro=null;for(let t=0;t<3;t++){r=await q().range(de,de+tam-1);if(!r.error)break;erro=r.error;if(!/timeout|canceling statement|57014/i.test(String(erro.message||'')+String(erro.code||'')))break;tam=Math.max(100,Math.floor(tam/2));await new Promise(x=>setTimeout(x,600*(t+1)))}
+    if(r.error){const e=new Error((r.error.message||String(r.error))+(tab?' (tabela '+tab+')':''));e.code=r.error.code;throw e}
+    out=out.concat(r.data||[]);if(!r.data||r.data.length<tam)break;de+=tam}return out}
 async function carregar(){
   if((ui.perfil==='supply'||ui.perfil==='visu'||ui.perfil==='noc')&&!r21TemImpl()){TEC.length=0;S.previsao=[];S.comp={};S.ags=[];S.lpus=[];S.anexos=[];S.anexosLog=[];S.budget={};S.estoque={};snapAll();setSt('Tudo salvo');return}
   const g=['coord','sup','enc','deliv'].includes(ui.perfil)||r21TemImpl();
@@ -4107,7 +4111,7 @@ async function checarSessao(){if(NP_OPEN)return;
 }
 function ligarTempoReal(){if(RT)sb.removeChannel(RT);let t;const rec=()=>{clearTimeout(t);t=setTimeout(async()=>{if(SYNC_PEND||$('modal').classList.contains('open'))return;await SYNC_P;try{await carregar();render()}catch(e){}},800)};
   RT=sb.channel('agenda').on('postgres_changes',{event:'*',schema:'public',table:'ag_agendamentos'},rec).on('postgres_changes',{event:'*',schema:'public',table:'ag_lpus'},rec).subscribe()}
-document.addEventListener('visibilitychange',async()=>{if(document.visibilityState!=='visible'||!ME||SYNC_PEND||$('modal').classList.contains('open'))return;await SYNC_P;try{await carregar();
+document.addEventListener('visibilitychange',async()=>{if(document.visibilityState!=='visible'||!ME||SYNC_PEND||$('modal').classList.contains('open'))return;await SYNC_P;try{if(!(await ioVis()))return;
   const a=ui.campoSel&&getAg(ui.campoSel);if(a&&a.status==='relatorios'&&relsDe(a).some(r=>!a.rel||!a.rel[r.k]))await checarRelatorio(a);render()}catch(e){}});
 Object.assign(ACT,{
   authCard:el=>showAuth(el.dataset.c),
@@ -5134,7 +5138,7 @@ Object.assign(IN,{
 
 /* reserva do tempo real da Implantação: a cada 2 min a gestão recarrega o Painel do dia, a Agenda e o Painel (correção 08/10) */
 setInterval(async function gRecargaImpl(){if(!ME||!['coord','sup','enc','deliv'].includes(ui.perfil)||document.visibilityState!=='visible'||ui.chat)return;if(!['painelDia','agenda','painel','relat'].includes(ui.tab))return;
-  if(SYNC_PEND||$('modal').classList.contains('open')||gDigitando())return;try{await SYNC_P;await carregar();render()}catch(e){}},120000);
+  if(SYNC_PEND||$('modal').classList.contains('open')||gDigitando())return;try{await carregarAuto()}catch(e){}},300000);
 
 
 /* ---------- CONVERSA DA GESTÃO DO GTD (grupo: coordenação, supervisão, encarregados e NOC; técnicos não veem) ---------- */
@@ -12679,6 +12683,48 @@ ACT.moXlsx=()=>{const M=moCalc(),inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim,todo=ui
 Object.assign(ACT,{moTodo:el=>{ui.moTodo=el.dataset.v==='1';if(!ui.moTodo)ui.moQ='';render()},moAb:el=>{ui.moAb=ui.moAb||{};const e=el.dataset.e;ui.moAb[e]=!ui.moAb[e];const y=window.scrollY;render();window.scrollTo(0,y)}});
 Object.assign(IN,{moQ:el=>{ui.moQ=el.value;clearTimeout(ui.moTq);ui.moTq=setTimeout(()=>{const pos=el.selectionStart,y=window.scrollY;render();window.scrollTo(0,y);const n=document.querySelector('[data-in="moQ"]');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},350)}});
 document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t&&t.classList&&t.classList.contains('morow')){e.preventDefault();t.click()}});
+
+/* ---------- 29/10: menos leitura no banco (Disk IO do Supabase) ----------
+   Antes: qualquer alteração em ag_agendamentos ou ag_lpus (tempo real) fazia TODOS os usuários abertos recarregarem
+   tudo (projetos, complementos, atividades, LPUs, anexos, estoque, chamados e até 10 mil mensagens); voltar para a aba
+   também recarregava tudo; a gestão recarregava tudo a cada 2 min; cada chamado, aviso ou mensagem recarregava os chamados.
+   Agora:
+   - tempo real aplica só a linha que mudou (atividade, LPU, chamado, aviso, contagem de mensagens), sem ler o banco;
+   - a recarga completa automática acontece no máximo a cada 90 s, só com a aba visível, e só quando há algo pendente
+     ou a tela ficou mais de 5 min sem recarregar; a reserva da gestão passou de 2 para 5 min. */
+const IO={ult:Date.now(),pend:false,run:null,t:null,MIN:90000,OCIOSO:300000,fila:[]};
+{const _c=carregar;carregar=async function(){const r=await _c.apply(this,arguments);IO.ult=Date.now();IO.pend=false;return r}}
+function ioOcupado(){return SYNC_PEND||$('modal').classList.contains('open')}
+async function carregarAuto(){if(!ME)return false;if(document.visibilityState!=='visible'){IO.pend=true;return false}
+  const dt=Date.now()-IO.ult;if(dt<IO.MIN||ioOcupado()){IO.pend=true;clearTimeout(IO.t);IO.t=setTimeout(carregarAuto,Math.max(IO.MIN-dt,15000)+500);return false}
+  if(IO.run)return IO.run;IO.run=(async()=>{try{await SYNC_P;await carregar();render();return true}catch(e){return false}finally{IO.run=null}})();return IO.run}
+/* voltar para a aba: só recarrega se ficou algo pendente ou se passou do tempo */
+async function ioVis(){if(!(IO.pend||Date.now()-IO.ult>IO.OCIOSO))return false;return !!(await carregarAuto())}
+/* ---------- tempo real da Implantação: aplica a linha que mudou ---------- */
+const ioAgDe=r=>Object.assign({ts:{},rel:{}},r.dados,{id:r.id,etiqueta:r.etiqueta,tec:r.tecnico,data:r.data,status:r.status,fases:r.fases,fase:(r.fases||[])[0]});
+const ioLpDe=r=>Object.assign({},r.dados,{id:r.id,ag:r.agendamento,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total,pdf_path:r.pdf_path,prestador:r.prestador||undefined});
+function ioAplica(p,tab){const n=p&&p.new,o=p&&p.old,del=p&&p.eventType==='DELETE',id=del?(o&&o.id):(n&&n.id);if(!id||(!del&&!n.dados)||(p.errors&&p.errors.length))return false;
+  if(tab==='ag'){if(del)S.ags=S.ags.filter(a=>a.id!==id);else{const a=ioAgDe(n),i=S.ags.findIndex(x=>x.id===id);if(i>=0)S.ags[i]=a;else if(['coord','sup','enc','deliv'].includes(ui.perfil)||r21TemImpl()||n.tecnico===ME.id)S.ags.push(a)}}
+  else{if(!del&&n.chamado){if(typeof gLpuDeRow==='function'&&ui.perfil!=='func'){const l=gLpuDeRow(n),i=G.lpus.findIndex(x=>x.id===id);if(i>=0)G.lpus[i]=l;else G.lpus.push(l)}return true}
+    if(del){S.lpus=S.lpus.filter(l=>l.id!==id);if(G.lpus)G.lpus=G.lpus.filter(l=>l.id!==id)}else if(ui.perfil!=='func'){const l=ioLpDe(n),i=S.lpus.findIndex(x=>x.id===id);if(i>=0)S.lpus[i]=l;else S.lpus.push(l)}}
+  return true}
+function ioFila(){if(!IO.fila.length)return;if(ioOcupado()){clearTimeout(IO.tf);IO.tf=setTimeout(ioFila,2500);return}
+  const F=IO.fila.splice(0);let ok=true;F.forEach(([p,tab])=>{try{if(!ioAplica(p,tab))ok=false}catch(e){ok=false}});
+  try{if(S.semValor)S.previsao.forEach(p=>{delete p.valor});snapAll()}catch(e){}
+  if(!ok)carregarAuto();if(!gDigitando())render();else{clearTimeout(IO.tr);IO.tr=setTimeout(()=>{if(!gDigitando())render()},3000)}}
+ligarTempoReal=function(){if(RT)sb.removeChannel(RT);const ev=tab=>p=>{IO.fila.push([p,tab]);clearTimeout(IO.tf);IO.tf=setTimeout(ioFila,900)};
+  RT=sb.channel('agenda').on('postgres_changes',{event:'*',schema:'public',table:'ag_agendamentos'},ev('ag')).on('postgres_changes',{event:'*',schema:'public',table:'ag_lpus'},ev('lp')).subscribe();gLigarTempoReal()};
+/* ---------- tempo real do GTD / Transmissão: chamado, aviso e mensagem sem recarregar tudo ---------- */
+function ioRender(){if(ui.chat||!gEmTela())return;if(gDigitando()){clearTimeout(IO.tg);IO.tg=setTimeout(ioRender,2500);return}if(ui.lpuTela&&String(ui.lpuTela).startsWith('G:'))return;if($('modal').classList.contains('open'))return;render()}
+function ioCh(p){const n=p&&p.new,o=p&&p.old;try{if(p.eventType==='DELETE'){const id=o&&o.id;if(id)G.ch=G.ch.filter(c=>c.id!==id)}else if(n&&n.id&&n.dados&&!(p.errors&&p.errors.length))gTroca(gDeRow(n));else{gRec('ch');return}}catch(e){gRec('ch');return}
+  gSinoAtualizar();clearTimeout(IO.tc);IO.tc=setTimeout(ioRender,600)}
+function ioAv(p){const n=p&&p.new;if(p&&p.eventType==='INSERT'&&n&&n.id){if(!(ui.perfil==='func'&&/^LPU/i.test(n.titulo||''))){G.avisos=[n].concat((G.avisos||[]).filter(a=>a.id!==n.id)).slice(0,100)}}
+  else if(p&&p.eventType==='UPDATE'&&n&&n.id){G.avisos=(G.avisos||[]).map(a=>a.id===n.id?n:a)}else if(p&&p.eventType==='DELETE'){const id=p.old&&p.old.id;G.avisos=(G.avisos||[]).filter(a=>a.id!==id)}
+  gSinoAtualizar()}
+function ioMsg(p){const m=p&&p.new;if(!(m&&m.id&&p.eventType==='INSERT'))return;const k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;if(gChatK()===k)return gRec('msg',p);
+  G.nMsg=G.nMsg||{};G.nNova=G.nNova||{};G.nMsg[k]=(G.nMsg[k]||0)+1;if(G.vista&&m.papel==='Técnico'&&!m.vista_em)G.nNova[k]=(G.nNova[k]||0)+1;gSinoAtualizar();clearTimeout(IO.tc);IO.tc=setTimeout(ioRender,600)}
+gLigarTempoReal=function(){if(RTG){sb.removeChannel(RTG);RTG=null}if(G.erro||!ME)return;
+  RTG=sb.channel('gtd').on('postgres_changes',{event:'*',schema:'public',table:'ag_chamados'},ioCh).on('postgres_changes',{event:'*',schema:'public',table:'ag_mensagens'},ioMsg).on('postgres_changes',{event:'*',schema:'public',table:'ag_avisos'},ioAv).on('postgres_changes',{event:'INSERT',schema:'public',table:'ag_sala'},p=>gRec('sala',p)).subscribe()};
 
 /* ---------- 26/10: permissões das áreas gravam ----------
    PERM_ALL era montada antes de area.js/tx.js acrescentarem "GTD Manutenção" (m_gtd) e "Transmissão" (m_tx);
