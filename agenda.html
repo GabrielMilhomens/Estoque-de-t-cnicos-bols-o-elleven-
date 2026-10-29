@@ -13023,6 +13023,12 @@ Object.assign(ACT,{pxAba:el=>{ui.permAba=el.dataset.v;render();const b=document.
 {const _p=CH.permCopia;if(_p)CH.permCopia=function(el){const r=_p.apply(this,arguments);if(ui.permEd){const pp=USR&&USR.pp.find(x=>x.user_id===ui.permEd.id);ui.permEd.set=pxNorm(ui.permEd.set,pp&&pp.papel)}return r}}
 {const _p=ACT.permFechar;if(_p)ACT.permFechar=function(){ui.permAba=null;return _p.apply(this,arguments)}}
 
+/* 29/10: planilha da Visão geral (Implantação) com a coluna Protocolo antes da Etiqueta, em todas as abas */
+{const _x=ACT.pgXlsx;ACT.pgXlsx=function(el){const orig=xlsxBaixar;
+  xlsxBaixar=function(arq,abas,msg){try{abas.forEach(a=>{if(!Array.isArray(a[1]))return;a[1]=a[1].map(r=>{if(!r||typeof r!=='object'||!('Etiqueta' in r)||('Protocolo' in r))return r;const p=pPor(r['Etiqueta'])||{},o={};
+      Object.keys(r).forEach(k=>{if(k==='Etiqueta')o['Protocolo']=p.protocolo||'';o[k]=r[k]});return o})})}catch(e){}return orig.call(this,arq,abas,msg)};
+  try{return _x.apply(this,arguments)}finally{xlsxBaixar=orig}}}
+
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
