@@ -1166,6 +1166,10 @@ button.ca2{cursor:pointer}
 .ntel{margin-bottom:10px}.ntetr{font-style:normal;font-size:13px;font-weight:600;color:var(--brand,#5a821e)}.ntees{margin:0 0 8px}.ntenota{margin:0 0 8px;font-size:13px}
 @media(max-width:640px){.ntef .f{min-width:100%}.ntet th:nth-child(3),.ntet td:nth-child(3){display:none}}
 
+/* 30/10: separação por dia nas atualizações */
+.catl p.catld{margin:6px 0 2px -14px;padding-left:14px;font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);background:var(--surface);position:relative}
+.catl p.catld:first-child{margin-top:0}
+
 /* novo RFO do GTD */
 .r2 .r2ch{background:var(--panel,#fff);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 10px}
 .r2ch summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px;font-size:14px}
@@ -6431,13 +6435,18 @@ function cardA(o){const tag=o.tag||'div';
    ${o.foot?`<span class="cas ${o.fcls||o.cls||''}">${esc(o.foot)}${o.mot?`<small>${esc(o.mot)}</small>`:''}</span>`:''}${o.after||''}</${tag}>`}
 const hmA=v=>v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
 /* linha do tempo do dia: saída, chegada, início, atualizações e encerramento */
-function tlA(ts,ups,fim){const t=ts||{},L=[];const po=t.por||{},pq=k=>po[k]?' · '+po[k]:'';if(t.desloc)L.push([t.desloc,'Saiu'+(t.eta?' · previsão '+hmA(t.eta):'')+pq('desloc'),'']);if(t.chegada)L.push([t.chegada,'Chegou'+pq('chegada'),'']);if(t.inicio)L.push([t.inicio,'Iniciou'+pq('inicio'),'']);
+function tlA(ts,ups,fim,diario){const t=ts||{},L=[];const po=t.por||{},pq=k=>po[k]?' · '+po[k]:'';if(t.desloc)L.push([t.desloc,'Saiu'+(t.eta?' · previsão '+hmA(t.eta):'')+pq('desloc'),'']);if(t.chegada)L.push([t.chegada,'Chegou'+pq('chegada'),'']);if(t.inicio)L.push([t.inicio,'Iniciou'+pq('inicio'),'']);
+  /* 30/10: dias anteriores (continuação): saída, chegada, início e encerramento de cada dia */
+  (diario||[]).forEach(d=>{const x=d.ts||{};if(x.desloc&&x.desloc!==t.desloc)L.push([x.desloc,'Saiu','']);if(x.chegada&&x.chegada!==t.chegada)L.push([x.chegada,'Chegou','']);if(x.inicio&&x.inicio!==t.inicio)L.push([x.inicio,'Iniciou','']);
+    if(x.fimDia)L.push([x.fimDia,'Encerrou o dia'+(d.resumo?' · fez: '+d.resumo:'')+(d.falta?' · falta: '+d.falta:''),'x'])});
   (ups||[]).forEach(u=>L.push([u.em,`${u.tipo}${u.m?`, ${u.m} m lançados`:''}${u.obs?' · '+u.obs:''}${u.por?' · '+u.por:''}`,'']));if(fim)L.push(fim);
-  return L.sort((a,b)=>a[0]-b[0]).map(([v,tx,k])=>`<div class="${k}"><b>${hmA(v)}</b> ${esc(tx)}</div>`).join('')}
-const tlN=(ts,ups,fim)=>{const t=ts||{};return ['desloc','chegada','inicio'].filter(k=>t[k]).length+(ups||[]).length+(fim?1:0)};
+  /* 30/10: quando a atividade passa de um dia, separa as atualizações por dia */
+  const S2=L.filter(x=>x[0]).sort((a,b)=>a[0]-b[0]),dia=v=>isoD(new Date(v)),vs=new Set(S2.map(x=>dia(x[0]))),T=hoje(),ont=addD(T,-1);let ult='';
+  return S2.map(([v,tx,k])=>{let h='';const d=dia(v);if(vs.size>1&&d!==ult){ult=d;h=`<p class="catld">${d===T?'Hoje':d===ont?'Ontem':DSEM[new Date(d+'T12:00:00').getDay()]} · ${dBR(d).slice(0,5)}</p>`}return h+`<div class="${k}"><b>${hmA(v)}</b> ${esc(tx)}</div>`}).join('')}
+const tlN=(ts,ups,fim,diario)=>{const t=ts||{};return ['desloc','chegada','inicio'].filter(k=>t[k]).length+(ups||[]).length+(fim?1:0)+(diario||[]).reduce((s,d)=>{const x=d.ts||{};return s+['desloc','chegada','inicio','fimDia'].filter(k=>x[k]&&(k==='fimDia'||x[k]!==t[k])).length},0)};
 /* atualizações abertas continuam abertas quando a tela se atualiza */
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.upk){ui.upOpen=ui.upOpen||{};ui.upOpen[d.dataset.upk]=d.open}},true);
-const upDet=(k,n,html)=>n?`<details class="caup" data-upk="${esc(k)}" ${(ui.upOpen||{})[k]?'open':''}><summary>Atualizações do dia (${n})</summary><div class="catl">${html}</div></details>`:'';
+const upDet=(k,n,html)=>n?`<details class="caup" data-upk="${esc(k)}" ${(ui.upOpen||{})[k]?'open':''}><summary>Atualizações (${n})</summary><div class="catl">${html}</div></details>`:'';
 
 /* Agenda: card do Dia, Semana, Mês e da lista do dia */
 function agFoot(a){const t=a.ts||{};if(a.status==='cancelada')return['Cancelada','ag'];if(agParc(a)||a.status==='nao_concluida')return['Não concluída'+(t.encerramento?' às '+hmA(t.encerramento):'')+(a.motivo&&a.motivo!=='Retirada pela gestão'?' · '+a.motivo:a.motivo?' · retirada pela gestão':''),'bad'];
@@ -6449,6 +6458,12 @@ function agEv(a,d,extra){const p=pPor(a.etiqueta)||{},cli=p.cliente||cliN(a.etiq
   const dx=typeof d==='string'&&(a.diario||[]).find(x=>x.data===d&&x.ts&&x.ts.fimDia);
   if(dx&&(d!==a.data||a.aguardaPrazo)&&!FIM.includes(a.status)){const prox=a.status==='cancelada'?'continuação cancelada':a.aguardaPrazo?'aguardando continuação':a.data>d?'continua '+DSEM[new Date(a.data+'T12:00:00').getDay()]+' '+dBR(a.data).slice(0,5):'';
     return cardA({tag:'button',attrs:`data-act="agOpen" data-id="${a.id}" title="${esc((cli?cli+' - ':'')+a.etiqueta)}"`,cls2:'ev evn',cli,eti:a.etiqueta,chip:'Não concluída',cls:'bad',fz:agFzC(a)+(di?' · '+di:''),top:topoTxt(p),cid:p.cidade||'',tec:agResp(a),eqk:!!a.equipe,foot:`Dia encerrado às ${hmA(dx.ts.fimDia)}${prox?' · '+prox:''}`,fcls:'bad',mot:dx.falta?'Falta: '+dx.falta:''})}
+  /* 30/10: atividade de vários dias já encerrada: nos dias antes do último, o card mostra o encerramento daquele dia (não a conclusão) */
+  {const t=a.ts||{},fimT=t.conclusao||t.encerramento,dF=fimT?isoD(new Date(fimT)):a.data;
+    if(typeof d==='string'&&d<dF&&(FIM.includes(a.status)||['concluida','relatorios','lpu','nao_concluida'].includes(a.status))&&((a.dias||[]).length>1||(a.diario||[]).length)){const dd=(a.diario||[]).find(x=>x.data===d),fd=dd&&dd.ts&&dd.ts.fimDia;
+      const fimTx=a.status==='nao_concluida'||agParc(a)?'não concluída':'concluída';
+      return cardA({tag:'button',attrs:`data-act="agOpen" data-id="${a.id}" title="${esc((cli?cli+' - ':'')+a.etiqueta)}"`,cls2:'ev evn',cli,eti:a.etiqueta,chip:'Dia encerrado',cls:'info',fz:agFzC(a)+(di?' · '+di:''),top:topoTxt(p),cid:p.cidade||'',tec:agResp(a),eqk:!!a.equipe,
+        foot:`Dia encerrado${fd?' às '+hmA(fd):''} · ${fimTx} ${DSEM[new Date(dF+'T12:00:00').getDay()]} ${dBR(dF).slice(0,5)}${fimT?' às '+hmA(fimT):''}`,fcls:'info',mot:dd&&dd.resumo?'Fez: '+dd.resumo:''})}}
   const cont=typeof d==='string'&&d===a.data&&(a.diario||[]).filter(x=>x.data<d).slice(-1)[0];if(cont&&!extra)extra='continuação de '+dBR(cont.data).slice(0,5);
   return cardA({tag:'button',attrs:`data-act="agOpen" data-id="${a.id}" title="${esc((cli?cli+' - ':'')+a.etiqueta)}"`,cls2:'ev evn',cli,eti:a.etiqueta,chip:agParc(a)?'Não concluída':agStTxt(a),cls:agChipCls(a),x:a.status==='cancelada',
     fz:agFzC(a)+(di?' · '+di:''),top:topoTxt(p),cid:p.cidade||'',tec:agResp(a),eqk:!!a.equipe,foot:ft+(extra?' · '+extra:''),fcls:fc,mot:agParc(a)||a.status==='nao_concluida'?[a.obsMotivo,agParc(a)?(a.status==='lpu'?'Falta a LPU do que foi feito.':'Falta o relatório do que foi feito.'):''].filter(Boolean).join(' '):''})}
@@ -6461,10 +6476,10 @@ function pdCardA(r,f){const t=r.ts||{},nc=f.naoC(r),enc=f.encDia(r),g=f.grupo(r)
   const foot=nc?`Encerrou${t.encerramento||t.conclusao?' às '+hmA(t.encerramento||t.conclusao):''} · ${r.motivo||'sem motivo'}`:f.info(r);
   const mot=nc?[r.obsMotivo,falta].filter(Boolean).join(' '):'';
   const fimL=nc?[t.encerramento||t.conclusao||Date.now(),'Não concluída · '+(r.motivo||''),'x']:f.conc(r)&&t.conclusao?[t.conclusao,'Concluída'+(f.entregue(r)?' · circuito entregue':''),'k']:null;
-  const ups=r.atualizacoes||[],n=tlN(t,ups,fimL);
+  const ups=r.atualizacoes||[],dia0=(r.diario||[]).filter(x=>x.data<hoje()),n=tlN(t,ups,fimL,dia0);
   const fz=(r.fases||[]).map(k=>FCURTO[k]||k).join(' + ')+(r.dias&&r.dias.length>1?`, dia ${r.dias.indexOf(hoje())+1} de ${r.dias.length}`:'');
   return cardA({tag:'article',cls2:'pdc2'+(nc?' nao':f.entregue(r)?' ent':''),cli:r.cliente||'',eti:r.etiqueta,badge:gPdMsg(r),chip,cls,fz,top:r.topologia||topoTxt(p),cid:r.cidade||'',tec:r.tecnico||'',foot,fcls:cls,mot,
-    extra:r.status==='deslocamento'?etaAviso(r.ts):'',after:upDet('pd:'+r.id,n,tlA(t,ups,fimL))})}
+    extra:r.status==='deslocamento'?etaAviso(r.ts):'',after:upDet('pd:'+r.id,n,tlA(t,ups,fimL,dia0))})}
 Object.assign(CH,{pdCidS:el=>{ui.pdCid=el.value;render()},pdFaseS:el=>{ui.pdFase=el.value;render()}});
 Object.assign(ACT,{pdLimpa:()=>{ui.pdCid='';ui.pdFase='';ui.pdKF='';render()},pdKF:el=>{const v=el.dataset.v||'';ui.pdKF=ui.pdKF===v?'':v;render()}});
 
