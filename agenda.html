@@ -8152,7 +8152,7 @@ function h19Det(e){const p=pPor(e)||{etiqueta:e},B=h19Blocos(e),F=ui.hF||'tudo',
   return `<button class="back h19back" data-act="hSel" data-e="">‹ Clientes</button>
    <div class="h19hd"><div><h3>${tvNomeEtq(p.cliente||'',e)}</h3><p class="muted">${esc([p.protocolo&&'Protocolo '+p.protocolo,p.topologia,p.cidade,p.pop&&'POP '+p.pop].filter(Boolean).join(' · '))}</p>${sv.length?`<p class="muted" style="margin-top:2px">${sv.map(esc).join(' · ')}</p>`:''}</div>${at?'<span class="h19tag ok">Cliente ativo</span>':'<span class="h19tag">Em implantação</span>'}</div>
    <div class="h19f">${facts.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>
-   <div class="h19bar"><div class="h19seg" role="group" aria-label="Mostrar">${[['tudo','Tudo'],['u','Atualizações dos técnicos'],['m','Conversas'+(typeof h19NMsg==='function'&&h19NMsg(e)?' ('+h19NMsg(e)+')':'')],['r','Relatórios']].map(([k,t])=>`<button data-act="hF" data-v="${k}" aria-pressed="${F===k}">${t}</button>`).join('')}</div><button class="btn sm" data-act="hPdf" data-e="${esc(e)}">Imprimir / salvar PDF</button></div>
+   <div class="h19bar"><div class="h19seg" role="group" aria-label="Mostrar">${[['tudo','Tudo'],['u','Atualizações dos técnicos'],['m','Conversas'+(typeof h19NMsg==='function'&&h19NMsg(e)?' ('+h19NMsg(e)+')':'')],['r','Relatórios']].map(([k,t])=>`<button data-act="hF" data-v="${k}" aria-pressed="${F===k}">${t}</button>`).join('')}</div><button class="btn sm" data-act="hPdf" data-e="${esc(e)}">Baixar PDF</button></div>
    <p class="muted" style="font-size:13px;margin:0">Do mais antigo para o mais recente ↓</p>
    ${blocos||'<p class="muted">Nada neste filtro.</p>'}`}
 Object.assign(ACT,{hSel:el=>{ui.hSel=el.dataset.e||null;ui.hF='tudo';render();if(ui.hSel&&window.innerWidth<=900)window.scrollTo(0,0)},hSit:el=>{ui.hSit=el.dataset.v;ui.hLim=60;render()},hF:el=>{ui.hF=el.dataset.v;render()},hMais:()=>{ui.hLim=(ui.hLim||60)+60;render()},
@@ -13108,6 +13108,71 @@ h19Blocos=function(e){const B=[];
     ds.forEach(d=>{const j=dc.indexOf(d);g[d].sort((x,y)=>x.t-y.t);B.push({d,t:g[d][0].t,ti:(vs?'Vistoria de lançamento':fasesN(a))+(j<0?' · conversa':!vs&&N>1?` · dia ${j+1} de ${N}`:''),quem:r19Nome(a),it:g[d],gtd:false})})});
   const c=S.comp[e]||{};if(c.vistDisp)B.push({d:h19d(c.vistDisp.em),t:c.vistDisp.em,ti:'Vistoria dispensada',quem:c.vistDisp.por,it:[{t:c.vistDisp.em,k:'n',ti:'Vistoria de lançamento dispensada',tx:c.vistDisp.motivo,ex:{}}]});
   return B.sort((x,y)=>x.t-y.t)};
+
+/* ---------- 30/10: PDF do Histórico de clientes gerado direto (jsPDF), no lugar da impressão da tela ----------
+   Capa com os dados do cliente e os números, um bloco por dia de atividade com a linha do tempo (hora · evento),
+   mensagens do chat com o autor e as fotos em miniatura (3 por linha), rodapé com página. Respeita o filtro da tela. */
+const hpTx=s=>String(s==null?'':s).replace(/[→⇒➜]/g,'->').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/[–—]/g,'-').replace(/…/g,'...').replace(/[^\x00-\xFF]/g,'').replace(/\s+\n/g,'\n').trim();
+async function hpImg(path){try{const r=await sb.storage.from('agenda').createSignedUrl(path,600);if(r.error)return null;const u=r.data.signedUrl;
+  const bl=/^data:/.test(u)?await (await fetch(u)).blob():await (await fetch(u)).blob();if(!/^image\//.test(bl.type||'image/'))return null;
+  const url=URL.createObjectURL(bl);try{const im=await new Promise((ok,er)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=er;i.src=url});
+    const s=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*s));c.height=Math.max(1,Math.round(im.height*s));c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    return{d:c.toDataURL('image/jpeg',.72),w:c.width,h:c.height}}finally{URL.revokeObjectURL(url)}}catch(e){return null}}
+function hpFotosDe(i){if(i.fotosX)return i.fotosX;if(i.k==='m'){const m=i.ex.msg||{},a=m.anexo||{},L=[];if(m.foto)L.push(m.foto);if(a.tipo==='arq'&&a.path&&/\.(jpe?g|png|gif|webp|heic)$/i.test(a.nome||a.path))L.push(a.path);return L}return (i.ex&&i.ex.fotos)||[]}
+function hpLinhas(i){if(i.k==='m'){const m=i.ex.msg||{},a=m.anexo||{},sis=!m.autor;const L=[(sis?'Aviso da ferramenta':(m.autor_nome||'—')+(m.papel?' ('+m.papel+')':''))+':'];
+    if(m.texto)L.push(m.texto);if(a.tipo==='loc'&&a.lat!=null)L.push(`Localização: ${(+a.lat).toFixed(6)}, ${(+a.lng).toFixed(6)}`);if(a.tipo==='arq'&&a.path&&!/\.(jpe?g|png|gif|webp|heic)$/i.test(a.nome||a.path))L.push('Arquivo: '+(a.nome||'anexo'));
+    if(i.fotosX&&i.fotosX.length>1)L[0]=L[0].replace(/:$/,'')+` · ${i.fotosX.length} fotos:`;return{t:L[0],d:L.slice(1).join('\n'),msg:true}}
+  const ex=[];if(i.tx)ex.push(i.tx);if(i.ex&&i.ex.m)ex.push(`Metragem: ${i.ex.m} m${i.ex.lote?' · lote '+i.ex.lote:''}`);if(i.ex&&i.ex.por)ex.push('Por '+i.ex.por);return{t:i.ti,d:ex.join('\n')}}
+async function hpGerar(e){const{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true}),m=14,W=210,H=297,VERDE=[140,191,63],LAB=[244,249,236],LINE=[212,221,216];
+  const p=pPor(e)||{etiqueta:e},F=ui.hF||'tudo',A=S.ags.filter(a=>a.etiqueta===e),at=faseFim(e,'ativ');
+  const filt=i=>F==='tudo'||(F==='u'?['u'].includes(i.k)||i.ti==='Encerrou o dia':F==='m'?i.k==='m':i.k==='r');
+  /* fotos seguidas do mesmo autor (sem texto, até 15 min) viram uma linha só com a grade de fotos */
+  const junta=L=>{const o=[];L.forEach(i=>{const m=i.k==='m'&&i.ex&&i.ex.msg,sf=m&&!String(m.texto||'').trim()&&hpFotosDe(i).length&&!(m.anexo&&m.anexo.tipo==='loc');const u=o[o.length-1];
+    if(sf&&u&&u.fotosX&&u.ex.msg.autor===m.autor&&i.t-u.tFim<=15*60000&&!!i.mv===!!u.mv){u.fotosX=u.fotosX.concat(hpFotosDe(i));u.tFim=i.t;return}
+    o.push(sf?Object.assign({},i,{fotosX:hpFotosDe(i).slice(),tFim:i.t}):i)});return o};
+  const B=h19Blocos(e).map(b=>Object.assign({},b,{it:junta(b.it.filter(filt))})).filter(b=>b.it.length);
+  /* fotos: carrega todas antes (em paralelo, até 6 por vez) */
+  const paths=[...new Set(B.flatMap(b=>b.it.flatMap(hpFotosDe)))],IMG={};for(let k=0;k<paths.length;k+=6){await Promise.all(paths.slice(k,k+6).map(async pt=>{IMG[pt]=await hpImg(pt)}))}
+  let y=16;const novaPag=()=>{doc.addPage();y=16};const cabe=h=>{if(y+h>H-16){novaPag();return false}return true};
+  /* cabeçalho */
+  doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(40);doc.text('Histórico do cliente',m,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(120);doc.text(hpTx(`Gerado em ${new Date().toLocaleString('pt-BR')}`),W-m,y,{align:'right'});
+  doc.setDrawColor(...VERDE);doc.setLineWidth(.8);doc.line(m,y+3,W-m,y+3);y+=11;
+  doc.setFont('helvetica','bold');doc.setFontSize(12.5);doc.setTextColor(30);doc.text(doc.splitTextToSize(hpTx(`${p.cliente||''}${p.cliente?' - ':''}${e}`),W-2*m-30),m,y);
+  doc.setFontSize(8);doc.setTextColor(...(at?[61,110,20]:[150,100,20]));doc.text(at?'CLIENTE ATIVO':'EM IMPLANTAÇÃO',W-m,y,{align:'right'});y+=5.5;
+  doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(100);doc.text(hpTx([p.protocolo&&'Protocolo '+p.protocolo,p.topologia,p.cidade,p.pop&&'POP '+p.pop].filter(Boolean).join(' · ')),m,y);y+=6;
+  const dCampo=new Set();A.forEach(a=>{(a.diario||[]).forEach(d=>dCampo.add(d.data));if((a.ts||{}).desloc)dCampo.add(h19d(a.ts.desloc))});
+  const nMsg=B.reduce((s,b)=>s+b.it.filter(i=>i.k==='m').length,0),nFot=paths.length;
+  const K=[[at?'Ativado em':'Atividades',at?dBR(at.data):String(A.filter(a=>a.status!=='cancelada').length)],['Dias de campo',String(dCampo.size)],['Visitas e atividades',String(B.length)],['Mensagens',String(nMsg)],['Fotos',String(nFot)]];
+  const kw=(W-2*m-4*3)/5;K.forEach(([l,v],j)=>{const x=m+j*(kw+3);doc.setFillColor(...LAB);doc.setDrawColor(...LINE);doc.setLineWidth(.2);doc.roundedRect(x,y,kw,14,1.5,1.5,'FD');
+    doc.setFontSize(7.5);doc.setTextColor(110);doc.text(hpTx(l),x+3,y+5);doc.setFont('helvetica','bold');doc.setFontSize(11.5);doc.setTextColor(35);doc.text(hpTx(v),x+3,y+11.3);doc.setFont('helvetica','normal')});y+=20;
+  if(F!=='tudo'){doc.setFontSize(8.5);doc.setTextColor(120);doc.text(hpTx('Filtro aplicado: '+({u:'Atualizações dos técnicos',m:'Conversas',r:'Relatórios'}[F]||F)),m,y);y+=5}
+  if(!B.length){doc.setFontSize(10);doc.setTextColor(120);doc.text('Nada para mostrar neste filtro.',m,y+4)}
+  /* blocos */
+  const xT=m+3,xE=m+19,wE=W-m-3-xE,fw=(wE-2*3)/3,fh=fw*0.75;
+  const cab=(b,cont)=>{doc.setFillColor(...LAB);doc.setDrawColor(...LINE);doc.setLineWidth(.2);doc.rect(m,y,W-2*m,8,'FD');doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(35);
+    doc.text(hpTx(`${dBR(b.d)} · ${b.ti}${cont?' (continuação)':''}`),m+3,y+5.4);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(110);doc.text(hpTx(b.quem||''),W-m-3,y+5.4,{align:'right'});y+=11};
+  B.forEach(b=>{cabe(30);cab(b);
+    b.it.forEach(i=>{const L=hpLinhas(i),fs=hpFotosDe(i).filter(pt=>IMG[pt]),tl=doc.setFont('helvetica','bold').setFontSize(9.5).splitTextToSize(hpTx(L.t),wE),dl=L.d?doc.setFont('helvetica','normal').setFontSize(8.8).splitTextToSize(hpTx(L.d),wE):[];
+      const hTxt=tl.length*4.3+dl.length*3.9,hF=fs.length?Math.ceil(fs.length/3)*(fh+3):0;
+      if(!cabe(Math.min(hTxt+hF+3,H-40))){cab(b,true)}
+      const hora=i.agd?'—':(i.mv?`${dBR(h19d(i.t)).slice(0,5)} ${h19hm(i.t)}`:h19hm(i.t));
+      const cor=i.k==='c'?[61,139,20]:i.k==='n'&&/cancel|não concluída|nao concluida/i.test(i.ti)?[168,53,43]:i.k==='r'?[154,100,20]:i.k==='m'?[110,80,160]:i.k==='u'?[36,95,128]:[110,120,115];
+      doc.setFont('helvetica','normal');doc.setFontSize(8.3);doc.setTextColor(110);doc.text(hpTx(hora),xT,y+3.2,{maxWidth:15});
+      doc.setFillColor(...cor);doc.circle(xE-2.6,y+2.2,0.9,'F');
+      doc.setFont('helvetica',L.msg?'bold':'bold');doc.setFontSize(L.msg?8.6:9.5);doc.setTextColor(...(L.msg?[90,80,120]:[35,35,35]));doc.text(tl,xE,y+3.2);y+=tl.length*(L.msg?4:4.3);
+      if(dl.length){doc.setFont('helvetica','normal');doc.setFontSize(8.8);doc.setTextColor(70);doc.text(dl,xE,y+3);y+=dl.length*3.9}
+      if(fs.length){y+=1.5;fs.forEach((pt,j)=>{const c=j%3;if(c===0&&j>0)y+=fh+3;if(c===0&&!cabe(fh+3))cab(b,true);const im=IMG[pt],r=Math.min(fw/im.w,fh/im.h),w=im.w*r,h=im.h*r,x=xE+c*(fw+3);
+        doc.setDrawColor(...LINE);doc.setLineWidth(.2);doc.rect(x,y,fw,fh);try{doc.addImage(im.d,'JPEG',x+(fw-w)/2,y+(fh-h)/2,w,h)}catch(er){}});y+=fh+1.5}
+      y+=3});
+    y+=4});
+  const n=doc.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setDrawColor(...LINE);doc.setLineWidth(.2);doc.line(m,H-11,W-m,H-11);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(130);
+    doc.text(hpTx(`Net Turbo Telecom · Histórico do cliente ${e}${p.protocolo?' · protocolo '+p.protocolo:''}`),m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
+  return doc.output('blob')}
+ACT.hPdf=async el=>{const e=el.dataset.e;if(!e)return;if(!window.jspdf){toast('Gerador de PDF não carregou. Recarregue a página.','bad');return}
+  el.disabled=true;const t0=el.textContent;el.textContent='Gerando o PDF…';
+  try{const bl=await hpGerar(e),nome=`historico_${e}_${hoje()}.pdf`;if(typeof krBaixar==='function')await krBaixar(nome,bl);else{const a=document.createElement('a'),u=URL.createObjectURL(bl);a.href=u;a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},4000)}toast('PDF do histórico gerado.')}
+  catch(x){toast('Não foi possível gerar o PDF: '+(x.message||x),'bad')}finally{el.disabled=false;el.textContent=t0}};
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
