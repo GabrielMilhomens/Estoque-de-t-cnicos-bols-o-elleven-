@@ -1538,6 +1538,7 @@ nav.tabs .ncatm,.ncatm{display:none}
 .v19pl{display:flex;flex-direction:column;gap:8px;margin:10px 0}
 .v19p{border:1px solid var(--line);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:3px}
 .h19tag{font:600 11.5px Barlow,sans-serif;border-radius:6px;padding:2px 7px;background:#E7F0FA;color:#1D5C9A;white-space:nowrap}.h19tag.ok{background:var(--brand-soft);color:var(--brand-ink)}
+.h19foto{padding:0;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:zoom-in;overflow:hidden;display:block;max-width:100%}.h19foto img{display:block;width:240px;max-width:100%;height:180px;object-fit:cover}.h19foto img:not([src]){visibility:hidden}@media print{.h19foto{break-inside:avoid;border-color:#ccc}.h19foto img{width:200px;height:150px}}
 /* 20/10: SLA de 4 horas (GTD) */
 .g4 .secth{flex-wrap:wrap}
 .g4g{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:10px}
@@ -1969,6 +1970,15 @@ body.krfull-on{overflow:hidden}
 /* 24/10: busca de cliente e POP dentro do chamado de expansão: a lista abre no próprio formulário */
 .txcombo.inl .txcl{position:static;max-height:300px;overflow:auto;margin-top:4px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:none}
 .inp.txro{background:var(--bg);display:flex;align-items:center;min-height:44px;font-weight:600;cursor:default}
+
+/* 29/10: splitter novo e cabo fora do KMZ */
+.geotag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;border-radius:6px;padding:1px 6px;margin:0 2px;vertical-align:1px;white-space:nowrap}
+.geotag.spl{background:var(--info-soft);color:var(--info)}.geotag.cab{background:var(--warn-soft);color:var(--warn)}.geotag.kmz{background:var(--line);color:var(--muted)}
+.geot td .geotag{display:block;width:max-content;margin:4px 0 0}
+.geosplL{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-direction:column;gap:4px;font-size:13.5px}.geosplL li{padding:6px 8px;border-radius:8px;border:1px solid var(--line)}
+.geosplL li.nv{border-color:var(--info);background:var(--info-soft)}.geosplL li.cab{border-color:var(--warn);background:var(--warn-soft)}.geosplL small{color:var(--muted)}
+.geonv2{background:var(--info-soft)}.geonv2>b{color:var(--info)}.geonv2 ul{margin:4px 0 0;padding-left:18px;font-size:13.5px}
+.geonvr td:first-child{box-shadow:inset 3px 0 0 var(--info)}
 /* 24/10: técnico no layout de ícones (Implantação e GTD) */
 .tlx .car{align-items:flex-start}.tl .car>span{flex:1}
 .tlx .car>.tvcp{flex:none;margin:-4px 0 -4px auto;align-self:center}
@@ -8083,6 +8093,8 @@ Object.assign(ACT,{r19Resp:el=>{const a=getAg(el.dataset.id);if(!a||!pode('a_age
 /* ---------- 19/10: HISTÓRICO DE CLIENTES (substitui Relatórios) ---------- */
 const h19hm=v=>v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
 const h19d=v=>isoD(new Date(v));
+/* item levado para o bloco da atividade (relatório ou mensagem de outro dia): mostra a data junto da hora */
+const h19hmI=i=>i.mv?`${dBR(h19d(i.t)).slice(0,5)}<br>${h19hm(i.t)}`:h19hm(i.t);
 const H19_REL={foto:'Relatório fotográfico',parcial:'Relatório de não conclusão',entrega:'Entrega de circuito',vist:'Relatório de vistoria',fus:'Relatório de fusões'};
 const h19Ativo=e=>!!faseFim(e,'ativ');
 /* itens de uma atividade: [ts, tipo, título, texto, extras{m,fotos,bt}] tipo: x evento · u atualização do técnico · c concluído · n atenção · r relatório/documento */
@@ -8126,7 +8138,7 @@ function viewRelat(){const L=h19Lista(),lim=ui.hLim||60;if(ui.hSel&&!S.previsao.
     <select class="inp" data-ch="hRel" aria-label="Com relatório de"><option value="">Com relatório de: qualquer tipo</option>${Object.entries(H19_REL).map(([k,n])=>`<option value="${k}" ${ui.hRel===k?'selected':''}>${n}</option>`).join('')}</select></div>
     <div class="h19c">${L.slice(0,lim).map(({p})=>`<button class="h19cli" data-act="hSel" data-e="${esc(p.etiqueta)}" aria-current="${p.etiqueta===ui.hSel}"><span><b>${tvNomeEtq(p.cliente||'',p.etiqueta)}</b>${h19Ativo(p.etiqueta)?'<i class="h19tag ok">Ativo</i>':'<i class="h19tag">Em implantação</i>'}</span><small>${esc([p.topologia,p.cidade].filter(Boolean).join(' · '))}</small></button>`).join('')||'<p class="muted" style="padding:12px">Nenhum cliente com esse filtro.</p>'}
     ${L.length>lim?`<button class="btn wide" data-act="hMais" style="margin:10px">Mostrar mais (${L.length-lim})</button>`:''}</div></aside>`;
-  return `<div class="toolbar"><div><h2>Histórico de clientes</h2><p class="muted">Tudo o que aconteceu com cada etiqueta, do mais antigo para o mais recente: dias de campo, atualizações dos técnicos, relatórios, LPU, vistoria e chamados do GTD.</p></div></div>
+  return `<div class="toolbar"><div><h2>Histórico de clientes</h2><p class="muted">Tudo o que aconteceu com cada etiqueta, do mais antigo para o mais recente: cada visita e atividade agendada, com as atualizações dos técnicos, as mensagens e fotos do chat, os relatórios e a vistoria.</p></div></div>
   <div class="h19 ${ui.hSel?'sel':''}">${lista}<section class="h19d">${ui.hSel?h19Det(ui.hSel):'<p class="muted" style="padding:16px">Escolha um cliente na lista.</p>'}</section></div>`}
 function h19Det(e){const p=pPor(e)||{etiqueta:e},B=h19Blocos(e),F=ui.hF||'tudo',A=S.ags.filter(a=>a.etiqueta===e);
   const nU=A.reduce((s,a)=>s+(a.atualizacoes||[]).length,0),nR=A.reduce((s,a)=>s+Object.keys(H19_REL).filter(k=>a.rel&&a.rel[k]&&a.rel[k].path).length,0),nG=(typeof G!=='undefined'&&G.ch||[]).filter(c=>c.etiqueta===e).length;
@@ -8136,7 +8148,7 @@ function h19Det(e){const p=pPor(e)||{etiqueta:e},B=h19Blocos(e),F=ui.hF||'tudo',
   const filt=i=>F==='tudo'||(F==='u'?['u'].includes(i.k)||i.ti==='Encerrou o dia':F==='m'?i.k==='m':i.k==='r');
   const fotos=L=>(L||[]).length?`<div class="h19ft">${L.map((f,j)=>`<button class="btn sm" data-act="relVer" data-p="${esc(f)}">Foto${L.length>1?' '+(j+1):''}</button>`).join('')}</div>`:'';
   const blocos=B.map(b=>{const it=b.it.filter(filt);if(!it.length)return '';
-    return `<div class="h19b"><div class="h19bh"><b>${dBR(b.d)} · ${esc(b.ti)}</b><small>${esc(b.quem||'')}</small></div><ol class="h19tl">${it.map(i=>i.k==='m'?h19MsgLi(i):`<li class="h19k${i.k}"><time>${i.agd?'—':h19hm(i.t)}</time><span class="ln"></span><div class="tx"><b>${esc(i.ti)}</b>${i.tx?`<span class="${i.k==='u'?'q':i.k==='n'?'q d':''}">${esc(i.tx)}</span>`:''}${i.ex.m?`<small>Metragem: ${esc(String(i.ex.m))} m${i.ex.lote?' · lote '+esc(i.ex.lote):''}</small>`:''}${i.ex.por?`<small>Por ${esc(i.ex.por)}</small>`:''}${fotos(i.ex.fotos)}${(i.ex.bt||[]).length?`<div class="h19ft">${i.ex.bt.map(([t,act,v])=>`<button class="btn sm" data-act="${act}" ${act==='relVer'?`data-p="${esc(v)}"`:`data-id="${esc(v)}"`}>${t}</button>`).join('')}</div>`:''}</div></li>`).join('')}</ol></div>`}).join('');
+    return `<div class="h19b"><div class="h19bh"><b>${dBR(b.d)} · ${esc(b.ti)}</b><small>${esc(b.quem||'')}</small></div><ol class="h19tl">${it.map(i=>i.k==='m'?h19MsgLi(i):`<li class="h19k${i.k}"><time>${i.agd?'—':h19hmI(i)}</time><span class="ln"></span><div class="tx"><b>${esc(i.ti)}</b>${i.tx?`<span class="${i.k==='u'?'q':i.k==='n'?'q d':''}">${esc(i.tx)}</span>`:''}${i.ex.m?`<small>Metragem: ${esc(String(i.ex.m))} m${i.ex.lote?' · lote '+esc(i.ex.lote):''}</small>`:''}${i.ex.por?`<small>Por ${esc(i.ex.por)}</small>`:''}${fotos(i.ex.fotos)}${(i.ex.bt||[]).length?`<div class="h19ft">${i.ex.bt.map(([t,act,v])=>`<button class="btn sm" data-act="${act}" ${act==='relVer'?`data-p="${esc(v)}"`:`data-id="${esc(v)}"`}>${t}</button>`).join('')}</div>`:''}</div></li>`).join('')}</ol></div>`}).join('');
   return `<button class="back h19back" data-act="hSel" data-e="">‹ Clientes</button>
    <div class="h19hd"><div><h3>${tvNomeEtq(p.cliente||'',e)}</h3><p class="muted">${esc([p.protocolo&&'Protocolo '+p.protocolo,p.topologia,p.cidade,p.pop&&'POP '+p.pop].filter(Boolean).join(' · '))}</p>${sv.length?`<p class="muted" style="margin-top:2px">${sv.map(esc).join(' · ')}</p>`:''}</div>${at?'<span class="h19tag ok">Cliente ativo</span>':'<span class="h19tag">Em implantação</span>'}</div>
    <div class="h19f">${facts.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>
@@ -8247,8 +8259,10 @@ function h19MsgItens(campo,id,e){const c=H19M[e];if(!c||!c.L)return [];
 {const _c=h19ItensCh;h19ItensCh=function(c){return _c(c).concat(h19MsgItens('chamado',c.id,c.etiqueta)).sort((x,y)=>x.t-y.t)}}
 function h19MsgLi(i){const m=i.ex.msg,eu=ME&&m.autor===ME.id,sis=!m.autor,a=m.anexo||null;
   const corpo=(typeof chxMsgTxt==='function'?chxMsgTxt(m):(m.texto?`<p>${esc(m.texto)}</p>`:''))+(a&&a.tipo==='loc'&&typeof chxAnexo==='function'?chxAnexo(m):'');
-  const bts=[m.foto&&`<button class="btn sm" data-act="relVer" data-p="${esc(m.foto)}">Ver foto</button>`,a&&a.tipo==='arq'&&a.path&&`<button class="btn sm" data-act="relVer" data-p="${esc(a.path)}">Abrir ${esc(a.nome||'arquivo')}</button>`].filter(Boolean).join('');
-  return `<li class="h19km"><time>${h19hm(i.t)}</time><span class="ln"></span><div class="tx"><div class="h19msg ${sis?'sis':eu?'eu':''}"><small><b>${esc(sis?'Aviso da ferramenta':eu?'Você':m.autor_nome||'—')}</b>${m.papel&&!sis?' · '+esc(m.papel):''}</small>${corpo}${bts?`<div class="h19ft">${bts}</div>`:''}</div></div></li>`}
+  /* 29/10: a foto do chat aparece no histórico (miniatura; tocar abre em tamanho real) e sai no PDF */
+  const img=a&&a.tipo==='arq'&&a.path&&/\.(jpe?g|png|gif|webp|heic)$/i.test(a.nome||a.path),ft=p=>`<button type="button" class="h19foto" data-act="relVer" data-p="${esc(p)}" aria-label="Abrir a foto"><img data-hp="${esc(p)}" alt="Foto enviada no chat"></button>`;
+  const bts=[m.foto&&ft(m.foto),img&&ft(a.path),a&&a.tipo==='arq'&&a.path&&!img&&`<button class="btn sm" data-act="relVer" data-p="${esc(a.path)}">Abrir ${esc(a.nome||'arquivo')}</button>`].filter(Boolean).join('');
+  return `<li class="h19km"><time>${h19hmI(i)}</time><span class="ln"></span><div class="tx"><div class="h19msg ${sis?'sis':eu?'eu':''}"><small><b>${esc(sis?'Aviso da ferramenta':eu?'Você':m.autor_nome||'—')}</b>${m.papel&&!sis?' · '+esc(m.papel):''}</small>${corpo}${bts?`<div class="h19ft">${bts}</div>`:''}</div></div></li>`}
 {const _d=h19Det;h19Det=function(e){const c=H19M[e];if(!c||(!c.L&&!c.bus))setTimeout(()=>h19MsgCarregar(e),0);let h=_d(e);
   const aviso=c&&c.bus||!c?'<p class="muted h19mload">Carregando as conversas do chat…</p>':c.err?`<p class="muted h19mload">Não foi possível carregar as conversas: ${esc(c.err)}</p>`:'';
   if(aviso){const k='<p class="muted" style="font-size:13px;margin:0">Do mais antigo';const i=h.indexOf(k);if(i>=0)h=h.slice(0,i)+aviso+h.slice(i)}
@@ -8322,6 +8336,14 @@ function f22Limpa(root){if(!f22()||!root)return;const w=document.createTreeWalke
 {const _t=toast;toast=function(m,...x){if(f22()&&typeof m==='string'&&/LPU/.test(m)){F22_TOAST.forEach(([a,b])=>{m=m.replace(a,b)})}return _t(m,...x)}}
 /* 20/10: título da janela "Encerrar o dia" em atividade de vários dias ("Encerrar o dia dia 1 de 2" → "Encerrar o dia 1 de 2") */
 {const _d=ACT.diaFim;ACT.diaFim=el=>{const r=_d(el);const h=document.querySelector('#modal .sheetm h3');if(h&&/^Encerrar o dia dia /.test(h.textContent))h.textContent=h.textContent.replace(/^Encerrar o dia dia /,'Encerrar o dia ');return r}}
+
+/* 29/10: carrega as miniaturas das fotos do chat no histórico (link assinado, guardado por 50 min) */
+const H19F={};
+function h19Fotos(){document.querySelectorAll('img[data-hp]:not([src])').forEach(async im=>{const p=im.dataset.hp,c=H19F[p];
+  if(c&&c.u&&Date.now()-c.em<3e6){im.src=c.u;return}if(c&&c.pr){im.src=await c.pr;return}
+  const pr=(async()=>{try{const r=await sb.storage.from('agenda').createSignedUrl(p,3600);if(r.error)throw r.error;H19F[p]={u:r.data.signedUrl,em:Date.now()};return r.data.signedUrl}catch(e){delete H19F[p];return ''}})();
+  H19F[p]={pr};const u=await pr;if(u)im.src=u;else{const b=im.closest('.h19foto');if(b)b.outerHTML='<span class="muted" style="font-size:12.5px">Foto indisponível</span>'}})}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(document.querySelector('img[data-hp]:not([src])'))h19Fotos()}catch(e){}return o}}
 
 /* ---------- 20/10: agendamento não iniciado no dia é cancelado na virada do dia ----------
    Regra (a mesma do agenda_ajuste_35 no Supabase, que roda às 00:05):
@@ -8457,7 +8479,10 @@ async function fuCarregar(a,kml,nome,salvo){await vtLib();FU.M=fuModelo(kml);FU.
 function fuResumo(soOk){return fuCaixas().map(c=>{const d=fuD(c.id),L=d.fus.filter(f=>!soOk||f.ok);if(!L.length)return null;const ci=L.length===1?0:L.findIndex(f=>f.cli);
   return{nome:c.nome,tipo:FU_TIPO[c.tipo]||'Caixa',novo:!!c.novo,ll:c.ll,m:c.m!=null?Math.round(c.m):null,obs:d.obs||'',fotos:d.fotos.length,confEm:d.confEm||null,
     spl:(c.tipo==='spl'?[`SPLITTER DA CTO 1x${d.splk||8}`]:[]).concat(d.spls.map(s=>`${s.nome} · ${s.modelo||'Balanceado'}`)),
-    fus:L.map((f,i)=>({de:f.a.nome.replace(' · entrada','')+' · '+f.a.txt,para:f.b.nome.replace(' · entrada','')+' · '+f.b.txt,cli:i===ci}))}}).filter(Boolean)}
+    /* 29/10: o que o técnico incluiu (não estava no KMZ): splitters novos e cabos fora do KMZ, por lado da fusão */
+    splN:d.spls.map(s=>s.nome),cabN:d.extra.map(x=>x.nome),
+    fus:L.map((f,i)=>({de:f.a.nome.replace(' · entrada','')+' · '+f.a.txt,para:f.b.nome.replace(' · entrada','')+' · '+f.b.txt,cli:i===ci,deN:fuNv(f.a.key),paraN:fuNv(f.b.key)}))}}).filter(Boolean)}
+const fuNv=k=>/^[se]\d/.test(k||'')?'spl':/^x\d/.test(k||'')?'cab':'';
 function fuParcial(a,acao){const C=fuResumo(true);a.fusoesParc={em:Date.now(),por:meNome(),kmz:FU.nome,n:C.reduce((s,c)=>s+c.fus.length,0),caixas:C,R:Object.assign({},FU.R,{nb:FU.R.nb.map(({id,nome,ll,tipo})=>({id,nome,ll,tipo})),cx:Object.fromEntries(Object.entries(FU.R.cx).map(([k,v])=>[k,Object.assign({},v,{fotos:[]})]))})};
   a.fusoesLog=(a.fusoesLog||[]).concat([{em:Date.now(),acao,por:meNome()}]);save()}
 
@@ -8612,7 +8637,7 @@ function fuPdf(a){const{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'p',unit:
   y=bx.y+bx.h+9;
   C.forEach(c=>{const d=fuD(c.id),ci=fuCliI(d);if(y>H-50){doc.addPage();y=18}
     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(40);doc.text(`${c.nome}  ·  ${d.fus.length} ${d.fus.length>1?'fusões':'fusão'}`,m,y);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(120);doc.text(`${FU_TIPO[c.tipo]||'Caixa'}${c.novo?' · FORA DO KMZ (não estava cadastrada)':''}${c.m!=null?' · '+fuMt(c.m)+' do início':''} · ${c.ll[0].toFixed(6)}, ${c.ll[1].toFixed(6)}`,W-m,y,{align:'right'});
-    const rows=d.fus.map((f,i)=>[i+1,f.a.nome,f.a.tubo,f.a.fib,'',f.b.nome,f.b.tubo,f.b.fib,i===ci?'cliente':'',f]);
+    const nvT=k=>fuNv(k)==='spl'?'\n(SPLITTER NOVO)':fuNv(k)==='cab'?'\n(CABO FORA DO KMZ)':'';const rows=d.fus.map((f,i)=>[i+1,f.a.nome+nvT(f.a.key),f.a.tubo,f.a.fib,'',f.b.nome+nvT(f.b.key),f.b.tubo,f.b.fib,i===ci?'cliente':'',f]);if(d.spls.length||d.extra.length){doc.setFontSize(7.5);doc.setTextColor(36,95,128);doc.text(('Incluído pelo técnico (não estava no KMZ): '+d.spls.map(x=>'splitter novo '+x.nome).concat(d.extra.map(x=>'cabo fora do KMZ '+x.nome)).join(' · ')).slice(0,180),m,y+4);y+=4}
     doc.autoTable({startY:y+3,theme:'grid',margin:{left:m,right:m},styles:{fontSize:7.8,cellPadding:1.7,lineColor:LINE,lineWidth:.3,textColor:40},headStyles:{fillColor:LAB,textColor:[70,80,74],fontStyle:'bold'},
       head:[['#','De (sentido POP)','Tubo','Fibra / saída','','Para (sentido cliente)','Tubo','Fibra','Cliente']],body:rows.map(r=>r.slice(0,9)),
       columnStyles:{0:{cellWidth:6,halign:'center'},2:{cellWidth:15},3:{cellWidth:23},4:{cellWidth:6,halign:'center'},6:{cellWidth:15},7:{cellWidth:20},8:{cellWidth:14,halign:'center'}},
@@ -8652,15 +8677,22 @@ function geoLinhas(){return S.ags.filter(a=>a.fusoes||(a.fusoesParc&&a.fusoesPar
   let cli=null;for(const c of F.caixas.slice().reverse()){const f=c.fus.find(x=>x.cli)||(c.fus.length===1?c.fus[0]:null);if(f){cli={cx:c.nome,f};break}}
   return{a,F,p,st,cab,cli,n:F.n,nc:F.caixas.length,em:F.em||0}}).sort((x,y)=>y.em-x.em)}
 const geoNovas=F=>(F&&F.caixas||[]).filter(c=>c.novo).length;
+/* 29/10: itens que o técnico incluiu na caixa: splitter novo (não é o SPLITTER DA CTO do KMZ) e cabo fora do KMZ */
+const geoSplN=c=>c.splN||(c.spl||[]).filter(x=>!/^SPLITTER DA CTO/i.test(x)).map(x=>x.split(' · ')[0]);
+const geoCabN=c=>c.cabN||[];
+const geoLadoN=(c,f,lado)=>{const n=f[lado+'N'];if(n)return n;const nome=String(f[lado]||'').split(' · ')[0];return geoSplN(c).includes(nome)?'spl':geoCabN(c).includes(nome)?'cab':''};
+const geoTag=t=>t==='spl'?'<span class="geotag spl">splitter novo</span>':t==='cab'?'<span class="geotag cab">cabo fora do KMZ</span>':'';
+const geoNovI=F=>{const C=(F&&F.caixas)||[];return{spl:C.reduce((s,c)=>s+geoSplN(c).length,0),cab:C.reduce((s,c)=>s+geoCabN(c).length,0)}};
 function geoTexto(x){const{a,F,p}=x;return [`${p.cliente||''} · ID ${p.protocolo||a.etiqueta} · etiqueta ${a.etiqueta}`,`Cabo ${x.cab.join(', ')||'—'} · técnico ${tecN(a.tec)} · ${dBR(a.data)}`,''].concat(F.caixas.flatMap(c=>[`${c.nome} (${c.tipo})${c.ll?' · '+c.ll[0].toFixed(6)+', '+c.ll[1].toFixed(6):''}`]
-  .concat(c.spl&&c.spl.length?['  Splitter: '+c.spl.join('; ')]:[]).concat(c.fus.map((f,i)=>`  ${i+1}. ${f.de} (sentido POP) → ${f.para} (sentido cliente)${f.cli?'  ← CLIENTE':''}`)).concat(c.obs?['  Obs.: '+c.obs]:[]).concat(['']))).join('\n')}
+  .concat(c.spl&&c.spl.length?['  Splitter: '+c.spl.map(x=>x+(geoSplN(c).includes(x.split(' · ')[0])?' (NOVO, incluído pelo técnico)':' (já existia no KMZ)')).join('; ')]:[]).concat(geoCabN(c).length?['  Cabo fora do KMZ: '+geoCabN(c).join('; ')]:[])
+  .concat(c.fus.map((f,i)=>{const t=x=>x==='spl'?' [splitter novo]':x==='cab'?' [cabo fora do KMZ]':'';return `  ${i+1}. ${f.de}${t(geoLadoN(c,f,'de'))} (sentido POP) → ${f.para}${t(geoLadoN(c,f,'para'))} (sentido cliente)${f.cli?'  ← CLIENTE':''}`})).concat(c.obs?['  Obs.: '+c.obs]:[]).concat(['']))).join('\n')}
 const geoSoCad=()=>ui.perfil!=='coord'&&pode('a_geoCad')&&!pode('a_geoVal');
 function viewGeo(){const L=geoLinhas().filter(x=>!geoSoCad()||x.st==='cad'||x.st==='ok'),f=ui.geoF||'all',q=normK(ui.geoQ||''),cnt=k=>L.filter(x=>x.st===k).length;
   const R=L.filter(x=>(f==='all'||x.st===f)&&(!q||normK([x.p.cliente,x.p.protocolo,x.a.etiqueta,x.cab.join(' '),tecN(x.a.tec)].join(' ')).includes(q)));
   let x=R.find(r=>r.a.id===ui.geoSel)||R[0];
   const st=k=>`<span class="chip ${GEO_ST[k][1]}">${GEO_ST[k][0]}</span>`;
   const lista=R.map(r=>`<button class="geoi ${x&&r.a.id===x.a.id?'on':''}" data-act="geoSel" data-id="${r.a.id}"><span class="geoih"><b>${esc(r.p.cliente||r.a.etiqueta)}</b>${st(r.st)}</span>
-    <small>ID ${esc(r.p.protocolo||r.a.etiqueta)} · ${esc(r.cab.join(', ')||'—')} · ${esc(tecN(r.a.tec))} · ${dBR(r.a.data)}</small><small>${r.n} ${r.n===1?'fusão':'fusões'} em ${r.nc} ${r.nc===1?'caixa':'caixas'}${r.cli?` · cliente na ${esc(r.cli.cx)}`:''}</small>${geoNovas(r.F)?`<small class="geonov">${geoNovas(r.F)} ${geoNovas(r.F)===1?'caixa fora do KMZ, não estava cadastrada':'caixas fora do KMZ, não estavam cadastradas'}</small>`:''}</button>`).join('')||'<p class="muted" style="padding:14px">Nenhum relatório nesta situação.</p>';
+    <small>ID ${esc(r.p.protocolo||r.a.etiqueta)} · ${esc(r.cab.join(', ')||'—')} · ${esc(tecN(r.a.tec))} · ${dBR(r.a.data)}</small><small>${r.n} ${r.n===1?'fusão':'fusões'} em ${r.nc} ${r.nc===1?'caixa':'caixas'}${r.cli?` · cliente na ${esc(r.cli.cx)}`:''}</small>${geoNovas(r.F)?`<small class="geonov">${geoNovas(r.F)} ${geoNovas(r.F)===1?'caixa fora do KMZ, não estava cadastrada':'caixas fora do KMZ, não estavam cadastradas'}</small>`:''}${(n=>n.spl||n.cab?`<small class="geonov">${[n.spl?`${n.spl} ${n.spl===1?'splitter novo':'splitters novos'}`:'',n.cab?`${n.cab} ${n.cab===1?'cabo fora do KMZ':'cabos fora do KMZ'}`:''].filter(Boolean).join(' · ')}</small>`:'')(geoNovI(r.F))}</button>`).join('')||'<p class="muted" style="padding:14px">Nenhum relatório nesta situação.</p>';
   let det='<div class="geodet"><p class="muted">Escolha um relatório na lista.</p></div>';
   if(x){const{a,F}=x,g=(a.fusoes&&a.fusoes.geo)||{},log=(a.fusoesLog||[]).slice().reverse();
     let ac='';
@@ -8670,10 +8702,12 @@ function viewGeo(){const L=geoLinhas().filter(x=>!geoSoCad()||x.st==='cad'||x.st
     else ac=`<p class="geonote ok">Cadastrado no Geogrid por ${esc(g.cadPor||'—')} em ${g.cadEm?dtBR(g.cadEm):'—'}.${g.cadObs?' Obs.: '+esc(g.cadObs):''}</p>`;
     det=`<article class="geodet"><div class="geodh"><div><h3>${esc(x.p.cliente||a.etiqueta)} · ID ${esc(x.p.protocolo||a.etiqueta)}</h3><small>Etiqueta ${esc(a.etiqueta)} · ${esc(x.cab.join(', ')||'—')} · ${esc(tecN(a.tec))} · ${dBR(a.data)}${F.kmz?' · KMZ '+esc(F.kmz):''}</small></div>${st(x.st)}</div>
      ${geoNovas(F)?`<div class="geonovbox"><b>${geoNovas(F)===1?'1 caixa fora do KMZ':geoNovas(F)+' caixas fora do KMZ'}</b><span>O técnico apontou ${geoNovas(F)===1?'uma caixa que não estava cadastrada':'caixas que não estavam cadastradas'} no KMZ: ${F.caixas.filter(c=>c.novo).map(c=>esc(c.nome)+(c.ll?' ('+c.ll[0].toFixed(6)+', '+c.ll[1].toFixed(6)+')':'')).join('; ')}. Cadastre também a caixa no Geogrid.</span></div>`:''}
+     ${(()=>{const C=F.caixas.filter(c=>geoSplN(c).length||geoCabN(c).length);if(!C.length)return '';const n=geoNovI(F);
+       return `<div class="geonovbox geonv2"><b>Itens novos na rede · ${[n.spl?`${n.spl} ${n.spl===1?'splitter novo':'splitters novos'}`:'',n.cab?`${n.cab} ${n.cab===1?'cabo fora do KMZ':'cabos fora do KMZ'}`:''].filter(Boolean).join(' · ')}</b><span>O técnico incluiu na rede o que não existia no KMZ. Cadastre também no Geogrid:</span><ul>${C.map(c=>`<li><b>${esc(c.nome)}:</b> ${geoSplN(c).map(x=>`<span class="geotag spl">splitter novo</span> ${esc(x)}`).concat(geoCabN(c).map(x=>`<span class="geotag cab">cabo fora do KMZ</span> ${esc(x)}`)).join(' · ')}</li>`).join('')}</ul></div>`})()}
      ${x.cli?`<div class="geocli"><b>Fibra do cliente</b><span>${esc(x.cli.cx)}: ${esc(x.cli.f.de)} → ${esc(x.cli.f.para)}</span></div>`:''}
      <div class="geotools">${a.rel&&a.rel.fus&&a.rel.fus.path?`<button class="btn" data-act="relVer" data-p="${esc(a.rel.fus.path)}">Ver relatório (PDF)</button>`:'<button class="btn" disabled title="O PDF sai quando o técnico concluir">Relatório ainda não enviado</button>'}</div>
-     <div class="geocards">${F.caixas.map((c,ix)=>`<section class="geocx${c.novo?' novo':''}"><div class="geocxh"><span class="geonum">${ix+1}</span><b>${esc(c.nome)}</b>${c.novo?'<span class="chip warn">Caixa fora do KMZ · não estava cadastrada</span>':''}<span class="chip">${c.fus.length} ${c.fus.length===1?'fusão':'fusões'}</span><small>${esc(c.tipo)}${c.ll?' · '+c.ll[0].toFixed(6)+', '+c.ll[1].toFixed(6):''}${c.m!=null?' · '+c.m.toLocaleString('pt-BR')+' m do início':''}${c.confEm?' · confirmada '+dtBR(c.confEm):''}</small></div>
-      <div class="geocxb">${c.spl&&c.spl.length?`<p class="geospl">Splitter: ${c.spl.map(esc).join('; ')}</p>`:''}<div class="tablewrap geotw"><table class="geot"><thead><tr><th>#</th><th>De (sentido POP)</th><th></th><th>Para (sentido cliente)</th><th></th></tr></thead><tbody>${c.fus.map((f,i)=>`<tr class="${f.cli?'geocl':''}"><td>${i+1}</td><td>${esc(f.de)}</td><td aria-hidden="true">→</td><td>${esc(f.para)}</td><td>${f.cli?'<span class="chip ok">Cliente</span>':''}</td></tr>`).join('')}</tbody></table></div>${c.obs?`<p class="geoobs">Obs.: ${esc(c.obs)}</p>`:''}</div></section>`).join('')}</div>
+     <div class="geocards">${F.caixas.map((c,ix)=>`<section class="geocx${c.novo?' novo':''}"><div class="geocxh"><span class="geonum">${ix+1}</span><b>${esc(c.nome)}</b>${c.novo?'<span class="chip warn">Caixa fora do KMZ · não estava cadastrada</span>':''}<span class="chip">${c.fus.length} ${c.fus.length===1?'fusão':'fusões'}</span>${geoSplN(c).length?`<span class="chip info">${geoSplN(c).length} ${geoSplN(c).length===1?'splitter novo':'splitters novos'}</span>`:''}${geoCabN(c).length?`<span class="chip warn">${geoCabN(c).length} ${geoCabN(c).length===1?'cabo fora do KMZ':'cabos fora do KMZ'}</span>`:''}<small>${esc(c.tipo)}${c.ll?' · '+c.ll[0].toFixed(6)+', '+c.ll[1].toFixed(6):''}${c.m!=null?' · '+c.m.toLocaleString('pt-BR')+' m do início':''}${c.confEm?' · confirmada '+dtBR(c.confEm):''}</small></div>
+      <div class="geocxb">${(c.spl&&c.spl.length)||geoCabN(c).length?`<ul class="geosplL">${(c.spl||[]).map(x=>{const nv=geoSplN(c).includes(x.split(' · ')[0]);return `<li class="${nv?'nv':''}">${nv?'<span class="geotag spl">splitter novo</span>':'<span class="geotag kmz">já existia no KMZ</span>'} ${esc(x)}${nv?' <small>incluído pelo técnico</small>':''}</li>`}).concat(geoCabN(c).map(x=>`<li class="nv cab"><span class="geotag cab">cabo fora do KMZ</span> ${esc(x)} <small>incluído pelo técnico</small></li>`)).join('')}</ul>`:''}<div class="tablewrap geotw"><table class="geot"><thead><tr><th>#</th><th>De (sentido POP)</th><th></th><th>Para (sentido cliente)</th><th></th></tr></thead><tbody>${c.fus.map((f,i)=>`<tr class="${f.cli?'geocl':''}${geoLadoN(c,f,'de')||geoLadoN(c,f,'para')?' geonvr':''}"><td>${i+1}</td><td>${esc(f.de)}${geoTag(geoLadoN(c,f,'de'))}</td><td aria-hidden="true">→</td><td>${esc(f.para)}${geoTag(geoLadoN(c,f,'para'))}</td><td>${f.cli?'<span class="chip ok">Cliente</span>':''}</td></tr>`).join('')}</tbody></table></div>${c.obs?`<p class="geoobs">Obs.: ${esc(c.obs)}</p>`:''}</div></section>`).join('')}</div>
      <div class="geoact">${ac}</div>
      ${geoEvHtml(a)}
      <div class="geolog"><b>Registro</b><ol>${log.map(l=>`<li><time>${dtBR(l.em)}</time><span>${esc(l.acao)} · <b>${esc(l.por||'')}</b>${l.obs?`<br><i>${esc(l.obs)}</i>`:''}</span></li>`).join('')||'<li class="muted">Sem registros.</li>'}</ol></div></article>`}
@@ -13059,6 +13093,21 @@ function slRota(K){const e=klExtDe(K);if(e.m>0)return e;/* rota desenhada só co
 {const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,sem=slSem(),id=W&&W.id,etq=ui.roiTmp&&ui.roiTmp.etiqueta,o=_s.apply(this,arguments);
   const fim=()=>{const p=S.previsao.find(x=>(id&&x.id===id)||(etq&&x.etiqueta===etq));if(!p)return;if(sem&&!p.semLanc){p.semLanc=true;p.semExt=false;try{save()}catch(e){}render()}else if(!sem&&p.semLanc&&W&&W.kr&&W.kr.M){delete p.semLanc;try{save()}catch(e){}render()}};
   if(o&&typeof o.then==='function')return o.then(r=>{fim();return r});fim();return o}}
+
+/* ---------- 29/10: Histórico de clientes só com as atividades ----------
+   Sem nada de LPU. Um bloco por dia em que houve atividade de verdade (saída, chegada, início, atualização,
+   encerramento do dia, conclusão, transferência, cancelamento). Relatório enviado, resultado da vistoria e mensagens
+   do chat em dia sem atividade não abrem um dia novo: entram no bloco do último dia de atividade daquele agendamento,
+   com a data ao lado da hora. */
+const HA_ATIV=i=>['x','n','u','c'].includes(i.k)&&!i.nd;
+h19Blocos=function(e){const B=[];
+  S.ags.filter(a=>a.etiqueta===e).forEach(a=>{const I=h19ItensAg(a).filter(i=>!/^LPU\b/i.test(i.ti||'')),g={};I.forEach(i=>{const d=h19d(i.t);(g[d]=g[d]||[]).push(i)});
+    const dc=Object.keys(g).sort().filter(d=>g[d].some(HA_ATIV));
+    if(dc.length)Object.keys(g).forEach(d=>{if(dc.includes(d))return;const alvo=dc.filter(x=>x<d).pop()||dc[0];g[d].forEach(i=>{i.mv=true;g[alvo].push(i)});delete g[d]});
+    const ds=Object.keys(g).sort(),N=Math.max(dc.length,(a.dias||[]).length||1),vs=fasesOf(a).every(f=>f==='vist');
+    ds.forEach(d=>{const j=dc.indexOf(d);g[d].sort((x,y)=>x.t-y.t);B.push({d,t:g[d][0].t,ti:(vs?'Vistoria de lançamento':fasesN(a))+(j<0?' · conversa':!vs&&N>1?` · dia ${j+1} de ${N}`:''),quem:r19Nome(a),it:g[d],gtd:false})})});
+  const c=S.comp[e]||{};if(c.vistDisp)B.push({d:h19d(c.vistDisp.em),t:c.vistDisp.em,ti:'Vistoria dispensada',quem:c.vistDisp.por,it:[{t:c.vistDisp.em,k:'n',ti:'Vistoria de lançamento dispensada',tx:c.vistDisp.motivo,ex:{}}]});
+  return B.sort((x,y)=>x.t-y.t)};
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
