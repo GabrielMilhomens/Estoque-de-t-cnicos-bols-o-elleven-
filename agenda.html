@@ -12519,7 +12519,9 @@ const NP_RB=[[/750\s*GR3\s*HEX/i,'ATN000111',1,'RB MIKROTIK - 750GR3 HEX'],[/PAT
 const NP_MO={rb:['SEV0054','SEV0058','SEV0060','SEV0062'],firewall:['SEV0055','SEV0058','SEV0060','SEV0062'],voz:['SEV0056'],fwa:['FWA'],wifi:[]};
 const npW=()=>ui.wiz&&ui.wiz.np;
 const npOk=()=>{const n=npW();return !!(n&&n.cat&&n.sub&&(n.sub!=='ptp'||['sim','nao'].includes(ui.wiz.t.migGpon)))};
-const npFixo=()=>{const n=npW();return !!(n&&NP_FIXO.includes(n.sub))};
+const npFixo=()=>{const n=npW();return !!(n&&NP_FIXO.includes(n.sub)&&!n.pdf)};
+/* 30/10: RB e Tech (Wi-Fi, firewall, voz, FWA) também aceitam o ROI importado do PDF */
+const npPdfM=()=>{const n=npW();return !!(n&&NP_FIXO.includes(n.sub)&&n.pdf)};
 const npAcha=(re,c0)=>{if(c0)return c0;const P=krPrecos();if(!P||!P.itens)return c0||'';const e=Object.entries(P.itens).find(([c,x])=>re.test(String(x[0]||'')));return e?e[0]:(c0||'')};
 /* topologias novas na base */
 ['XGSPON','Wi-Fi'].forEach(t=>{if(!TOPO.includes(t))TOPO.splice(t==='XGSPON'?1:TOPO.length,0,t)});
@@ -12546,7 +12548,7 @@ function npCalcFixo(){const W=ui.wiz,R=W.kr,sub=W.np.sub,E=krEd(),p0=W.id?S.prev
   const mo=npAplicaMo(E,L0,crit),fraco=[];if(!ds)fraco.push(cid?'cidade sem deslocamento na LPU':'o deslocamento entra quando a cidade for informada (etapa 2)');if(sub==='wifi'&&!mo.L.length)fraco.push('Wi-Fi não tem mão de obra padrão: inclua os serviços da LPU');
   return npTotais({G:null,itens:m.itens,rem:m.rem,mo:{L:mo.L,rem:mo.rem,porF:{},fraco,fator:crit?'critico':'comum'},valor:krNum(R.valor),taxa:krNum(R.taxa),tp:sub,eq:'',cid})}
 {const _c=krCalc;krCalc=function(){const W=ui.wiz,R=W&&W.kr,n=W&&W.np;if(!R)return _c.apply(this,arguments);
-  if(n&&NP_FIXO.includes(n.sub)){if(!R.M)R.M={itens:[],kq:{},av:[],fixo:true};return npCalcFixo()}
+  if(npFixo()){if(!R.M)R.M={itens:[],kq:{},av:[],fixo:true};return npCalcFixo()}
   if(n&&n.sub&&R.M&&!R.M.fixo){R.topo=n.sub==='ptp'?'ptp':'gpon';R.topoMan=true;R.topoAuto=false}
   const C=_c.apply(this,arguments);if(!C||!(n&&n.sub==='lanc'))return C;
   /* last mile com lançamento: ponta B com o kit da RB e ativação de last mile (RB no lugar da ONU) */
@@ -12554,9 +12556,9 @@ function npCalcFixo(){const W=ui.wiz,R=W.kr,sub=W.np.sub,E=krEd(),p0=W.id?S.prev
   C.itens=C.itens.filter(i=>i.tipo!=='PONTA B'||i.add!=null).concat(pb.itens);C.rem=C.rem.filter(i=>i.tipo!=='PONTA B').concat(pb.rem);
   C.mo.L=C.mo.L.map(x=>{if(x.fase==='ativ'&&x.cod==='SEV0053'){const y=npMoItem('SEV0054',x.q,crit,'last mile: instalação da RB');if(y){Object.assign(y,{k:x.k,grupo:x.grupo,orig:x.orig});return y}}return x}).filter(x=>!(x.fase==='ativ'&&x.cod==='SEV0041'));
   return npTotais(C)}}
-{const _a=krAplica;krAplica=function(){const o=_a.apply(this,arguments);const n=npW();if(n&&n.sub&&ui.roiTmp){ui.roiTmp.topologia=NP_TOPO[n.sub];ui.roiTmp.achados=n.sub==='rb'||n.sub==='lanc'?['RB']:NP_FIXO.includes(n.sub)?[]:ui.roiTmp.achados;
+{const _a=krAplica;krAplica=function(){const o=_a.apply(this,arguments);const n=npW();if(n&&n.sub&&!n.pdf&&ui.roiTmp){ui.roiTmp.topologia=NP_TOPO[n.sub];ui.roiTmp.achados=n.sub==='rb'||n.sub==='lanc'?['RB']:NP_FIXO.includes(n.sub)?[]:ui.roiTmp.achados;
   if(NP_FIXO.includes(n.sub))ui.roiTmp.nome=(n.sub==='rb'?'ROI padrão · instalação de RB':'ROI padrão · '+NP_TOPO[n.sub])}return o}}
-{const _s=krSnap;krSnap=function(){const s=_s.apply(this,arguments),n=npW();if(s&&n&&n.sub){s.topologia=NP_TOPO[n.sub];s.tipoProj=n.cat;if(NP_FIXO.includes(n.sub)){s.fixo=n.sub;s.nome=s.nome||(n.sub==='rb'?'Instalação de RB (sem KMZ)':NP_TOPO[n.sub]+' (sem KMZ)')}}return s}}
+{const _s=krSnap;krSnap=function(){const s=_s.apply(this,arguments),n=npW();if(s&&n&&n.sub&&!n.pdf){s.topologia=NP_TOPO[n.sub];s.tipoProj=n.cat;if(NP_FIXO.includes(n.sub)){s.fixo=n.sub;s.nome=s.nome||(n.sub==='rb'?'Instalação de RB (sem KMZ)':NP_TOPO[n.sub]+' (sem KMZ)')}}return s}}
 /* a topologia vem da resposta: some o seletor do painel do KMZ */
 {const _p=krPainel;krPainel=function(){let h=_p.apply(this,arguments);const n=npW();
   h=h.replace(/<div class="actions"[^>]*><button class="btn primary sm" data-act="krPdf"[\s\S]*?<\/div>/,'').replace('<button type="button" class="btn primary krabre" data-act="krVer">',NP_CONF+'<button type="button" class="btn primary krabre" data-act="krVer">');
@@ -12597,14 +12599,17 @@ const krNumBR=v=>(+v||0).toLocaleString('pt-BR');
   try{const sh=document.querySelector('#modal .sheetm'),ws=sh&&sh.querySelector('.wsteps');if(!ws)return o;ws.insertAdjacentHTML('afterend',`<div id="npBox">${npPerg()}</div>`);
     const box=$('npBox'),irm=[];let e=box.nextElementSibling;while(e&&!e.classList.contains('actions')){irm.push(e);e=e.nextElementSibling}
     if(!npOk()){irm.forEach(x=>x.style.display='none');return o}
+    if(NP_FIXO.includes(W.np.sub)){const pm=npPdfM(),seg=`<div class="seg krseg npseg" role="tablist" style="margin:0 0 10px"><button type="button" data-act="npRoiM" data-v="fixo" aria-pressed="${!pm}">ROI padrão</button><button type="button" data-act="npRoiM" data-v="pdf" aria-pressed="${pm}">Importar PDF do ROI</button></div>`;
+      box.insertAdjacentHTML('beforeend',seg);if(pm){sh.querySelectorAll('.krseg:not(.npseg)').forEach(x=>x.style.display='none')}}
     if(fx){irm.forEach(x=>{if(x.id!=='roiPrev')x.style.display='none'});const pv=$('roiPrev');if(pv){pv.insertAdjacentHTML('beforebegin',npPainel());
         const tp=$('rp_topologia');if(tp){tp.value=NP_TOPO[W.np.sub];tp.disabled=true}}}
     else{const tp=$('rp_topologia');if(tp){tp.value=NP_TOPO[W.np.sub];tp.disabled=true}}}
   catch(e){console.warn('npnovo',e)}return o}}
 Object.assign(ACT,{
+  npRoiM:el=>{const W=ui.wiz,pdf=el.dataset.v==='pdf';if(!!W.np.pdf===pdf)return;W.np.pdf=pdf;W.kr={};ui.roiTmp=null;W.roiModo=pdf?'pdf':'fixo';renderWiz()},
   npCat:el=>{const W=ui.wiz;W.np={cat:el.dataset.v,sub:''};renderWiz()},
   npMig:el=>{ui.wiz.t.migGpon=el.dataset.v;renderWiz()},
-  npSub:el=>{const W=ui.wiz;W.np.sub=el.dataset.v;delete W.t.migGpon;W.kr={};ui.roiTmp=null;W.roiModo=NP_FIXO.includes(W.np.sub)?'fixo':'kmz';if(W.np.cat==='lm')W.t.lmLanc=W.np.sub==='lanc'?'sim':'nao';renderWiz()},
+  npSub:el=>{const W=ui.wiz;W.np.sub=el.dataset.v;delete W.np.pdf;delete W.t.migGpon;W.kr={};ui.roiTmp=null;W.roiModo=NP_FIXO.includes(W.np.sub)?'fixo':'kmz';if(W.np.cat==='lm')W.t.lmLanc=W.np.sub==='lanc'?'sim':'nao';renderWiz()},
   npTroca:()=>{const W=ui.wiz;const R=W.kr||{},E=R.ed;if((R.nome||R.valor||R.des||(E&&(E.mat.add.length||E.mo.add.length||Object.keys(E.mat.del).length||Object.keys(E.mo.del).length||Object.keys(E.mat.q).length||Object.keys(E.mo.q).length)))&&!confirm('Trocar o tipo do projeto? O que já foi preenchido nesta etapa (KMZ, desenho, materiais e valores) é descartado.'))return;W.np={cat:'',sub:''};delete W.t.migGpon;W.kr={};ui.roiTmp=null;W.roiModo=null;renderWiz()}});
 /* sem o tipo respondido não avança */
 {const _g=ACT.wizGo;ACT.wizGo=function(el){const W=ui.wiz;if(W&&!W.id&&W.step===1&&+el.dataset.n>1&&!npOk()){toast('Responda o tipo do projeto para continuar.','bad');return}return _g.apply(this,arguments)}}
@@ -12661,6 +12666,9 @@ function npPdfModal(id){const p=S.previsao.find(x=>x.id===id);if(!p||!p.roiKmz)r
    <div class="actions" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn primary" data-act="npPdf" data-id="${p.id}" data-p="all">PDF do ROI completo</button><button class="btn" data-act="npPdf" data-id="${p.id}" data-p="mat">PDF da lista de materiais</button><button class="btn" data-act="npPdf" data-id="${p.id}" data-p="mo">PDF da mão de obra (LPU)</button></div>
    <div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)}
 ACT.npPdf=el=>{const p=S.previsao.find(x=>x.id===el.dataset.id);if(!p||!p.roiKmz)return;const s=Object.assign({},p.roiKmz,{etiqueta:p.etiqueta||p.roiKmz.etiqueta,cliente:p.cliente||p.roiKmz.cliente,protocolo:p.protocolo||p.roiKmz.protocolo,cid:p.cidade||p.roiKmz.cid});return krPdfDe(s,el.dataset.p||'all')};
+
+/* 30/10: com o tipo do projeto escolhido, a topologia do ROI (também o lido do PDF) é a do tipo, sem trocar */
+{const _p=roiPreview;roiPreview=function(){let h=_p.apply(this,arguments);try{const n=npW();if(n&&n.sub&&NP_TOPO[n.sub]){const v=NP_TOPO[n.sub];h=h.replace(/<select class="inp" id="rp_topologia">[\s\S]*?<\/select>/,`<select class="inp" id="rp_topologia" disabled><option selected>${esc(v)}</option></select>`)}}catch(e){}return h}}
 
 /* ---------- 29/10: materiais "sem preço" no ROI pelo KMZ ----------
    Quando a tabela de preços não carrega para quem cadastra (ex.: projetista sem leitura de ag_config), o ROI era salvo
