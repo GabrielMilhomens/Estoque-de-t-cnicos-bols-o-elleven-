@@ -13096,21 +13096,32 @@ function slRota(K){const e=klExtDe(K);if(e.m>0)return e;/* rota desenhada só co
   const L=(K.L||[]).filter(l=>!/CORDOALHA/.test(klN(l.nome))),m=L.reduce((s,l)=>s+klLen(l.c),0);
   const cx=(K.P||[]).filter(p=>{const n=klN(p.nome);return /^(CEO|CE)\b|^(CEO|CE)[\s\-_]?\d|CAIXA DE EMENDA/.test(n)&&!/DIO|TERMINADOR|PTRO/.test(n)}).filter(p=>L.some(l=>klProj([p.lat,p.lon],l.c).d<=15)).length;
   return{m:kl1(m),cx}}
-{const _a=CH.krArq;CH.krArq=async function(el){const f=el.files&&el.files[0];await _a.apply(this,arguments);const W=ui.wiz,R=W&&W.kr;
+/* lê o arquivo como rota da fibra existente (extensão) e marca o projeto como sem lançamento */
+async function slAplica(f,W,R,auto){const txt=await kmzTexto(await f.arrayBuffer(),f.name),K=kmlLer(txt),e=slRota(K);
+  if(!(e.m>0))throw new Error(auto?'o KMZ não tem lançamento nem a rota da fibra. Para projeto sem lançamento, desenhe no KMZ a linha da fibra existente do POP até o cliente, com as caixas de emenda do caminho':'não encontrei linhas de fibra no KMZ');
+  const M=kmMat(kmParse(txt));M.av=[];M.semLanc=true;M.kq=Object.assign({},M.kq,{interno:0,aereo:0,sub:0,cord:0,lances:0,postes:0,postesSemCord:0,postesPassagem:0,postesInter:0,cs:0,caboTot:0});M.itens=[];
+  R.M=M;R.err='';R.nome=f.name;R.arq=f;if(!R.topoMan){R.topo='ptp';R.topoAuto=true}R.ext={nome:f.name,m:e.m,cx:e.cx};R.extErr='';W.kL=null;
+  /* o mesmo arquivo segue para a etapa 4 (Extensão), onde se marca início e término */
+  if(W.k){W.k.K=K;W.k.K.total=K.L.length?kmzRede(K).total:0;W.k.nome=f.name;W.k.arq=f;W.k.path='';W.k.msg='';try{kmzRecalc()}catch(x){}}
+  krAplica()}
+{const _a=CH.krArq;CH.krArq=async function(el){const f=el.files&&el.files[0],W=ui.wiz,so=!!(W&&W.kr&&W.kr.soExt);
+  if(f&&so){const R=W.kr;R.arq=f;toast('Lendo o KMZ de extensão…');try{await slAplica(f,W,R,false);toast('KMZ lido só como extensão de sinal. Informe o valor mensal e confira.')}catch(x){R.M=null;R.err='Não foi possível ler o KMZ: '+(x.message||x)}renderWiz();return}
+  await _a.apply(this,arguments);const R=W&&W.kr;if(f&&R)R.arq=f;
   if(!f||!R||!/não reconheci postes nem cabos/.test(R.err||''))return;
-  try{const txt=await kmzTexto(await f.arrayBuffer(),f.name),K=kmlLer(txt),e=slRota(K);
-    if(!(e.m>0))throw new Error('o KMZ não tem lançamento nem a rota da fibra. Para projeto sem lançamento, desenhe no KMZ a linha da fibra existente do POP até o cliente, com as caixas de emenda do caminho');
-    const M=kmMat(kmParse(txt));M.av=[];M.semLanc=true;R.M=M;R.err='';if(!R.topoMan){R.topo='ptp';R.topoAuto=true}
-    R.ext={nome:f.name,m:e.m,cx:e.cx};R.extErr='';W.kL=null;
-    /* o mesmo arquivo segue para a etapa 4 (Extensão), onde se marca início e término */
-    if(W.k){W.k.K=K;W.k.K.total=K.L.length?kmzRede(K).total:0;W.k.nome=f.name;W.k.arq=f;W.k.path='';W.k.msg='';try{kmzRecalc()}catch(x){}}
-    krAplica();toast('Projeto sem lançamento: KMZ lido como rota da fibra existente. Informe o valor mensal e confira.')}
+  try{await slAplica(f,W,R,true);toast('Projeto sem lançamento: KMZ lido como rota da fibra existente. Informe o valor mensal e confira.')}
   catch(x){R.err='Não foi possível ler o KMZ: '+(x.message||x)}renderWiz()}}
+/* escolha explícita: o KMZ é só da extensão de sinal (sem lançamento) */
+ACT.slModo=async el=>{const W=ui.wiz,R=W.kr=W.kr||{},so=el.dataset.v==='ext';if(!!R.soExt===so)return;R.soExt=so;
+  if(R.arq){const f=R.arq;if(so){try{await slAplica(f,W,R,false)}catch(x){R.M=null;R.err='Não foi possível ler o KMZ: '+(x.message||x)}}else{R.M=null;R.ext=null;await CH.krArq({files:[f]});return}}renderWiz()};
 /* sem lançamento: tira a mão de obra da fase de lançamento */
 {const _c=krCalc;krCalc=function(){const C=_c.apply(this,arguments);if(!C||!slSem())return C;
   C.mo.L=C.mo.L.filter(x=>x.fase!=='lanc'||x.add!=null);return typeof npTotais==='function'?npTotais(C):C}}
-{const _p=krPainel;krPainel=function(){let h=_p.apply(this,arguments);if(!slSem())return h;const R=ui.wiz.kr,e=R.ext;
-  const box=`<div class="result info" style="margin:6px 0 8px;display:block"><div><b>Projeto sem lançamento.</b> O KMZ não tem postes nem cabo novo, então foi lido como a rota da fibra existente: ${e?`<b>${kmN0(Math.round(e.m))} m</b> de fibra e <b>${e.cx}</b> ${e.cx===1?'caixa':'caixas'} de emenda no caminho`:'sem rota de fibra'}. A mão de obra considera só a extensão (km de fibra, reabertura e fechamento das caixas e fusões) e a ativação; o projeto fica sem as fases de lançamento.</div></div>`;
+{const _p=krPainel;krPainel=function(){let h=_p.apply(this,arguments);const R0=(ui.wiz&&ui.wiz.kr)||{};
+  const seg=`<div class="seg krseg slseg" role="tablist" style="margin:0 0 8px"><button type="button" data-act="slModo" data-v="lanc" aria-pressed="${!R0.soExt}">KMZ do lançamento</button><button type="button" data-act="slModo" data-v="ext" aria-pressed="${!!R0.soExt}">Só extensão de sinal (sem lançamento)</button></div>`;
+  h=h.replace('<div class="krbox">','<div class="krbox">'+seg);if(R0.soExt)h=h.replace(/<p class="muted" style="margin:0 0 8px">Envie o KMZ do projeto:[^<]*<\/p>/,'<p class="muted" style="margin:0 0 8px">Envie o KMZ da extensão de sinal: conta só os metros de fibra e as caixas de emenda no caminho (reabertura e fechamento e fusões). Não entra lançamento.</p>');
+  if(R0.soExt){h=h.replace('<span>KMZ do projeto (.kmz ou .kml)</span>','<span>KMZ da extensão de sinal (.kmz ou .kml)</span>');h=h.replace(/<div class="krext">[\s\S]*?<\/div>(?=<p class="muted krprec">)/,'')}
+  if(!slSem())return h;const R=ui.wiz.kr,e=R.ext;
+  const box=`<div class="result info" style="margin:6px 0 8px;display:block"><div><b>Projeto sem lançamento.</b> ${R.soExt?'O KMZ foi lido só como extensão de sinal':'O KMZ não tem postes nem cabo novo, então foi lido como a rota da fibra existente'}: ${e?`<b>${kmN0(Math.round(e.m))} m</b> de fibra e <b>${e.cx}</b> ${e.cx===1?'caixa':'caixas'} de emenda no caminho`:'sem rota de fibra'}. A mão de obra considera só a extensão (km de fibra, reabertura e fechamento das caixas e fusões) e a ativação; o projeto fica sem as fases de lançamento.</div></div>`;
   const i=h.indexOf('<div class="krext">');return i>=0?h.slice(0,i)+box+h.slice(i):box+h}}
 /* grava no projeto: sem lançamento (sem as fases rua e interno) */
 {const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,sem=slSem(),id=W&&W.id,etq=ui.roiTmp&&ui.roiTmp.etiqueta,o=_s.apply(this,arguments);
