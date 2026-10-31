@@ -2183,7 +2183,7 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 @media (max-width:600px){#klab .kltipo{grid-template-columns:1fr}}
 #klab.klwiz{z-index:235}body:has(#klab.klwiz) #toast{z-index:245}.krseg{flex-wrap:wrap}
 #klab .krt td:nth-last-child(-n+2),#klab .krt th:nth-last-child(-n+2){white-space:nowrap}#klab .kradd{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}#klab .kradd .inp:first-of-type{flex:1;min-width:200px}#klab .kradd .krq{width:80px}
-.pdcol.loc{background:var(--warn-soft)}@media(min-width:1100px){.pdcols{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.kpis.pdk7{grid-template-columns:repeat(7,minmax(0,1fr))}}@media(min-width:1100px){.pdcol{padding:10px 8px}.pdcols .pdc2 .cat{flex-wrap:wrap;flex-direction:row;justify-content:flex-start}.pdcols .pdc2 .cat>b{flex:1 1 100%}.pdcols .pdc2 .cat>*:not(b){margin-left:0}}.pdkf{margin-top:14px}.pdkf .pdct span{display:flex;align-items:center;gap:10px}.pdkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-items:start}</style>
+.pdcol.loc{background:var(--warn-soft)}@media(min-width:1100px){.pdcols{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.kpis.pdk7{grid-template-columns:repeat(7,minmax(0,1fr))}}@media(min-width:1100px){.pdcol{padding:10px 8px}.pdcols .pdc2 .cat{flex-wrap:wrap;flex-direction:row;justify-content:flex-start}.pdcols .pdc2 .cat>b{flex:1 1 100%}.pdcols .pdc2 .cat>*:not(b){margin-left:0}}.pdkf{margin-top:14px}.pdkf .pdct span{display:flex;align-items:center;gap:10px}.pdkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-items:start}.tvbx b .tcq{display:block;white-space:normal;font-size:19px;line-height:1.15}.tcrel{display:flex;flex-direction:column;gap:8px;margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.tcrel>b{font-size:14px}.tcrelb{display:flex;flex-direction:column;gap:8px}.tcrelb .btn{width:100%;min-height:44px}</style>
 </head>
 <body>
 <div id="vLoad" class="authv"><div class="acard"><div class="brand"><span class="logo" role="img" aria-label="Net Turbo Telecom"></span><small>Ferramenta de Gestão O&amp;M</small></div><p class="muted" id="loadMsg" style="margin-top:14px">Carregando…</p></div></div>
@@ -13207,6 +13207,32 @@ ACT.hPdf=async el=>{const e=el.dataset.e;if(!e)return;if(!window.jspdf){toast('G
   el.disabled=true;const t0=el.textContent;el.textContent='Gerando o PDF…';
   try{const bl=await hpGerar(e),nome=`historico_${e}_${hoje()}.pdf`;if(typeof krBaixar==='function')await krBaixar(nome,bl);else{const a=document.createElement('a'),u=URL.createObjectURL(bl);a.href=u;a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},4000)}toast('PDF do histórico gerado.')}
   catch(x){toast('Não foi possível gerar o PDF: '+(x.message||x),'bad')}finally{el.disabled=false;el.textContent=t0}};
+
+/* ---------- 31/10: tela da atividade do técnico (Implantação) ----------
+   1) Atividade encerrada: a faixa diz O QUE FOI FEITO (não concluída: O QUE ESTAVA PREVISTO).
+   2) O quadro ao lado do tempo mostra o que a atividade é: lançamento (metros), extensão (km de fibra) ou ativação
+      (Instalação GPON, Ponto a Ponto…), pelas fases agendadas.
+   3) Técnico CLT: no lugar da LPU (com valores) aparecem os relatórios do que ele fez. */
+const tcFeita=a=>['concluida','relatorios','lpu'].includes(a.status);
+const tcClt=a=>typeof tecT==='function'&&tecT(a.tec)==='CLT';
+function tcExtM(p){const v=p&&p.klExt&&+p.klExt.m>0?+p.klExt.m:p&&p.kmFibra!=null&&p.kmFibra!==''?+p.kmFibra:0;return v>0?v:0}
+const tcKm=m=>(m/1000).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' km';
+function tcQuadro(a,p){const fz=fasesOf(a),T=p.topologia||'';
+  if(fz.includes('rua')||fz.includes('interno'))return null;/* lançamento: fica como está */
+  if(fz.includes('ext')){const m=tcExtM(p);return['Extensão prevista',m?tcKm(m):'—']}
+  if(fz.includes('ativ')){const n={'gpon':'GPON','xgspon':'XGSPON','ponto a ponto':'Ponto a Ponto','last mile':'Last mile (RB)'}[normK(T)]||T;return['Ativação',`<span class="tcq">${n?esc(n):'—'}</span>`]}
+  return null}
+{const _d=detalhe;detalhe=function(a){let h=_d.apply(this,arguments);if(!a||typeof h!=='string')return h;
+  try{if(tcFeita(a))h=h.replace('<span class="tck">O QUE FAZER</span>','<span class="tck">O QUE FOI FEITO</span>');
+    else if(a.status==='nao_concluida')h=h.replace('<span class="tck">O QUE FAZER</span>','<span class="tck">O QUE ESTAVA PREVISTO</span>');
+    const p=pPor(a.etiqueta)||{},c=S.comp[a.etiqueta]||{},q=tcQuadro(a,p);
+    if(q){const old=+p.metros?['Lançamento previsto',(+p.metros)+' m']:c.janela?['Janela',esc(c.janela)]:['Data',dBR(a.data).slice(0,5)];const ob=tvBox(old[0],old[1]);if(h.includes(ob))h=h.replace(ob,tvBox(q[0],q[1]))}}catch(e){console.warn('tecclt',e)}
+  return h}}
+{const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);if(!a||!r||typeof r.act!=='string'||!tcClt(a)||!['concluida','nao_concluida'].includes(a.status))return r;
+  const re=/<div class="result">LPU (?:do que foi feito )?enviada[\s\S]*?<button class="btn wide" data-act="pdfArq" data-id="[^"]*">Abrir PDF da LPU<\/button>/;
+  const rels=typeof relBtnsAll==='function'?relBtnsAll(a):relBtns(a);
+  const box=`<div class="tcrel"><b>Relatório do que foi feito</b>${rels?`<div class="tcrelb">${rels}</div>`:'<span class="muted">O relatório ainda não foi enviado.</span>'}</div>`;
+  r.act=re.test(r.act)?r.act.replace(re,box):(a.status==='concluida'?r.act+box:r.act.replace(/(<\/div>)(<button class="btn wide" data-act="lpuParcial")/,'$1'+box+'$2'));return r}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
