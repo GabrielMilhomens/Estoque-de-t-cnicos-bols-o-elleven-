@@ -2240,7 +2240,53 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 .nocdica{display:block;font-size:12.5px}
 .nocdet .car span b{display:block}.nocdet .car span span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
 .nocdet.falta{border-left:4px solid var(--warn)}
-.geovbox{margin:4px 0 6px}.geovbox .f{margin-top:8px}.npchips .nchip .nbadge{display:inline-grid;position:static;vertical-align:1px;margin-left:6px;min-width:20px;height:18px;padding:0 6px;font-size:11.5px}.geovanx{margin-top:10px}
+.geovbox{margin:4px 0 6px}.geovbox .f{margin-top:8px}.npchips .nchip .nbadge{display:inline-grid;position:static;vertical-align:1px;margin-left:6px;min-width:20px;height:18px;padding:0 6px;font-size:11.5px}.geovanx{margin-top:10px}.prmod .prcli{display:flex;flex-direction:column;gap:2px;margin:2px 0 12px}.prmod .prcli b{font-size:16px}.prmod .prcli span{color:var(--muted);font-size:13.5px}
+.prhist{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px;background:var(--surface)}.prhist>b{font-size:13.5px}.prhist ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13.5px}.prhist li{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}.prhist small{display:block;margin-top:6px;color:var(--muted)}
+.propcs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.propc{display:flex;gap:10px;align-items:flex-start;text-align:left;border:1.5px solid var(--line);background:var(--card,transparent);border-radius:12px;padding:10px 12px;cursor:pointer;color:inherit;font:inherit;min-height:44px}.propc i{flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--muted);margin-top:2px}.propc.on{border-color:var(--info);box-shadow:0 0 0 1px var(--info) inset}.propc.on i{border-color:var(--info);background:radial-gradient(circle,var(--info) 0 4px,transparent 5px)}.propc span{display:flex;flex-direction:column;gap:2px}.propc b{font-size:14.5px}.propc small{color:var(--muted);font-size:12.5px;line-height:1.35}.propc:disabled{opacity:.5;cursor:not-allowed}
+.prlist{margin:0 0 12px;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:13.5px}
+.prav{display:flex;flex-direction:column;gap:3px;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:13.5px;background:var(--surface);border:1px solid var(--line)}.prav.warn{background:var(--warn-soft);border-color:transparent}.prav.bad{background:var(--bad-soft);border-color:transparent}.prav span{line-height:1.4}
+.prbar{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;justify-content:flex-end;font-size:13px;color:var(--muted);margin:0 0 8px}
+.prnota{margin:4px 0 12px}.prcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}.prcard{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--card,var(--surface));display:flex;flex-direction:column;gap:10px}.prcard header{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.prcard header div{display:flex;flex-direction:column;gap:2px;min-width:0}.prcard header b{font-size:15px}.prcard header span:not(.chip){color:var(--muted);font-size:13px}.prcard dl{margin:0;display:flex;flex-direction:column;gap:7px}.prcard dl div{display:grid;grid-template-columns:120px 1fr;gap:8px;font-size:13.5px}.prcard dt{color:var(--muted)}.prcard dd{margin:0}.prcard footer{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-start;margin:0;padding:0;border:0;text-align:left;background:none}.btn.dangerl{color:var(--bad);border-color:var(--bad)}
+@media(max-width:620px){.propcs{grid-template-columns:1fr}.prcards{grid-template-columns:1fr}.prcard dl div{grid-template-columns:1fr;gap:1px}.prcard footer .btn{flex:1 1 0;min-height:44px;white-space:nowrap}.prbar{justify-content:flex-start}}
+.kbkpis{margin-bottom:10px;grid-template-columns:repeat(3,minmax(0,1fr))}.kbkpis.kbc{grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.4fr)}.kbkpis .kccost{grid-column:auto}@media(max-width:1180px){.kbkpis.kbc{grid-template-columns:repeat(3,minmax(0,1fr))}.kbkpis .kccost{grid-column:1/-1}}@media(max-width:760px){.kbkpis,.kbkpis.kbc{grid-template-columns:repeat(2,minmax(0,1fr))}.kbkpis>.kbtn:first-child{grid-column:1/-1}}
+.kbsit{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px}.kbsit>.muted{font-size:13px;margin-right:2px}
+.kbsit button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13.5px;cursor:pointer;min-height:36px}
+.kbsit button b{font-variant-numeric:tabular-nums;font-weight:700}.kbsit button i{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.kbsit button.bad i{background:var(--bad)}.kbsit button.go i{background:var(--brand)}.kbsit button.warn i{background:var(--warn)}.kbsit button.info i{background:var(--info)}
+.kbsit button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.kbsitf{font-size:13px;color:var(--muted);margin-left:6px}
+.kbtabs{display:none}
+.kb4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:start}
+.kbcol{background:var(--bg);border:1px solid var(--line);border-radius:12px;min-width:0;display:flex;flex-direction:column}
+.kbhead{background:var(--surface);border-bottom:1px solid var(--line);border-top:4px solid var(--brand);border-radius:12px 12px 0 0;padding:10px 12px;position:sticky;top:0;z-index:2}
+.kbcol.c-ext .kbhead{border-top-color:var(--info)}.kbcol.c-ativ .kbhead{border-top-color:var(--brand-ink)}
+.kbhead h3{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0;font-size:17px}.kbhead h3 span{font:700 15px "Barlow Condensed",sans-serif;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.kbhead small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.kbbody{padding:8px;display:flex;flex-direction:column;gap:7px}
+.kbgr{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:6px 2px 0}.kbgr:first-child{padding-top:0}
+.kbgr.bad{color:var(--bad)}.kbgr.go{color:var(--brand-ink)}.kbgr.warn{color:var(--warn)}.kbgr.info{color:var(--info)}
+.kbcard{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:9px;padding:9px 10px 8px;cursor:pointer;color:var(--ink);font:inherit;overflow-wrap:anywhere}
+.kbcard:hover{border-color:var(--brand);border-left-color:inherit}.kbcard:focus-visible{outline:2px solid var(--info);outline-offset:1px}
+.kbcard.s-atr{border-left-color:var(--bad)}.kbcard.s-pronto{border-left-color:var(--brand)}.kbcard.s-inc{border-left-color:var(--warn)}.kbcard.s-campo{border-left-color:var(--info)}
+.kbtop{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 6px}.kbtop b{white-space:nowrap;font:700 16px "Barlow Condensed",sans-serif;letter-spacing:.02em}
+.kbpill{font-style:normal;font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 8px;white-space:nowrap;background:var(--bg);color:var(--muted)}
+.kbpill.s-atr{background:var(--bad-soft);color:var(--bad)}.kbpill.s-pronto{background:var(--brand-soft);color:var(--brand-ink)}.kbpill.s-inc{background:var(--warn-soft);color:var(--warn)}.kbpill.s-campo{background:var(--info-soft);color:var(--info)}
+.kbcli{font-size:14px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kbloc{font-size:12.5px;color:var(--muted)}
+.kbm{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin:3px 0 1px}.kbm b{font:700 19px/1.1 "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums}.kbm span{font-size:12.5px;color:var(--muted)}
+.kbfl{display:flex;flex-wrap:wrap;gap:4px}.kbf{font-size:11.5px;font-weight:600;border-radius:6px;padding:2px 7px;background:var(--warn-soft);color:var(--warn)}.kbf.bad{background:var(--bad-soft);color:var(--bad)}.kbf.go{background:var(--brand-soft);color:var(--brand-ink)}
+.kbfs{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}.kbd{font-size:11px;padding:1px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}.kbd.cur{border-color:var(--brand);color:var(--ink);font-weight:600}.kbd.fin{background:var(--brand-soft);border-color:transparent;color:var(--brand-ink)}.kbd.over{border-color:var(--bad);color:var(--bad)}
+.kbft{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed var(--line);margin-top:5px;padding-top:5px}.kbft small{font-size:12px;color:var(--muted);min-width:0}
+.kbcst{flex:none;font:700 14.5px "Barlow Condensed",sans-serif;color:var(--brand-ink);background:var(--brand-soft);border-radius:6px;padding:2px 8px;cursor:pointer;white-space:nowrap}.kbcst.fraco{background:var(--warn-soft);color:var(--warn)}
+@media(max-width:1180px){.kb4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+ .kbtabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;position:sticky;top:0;z-index:5;background:var(--bg);padding:4px 0 8px}
+ .kbtabs button{display:flex;flex-direction:column;align-items:center;gap:1px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 2px;font:inherit;font-size:12.5px;font-weight:600;min-height:48px;cursor:pointer}
+ .kbtabs button b{font:700 17px "Barlow Condensed",sans-serif}.kbtabs button[aria-selected="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+ .kb4{grid-template-columns:1fr}.kbcol{display:none}.kbcol.on{display:flex}.kbhead{position:static}
+ .kbsit{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;max-width:100%}.kbsit button{flex:none}
+}
+
 /* 29/10: Rede Externa · Programadas */
 .rpth{align-items:flex-start;gap:12px;flex-wrap:wrap}.rpth h2{margin:0}.rpth p{margin:2px 0 0;font-size:13px}
 .rpviews{flex-wrap:wrap}.rpviews button{display:inline-flex;align-items:center;gap:6px}.rpviews .nbadge{position:static;margin:0}
@@ -2625,7 +2671,7 @@ const diasExecAg=a=>{const L=(a.diario||[]).filter(x=>x.ts&&x.ts.inicio).map(x=>
 const diasExec=(e,filtro)=>new Set(S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&(!filtro||filtro(a))).flatMap(diasExecAg)).size;
 const realDias=(e,f)=>diasExec(e,a=>fasesOf(a).includes(f));
 const faseFim=(e,f)=>(S.agsExt&&S.agsExt.length?S.ags.concat(S.agsExt):S.ags).filter(a=>a.etiqueta===e&&a.ts&&a.ts.conclusao&&!['nao_concluida','cancelada'].includes(a.status)&&(a.fasesFin||[]).includes(f)).sort((a,b)=>a.ts.conclusao-b.ts.conclusao)[0]||foraFim(e,f);
-const pPor=e=>S.previsao.find(x=>x.etiqueta===e)||{};
+const pPor=e=>S.previsao.find(x=>x.etiqueta===e)||(S.prevCanc||[]).find(x=>x.etiqueta===e)||{};
 // Fases que precisam ser feitas antes da ativação:
 //  * Firewall: nenhuma (ativa direto)
 //  * Last mile: só as fases com dias previstos na base (todas zeradas = ativa direto)
@@ -2873,11 +2919,11 @@ function viewBase(){
   const larg=COLS.reduce((s,c)=>s+c[4],0)+70+250+(ed?44:0);
   return `<div class="toolbar"><div><h2>Base de previsão</h2><p class="muted">${ed?`Use Incluir novo projeto: ROI, endereço de instalação e informações técnicas em sequência. ${pode('a_prevDias')?'Depois complete a previsão de dias por fase. ':'A previsão de dias por fase é preenchida pelo O&M. '}As células podem ser editadas direto na tabela.`:pode('a_prevDias')?'Você pode preencher a previsão de dias por fase; o resto da base é somente leitura para o seu perfil.':'Somente leitura para o seu perfil.'}</p></div>
    <div class="tools"><input class="inp" type="search" id="baseQ" placeholder="Buscar etiqueta, protocolo, cliente ou cidade" data-in="baseQ" value="${esc(ui.baseQ)}">${ed?'<button class="btn" data-act="addRow">Adicionar manualmente</button><button class="btn primary" data-act="wiz" data-id="">Incluir novo projeto</button>':''}</div></div>
-   <div class="chips" role="group" aria-label="Filtrar projetos" style="margin-top:0"><button data-act="baseF" data-v="todos" aria-current="${F==='todos'}">Todos (${all.length})</button><button data-act="baseF" data-v="inc" aria-current="${F==='inc'}">Cadastro incompleto (${inc.length})</button></div>
+   <div class="chips" role="group" aria-label="Filtrar projetos" style="margin-top:0"><button data-act="baseF" data-v="todos" aria-current="${F==='todos'}">Todos (${all.length})</button><button data-act="baseF" data-v="inc" aria-current="${F==='inc'}">Cadastro incompleto (${inc.length})</button>${typeof prChipBase==='function'?prChipBase():''}</div>
    <div class="tablewrap sheet basev"><table style="min-width:${larg}px"><colgroup>${COLS.map(c=>`<col style="width:${c[4]}px">`).join('')}<col style="width:70px"><col style="width:250px">${ed?'<col style="width:44px">':''}</colgroup>
    <thead><tr class="bgrp">${BGRUPOS.map(([n,k],i)=>`<th colspan="${k}" class="${i===0?'stk':i>1?'gs':''}">${n}</th>`).join('')}<th class="gs"></th>${ed?'<th></th>':''}</tr>
    <tr>${COLS.map(c=>`<th class="${c[0]==='etiqueta'?'stk':''} ${['cidade','metros','dRua'].includes(c[0])?'gs':''} ${c[2]==='n'?'r':''}" title="${c[1]}">${c[3]}</th>`).join('')}<th class="r">Total</th><th class="gs">Cadastro</th>${ed?'<th></th>':''}</tr></thead>
-   <tbody>${rows.map(p=>{const fl=baseFalta(p);return `<tr>${COLS.map(c=>cell(p,c)).join('')}<td class="ro r tot">${tot(p)}</td><td class="ro gs"><div class="bcad"><button class="btn sm" data-act="wiz" data-id="${p.id}">Editar</button>${fl.length?`<span class="bfalta" title="${esc(fl.join(', '))}">Falta: ${esc(fl.map(x=>x.replace(/^Sem /,'').replace('previsão de dias','dias')).join(', '))}</span>`:'<span class="bok">Completo</span>'}</div></td>${ed?`<td class="ro"><button class="icon" data-act="delRow" data-id="${p.id}" aria-label="Excluir linha">✕</button></td>`:''}</tr>`}).join('')||`<tr><td class="ro" colspan="${COLS.length+3}">Nenhum projeto encontrado.</td></tr>`}</tbody></table></div>`;
+   <tbody>${rows.map(p=>{const fl=baseFalta(p);return `<tr>${COLS.map(c=>cell(p,c)).join('')}<td class="ro r tot">${tot(p)}</td><td class="ro gs"><div class="bcad"><button class="btn sm" data-act="wiz" data-id="${p.id}">Editar</button>${fl.length?`<span class="bfalta" title="${esc(fl.join(', '))}">Falta: ${esc(fl.map(x=>x.replace(/^Sem /,'').replace('previsão de dias','dias')).join(', '))}</span>`:'<span class="bok">Completo</span>'}</div></td>${ed?`<td class="ro"><button class="icon" data-act="delRow" data-id="${p.id}" aria-label="Remover da base" title="Remover da base (cliente cancelou ou cadastro de teste)">✕</button></td>`:''}</tr>`}).join('')||`<tr><td class="ro" colspan="${COLS.length+3}">Nenhum projeto encontrado.</td></tr>`}</tbody></table></div>`;
 }
 
 /* ---------- PREVISÃO DOS PROJETOS ---------- */
@@ -2959,10 +3005,10 @@ function viewSim(){
    Só projetos da base ainda não entregues (sem ativação finalizada), em três colunas: Lançamento externo,
    Lançamento interno e Ativação. Cada projeto fica na primeira dessas fases que falta; a extensão de sinal
    aparece no card e na coluna Ativação como etapa anterior. Entregues saem do backlog. */
-const KCOLS=[['rua','Lançamento externo'],['interno','Lançamento interno'],['ativ','Ativação']];
+const KCOLS=[['rua','Lançamento externo'],['interno','Lançamento interno'],['ext','Extensão'],['ativ','Ativação']];
 const fasesAplic=p=>fasesProj(p);
 function etapa(p){if(!p||!p.etiqueta)return 'rua';if(faseFim(p.etiqueta,'ativ'))return 'entregue';
-  const req=fasesReq(p).map(f=>f.k);return ['rua','interno'].find(k=>req.includes(k)&&!faseFim(p.etiqueta,k))||'ativ'}
+  const req=fasesReq(p).map(f=>f.k);return ['rua','interno','ext'].find(k=>req.includes(k)&&!faseFim(p.etiqueta,k))||'ativ'}
 const kLancado=e=>S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada').reduce((s,a)=>s+(metrosAg(a)||0),0);
 function kTrab(p){const req=fasesReq(p).map(f=>f.k),pend=k=>req.includes(k)&&!faseFim(p.etiqueta,k),temCabo=pend('rua')||pend('interno');
   const metros=+p.metros||0,lanc=kLancado(p.etiqueta),falta=temCabo?Math.max(0,metros-lanc):0,ext=req.includes('ext'),cx=ext?(+p.caixas||0):0;
@@ -4136,7 +4182,7 @@ function aErr(id,m){const e=$(id);e.textContent=m;e.classList.toggle('hidden',!m
 const rowP=p=>{const{id,etiqueta,...d}=p;return{id,etiqueta,dados:d}};
 const rowA=a=>{const{id,etiqueta,tec,data,status,fases,fase,__tec0,...d}=a;return{id,etiqueta,tecnico:__tec0||tec,data,status,fases:fases||[fase],dados:d}};
 const rowL=l=>{const{id,ag,etiqueta,tec,status,total,pdf_path,prestador,...d}=l;return{id,agendamento:ag||null,etiqueta,tecnico:tec,status,total:Math.round((+total||0)*100)/100,pdf_path:pdf_path||null,...(prestador?{prestador}:{}),dados:d}};
-const curRows=()=>({p:S.previsao.filter(p=>p.etiqueta).map(rowP),c:Object.entries(S.comp).filter(([e])=>S.previsao.some(p=>p.etiqueta===e)).map(([etiqueta,d])=>({etiqueta,dados:d})),a:S.ags.map(rowA),l:S.lpus.map(rowL)});
+const curRows=()=>({p:S.previsao.concat(S.prevCanc||[]).filter(p=>p.etiqueta).map(rowP),c:Object.entries(S.comp).filter(([e])=>S.previsao.some(p=>p.etiqueta===e)||(S.prevCanc||[]).some(p=>p.etiqueta===e)).map(([etiqueta,d])=>({etiqueta,dados:d})),a:S.ags.map(rowA),l:S.lpus.map(rowL)});
 const KEYS={p:'id',c:'etiqueta',a:'id',l:'id'},TBL={p:'ag_projetos',c:'ag_complementos',a:'ag_agendamentos',l:'ag_lpus'};
 function snapAll(){const r=curRows();for(const k in SNAP){SNAP[k].clear();r[k].forEach(x=>SNAP[k].set(x[KEYS[k]],JSON.stringify(x)))}}
 function setSt(t,err){const e=$('syncSt');if(e){e.textContent=t;e.classList.toggle('err',!!err)}}
@@ -4172,7 +4218,7 @@ async function carregar(){
   TEC.splice(0,TEC.length,...novos);
   const [pr,co,ag,lp,an,lg]=await Promise.all([(g?todas(()=>sb.from('ag_projetos').select('*')):sb.rpc('ag_projetos_tecnico').then(r=>{if(r.error)throw r.error;return r.data||[]})),todas(()=>sb.from('ag_complementos').select('*')),todas(()=>sb.from('ag_agendamentos').select('*')),todas(()=>sb.from('ag_lpus').select('*')),todas(()=>sb.from('ag_anexos').select('*')),g?todas(()=>sb.from('ag_anexos_log').select('*')):Promise.resolve([])]);
   S.previsao=pr.slice().sort((a,b)=>String(b.criado_em||'').localeCompare(String(a.criado_em||''))).map(r=>Object.assign({id:r.id,etiqueta:r.etiqueta},r.dados));
-  S.semValor=g&&!pode('a_valor');if(S.semValor)S.previsao.forEach(p=>{delete p.valor;if(p.roi&&p.roi.fin)delete p.roi.fin});
+  S.semValor=g&&!pode('a_valor');if(S.semValor)S.previsao.forEach(p=>{delete p.valor;if(p.roi&&p.roi.fin)delete p.roi.fin});S.prevCanc=[];if(typeof prSep==='function')prSep();
   S.comp={};co.forEach(r=>S.comp[r.etiqueta]=r.dados||{});
   S.ags=ag.map(r=>Object.assign({ts:{},rel:{}},r.dados,{id:r.id,etiqueta:r.etiqueta,tec:r.tecnico,data:r.data,status:r.status,fases:r.fases,fase:(r.fases||[])[0]}));
   /* técnico só lê as próprias atividades; as fases que OUTRO técnico já finalizou no mesmo projeto vêm desta consulta (só leitura, fora do salvamento) */
@@ -5450,7 +5496,7 @@ function moCalc(){const inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim;
 Object.assign(ACT,{
   kSit:el=>{const v=el.dataset.v||'';ui.kSit=ui.kSit===v?'':v;render()},
   /* planilha do backlog: os projetos da lista, como estão filtrados */
-  kXlsx:()=>{const{LF,T,sit}=kBase(),SN={rua:'Lançamento externo',interno:'Lançamento interno',ativ:'Ativação'};
+  kXlsx:()=>{const{LF,T,sit}=kBase(),SN={rua:'Lançamento externo',interno:'Lançamento interno',ext:'Extensão',ativ:'Ativação'};
     const R=LF.map(p=>{const t=T[p.id],k=etapa(p),c=S.comp[p.etiqueta]||{},x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');
       const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>a.data.localeCompare(b.data))[0];
       const falta=[!c.endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
@@ -13871,6 +13917,157 @@ function geoFechaParc(a){const P=a.fusoesParc;a.fusoes={em:P.em||Date.now(),por:
 {const _v=viewGeo;viewGeo=function(){let h=_v.apply(this,arguments);try{const m=h.match(/<div class="result warn geosemenv">[\s\S]*?<\/div>/);if(!m)return h;
   const btn='<button class="btn" disabled title="O PDF sai quando o técnico concluir">Relatório ainda não enviado</button>';if(!h.includes(btn))return h;
   return h.replace(m[0],'').replace(btn,m[0])}catch(e){return h}}}
+
+/* ---------- 01/11: remover cliente da base ----------
+   Dois caminhos, no mesmo botão (✕ da Base de previsão e "Remover da base" na ficha do projeto):
+   1. Cliente cancelou: o projeto ganha a marca p.cancelado {em, por, motivo} e sai da Base, do Backlog, da Previsão,
+      do Budget e da lista para agendar. As atividades ainda agendadas são canceladas. O histórico fica: atividades
+      (inclusive a improdutiva), LPUs e KPIs continuam contando. Fica na lista "Cancelados" da Base, com Reativar.
+      O projeto continua gravado em ag_projetos (curRows inclui S.prevCanc), só fica fora de S.previsao na tela.
+   2. Excluir de vez (só coordenação): cliente de teste ou cadastro por engano. Apaga projeto, atividades, LPUs da
+      Implantação, anexos e arquivos (função ag_projeto_excluir, agenda_ajuste_52). Chamados do GTD não são tocados. */
+S.prevCanc=S.prevCanc||[];
+function prSep(){const L=(S.previsao||[]).concat(S.prevCanc||[]);S.prevCanc=L.filter(p=>p.cancelado);S.previsao=L.filter(p=>!p.cancelado)}
+const prPode=()=>pode('a_projeto')&&pode('a_valor');
+const prCoord=()=>ui.perfil==='coord';
+const PR_ANDA=['deslocamento','no_local','execucao'];
+const PR_AJ='Rode o script agenda_ajuste_52_excluir_cliente.sql no Supabase para liberar a exclusão completa.';
+const prAcha=id=>S.previsao.find(p=>p.id===id)||(S.prevCanc||[]).find(p=>p.id===id);
+function prResumo(e){const ags=S.ags.filter(a=>a.etiqueta===e).sort((a,b)=>String(a.data).localeCompare(String(b.data))),lp=S.lpus.filter(l=>l.etiqueta===e),anx=(S.anexos||[]).filter(x=>x.etiqueta===e);
+  return {ags,lp,anx,agend:ags.filter(a=>a.status==='agendada'),anda:ags.filter(a=>PR_ANDA.includes(a.status)),aprov:lp.filter(l=>l.status==='aprovada')}}
+const prQtd=(n,s,p)=>`${n} ${n===1?s:p}`;
+const prAgLin=a=>`<li><b>${dBR(a.data)}</b> · ${esc(typeof fasesC==='function'?fasesC(a):(a.fases||[]).join(', '))} · ${esc(tecN(a.tec))} <span class="chip ${(ST[a.status]||['',''])[1]}">${(ST[a.status]||[a.status])[0]}</span></li>`;
+const prQuando=t=>{try{const d=new Date(t);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}catch(e){return ''}};
+
+function prModalHtml(){const M=ui.prRem,p=M&&prAcha(M.id);if(!p)return '';const R=prResumo(p.etiqueta),canc=!!p.cancelado,op=M.op;
+  const cab=`<h3>Remover cliente da base</h3><p class="prcli"><b>${esc(p.cliente||'Sem nome')}</b><span>${esc(p.etiqueta)}${p.cidade?' · '+esc(p.cidade):''}${p.topologia?' · '+esc(p.topologia):''}</span></p>
+   ${R.ags.length?`<div class="prhist"><b>Atividades deste projeto (${R.ags.length})</b><ul>${R.ags.map(prAgLin).join('')}</ul>${R.lp.length?`<small>${prQtd(R.lp.length,'LPU','LPUs')} · ${brl(R.lp.reduce((s,l)=>s+(+l.total||0),0))}${R.aprov.length?`, ${R.aprov.length} aprovada${R.aprov.length>1?'s':''}`:''}</small>`:''}</div>`:'<p class="muted" style="margin:0 0 10px">Nenhuma atividade agendada para este projeto.</p>'}`;
+  const opc=(k,t,d,dis)=>`<button type="button" class="propc${op===k?' on':''}" data-act="prOp" data-v="${k}" aria-pressed="${op===k}"${dis?' disabled':''}><i aria-hidden="true"></i><span><b>${t}</b><small>${d}</small></span></button>`;
+  const ops=`<div class="propcs" role="group" aria-label="Como remover">${canc?'':opc('canc','Cliente cancelou','Sai da base e mantém o histórico. Dá para reativar.')}${opc('del','Excluir de vez','Cliente de teste ou cadastro por engano. Apaga tudo.',!prCoord())}</div>`;
+  let corpo='';
+  if(op==='canc'){
+    corpo=`<ul class="prlist"><li>Sai da Base de previsão, do Backlog, da Previsão, do Budget e da lista para agendar.</li><li><b>Fica no histórico:</b> ${R.ags.length?prQtd(R.ags.length,'atividade','atividades')+(R.lp.length?', '+prQtd(R.lp.length,'LPU','LPUs'):'')+' e os KPIs':'nada a manter além do cadastro'}.</li><li>Fica em Base de previsão › Cancelados, com o motivo. Dá para reativar.</li></ul>
+     ${R.agend.length?`<div class="prav warn"><b>${prQtd(R.agend.length,'atividade agendada será cancelada','atividades agendadas serão canceladas')}</b><span>${R.agend.map(a=>dBR(a.data)+' · '+esc(tecN(a.tec))).join('<br>')}</span></div>`:''}
+     ${R.anda.length?`<div class="prav bad"><b>Tem atividade em andamento</b><span>${R.anda.map(a=>dBR(a.data)+' · '+esc(tecN(a.tec))+' · '+ST[a.status][0]).join('<br>')}<br>Finalize ou encerre a atividade no campo antes de cancelar o projeto.</span></div>`:''}
+     <label class="f"><span>Motivo do cancelamento</span><textarea class="inp" id="prMot" rows="2" placeholder="Ex.: cliente desistiu da instalação antes da conclusão">${esc(M.mot||'')}</textarea></label>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="prCancelar"${R.anda.length?' disabled':''}>Marcar como cancelado</button></div>`}
+  else{
+    corpo=prCoord()?`<ul class="prlist"><li><b>Apaga:</b> o projeto, os dados complementares${R.ags.length?', '+prQtd(R.ags.length,'atividade','atividades')+' (com relatórios, fotos e chat)':''}${R.lp.length?', '+prQtd(R.lp.length,'LPU','LPUs'):''}${R.anx.length?', '+prQtd(R.anx.length,'anexo','anexos'):''}.</li><li>Some também do histórico e dos KPIs. Não dá para desfazer pela ferramenta (fica uma cópia de segurança no banco).</li><li>Chamados do GTD com a mesma etiqueta não são apagados.</li></ul>
+     ${R.aprov.length?`<div class="prav bad"><b>Tem LPU aprovada: ${brl(R.aprov.reduce((s,l)=>s+(+l.total||0),0))}</b><span>Excluir tira esse valor do realizado no Budget. Se o cliente é real e desistiu, use "Cliente cancelou".</span></div>`:''}
+     ${R.ags.some(a=>!['agendada','cancelada'].includes(a.status))&&!R.aprov.length?`<div class="prav warn"><b>Este projeto já teve atividade em campo</b><span>Se o cliente é real e desistiu, use "Cliente cancelou" para não perder o histórico.</span></div>`:''}
+     <label class="f"><span>Motivo (opcional)</span><input class="inp" id="prMotD" value="${esc(M.motD||'')}" placeholder="Ex.: cliente de teste"></label>
+     <label class="f"><span>Para confirmar, digite a etiqueta <b>${esc(p.etiqueta)}</b></span><input class="inp" id="prConf" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="prExcluir">Excluir de vez</button></div>`
+     :`<div class="prav"><b>Só a coordenação exclui de vez</b><span>Use "Cliente cancelou" ou peça à coordenação.</span></div><div class="actions"><button class="btn" data-act="close">Voltar</button></div>`}
+  return `<div class="prmod">${cab}${ops}${corpo}</div>`}
+function prAbrir(id,op){const p=prAcha(id);if(!p)return;if(!prPode()&&!prCoord()){toast('Seu perfil não pode remover projetos da base.','bad');return}
+  ui.prRem={id,op:op||(p.cancelado?'del':'canc')};openModal(prModalHtml())}
+function prRepinta(){const M=ui.prRem,a=$('prMot'),b=$('prMotD');if(M){if(a)M.mot=a.value;if(b)M.motD=b.value}openModal(prModalHtml())}
+function prTira(e,ids){S.previsao=S.previsao.filter(p=>p.etiqueta!==e);S.prevCanc=(S.prevCanc||[]).filter(p=>p.etiqueta!==e);
+  const lids=S.lpus.filter(l=>l.etiqueta===e||(l.ag&&ids.includes(l.ag))).map(l=>l.id);
+  S.ags=S.ags.filter(a=>a.etiqueta!==e);S.lpus=S.lpus.filter(l=>!lids.includes(l.id));S.anexos=(S.anexos||[]).filter(x=>x.etiqueta!==e);delete S.comp[e];
+  try{SNAP.c.delete(e);ids.forEach(i=>SNAP.a.delete(i));lids.forEach(i=>SNAP.l.delete(i))}catch(err){}
+  if(ui.agSel===e)ui.agSel=null}
+Object.assign(ACT,{
+  prAbrir:el=>prAbrir(el.dataset.id,el.dataset.op),
+  delRow:el=>prAbrir(el.dataset.id),
+  prOp:el=>{if(el.disabled)return;ui.prRem.op=el.dataset.v;prRepinta()},
+  prCancelar:()=>{const M=ui.prRem,p=M&&prAcha(M.id);if(!p)return;const mot=($('prMot').value||'').trim();
+    if(mot.length<3){toast('Escreva o motivo do cancelamento.','bad');$('prMot').focus();return}
+    const R=prResumo(p.etiqueta);if(R.anda.length){toast('Tem atividade em andamento. Finalize antes de cancelar.','bad');return}
+    R.agend.forEach(a=>{a.status='cancelada';a.cancMotivo='Cliente cancelou a instalação: '+mot});
+    p.cancelado={em:Date.now(),por:(ME&&ME.nome)||'',motivo:mot};prSep();if(ui.agSel===p.etiqueta)ui.agSel=null;
+    save();closeModal();render();toast(`${p.cliente||p.etiqueta} saiu da base. Está em Base de previsão › Cancelados.`)},
+  prReativar:el=>{const p=(S.prevCanc||[]).find(x=>x.id===el.dataset.id);if(!p)return;
+    if(!confirm(`Reativar ${p.cliente||p.etiqueta}? O projeto volta para a Base, o Backlog e a Previsão.`))return;
+    p.reativado={em:Date.now(),por:(ME&&ME.nome)||'',antes:p.cancelado};delete p.cancelado;prSep();S.previsao.splice(S.previsao.indexOf(p),1);S.previsao.unshift(p);
+    if(!S.prevCanc.length)ui.baseF='todos';save();render();toast('Projeto reativado. As atividades canceladas continuam canceladas: agende de novo se precisar.')},
+  prExcluir:async el=>{const M=ui.prRem,p=M&&prAcha(M.id);if(!p||!prCoord())return;const e=p.etiqueta;
+    if(($('prConf').value||'').trim().toUpperCase()!==String(e).trim().toUpperCase()){toast('Digite a etiqueta exatamente como aparece para confirmar.','bad');$('prConf').focus();return}
+    const R=prResumo(e),ids=R.ags.map(a=>a.id),mot=($('prMotD').value||'').trim();
+    if(!R.ags.length&&!R.lp.length&&!R.anx.length){prTira(e,[]);save();closeModal();render();toast(`${p.cliente||e} excluído da base.`);return}
+    el.disabled=true;el.textContent='Excluindo…';
+    try{await flushSync();const r=await sb.rpc('ag_projeto_excluir',{p_etq:e,p_motivo:mot||null});
+      if(r.error){const m=String(r.error.message||r.error);throw new Error(/ag_projeto_excluir|does not exist|schema cache|Could not find/i.test(m)?PR_AJ:m)}
+      const arq=((r.data||{}).arquivos)||[];let falhou=0;
+      for(let i=0;i<arq.length;i+=100){try{const q=await sb.storage.from('agenda').remove(arq.slice(i,i+100));if(q&&q.error)falhou++}catch(x){falhou++}}
+      try{SNAP.p.delete(p.id)}catch(x){}prTira(e,ids);closeModal();render();
+      toast(`${p.cliente||e} excluído de vez${arq.length?` (${prQtd(arq.length,'arquivo','arquivos')})`:''}.${falhou?' Alguns arquivos não foram apagados; o Armazenamento limpa depois.':''}`)}
+    catch(x){el.disabled=false;el.textContent='Excluir de vez';toast('Não foi possível excluir: '+(x.message||x),'bad')}}
+});
+
+/* Base de previsão › Cancelados */
+const prChipBase=()=>(S.prevCanc||[]).length||prPode()?`<button data-act="baseF" data-v="canc" aria-current="${ui.__prC?'true':'false'}">Cancelados (${(S.prevCanc||[]).length})</button>`:'';
+function prCancView(){const L=(S.prevCanc||[]).slice().sort((a,b)=>(b.cancelado.em||0)-(a.cancelado.em||0)),q=(ui.baseQ||'').toLowerCase();
+  const F=L.filter(p=>!q||[p.etiqueta,p.cliente,p.cidade,p.cancelado.motivo].join(' ').toLowerCase().includes(q));
+  if(!F.length)return `<section class="panel prvazio"><p class="muted">${L.length?'Nenhum cancelado com essa busca.':'Nenhum cliente cancelado. Para tirar um cliente da base, use o ✕ no fim da linha da tabela.'}</p></section>`;
+  return `<div class="prcards">${F.map(p=>{const R=prResumo(p.etiqueta),c=p.cancelado,nc=R.ags.filter(a=>a.status==='nao_concluida').length,cc=R.ags.filter(a=>a.status==='concluida').length;
+    return `<article class="prcard"><header><div><b>${esc(p.cliente||'Sem nome')}</b><span>${esc(p.etiqueta)}${p.cidade?' · '+esc(p.cidade):''}${p.topologia?' · '+esc(p.topologia):''}</span></div><span class="chip">Cancelado</span></header>
+      <dl><div><dt>Cancelado em</dt><dd>${prQuando(c.em)}${c.por?` · ${esc(c.por)}`:''}</dd></div><div><dt>Motivo</dt><dd>${esc(c.motivo||'—')}</dd></div>
+      <div><dt>Histórico mantido</dt><dd>${R.ags.length?[prQtd(R.ags.length,'atividade','atividades'),cc&&prQtd(cc,'concluída','concluídas'),nc&&prQtd(nc,'não concluída','não concluídas')].filter(Boolean).join(' · '):'Nenhuma atividade'}${R.lp.length?` · ${prQtd(R.lp.length,'LPU','LPUs')} ${brl(R.lp.reduce((s,l)=>s+(+l.total||0),0))}`:''}</dd></div></dl>
+      ${prPode()||prCoord()?`<footer>${prPode()?`<button class="btn sm" data-act="prReativar" data-id="${p.id}">Reativar</button>`:''}${prCoord()?`<button class="btn sm dangerl" data-act="prAbrir" data-id="${p.id}" data-op="del">Excluir de vez</button>`:''}</footer>`:''}</article>`}).join('')}</div>`}
+{const _vb=viewBase;viewBase=function(){if(ui.baseF!=='canc')return _vb.apply(this,arguments);
+  ui.baseF='todos';ui.__prC=1;let h;try{h=_vb.apply(this,arguments)}finally{ui.baseF='canc';ui.__prC=0}
+  const i=h.indexOf('<div class="tablewrap sheet basev"');if(i>0)h=h.slice(0,i);
+  h=h.replace('data-v="todos" aria-current="true"','data-v="todos" aria-current="false"');
+  return h+`<p class="muted prnota">Clientes que cancelaram a instalação. Não aparecem na Base, no Backlog, na Previsão nem no Budget; as atividades e LPUs continuam no histórico e nos KPIs.</p>`+prCancView()}}
+/* ficha do projeto (Agenda): atalho discreto */
+{const _b=agEdBanner;agEdBanner=function(p){const h=_b.apply(this,arguments);return (p&&p.id&&prPode()&&!ui.agEd?`<div class="prbar"><span>Cliente desistiu ou é cadastro de teste?</span><button type="button" class="link" data-act="prAbrir" data-id="${p.id}">Remover da base</button></div>`:'')+h}}
+
+/* ---------- 01/11: Backlog de projetos com a coluna Extensão e cards mais fáceis de ler ----------
+   * Quatro colunas: Lançamento externo, Lançamento interno, Extensão e Ativação (etapa() passou a considerar a extensão:
+     o projeto com rua e interno feitos e extensão pendente sai da Ativação e vai para Extensão).
+   * Dentro de cada coluna, os cards vêm agrupados pelo que precisa ser feito: Atrasados, Para agendar, Falta cadastro,
+     Em campo agora e Agendados. A cor da borda do card segue o mesmo grupo.
+   * Filtro rápido pela situação (chips) junto com os números do topo.
+   * Card enxuto: etiqueta + situação, cliente, cidade, o trabalho da coluna em destaque, fases, custo previsto e próximo passo.
+   * Celular: uma coluna por vez, escolhida nas abas. */
+const KB_GR=[['atr','Atrasados','bad'],['pronto','Para agendar','go'],['inc','Falta cadastro','warn'],['campo','Em campo agora','info'],['ag','Agendados','']];
+const KB_CAMPO=['deslocamento','no_local','execucao'];
+function kbSit(p){const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');
+  const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>String(a.data).localeCompare(String(b.data)))[0];
+  const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'endereço',!p.pop&&!p.equip&&'dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'previsão de dias'].filter(Boolean);
+  let k='pronto';if(ab){k=KB_CAMPO.includes(ab.status)?'campo':ab.data<hoje()&&ab.status==='agendada'?'atr':'ag'}else if(!x.length&&falta.length)k='inc';
+  return {k,ab,x,falta}}
+function kbMetr(p,k,t){
+  if(k==='rua'||k==='interno'){if(!t.temCabo)return `<div class="kbm"><b>—</b><span>${k==='rua'?'sem cabo na rua':'sem cabo a lançar'}</span></div>`;
+    return `<div class="kbm"><b>${kM(t.falta)} m</b><span>de cabo a lançar${t.lanc?` · ${kM(t.lanc)} de ${kM(t.metros)} m lançados`:''}</span></div>`}
+  if(k==='ext')return `<div class="kbm"><b>${t.cxPend} ${t.cxPend===1?'caixa':'caixas'}</b><span>${t.kmPend?`${kM(t.kmPend)} m de fibra a estender`:'sem KMZ de extensão no cadastro'}</span></div>`;
+  const d=Math.max(0,(+p.dAtiv||0)-realDias(p.etiqueta,'ativ'));return `<div class="kbm"><b>${d} ${d===1?'dia':'dias'}</b><span>de ativação previstos</span></div>`}
+function kbCard(p,k,t,s){const ab=s.ab,meta=[];
+  const pill={atr:`Atrasada · ${ab?dBR(ab.data):''}`,pronto:'Para agendar',inc:'Falta cadastro',campo:ab?ST[ab.status][0]:'Em campo',ag:ab?(ab.status==='agendada'?'Agendada · '+dBR(ab.data):ST[ab.status][0]):'Agendada'}[s.k];
+  const atual=t.dias.find(d=>d.k===k);if(atual&&atual.pv&&atual.r>atual.pv)meta.push('<span class="kbf bad">Acima do previsto</span>');
+  let prox='';if(ab)prox=`${esc(fasesC(ab))} · ${esc(tecN(ab.tec))}`;else if(s.k==='inc')prox=`Falta: ${esc(s.falta.join(', '))}`;else prox=s.x.length?'Fase anterior concluída':'';
+  const fs=t.dias.map(d=>`<span class="kbd ${d.fin?'fin':d.k===k?'cur':''}${d.pv&&d.r>d.pv?' over':''}" title="${faseN(d.k)}: ${d.r} de ${d.pv} dia(s) previstos${d.fin?', finalizada':''}">${d.fin?'✓ ':''}${FCURTO[d.k]}${d.fin?'':` ${d.r?d.r+'/':''}${d.pv}d`}</span>`).join('');
+  let cst='';if(typeof kcVe==='function'&&kcVe()){const c=kcProj(p,t);cst=`<span class="kbcst${c.fraco.length?' fraco':''}" role="button" tabindex="0" data-act="kcVer" data-etq="${esc(p.etiqueta)}" title="${c.fraco.length?esc(c.fraco.join(', ')):'Ver itens do custo previsto'}">≈ ${kcR(c.prev)}${c.fraco.length?' ⚠':''}</span>`}
+  return `<button class="kbcard s-${s.k}" data-act="kOpen" data-etq="${esc(p.etiqueta)}" data-k="${k}">
+    <span class="kbtop"><b>${esc(p.etiqueta)}</b><em class="kbpill s-${s.k}">${pill}</em></span>
+    <span class="kbcli">${esc(p.cliente||'Sem nome')}</span><small class="kbloc">${esc([p.cidade,p.topologia].filter(Boolean).join(' · '))}</small>
+    ${kbMetr(p,k,t)}${meta.length?`<span class="kbfl">${meta.join('')}</span>`:''}
+    <span class="kbfs">${fs}</span>
+    <span class="kbft"><small>${prox}</small>${cst}</span></button>`}
+function kbView(){
+  const cids=[...new Set(S.previsao.map(p=>p.cidade).filter(Boolean))].sort(),{L,LF,T,sit}=kBase();
+  const SIT={};LF.forEach(p=>{SIT[p.id]=kbSit(p)});const st=KB_GR.some(g=>g[0]===ui.kSt)?ui.kSt:'';const LS=st?LF.filter(p=>SIT[p.id].k===st):LF;
+  const g={};KCOLS.forEach(([k])=>g[k]=[]);LS.forEach(p=>{const e=etapa(p);(g[e]||(g[e]=[])).push(p)});
+  const soma=f=>L.reduce((s,p)=>s+f(T[p.id]),0);
+  const colInfo=(k,P)=>{const tt=P.map(p=>T[p.id]);const dias=P.reduce((s,p)=>{const f=FASES.find(x=>x.k===k);return s+Math.max(0,(+p[f.p]||0)-realDias(p.etiqueta,k))},0),dd=`${dias} ${dias===1?'dia':'dias'}`;
+    if(k==='ativ')return `${dd} de ativação`;if(k==='ext')return `${tt.reduce((s,t)=>s+t.cxPend,0)} caixas · ${kM(tt.reduce((s,t)=>s+t.kmPend,0))} m de fibra · ${dd}`;
+    return `${kM(tt.reduce((s,t)=>s+t.falta,0))} m de cabo · ${dd}`};
+  const ordem=(a,b)=>{const A=SIT[a.id],B=SIT[b.id];return (A.ab&&B.ab)?String(A.ab.data).localeCompare(String(B.ab.data)):0};
+  const col=(k,n)=>{const P=g[k]||[],cnt=KB_GR.map(([gk,gn,gc])=>{const Q=P.filter(p=>SIT[p.id].k===gk).sort(ordem);return Q.length?`<div class="kbgr ${gc}"><span>${gn}</span><b>${Q.length}</b></div>${Q.map(p=>kbCard(p,k,T[p.id],SIT[p.id])).join('')}`:''}).join('');
+    return `<section class="kbcol c-${k}${(ui.kbCol||'rua')===k?' on':''}" aria-label="${n}"><div class="kbhead"><h3>${n}<span>${P.length}</span></h3><small>${colInfo(k,P)}${typeof kcCol==='function'?kcCol(P,T):''}</small></div><div class="kbbody">${cnt||'<p class="kempty">Nenhum projeto aqui.</p>'}</div></section>`};
+  const kb=(v,lab,k)=>`<button type="button" class="kpi kbtn" data-act="kSit" data-v="${k}" aria-pressed="${sit===k}" title="${k?'Mostrar só os projetos com '+lab.toLowerCase():'Mostrar todos'}"><b>${v}</b><span>${lab}</span></button>`;
+  const nSt=k=>LF.filter(p=>SIT[p.id].k===k).length;
+  return `<div class="toolbar"><div><h2>Backlog de projetos</h2><p class="muted">${L.length} ${L.length===1?'projeto a entregar':'projetos a entregar'}. Cada projeto aparece na próxima fase a executar. Toque no card para abrir na Agenda.</p></div>
+   <div class="tools"><input class="inp" type="search" id="kQ" placeholder="Buscar etiqueta, cliente ou POP" data-in="kQ" value="${esc(ui.kQ)}"><select class="inp" data-ch="kCid" aria-label="Cidade"><option value="">Todas as cidades</option>${cids.map(c=>`<option ${c===ui.kCid?'selected':''}>${esc(c)}</option>`).join('')}</select><button class="btn" data-act="kXlsx" title="Projetos da lista, como estão filtrados">Baixar planilha</button></div></div>
+   <div class="kpis kbkpis${typeof kcVe==='function'&&kcVe()?' kbc':''}" role="group" aria-label="Resumo do backlog (toque para filtrar)">${kb(L.length,'Projetos a entregar','')}${kb(kM(soma(t=>t.falta))+' m','Cabo a lançar','cabo')}${kb(kM(soma(t=>t.kmPend))+' m','Fibra a estender','km')}${typeof kcTile==='function'?kcTile(L,T):''}</div>
+   <div class="kbsit" role="group" aria-label="Filtrar pela situação"><span class="muted">Situação:</span><button type="button" data-act="kSt" data-v="" aria-pressed="${!st}">Todas <b>${LF.length}</b></button>${KB_GR.filter(([k])=>nSt(k)||st===k).map(([k,n,c])=>`<button type="button" class="${c}" data-act="kSt" data-v="${k}" aria-pressed="${st===k}"><i></i>${n} <b>${nSt(k)}</b></button>`).join('')}
+   ${sit?`<span class="kbsitf">Só com ${KSN[sit].toLowerCase()} <button type="button" class="linkbtn" data-act="kSit" data-v="">limpar</button></span>`:''}</div>
+   <div class="kbtabs" role="tablist" aria-label="Fase">${KCOLS.map(([k,n])=>`<button type="button" role="tab" data-act="kbCol" data-v="${k}" aria-selected="${(ui.kbCol||'rua')===k}">${({rua:'Externo',interno:'Interno',ext:'Extensão',ativ:'Ativação'})[k]}<b>${(g[k]||[]).length}</b></button>`).join('')}</div>
+   <div class="kb4">${KCOLS.map(([k,n])=>col(k,n)).join('')}</div>`}
+Object.assign(ACT,{kSt:el=>{ui.kSt=el.dataset.v===ui.kSt?'':el.dataset.v;render()},kbCol:el=>{ui.kbCol=el.dataset.v;render()}});
+viewKanban=typeof pvSo==='function'?pvSo(kbView):kbView;
 
 /* ===== 29/10: REDE EXTERNA · PROGRAMADAS (em produção desde 01/11) =====
    Funcionalidades dos módulos de campo do SigoNet (Preventiva, Melhoria de rede, Retirada de cabo e Acompanhamento da
