@@ -2240,7 +2240,7 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 .nocdica{display:block;font-size:12.5px}
 .nocdet .car span b{display:block}.nocdet .car span span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
 .nocdet.falta{border-left:4px solid var(--warn)}
-
+.geovbox{margin:4px 0 6px}.geovbox .f{margin-top:8px}.npchips .nchip .nbadge{display:inline-grid;position:static;vertical-align:1px;margin-left:6px;min-width:20px;height:18px;padding:0 6px;font-size:11.5px}.geovanx{margin-top:10px}
 /* 29/10: Rede Externa · Programadas */
 .rpth{align-items:flex-start;gap:12px;flex-wrap:wrap}.rpth h2{margin:0}.rpth p{margin:2px 0 0;font-size:13px}
 .rpviews{flex-wrap:wrap}.rpviews button{display:inline-flex;align-items:center;gap:6px}.rpviews .nbadge{position:static;margin:0}
@@ -8838,7 +8838,9 @@ const geoCabN=c=>c.cabN||[];
 const geoLadoN=(c,f,lado)=>{const n=f[lado+'N'];if(n)return n;const nome=String(f[lado]||'').split(' · ')[0];return geoSplN(c).includes(nome)?'spl':geoCabN(c).includes(nome)?'cab':''};
 const geoTag=t=>t==='spl'?'<span class="geotag spl">splitter novo</span>':t==='cab'?'<span class="geotag cab">cabo fora do KMZ</span>':'';
 const geoNovI=F=>{const C=(F&&F.caixas)||[];return{spl:C.reduce((s,c)=>s+geoSplN(c).length,0),cab:C.reduce((s,c)=>s+geoCabN(c).length,0)}};
-function geoTexto(x){const{a,F,p}=x;return [`${p.cliente||''} · ID ${p.protocolo||a.etiqueta} · etiqueta ${a.etiqueta}`,`Cabo ${x.cab.join(', ')||'—'} · técnico ${tecN(a.tec)} · ${dBR(a.data)}`,''].concat(F.caixas.flatMap(c=>[`${c.nome} (${c.tipo})${c.ll?' · '+c.ll[0].toFixed(6)+', '+c.ll[1].toFixed(6):''}`]
+/* 01/11: Geogrid mostra NOME DO CLIENTE - ETIQUETA (sem o protocolo) */
+function geoNE(c,e){c=String(c||'').trim();e=String(e||'').trim();if(!c)return esc(e||'—');if(!e||c.toUpperCase().includes(e.toUpperCase()))return esc(c);return esc(c)+' - '+esc(e)}
+function geoTexto(x){const{a,F,p}=x;return [`${[p.cliente,a.etiqueta].filter(Boolean).join(' - ')}`,`Cabo ${x.cab.join(', ')||'—'} · técnico ${tecN(a.tec)} · ${dBR(a.data)}`,''].concat(F.caixas.flatMap(c=>[`${c.nome} (${c.tipo})${c.ll?' · '+c.ll[0].toFixed(6)+', '+c.ll[1].toFixed(6):''}`]
   .concat(c.spl&&c.spl.length?['  Splitter: '+c.spl.map(x=>x+(geoSplN(c).includes(x.split(' · ')[0])?' (NOVO, incluído pelo técnico)':' (já existia no KMZ)')).join('; ')]:[]).concat(geoCabN(c).length?['  Cabo fora do KMZ: '+geoCabN(c).join('; ')]:[])
   .concat(c.fus.map((f,i)=>{const t=x=>x==='spl'?' [splitter novo]':x==='cab'?' [cabo fora do KMZ]':'';return `  ${i+1}. ${f.de}${t(geoLadoN(c,f,'de'))} (sentido POP) → ${f.para}${t(geoLadoN(c,f,'para'))} (sentido cliente)${f.cli?'  ← CLIENTE':''}`})).concat(c.obs?['  Obs.: '+c.obs]:[]).concat(['']))).join('\n')}
 const geoSoCad=()=>ui.perfil!=='coord'&&pode('a_geoCad')&&!pode('a_geoVal');
@@ -8846,16 +8848,16 @@ function viewGeo(){const L=geoLinhas().filter(x=>!geoSoCad()||x.st==='cad'||x.st
   const R=L.filter(x=>(f==='all'||x.st===f)&&(!q||normK([x.p.cliente,x.p.protocolo,x.a.etiqueta,x.cab.join(' '),tecN(x.a.tec)].join(' ')).includes(q)));
   let x=R.find(r=>r.a.id===ui.geoSel)||R[0];
   const st=k=>`<span class="chip ${GEO_ST[k][1]}">${GEO_ST[k][0]}</span>`;
-  const lista=R.map(r=>`<button class="geoi ${x&&r.a.id===x.a.id?'on':''}" data-act="geoSel" data-id="${r.a.id}"><span class="geoih"><b>${esc(r.p.cliente||r.a.etiqueta)}</b>${st(r.st)}</span>
-    <small>ID ${esc(r.p.protocolo||r.a.etiqueta)} · ${esc(r.cab.join(', ')||'—')} · ${esc(tecN(r.a.tec))} · ${dBR(r.a.data)}</small><small>${r.n} ${r.n===1?'fusão':'fusões'} em ${r.nc} ${r.nc===1?'caixa':'caixas'}${r.cli?` · cliente na ${esc(r.cli.cx)}`:''}</small>${geoNovas(r.F)?`<small class="geonov">${geoNovas(r.F)} ${geoNovas(r.F)===1?'caixa fora do KMZ, não estava cadastrada':'caixas fora do KMZ, não estavam cadastradas'}</small>`:''}${(n=>n.spl||n.cab?`<small class="geonov">${[n.spl?`${n.spl} ${n.spl===1?'splitter novo':'splitters novos'}`:'',n.cab?`${n.cab} ${n.cab===1?'cabo fora do KMZ':'cabos fora do KMZ'}`:''].filter(Boolean).join(' · ')}</small>`:'')(geoNovI(r.F))}</button>`).join('')||'<p class="muted" style="padding:14px">Nenhum relatório nesta situação.</p>';
+  const lista=R.map(r=>`<button class="geoi ${x&&r.a.id===x.a.id?'on':''}" data-act="geoSel" data-id="${r.a.id}"><span class="geoih"><b>${geoNE(r.p.cliente,r.a.etiqueta)}</b>${st(r.st)}</span>
+    <small>${esc(r.cab.join(', ')||'—')} · ${esc(tecN(r.a.tec))} · ${dBR(r.a.data)}</small><small>${r.n} ${r.n===1?'fusão':'fusões'} em ${r.nc} ${r.nc===1?'caixa':'caixas'}${r.cli?` · cliente na ${esc(r.cli.cx)}`:''}</small>${geoNovas(r.F)?`<small class="geonov">${geoNovas(r.F)} ${geoNovas(r.F)===1?'caixa fora do KMZ, não estava cadastrada':'caixas fora do KMZ, não estavam cadastradas'}</small>`:''}${(n=>n.spl||n.cab?`<small class="geonov">${[n.spl?`${n.spl} ${n.spl===1?'splitter novo':'splitters novos'}`:'',n.cab?`${n.cab} ${n.cab===1?'cabo fora do KMZ':'cabos fora do KMZ'}`:''].filter(Boolean).join(' · ')}</small>`:'')(geoNovI(r.F))}</button>`).join('')||'<p class="muted" style="padding:14px">Nenhum relatório nesta situação.</p>';
   let det='<div class="geodet"><p class="muted">Escolha um relatório na lista.</p></div>';
-  if(x){const{a,F}=x,g=(a.fusoes&&a.fusoes.geo)||{},log=(a.fusoesLog||[]).slice().reverse();
+  if(x){const{a,F}=x,g=(a.fusoes&&a.fusoes.geo)||{},log=(a.fusoesLog||[]).slice();/* 01/11: mais antigo em cima */
     let ac='';
     if(x.st==='and')ac='<p class="geonote">O técnico ainda está registrando. As caixas confirmadas já aparecem aqui. A validação libera quando ele concluir e enviar o relatório.</p>';
     else if(x.st==='val')ac=pode('a_geoVal')?`<div class="geobt"><button class="btn primary" data-act="geoVal" data-id="${a.id}">Validar fusões</button></div>`:`<div class="geobt"><span class="geonote">Aguardando a validação do encarregado. O cadastro só libera depois dela.</span>${pode('a_geoCad')?'<button class="btn primary" disabled>Cadastrado no Geogrid</button>':''}</div>`;
     else if(x.st==='cad')ac=pode('a_geoCad')?`<div class="geobt"><span class="geonote">Validado por ${esc(g.valPor||'—')} em ${g.valEm?dtBR(g.valEm):'—'}.</span><button class="btn primary" data-act="geoCad" data-id="${a.id}">Cadastrado no Geogrid</button></div>`:`<p class="geonote">Validado por ${esc(g.valPor||'—')}. Aguardando o analista cadastrar no Geogrid.</p>`;
     else ac=`<p class="geonote ok">Cadastrado no Geogrid por ${esc(g.cadPor||'—')} em ${g.cadEm?dtBR(g.cadEm):'—'}.${g.cadObs?' Obs.: '+esc(g.cadObs):''}</p>`;
-    det=`<article class="geodet"><div class="geodh"><div><h3>${esc(x.p.cliente||a.etiqueta)} · ID ${esc(x.p.protocolo||a.etiqueta)}</h3><small>Etiqueta ${esc(a.etiqueta)} · ${esc(x.cab.join(', ')||'—')} · ${esc(tecN(a.tec))} · ${dBR(a.data)}${F.kmz?' · KMZ '+esc(F.kmz):''}</small></div>${st(x.st)}</div>
+    det=`<article class="geodet"><div class="geodh"><div><h3>${geoNE(x.p.cliente,a.etiqueta)}</h3><small>${esc(x.cab.join(', ')||'—')} · ${esc(tecN(a.tec))} · ${dBR(a.data)}${F.kmz?' · KMZ '+esc(F.kmz):''}</small></div>${st(x.st)}</div>
      ${geoNovas(F)?`<div class="geonovbox"><b>${geoNovas(F)===1?'1 caixa fora do KMZ':geoNovas(F)+' caixas fora do KMZ'}</b><span>O técnico apontou ${geoNovas(F)===1?'uma caixa que não estava cadastrada':'caixas que não estavam cadastradas'} no KMZ: ${F.caixas.filter(c=>c.novo).map(c=>esc(c.nome)+(c.ll?' ('+c.ll[0].toFixed(6)+', '+c.ll[1].toFixed(6)+')':'')).join('; ')}. Cadastre também a caixa no Geogrid.</span></div>`:''}
      ${(()=>{const C=F.caixas.filter(c=>geoSplN(c).length||geoCabN(c).length);if(!C.length)return '';const n=geoNovI(F);
        return `<div class="geonovbox geonv2"><b>Itens novos na rede · ${[n.spl?`${n.spl} ${n.spl===1?'splitter novo':'splitters novos'}`:'',n.cab?`${n.cab} ${n.cab===1?'cabo fora do KMZ':'cabos fora do KMZ'}`:''].filter(Boolean).join(' · ')}</b><span>O técnico incluiu na rede o que não existia no KMZ. Cadastre também no Geogrid:</span><ul>${C.map(c=>`<li><b>${esc(c.nome)}:</b> ${geoSplN(c).map(x=>`<span class="geotag spl">splitter novo</span> ${esc(x)}`).concat(geoCabN(c).map(x=>`<span class="geotag cab">cabo fora do KMZ</span> ${esc(x)}`)).join(' · ')}</li>`).join('')}</ul></div>`})()}
@@ -9754,7 +9756,7 @@ Object.assign(ACT,{
 const GEO_PRAZO=3;
 const geoPill=(st,M)=>`<span class="chip ${M[st][1]}">${M[st][0]}</span>`;
 const geoEvLista=(E,tipo,id)=>`<div class="geoev"><b>Evidências do cadastro</b>${E.length?`<ul>${E.map(e=>`<li><span>${/^image\//.test(e.tipo)?'Imagem':/pdf/.test(e.tipo)?'PDF':'Arquivo'} · ${esc(e.nome)}<small>${esc(e.por||'')} · ${dtBR(e.em)}</small></span><button class="btn sm" data-act="relVer" data-p="${esc(e.path)}">Abrir</button></li>`).join('')}</ul>`:'<p class="muted" style="margin:4px 0">Nenhuma evidência anexada.</p>'}${pode('a_geoCad')?`<button class="btn sm geoevb" data-act="g2EvAbre" data-t="${tipo}" data-id="${id}">Incluir evidência</button>`:''}</div>`;
-const geoLogHtml=L=>`<div class="geolog"><b>Registro</b><ol>${(L||[]).slice().reverse().map(l=>`<li><time>${dtBR(l.em)}</time><span>${esc(l.acao)} · <b>${esc(l.por||'')}</b>${l.obs?`<br><i>${esc(l.obs)}</i>`:''}</span></li>`).join('')||'<li class="muted">Sem registros.</li>'}</ol></div>`;
+const geoLogHtml=L=>`<div class="geolog"><b>Registro</b><ol>${(L||[]).slice().map(l=>`<li><time>${dtBR(l.em)}</time><span>${esc(l.acao)} · <b>${esc(l.por||'')}</b>${l.obs?`<br><i>${esc(l.obs)}</i>`:''}</span></li>`).join('')||'<li class="muted">Sem registros.</li>'}</ol></div>`;
 
 /* ---------- cabos ---------- */
 const CAB_ST={and:['Aguardando relatório do técnico','info'],val:['Aguardando validação do encarregado','warn'],cad:['Validado · aguardando cadastro no Geogrid','ag'],ok:['Cadastrado no Geogrid','ok']};
@@ -9774,7 +9776,7 @@ function cabDet(x){const{a,p}=x,g=a.lancGeo||{},F=lmFasesL(a).length?lmFasesL(a)
   else if(x.st==='val')ac=pode('a_geoVal')?`<div class="geobt"><button class="btn primary" data-act="g2Val" data-t="cab" data-id="${a.id}">Validar lançamento</button></div>`:'<p class="geonote">Aguardando a validação do encarregado. O cadastro só libera depois dela.</p>';
   else if(x.st==='cad')ac=pode('a_geoCad')?`<div class="geobt"><span class="geonote">Validado por ${esc(g.valPor||'—')} em ${g.valEm?dtBR(g.valEm):'—'}.</span><button class="btn primary" data-act="g2Cad" data-t="cab" data-id="${a.id}">Cabo cadastrado no Geogrid</button></div>`:`<p class="geonote">Validado por ${esc(g.valPor||'—')}. Aguardando o analista cadastrar no Geogrid.</p>`;
   else ac=`<p class="geonote ok">Cadastrado no Geogrid por ${esc(g.cadPor||'—')} em ${g.cadEm?dtBR(g.cadEm):'—'}.${g.cadObs?' Obs.: '+esc(g.cadObs):''}</p>`;
-  return `<article class="geodet"><div class="geodh"><div><h3>${esc(p.cliente||a.etiqueta)} · ID ${esc(p.protocolo||a.etiqueta)}</h3><small>Etiqueta ${esc(a.etiqueta)} · ${esc(fasesN(a))} · ${esc(typeof agResp==='function'?agResp(a):tecN(a.tec))} · ${dBR(a.data)}${a.parcial?' · não concluída (parcial)':''}</small></div>${geoPill(x.st,CAB_ST)}</div>
+  return `<article class="geodet"><div class="geodh"><div><h3>${geoNE(p.cliente,a.etiqueta)}</h3><small>${esc(fasesN(a))} · ${esc(typeof agResp==='function'?agResp(a):tecN(a.tec))} · ${dBR(a.data)}${a.parcial?' · não concluída (parcial)':''}</small></div>${geoPill(x.st,CAB_ST)}</div>
    ${M?`<div class="geonovbox"><b>Alteração de trajeto</b><span>${lmMapaTxt(M)}. Cadastre o trajeto executado, não o do KMZ.</span></div>`:''}
    <div class="tablewrap"><table class="geot"><thead><tr><th>Lançamento</th><th class="r">Lançado</th><th class="r">Previsto</th><th>Lote e metragem (início → término)</th></tr></thead><tbody>${F.map(linhaF).join('')}</tbody></table></div>
    ${rsv.length?`<p class="geospl">Reservas técnicas: ${rsv.join(' · ')}</p>`:''}
@@ -9783,7 +9785,7 @@ function cabDet(x){const{a,p}=x,g=a.lancGeo||{},F=lmFasesL(a).length?lmFasesL(a)
    <div class="geoact">${ac}</div>${g.st==='ok'||(g.evid||[]).length?geoEvLista(g.evid||[],'cab',a.id):''}${geoLogHtml(a.lancGeoLog)}</article>`}
 function viewGeoCab(){const so=geoSoCad(),L=cabLinhas().filter(x=>!so||x.st==='cad'||x.st==='ok'),f=ui.cabF||'all',q=normK(ui.cabQ||''),cnt=k=>L.filter(x=>x.st===k).length;
   const R=L.filter(x=>(f==='all'||x.st===f)&&(!q||normK([x.p.cliente,x.p.protocolo,x.a.etiqueta,tecN(x.a.tec),x.a.equipeNome].join(' ')).includes(q))),x=R.find(r=>r.a.id===ui.cabSel)||R[0];
-  const lista=R.map(r=>`<button class="geoi ${x&&r.a.id===x.a.id?'on':''}" data-act="cabSel" data-id="${r.a.id}"><span class="geoih"><b>${esc(r.p.cliente||r.a.etiqueta)}</b>${geoPill(r.st,CAB_ST)}</span><small>ID ${esc(r.p.protocolo||r.a.etiqueta)} · ${esc(fasesN(r.a))} · ${esc(tecN(r.a.tec))} · ${dBR(r.a.data)}</small><small>${r.m!=null?lmFmt(r.m)+' lançados':'sem metragem'}${r.a.lancMapa?' · <b class="geonov">trajeto alterado</b>':''}</small></button>`).join('')||'<p class="muted" style="padding:14px">Nenhum lançamento nesta situação.</p>';
+  const lista=R.map(r=>`<button class="geoi ${x&&r.a.id===x.a.id?'on':''}" data-act="cabSel" data-id="${r.a.id}"><span class="geoih"><b>${geoNE(r.p.cliente,r.a.etiqueta)}</b>${geoPill(r.st,CAB_ST)}</span><small>${esc(fasesN(r.a))} · ${esc(tecN(r.a.tec))} · ${dBR(r.a.data)}</small><small>${r.m!=null?lmFmt(r.m)+' lançados':'sem metragem'}${r.a.lancMapa?' · <b class="geonov">trajeto alterado</b>':''}</small></button>`).join('')||'<p class="muted" style="padding:14px">Nenhum lançamento nesta situação.</p>';
   return `<div class="toolbar"><div><h2>Cadastro Geogrid</h2><p class="muted">O que precisa ser cadastrado no Geogrid.</p></div></div>${geoViews()}<div class="geohd"><h3>Cadastro de cabos</h3><p class="muted">Cabos lançados pelos técnicos (rua e interno), com metragem, lote, reservas e alteração de trajeto. O encarregado valida e o analista do Geogrid marca como cadastrado, com as evidências.</p></div>
    <div class="geobar"><div class="geochips">${CAB_F.filter(([k])=>k==='all'||cnt(k)).map(([k,n])=>`<button class="chip ${f===k?'go':''}" data-act="cabF" data-v="${k}" aria-pressed="${f===k}">${n} (${k==='all'?L.length:cnt(k)})</button>`).join('')}</div>
     <input class="inp" type="search" id="cabQ" data-in="cabQ" placeholder="Cliente, ID, etiqueta ou técnico" value="${esc(ui.cabQ||'')}" aria-label="Buscar"></div>
@@ -9816,7 +9818,7 @@ function cliDet(x){const{p,e,fim,A,g}=x,c=S.comp[e]||{},pi=p.inst||{};
   let ac='';if(!fim)ac='<p class="geonote">Ainda em implantação. Entra na fila de cadastro quando a ativação for concluída.</p>';
   else if(g.st==='ok')ac=`<p class="geonote ok">Cliente cadastrado no Geogrid por ${esc(g.cadPor||'—')} em ${g.cadEm?dtBR(g.cadEm):'—'}.${g.cadObs?' Obs.: '+esc(g.cadObs):''}</p>`;
   else ac=`<div class="geobt"><span class="geonote">${x.dias===0?'Ativado hoje.':`Ativado há ${x.dias} ${x.dias===1?'dia':'dias'}.`}${falta.length?` Ainda falta cadastrar ${falta.join(' e ')}.`:''}</span>${pode('a_geoCad')?`<button class="btn primary" data-act="g2Cad" data-t="cli" data-id="${esc(e)}">Cliente cadastrado no Geogrid</button>`:''}</div>`;
-  return `<article class="geodet"><div class="geodh"><div><h3>${esc(p.cliente||e)} · ID ${esc(p.protocolo||e)}</h3><small>Etiqueta ${esc(e)} · ${esc(p.topologia||'—')} · ${esc(p.cidade||'')}${fim?` · ativado em ${dBR(fim.data)}${fim.fora?' (fora da ferramenta)':A?' por '+esc(typeof agResp==='function'?agResp(A):tecN(A.tec)):''}`:''}</small></div>${geoPill(x.st,CLI_ST)}</div>
+  return `<article class="geodet"><div class="geodh"><div><h3>${geoNE(p.cliente,e)}</h3><small>${esc(p.topologia||'—')} · ${esc(p.cidade||'')}${fim?` · ativado em ${dBR(fim.data)}${fim.fora?' (fora da ferramenta)':A?' por '+esc(typeof agResp==='function'?agResp(A):tecN(A.tec)):''}`:''}</small></div>${geoPill(x.st,CLI_ST)}</div>
    <div class="cliparts">${cliPart(x.stF,'Fibras')}${cliPart(x.stC,'Cabos')}${cliPart(g.st==='ok'?'ok':fim?'pend':'aguarda','Cliente')}</div>
    <dl class="clidl"><div><dt>Endereço</dt><dd>${esc(c.endereco||'—')}</dd></div><div><dt>POP</dt><dd>${esc(p.pop||'—')}</dd></div><div><dt>Porta</dt><dd>${esc(pi.porta||'—')}</dd></div><div><dt>Equipamento</dt><dd>${esc(p.equip||'—')}</dd></div><div><dt>Lançamento previsto</dt><dd>${+p.metros?lmFmt(+p.metros):'—'}</dd></div><div><dt>Caixas</dt><dd>${typeof caixasTxt==='function'?esc(caixasTxt(p)||'—'):'—'}</dd></div></dl>
    <h4 class="clih">Fibras (extensão)</h4>${fusB}<h4 class="clih">Cabos (lançamento)</h4>${cabB}
@@ -9824,7 +9826,7 @@ function cliDet(x){const{p,e,fim,A,g}=x,c=S.comp[e]||{},pi=p.inst||{};
 function viewGeoCli(){const L=cliLinhas(),f=CLI_FN[ui.cliF]?ui.cliF:'pend',q=normK(ui.cliQ||''),cnt=k=>L.filter(CLI_FN[k]).length;
   const R=L.filter(x=>CLI_FN[f](x)&&(!q||normK([x.p.cliente,x.p.protocolo,x.e,x.p.cidade].join(' ')).includes(q))),x=R.find(r=>r.e===ui.cliSel)||R[0];
   const kb=(k,l,c)=>{const n=cnt(k);return `<button type="button" class="kpi clikb ${n?c:'ok'} ${f===k?'on':''}" data-act="cliF" data-v="${k}" aria-pressed="${f===k}"><b>${n}</b><span>${l}</span></button>`};
-  const lista=R.map(r=>`<button class="geoi cli ${x&&r.e===x.e?'on':''} ${r.st}" data-act="cliSel" data-id="${esc(r.e)}"><span class="geoih"><b>${esc(r.p.cliente||r.e)}</b>${r.fim&&r.st!=='ok'?`<span class="clid ${r.st}">${r.dias===0?'hoje':r.dias+(r.dias===1?' dia':' dias')}</span>`:geoPill(r.st,CLI_ST)}</span><small>ID ${esc(r.p.protocolo||r.e)} · ${esc(r.p.topologia||'')}${r.fim?' · ativado '+dBR(r.fim.data).slice(0,5):''}</small><span class="cliparts sm">${cliPart(r.stF,'Fibras')}${cliPart(r.stC,'Cabos')}${cliPart(r.g.st==='ok'?'ok':r.fim?'pend':'aguarda','Cliente')}</span></button>`).join('')||'<p class="muted" style="padding:14px">Nenhum cliente nesta situação.</p>';
+  const lista=R.map(r=>`<button class="geoi cli ${x&&r.e===x.e?'on':''} ${r.st}" data-act="cliSel" data-id="${esc(r.e)}"><span class="geoih"><b>${geoNE(r.p.cliente,r.e)}</b>${r.fim&&r.st!=='ok'?`<span class="clid ${r.st}">${r.dias===0?'hoje':r.dias+(r.dias===1?' dia':' dias')}</span>`:geoPill(r.st,CLI_ST)}</span><small>${esc(r.p.topologia||'')}${r.fim?' · ativado '+dBR(r.fim.data).slice(0,5):''}</small><span class="cliparts sm">${cliPart(r.stF,'Fibras')}${cliPart(r.stC,'Cabos')}${cliPart(r.g.st==='ok'?'ok':r.fim?'pend':'aguarda','Cliente')}</span></button>`).join('')||'<p class="muted" style="padding:14px">Nenhum cliente nesta situação.</p>';
   return `<div class="toolbar"><div><h2>Cadastro Geogrid</h2><p class="muted">O que precisa ser cadastrado no Geogrid.</p></div></div>${geoViews()}<div class="geohd"><h3>Cadastro de clientes</h3><p class="muted">Clientes Last Mile e de rede própria com lançamento. Cada cliente junta as fibras e os cabos dele. Entra na fila quando a ativação é concluída; passou de ${GEO_PRAZO} dias sem cadastro, fica em vermelho.</p></div>
    <div class="kpis clikp" role="group" aria-label="Filtrar pelos indicadores">${kb('pend','Ativados sem cadastro','warn')}${kb('atr',`Mais de ${GEO_PRAZO} dias sem cadastro`,'bad')}${kb('fib','Clientes com fibras pendentes','warn')}${kb('cab','Clientes com cabos pendentes','warn')}${kb('okmes','Clientes cadastrados no mês','ok')}</div>
    <div class="geobar"><div class="geochips">${CLI_FT[f]?`<button class="chip go" data-act="cliF" data-v="all" aria-label="Tirar o filtro">${CLI_FT[f]} (${cnt(f)}) ✕</button>`:''}${CLI_F.map(([k,n])=>`<button class="chip ${f===k?'go':''}" data-act="cliF" data-v="${k}" aria-pressed="${f===k}">${n} (${cnt(k)})</button>`).join('')}</div>
@@ -13804,6 +13806,71 @@ Object.assign(ACT,{
     el.disabled=true;const nv=await gAcao(id,x=>{const ant=x.nocEm;x.nocEm=t;gHist(x,ant?`Horário do NOC corrigido: ${nocFmt(ant)} → ${nocFmt(t)}`:`Horário do NOC informado: ${nocFmt(t)}`)},'Horário do NOC salvo. O MTTR foi recalculado.');el.disabled=false;if(nv)closeModal()}});
 /* topo do chamado: "NOC desceu ..." no lugar de "Aberto ..." */
 {const _g=gdhDados;gdhDados=function(c){const d=_g.apply(this,arguments);try{if(c&&c.nocEm&&!nocAgendado(c))d.criado='NOC desceu '+gQuando(c.nocEm)+' · na ferramenta às '+hm(c.criadoEm)}catch(e){}return d}}
+
+/* ---------- 01/11: Cadastro Geogrid · números no menu e anexos na validação ----------
+   Menu: Cadastro Geogrid mostra quantos itens esperam por quem está logado, como a Aprovação de LPU:
+     quem valida (a_geoVal): fibras e cabos aguardando validação; quem cadastra (a_geoCad): fibras e cabos validados
+     aguardando cadastro e clientes ativados aguardando cadastro. Coordenação vê os dois. Com o menu aberto, o número
+     aparece em cada sub-item (Cadastro de clientes, de fibras, de cabos).
+   Validar fusões e Validar lançamento: observação + prints colados (Ctrl+V) + anexos (fotos, PDF, KMZ, KML ou outro
+     arquivo, até 10 MB cada). Ficam em fusoes.geo.valAnx / lancGeo.valAnx e aparecem no detalhe em "Anexos da validação". */
+const geoVeVal=()=>ui.perfil==='coord'||pode('a_geoVal'),geoVeCad=()=>ui.perfil==='coord'||pode('a_geoCad');
+let GEO_N={t:0,v:null};
+function geoNums(){const now=Date.now();if(GEO_N.v&&now-GEO_N.t<1500)return GEO_N.v;const V=geoVeVal(),C=geoVeCad(),ok=st=>(V&&st==='val')||(C&&st==='cad');let v={cli:0,fib:0,cab:0};
+  try{v.fib=geoLinhas().filter(r=>ok(r.st)).length}catch(e){}try{v.cab=cabLinhas().filter(r=>ok(r.st)).length}catch(e){}try{v.cli=C?cliLinhas().filter(CLI_FN.pend).length:0}catch(e){}
+  v.tot=v.cli+v.fib+v.cab;GEO_N={t:now,v};return v}
+const GEO_NK={clientes:'cli',fibras:'fib',cabos:'cab'};
+{const _n=navItem;navItem=function(t,pin,simples){const h=_n.apply(this,arguments);if(t!=='geo')return h;try{const N=geoNums();if(!N.tot)return h;
+  if(h.includes('data-act="geoSub"'))return h.replace(/(<button class="nit" data-act="geoSub" data-s="(\w+)"[^>]*><span class="nt">[^<]*<\/span>)<\/button>/g,(m,a,k)=>a+navBd(N[GEO_NK[k]])+'</button>');
+  return h.includes('class="nbadge"')?h:h.replace(/(<span class="nt">[^<]*<\/span>)/,'$1'+navBd(N.tot))}catch(e){return h}}}
+{const _c=navChips;navChips=function(){const h=_c.apply(this,arguments);if(ui.tab!=='geo')return h;try{const N=geoNums();return h.replace(/(data-act="geoSub" data-s="(\w+)">)([^<]*)<\/button>/g,(m,a,k,n)=>a+n+(N[GEO_NK[k]]?` <span class="nbadge">${N[GEO_NK[k]]}</span>`:'')+'</button>')}catch(e){return h}}}
+
+/* validação com prints colados e anexos */
+let GEO_VCOLA=[];
+const GEO_VMAX=10*1024*1024;
+function geoVCampos(){return `<div class="geovbox" id="geoVBox"><small class="muted">Para colar um print, use Ctrl+V na observação.</small><div id="geoVCola" class="geocola" aria-live="polite"></div>
+  <label class="f"><span>Anexos (fotos, PDF, KMZ ou outro arquivo)</span><input class="inp" type="file" id="geoVArq" multiple><small class="muted">Pode escolher vários arquivos. Até 10 MB cada.</small></label></div>`}
+function geoVColaDesenha(){const b=$('geoVCola');if(!b)return;b.innerHTML=GEO_VCOLA.length?`<small class="muted">${GEO_VCOLA.length===1?'1 imagem colada':GEO_VCOLA.length+' imagens coladas'} · vão junto com a validação</small><div class="geocolal">${GEO_VCOLA.map((f,i)=>`<span class="geocolai"><img src="${URL.createObjectURL(f)}" alt="Imagem colada ${i+1}"><button type="button" data-act="geoVColaRem" data-i="${i}" aria-label="Tirar a imagem ${i+1}">✕</button></span>`).join('')}</div>`:''}
+document.addEventListener('paste',e=>{if(!$('geoVBox'))return;const it=[...((e.clipboardData&&e.clipboardData.items)||[])].filter(i=>i.kind==='file');if(!it.length)return;e.preventDefault();
+  it.forEach(i=>{const f=i.getAsFile();if(!f)return;const img=/^image\//.test(f.type),ext=img?(f.type.split('/')[1]||'png').replace('jpeg','jpg'):'';GEO_VCOLA.push(img?new File([f],`print-validacao-${GEO_VCOLA.length+1}.${ext}`,{type:f.type}):f)});geoVColaDesenha();toast('Colado. Vai junto com a validação.')});
+Object.assign(ACT,{geoVColaRem:el=>{GEO_VCOLA.splice(+el.dataset.i,1);geoVColaDesenha()}});
+const geoVArqs=()=>[...((($('geoVArq')||{}).files)||[])].concat(GEO_VCOLA);
+async function geoVSobe(alvo,el){const fs=geoVArqs();if(!fs.length)return [];const grande=fs.find(f=>f.size>GEO_VMAX);if(grande)throw new Error(grande.name+' passa de 10 MB');
+  if(el)el.disabled=true;toast('Enviando os anexos…');try{return await geoEvSobe(alvo,fs)}finally{if(el)el.disabled=false}}
+const geoVModal=(tit,txt,taId,act,attrs)=>`<h3>${tit}</h3><p class="muted">${txt}</p><label class="f" style="margin-top:10px"><span>Observação (opcional)</span><textarea class="inp" id="${taId}" rows="2" placeholder="Ex.: conferido com o KMZ. Para colar um print, use Ctrl+V aqui."></textarea></label>${geoVCampos()}<div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="${act}" ${attrs}>Validar</button></div>`;
+/* fibras */
+ACT.geoVal=el=>{if(!pode('a_geoVal'))return semPerm();const a=getAg(el.dataset.id);if(!a||!(a.fusoes||geoSemEnv(a)))return;GEO_VCOLA=[];
+  openModal(geoVModal('Validar fusões','Conferiu as fusões e a fibra do cliente? Depois de validado, o analista do Geogrid pode cadastrar.','geoVO','geoValOk',`data-id="${a.id}"`))};
+{const _ok=ACT.geoValOk;ACT.geoValOk=async el=>{if(!pode('a_geoVal'))return semPerm();const a=getAg(el.dataset.id);if(!a||!(a.fusoes||geoSemEnv(a)))return;let ev=[];
+  try{ev=await geoVSobe(a,el)}catch(e){return toast('Não foi possível enviar os anexos: '+(e.message||e),'bad')}
+  if(!a.fusoes&&geoSemEnv(a))geoFechaParc(a);_ok(el);if(ev.length){a.fusoes.geo=Object.assign({},a.fusoes.geo,{valAnx:((a.fusoes.geo||{}).valAnx||[]).concat(ev)});geoLog(a,`Anexou ${ev.length} ${ev.length===1?'arquivo':'arquivos'} na validação`);save();render()}GEO_VCOLA=[]}}
+/* cabos (lançamento) */
+ACT.g2Val=el=>{if(!pode('a_geoVal'))return semPerm();GEO_VCOLA=[];
+  openModal(geoVModal('Validar lançamento','Conferiu a metragem, o lote, as reservas e o trajeto? Depois de validado, o analista do Geogrid pode cadastrar o cabo.','g2VO','g2ValOk',`data-t="${el.dataset.t}" data-id="${esc(el.dataset.id)}"`))};
+{const _ok=ACT.g2ValOk;ACT.g2ValOk=async el=>{if(!pode('a_geoVal'))return semPerm();const T=g2Alvo(el.dataset.t,el.dataset.id);if(!T)return;let ev=[];
+  try{ev=await geoVSobe(T.ev,el)}catch(e){return toast('Não foi possível enviar os anexos: '+(e.message||e),'bad')}
+  _ok(el);if(ev.length){T.o[T.k]=Object.assign({},T.o[T.k],{valAnx:((T.o[T.k]||{}).valAnx||[]).concat(ev)});g2Log(T,`Anexou ${ev.length} ${ev.length===1?'arquivo':'arquivos'} na validação`);save();render()}GEO_VCOLA=[]}}
+/* detalhe: anexos da validação */
+const geoAnxTipo=e=>/^image\//.test(e.tipo)?'Imagem':/pdf/.test(e.tipo)?'PDF':/\.km[lz]$/i.test(e.nome||'')?'KMZ':'Arquivo';
+const geoAnxHtml=g=>{const L=(g&&g.valAnx)||[];if(!L.length)return '';return `<div class="geoev geovanx"><b>Anexos da validação</b><ul>${L.map(e=>`<li><span>${geoAnxTipo(e)} · ${esc(e.nome)}<small>${esc(e.por||'')} · ${dtBR(e.em)}</small></span><button class="btn sm" data-act="relVer" data-p="${esc(e.path)}">Abrir</button></li>`).join('')}</ul></div>`};
+{const _e=geoEvHtml;geoEvHtml=function(a){return geoAnxHtml(a&&a.fusoes&&a.fusoes.geo)+_e.apply(this,arguments)}}
+{const _d=cabDet;cabDet=function(x){const h=_d.apply(this,arguments),b=geoAnxHtml(x&&x.a&&x.a.lancGeo);if(!b)return h;const i=h.indexOf('<div class="geolog">');return i<0?h:h.slice(0,i)+b+h.slice(i)}}
+
+/* ---------- 01/11: atividade concluída com fusões confirmadas e sem o envio do relatório de fusões ----------
+   Antes de 22/10 o relatório de fusões não era obrigatório para concluir: o técnico confirmava as fusões caixa a caixa
+   (fusoesParc) e fechava a atividade sem tocar em "Concluir e enviar". O Geogrid mostrava "Técnico registrando" para sempre.
+   Agora, com a atividade concluída (LPU, concluída ou não concluída), o item vai para "Aguardando validação" com um aviso;
+   ao validar, o encarregado fecha o relatório com as caixas confirmadas (fusoes.semEnvio = true, sem PDF do técnico). */
+const geoSemEnv=a=>!!(a&&!a.fusoes&&a.fusoesParc&&a.fusoesParc.n&&['lpu','concluida','nao_concluida'].includes(a.status));
+function geoFechaParc(a){const P=a.fusoesParc;a.fusoes={em:P.em||Date.now(),por:P.por||'',kmz:P.kmz||'',n:P.n||(P.caixas||[]).reduce((s,c)=>s+(c.fus||[]).length,0),caixas:P.caixas||[],geo:{st:'val'},semEnvio:true,fechadoPor:meNome(),fechadoEm:Date.now()};delete a.fusoesParc;
+  geoLog(a,'Relatório de fusões fechado na validação (o técnico concluiu a atividade sem enviar pelo app)')}
+{const _l=geoLinhas;geoLinhas=function(){return _l.apply(this,arguments).map(x=>{if(x.st==='and'&&geoSemEnv(x.a)){x.st='val';x.semEnv=true}return x})}}
+{const _e=geoEvHtml;geoEvHtml=function(a){const h=_e.apply(this,arguments);if(geoSemEnv(a))return `<div class="result warn geosemenv"><b>O técnico concluiu a atividade sem enviar o relatório de fusões.</b> As caixas abaixo são as fusões que ele confirmou em campo${a.ts&&a.ts.conclusao?' (atividade concluída em '+dtBR(a.ts.conclusao)+')':''}. Confira e valide: o relatório é fechado com essas fusões.</div>`+h;
+  if(a&&a.fusoes&&a.fusoes.semEnvio)return `<p class="geonote">Relatório fechado na validação por ${esc(a.fusoes.fechadoPor||'—')}: o técnico concluiu a atividade sem enviar pelo app. Sem PDF do técnico; as fusões estão acima.</p>`+h;return h}}
+/* o aviso de "concluiu sem enviar" vai para o topo, no lugar de "Relatório ainda não enviado" */
+{const _v=viewGeo;viewGeo=function(){let h=_v.apply(this,arguments);try{const m=h.match(/<div class="result warn geosemenv">[\s\S]*?<\/div>/);if(!m)return h;
+  const btn='<button class="btn" disabled title="O PDF sai quando o técnico concluir">Relatório ainda não enviado</button>';if(!h.includes(btn))return h;
+  return h.replace(m[0],'').replace(btn,m[0])}catch(e){return h}}}
 
 /* ===== 29/10: REDE EXTERNA · PROGRAMADAS (em produção desde 01/11) =====
    Funcionalidades dos módulos de campo do SigoNet (Preventiva, Melhoria de rede, Retirada de cabo e Acompanhamento da

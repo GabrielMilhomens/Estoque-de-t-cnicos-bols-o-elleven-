@@ -644,6 +644,13 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - **Regra do início do MTTR (`gIni`):** agendado → horário agendado; senão o horário do NOC (quando informado e anterior à criação); senão a criação na ferramenta. Vale para MTTR, SLA, Tempos de atendimento, Painel de KPIs, RFO e planilhas.
   - **No chamado:** o topo mostra "NOC desceu … · na ferramenta às …", a linha do tempo ganha "NOC desceu o chamado (início do MTTR)" e o quadro **Início do MTTR** mostra o horário. Chamado sem o horário (criado antes de 01/11) mostra o aviso em laranja e o botão **Informar horário do NOC**; quem edita chamados informa ou corrige depois (não aceita horário depois da criação nem com mais de 7 dias), com registro no histórico.
 
+- **Cadastro Geogrid · melhorias (01/11):**
+  - **Números no menu**, como na Aprovação de LPU: com o menu fechado, "Cadastro Geogrid" mostra o total; aberto, cada sub-item (Cadastro de clientes, de fibras, de cabos) mostra o seu; no celular, as abas também. Conta só o que espera por quem está logado: quem valida (`a_geoVal`) vê fibras e cabos aguardando validação; quem cadastra (`a_geoCad`) vê fibras e cabos validados aguardando cadastro e clientes ativados sem cadastro; coordenação vê os dois.
+  - **NOME DO CLIENTE - ETIQUETA** nos títulos e listas de clientes, fibras e cabos (e no texto copiado das fusões), sem o número do protocolo.
+  - **Validar fusões e Validar lançamento** com prints colados (Ctrl+V) e anexos de qualquer tipo (foto, PDF, KMZ…), até 10 MB cada, no Storage em `geogrid/<id da atividade>/`. Ficam em `fusoes.geo.valAnx` / `lancGeo.valAnx` e aparecem no detalhe em "Anexos da validação"; o registro anota "Anexou N arquivos na validação".
+  - **Registro** do mais antigo (em cima) para o mais recente (embaixo).
+  - **Fusões confirmadas sem o envio do relatório:** atividade concluída (LPU, concluída ou não concluída) com fusões confirmadas caixa a caixa e sem "Concluir e enviar" (possível até 21/10, antes do relatório de fusões ser obrigatório) deixa de ficar presa em "Técnico registrando": vai para "Aguardando validação" com aviso no topo; ao validar, o encarregado fecha o relatório com essas fusões (`fusoes.semEnvio`, sem PDF do técnico), com registro.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -708,6 +715,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 01/11/2026 | **Cadastro Geogrid**: números no menu, NOME DO CLIENTE - ETIQUETA, anexos e prints na validação de fibras e cabos, registro em ordem cronológica e fusões confirmadas sem envio liberadas para validação. Detalhes em 7. | Novo `prod/geofix.js`; `prod/geocli.js`, `prod/r22.js`; CSS em `apply.py`; teste `harness/geofix_t.js`. Só o `agenda.html`, sem SQL. |
 | 01/11/2026 | **Horário em que o NOC desceu o chamado** no Criar chamado (GTD, Rede Externa e corretiva da Transmissão): o MTTR começa nesse horário; informar ou corrigir depois pelo detalhe do chamado. Detalhes em 7. | Novo `prod/nocem.js` e `prod/nocem.css`; `rep` de `gIni` e da linha do tempo em `apply.py`; teste `harness/nocem_t.js`. Só o `agenda.html`, sem SQL. |
 | 01/11/2026 | **Chat com NOC da Rede Externa separado**, como o da Transmissão: conversa, contador e avisos próprios. Detalhes em 7. | `prod/salaarea.js`; teste `harness/salare_t.js`. **SQL:** `agenda_ajuste_51_chat_noc_rede_externa.sql` (rodar depois do 50 e antes de publicar; não sobe no GitHub). |
 | 01/11/2026 | **Rede Externa em produção**: corretiva e Programadas (preventiva, melhoria, retirada, companhia elétrica, esteira e revisão de campo); acessos pela aba Rede Externa das Permissões, como GTD e Transmissão; avisos só para quem tem a área; fotos das Programadas no Storage. Detalhes em 4, 5 e 7. | `apply.py` (`RE=True`, `RP=True`); `prod/permtx.js` (grupo e aba Rede Externa, permissões efetivas com três áreas), `prod/re.js`, `prod/rp_a.js`, `prod/rp_e.js`, `prod/rp_f.js`, novo `prod/rpfoto.js`; teste `harness/permre_t.js`. **SQL:** `agenda_ajuste_50_rede_externa.sql` (rodar antes de publicar; não sobe no GitHub). |
