@@ -2900,13 +2900,13 @@ const COLS=[['etiqueta','Etiqueta','t','Etiqueta',118],['cliente','Cliente (raz�
 /* previsão de dias por fase: acesso próprio (a_prevDias), separado de incluir e editar projetos */
 const BDIAS=['dRua','dInterno','dExt','dAtiv'];
 const BGRUPOS=[['',1],['Projeto',3],['Local e rede',4],['Quantidades',3],['Previsão de dias por fase',5]];
-const baseFalta=p=>[!p.roi&&'Sem ROI',!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
+const baseFalta=p=>[!p.roi&&'Sem ROI',!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
 function viewBase(){
   const ed=pode('a_projeto')&&pode('a_valor'),q=ui.baseQ.toLowerCase(),F=ui.baseF||'todos';
   const all=S.previsao.filter(p=>!q||[p.protocolo,p.etiqueta,p.cliente,p.topologia,p.cidade].join(' ').toLowerCase().includes(q));
   const inc=all.filter(p=>baseFalta(p).length),rows=F==='inc'?inc:all;
   const cell=(p,c)=>{const[f,l,t]=c,v=p[f]??'',cls=(f==='etiqueta'?'stk ':'')+(['cidade','metros','dRua'].includes(f)?'gs ':'');
-    if(soAtiv(p)&&FWA_ZERA.includes(f))return `<td class="ro r na ${cls}" title="Só ativação">N/A</td>`;
+    if(soAtiv(p)&&(FWA_ZERA.includes(f)||f==='pop'||f==='equip'))return `<td class="ro ${f==='pop'||f==='equip'?'':'r '}na ${cls}" title="Só ativação: não precisa de ${f==='pop'?'POP':f==='equip'?'equipamento de acesso':'este dado'}">N/A</td>`;
     if(p.semExt&&f==='caixas')return `<td class="ro r ${cls}" title="Sem extensão de sinal: direto do splitter">1</td>`;
     if(p.semExt&&f==='kmFibra')return `<td class="ro r na ${cls}" title="Sem extensão de sinal">N/A</td>`;
     if(p.semExt&&f==='dExt')return `<td class="ro r na ${cls}" title="Sem extensão de sinal">N/A</td>`;
@@ -3025,7 +3025,7 @@ function viewKanban(){
   const g={};KCOLS.forEach(([k])=>g[k]=[]);LF.forEach(p=>{g[etapa(p)].push(p)});
   const card=(p,k)=>{const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada'),t=T[p.id],meta=[];
     const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>a.data.localeCompare(b.data))[0];
-    const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
+    const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
     let linha=ab?`${ST[ab.status][0]}: ${fasesC(ab)}, ${dBR(ab.data)}, ${tecN(ab.tec)}`:x.length?'Aguardando agendamento da próxima fase':falta.length?'Cadastro incompleto':'Pronto para agendar';
     if(!x.length)falta.forEach(f=>meta.push(`<span class="chip warn">${f}</span>`));if(ab&&ab.data<hoje())meta.push('<span class="chip warn">Atrasada</span>');
     const atual=t.dias.find(d=>d.k===k);if(atual&&atual.r>atual.pv)meta.push('<span class="chip bad">Acima do previsto</span>');
@@ -5499,7 +5499,7 @@ Object.assign(ACT,{
   kXlsx:()=>{const{LF,T,sit}=kBase(),SN={rua:'Lançamento externo',interno:'Lançamento interno',ext:'Extensão',ativ:'Ativação'};
     const R=LF.map(p=>{const t=T[p.id],k=etapa(p),c=S.comp[p.etiqueta]||{},x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');
       const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>a.data.localeCompare(b.data))[0];
-      const falta=[!c.endereco&&'Sem endereço',!p.pop&&!p.equip&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
+      const falta=[!c.endereco&&'Sem endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
       const o={'Coluna':SN[k]||k,'Etiqueta':p.etiqueta,'Cliente':p.cliente||'','Protocolo':p.protocolo||'','Cidade':p.cidade||'','POP':p.pop||'','Topologia':p.topologia||'','Sem rua':p.semRua?'Sim':'Não','Sem interno':p.semInt?'Sim':'Não','Extensão de sinal':t.ext?'Sim':'Não',
         'Cabo do projeto (m)':t.metros,'Cabo lançado (m)':t.lanc,'Cabo a lançar (m)':t.falta,'Caixas de emenda':t.ext?t.cx:'','Caixas a fazer':t.cxPend,'KM de fibra (m)':t.ext?t.km:'','KM de fibra a estender (m)':t.kmPend,'Extensão':!t.ext?'':t.extFeita?'Concluída':'A fazer'};
       FASES.forEach(f=>{const d=t.dias.find(x=>x.k===f.k);o[FCURTO[f.k]+': dias previstos']=d?d.pv:'N/A';o[FCURTO[f.k]+': dias realizados']=d?d.r:'N/A';o[FCURTO[f.k]+': finalizada']=d?(d.fin?'Sim':'Não'):'N/A'});
@@ -14026,7 +14026,7 @@ const KB_GR=[['atr','Atrasados','bad'],['pronto','Para agendar','go'],['inc','Fa
 const KB_CAMPO=['deslocamento','no_local','execucao'];
 function kbSit(p){const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');
   const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>String(a.data).localeCompare(String(b.data)))[0];
-  const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'endereço',!p.pop&&!p.equip&&'dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'previsão de dias'].filter(Boolean);
+  const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'previsão de dias'].filter(Boolean);
   let k='pronto';if(ab){k=KB_CAMPO.includes(ab.status)?'campo':ab.data<hoje()&&ab.status==='agendada'?'atr':'ag'}else if(!x.length&&falta.length)k='inc';
   return {k,ab,x,falta}}
 function kbMetr(p,k,t){
