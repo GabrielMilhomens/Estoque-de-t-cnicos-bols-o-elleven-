@@ -2730,7 +2730,7 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span>${['supply','visu'].includes(ui.perfil)?'':'<button class="wic sino" data-act="avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas'};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -5195,7 +5195,7 @@ function gIr(url){let q;try{q=new URL(url||'',location.href).searchParams}catch(
 
 /* ---------- tempo real do GTD (canal separado: não interfere na Implantação) ---------- */
 let RTG=null;const gRecT={};
-const gEmTela=()=>ui.chat||ui.cat==='gtd'||(ui.tab==='campo'&&!ui.campoSel)||ui.tab==='painelDia';
+const gEmTela=()=>ui.chat||ui.cat==='gtd'||((ui.tab==='campo'||ui.tab==='gCampo')&&!ui.campoSel)||ui.tab==='painelDia';
 const gDigitando=()=>{const ae=document.activeElement;return !!(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)&&$('app').contains(ae))};
 function gRec(tipo,p){tipo=tipo||'ch';clearTimeout(gRecT[tipo]);gRecT[tipo]=setTimeout(async()=>{
   if(tipo==='sala'){if(gChatK()===SALA_K){gChatCarregar(true);return}await gSalaContar();gSalaBadge();return}
@@ -6597,7 +6597,7 @@ Object.assign(ACT,{pEntXlsx:()=>{const b=pBase(),sv=S.semValor,V=v=>sv?undefined
 const pEntMigRow=b=>{const L=pEntMig(b);return L.length?`<tr class="pmig"><td>Ponto a ponto · migração de GPON</td><td class="r">${L.length}</td><td class="r">${S.semValor?'—':brl(L.reduce((s,{p})=>s+(+p.valor||0),0))}</td></tr>`:''};
 
 /* Visão do técnico para supervisão e encarregados: só consulta (os botões não agem pelo técnico) */
-const campoRO=()=>ui.tab==='campo'&&['sup','enc'].includes(ui.perfil);
+const campoRO=()=>(ui.tab==='campo'||ui.tab==='gCampo')&&['sup','enc'].includes(ui.perfil);
 const CAMPO_VER=new Set(['chatEnviar','close','relVer','relBaixar','pdfArq','pdf','tvCopiar','gCopiar','abrir','tab','gTecAbrir','gAbrir','gLpuAbrir','gRfoVer','chatAbrir','chatFechar','chxArqs','cSec','cF','cTipo','tvGF','tvPer','tvSenha','tvAcc','tAcc','voltar','gFechar','menu','menuFechar','avisos','avAbrir','avLidas','logout','conta','mTab','grp','rOpen','anxOpen','pushFechar','updFechar']);
 const CAMPO_CH=new Set(['tec','gpIni','gpFim','chatFoto','chxArq']);
 const campoBloq=e=>{toast('Na Visão do técnico, supervisão e encarregados só consultam. Quem age é o técnico.','bad');e.preventDefault();e.stopImmediatePropagation()};
@@ -6920,7 +6920,7 @@ function viewEqVer(){const A=eqAdms();
   return h.replace(/<div><h2>Minha equipe<\/h2><p class="muted">[\s\S]*?<\/p><\/div>/,`<div><h2>Visão da empresa terceira</h2><div style="margin-top:6px">${sel}</div></div>`).replace('<div class="kpis"',`<div class="result" style="margin:0 0 12px;background:var(--info-soft);color:var(--info)">Somente consulta: aqui você vê o que o administrador da ${esc(adm.nome)} vê em Minha equipe. As LPUs continuam sendo preenchidas por ele.</div><div class="kpis"`)}
 Object.assign(CH,{eqAdm:el=>{ui.eqAdm=el.value;ui.eqTec='';render()}});
 {const EQV_BLOQ=new Set(['eqDiaAdiar','eqLpuDia','lpuAbrir','lpuJaEnviada','gLpuAbrir']);
- document.addEventListener('click',e=>{if(ui.tab!=='eqVer')return;const el=e.target.closest('[data-act]');if(el&&EQV_BLOQ.has(el.dataset.act)){toast('Visão da empresa terceira é só para consulta. Quem preenche é o administrador da empresa.','bad');e.preventDefault();e.stopImmediatePropagation()}},true)}
+ document.addEventListener('click',e=>{if((ui.tab!=='eqVer'&&ui.tab!=='gEqVer'))return;const el=e.target.closest('[data-act]');if(el&&EQV_BLOQ.has(el.dataset.act)){toast('Visão da empresa terceira é só para consulta. Quem preenche é o administrador da empresa.','bad');e.preventDefault();e.stopImmediatePropagation()}},true)}
 /* busca no Painel do dia e na Agenda */
 const bTxt=(...v)=>normK(v.filter(Boolean).join(' '));
 const pdMatch=r=>{const q=normK(ui.pdQ||'').trim();return !q||bTxt(r.cliente,r.etiqueta,r.tecnico,r.cidade).includes(q)};
@@ -6988,7 +6988,7 @@ function nteCampos(F){const e=nteDe(F.eq);if(!e)return null;const c=nteComp(e,nt
 {const _fd=agFormDe;agFormDe=function(a,modo){const r=_fd(a,modo);if(a.equipe){r.eq=a.equipe;r.est=a.estoque||'';r.tec=a.__tec0||a.tec}return r}}
 agOcupa=function(tec,d){return S.ags.filter(a=>(a.tec===tec||a.__tec0===tec||(a.membros||[]).includes(tec))&&a.status!=='cancelada'&&naData(a,d))};
 /* técnico da equipe: a tela de campo vê a atividade como dele */
-function nteAlias(){const alvo=nteGest()?(ui.tab==='campo'&&ui.tec?ui.tec:null):(ME&&ME.id);
+function nteAlias(){const alvo=nteGest()?((ui.tab==='campo'||ui.tab==='gCampo')&&ui.tec?ui.tec:null):(ME&&ME.id);
   (S.ags||[]).forEach(a=>{if(!a.equipe&&!a.__tec0)return;if(a.__tec0){a.tec=a.__tec0;delete a.__tec0}
     if(alvo&&a.tec!==alvo&&(a.membros||[]).includes(alvo)){a.__tec0=a.tec;a.tec=alvo}})}
 {const _c=carregar;carregar=async function(...x){const r=await _c(...x);nteAlias();if(nteGest())nteCarregar(true);return r}}
@@ -8167,7 +8167,7 @@ function agOpenTec(a){const p=pPor(a.etiqueta)||{etiqueta:a.etiqueta},c=S.comp[a
    ${etaGestao(t,'a',a.id,a.status==='deslocamento')}${upH}${tiles}
    ${rels?`<div class="agquick" style="margin-top:12px">${rels}</div>`:''}</div>
    <div class="actions agfoot"><button class="btn" data-act="close">Fechar</button>${gMsgBtn('a',a.id,' ')}</div>`)}
-{const _o=ACT.agOpen;ACT.agOpen=function(el){const a=getAg(el.dataset.id);if(a&&(['terc','func'].includes(ui.perfil)||ui.tab==='eqVer'))return agOpenTec(a);return _o.apply(this,arguments)}}
+{const _o=ACT.agOpen;ACT.agOpen=function(el){const a=getAg(el.dataset.id);if(a&&(['terc','func'].includes(ui.perfil)||(ui.tab==='eqVer'||ui.tab==='gEqVer')))return agOpenTec(a);return _o.apply(this,arguments)}}
 /* 18/10: histórico anterior do próprio técnico (ou da equipe, para o administrador) neste cliente:
    dias já encerrados desta atividade e atividades anteriores na mesma etiqueta */
 function tvHistAnt(a,emModal){const eq=tvEhEquipe(a),ids=new Set([a.tec]);if(eq)try{eqIds().forEach(x=>ids.add(x))}catch(e){}
@@ -11745,7 +11745,7 @@ Object.assign(ACT,{
 /* Transmissão sem LPU: o menu do painel mostra só a Visão geral */
 {const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(txAt()&&!gTecPerfil()){document.querySelectorAll('[data-act="gpSec"]').forEach(b=>{if(b.dataset.v==='fin'){b.hidden=true;const n=b.nextElementSibling;if(n&&n.classList.contains('nlv'))n.hidden=true}});
   document.querySelectorAll('.gag button').forEach(b=>{if(/na Implantação/.test(b.textContent))b.hidden=true});document.querySelectorAll('[data-act="gpSec"][data-v="geral"]').forEach(b=>{const s=b.querySelector('.nt');if(s&&s.textContent==='Visão geral')s.textContent='Visão geral'})}}catch(e){}return o}}
-{const _t=window.toast;window.toast=function(m,c){if(typeof m==='string'&&((ui.gSel||ui.tab==='campo')&&G.ch.some(x=>txDe(x)&&(x.id===ui.gSel||x.status==='rfo'))))m=m.replace(/relatório do RFO/,'relatório');return _t.apply(this,[m,c])}}
+{const _t=window.toast;window.toast=function(m,c){if(typeof m==='string'&&((ui.gSel||(ui.tab==='campo'||ui.tab==='gCampo'))&&G.ch.some(x=>txDe(x)&&(x.id===ui.gSel||x.status==='rfo'))))m=m.replace(/relatório do RFO/,'relatório');return _t.apply(this,[m,c])}}
 /* Técnicos agora (Chamados) e despacho na Transmissão: a equipe é quem tem "Transmissão" na Equipe técnica */
 {const _a=gAgora;gAgora=function(){if(!txAt()||!EQP.ok)return _a.apply(this,arguments);const R0=EQP.rows,R1={};Object.keys(R0).forEach(k=>{R1[k]=Object.assign({},R0[k],{gtd:!!R0[k].tx,impl:false})});
   const ch0=G.ch;if(TX_ALL)G.ch=TX_ALL;EQP.rows=R1;try{return _a.apply(this,arguments).replace(/<b>\d+<\/b>\s*na Implantação/,'')}finally{EQP.rows=R0;G.ch=ch0}}}
@@ -12026,7 +12026,7 @@ Object.assign(ACT,{txSugOk:el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(c)
   const k='<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="g:txd"';return h.includes(k)?h.replace(k,`<div class="tobs txobsi"><b>Imagens das observações</b>${dnThumbs(c.obsAnx)}</div>`+k):h}}
 /* 24/10: na Transmissão o relatório fica só no PDF: some o texto do relatório (técnico, detalhe e histórico) e o botão "Ver Relatório" */
 {const _r=render;render=function(){const o=_r.apply(this,arguments);try{
-  const naTx=txAt()&&!gTecPerfil(),gc=typeof gTecSel==='function'&&ui.tab==='campo'?gTecSel():null;
+  const naTx=txAt()&&!gTecPerfil(),gc=typeof gTecSel==='function'&&(ui.tab==='campo'||ui.tab==='gCampo')?gTecSel():null;
   if(naTx){document.querySelectorAll('#app [data-act="gRfoVer"]').forEach(b=>b.remove());document.querySelectorAll('#app details>pre.rfo').forEach(p=>p.parentElement.remove());document.querySelectorAll('#app pre.rfo').forEach(p=>p.remove())}
   else if(gc&&txDe(gc))document.querySelectorAll('#app pre.rfo').forEach(p=>p.remove())}catch(e){console.warn('txrel',e)}return o}}
 /* 24/10: o código interno da Transmissão (TXddmm-hhmmNN) nunca aparece: onde a tela escreve "O&M TX…" passa a "Transmissão" (chat, avisos, modais e mensagens) */
@@ -15201,6 +15201,45 @@ Object.assign(CH,{
       const pastas=[...G.values()].sort((a,b)=>b.m-a.m),cab=pastas.filter(p=>/cabo|fibra|backbone|rede|feeder|distribui|drop|\bfo\b/i.test(p.n)&&!/cordoalha|duto|projeto|planej/i.test(p.n));
       pastas.forEach(p=>{p.on=cab.length?cab.includes(p):true;p.m=Math.round(p.m)});RPG.imp={nome:f.name,versao:ver,buf,K,nL:K.L.length,nP:K.P.length,pastas};rpGeoAt()}
     catch(e){toast('Não consegui ler o arquivo: '+(e.message||e),'bad')}}});
+
+/* ---------- 03/11: Financeiro da Rede Externa e visão de campo nas áreas de manutenção ----------
+   1. Usuários e acessos › Rede Externa ganha o Financeiro (re_fin): Budget e consumo (ref_budget) com "Definir o budget
+      da Rede Externa" (re_a_budget), Totais por prestador (ref_prest) e Detalhamento das LPUs (ref_det). Na área Rede
+      Externa elas viram as chaves do motor (g_fin, gf_budget, gf_prest, gf_det) e o "definir budget" passa a ser o
+      re_a_budget (o a_budget da Implantação não vale para a conta da Rede Externa). Banco: agenda_ajuste_53.
+   2. Visão do técnico e Visão da empresa terceira dentro do GTD, da Transmissão e da Rede Externa (abas gCampo e gEqVer),
+      com permissão por área (gCampo/gEqVer, tx_campo/tx_eqVer, re_campo/re_eqVer). Mostram só o que é da área aberta:
+      os chamados da área (e, na Rede Externa, as programadas); as atividades da Implantação ficam de fora. */
+const AC_T=['gCampo','gEqVer'];
+GTD_T.push(...AC_T);
+{const no=(k,n,f)=>f?[k,n,'t',f]:[k,n,'t'];
+  const gtd=PERM_T.find(g=>g[0]==='GTD Manutenção');if(gtd)gtd[1].push(no('gCampo','Visão do técnico (chamados do GTD)'),no('gEqVer','Visão da empresa terceira (chamados do GTD)'));
+  PX_TX[1].push(no('tx_campo','Visão do técnico (chamados da Transmissão)'),no('tx_eqVer','Visão da empresa terceira (chamados da Transmissão)'));
+  if(PR_ON){const pn=PR_RE[1].find(n=>n[0]==='re_painel');if(pn)pn[3].push(['re_fin','Financeiro da Rede Externa','t',[['ref_budget','Budget e consumo da Rede Externa','t',[['re_a_budget','Definir o budget da Rede Externa','a']]],['ref_prest','Totais por prestador da Rede Externa','t'],['ref_det','Detalhamento das LPUs da Rede Externa','t']]]);
+    PR_RE[1].push(no('re_campo','Visão do técnico (chamados e programadas da Rede Externa)'),no('re_eqVer','Visão da empresa terceira (Rede Externa)'))}
+  const add=(A,k)=>{if(!A.includes(k))A.push(k)};['gCampo','gEqVer'].forEach(k=>{add(PX_GK,k);add(PERM_ALL,k);if(typeof GTD_KEYS!=='undefined')add(GTD_KEYS,k)});
+  ['tx_campo','tx_eqVer'].forEach(k=>{add(PX_TK,k);add(PERM_ALL,k)});
+  if(PR_ON)['re_fin','ref_budget','re_a_budget','ref_prest','ref_det','re_campo','re_eqVer'].forEach(k=>{add(PR_RK,k);add(PERM_ALL,k)});
+  Object.assign(PX_MAP,{gCampo:'tx_campo',gEqVer:'tx_eqVer'});
+  if(PR_ON)Object.assign(PR_MAP,{g_fin:'re_fin',gf_budget:'ref_budget',gf_prest:'ref_prest',gf_det:'ref_det',gCampo:'re_campo',gEqVer:'re_eqVer'})}
+/* na área Rede Externa, "definir o budget" é o re_a_budget */
+{const _p=permEff;permEff=function(){_p.apply(this,arguments);if(!ME||!['sup','enc','noc'].includes(ui.perfil)||ui.cat!=='gtd'||(ui.gArea||'gtd')!=='re')return;
+  const b=pxNorm(permDe(ME.papel,ME.pBase),ME.papel);ME.perm=ME.perm.filter(k=>k!=='a_budget');if(b.includes('re_a_budget'))ME.perm.push('a_budget')}}
+/* abas no menu das áreas de manutenção */
+Object.assign(RP_TL,{gCampo:'Visão do técnico',gEqVer:'Visão da empresa terceira'});
+try{ICT.gCampo=ICT.campo;ICT.gEqVer=ICT.eqVer}catch(e){}
+try{Object.assign(NAV_TC,{gCampo:'Técnico',gEqVer:'Empresa'})}catch(e){}
+{const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments).filter(t=>!AC_T.includes(t));if(!ME||(typeof gTecPerfil==='function'&&gTecPerfil()))return T;
+  return T.concat(AC_T.filter(k=>ui.perfil==='coord'||pode(k)))}}
+/* só o que é da área: sem as atividades e LPUs da Implantação; programadas só na Rede Externa */
+function acArea(fn){const sa=S.ags,sl=S.lpus,sx=S.agsExt,rr=typeof RP!=='undefined'?RP.rows:null,re=(ui.gArea||'gtd')==='re';
+  S.ags=[];S.lpus=[];S.agsExt=[];if(rr&&!re)RP.rows=rr.filter(x=>x.tipo==='prj');
+  try{return fn()}finally{S.ags=sa;S.lpus=sl;S.agsExt=sx;if(rr&&!re)RP.rows=rr}}
+const viewGCampo=()=>acArea(()=>{if(ui.cTipo==='impl')ui.cTipo='tudo';return viewCampo().replace(/<button data-act="cTipo" data-v="impl"[^>]*>[^<]*<\/button>/,'')});
+const viewGEqVer=()=>acArea(()=>viewEqVer());
+Object.assign(RP_VIEWS,{gCampo:viewGCampo,gEqVer:viewGEqVer});
+/* título do budget na Rede Externa */
+{const A=typeof areaCfg==='function'&&areaCfg('re');if(A){const t0=A.texto;A.texto=v=>{v=t0?t0(v):v;return v.replace('terceirizada · Manutenção cliente','terceirizada · Reparo emergencial de rede')}}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
