@@ -14138,7 +14138,8 @@ async function rpSalvar(x,msg){x.atual=Date.now();const i=RP.rows.findIndex(y=>y
 async function rpCfgSalvar(k,v){RP.cfg[k]=v;const r=await sb.from('ag_config').upsert({chave:k,valor:v,atualizado_por:meNome(),atualizado_em:new Date().toISOString()},{onConflict:'chave'});if(r&&r.error)toast('Não foi possível salvar: '+r.error.message,'bad')}
 function rpCod(pre){const n=RP.rows.filter(x=>String(x.cod||'').startsWith(pre+'-')).map(x=>+String(x.cod).slice(pre.length+1)||0);return pre+'-'+String((n.length?Math.max(...n):0)+1).padStart(5,'0')}
 const rpH=(x,acao)=>{x.hist=x.hist||[];x.hist.push({acao,por:meNome(),em:Date.now()})};
-const rpTecs=()=>{const v=new Set();return[...(G.tecs||[]),...(typeof TEC!=='undefined'?TEC:[])].filter(t=>t&&t.id&&!v.has(t.id)&&v.add(t.id))};
+/* 03/11: só quem atua na Rede Externa (Equipe técnica); sem ninguém marcado, todos */
+const rpTecs=()=>{const v=new Set(),L=[...(G.tecs||[]),...(typeof TEC!=='undefined'?TEC:[])].filter(t=>t&&t.id&&!v.has(t.id)&&v.add(t.id)),R=typeof EQP!=='undefined'&&EQP.rows?L.filter(t=>(EQP.rows[t.id]||{}).re):[];return R.length?R:L};
 const rpTecN=id=>id?gTecN(id):'Qualquer técnico da equipe';
 const rpProgs=()=>RP.rows.filter(x=>x.tipo!=='prj');
 const rpAps=x=>x.ap||[];
@@ -15240,6 +15241,31 @@ const viewGEqVer=()=>acArea(()=>viewEqVer());
 Object.assign(RP_VIEWS,{gCampo:viewGCampo,gEqVer:viewGEqVer});
 /* título do budget na Rede Externa */
 {const A=typeof areaCfg==='function'&&areaCfg('re');if(A){const t0=A.texto;A.texto=v=>{v=t0?t0(v):v;return v.replace('terceirizada · Manutenção cliente','terceirizada · Reparo emergencial de rede')}}}
+
+/* ---------- 03/11: técnicos da Rede Externa (Equipe técnica › coluna Rede Externa) ----------
+   Antes a Rede Externa usava a marcação do GTD (ag_equipe.gtd) para listar técnicos no despacho, na agenda e no "Agora".
+   Agora cada técnico tem a marca própria ag_equipe.re (agenda_ajuste_54). Dentro da área Rede Externa, a marca do GTD
+   é trocada pela da Rede Externa enquanto a tela e as ações rodam; as Programadas também listam só quem atua na
+   Rede Externa. Sem ninguém marcado na Rede Externa, todos os técnicos aparecem (como antes de configurar). */
+const eqRe=id=>!!(EQP.rows[id]||{}).re;
+const reCtx=()=>ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'&&!(typeof gTecPerfil==='function'&&gTecPerfil());
+function eqModoRe(fn){if(!reCtx()||!EQP.ok)return fn();const sv=EQP.rows,sc=EQP.conf;
+  const sw=Object.fromEntries(Object.entries(sv).map(([k,v])=>[k,Object.assign({},v,{gtd:!!v.re})]));EQP.rows=sw;EQP.conf=Object.values(sv).some(x=>x.re);
+  try{return fn()}finally{if(EQP.rows===sw){EQP.rows=sv;EQP.conf=sc}}}
+{const _r=render;render=function(){return eqModoRe(()=>_r.apply(this,arguments))}}
+Object.keys(ACT).filter(k=>/^g[A-Z]|^rp/.test(k)).forEach(k=>{const f=ACT[k];ACT[k]=function(){return eqModoRe(()=>f.apply(this,arguments))}});
+Object.keys(CH).filter(k=>/^g[A-Z]|^gF|^rp/.test(k)).forEach(k=>{const f=CH[k];CH[k]=function(){return eqModoRe(()=>f.apply(this,arguments))}});
+/* Equipe técnica: coluna Rede Externa */
+{const _v=viewEqTec;viewEqTec=function(){let h=_v.apply(this,arguments);const ed=eqEdita();
+  const bt=id=>{const on=eqRe(id);return `<button class="eqb area g ${on?'on':''}" data-act="eqT" data-id="${id}" data-k="re" aria-pressed="${on}" aria-label="Atua na Rede Externa" ${ed?'':'disabled'}>${on?'Sim':'Não'}</button>`};
+  h=h.replace('<th class="gg">TRANSMISSÃO</th></tr>','<th class="gg">TRANSMISSÃO</th><th class="sp"></th><th class="gg">REDE EXTERNA</th></tr>').replace('<th class="gg2">Atua</th><th class="sp"></th><th class="gg2">Atua</th></tr>','<th class="gg2">Atua</th><th class="sp"></th><th class="gg2">Atua</th><th class="sp"></th><th class="gg2">Atua</th></tr>');
+  h=h.replace(/(data-act="eqT" data-id="([^"]+)" data-k="tx"[^>]*>[^<]*<\/button><\/td>)<\/tr>/g,(m,a,id)=>`${a}<td class="sp"></td><td class="gg2">${bt(id)}</td></tr>`);
+  return h.replace(/(<td class="gg2"><b class="g">\d+<\/b><\/td>)<\/tr><\/tfoot>/,`$1<td class="sp"></td><td class="gg2"><b class="g">${TEC.filter(t=>eqRe(t.id)).length}</b></td></tr></tfoot>`).replace('colspan="11"','colspan="13"')
+    .replace(/(Marque em que área e em quais serviços cada técnico atua\.)/,'$1 A Rede Externa usa a coluna própria (não a do GTD).')}}
+{const _t=ACT.eqT;ACT.eqT=async el=>{if(el.dataset.k!=='re')return _t(el);if(!eqEdita())return semPerm();const id=el.dataset.id,a=eqDe(id),ant=EQP.rows[id];
+  const n={tecnico:id,impl:!!a.impl,servicos:(a.servicos||[]).slice(),gtd:!!a.gtd,tx:!!a.tx,re:!a.re};EQP.rows[id]=Object.assign({},a,n);render();
+  const r=await sb.from('ag_equipe').upsert({tecnico:id,impl:n.impl,servicos:n.servicos,gtd:n.gtd,tx:n.tx,re:n.re,atualizado_por_nome:meNome()},{onConflict:'tecnico'});
+  if(r.error){if(ant)EQP.rows[id]=ant;else delete EQP.rows[id];render();toast(/\bre\b|column/.test(r.error.message||'')?'Rode o script agenda_ajuste_54_tecnicos_rede_externa.sql para marcar a Rede Externa.':'Não foi possível salvar: '+r.error.message,'bad')}}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
