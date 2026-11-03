@@ -2368,6 +2368,25 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 .rpgps{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.rpgps .inp{width:140px}
 .kb.rpkb,body.arail .kb.rpkb{grid-template-columns:repeat(5,minmax(250px,1fr));min-width:1290px}
 .modal:has(.rpmh){z-index:30}
+.rpcomb{position:relative}.rpcomb .inp{width:100%}
+.rpcbl{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:60;max-height:280px;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.16);padding:4px}
+.rpcbo{padding:9px 10px;border-radius:7px;cursor:pointer;font-size:14.5px;min-height:38px;display:flex;align-items:center}.rpcbo:hover{background:var(--bg)}.rpcbo.on{background:var(--brand-soft);color:var(--brand-ink);font-weight:600}
+.rpcbv{padding:10px;color:var(--muted);font-size:13.5px}
+.rptrm{margin:2px 0 12px}
+.rpgpts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}.rpgpt{min-width:0;display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface)}
+.rpgpt .fld{flex:1;margin:0;min-width:0}.rpgpt .fld small{display:block;margin-top:4px;font-size:12.5px}.rpgl{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;margin-top:20px}
+.rpgpt.a .rpgl{background:#2e9e3d}.rpgpt.b .rpgl{background:#c0392b}.rpgbt{display:flex;flex-direction:column;gap:6px;margin-top:20px}.rpgbt .btn{white-space:nowrap}.rpgbt .btn.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.rpgdica{margin:10px 0 6px;font-size:13px}
+.rpgmap{height:420px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#e8ece4;position:relative;z-index:0}.rpgmap.clk{cursor:crosshair}.rpgmap.clk .leaflet-container{cursor:crosshair}
+.rpgmap.tec{height:360px}
+.rpgres{display:flex;flex-direction:column;gap:3px;margin-top:10px}.rpgres b{font-size:16px}
+.rpgpin{background:none;border:0}.rpgpin span{display:grid;place-items:center;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);color:#fff;font:700 13px sans-serif;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.rpgpin span b{transform:rotate(45deg);font-weight:700}
+.rpgctl{display:flex;flex-direction:column;gap:4px}.rpgctl button{background:#fff;color:#1e2a17;border:1px solid rgba(0,0,0,.25);border-radius:8px;padding:6px 10px;font:600 12.5px system-ui,sans-serif;cursor:pointer;min-height:34px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.rptrota .rptbt a.btn{text-decoration:none;color:inherit;display:inline-flex;align-items:center;justify-content:center}.rptrota .rptbt{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.rptrota .rptbt .btn{min-height:44px}.rptpts{margin-top:10px}.rptpts div{padding:4px 0;border-bottom:1px dashed var(--line);font-size:14px}
+@media(max-width:760px){.rpgpts{grid-template-columns:minmax(0,1fr)}.rpgpt .inp{min-width:0;width:100%}.rpgpt{flex-wrap:wrap}.rpgbt{flex-direction:row;margin-top:0;width:100%;padding-left:38px;box-sizing:border-box}.rpgbt .btn{flex:1 1 0;min-width:0;white-space:normal;min-height:42px}.rpgmap{height:360px}.rptrota .rptbt .btn{flex:1}}
+
+@media(max-width:760px){.rpgctl button{padding:4px 8px;min-height:30px;font-size:12px}.rpgmap.tec{height:400px}}
 </style>
 </head>
 <body>
@@ -14108,7 +14127,7 @@ const rpRow=x=>{const d=Object.assign({},x);['id','cod','tipo','status','cidade'
   return{id:x.id,codigo:x.cod,tipo:x.tipo,status:x.status,cidade:x.cidade||null,data:x.data||null,tecnico:x.tec||null,criado_em:x.criado||new Date().toISOString(),atualizado_em:new Date().toISOString(),dados:d}};
 async function rpCarregar(forca){if(RP.bus||(RP.ok&&!forca))return;RP.bus=true;
   try{const r=await sb.from('ag_re_prog').select('*');if(r.error)throw r.error;RP.rows=(r.data||[]).map(rpDe);
-    const c=await sb.from('ag_config').select('chave,valor').in('chave',['rp_cs_base','rp_cfg']);((c&&c.data)||[]).forEach(x=>{RP.cfg[x.chave]=x.valor});
+    const c=await sb.from('ag_config').select('chave,valor').in('chave',['rp_cs_base','rp_cfg','rp_geogrid']);((c&&c.data)||[]).forEach(x=>{RP.cfg[x.chave]=x.valor});
     try{await krCarregaPrecos()}catch(e){}RP.ok=true;RP.err='';RP.carr=Date.now()}
   catch(e){RP.err=(e&&e.message)||String(e)}RP.bus=false;render()}
 const rpGet=id=>RP.rows.find(x=>x.id===id);
@@ -14198,7 +14217,7 @@ function rpLpuHtml(x){const L=rpLpuSug(x);if(!L.length)return '';const tot=L.red
 function rpDetHtml(x){const p=rpProg(x.tipo),j=x.jor||{},ap=rpAps(x),pj=x.prj&&rpGet(x.prj);
   const L=[['Programa',esc(p[1])+(x.tipo==='prev'?` · ${x.seg==='sub'?'Subterrânea':'Aérea'}`:'')],['Cidade',esc(x.cidade)],['Endereço',esc(x.end||'')],['Serviço',esc(x.servico||'')],['POP',esc(x.pop||'')],
     ['Motivo',esc(x.motivo||'')],['Solicitante',esc(x.solicitante||'')],['Notificação / protocolo',esc(x.notif||(x.cia||{}).prot||'')],['Técnico',esc(rpTecN(x.tec))],['Data',x.data?dBR(x.data):''],['Data-limite',x.lim?dBR(x.lim):''],
-    ['Metros previstos',x.metros?rpM(x.metros):''],['KMZ',x.kmz?`${esc(x.kmz.nome)} · ${rpM(x.kmz.m)}`:''],['Cluster',esc(x.cluster||'')],['Caixas planejadas',(x.cs||[]).length?esc(x.cs.join(' → ')):''],
+    ['Metros previstos',x.metros?rpM(x.metros):''],['KMZ',x.kmz?`${esc(x.kmz.nome)} · ${rpM(x.kmz.m)}${typeof rpTemRota==='function'&&rpTemRota(x)?` <button class="btn sm" data-act="rpKmzBaixar" data-id="${x.id}">Baixar KMZ</button>`:''}`:''],['Cluster',esc(x.cluster||'')],['Caixas planejadas',(x.cs||[]).length?esc(x.cs.join(' → ')):''],
     ['Extensão prevista',x.ext?rpFmt(x.ext,2)+' km':''],['Cenário esperado',x.cen?esc([x.cen.dono&&'Duto: '+x.cen.dono,(x.cen.ops||[]).join(', ')].filter(Boolean).join(' · ')):''],
     ['Projeto',pj?`${esc(pj.cod)} · ${esc(pj.nome||'')}`:''],['Conta',esc(p[3])],['Observação',esc(x.obs||'')]];
   if(x.tipo==='cia'){const c=x.cia||{};L.splice(1,0,['Tipo',esc(c.tipo||'')],['Horário da companhia',c.hora?esc(c.hora):''],['Clientes afetados',c.cli?`${c.cli}${c.cli>=3?' · <b>massiva</b>':''}`:''])}
@@ -14264,32 +14283,35 @@ Object.assign(CH,{rpLSeg:el=>{ui[el.dataset.k].seg=el.value;render()}});
 
 /* ---------- PREVENTIVA: rotas, nova rota (aérea por KMZ / subterrânea caixa a caixa), base de caixas, painel ---------- */
 function viewRpPrev(){const e=rpEstado();const sub=rpSubDe('rpPrev','rotas');
-  const segs=rpSegs('rpPrev',[['rotas','Rotas'],['nova','Nova rota'],['base','Base de caixas'],['painel','Painel']],sub);
+  const segs=rpSegs('rpPrev',[['rotas','Rotas'],['nova','Nova rota'],['base','Base de caixas'],['geo','Base Geogrid'],['painel','Painel']],sub);
   if(e)return `<section class="panel">${rpTopo('rpPrev',segs)}${e}</section>`;
-  const corpo=sub==='nova'?rpPrevNova():sub==='base'?rpBaseHtml():sub==='painel'?rpPrevPainel():rpLista('prev',{seg:true});
+  const corpo=sub==='nova'?rpPrevNova():sub==='base'?rpBaseHtml():sub==='geo'?rpGeoBaseHtml():sub==='painel'?rpPrevPainel():rpLista('prev',{seg:true});
   return `<section class="panel">${rpTopo('rpPrev',segs)}${corpo}</section>`}
 
 /* formulário (preventiva, melhoria simples, retirada) guardado em ui.rpF[tipo] */
 const rpF=t=>{ui.rpF=ui.rpF||{};return ui.rpF[t]||(ui.rpF[t]={seg:'aerea',data:hoje(),cs:[],cen:{ops:[]},pontos:[]})};
 const rpInp=(t,k,lb,o)=>{o=o||{};const F=rpF(t),v=k.includes('.')?k.split('.').reduce((a,b)=>(a||{})[b],F):F[k];
+  if(o.cid)return `<label class="fld ${o.cls||''}"><span>${lb}${o.req?' *':''}</span>${rpCidCombo(`data-ch="rpFv" data-t="${t}" data-k="${k}" id="rpf_${t}_${k}" aria-label="${lb}"`,v)}</label>`;
   return `<label class="fld ${o.cls||''}"><span>${lb}${o.req?' *':''}</span>${o.opts?`<select class="inp" data-ch="rpFv" data-t="${t}" data-k="${k}"><option value="">Escolha…</option>${o.opts.map(x=>{const[val,n]=Array.isArray(x)?x:[x,x];return `<option value="${esc(val)}" ${String(v??'')===String(val)?'selected':''}>${esc(n)}</option>`}).join('')}</select>`
     :o.area?`<textarea class="inp" rows="2" data-in="rpFv" data-t="${t}" data-k="${k}" id="rpf_${t}_${k}">${esc(v||'')}</textarea>`
     :`<input class="inp" ${o.type?`type="${o.type}"`:''} data-${o.type==='date'?'ch':'in'}="rpFv" data-t="${t}" data-k="${k}" id="rpf_${t}_${k}" value="${esc(v??'')}" ${o.ph?`placeholder="${esc(o.ph)}"`:''}>`}</label>`};
-const rpCidades=()=>[...new Set([...rpBase().map(c=>c.cid),...RP.rows.map(x=>x.cidade),'Campinas','Valinhos','Vinhedo','Sumaré','Hortolândia','Paulínia','Indaiatuba','Americana','Jundiaí'].filter(Boolean).map(s=>String(s).toUpperCase()))].sort();
+const rpCidades=()=>[...new Set([...rpBase().map(c=>c.cid),...RP.rows.map(x=>x.cidade),...(typeof RP_SP!=='undefined'?RP_SP:[])].filter(Boolean).map(s=>String(s).toUpperCase()))].sort();
 const rpTecSel=t=>{const F=rpF(t);return `<label class="fld"><span>Técnico</span><select class="inp" data-ch="rpFv" data-t="${t}" data-k="tec"><option value="">Definir no despacho</option>${rpTecs().map(x=>`<option value="${x.id}" ${F.tec===x.id?'selected':''}>${esc(x.nome)}</option>`).join('')}</select></label>`};
 function rpPrevNova(){const t='prev',F=rpF(t),sub=F.seg==='sub';
   return `<div class="rpform"><div class="views rpseg">${[['aerea','Aérea (percorrer o traçado)'],['sub','Subterrânea (caixa a caixa)']].map(([k,n])=>`<button data-act="rpFSeg" data-t="${t}" data-v="${k}" aria-current="${F.seg===k}">${n}</button>`).join('')}</div>
-   <div class="rpgrid">${rpInp(t,'cidade','Cidade',{req:true,opts:rpCidades()})}${rpTecSel(t)}${rpInp(t,'data','Data',{req:true,type:'date'})}${rpInp(t,'lim','Data-limite',{type:'date'})}</div>
+   <div class="rpgrid">${rpInp(t,'cidade','Cidade',{req:true,cid:true})}${rpTecSel(t)}${rpInp(t,'data','Data',{req:true,type:'date'})}${rpInp(t,'lim','Data-limite',{type:'date'})}</div>
    ${sub?rpSubForm():rpAereaForm()}
    ${rpInp(t,'obs','Observação para a equipe',{area:true})}
    <div class="actions"><button class="btn" data-act="rpFSalvar" data-t="${t}" data-d="0">Salvar (planejada)</button><button class="btn primary" data-act="rpFSalvar" data-t="${t}" data-d="1">Salvar e despachar</button></div></div>`}
 function rpAereaForm(){const t='prev',F=rpF(t),K=F.kmz;
   return `<div class="rpgrid">${rpInp(t,'motivo','Motivo',{req:true,opts:RP_MOTIVOS})}${rpInp(t,'solicitante','Solicitante / área',{req:true,opts:RP_SOLIC})}${rpInp(t,'notif','Notificação / protocolo')}${rpInp(t,'metros','Metros previstos',{req:true,type:'number'})}</div>
-   <section class="rpsec"><h3>Traçado (KMZ)</h3><p class="muted">O sistema mede as linhas do KMZ. Se houver uma linha chamada "Rota", só ela conta; linha repetida conta uma vez. Pontos (CEO/CS) a até 30 m do traçado entram na lista da equipe.</p>
+   ${rpTracado()}`}
+function rpTracadoKmz(){const t='prev',F=rpF(t),K=F.kmz&&!F.kmz.geo?F.kmz:null;
+  return `<p class="muted">O sistema mede as linhas do KMZ. Se houver uma linha chamada "Rota", só ela conta; linha repetida conta uma vez. Pontos (CEO/CS) a até 30 m do traçado entram na lista da equipe.</p>
     <label class="btn sm">Anexar .kmz ou .kml<input type="file" accept=".kmz,.kml" data-ch="rpKmz" hidden></label>
     ${K?`<div class="rpkmz"><b>${esc(K.nome)}</b> · ${rpM(K.m)} medidos · ${K.linhas.length} linha${K.linhas.length>1?'s':''}
       <div class="rplin">${K.linhas.map((l,i)=>`<label><input type="checkbox" data-ch="rpKmzL" data-i="${i}" ${l.on?'checked':''}> ${esc(l.nome||'Linha '+(i+1))} · ${rpM(l.m)}${l.dup?' <small class="muted">(repetida)</small>':''}</label>`).join('')}</div>
-      ${(F.pontos||[]).length?`<p class="muted" style="margin:8px 0 4px">Pontos no caminho (marque os que a equipe deve olhar):</p><div class="rplin">${F.pontos.map((p,i)=>`<label><input type="checkbox" data-ch="rpPto" data-i="${i}" ${p.on?'checked':''}> ${esc(p.nome)} <small class="muted">${esc(p.tp)} · ${rpFmt(p.d)} m do traçado</small></label>`).join('')}</div>`:''}</div>`:''}</section>`}
+      ${(F.pontos||[]).length?`<p class="muted" style="margin:8px 0 4px">Pontos no caminho (marque os que a equipe deve olhar):</p><div class="rplin">${F.pontos.map((p,i)=>`<label><input type="checkbox" data-ch="rpPto" data-i="${i}" ${p.on?'checked':''}> ${esc(p.nome)} <small class="muted">${esc(p.tp)} · ${rpFmt(p.d)} m do traçado</small></label>`).join('')}</div>`:''}</div>`:''}`}
 async function rpKmzLer(f){const txt=await kmzTexto(await f.arrayBuffer(),f.name),K=kmlLer(txt),len=c=>{let m=0;for(let i=1;i<c.length;i++)m+=rpDist(c[i-1],c[i]);return m};
   const vis=new Set(),rota=K.L.some(l=>/^rota\b/i.test(l.nome||''));const linhas=K.L.map(l=>{const k=l.c.map(p=>p.map(v=>v.toFixed(6)).join(',')).join(';'),dup=vis.has(k);vis.add(k);return{nome:l.nome,m:Math.round(len(l.c)),c:l.c,dup,on:!dup&&(!rota||/^rota\b/i.test(l.nome||''))}});
   const pts=K.P.map(p=>{let d=1e9;linhas.forEach(l=>{for(let i=1;i<l.c.length;i++)d=Math.min(d,rpDistSeg([p.lat,p.lon],l.c[i-1],l.c[i]))});const tp=kmzTipo(p)==='cx'?'CEO':/\bcs\b|subterr/i.test(p.nome+' '+p.pasta)?'CS':'Ponto';return{nome:p.nome,lat:p.lat,lng:p.lon,d:Math.round(d),tp,on:tp==='CEO'}}).filter(p=>p.d<=30);
@@ -14370,7 +14392,7 @@ Object.assign(ACT,{
     if(F2.length){toast('Falta: '+F2.join(', '),'bad');return}
     const pre=t==='prev'?'PRV':t==='mel'?'MEL':'RET',x={id:uid(),cod:rpCod(pre),tipo:t,status:desp?'desp':'plan',cidade:String(F.cidade).toUpperCase(),data:F.data,lim:F.lim||'',tec:F.tec||null,obs:F.obs||'',hist:[],ap:[],jor:{},criado:new Date().toISOString(),por:meNome()};
     if(t==='prev'){x.seg=F.seg;if(F.seg==='sub'){x.cluster=F.cluster;x.cs=F.cs.slice();x.ext=Math.round(rpExt(F.cs)*100)/100;x.cen={dono:F.cen.dono||'',ops:(F.cen.ops||[]).slice()}}
-      else{Object.assign(x,{motivo:F.motivo,solicitante:F.solicitante,notif:F.notif||'',metros:rpN(F.metros)});if(F.kmz)x.kmz={nome:F.kmz.nome,m:rpKmzM(F.kmz),linhas:F.kmz.linhas.filter(l=>l.on).map(l=>({nome:l.nome,m:l.m,c:l.c}))};x.pontos=(F.pontos||[]).filter(p=>p.on)}}
+      else{Object.assign(x,{motivo:F.motivo,solicitante:F.solicitante,notif:F.notif||'',metros:rpN(F.metros)});if(F.kmz)x.kmz=Object.assign({nome:F.kmz.nome,m:rpKmzM(F.kmz),linhas:F.kmz.linhas.filter(l=>l.on).map(l=>({nome:l.nome,m:l.m,c:l.c}))},F.kmz.geo?{geo:F.kmz.geo}:{});x.pontos=(F.pontos||[]).filter(p=>p.on)}}
     else Object.assign(x,{end:F.end,servico:F.servico,pop:F.pop||'',metros:rpN(F.metros),solicitante:F.solicitante||'',notif:F.notif||'',local:F.local||''});
     rpH(x,'Planejada');if(desp)rpH(x,'Despachada para '+gTecN(x.tec));if(await rpSalvar(x,desp?`${x.cod} salva e despachada.`:`${x.cod} salva como planejada.`)){ui.rpF[t]=null;ui.rpSub[ui.tab]=t==='prev'?'rotas':'ativ';render();window.scrollTo(0,0)}}});
 Object.assign(IN,{rpFv:el=>{const F=rpF(el.dataset.t),k=el.dataset.k;if(k.includes('.')){const[a,b]=k.split('.');F[a]=F[a]||{};F[a][b]=el.value}else F[k]=el.value}});
@@ -14404,7 +14426,7 @@ function viewRpRet(){const e=rpEstado(),sub=rpSubDe('rpRet','ativ');const segs=r
   if(e)return `<section class="panel">${rpTopo('rpRet',segs)}${e}</section>`;
   return `<section class="panel">${rpTopo('rpRet',segs)}${sub==='nova'?rpSimplesNova('ret'):sub==='painel'?rpRetPainel():rpLista('ret')}</section>`}
 function rpSimplesNova(t){const mel=t==='mel';
-  return `<div class="rpform"><div class="rpgrid">${rpInp(t,'cidade','Cidade',{req:true,opts:rpCidades()})}${mel?rpInp(t,'pop','POP',{req:true}):''}${rpInp(t,'end','Endereço',{req:true,cls:'rpw2'})}
+  return `<div class="rpform"><div class="rpgrid">${rpInp(t,'cidade','Cidade',{req:true,cid:true})}${mel?rpInp(t,'pop','POP',{req:true}):''}${rpInp(t,'end','Endereço',{req:true,cls:'rpw2'})}
     ${rpInp(t,'servico',mel?'Serviço':'O que retirar',{req:true,ph:mel?'Ex.: alívio de CTO, troca de trecho':'Ex.: cabo 12FO desativado entre CEO 1201 e 1205'})}${rpInp(t,'metros','Metros previstos',{type:'number'})}
     ${rpInp(t,'local','Link do local (mapa)',{ph:'https://'})}${rpInp(t,'solicitante','Solicitante')}${rpInp(t,'notif','Notificação / protocolo')}${rpTecSel(t)}${rpInp(t,'data','Data',{req:true,type:'date'})}${rpInp(t,'lim','Data-limite',{type:'date'})}</div>
    ${rpInp(t,'obs','Observação para a equipe',{area:true})}
@@ -14487,7 +14509,7 @@ function rpPrjEd(){const x=rpPrjAt();if(!x)return '<p class="muted">Projeto não
    ${x.status==='reprov'&&x.reprov?`<div class="rpbox bad">Reprovado por ${esc(x.reprov.por)} em ${rpDH(x.reprov.em)}: ${esc(x.reprov.mot)}. Ajuste e envie de novo.</div>`:''}
    ${x.status==='aprov'&&x.aprov?`<div class="rpbox ok">Aprovado por ${esc(x.aprov.por)} em ${rpDH(x.aprov.em)}. Obra ${esc((rpGet(x.obra)||{}).cod||'')} criada para ${esc(rpTecN(x.aprov.tec))} em ${dBR(x.aprov.data)}. O pacote da equipe vai sem valores.</div>`:''}
    ${rpSegs('rpPA',[['tr','1. Informações e traçado'],['orc','2. Orçamento'],['apr','3. Aprovação']],ab).replace(/data-act="rpSub" data-t="rpPA"/g,'data-act="rpPA"')}
-   ${ab==='tr'?`<div class="rpgrid">${inf('nome','Nome do projeto',true,'Ex.: Alívio CTO 14 Jd. Europa')}<label class="fld"><span>Cidade *</span><select class="inp" data-ch="rpPrjS" data-k="cidade" ${ed?'':'disabled'}><option value="">Escolha…</option>${rpCidades().map(c=>`<option ${x.cidade===c?'selected':''}>${esc(c)}</option>`).join('')}</select></label>${inf('pop','POP')}${inf('solicitante','Solicitante')}</div>
+   ${ab==='tr'?`<div class="rpgrid">${inf('nome','Nome do projeto',true,'Ex.: Alívio CTO 14 Jd. Europa')}<label class="fld"><span>Cidade *</span>${rpCidCombo('data-ch="rpPrjS" data-k="cidade" aria-label="Cidade"',x.cidade,!ed)}</label>${inf('pop','POP')}${inf('solicitante','Solicitante')}</div>
      <div class="rpgrid">${st('cabo','Cabo',[['DROP','Drop'],['04','4 FO'],['06','6 FO'],['12','12 FO'],['24','24 FO'],['72','72 FO'],['144','144 FO']].map(([v,n])=>[v.replace(/^0/,''),n]))}${st('anc','Ancoragem',[['BAP_EXIST','BAP em cordoalha existente'],['BAP','BAP com cordoalha nova'],['FITA','Fita de aço (autossustentado)']])}${nm('vao','Vão máximo (m)')}${nm('encCada','Encabeçamento a cada (postes)')}</div>
      <div class="rpmapbar"><div class="views">${[['gera','Desenhar e gerar os postes'],['poste','Cada clique é um poste']].map(([k,n])=>`<button data-act="rpModo" data-v="${k}" aria-current="${p.modo===k}" ${ed?'':'disabled'}>${n}</button>`).join('')}</div>
       ${ed?`<button class="btn sm" data-act="rpDesfaz">Desfazer ponto</button><button class="btn sm" data-act="rpLimpa">Limpar traçado</button><label class="btn sm">Importar KMZ<input type="file" accept=".kmz,.kml" data-ch="rpPrjKmz" hidden></label>`:''}<span class="muted">${ed?'Clique no mapa para traçar de A até B. Toque num poste para pôr CEO, CTO, RT ou fixar o tipo; arraste para mover.':'Projeto travado.'}</span></div>
@@ -14820,7 +14842,7 @@ function rpTecTela(x){const p=rpProg(x.tipo),j=x.jor||{},A=rpAps(x),fin=A.some(a
     +(()=>{const dr=(ui.rpD||{})[rpDk(x)];if(dr&&dr.refaz)return rpTecForm(x);if(rj)return '<div class="rpbox bad">Há apontamento rejeitado: toque em <b>Refazer</b> nele para corrigir.</div>';if(fin)return '<div class="rpbox ok">Finalizado enviado. Aguarde a revisão.</div>';return rpTecForm(x)})()}
   return `<div class="rptec"><button class="btn sm" data-act="rpTVolta">‹ Minhas atividades</button>
    <div class="rptech"><span class="chip ${x.tipo==='prev'?'info':x.tipo==='mel'?'ok':x.tipo==='ret'?'ag':'warn'}">${esc(p[1])}${x.tipo==='prev'?(x.seg==='sub'?' subterrânea':' aérea'):''}</span><h2>${esc(x.cod)}</h2>${rpChip(x)}</div>
-   ${rpInfo(info)}${(k=>k?rpPacHtml(k,false):'')(rpPacDe(x))}${corpo}</div>`}
+   ${rpInfo(info)}${typeof rpTecRota==='function'?rpTecRota(x):''}${(k=>k?rpPacHtml(k,false):'')(rpPacDe(x))}${corpo}</div>`}
 function rpTecForm(x){const k=rpDk(x),d=rpDr(x),ft=rpReqFotos(x,d.v),fim=x.tipo==='cia';let campos='';
   if(x.tipo==='prev')campos=`<div class="rpgrid">${rpNumT(k,'metros','Rota percorrida (m)',d)}${rpNumT(k,'postes','Postes equipados',d)}${rpNumT(k,'cord','Cordoalha (m)',d)}${rpNumT(k,'plaq','Plaquetas',d)}${rpNumT(k,'sobra','Sobra técnica',d)}</div>
     ${d.tipo==='final'&&x.metros?(()=>{const tot=rpAps(x).filter(a=>a.st!=='rej'&&a.id!==d.refaz).reduce((s,a)=>s+rpN(a.v.metros),0)+rpN(d.v.metros),fora=Math.abs(tot-x.metros)/x.metros>.2;return `<p class="${fora?'rpbad':'muted'}">Acumulado com este: ${rpM(tot)} de ${rpM(x.metros)} previstos${fora?' · fora de ±20%: justifique':''}.</p>${fora?rpTxtT(k,'just','Justificativa da metragem *',d):''}`})():''}`;
@@ -14931,6 +14953,254 @@ function rpFU(f){if(!f)return RP_PIX;if(f.u)return f.u;const p=f.p;if(!p)return 
 Object.assign(CH,{rpFoto:async el=>{const fs=[...el.files],k=el.dataset.k,t=el.dataset.t,o=el.dataset.o,d=rpDrK(k);el.value='';const x=rpGet(k.split(':')[0]);if(!d)return;
   let n=0;for(const f of fs){try{const u=await rpImg(f,(x?x.cod:'')+(k.includes(':')?' · '+k.split(':')[1]:''));d.fotos.push({t,p:await rpFotoUp(x,u),o,em:Date.now()});n++}catch(e){toast('Foto não foi enviada: '+((e&&e.message)||e),'bad')}}
   const y=window.scrollY;render();window.scrollTo(0,y)}});
+
+/* ---------- 03/11: cidade com busca nas Programadas (Rede Externa) ----------
+   Lista oficial do IBGE com os 645 municípios do estado de São Paulo (RP_SP). O campo Cidade vira uma caixa de busca:
+   digita parte do nome (sem precisar de acento) e escolhe na lista. Só aceita cidade da lista. */
+const RP_SP=["Adamantina", "Adolfo", "Aguaí", "Agudos", "Alambari", "Alfredo Marcondes", "Altair", "Altinópolis", "Alto Alegre", "Alumínio", "Alvinlândia", "Americana", "Amparo", "Américo Brasiliense", "Américo de Campos", "Analândia", "Andradina", "Angatuba", "Anhembi", "Anhumas", "Aparecida", "Aparecida d'Oeste", "Apiaí", "Aramina", "Arandu", "Arapeí", "Araraquara", "Araras", "Araçariguama", "Araçatuba", "Araçoiaba da Serra", "Arco-Íris", "Arealva", "Areias", "Areiópolis", "Ariranha", "Artur Nogueira", "Arujá", "Aspásia", "Assis", "Atibaia", "Auriflama", "Avanhandava", "Avaré", "Avaí", "Bady Bassitt", "Balbinos", "Bananal", "Barbosa", "Bariri", "Barra Bonita", "Barra do Chapéu", "Barra do Turvo", "Barretos", "Barrinha", "Barueri", "Barão de Antonina", "Bastos", "Batatais", "Bauru", "Bebedouro", "Bento de Abreu", "Bernardino de Campos", "Bertioga", "Bilac", "Birigui", "Biritiba Mirim", "Boa Esperança do Sul", "Bocaina", "Bofete", "Boituva", "Bom Jesus dos Perdões", "Bom Sucesso de Itararé", "Boracéia", "Borborema", "Borebi", "Borá", "Botucatu", "Bragança Paulista", "Braúna", "Brejo Alegre", "Brodowski", "Brotas", "Buri", "Buritama", "Buritizal", "Bálsamo", "Cabreúva", "Cabrália Paulista", "Cachoeira Paulista", "Caconde", "Cafelândia", "Caiabu", "Caieiras", "Caiuá", "Cajamar", "Cajati", "Cajobi", "Cajuru", "Campina do Monte Alegre", "Campinas", "Campo Limpo Paulista", "Campos do Jordão", "Campos Novos Paulista", "Cananéia", "Canas", "Canitar", "Capela do Alto", "Capivari", "Capão Bonito", "Caraguatatuba", "Carapicuíba", "Cardoso", "Casa Branca", "Castilho", "Catanduva", "Catiguá", "Caçapava", "Cedral", "Cerqueira César", "Cerquilho", "Cesário Lange", "Charqueada", "Chavantes", "Clementina", "Colina", "Colômbia", "Conchal", "Conchas", "Cordeirópolis", "Coroados", "Coronel Macedo", "Corumbataí", "Cosmorama", "Cosmópolis", "Cotia", "Cravinhos", "Cristais Paulista", "Cruzeiro", "Cruzália", "Cubatão", "Cunha", "Cássia dos Coqueiros", "Cândido Mota", "Cândido Rodrigues", "Descalvado", "Diadema", "Dirce Reis", "Divinolândia", "Dobrada", "Dois Córregos", "Dolcinópolis", "Dourado", "Dracena", "Duartina", "Dumont", "Echaporã", "Eldorado", "Elias Fausto", "Elisiário", "Embaúba", "Embu das Artes", "Embu-Guaçu", "Emilianópolis", "Engenheiro Coelho", "Espírito Santo do Pinhal", "Espírito Santo do Turvo", "Estiva Gerbi", "Estrela d'Oeste", "Estrela do Norte", "Euclides da Cunha Paulista", "Fartura", "Fernando Prestes", "Fernandópolis", "Fernão", "Ferraz de Vasconcelos", "Flora Rica", "Floreal", "Florínea", "Flórida Paulista", "Franca", "Francisco Morato", "Franco da Rocha", "Gabriel Monteiro", "Garça", "Gastão Vidigal", "Gavião Peixoto", "General Salgado", "Getulina", "Glicério", "Guaimbê", "Guaiçara", "Guapiara", "Guapiaçu", "Guaraci", "Guarani d'Oeste", "Guarantã", "Guararapes", "Guararema", "Guaratinguetá", "Guaraçaí", "Guareí", "Guariba", "Guarujá", "Guarulhos", "Guará", "Guatapará", "Guaíra", "Guzolândia", "Gália", "Herculândia", "Holambra", "Hortolândia", "Iacanga", "Iacri", "Iaras", "Ibaté", "Ibirarema", "Ibirá", "Ibitinga", "Ibiúna", "Icém", "Iepê", "Igarapava", "Igaratá", "Igaraçu do Tietê", "Iguape", "Ilha Comprida", "Ilha Solteira", "Ilhabela", "Indaiatuba", "Indiana", "Indiaporã", "Inúbia Paulista", "Ipaussu", "Iperó", "Ipeúna", "Ipiguá", "Iporanga", "Ipuã", "Iracemápolis", "Irapuru", "Irapuã", "Itaberá", "Itajobi", "Itaju", "Itanhaém", "Itaoca", "Itapecerica da Serra", "Itapetininga", "Itapeva", "Itapevi", "Itapira", "Itapirapuã Paulista", "Itaporanga", "Itapura", "Itapuí", "Itaquaquecetuba", "Itararé", "Itariri", "Itatiba", "Itatinga", "Itaí", "Itirapina", "Itirapuã", "Itobi", "Itu", "Itupeva", "Ituverava", "Itápolis", "Jaborandi", "Jaboticabal", "Jacareí", "Jaci", "Jacupiranga", "Jaguariúna", "Jales", "Jambeiro", "Jandira", "Jardinópolis", "Jarinu", "Jaú", "Jeriquara", "Joanópolis", "José Bonifácio", "João Ramalho", "Jumirim", "Jundiaí", "Junqueirópolis", "Juquitiba", "Juquiá", "Júlio Mesquita", "Lagoinha", "Laranjal Paulista", "Lavrinhas", "Lavínia", "Leme", "Lençóis Paulista", "Limeira", "Lindóia", "Lins", "Lorena", "Lourdes", "Louveira", "Lucianópolis", "Lucélia", "Luiziânia", "Lupércio", "Lutécia", "Luís Antônio", "Macatuba", "Macaubal", "Macedônia", "Magda", "Mairinque", "Mairiporã", "Manduri", "Marabá Paulista", "Maracaí", "Marapoama", "Marinópolis", "Mariápolis", "Martinópolis", "Marília", "Matão", "Mauá", "Mendonça", "Meridiano", "Mesópolis", "Miguelópolis", "Mineiros do Tietê", "Mira Estrela", "Miracatu", "Mirandópolis", "Mirante do Paranapanema", "Mirassol", "Mirassolândia", "Mococa", "Mogi das Cruzes", "Mogi Guaçu", "Mogi Mirim", "Mombuca", "Mongaguá", "Monte Alegre do Sul", "Monte Alto", "Monte Aprazível", "Monte Azul Paulista", "Monte Castelo", "Monte Mor", "Monteiro Lobato", "Monções", "Morro Agudo", "Morungaba", "Motuca", "Murutinga do Sul", "Nantes", "Narandiba", "Natividade da Serra", "Nazaré Paulista", "Neves Paulista", "Nhandeara", "Nipoã", "Nova Aliança", "Nova Campina", "Nova Canaã Paulista", "Nova Castilho", "Nova Europa", "Nova Granada", "Nova Guataporanga", "Nova Independência", "Nova Luzitânia", "Nova Odessa", "Novais", "Novo Horizonte", "Nuporanga", "Ocauçu", "Olímpia", "Onda Verde", "Oriente", "Orindiúva", "Orlândia", "Osasco", "Oscar Bressane", "Osvaldo Cruz", "Ourinhos", "Ouro Verde", "Ouroeste", "Pacaembu", "Palestina", "Palmares Paulista", "Palmeira d'Oeste", "Palmital", "Panorama", "Paraguaçu Paulista", "Paraibuna", "Paranapanema", "Paranapuã", "Parapuã", "Paraíso", "Pardinho", "Pariquera-Açu", "Parisi", "Patrocínio Paulista", "Paulicéia", "Paulistânia", "Paulo de Faria", "Paulínia", "Pederneiras", "Pedra Bela", "Pedranópolis", "Pedregulho", "Pedreira", "Pedrinhas Paulista", "Pedro de Toledo", "Penápolis", "Pereira Barreto", "Pereiras", "Peruíbe", "Piacatu", "Piedade", "Pilar do Sul", "Pindamonhangaba", "Pindorama", "Pinhalzinho", "Piquerobi", "Piquete", "Piracaia", "Piracicaba", "Piraju", "Pirajuí", "Pirangi", "Pirapora do Bom Jesus", "Pirapozinho", "Pirassununga", "Piratininga", "Pitangueiras", "Planalto", "Platina", "Poloni", "Pompéia", "Pongaí", "Pontal", "Pontalinda", "Pontes Gestal", "Populina", "Porangaba", "Porto Feliz", "Porto Ferreira", "Potim", "Potirendaba", "Poá", "Pracinha", "Pradópolis", "Praia Grande", "Pratânia", "Presidente Alves", "Presidente Bernardes", "Presidente Epitácio", "Presidente Prudente", "Presidente Venceslau", "Promissão", "Quadra", "Quatá", "Queiroz", "Queluz", "Quintana", "Rafard", "Rancharia", "Redenção da Serra", "Regente Feijó", "Reginópolis", "Registro", "Restinga", "Ribeira", "Ribeirão Bonito", "Ribeirão Branco", "Ribeirão Corrente", "Ribeirão do Sul", "Ribeirão dos Índios", "Ribeirão Grande", "Ribeirão Pires", "Ribeirão Preto", "Rifaina", "Rincão", "Rinópolis", "Rio Claro", "Rio das Pedras", "Rio Grande da Serra", "Riolândia", "Riversul", "Rosana", "Roseira", "Rubinéia", "Rubiácea", "Sabino", "Sagres", "Sales", "Sales Oliveira", "Salesópolis", "Salmourão", "Saltinho", "Salto", "Salto de Pirapora", "Salto Grande", "Sandovalina", "Santa Adélia", "Santa Albertina", "Santa Branca", "Santa Bárbara d'Oeste", "Santa Clara d'Oeste", "Santa Cruz da Conceição", "Santa Cruz da Esperança", "Santa Cruz das Palmeiras", "Santa Cruz do Rio Pardo", "Santa Ernestina", "Santa Fé do Sul", "Santa Gertrudes", "Santa Isabel", "Santa Lúcia", "Santa Maria da Serra", "Santa Mercedes", "Santa Rita d'Oeste", "Santa Rita do Passa Quatro", "Santa Rosa de Viterbo", "Santa Salete", "Santana da Ponte Pensa", "Santana de Parnaíba", "Santo Anastácio", "Santo André", "Santo Antônio da Alegria", "Santo Antônio de Posse", "Santo Antônio do Aracanguá", "Santo Antônio do Jardim", "Santo Antônio do Pinhal", "Santo Expedito", "Santos", "Santópolis do Aguapeí", "Sarapuí", "Sarutaiá", "Sebastianópolis do Sul", "Serra Azul", "Serra Negra", "Serrana", "Sertãozinho", "Sete Barras", "Severínia", "Silveiras", "Socorro", "Sorocaba", "Sud Mennucci", "Sumaré", "Suzano", "Suzanápolis", "São Bento do Sapucaí", "São Bernardo do Campo", "São Caetano do Sul", "São Carlos", "São Francisco", "São Joaquim da Barra", "São José da Bela Vista", "São José do Barreiro", "São José do Rio Pardo", "São José do Rio Preto", "São José dos Campos", "São João da Boa Vista", "São João das Duas Pontes", "São João de Iracema", "São João do Pau d'Alho", "São Lourenço da Serra", "São Luiz do Paraitinga", "São Manuel", "São Miguel Arcanjo", "São Paulo", "São Pedro", "São Pedro do Turvo", "São Roque", "São Sebastião", "São Sebastião da Grama", "São Simão", "São Vicente", "Tabapuã", "Tabatinga", "Taboão da Serra", "Taciba", "Taguaí", "Taiaçu", "Taiúva", "Tambaú", "Tanabi", "Tapiratiba", "Tapiraí", "Taquaral", "Taquaritinga", "Taquarituba", "Taquarivaí", "Tarabai", "Tarumã", "Tatuí", "Taubaté", "Tejupá", "Teodoro Sampaio", "Terra Roxa", "Tietê", "Timburi", "Torre de Pedra", "Torrinha", "Trabiju", "Tremembé", "Três Fronteiras", "Tuiuti", "Tupi Paulista", "Tupã", "Turiúba", "Turmalina", "Ubarana", "Ubatuba", "Ubirajara", "Uchoa", "União Paulista", "Uru", "Urupês", "Urânia", "Valentim Gentil", "Valinhos", "Valparaíso", "Vargem", "Vargem Grande do Sul", "Vargem Grande Paulista", "Vera Cruz", "Vinhedo", "Viradouro", "Vista Alegre do Alto", "Vitória Brasil", "Votorantim", "Votuporanga", "Várzea Paulista", "Zacarias", "Águas da Prata", "Águas de Lindóia", "Águas de Santa Bárbara", "Águas de São Pedro", "Álvares Florence", "Álvares Machado", "Álvaro de Carvalho", "Óleo"];
+const rpCidN=s=>normK(String(s||'')).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+function rpCidAcha(v){const n=rpCidN(v);if(!n)return '';return rpCidades().find(c=>rpCidN(c)===n)||''}
+function rpCidCombo(attrs,val,dis){return `<div class="rpcomb"><input class="inp" type="search" ${attrs} data-cb="cid" value="${esc(val||'')}" placeholder="Digite a cidade…" autocomplete="off" autocapitalize="characters" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" ${dis?'disabled':''}><div class="rpcbl" role="listbox" hidden></div></div>`}
+const RPCB={el:null,i:-1,L:[]};
+function rpCbLista(el){const n=rpCidN(el.value),A=rpCidades(),ini=[],mei=[];
+  A.forEach(c=>{const k=rpCidN(c);if(!n||k.startsWith(n))ini.push(c);else if(k.includes(n))mei.push(c)});
+  RPCB.el=el;RPCB.L=ini.concat(mei).slice(0,80);RPCB.i=n&&RPCB.L.length?0:-1;rpCbPinta()}
+function rpCbPinta(){const el=RPCB.el;if(!el)return;const box=el.parentNode.querySelector('.rpcbl');if(!box)return;
+  if(!RPCB.L.length){box.innerHTML='<div class="rpcbv">Nenhuma cidade de SP com esse nome</div>';box.hidden=false;el.setAttribute('aria-expanded','true');return}
+  box.innerHTML=RPCB.L.map((c,i)=>`<div class="rpcbo${i===RPCB.i?' on':''}" role="option" data-cbv="${esc(c)}" aria-selected="${i===RPCB.i}">${esc(c)}</div>`).join('');box.hidden=false;el.setAttribute('aria-expanded','true');
+  const on=box.querySelector('.on');if(on)on.scrollIntoView({block:'nearest'})}
+function rpCbFecha(){const el=RPCB.el;if(el){const b=el.parentNode&&el.parentNode.querySelector('.rpcbl');if(b)b.hidden=true;el.setAttribute('aria-expanded','false')}RPCB.el=null;RPCB.L=[];RPCB.i=-1}
+function rpCbEscolhe(el,c){el.value=c;rpCbFecha();el.dispatchEvent(new Event('change',{bubbles:true}))}
+document.addEventListener('focusin',e=>{const el=e.target;if(el&&el.dataset&&el.dataset.cb==='cid'){el.select&&el.select();rpCbLista(el)}});
+document.addEventListener('input',e=>{const el=e.target;if(el&&el.dataset&&el.dataset.cb==='cid')rpCbLista(el)});
+document.addEventListener('keydown',e=>{const el=e.target;if(!(el&&el.dataset&&el.dataset.cb==='cid'))return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(RPCB.el!==el)rpCbLista(el);const n=RPCB.L.length;if(!n)return;RPCB.i=(RPCB.i+(e.key==='ArrowDown'?1:-1)+n)%n;rpCbPinta()}
+  else if(e.key==='Enter'){e.preventDefault();const c=RPCB.el===el&&RPCB.L[RPCB.i>=0?RPCB.i:0];if(c)rpCbEscolhe(el,c)}
+  else if(e.key==='Escape'){rpCbFecha()}});
+document.addEventListener('mousedown',e=>{const o=e.target.closest&&e.target.closest('[data-cbv]');if(o&&RPCB.el){e.preventDefault();rpCbEscolhe(RPCB.el,o.dataset.cbv);return}
+  if(RPCB.el&&!(e.target.closest&&e.target.closest('.rpcomb')))rpCbFecha()});
+/* ao sair do campo: aceita o nome digitado se bater com uma cidade (sem acento), senão limpa */
+document.addEventListener('change',e=>{const el=e.target;if(!(el&&el.dataset&&el.dataset.cb==='cid'))return;const v=el.value.trim();if(!v){return}
+  const c=rpCidAcha(v)||(RPCB.el===el&&RPCB.L.length===1?RPCB.L[0]:'');if(c)el.value=c;else{el.value='';toast(`"${v}" não é uma cidade de SP da lista. Escolha na lista.`,'bad')}rpCbFecha()},true);
+document.addEventListener('focusout',e=>{const el=e.target;if(el&&el.dataset&&el.dataset.cb==='cid')setTimeout(()=>{if(RPCB.el===el&&document.activeElement!==el)rpCbFecha()},150)});
+
+/* ---------- 03/11: Preventiva aérea pela base do Geogrid (ponta A e ponta B) e mapa da rota no app do técnico ----------
+   * Base Geogrid (Preventiva › Base Geogrid): a coordenação importa o KMZ exportado do Geogrid. As linhas das pastas
+     escolhidas (cabos) viram a rede; os pontos (CEO, CTO, postes) ficam para a lista do caminho. Cada base vai para o
+     Storage em rp/geogrid/<id>.json (rede compacta) e rp/geogrid/<id>.kmz (original); a lista fica em ag_config.rp_geogrid.
+   * Nova rota › Traçado › "Pela base Geogrid": ponta A e ponta B por geolocalização (coordenada, link do Google Maps,
+     graus/minutos/segundos, "minha localização" ou toque no mapa). A rota segue os cabos da base pelo menor caminho,
+     mede os metros, lista CEO/CTO a até 30 m e gera o KMZ (linha "Rota", pontas A e B e os pontos do caminho).
+   * Técnico: a tela da preventiva aérea mostra o mapa da rota (ruas ou satélite, minha localização, rota inteira),
+     o botão Baixar KMZ e "Ir até a ponta A" no Google Maps. */
+const RPG={bases:{},rede:null,redeK:'',carga:null,erro:'',imp:null,eu:null,euW:null,fundo:'ruas',tfundo:'ruas'};
+const rpGeoCfg=()=>RP.cfg.rp_geogrid||{arqs:[]};
+const rpGeoArqs=()=>(rpGeoCfg().arqs||[]).filter(a=>a&&a.json);
+const RPG_R=6371008.8,RPG_RD=Math.PI/180;
+
+/* ---- coordenada: "lat, lng", link do Google Maps, graus/minutos/segundos ---- */
+function rpGeoCoord(t){let s=String(t||'').trim();if(!s)return null;try{s=decodeURIComponent(s)}catch(e){}
+  const ok=(a,b)=>isFinite(a)&&isFinite(b)&&Math.abs(a)<=90&&Math.abs(b)<=180&&!(a===0&&b===0)?[+(+a).toFixed(7),+(+b).toFixed(7)]:null;
+  let m=s.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);if(m)return ok(+m[1],+m[2]);
+  m=s.match(/[?&](?:q|query|destination|ll|center|daddr|saddr)=(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);if(m)return ok(+m[1],+m[2]);
+  m=s.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);if(m)return ok(+m[1],+m[2]);
+  const dms=[...s.matchAll(/(\d{1,3})\s*[°º]\s*(\d{1,2})\s*['’′]\s*(\d{1,2}(?:[.,]\d+)?)\s*(?:["”″]|'')?\s*([NSLOEW])/gi)];
+  if(dms.length>=2){const v=d=>{let x=+d[1]+ +d[2]/60+ +String(d[3]).replace(',','.')/3600;if(/[SOW]/i.test(d[4]))x=-x;return x};
+    const la=dms.find(d=>/[NS]/i.test(d[4])),lo=dms.find(d=>/[LOEW]/i.test(d[4]));if(la&&lo)return ok(v(la),v(lo))}
+  if(/goo\.gl|maps\.app/i.test(s))return 'curto';
+  const n=s.replace(/(\d),(\d)/g,'$1.$2').match(/-?\d+(?:\.\d+)?/g);if(n&&n.length>=2)return ok(+n[0],+n[1]);return null}
+const rpGeoTxt=c=>c?`${c[0].toFixed(6)}, ${c[1].toFixed(6)}`:'';
+
+/* ---- rede (grafo dos cabos) com índice espacial ---- */
+function rpGeoRede(L){const f=(L[0]&&L[0].c[0])||[-22.9,-47];const lat0=f[0],lon0=f[1],cs=Math.cos(lat0*RPG_RD);
+  const xy=(la,lo)=>[(lo-lon0)*RPG_RD*RPG_R*cs,(la-lat0)*RPG_RD*RPG_R],ll=(x,y)=>[lat0+y/(RPG_RD*RPG_R),lon0+x/(RPG_RD*RPG_R*cs)];
+  const X=[],Y=[],A=[],NG=new Map(),SA=[],SB=[],SV=[],SG=new Map(),C=40;
+  const addN=(x,y)=>{X.push(x);Y.push(y);A.push([]);const k=Math.round(x/3)+','+Math.round(y/3);(NG.get(k)||NG.set(k,[]).get(k)).push(X.length-1);return X.length-1};
+  const snapN=(x,y)=>{const cx=Math.round(x/3),cy=Math.round(y/3);let b=-1,bd=2.5;for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)(NG.get((cx+i)+','+(cy+j))||[]).forEach(n=>{const d=Math.hypot(X[n]-x,Y[n]-y);if(d<bd){bd=d;b=n}});return b>=0?b:addN(x,y)};
+  const addS=(a,b)=>{if(a===b)return -1;const s=SA.length;SA.push(a);SB.push(b);SV.push(1);A[a].push(s);A[b].push(s);
+    const x0=Math.floor(Math.min(X[a],X[b])/C),x1=Math.floor(Math.max(X[a],X[b])/C),y0=Math.floor(Math.min(Y[a],Y[b])/C),y1=Math.floor(Math.max(Y[a],Y[b])/C);
+    for(let i=x0;i<=x1;i++)for(let j=y0;j<=y1;j++){const k=i+','+j;(SG.get(k)||SG.set(k,[]).get(k)).push(s)}return s};
+  L.forEach(l=>{let p=-1;l.c.forEach(([la,lo])=>{const[x,y]=xy(la,lo),n=snapN(x,y);if(p>=0&&p!==n)addS(p,n);p=n})});
+  const proj=(s,x,y)=>{const ax=X[SA[s]],ay=Y[SA[s]],dx=X[SB[s]]-ax,dy=Y[SB[s]]-ay,L2=dx*dx+dy*dy;let t=L2?((x-ax)*dx+(y-ay)*dy)/L2:0;t=Math.max(0,Math.min(1,t));return{t,d:Math.hypot(ax+t*dx-x,ay+t*dy-y)}};
+  const perto=(x,y,max,ign)=>{const cx=Math.floor(x/C),cy=Math.floor(y/C),R=Math.ceil(max/C);let best=null;
+    for(let r=0;r<=R;r++){for(let i=-r;i<=r;i++)for(let j=-r;j<=r;j++){if(Math.max(Math.abs(i),Math.abs(j))!==r)continue;(SG.get((cx+i)+','+(cy+j))||[]).forEach(s=>{if(!SV[s]||(ign!=null&&(SA[s]===ign||SB[s]===ign)))return;const q=proj(s,x,y);if(q.d<=max&&(!best||q.d<best.d))best={s,t:q.t,d:q.d}})}
+      if(best&&best.d<=r*C)break}return best};
+  const inserir=(x,y,max,ign)=>{const r=perto(x,y,max,ign);if(!r)return null;const s=r.s,a=SA[s],b=SB[s],px=X[a]+r.t*(X[b]-X[a]),py=Y[a]+r.t*(Y[b]-Y[a]);
+    if(Math.hypot(px-X[a],py-Y[a])<0.5)return{n:a,d:r.d};if(Math.hypot(px-X[b],py-Y[b])<0.5)return{n:b,d:r.d};SV[s]=0;const n=addN(px,py);addS(a,n);addS(n,b);return{n,d:r.d}};
+  /* pontas soltas que terminam perto de outro cabo (até 6 m) entram na rede */
+  const n0=X.length;for(let n=0;n<n0;n++){if(A[n].filter(s=>SV[s]).length!==1)continue;const k=inserir(X[n],Y[n],6,n);if(k&&k.n!==n)addS(n,k.n)}
+  const w=s=>Math.hypot(X[SA[s]]-X[SB[s]],Y[SA[s]]-Y[SB[s]]);
+  return{X,Y,A,SA,SB,SV,xy,ll,inserir,w,nl:L.length}}
+function rpGeoCaminho(N,s,t){const n=N.X.length,D=new Float64Array(n).fill(Infinity),Pv=new Int32Array(n).fill(-1),H=[];D[s]=0;H.push([0,s]);
+  const up=i=>{while(i>0){const p=(i-1)>>1;if(H[p][0]<=H[i][0])break;[H[p],H[i]]=[H[i],H[p]];i=p}},dn=i=>{for(;;){let m=i;const l=2*i+1,r=l+1;if(l<H.length&&H[l][0]<H[m][0])m=l;if(r<H.length&&H[r][0]<H[m][0])m=r;if(m===i)break;[H[m],H[i]]=[H[i],H[m]];i=m}};
+  while(H.length){const[d,u]=H[0],last=H.pop();if(H.length){H[0]=last;dn(0)}if(d>D[u])continue;if(u===t)break;
+    for(const s of N.A[u]){if(!N.SV[s])continue;const v=N.SA[s]===u?N.SB[s]:N.SA[s],nd=d+N.w(s);if(nd<D[v]){D[v]=nd;Pv[v]=u;H.push([nd,v]);up(H.length-1)}}}
+  if(!isFinite(D[t]))return null;const p=[];for(let v=t;v!==-1;v=Pv[v])p.unshift(v);return{p,m:D[t]}}
+
+/* ---- carregar as bases do Storage ---- */
+async function rpGeoCarregar(){const arqs=rpGeoArqs(),key=arqs.map(a=>a.id).join('|');if(!arqs.length){RPG.rede=null;RPG.redeK='';return null}
+  if(RPG.rede&&RPG.redeK===key)return RPG.rede;if(RPG.carga)return RPG.carga;
+  RPG.carga=(async()=>{try{for(const a of arqs){if(RPG.bases[a.id])continue;const r=await sb.storage.from('agenda').download(a.json);if(!r||r.error||!r.data)throw new Error('não consegui baixar a base '+(a.versao||a.nome)+((r&&r.error&&': '+r.error.message)||''));RPG.bases[a.id]=JSON.parse(await r.data.text())}
+      const L=[],P=[];arqs.forEach(a=>{const b=RPG.bases[a.id]||{};(b.L||[]).forEach(l=>L.push({c:l}));(b.P||[]).forEach(p=>P.push(p))});
+      RPG.rede=rpGeoRede(L);RPG.rede.P=P;RPG.rede.L=L;RPG.redeK=key;RPG.erro='';return RPG.rede}
+    catch(e){RPG.erro=(e&&e.message)||String(e);return null}finally{RPG.carga=null}})();return RPG.carga}
+
+/* ---- calcular a rota A → B ---- */
+function rpGeoTipo(p){const t=kmzTipo({nome:p[0],pasta:p[4]||'',desc:'',est:''});return t==='cx'?'CEO':t==='cto'?'CTO':t==='poste'?'Poste':'Ponto'}
+function rpGeoRota(N,A,B){const pa=N.xy(A[0],A[1]),pb=N.xy(B[0],B[1]),ia=N.inserir(pa[0],pa[1],3000),ib=N.inserir(pb[0],pb[1],3000);
+  if(!ia||!ib)return{ok:false,msg:`Não há cabo da base a menos de 3 km da ponta ${!ia?'A':'B'}.`};
+  const r=rpGeoCaminho(N,ia.n,ib.n);if(!r)return{ok:false,msg:'A e B não estão ligados pelos cabos da base (redes separadas). Confira as pontas ou importe a base que liga os dois trechos.',da:Math.round(ia.d),db:Math.round(ib.d)};
+  const c=r.p.map(n=>N.ll(N.X[n],N.Y[n]).map(v=>+v.toFixed(7)));const m=Math.round(r.m);
+  /* pontos a até 30 m da rota */
+  let mnla=90,mxla=-90,mnlo=180,mxlo=-180;c.forEach(([a,b])=>{mnla=Math.min(mnla,a);mxla=Math.max(mxla,a);mnlo=Math.min(mnlo,b);mxlo=Math.max(mxlo,b)});const pad=0.0004;
+  const pts=[];let postes=0;(N.P||[]).forEach(p=>{if(p[1]<mnla-pad||p[1]>mxla+pad||p[2]<mnlo-pad||p[2]>mxlo+pad)return;let d=1e9;for(let i=1;i<c.length;i++){d=Math.min(d,rpDistSeg([p[1],p[2]],c[i-1],c[i]));if(d<1)break}
+    if(d>30)return;const tp=p[3]||rpGeoTipo(p);if(tp==='Poste'){postes++;return}pts.push({nome:p[0],lat:p[1],lng:p[2],d:Math.round(d),tp,on:tp==='CEO'||tp==='CTO'})});
+  const ord=q=>{let bi=0,bd=1e12;c.forEach((v,i)=>{const d=(v[0]-q.lat)**2+(v[1]-q.lng)**2;if(d<bd){bd=d;bi=i}});return bi};pts.sort((a,b)=>ord(a)-ord(b));
+  return{ok:true,c,m,da:Math.round(ia.d),db:Math.round(ib.d),pts,postes}}
+
+/* ---- KMZ da rota ---- */
+const rpXml=s=>String(s??'').replace(/[<>&'"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'})[c]);
+function rpGeoKml(o){const ln=(o.linhas||[]).filter(l=>l.c&&l.c.length>1),cc=c=>c.map(p=>`${p[1]},${p[0]},0`).join(' ');
+  const pm=(n,c,st,d)=>`<Placemark><name>${rpXml(n)}</name>${d?`<description>${rpXml(d)}</description>`:''}<styleUrl>#${st}</styleUrl><Point><coordinates>${c[1]},${c[0]},0</coordinates></Point></Placemark>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${rpXml(o.nome)}</name>
+<Style id="rota"><LineStyle><color>ff00b4ff</color><width>5</width></LineStyle></Style>
+<Style id="pa"><IconStyle><color>ff3d9e2e</color><scale>1.2</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/A.png</href></Icon></IconStyle></Style>
+<Style id="pb"><IconStyle><color>ff2b39c0</color><scale>1.2</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/B.png</href></Icon></IconStyle></Style>
+<Style id="pt"><IconStyle><scale>0.9</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle></Style>
+${ln.map((l,i)=>`<Placemark><name>${rpXml(i?l.nome||'Rota '+(i+1):'Rota')}</name><description>${rpXml((l.m?rpM(l.m):'')+(o.desc?' · '+o.desc:''))}</description><styleUrl>#rota</styleUrl><LineString><tessellate>1</tessellate><coordinates>${cc(l.c)}</coordinates></LineString></Placemark>`).join('\n')}
+${o.a?pm('Ponta A',o.a,'pa',o.aD):''}${o.b?pm('Ponta B',o.b,'pb',o.bD):''}
+${(o.pts||[]).length?`<Folder><name>Pontos no caminho</name>${o.pts.map(p=>pm(p.nome,[p.lat,p.lng],'pt',`${p.tp||''}${p.d!=null?' · '+p.d+' m do traçado':''}`)).join('')}</Folder>`:''}
+</Document></kml>`}
+async function rpGeoKmzBlob(o){const Z=await kmzLib(),z=new Z();z.file('doc.kml',rpGeoKml(o));return await z.generateAsync({type:'blob',mimeType:'application/vnd.google-earth.kmz',compression:'DEFLATE'})}
+function rpBaixa(blob,nome){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},4000)}
+const rpGeoNomeArq=s=>String(s||'rota').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9._-]+/g,'_').replace(/_+/g,'_').slice(0,80);
+function rpKmzDeX(x){const k=x.kmz||{},g=k.geo||{};return{nome:`${x.cod||'Rota'} · ${x.cidade||''}`,linhas:k.linhas||[],a:g.a||((k.linhas||[])[0]||{c:[]}).c[0],b:g.b||(()=>{const c=((k.linhas||[])[0]||{c:[]}).c;return c[c.length-1]})(),pts:x.pontos||[],desc:x.cidade||''}}
+const rpTemRota=x=>!!(x&&x.tipo==='prev'&&x.seg!=='sub'&&x.kmz&&(x.kmz.linhas||[]).some(l=>(l.c||[]).length>1));
+
+/* ---- aba Base Geogrid ---- */
+function rpGeoBaseHtml(){const arqs=rpGeoArqs(),I=RPG.imp,co=rpCo();
+  const lista=arqs.length?`<div class="tablewrap"><table><thead><tr><th>Base</th><th class="r">Cabos</th><th class="r">Metros</th><th class="r">Pontos</th><th>Importada</th>${co?'<th></th>':''}</tr></thead><tbody>${arqs.map(a=>`<tr><td><b>${esc(a.versao||a.nome)}</b><br><small class="muted">${esc(a.nome)}${(a.pastas||[]).length?' · '+esc(a.pastas.join(', ')):''}</small></td><td class="r">${rpFmt(a.lin||0)}</td><td class="r">${rpM(a.m||0)}</td><td class="r">${rpFmt(a.pts||0)}</td><td>${rpDH(a.em)}${a.por?'<br><small class="muted">'+esc(a.por)+'</small>':''}</td>${co?`<td><button class="btn sm" data-act="rpGeoRem" data-id="${a.id}">Remover</button></td>`:''}</tr>`).join('')}</tbody></table></div>`
+    :'<div class="rpbox warn">Nenhuma base do Geogrid importada. Sem ela, a Nova rota aérea usa só o KMZ anexado.</div>';
+  const imp=!co?'<p class="muted">A importação da base é feita pela coordenação.</p>':I?`<section class="rpsec"><h3>Importar ${esc(I.nome)}</h3><p class="muted">${rpFmt(I.nL)} linhas e ${rpFmt(I.nP)} pontos no arquivo. Marque as pastas que são <b>cabos</b>: só elas viram a rede da rota (cordoalha, dutos e projetos ficam de fora).</p>
+     <div class="rplin">${I.pastas.map((p,i)=>`<label><input type="checkbox" data-ch="rpGeoPasta" data-i="${i}" ${p.on?'checked':''}> ${esc(p.n||'(sem pasta)')} · ${rpFmt(p.lin)} linha${p.lin>1?'s':''} · ${rpM(p.m)}</label>`).join('')}</div>
+     <p class="muted" style="margin-top:8px">Selecionado: ${rpFmt(I.pastas.filter(p=>p.on).reduce((s,p)=>s+p.lin,0))} linhas · ${rpM(I.pastas.filter(p=>p.on).reduce((s,p)=>s+p.m,0))}</p>
+     <div class="actions"><button class="btn" data-act="rpGeoImpCanc">Cancelar</button><button class="btn primary" data-act="rpGeoImpSalvar">Salvar base</button></div></section>`
+    :`<div class="rpgrid"><label class="fld"><span>Nome da base *</span><input class="inp" id="rpGeoVer" placeholder="Ex.: Geogrid Campinas nov/2026"></label><label class="fld"><span>Arquivo do Geogrid (KMZ ou KML)</span><label class="btn">Escolher e ler<input type="file" accept=".kmz,.kml" data-ch="rpGeoImp" hidden></label></label></div>
+     <p class="muted">Pode importar várias bases (por cidade ou região): a rota usa todas juntas. Importar de novo com o mesmo nome substitui a anterior.</p>`;
+  return `<div class="rpbox info">A base do Geogrid é a rede de cabos usada para traçar a rota da preventiva aérea entre a ponta A e a ponta B.</div>${lista}${imp}`}
+
+/* ---- Nova rota › Traçado ---- */
+const rpGeoF=()=>{const F=rpF('prev');F.geo=F.geo||{a:'',b:'',A:null,B:null,clk:'a',res:null};if(!F.trm)F.trm=rpGeoArqs().length?'geo':'kmz';return F};
+function rpTracado(){const F=rpGeoF(),seg=`<div class="views rpseg rptrm">${[['geo','Pela base Geogrid (ponta A e B)'],['kmz','Anexar KMZ pronto']].map(([k,n])=>`<button data-act="rpTrm" data-v="${k}" aria-current="${F.trm===k}">${n}</button>`).join('')}</div>`;
+  return `<section class="rpsec"><h3>Traçado</h3>${seg}${F.trm==='kmz'?rpTracadoKmz():rpGeoForm()}</section>`}
+function rpGeoForm(){const F=rpGeoF(),g=F.geo,arqs=rpGeoArqs(),r=g.res;
+  if(!arqs.length)return `<div class="rpbox warn">Nenhuma base do Geogrid importada. ${rpCo()?'Importe em Preventiva › <b>Base Geogrid</b>.':'Peça à coordenação para importar em Preventiva › Base Geogrid.'} Enquanto isso, use "Anexar KMZ pronto".</div>`;
+  const pt=(k,n)=>{const c=g[k.toUpperCase()],v=g[k];return `<div class="rpgpt ${k}"><span class="rpgl">${k.toUpperCase()}</span><label class="fld"><span>Ponta ${k.toUpperCase()} · ${n}</span><input class="inp" id="rpGeo_${k}" data-ch="rpGeoPt" data-p="${k}" value="${esc(v||'')}" placeholder="-22.970700, -46.996100 ou link do Google Maps" autocomplete="off" spellcheck="false">
+    <small class="${c?'muted':v?'rpbad':'muted'}">${c?'✓ '+rpGeoTxt(c):v?'Não entendi a localização':'Cole a coordenada ou o link, use a sua localização ou toque no mapa'}</small></label>
+    <div class="rpgbt"><button class="btn sm" data-act="rpGeoEu" data-p="${k}">${_sv('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',15)} Minha localização</button><button class="btn sm${g.clk===k?' on':''}" data-act="rpGeoClk" data-p="${k}" aria-pressed="${g.clk===k}">Marcar no mapa</button></div></div>`};
+  const res=!r?'':r.ok?`<div class="rpbox ok rpgres"><b>Rota pelos cabos: ${rpM(r.m)}</b><span>${r.pts.filter(p=>p.tp==='CEO').length} CEO · ${r.pts.filter(p=>p.tp==='CTO').length} CTO${r.postes?' · '+r.postes+' postes':''} no caminho</span>
+     ${r.da>50||r.db>50?`<span class="rpbad">Atenção: ${r.da>50?`a ponta A está a ${rpM(r.da)} do cabo mais próximo`:''}${r.da>50&&r.db>50?' e ':''}${r.db>50?`a ponta B está a ${rpM(r.db)}`:''}. Confira a localização.</span>`:`<small class="muted">Ponta A a ${rpM(r.da)} do cabo · ponta B a ${rpM(r.db)}</small>`}</div>`
+    :`<div class="rpbox bad">${esc(r.msg)}</div>`;
+  const pts=(F.pontos||[]).length&&r&&r.ok?`<p class="muted" style="margin:8px 0 4px">Pontos no caminho (marque os que a equipe deve olhar):</p><div class="rplin">${F.pontos.map((p,i)=>`<label><input type="checkbox" data-ch="rpPto" data-i="${i}" ${p.on?'checked':''}> ${esc(p.nome)} <small class="muted">${esc(p.tp)} · ${rpFmt(p.d)} m do traçado</small></label>`).join('')}</div>`:'';
+  return `<div class="rpgpts">${pt('a','início')}${pt('b','fim')}</div>
+   <p class="muted rpgdica">${g.clk?`Toque no mapa para marcar a <b>ponta ${g.clk.toUpperCase()}</b>.`:'Toque em "Marcar no mapa" para escolher uma ponta pelo mapa.'} Linhas cinza: cabos da base. Laranja: a rota.</p>
+   <div id="rpGeoMap" class="rpgmap"></div>${RPG.carga?'<p class="muted">Carregando a base do Geogrid…</p>':RPG.erro?`<div class="rpbox bad">${esc(RPG.erro)}</div>`:''}
+   ${res}${r&&r.ok?`<div class="actions" style="justify-content:flex-start"><button class="btn" data-act="rpGeoKmz">Baixar KMZ da rota</button><button class="btn" data-act="rpGeoLimpa">Limpar pontas</button></div>`:''}${pts}`}
+async function rpGeoCalc(){const F=rpGeoF(),g=F.geo;if(!(g.A&&g.B)){g.res=null;return}const N=await rpGeoCarregar();if(!N){g.res={ok:false,msg:RPG.erro||'Base do Geogrid indisponível.'};return}
+  const r=rpGeoRota(N,g.A,g.B);g.res=r;if(r.ok){F.kmz={nome:`Rota ${rpGeoTxt(g.A)} → ${rpGeoTxt(g.B)}`,linhas:[{nome:'Rota',m:r.m,c:r.c,on:true}],geo:{a:g.A,b:g.B,base:rpGeoArqs().map(a=>a.versao||a.nome).join(', '),postes:r.postes}};F.pontos=r.pts;F.metros=String(r.m)}
+  else{F.kmz=null;F.pontos=[]}}
+const rpGeoAt=()=>{const y=window.scrollY;render();window.scrollTo(0,y)};
+async function rpGeoDefine(k,c){const F=rpGeoF(),g=F.geo;g[k.toUpperCase()]=c;g[k]=c?rpGeoTxt(c):'';if(k==='a'&&!g.B)g.clk='b';else if(g.A&&g.B)g.clk='';rpGeoAt();await rpGeoCalc();rpGeoAt();rpGeoEnquadra()}
+
+/* ---- mapas (planejamento e técnico) ---- */
+const rpPin=(t,cor)=>window.L.divIcon({className:'rpgpin',html:`<span style="background:${cor}"><b>${t}</b></span>`,iconSize:[26,26],iconAnchor:[13,26]});
+function rpFundoLy(map,f,ly){ly.clearLayers();const F=VT_FUNDOS[f]||VT_FUNDOS.ruas,LL=window.L;if(F.u){LL.tileLayer(F.u,{maxNativeZoom:F.max,maxZoom:21,attribution:F.at,crossOrigin:true}).addTo(ly);if(F.sob)LL.tileLayer(F.sob,{maxNativeZoom:F.max,maxZoom:21,crossOrigin:true}).addTo(ly)}}
+function rpCtrl(map,html){const LL=window.L,C=LL.Control.extend({onAdd(){const d=LL.DomUtil.create('div','rpgctl');d.innerHTML=html;LL.DomEvent.disableClickPropagation(d);return d}});const c=new C({position:'topright'});c.addTo(map);return c}
+let RPGM=null;
+async function rpGeoMapa(){let el=$('rpGeoMap');if(!el)return;RP_MPI.rpGeoMap=1;try{await vtLib()}catch(e){RP_MPI.rpGeoMap=0;el.innerHTML=`<p class="muted pad">${esc(e.message)}</p>`;return}
+  el=$('rpGeoMap');if(!el){RP_MPI.rpGeoMap=0;return}const LL=window.L,F=rpGeoF();
+  const map=LL.map(el,{zoomControl:true,preferCanvas:true,maxZoom:21}).setView(F.geo.A||rpCentro(F.cidade),F.geo.A?16:13);map.attributionControl.setPrefix(false);
+  const fundo=LL.layerGroup().addTo(map),base=LL.layerGroup().addTo(map),ly=LL.layerGroup().addTo(map);rpFundoLy(map,RPG.fundo,fundo);
+  rpCtrl(map,`<button type="button" data-geof="1">${RPG.fundo==='sat'?'Ruas':'Satélite'}</button>`);
+  el.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-geof]');if(!b)return;RPG.fundo=RPG.fundo==='sat'?'ruas':'sat';rpFundoLy(map,RPG.fundo,fundo);b.textContent=RPG.fundo==='sat'?'Ruas':'Satélite'});
+  RPGM={el,map,ly,base,draw:()=>rpGeoDesenha()};RP_MP.rpGeoMap=RPGM;RP_MPI.rpGeoMap=0;
+  map.on('click',ev=>{const g=rpGeoF().geo;if(!g.clk)return;rpGeoDefine(g.clk,[+ev.latlng.lat.toFixed(7),+ev.latlng.lng.toFixed(7)])});
+  map.on('moveend',()=>rpGeoBaseDesenha());
+  if(!RPG.rede&&rpGeoArqs().length){rpGeoCarregar().then(()=>{rpGeoBaseDesenha();if(F.geo.A&&F.geo.B&&!F.geo.res)rpGeoCalc().then(rpGeoAt)})}
+  rpGeoDesenha();rpGeoEnquadra()}
+function rpGeoBaseDesenha(){if(!RPGM||RP_MP.rpGeoMap!==RPGM||!RPG.rede)return;const LL=window.L,map=RPGM.map;RPGM.base.clearLayers();if(map.getZoom()<14)return;const b=map.getBounds().pad(0.2);let n=0;
+  for(const l of RPG.rede.L){if(n>4000)break;if(l.c.some(p=>b.contains(p))){LL.polyline(l.c,{color:'#7c8580',weight:2.5,opacity:.85,interactive:false}).addTo(RPGM.base);n++}}}
+function rpGeoDesenha(){if(!RPGM||RP_MP.rpGeoMap!==RPGM)return;const LL=window.L,F=rpGeoF(),g=F.geo;RPGM.ly.clearLayers();
+  if(g.res&&g.res.ok){LL.polyline(g.res.c,{color:'#ffffff',weight:9,opacity:.9}).addTo(RPGM.ly);LL.polyline(g.res.c,{color:'#ff8a00',weight:5,opacity:1}).addTo(RPGM.ly);
+    (F.pontos||[]).forEach(p=>LL.circleMarker([p.lat,p.lng],{radius:6,color:'#fff',weight:2,fillColor:p.tp==='CEO'?'#1d4ed8':'#7c3aed',fillOpacity:1}).bindTooltip(`${p.nome} · ${p.tp}`).addTo(RPGM.ly))}
+  if(g.A)LL.marker(g.A,{icon:rpPin('A','#2e9e3d'),draggable:true}).on('dragend',ev=>{const p=ev.target.getLatLng();rpGeoDefine('a',[+p.lat.toFixed(7),+p.lng.toFixed(7)])}).addTo(RPGM.ly);
+  if(g.B)LL.marker(g.B,{icon:rpPin('B','#c0392b'),draggable:true}).on('dragend',ev=>{const p=ev.target.getLatLng();rpGeoDefine('b',[+p.lat.toFixed(7),+p.lng.toFixed(7)])}).addTo(RPGM.ly);
+  RPGM.el.classList.toggle('clk',!!g.clk);rpGeoBaseDesenha()}
+function rpGeoEnquadra(){if(!RPGM||RP_MP.rpGeoMap!==RPGM)return;const LL=window.L,g=rpGeoF().geo,P=(g.res&&g.res.ok?g.res.c:[]).concat([g.A,g.B].filter(Boolean));if(!P.length)return;
+  try{if(P.length===1)RPGM.map.setView(P[0],Math.max(RPGM.map.getZoom(),16));else RPGM.map.fitBounds(LL.latLngBounds(P),{padding:[30,30],maxZoom:18})}catch(e){}}
+
+/* mapa do técnico */
+let RPTM=null;
+function rpTecRota(x){if(!rpTemRota(x))return '';const k=x.kmz,g=k.geo||{},a=g.a||k.linhas[0].c[0];
+  const ir=`https://www.google.com/maps/dir/?api=1&destination=${a[0]},${a[1]}`;
+  return `<section class="rpsec rptrota"><h3>Rota da preventiva <small class="muted">${rpM(k.m)}${(x.pontos||[]).length?' · '+x.pontos.length+' ponto'+(x.pontos.length>1?'s':''):''}</small></h3>
+   <div id="rpTM_${x.id}" class="rpgmap tec" data-id="${x.id}"></div>
+   <div class="rptbt"><button class="btn primary" data-act="rpKmzBaixar" data-id="${x.id}">Baixar KMZ</button><a class="btn" href="${ir}" target="_blank" rel="noopener">Ir até a ponta A</a></div>
+   ${(x.pontos||[]).length?`<details class="rptpts"><summary>Pontos no caminho (${x.pontos.length})</summary>${x.pontos.map(p=>`<div><b>${esc(p.nome)}</b> <small class="muted">${esc(p.tp||'')}</small></div>`).join('')}</details>`:''}</section>`}
+async function rpTecMapa(el){const id=el.id;RP_MPI[id]=1;try{await vtLib()}catch(e){RP_MPI[id]=0;el.innerHTML=`<p class="muted pad">${esc(e.message)}</p>`;return}
+  el=$(id);if(!el){RP_MPI[id]=0;return}const LL=window.L,x=rpGet(el.dataset.id);if(!x||!rpTemRota(x)){RP_MPI[id]=0;return}
+  const map=LL.map(el,{zoomControl:true,preferCanvas:true,maxZoom:21});map.attributionControl.setPrefix(false);
+  const fundo=LL.layerGroup().addTo(map),ly=LL.layerGroup().addTo(map),eu=LL.layerGroup().addTo(map);rpFundoLy(map,RPG.tfundo,fundo);
+  rpCtrl(map,`<button type="button" data-tf="1">${RPG.tfundo==='sat'?'Ruas':'Satélite'}</button><button type="button" data-teu="1">Minha localização</button><button type="button" data-ttudo="1">Rota inteira</button>`);
+  const tudo=()=>{const P=x.kmz.linhas.flatMap(l=>l.c);try{map.fitBounds(LL.latLngBounds(P),{padding:[24,24],maxZoom:18})}catch(e){}};
+  el.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('button');if(!t)return;
+    if(t.dataset.tf){RPG.tfundo=RPG.tfundo==='sat'?'ruas':'sat';rpFundoLy(map,RPG.tfundo,fundo);t.textContent=RPG.tfundo==='sat'?'Ruas':'Satélite'}
+    else if(t.dataset.ttudo)tudo();
+    else if(t.dataset.teu){if(!navigator.geolocation){toast('Este aparelho não informa a localização.','bad');return}
+      navigator.geolocation.getCurrentPosition(p=>{const c=[p.coords.latitude,p.coords.longitude];eu.clearLayers();LL.circle(c,{radius:Math.min(p.coords.accuracy||20,80),color:'#2563eb',weight:1,fillOpacity:.12}).addTo(eu);LL.circleMarker(c,{radius:7,color:'#fff',weight:3,fillColor:'#2563eb',fillOpacity:1}).addTo(eu);map.setView(c,Math.max(map.getZoom(),17))},
+        e=>toast('Não consegui pegar a localização: '+(e.message||'permissão negada'),'bad'),{enableHighAccuracy:true,timeout:15000,maximumAge:10000})}});
+  const k=x.kmz,g=k.geo||{};k.linhas.forEach(l=>{LL.polyline(l.c,{color:'#ffffff',weight:9,opacity:.9}).addTo(ly);LL.polyline(l.c,{color:'#ff8a00',weight:5}).addTo(ly)});
+  (x.pontos||[]).forEach(p=>LL.circleMarker([p.lat,p.lng],{radius:7,color:'#fff',weight:2,fillColor:p.tp==='CEO'?'#1d4ed8':'#7c3aed',fillOpacity:1}).bindTooltip(`${p.nome}${p.tp?' · '+p.tp:''}`).addTo(ly));
+  const c0=k.linhas[0].c,a=g.a||c0[0],b=g.b||c0[c0.length-1];LL.marker(a,{icon:rpPin('A','#2e9e3d')}).bindTooltip('Ponta A').addTo(ly);LL.marker(b,{icon:rpPin('B','#c0392b')}).bindTooltip('Ponta B').addTo(ly);
+  RPTM={el,map,draw:null};RP_MP[id]=RPTM;RP_MPI[id]=0;tudo()}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if($('rpGeoMap')&&!RP_MP.rpGeoMap&&!RP_MPI.rpGeoMap)rpGeoMapa();document.querySelectorAll('[id^="rpTM_"]').forEach(el=>{if(!RP_MP[el.id]&&!RP_MPI[el.id])rpTecMapa(el)})}catch(e){console.warn('rp geo mapa',e)}return o}}
+
+/* ---- ações ---- */
+Object.assign(ACT,{
+  rpTrm:async el=>{const F=rpGeoF(),v=el.dataset.v;F.trm=v;if(v==='kmz'&&F.kmz&&F.kmz.geo){F.kmz=null;F.pontos=[]}if(v==='geo'&&F.kmz&&!F.kmz.geo){F.kmz=null;F.pontos=[]}rpGeoAt();if(v==='geo'&&F.geo.A&&F.geo.B){await rpGeoCalc();rpGeoAt()}},
+  rpGeoClk:el=>{const g=rpGeoF().geo;g.clk=g.clk===el.dataset.p?'':el.dataset.p;rpGeoAt()},
+  rpGeoEu:el=>{const k=el.dataset.p;if(!navigator.geolocation){toast('Este aparelho não informa a localização.','bad');return}toast('Pegando a sua localização…');
+    navigator.geolocation.getCurrentPosition(p=>rpGeoDefine(k,[+p.coords.latitude.toFixed(7),+p.coords.longitude.toFixed(7)]),e=>toast('Não consegui pegar a localização: '+(e.message||'permissão negada'),'bad'),{enableHighAccuracy:true,timeout:15000,maximumAge:10000})},
+  rpGeoLimpa:()=>{const F=rpGeoF();F.geo={a:'',b:'',A:null,B:null,clk:'a',res:null};F.kmz=null;F.pontos=[];F.metros='';rpGeoAt()},
+  rpGeoKmz:async()=>{const F=rpGeoF(),g=F.geo;if(!(g.res&&g.res.ok))return;try{rpBaixa(await rpGeoKmzBlob({nome:`Rota preventiva ${F.cidade||''}`.trim(),linhas:F.kmz.linhas,a:g.A,b:g.B,pts:(F.pontos||[]).filter(p=>p.on),desc:F.cidade||''}),rpGeoNomeArq(`rota_${F.cidade||'preventiva'}_${hoje()}`)+'.kmz')}catch(e){toast('Não consegui gerar o KMZ: '+(e.message||e),'bad')}},
+  rpKmzBaixar:async el=>{const x=rpGet(el.dataset.id);if(!rpTemRota(x)){toast('Esta programada não tem traçado.','bad');return}try{rpBaixa(await rpGeoKmzBlob(rpKmzDeX(x)),rpGeoNomeArq(`${x.cod}_${x.cidade}`)+'.kmz')}catch(e){toast('Não consegui gerar o KMZ: '+(e.message||e),'bad')}},
+  rpGeoImpCanc:()=>{RPG.imp=null;rpGeoAt()},
+  rpGeoImpSalvar:async el=>{const I=RPG.imp;if(!I)return;const on=I.pastas.filter(p=>p.on).map(p=>p.n);if(!on.length){toast('Marque pelo menos uma pasta de cabos.','bad');return}
+    el.disabled=true;el.textContent='Salvando…';
+    try{const L=I.K.L.filter(l=>on.includes(l.pasta)).map(l=>l.c.map(p=>[+p[0].toFixed(7),+p[1].toFixed(7)]));
+      const P=I.K.P.map(p=>{const t=kmzTipo(p);return[p.nome,+p.lat.toFixed(7),+p.lon.toFixed(7),t==='cx'?'CEO':t==='cto'?'CTO':t==='poste'?'Poste':'Ponto']});
+      const old=rpGeoArqs().find(a=>(a.versao||'').toLowerCase()===I.versao.toLowerCase()),id=old?old.id:uid(),dir=`rp/geogrid/${id}`,v=Date.now();
+      const up=async(p,b,ct)=>{const r=await sb.storage.from('agenda').upload(p,b,{contentType:ct,upsert:false});if(r&&r.error)throw r.error};
+      const jp=`${dir}/rede-${v}.json`,kp=`${dir}/original-${v}${/\.kml$/i.test(I.nome)?'.kml':'.kmz'}`;
+      await up(jp,new Blob([JSON.stringify({v:1,versao:I.versao,L,P})],{type:'application/json'}),'application/json');
+      await up(kp,new Blob([I.buf]),/\.kml$/i.test(I.nome)?'application/vnd.google-earth.kml+xml':'application/vnd.google-earth.kmz');
+      const m=I.pastas.filter(p=>p.on).reduce((s,p)=>s+p.m,0),a={id,nome:I.nome,versao:I.versao,json:jp,kmz:kp,lin:L.length,m:Math.round(m),pts:P.length,pastas:on,em:Date.now(),por:meNome()};
+      const arqs=rpGeoArqs().filter(x=>x.id!==id).concat([a]);await rpCfgSalvar('rp_geogrid',{arqs});delete RPG.bases[id];RPG.rede=null;RPG.redeK='';RPG.imp=null;
+      toast(`Base ${I.versao} salva: ${rpFmt(L.length)} cabos, ${rpM(m)}.`);rpGeoAt()}
+    catch(e){el.disabled=false;el.textContent='Salvar base';toast('Não foi possível salvar a base: '+(e.message||e),'bad')}},
+  rpGeoRem:async el=>{const a=rpGeoArqs().find(x=>x.id===el.dataset.id);if(!a||!confirm(`Remover a base ${a.versao||a.nome}? As rotas já criadas não mudam.`))return;
+    await rpCfgSalvar('rp_geogrid',{arqs:rpGeoArqs().filter(x=>x.id!==a.id)});delete RPG.bases[a.id];RPG.rede=null;RPG.redeK='';rpGeoAt()}});
+Object.assign(CH,{
+  rpGeoPt:el=>{const k=el.dataset.p,c=rpGeoCoord(el.value),g=rpGeoF().geo;if(c==='curto'){toast('Link curto do Google Maps não traz a coordenada. Abra o link, toque no ponto e copie a coordenada (ou o link completo).','bad');g[k]=el.value;g[k.toUpperCase()]=null;rpGeoAt();return}
+    if(!c){g[k]=el.value;g[k.toUpperCase()]=null;g.res=null;rpGeoAt();return}rpGeoDefine(k,c)},
+  rpGeoPasta:el=>{RPG.imp.pastas[+el.dataset.i].on=el.checked;rpGeoAt()},
+  rpGeoImp:async el=>{const f=el.files[0];el.value='';if(!f)return;const ver=(($('rpGeoVer')||{}).value||'').trim();if(!ver){toast('Informe o nome da base antes de escolher o arquivo.','bad');return}
+    try{toast('Lendo o arquivo do Geogrid…');const buf=await f.arrayBuffer(),K=kmlLer(await kmzTexto(buf,f.name));if(!K.L.length)throw new Error('o arquivo não tem linhas (cabos)');
+      const len=c=>{let m=0;for(let i=1;i<c.length;i++)m+=rpDist(c[i-1],c[i]);return m},G=new Map();K.L.forEach(l=>{const k=l.pasta||'';const o=G.get(k)||{n:k,lin:0,m:0};o.lin++;o.m+=len(l.c);G.set(k,o)});
+      const pastas=[...G.values()].sort((a,b)=>b.m-a.m),cab=pastas.filter(p=>/cabo|fibra|backbone|rede|feeder|distribui|drop|\bfo\b/i.test(p.n)&&!/cordoalha|duto|projeto|planej/i.test(p.n));
+      pastas.forEach(p=>{p.on=cab.length?cab.includes(p):true;p.m=Math.round(p.m)});RPG.imp={nome:f.name,versao:ver,buf,K,nL:K.L.length,nP:K.P.length,pastas};rpGeoAt()}
+    catch(e){toast('Não consegui ler o arquivo: '+(e.message||e),'bad')}}});
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
