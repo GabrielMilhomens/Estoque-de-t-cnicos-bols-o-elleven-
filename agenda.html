@@ -15241,6 +15241,9 @@ const viewGEqVer=()=>acArea(()=>viewEqVer());
 Object.assign(RP_VIEWS,{gCampo:viewGCampo,gEqVer:viewGEqVer});
 /* título do budget na Rede Externa */
 {const A=typeof areaCfg==='function'&&areaCfg('re');if(A){const t0=A.texto;A.texto=v=>{v=t0?t0(v):v;return v.replace('terceirizada · Manutenção cliente','terceirizada · Reparo emergencial de rede')}}}
+/* 04/11: "Salvar budget" (gbSalvar) não passava pelo modo da área (o nome não segue g + maiúscula) e gravava na conta do GTD.
+   Agora roda com a conta da área aberta: na Rede Externa grava na 3.1.1.2.05.0008. */
+{const f=ACT.gbSalvar;if(f)ACT.gbSalvar=function(){return areaModoAt(()=>f.apply(this,arguments))}}
 
 /* ---------- 03/11: técnicos da Rede Externa (Equipe técnica › coluna Rede Externa) ----------
    Antes a Rede Externa usava a marcação do GTD (ag_equipe.gtd) para listar técnicos no despacho, na agenda e no "Agora".
