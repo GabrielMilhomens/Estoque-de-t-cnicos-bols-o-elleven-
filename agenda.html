@@ -2389,6 +2389,9 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 @media(max-width:760px){.rpgctl button{padding:4px 8px;min-height:30px;font-size:12px}.rpgmap.tec{height:400px}}
 .rpciarq{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 10px}.rpciarq .muted{font-size:13px}
 .rpcimap .rpcig{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px 12px}.rpcimap .fld{margin:0}
+/* 04/11 programadas no layout único do técnico */
+.rptvform{margin:10px 0 0}.rptvform .rpsec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.taccb .rpdl,.taccb .rpsec{margin-top:8px}
 </style>
 </head>
 <body>
@@ -15151,7 +15154,7 @@ function rpGeoEnquadra(){if(!RPGM||RP_MP.rpGeoMap!==RPGM)return;const LL=window.
 let RPTM=null;
 function rpTecRota(x){if(!rpTemRota(x))return '';const k=x.kmz,g=k.geo||{},a=g.a||k.linhas[0].c[0];
   const ir=`https://www.google.com/maps/dir/?api=1&destination=${a[0]},${a[1]}`;
-  return `<section class="rpsec rptrota"><h3>Rota da preventiva <small class="muted">${rpM(k.m)}${(x.pontos||[]).length?' · '+x.pontos.length+' ponto'+(x.pontos.length>1?'s':''):''}</small></h3>
+  return `<section class="rpsec rptrota"><h3>Rota da ${({prev:'preventiva',mel:'melhoria',ret:'retirada'})[x.tipo]||'atividade'} <small class="muted">${rpM(k.m)}${(x.pontos||[]).length?' · '+x.pontos.length+' ponto'+(x.pontos.length>1?'s':''):''}</small></h3>
    <div id="rpTM_${x.id}" class="rpgmap tec" data-id="${x.id}"></div>
    <div class="rptbt"><button class="btn primary" data-act="rpKmzBaixar" data-id="${x.id}">Baixar KMZ</button><a class="btn" href="${ir}" target="_blank" rel="noopener">Ir até a ponta A</a></div>
    ${(x.pontos||[]).length?`<details class="rptpts"><summary>Pontos no caminho (${x.pontos.length})</summary>${x.pontos.map(p=>`<div><b>${esc(p.nome)}</b> <small class="muted">${esc(p.tp||'')}</small></div>`).join('')}</details>`:''}</section>`}
@@ -15343,6 +15346,70 @@ Object.assign(CH,{rpCiArq:async el=>{const f=el.files[0];el.value='';if(!f)retur
   rpCiMap:el=>{ui.rpCI.map.m[el.dataset.k]=el.value===''?null:+el.value;rpRL()},
   rpCiCid:el=>{ui.rpCI.map.cid=el.value;rpRL()},
   rpCiAba:el=>{const W=RPCI_WB;if(!W)return;const a=el.value;rpciAbre(XLSX.utils.sheet_to_json(W.wb.Sheets[a],{header:1,defval:'',raw:true,blankrows:false}),W.nome,W.wb.SheetNames,a)}});
+
+/* ---------- 04/11: Programadas da Rede Externa no layout único do técnico ----------
+   Preventiva, Melhoria de rede, Retirada de cabo e Companhia elétrica passam a abrir na mesma tela do GTD, da Implantação
+   e da Transmissão: topo fixo com Voltar, faixa O QUE FAZER, etapas com horário (Aceite, Saída, Chegada, Serviço,
+   Revisão), dois contadores, seções que abrem e fecham e rodapé fixo com a ação. Aceitar, iniciar o deslocamento,
+   cheguei no local e enviar o apontamento passam a ser "segure o botão" (data-hold), como nas outras áreas.
+   As regras de cada passo continuam as mesmas (rpTAceite, rpTDesloc, rpTCheg, rpTEnviar, rpTEnvCs). */
+const RPTV_COR={prev:'#2F6B3B',mel:'#1F4F6B',ret:'#7A4B1E',cia:'#8A2E2E'};
+const rpTvNome=x=>{const p=rpProg(x.tipo);return p[1]+(x.tipo==='prev'?(x.seg==='sub'?' subterrânea':' aérea'):'')};
+const rpTvOque=x=>{const c=x.cia||{};return x.tipo==='cia'?(c.tipo||'Notificação da companhia'):x.tipo==='prev'?(x.seg==='sub'?'Vistoriar as caixas do cluster '+(x.cluster||''):x.motivo||'Preventiva aérea'):x.servico||rpProg(x.tipo)[1]};
+/* próximo passo da jornada: [ação, texto do botão, nota] */
+function rpTvPasso(x){const j=x.jor||{};if(x.status!=='desp')return null;
+  if(!j.aceite)return['rpTAceite','Segure para aceitar','O gestor fica sabendo que você recebeu a atividade.'];
+  if(!j.desloc)return['rpTDesloc','Segure para iniciar o deslocamento','Marca a sua saída para o local.'];
+  return['rpTCheg','Segure: cheguei no local','Segure assim que chegar. Libera as fotos e o apontamento.']}
+/* card da lista: a ação da jornada também é "segure" */
+{const _c=rpTvCard;rpTvCard=function(x){const h=_c.apply(this,arguments),ps=rpTvPasso(x);if(!ps)return h;
+  return h.replace(/<button class="tvpri" data-act="(rpTAceite|rpTDesloc|rpTCheg)" data-id="([^"]+)">([^<]*)<\/button>/,(m,a,id,t)=>`<button class="tvpri" data-act="${a}" data-id="${id}" data-hold="2000">Segure: ${t.charAt(0).toLowerCase()+t.slice(1)}</button>`)}}
+function rpTecTela(x){const j=x.jor||{},A=rpAps(x),c=x.cia||{},T=Date.now(),rj=A.find(a=>a.st==='rej'),dr=(ui.rpD||{})[rpDk(x)];
+  const fin=A.some(a=>a.tipo==='final'&&a.st!=='rej')||(x.status==='concl'&&!rpRejN(x)),concl=x.status==='concl'&&!rpRejN(x);
+  /* etapas e contadores */
+  const L=[['Aceite',j.aceite],['Saída',j.desloc],['Chegada',j.chegada],['Serviço',(A.filter(a=>a.st!=='rej').slice(-1)[0]||{}).env||null],['Revisão',concl?((A.filter(a=>a.st==='ok').slice(-1)[0]||{}).rev||{}).em||null:null]];
+  const cur=x.status==='desp'?(!j.aceite?0:!j.desloc?1:2):concl?5:fin&&!rj?4:3;
+  const qd=(x.data===hoje()?'Hoje':x.data<hoje()?'Desde '+dBR(x.data).slice(0,5):dBR(x.data))+(c.hora?' · companhia às '+c.hora:'')+(x.lim&&x.lim!==x.data?' · até '+dBR(x.lim).slice(0,5):'');
+  const nAp=A.filter(a=>a.st!=='rej').length;
+  const B1=x.metros?['Previsto',rpM(x.metros)]:c.cli?['Clientes afetados',c.cli+(c.cli>=3?' · massiva':'')]:['Data',x.data?dBR(x.data).slice(0,5):'—'];
+  const B2=x.status==='desp'?(!j.aceite?['Situação','Aguardando aceite']:!j.desloc?['Aceita às',hm(j.aceite)]:['A caminho há',gDur(T-j.desloc)]):concl?['Situação','Concluída']:rj?['Situação','Refazer apontamento']:fin?['Situação','Em revisão']:j.chegada&&x.status==='campo'?['No local desde',hm(j.chegada)]:['Apontamentos',String(nAp)];
+  const chip=rj?'<span class="chip bad">Refazer apontamento</span>':x.status==='desp'?(!j.aceite?'<span class="chip bad">Aguardando seu aceite</span>':!j.desloc?'<span class="chip ok">Aceita · informe a saída</span>':'<span class="chip info">A caminho</span>'):concl?'<span class="chip ok">Concluída</span>':fin?'<span class="chip info">Em revisão</span>':'<span class="chip warn">No local</span>';
+  const top=`<article class="tvtop"><div class="tvtt">${tvTag('gtd','Rede Externa · '+esc(rpTvNome(x))+' · '+esc(x.cod))}<div class="tvch">${chip}</div><h2 class="tvnome">${esc(x.cidade||'—')}${x.end?' · '+esc(x.end):''}</h2></div>
+   ${tvBand(RPTV_COR[x.tipo]||TV_GCOR,esc(rpTvOque(x)),esc(qd))}
+   <div class="tvbd">${tvSteps(tvStepsDe(L,cur))}<div class="tvbxs">${tvBox(B1[0],esc(B1[1]))}${tvBox(B2[0],esc(B2[1]))}</div></div></article>`;
+  /* o que fazer */
+  const cen=x.cen?[x.cen.dono&&'Duto: '+x.cen.dono,(x.cen.ops||[]).join(', ')].filter(Boolean).join(' · '):'';
+  const faz=[tvLinhaB('Serviço',esc(x.servico||'')),tvLinhaB('Motivo',esc(x.motivo||'')),tvLinhaB('Tipo da notificação',esc(c.tipo||'')),tvLinhaB('Horário da companhia',esc(c.hora||'')),
+    tvLinhaB('Clientes afetados',c.cli?c.cli+(c.cli>=3?' (massiva)':''):''),tvLinhaB('Protocolo',esc(c.prot||x.notif||''),(c.prot||x.notif)?`<button class="tvcp" data-act="tvCopiar" data-v="${esc(c.prot||x.notif)}" data-n="Protocolo" aria-label="Copiar protocolo">${TVI.copy}</button>`:''),
+    tvLinhaB('Metros previstos',x.metros?rpM(x.metros):''),tvLinhaB('Data-limite',x.lim?dBR(x.lim):''),tvLinhaB('Pontos no caminho',(x.pontos||[]).map(q=>esc(q.nome)).join(', ')),tvLinhaB('Cenário esperado',esc(cen)),
+    x.obs?`<div class="tobs"><b>Observação da gestão</b><span>${esc(x.obs)}</span></div>`:''].join('')+((k=>k?rpPacHtml(k,false):'')(rpPacDe(x)));
+  /* local e rota */
+  const map=x.lat&&x.lng?`https://www.google.com/maps/search/?api=1&query=${x.lat},${x.lng}`:x.end?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.end+', '+x.cidade)}`:'';
+  const endT=[x.end,x.cidade].filter(Boolean).join(' · ');
+  const loc=tvLinhaB('Endereço',esc(endT||'Não informado'),x.end?`<button class="tvcp" data-act="tvCopiar" data-v="${esc(x.end+', '+x.cidade)}" data-n="Endereço" aria-label="Copiar endereço">${TVI.copy}</button>`:'')
+    +(x.lat&&x.lng?tvCoord(x.lat,x.lng):'')+(map?`<div class="tcbt"><a class="tcbtn" href="${map}" target="_blank" rel="noopener">${IC.rota}Rota até o local</a></div>`:'')
+    +(typeof rpTecRota==='function'?rpTecRota(x):'');
+  const temRota=typeof rpTemRota==='function'&&rpTemRota(x);
+  /* apontamentos e formulário */
+  const apL=A.length?A.map(a=>`<div class="rpap"><div><b>${a.tipo==='final'?'Finalizado':'Parcial'}</b> · ${dBR(a.data)} <span class="chip ${RP_AP[a.st][1]}">${RP_AP[a.st][0]}</span><br><small class="muted">${esc(rpApResumo(x,a))}</small>
+      ${a.st==='rej'?`<br><small class="rpbad">${esc((a.mot||[]).map(m=>(RP_REJ.find(r=>r[0]===m)||[0,m])[1]).join(', '))}${a.motT?' · '+esc(a.motT):''}</small>`:''}</div>${a.st==='rej'?`<button class="btn sm primary" data-act="rpTRefaz" data-id="${x.id}" data-a="${a.id}">Refazer</button>`:''}</div>`).join(''):'';
+  let pre='',form='',foot='';const ps=rpTvPasso(x);
+  if(ps)foot=`<button class="bigbtn" data-act="${ps[0]}" data-id="${x.id}" data-hold="2000">${ps[1]}</button><small class="tvnota">${ps[2]}</small>`;
+  else if(x.tipo==='prev'&&x.seg==='sub'){form=rpTecSub(x).replace(/<button class="btn primary" data-act="rpTEnvCs"([^>]*)>([^<]*)<\/button>/g,(m,a,t)=>`<button class="bigbtn" data-act="rpTEnvCs"${a} data-hold="2000">Segure: ${t.charAt(0).toLowerCase()+t.slice(1)}</button>`)}
+  else if(dr&&dr.refaz||(!rj&&!fin)){form=rpTecForm(x).replace(/<div class="actions"><button class="btn primary" data-act="rpTEnviar"[^>]*>[^<]*<\/button><\/div>/,'');
+    const d=rpDr(x),falta=typeof rpFaltaAp==='function'?rpFaltaAp(x,d):[];
+    foot=`<button class="bigbtn" data-act="rpTEnviar" data-id="${x.id}" data-hold="3000">Segure para enviar para revisão</button><small class="tvnota">${falta&&falta.length?'Falta: '+esc(falta.slice(0,3).join(' · '))+(falta.length>3?' …':''):'O supervisor revisa o apontamento e as fotos.'}</small>`}
+  else if(rj)pre+='<div class="result bad" style="margin:0"><b>Apontamento rejeitado.</b> Abra Meus apontamentos e toque em Refazer.</div>';
+  else if(concl)pre+='<div class="result ok" style="margin:0">Atividade concluída e revisada.</div>';
+  else pre+='<div class="result info" style="margin:0">Finalizado enviado. Aguarde a revisão do supervisor.</div>';
+  const emCampo=x.status!=='desp';
+  return `<div class="tvhd"><button class="tvback" data-act="rpTVolta">${TVI.back}Voltar</button></div>${top}
+  ${pre?`<div class="tvpre">${pre}</div>`:''}
+  ${tvAcc('rp:faz:'+x.id,!emCampo,TVI.alert,'O que fazer',esc(rpTvOque(x)),faz||'<p class="muted" style="margin:0">Sem detalhes.</p>')}
+  ${tvAcc('rp:loc:'+x.id,x.status==='desp'&&!!j.desloc||temRota&&!emCampo,IC.pin,'Local e rota',esc(endT||'Endereço não informado')+(temRota?' · rota e KMZ':''),loc)}
+  ${A.length?tvAcc('rp:ap:'+x.id,!!rj,IC.doc,'Meus apontamentos',A.length+' enviado(s)'+(rj?' · 1 para refazer':''),apL):''}
+  ${form?`<div class="rptvform">${form}</div>`:''}
+  ${tvFoot(foot)}`}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
