@@ -2406,6 +2406,13 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 .rpthm,.rpfg>a,.rfog figure{position:relative}
 .ffad{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}.ffc{border-radius:10px;padding:6px;background:var(--bg)}.ffc>small{display:block;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:11.5px;margin-bottom:4px}
 .ffc.antes{border-top:3px solid #F2B33D}.ffc.depois{border-top:3px solid #8CBF3F}.ffvz{font-size:12.5px;color:var(--muted);font-style:italic}
+/* 05/11 iPhone: arquivo pronto */
+.iosov{position:fixed;inset:0;z-index:9999;background:rgba(10,20,14,.55);display:grid;place-items:end center;padding:12px}
+@media(min-width:700px){.iosov{place-items:center}}
+.iosbx{background:var(--surface);color:var(--ink);border-radius:18px;padding:18px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.iosbx h3{margin:0;font-size:20px}.iosnm{margin:0;display:flex;justify-content:space-between;gap:10px;font-size:15px}.iosnm b{word-break:break-all}.iosnm span{color:var(--muted);white-space:nowrap}
+.iosgo{min-height:56px;border:0;border-radius:12px;background:#8CBF3F;color:#132018;font:700 18px Barlow,sans-serif;cursor:pointer}
+.iosdc{margin:0;color:var(--muted);font-size:14.5px;line-height:1.4}.iosx{border:0;background:none;color:var(--muted);font:600 15px Barlow,sans-serif;padding:8px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -2447,7 +2454,8 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 </div>
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="sheetm"></div></div>
 <div id="toast" role="status"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://ksatofcjlqziqhblpwul.supabase.co" crossorigin><link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin><link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -9829,7 +9837,7 @@ Object.assign(ACT,{
   lmKml:el=>{const a=getAg(el.dataset.id),M=a&&a.lancMapa;if(!M)return;const c=l=>l.map(p=>`${p[1]},${p[0]},0`).join(' '),tx=v=>String(v||'').replace(/[<&]/g,' ');
     const k=`<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Trajeto ${a.etiqueta}</name><Style id="ex"><LineStyle><color>ff9a9d0f</color><width>4</width></LineStyle></Style>
 <Folder><name>Alterações de trajeto (executado)</name>${(M.alt||[]).map((t,i)=>`<Placemark><name>Alteração ${i+1} - executado ${t.exec} m (projeto ${t.proj} m)</name><description>${tx(t.motivo)}${M.obs?' - '+tx(M.obs):''}</description><styleUrl>#ex</styleUrl><LineString><coordinates>${c(t.ll)}</coordinates></LineString></Placemark>`).join('')}</Folder></Document></kml>`;
-    const b=new Blob([k],{type:'application/vnd.google-earth.kml+xml'}),u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download=`trajeto_${a.etiqueta}.kml`;document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}});
+    const b=new Blob([k],{type:'application/vnd.google-earth.kml+xml'});if(typeof window.__baixar==='function'){window.__baixar(`trajeto_${a.etiqueta}.kml`,b);return}const u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download=`trajeto_${a.etiqueta}.kml`;document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}});
 {const _c=closeModal;closeModal=function(){if(document.getElementById('lmSlotG'))lmMapaFim();return _c.apply(this,arguments)}}
 
 /* ---------- 22/10: CADASTRO GEOGRID · CABOS e CLIENTES ----------
@@ -15537,6 +15545,55 @@ const rePrCtx=()=>ui.cat==='gtd'&&(ui.gArea||'gtd')==='re';
 /* rótulo com o prazo nas listas de prioridade (o valor gravado não muda) */
 function rePrioSel(){if(!rePrCtx())return;document.querySelectorAll('select[data-k="prioridade"],select#ge_prioridade').forEach(s=>{[...s.options].forEach(o=>{const v=o.value||o.textContent.trim();if(RE_PRIO[v]&&!o.dataset.rp){o.value=v;o.textContent=v+' ('+RE_PRIO[v]+'h)';o.dataset.rp='1'}})})}
 {const _r=render;render=function(){const o=_r.apply(this,arguments);try{rePrioSel()}catch(e){}return o}}
+
+/* ---------- 05/11: iPhone · baixar KMZ e abertura do app ----------
+   1. No iPhone (Safari e app instalado na tela inicial) o KMZ abria uma página em branco do Supabase e não baixava:
+      o iOS não sabe mostrar .kmz e ignora o "download" do link. Agora, no iPhone, o arquivo é preparado no próprio app e
+      aparece a folha "Arquivo pronto" com "Salvar ou abrir": abre o menu de compartilhar do iOS (Salvar em Arquivos,
+      Google Earth, WhatsApp…). Vale para o KMZ da rota (programadas), anexos que não são PDF/foto (KMZ/KML da Implantação),
+      relatórios baixados, trajeto KML e as planilhas/PDFs gerados no app. Android e computador continuam iguais.
+   2. Armazenamento local (IndexedDB) com tempo limite: no iOS ele às vezes não responde na primeira abertura e travava
+      ações que dependem dele; agora desiste em 3 s e tenta de novo na próxima vez.
+   3. Tela "Carregando…": mostra a etapa e os segundos; depois de 15 s oferece "Recarregar". */
+const IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const ARQ_MIME={kmz:'application/vnd.google-earth.kmz',kml:'application/vnd.google-earth.kml+xml',pdf:'application/pdf',csv:'text/csv',
+  xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',xls:'application/vnd.ms-excel',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',zip:'application/zip',json:'application/json'};
+const arqExt=n=>(String(n||'').match(/\.([a-z0-9]+)$/i)||[,''])[1].toLowerCase();
+const arqTam=b=>b<1024?b+' B':b<1048576?Math.round(b/1024)+' KB':(b/1048576).toFixed(1).replace('.',',')+' MB';
+function arqLink(blob,nome){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nome;a.rel='noopener';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},60000)}
+function iosFolha(blob,nome){const ext=arqExt(nome),tipo=ARQ_MIME[ext]||blob.type||'application/octet-stream',f=new File([blob],nome,{type:tipo});
+  let pode=false;try{pode=!!(navigator.canShare&&navigator.canShare({files:[f]}))}catch(e){}
+  document.querySelectorAll('.iosov').forEach(e=>e.remove());const ov=document.createElement('div');ov.className='iosov';
+  ov.innerHTML=`<div class="iosbx" role="dialog" aria-modal="true" aria-labelledby="iosT"><h3 id="iosT">Arquivo pronto</h3>
+    <p class="iosnm"><b>${esc(nome)}</b><span>${arqTam(blob.size)}</span></p>
+    <button type="button" class="iosgo" data-i="go">${pode?'Salvar ou abrir':'Baixar o arquivo'}</button>
+    <p class="iosdc">${pode?(ext==='kmz'||ext==='kml'?'Escolha <b>Salvar em Arquivos</b> ou abra direto no <b>Google Earth</b>.':'Escolha <b>Salvar em Arquivos</b> ou o app em que quer abrir.'):'O arquivo vai para os Downloads do Safari.'}</p>
+    <button type="button" class="iosx" data-i="x">Fechar</button></div>`;
+  const fim=()=>{ov.remove();document.removeEventListener('keydown',kd)},kd=e=>{if(e.key==='Escape')fim()};
+  ov.addEventListener('click',async e=>{const b=e.target.closest('[data-i]');if(!b){if(e.target===ov)fim();return}
+    if(b.dataset.i==='x')return fim();
+    if(pode){try{await navigator.share({files:[f],title:nome});fim()}catch(er){if(er&&er.name==='AbortError')return;arqLink(blob,nome);fim()}}
+    else{arqLink(blob,nome);fim()}});
+  document.addEventListener('keydown',kd);document.body.appendChild(ov);setTimeout(()=>{const b=ov.querySelector('.iosgo');b&&b.focus()},30)}
+function baixaArq(blob,nome){if(IOS)return iosFolha(blob,nome);arqLink(blob,nome)}
+async function iosBaixaUrl(gerar,nome){toast('Preparando o arquivo…');try{const u=await gerar();if(!u)return;const r=await fetch(u);if(!r.ok)throw new Error('falha '+r.status);iosFolha(await r.blob(),nome)}
+  catch(e){toast('Não foi possível baixar o arquivo: '+((e&&e.message)||e),'bad')}}
+if(IOS){
+  rpBaixa=(b,n)=>baixaArq(b,n);window.__baixar=(n,b)=>baixaArq(b,n);
+  {const a0=ACT.anxOpen;ACT.anxOpen=el=>{const x=S.anexos.find(a=>a.id===el.dataset.id);if(!x||/\.(pdf|jpe?g|png|gif|webp|heic)$/i.test(x.nome||''))return a0(el);
+    return iosBaixaUrl(async()=>{const r=await sb.storage.from('agenda').createSignedUrl(x.path,120);if(r.error)throw r.error;return r.data.signedUrl},x.nome||'arquivo')}}
+  {const r0=ACT.relBaixar;if(r0)ACT.relBaixar=el=>iosBaixaUrl(async()=>{const r=await sb.storage.from('agenda').createSignedUrl(el.dataset.p,300);if(r.error)throw r.error;return r.data.signedUrl},el.dataset.n||String(el.dataset.p||'').split('/').pop()||'arquivo.pdf')}
+}
+/* IndexedDB com tempo limite */
+{const o=IDB.open;IDB.open=function(){if(this.p&&this.pOk)return this.p;if(this.pT)return this.pT;const me=this;me.p=null;const p=o.call(me);
+  me.pT=Promise.race([p,new Promise((_,rj)=>setTimeout(()=>rj(new Error('armazenamento local não respondeu')),3000))]).then(db=>{me.p=Promise.resolve(db);me.pOk=true;me.pT=null;return db},e=>{me.p=null;me.pT=null;throw e});return me.pT}}
+/* tela Carregando… com etapa e tempo */
+const BOOT={t0:0,et:'',iv:null};
+function bootMsg(){const m=$('loadMsg');if(!m||$('vLoad').classList.contains('hidden'))return;const s=Math.round((Date.now()-BOOT.t0)/1000);if(s<4)return;
+  m.innerHTML=`Carregando… ${esc(BOOT.et)} · ${s} s${s>=15?`<br><button type="button" class="btn sm" style="margin-top:10px" onclick="location.reload()">Recarregar</button><br><small class="muted">Se acontecer sempre, mande um print desta tela.</small>`:''}`}
+{const c0=checarSessao;checarSessao=async function(){BOOT.t0=Date.now();BOOT.et='verificando o acesso';clearInterval(BOOT.iv);BOOT.iv=setInterval(bootMsg,1000);
+  try{return await c0.apply(this,arguments)}finally{clearInterval(BOOT.iv);BOOT.iv=null;try{const m=$('loadMsg');if(m&&!/^Erro/.test(m.textContent))m.textContent='Carregando…'}catch(e){}}}}
+{const c0=carregar;carregar=async function(){if(BOOT.iv)BOOT.et='baixando as atividades';return c0.apply(this,arguments)}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
