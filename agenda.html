@@ -2392,6 +2392,20 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
 /* 04/11 programadas no layout único do técnico */
 .rptvform{margin:10px 0 0}.rptvform .rpsec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
 .taccb .rpdl,.taccb .rpsec{margin-top:8px}
+/* 04/11 fotos: antes ou depois */
+.ffov{position:fixed;inset:0;z-index:9999;background:rgba(10,20,14,.55);display:grid;place-items:end center;padding:12px}
+@media(min-width:700px){.ffov{place-items:center}}
+.ffbox{background:var(--surface);color:var(--ink);border-radius:18px;padding:16px;width:100%;max-width:440px;box-shadow:0 10px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:10px}
+.ffbox h3{margin:0;font-size:20px;line-height:1.25}.ffbox p{margin:0;color:var(--muted);font-size:14.5px;line-height:1.4}
+.ffim{position:relative;border-radius:12px;overflow:hidden;max-height:34vh;background:#000;display:grid;place-items:center}.ffim img{max-width:100%;max-height:34vh;object-fit:contain;display:block}
+.ffim span{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;font-weight:700;border-radius:999px;padding:2px 10px}
+.ffbt{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ffbt button{min-height:58px;border:0;border-radius:12px;font:700 17px Barlow,sans-serif;cursor:pointer;color:#132018}
+.ffa{background:#F2B33D}.ffd{background:#8CBF3F}.ffx{border:0;background:none;color:var(--muted);font:600 15px Barlow,sans-serif;padding:8px;cursor:pointer}
+.fft{position:absolute;left:4px;top:4px;font:700 10.5px Barlow,sans-serif;font-style:normal;letter-spacing:.04em;text-transform:uppercase;border-radius:6px;padding:1px 6px;color:#132018;pointer-events:none}
+.fft.antes{background:#F2B33D}.fft.depois{background:#8CBF3F}
+.rpthm,.rpfg>a,.rfog figure{position:relative}
+.ffad{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}.ffc{border-radius:10px;padding:6px;background:var(--bg)}.ffc>small{display:block;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:11.5px;margin-bottom:4px}
+.ffc.antes{border-top:3px solid #F2B33D}.ffc.depois{border-top:3px solid #8CBF3F}.ffvz{font-size:12.5px;color:var(--muted);font-style:italic}
 </style>
 </head>
 <body>
@@ -8442,14 +8456,16 @@ Object.assign(IN,{vQ:el=>{ui.vQ=el.value;clearTimeout(window._v19t);window._v19t
 /* ---------- 20/10: SLA DE 4 HORAS no Painel de KPIs do GTD (meta 80%, todas as categorias) ----------
    Todos os chamados validados pelo NOC no período (dia de início), do início (criação ou horário agendado) até a validação. */
 const G4_LIM=4*GTD_H,G4_META=80;
+/* limite e agrupamento por chamado (a Rede Externa troca: prazo pela prioridade) */
+var g4Lim=c=>G4_LIM,g4Grp=c=>c.categoria||'—';
 function g4Dados(P){const V=P.filter(c=>c.validadoEm),d=c=>c.validadoEm-gIni(c),med=L=>L.length?L.reduce((s,x)=>s+x,0)/L.length:null;
-  const ok=V.filter(c=>d(c)<=G4_LIM),fora=V.filter(c=>d(c)>G4_LIM),ab=P.filter(c=>!c.validadoEm&&GTD_ABERTOS.includes(c.status)),abFora=ab.filter(c=>gIni(c)<=Date.now()&&Date.now()-gIni(c)>G4_LIM);
+  const ok=V.filter(c=>d(c)<=g4Lim(c)),fora=V.filter(c=>d(c)>g4Lim(c)),ab=P.filter(c=>!c.validadoEm&&GTD_ABERTOS.includes(c.status)),abFora=ab.filter(c=>gIni(c)<=Date.now()&&Date.now()-gIni(c)>g4Lim(c));
   return{V,ok,fora,ab,abFora,mOk:med(ok.map(d)),mFora:med(fora.map(d)),ef:V.length?Math.round(ok.length/V.length*1000)/10:null}}
 const g4Pct=v=>v==null?'—':String(v).replace('.',',')+'%';
 function g4Secao(P){const D=g4Dados(P);if(!P.length)return '';
   const tot=D.V.length,ef=D.ef,cls=ef==null?'':ef>=G4_META?'ok':'bad',r=42,cir=2*Math.PI*r,fill=ef==null?0:cir*ef/100;
-  const grp={};D.V.forEach(c=>{const k=c.categoria||'—';(grp[k]=grp[k]||[]).push(c)});
-  const lin=Object.entries(grp).sort((a,b)=>b[1].length-a[1].length).map(([k,L])=>{const o=L.filter(c=>c.validadoEm-gIni(c)<=G4_LIM).length,e=Math.round(o/L.length*1000)/10;
+  const grp={};D.V.forEach(c=>{const k=g4Grp(c);(grp[k]=grp[k]||[]).push(c)});
+  const lin=Object.entries(grp).sort((a,b)=>b[1].length-a[1].length).map(([k,L])=>{const o=L.filter(c=>c.validadoEm-gIni(c)<=g4Lim(c)).length,e=Math.round(o/L.length*1000)/10;
     return `<div class="g4r"><span class="g4rn">${esc(k)}</span><div class="g4bar sm"><i class="ok" style="width:${o/L.length*100}%"></i><i class="bad" style="width:${(L.length-o)/L.length*100}%"></i></div><span class="g4rq">${o} de ${L.length}</span><b class="g4t ${e>=G4_META?'ok':'bad'}">${g4Pct(e)}</b></div>`}).join('');
   return `<section class="panel g4" style="margin-bottom:14px"><div class="secth"><h3>SLA de 4 horas</h3><span class="muted">chamados validados no período · do início até a validação do NOC</span></div>
    ${tot?`<div class="g4g">
@@ -11100,13 +11116,13 @@ function reBlocos(c,R){const B=[],res=reRes(R),imp=R.desfecho==='Improdutivo';
 const reCam=(c,tipo,lab)=>`<label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} ${lab||'Câmera'}<input type="file" accept="image/*" capture="environment" data-ch="gRfoFoto" data-id="${c.id}" data-cam="1" data-tipo="${tipo}" hidden></label>`;
 const reGal=(c,tipo)=>`<label class="btn sm chatfoto">${_sv('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',16)} Galeria<input type="file" accept="image/*" multiple data-ch="gRfoFoto" data-id="${c.id}" data-tipo="${tipo}" hidden></label>`;
 function reFotosTipo(c,R,tipo,tit,req){const L=(R.fotos||[]).map((f,k)=>[f,k]).filter(([f])=>f.tipo===tipo);
-  return `<div class="r2f"><span class="r2l">${tit}${req?' <em>*</em>':''}</span>${L.length?`<div class="rfog">${L.map(([f,k])=>`<figure><img src="${esc(f.data||G.fotos[f.path]||'')}" alt="${esc(tit)}"><button class="icon rfox" data-act="gRfoFotoRem" data-id="${c.id}" data-k="${k}" aria-label="Remover foto">✕</button>${f.path?'':'<small class="muted">enviando…</small>'}</figure>`).join('')}</div>`:''}<span class="r2cg">${reCam(c,tipo)}${reGal(c,tipo)}</span></div>`}
+  return `<div class="r2f"><span class="r2l">${tit}${req?' <em>*</em>':''}</span>${L.length?`<div class="rfog">${L.map(([f,k])=>`<figure><img src="${esc(f.data||G.fotos[f.path]||'')}" alt="${esc(tit)}">${typeof ffTag==='function'?ffTag(f):''}<button class="icon rfox" data-act="gRfoFotoRem" data-id="${c.id}" data-k="${k}" aria-label="Remover foto">✕</button>${f.path?'':'<small class="muted">enviando…</small>'}</figure>`).join('')}</div>`:''}<span class="r2cg">${reCam(c,tipo)}${reGal(c,tipo)}</span></div>`}
 function reGeoHtml(c,lat,lng,acc,i){const ok=reGeo(lat,lng),di=i==null?'':` data-i="${i}"`;
   return `<div class="regeo ${ok?'ok':''}">${ok?`<span><b>📍 ${(+lat).toFixed(6)}, ${(+lng).toFixed(6)}</b>${acc?`<small>precisão de ${acc} m</small>`:''}</span><a class="btn sm" href="${reMapa(lat,lng)}" target="_blank" rel="noopener">Ver no mapa</a>`:'<span class="muted">Sem localização</span>'}
    <button type="button" class="btn sm ${ok?'':'primary'}" data-act="reGps" data-id="${c.id}"${di}>${ok?'Atualizar':'Usar minha localização'}</button>
    <input class="inp regeoin" placeholder="ou cole: -22.97060, -46.99640" data-in="reCoord" data-id="${c.id}"${di} value="" aria-label="Coordenadas"></div>`}
 function reOutras(c,R){const L=(R.fotos||[]).map((f,k)=>[f,k]).filter(([f])=>!f.tipo);
-  return `<div class="rfof"><div class="ah"><b>Outras fotos</b><span class="muted" style="font-size:13px">${L.length?L.length+(L.length>1?' fotos':' foto'):'opcional'}</span></div><div class="rfog">${L.map(([f,k])=>`<figure><img src="${esc(f.data||G.fotos[f.path]||'')}" alt="Foto ${k+1}"><button class="icon rfox" data-act="gRfoFotoRem" data-id="${c.id}" data-k="${k}" aria-label="Remover foto">✕</button><input class="inp" placeholder="Legenda (ex.: cabo reparado)" data-in="gRfoLeg" data-id="${c.id}" data-k="${k}" value="${esc(f.leg||'')}"></figure>`).join('')}</div><span class="r2cg">${reCam(c,'')}${reGal(c,'')}</span></div>`}
+  return `<div class="rfof"><div class="ah"><b>Outras fotos</b><span class="muted" style="font-size:13px">${L.length?L.length+(L.length>1?' fotos':' foto'):'opcional'}</span></div><div class="rfog">${L.map(([f,k])=>`<figure><img src="${esc(f.data||G.fotos[f.path]||'')}" alt="Foto ${k+1}">${typeof ffTag==='function'?ffTag(f):''}<button class="icon rfox" data-act="gRfoFotoRem" data-id="${c.id}" data-k="${k}" aria-label="Remover foto">✕</button><input class="inp" placeholder="Legenda (ex.: cabo reparado)" data-in="gRfoLeg" data-id="${c.id}" data-k="${k}" value="${esc(f.leg||'')}"></figure>`).join('')}</div><span class="r2cg">${reCam(c,'')}${reGal(c,'')}</span></div>`}
 function reCxHtml(c,R,x,i){/* 27/10: caixa nova = adicionada no reparo; existente = onde os cabos foram inseridos */const tx=(k,ph)=>`<input class="inp" id="re_${i}_${k}" data-in="reCx" data-id="${c.id}" data-i="${i}" data-k="${k}" placeholder="${esc(ph||'')}" value="${esc(x[k]||'')}">`,
   sel=(k,L,ph)=>`<select class="inp r2sel ${x[k]?'':'vazio'}" data-ch="reCxS" data-id="${c.id}" data-i="${i}" data-k="${k}"><option value="">${ph}</option>${L.map(v=>{const[val,lab]=Array.isArray(v)?v:[v,v];return `<option value="${esc(val)}" ${x[k]===val?'selected':''}>${esc(lab)}</option>`}).join('')}</select>`;
   return `<section class="recx"><div class="recxh"><b>Caixa ${i+1}${x.nome?' · '+esc(x.nome):''}</b><button type="button" class="link" data-act="reCxRm" data-id="${c.id}" data-i="${i}">Tirar</button></div>
@@ -11170,9 +11186,7 @@ const reCxLinhas=r=>(r.cx||[]).map((x,i)=>[`${i+1}. ${x.nome||'—'}`,x.tipo||'�
   const tab=(head,L,cs)=>{if(!L.length)return;y=doc.lastAutoTable.finalY+5;doc.autoTable({startY:y,theme:'grid',head:[head],headStyles:{fillColor:[140,191,63],fontSize:8.5},styles:{fontSize:8.5,cellPadding:2},columnStyles:cs||{0:{cellWidth:48,fontStyle:'bold'}},margin:{left:m,right:m},body:L})};
   tab(['Relatório da rede externa',''],reLinhas(c,r));tab(['Caixa','Tipo','Situação','Localização','Cabos inseridos'],reCxLinhas(r),{0:{fontStyle:'bold'}});
   y=doc.lastAutoTable.finalY+7;if(fotos.length){if(y+20>H-12){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(40);doc.text('Fotos',m,y);y+=4}
-  const fw=(W-2*m-6)/2,fh=fw*0.75;let col=0;
-  fotos.forEach((f,k)=>{if(y+fh+10>H-12){doc.addPage();y=16;col=0}const xx=m+col*(fw+6);try{const pr=doc.getImageProperties(f.data),q=Math.min(fw/pr.width,fh/pr.height),w=pr.width*q,h=pr.height*q;doc.addImage(f.data,'JPEG',xx+(fw-w)/2,y+(fh-h)/2,w,h)}catch(e){}
-    doc.setDrawColor(212,221,216);doc.setLineWidth(.3);doc.rect(xx,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`Foto ${k+1}${f.leg?': '+f.leg:''}`,xx,y+fh+4,{maxWidth:fw});col++;if(col===2){col=0;y+=fh+10}});
+  y=ffPdfFotos(doc,fotos.map(f=>Object.assign({},f,{g:f.tipo||'_o',gt:f.tipo?(f.leg||''):'Outras fotos',leg:f.tipo?'':(f.leg||'')})),y,{m,W,H});
   const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, rede externa O&M ${c.pom||''}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
   return doc.output('blob')}}
 {const _g=ACT.gRfoGerar;ACT.gRfoGerar=async el=>{const id=el.dataset.id,R=(ui.gRfo||{})[id],c=G.ch.find(x=>x.id===id);if(!R||R.v!=='re'||!c)return _g(el);
@@ -11181,11 +11195,11 @@ const reCxLinhas=r=>(r.cx||[]).map((x,i)=>[`${i+1}. ${x.nome||'—'}`,x.tipo||'�
   const{fotos,ab,...rr}=R;rr.cx=(R.cx||[]).map(({_fotos,...x})=>x);rr.solucao=R.desfecho==='Improdutivo'?'Improdutivo: '+R.imp:(R.acoes||[]).join(' + ')+(R.desfecho===RE_PARC?' · pendente: '+R.pend:'');rr.local='Rede externa';rr.causa=R.motivo||R.imp||'';
   const ord=f=>f.tipo==='def'?0:f.tipo==='area'?1:/^cx:/.test(f.tipo||'')?2:3,Fo=Fp.slice().sort((a,b)=>ord(a)-ord(b));
   let pdf=null;try{toast('Gerando o relatório da rede externa…');const c0=Object.assign({},c,{desfecho:R.desfecho,encEquipe:'',rfo:rr});
-    const ff=[];for(const f of Fo){const d=await gImgData(f);if(d)ff.push({data:d,leg:reLeg(R,f)})}
+    const ff=[];for(const f of Fo){const d=await gImgData(f);if(d)ff.push({data:d,leg:reLeg(R,f),fase:f.fase||'',tipo:f.tipo||''})}
     const blob=await gRfoPdf(c0,ff),path=`chat/g/${id}/rfo/relatorio-re-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
   catch(e){toast('O relatório será gravado, mas o PDF não foi gerado: '+(e.message||e),'bad')}
   const nv=await gAcao(id,x=>{if(x.status!=='rfo'){toast('O relatório já foi gerado.','bad');return false}x.desfecho=R.desfecho;x.encEquipe='';x.rfo=rr;if(R.notaAdm)x.notaAdm=R.notaAdm;
-    x.rfoFotos=Fo.map(f=>({path:f.path,leg:reLeg(R,f),tipo:f.tipo||''}));if(pdf)x.rfoPdf=pdf;x.rfoTxt=gRfoTexto(x);x.status='lpu';x.ts.rfo=Date.now();gHist(x,'Relatório da rede externa gerado ('+R.desfecho+')'+(Fo.length?', '+Fo.length+' foto(s)':''))},
+    x.rfoFotos=Fo.map(f=>({path:f.path,leg:(f.fase?FF_N[f.fase]+' · ':'')+reLeg(R,f),tipo:f.tipo||'',fase:f.fase||''}));if(pdf)x.rfoPdf=pdf;x.rfoTxt=gRfoTexto(x);x.status='lpu';x.ts.rfo=Date.now();gHist(x,'Relatório da rede externa gerado ('+R.desfecho+')'+(Fo.length?', '+Fo.length+' foto(s)':''))},
     ui.perfil==='func'?'Relatório gerado. O administrador da sua empresa foi avisado.':'Relatório gerado. Agora preencha a LPU.');
   el.disabled=false;if(nv){delete ui.gRfo[id];IDB.del('gr:'+id).catch(()=>{});if(ui.perfil!=='func')ACT.gLpuAbrir({dataset:{id}})}}}
 
@@ -14752,12 +14766,12 @@ function rpRevHtml(x,a){const cr=rpCrit(x,a),al=rpAlertas(x,a),pode=a.st==='rev'
    ${al.length?`<p>${al.map(([t,c])=>`<i class="chip ${c}">${t}</i>`).join(' ')}</p>`:''}
    <div class="rp2 rprevg"><div>${rpInfo(campos)}${x.tipo==='prev'&&x.seg==='sub'?rpPosicao(x,a):''}</div>
     <div>${tipos.map(t=>{const n=(ft.find(r=>r[0]===t)||[])[2]||0,L=fs.filter(f=>f.t===t);return `<div class="rpft"><b>${esc(lbT(t))}</b> <small class="${L.length<n?'rpbad':'muted'}">${L.length} de ${n} exigida${n===1?'':'s'}</small>
-      <div class="rpfg">${L.map(f=>`<a href="${rpFU(f)}" target="_blank" rel="noopener"><img src="${rpFU(f)}" alt="${esc(lbT(t))}">${f.o==='gal'?'<i>galeria</i>':''}</a>`).join('')||'<span class="muted">—</span>'}</div></div>`}).join('')}</div></div>
+      ${(()=>{const im=f=>`<a href="${rpFU(f)}" target="_blank" rel="noopener"><img src="${rpFU(f)}" alt="${esc(lbT(t))}">${typeof ffTag==='function'?ffTag(f):''}${f.o==='gal'?'<i>galeria</i>':''}</a>`;return (typeof ffColunas==='function'&&!FF_FIX[t]&&ffColunas(L,im))||`<div class="rpfg">${L.map(im).join('')||'<span class="muted">—</span>'}</div>`})()}</div>`}).join('')}</div></div>
    ${cr.length?`<div class="rpbox bad"><b>Não cumpre os critérios:</b> ${cr.map(esc).join(' · ')}</div>`:''}
    ${a.st==='rej'?`<div class="rpbox">Rejeitada por ${esc((a.rev||{}).por||'')}: ${esc((a.mot||[]).map(m=>(RP_REJ.find(r=>r[0]===m)||[0,m])[1]).join(', '))}${a.motT?' · '+esc(a.motT):''}</div>`:''}
    ${pode&&rpRv()?`<section class="rpsec"><h3>Rejeitar</h3><div class="gdf rpchips">${RP_REJ.map(([k,n])=>`<button data-act="rpRjM" data-v="${k}" aria-pressed="${R.m.includes(k)}">${n}</button>`).join('')}</div>
       <textarea class="inp" rows="2" id="rpRjT" data-in="rpRjT" placeholder="Detalhe para o técnico${R.m.includes('outro')?' (obrigatório)':''}">${esc(R.t)}</textarea></section>`:''}
-   <div class="actions"><button class="btn" data-act="rpRevVolta" data-id="${x.id}">Voltar</button>
+   <div class="actions"><button class="btn" data-act="rpRevVolta" data-id="${x.id}">Voltar</button>${fs.length?`<button class="btn" data-act="rpPdfAp" data-id="${x.id}" data-a="${a.id}">Relatório fotográfico (PDF)</button>`:''}
     ${pode&&rpRv()?`<button class="btn" data-act="rpRej" data-id="${x.id}" data-a="${a.id}">Rejeitar</button><button class="btn primary" data-act="rpApr" data-id="${x.id}" data-a="${a.id}" ${cr.length?'disabled title="Não cumpre os critérios"':''}>Aprovar</button>`:''}
     ${!pode&&rpRv()&&!(x.lpu&&x.lpu.env)?`<button class="btn" data-act="rpReab" data-id="${x.id}" data-a="${a.id}">Reabrir</button>`:''}</div>`}
 function rpCamposRev(x,a){const v=a.v||{};if(x.tipo==='prev'&&x.seg!=='sub'){const tot=rpAps(x).filter(b=>b.st!=='rej').reduce((s,b)=>s+rpN(b.v.metros),0);
@@ -14828,7 +14842,7 @@ const rpDk=(x,cs)=>x.id+(cs?':'+cs:'');
 const rpDr=(x,cs)=>{ui.rpD=ui.rpD||{};const k=rpDk(x,cs);return ui.rpD[k]||(ui.rpD[k]={tipo:x.tipo==='cia'?'final':'parcial',data:hoje(),v:x.tipo==='prev'&&x.seg==='sub'?{anom:[],div:[]}:x.tipo==='mel'?{itens:(x.pac?[]:[])}:{},fotos:[]})};
 function rpFotoSlot(k,t,lb,n,d){const L=d.fotos.filter(f=>f.t===t),fal=L.length<n;
   return `<div class="rpslot ${n&&fal?'falta':''}"><div class="rpslh"><b>${esc(lb)}</b><small>${n?`${L.length} de ${n}`:`${L.length} · opcional`}</small></div>
-   <div class="rpfg">${L.map(f=>`<span class="rpthm"><img src="${rpFU(f)}" alt="">${f.o==='gal'?'<i>galeria</i>':''}<button data-act="rpFDel" data-k="${k}" data-u="${d.fotos.indexOf(f)}" aria-label="Apagar foto">×</button></span>`).join('')}
+   <div class="rpfg">${L.map(f=>`<span class="rpthm"><img src="${rpFU(f)}" alt="">${typeof ffTag==='function'?ffTag(f):''}${f.o==='gal'?'<i>galeria</i>':''}<button data-act="rpFDel" data-k="${k}" data-u="${d.fotos.indexOf(f)}" aria-label="Apagar foto">×</button></span>`).join('')}
     <label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} Câmera<input type="file" accept="image/*" capture="environment" data-ch="rpFoto" data-k="${k}" data-t="${t}" data-o="cam" hidden></label>
     <label class="btn sm chatfoto">Galeria<input type="file" accept="image/*" multiple data-ch="rpFoto" data-k="${k}" data-t="${t}" data-o="gal" hidden></label></div></div>`}
 const rpNumT=(k,f,lb,d,o)=>`<label class="fld"><span>${lb}${o&&o.req?' *':''}</span><input class="inp" type="number" min="0" step="${o&&o.dec?'any':'1'}" data-ch="rpTv" data-k="${k}" data-f="${f}" value="${esc(d.v[f]??'')}"></label>`;
@@ -15410,6 +15424,119 @@ function rpTecTela(x){const j=x.jor||{},A=rpAps(x),c=x.cia||{},T=Date.now(),rj=A
   ${A.length?tvAcc('rp:ap:'+x.id,!!rj,IC.doc,'Meus apontamentos',A.length+' enviado(s)'+(rj?' · 1 para refazer':''),apL):''}
   ${form?`<div class="rptvform">${form}</div>`:''}
   ${tvFoot(foot)}`}
+
+/* ---------- 04/11: Rede Externa · fotos com carimbo e "antes ou depois" ----------
+   1. As fotos das programadas (Preventiva, Melhoria, Retirada, Companhia elétrica) passam a usar o mesmo carimbo da
+      Implantação (reduzirFoto/CARIMBO): hora grande, data, dia da semana, endereço, coordenadas e código da foto.
+      A posição vem da foto (EXIF) ou do GPS do celular no momento da câmera; foto antiga da galeria sem localização
+      sai como "Foto da galeria, sem localização".
+   2. Toda foto da Rede Externa (programadas e relatório dos chamados de rede externa) pergunta antes de entrar:
+      "antes ou depois do serviço?". A resposta fica na foto (f.fase), vira uma etiqueta ANTES/DEPOIS gravada na imagem
+      e organiza a revisão e os relatórios em duas colunas, Antes × Depois, item por item.
+      Itens que já são de antes ou de depois (Antes, Depois, Emenda antes, Emenda depois) não perguntam. */
+const FF_FIX={antes:'antes',depois:'depois',emA:'antes',emD:'depois'};
+const FF_N={antes:'Antes',depois:'Depois'};
+let FOTO_FASE=null;
+function fotoFasePergunta(files){return new Promise(res=>{let u='';try{u=URL.createObjectURL(files[0])}catch(e){}
+  const n=files.length,ov=document.createElement('div');ov.className='ffov';
+  ov.innerHTML=`<div class="ffbox" role="dialog" aria-modal="true" aria-labelledby="ffT">${u?`<div class="ffim"><img src="${u}" alt="Foto escolhida">${n>1?`<span>+${n-1}</span>`:''}</div>`:''}
+    <h3 id="ffT">${n>1?`Estas ${n} fotos são`:'Esta foto é'} de antes ou de depois do serviço?</h3>
+    <p><b>Antes</b>: como você encontrou. <b>Depois</b>: como ficou depois da correção.</p>
+    <div class="ffbt"><button type="button" class="ffa" data-f="antes">Antes do serviço</button><button type="button" class="ffd" data-f="depois">Depois do serviço</button></div>
+    <button type="button" class="ffx" data-f="">Cancelar</button></div>`;
+  const fim=v=>{ov.remove();document.removeEventListener('keydown',esc_);try{u&&URL.revokeObjectURL(u)}catch(e){}res(v)},esc_=e=>{if(e.key==='Escape')fim(null)};
+  ov.addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(b)fim(b.dataset.f||null);else if(e.target===ov)fim(null)});document.addEventListener('keydown',esc_);
+  document.body.appendChild(ov);setTimeout(()=>{const b=ov.querySelector('.ffa');if(b)b.focus()},30)})}
+/* etiqueta ANTES/DEPOIS gravada na imagem, junto do carimbo */
+{const d0=CARIMBO.desenhar;CARIMBO.desenhar=function(c,m){d0.apply(this,arguments);const f=FOTO_FASE;if(!f)return;
+  const x=c.getContext('2d'),u=Math.min(c.width,c.height)/100,t=f==='antes'?'ANTES':'DEPOIS',P=3.2*u;x.font=`700 ${4.4*u}px "Barlow",Arial,sans-serif`;
+  const w=x.measureText(t).width;x.fillStyle=f==='antes'?'#F2B33D':'#8CBF3F';x.fillRect(P,P,w+3.4*u,7*u);x.fillStyle='#132018';x.textBaseline='middle';x.fillText(t,P+1.7*u,P+3.6*u);x.textBaseline='alphabetic'}}
+const ffTag=f=>f&&f.fase?`<em class="fft ${f.fase}">${FF_N[f.fase]}</em>`:'';
+/* duas colunas Antes × Depois (tela) */
+function ffColunas(L,img){if(!L.some(f=>f.fase))return null;const A=L.filter(f=>f.fase!=='depois'),D=L.filter(f=>f.fase==='depois');
+  const col=(T,k,vz)=>`<div class="ffc ${k}"><small>${k==='antes'?'Antes':'Depois'} · ${T.length}</small><div class="rpfg">${T.map(img).join('')||`<span class="ffvz">${vz}</span>`}</div></div>`;
+  return `<div class="ffad">${col(A,'antes','Sem foto do antes')}${col(D,'depois','Sem foto do depois')}</div>`}
+/* fotos no PDF: por item, Antes à esquerda e Depois à direita. F = [{data, leg, fase, g, gt}] */
+function ffPdfFotos(doc,F,y,o){const m=o.m,W=o.W,H=o.H,fw=(W-2*m-6)/2,fh=fw*0.75;let n=0;
+  const img=(f,xx,yy,lab)=>{try{const pr=doc.getImageProperties(f.data),q=Math.min(fw/pr.width,fh/pr.height),w=pr.width*q,h=pr.height*q;doc.addImage(f.data,'JPEG',xx+(fw-w)/2,yy+(fh-h)/2,w,h)}catch(e){}
+    doc.setDrawColor(212,221,216);doc.setLineWidth(.3);doc.rect(xx,yy,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(lab,xx,yy+fh+4,{maxWidth:fw})};
+  const vazio=(xx,yy,t)=>{doc.setDrawColor(225,225,225);doc.setLineWidth(.3);doc.rect(xx,yy,fw,fh);doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.setTextColor(170);doc.text(t,xx+fw/2,yy+fh/2,{align:'center'})};
+  const cab=()=>{[[m,'ANTES',[242,179,61]],[m+fw+6,'DEPOIS',[140,191,63]]].forEach(([xx,t,c])=>{doc.setFillColor(...c);doc.rect(xx,y,fw,6,'F');doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(19,32,24);doc.text(t,xx+2,y+4.2)});y+=8};
+  const G=[];F.forEach(f=>{const k=f.g||'';let g=G.find(x=>x.k===k);if(!g)G.push(g={k,tit:f.gt||'',L:[]});g.L.push(f)});
+  G.forEach(g=>{if(y+fh+22>H-12){doc.addPage();y=16}
+    if(g.tit){doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(40);doc.text(g.tit,m,y+4);y+=7}
+    if(!g.L.some(f=>f.fase)){let col=0;g.L.forEach(f=>{if(y+fh+10>H-12){doc.addPage();y=16;col=0}img(f,m+col*(fw+6),y,`Foto ${++n}${f.leg?': '+f.leg:''}`);col++;if(col===2){col=0;y+=fh+10}});if(col)y+=fh+10;return}
+    const A=g.L.filter(f=>f.fase!=='depois'),D=g.L.filter(f=>f.fase==='depois'),R=Math.max(A.length,D.length);cab();
+    for(let i=0;i<R;i++){if(y+fh+10>H-12){doc.addPage();y=16;cab()}
+      A[i]?img(A[i],m,y,`Foto ${++n} · Antes${A[i].leg?' · '+A[i].leg:''}`):vazio(m,y,'Sem foto do antes');
+      D[i]?img(D[i],m+fw+6,y,`Foto ${++n} · Depois${D[i].leg?' · '+D[i].leg:''}`):vazio(m+fw+6,y,'Sem foto do depois');y+=fh+10}
+    y+=2});
+  return y}
+/* programadas: carimbo da Implantação + pergunta */
+Object.assign(CH,{rpFoto:async el=>{const fs=[...(el.files||[])],k=el.dataset.k,t=el.dataset.t,o=el.dataset.o,d=rpDrK(k),x=rpGet(k.split(':')[0]);
+  if(!d||!fs.length){el.value='';return}const fase=FF_FIX[t]||await fotoFasePergunta(fs);el.value='';if(!fase)return;
+  if(fs.length>1)toast('Enviando '+fs.length+' fotos…');FOTO_FASE=fase;
+  try{for(const f of fs){try{const u=await reduzirFoto(f,{etq:x?x.cod:'RE',cam:o==='cam'});d.fotos.push({t,p:await rpFotoUp(x,u),o,em:Date.now(),fase})}catch(e){toast('Foto não foi enviada: '+((e&&e.message)||e),'bad')}}}
+  finally{FOTO_FASE=null}
+  const y=window.scrollY;render();window.scrollTo(0,y)}});
+/* chamados de rede externa (relatório no lugar do RFO): mesma pergunta */
+{const _f=CH.gRfoFoto;CH.gRfoFoto=async(el,e)=>{const id=el.dataset.id,R=(ui.gRfo||{})[id],fs=[...(el.files||[])];if(!R||R.v!=='re'||!fs.length)return _f(el,e);
+  const fase=await fotoFasePergunta(fs);if(!fase){el.value='';return}
+  const n0=(R.fotos||[]).length;FOTO_FASE=fase;R.fotos=R.fotos||[];const push=R.fotos.push;R.fotos.push=function(...it){it.forEach(x=>{x.fase=fase});return push.apply(this,it)};
+  try{return await _f(el,e)}finally{FOTO_FASE=null;if(R.fotos&&Object.prototype.hasOwnProperty.call(R.fotos,'push'))delete R.fotos.push;(R.fotos||[]).slice(n0).forEach(x=>{if(!x.fase)x.fase=fase});gRfoSalvar(id);if(typeof r2Re==='function')r2Re()}}}
+/* relatório fotográfico (PDF) do apontamento da programada */
+async function rpFotoData(f){if(f.u)return f.u;try{let u=RP.fu[f.p];if(!u){const s=await sb.storage.from('agenda').createSignedUrl(f.p,600);if(s.error)return null;u=s.data.signedUrl}
+  const b=await (await fetch(u)).blob();return await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.onerror=()=>r(null);fr.readAsDataURL(b)})}catch(e){return null}}
+const ffTxt=h=>String(h==null?'':h).replace(/<br\s*\/?>/gi,' · ').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").trim();
+async function rpPdfAp(x,a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m=14,W=210,H=297;let y=18;
+  const tit=rpProg(x.tipo)[1]+(x.tipo==='prev'?(x.seg==='sub'?' subterrânea':' aérea'):'');
+  doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(40);doc.text('Relatório fotográfico · Rede Externa',m,y);doc.setDrawColor(140,191,63);doc.setLineWidth(.8);doc.line(m,y+3,W-m,y+3);
+  const c=x.cia||{};
+  doc.autoTable({startY:y+7,theme:'grid',styles:{fontSize:8.5,cellPadding:2},margin:{left:m,right:m},columnStyles:{0:{cellWidth:32,fontStyle:'bold',fillColor:[244,249,236]},2:{cellWidth:32,fontStyle:'bold',fillColor:[244,249,236]}},
+    body:[['Código',x.cod,'Atividade',tit],['Cidade',x.cidade||'','Endereço',x.end||''],['Técnico',gTecN(a.tec||x.tec),'Apontamento',(x.tipo==='prev'&&x.seg==='sub'?'Caixa '+(a.cs||''):a.tipo==='final'?'Finalizado':'Parcial')],
+      ['Data do serviço',a.data?dBR(a.data):'','Enviado',rpDH(a.env)],['Situação',RP_AP[a.st][0],c.prot?'Protocolo':'Serviço',c.prot||x.servico||x.motivo||'']]});
+  const camp=rpCamposRev(x,a).filter(r=>r&&r[1]!==''&&r[1]!=null).map(([k,v])=>[k,ffTxt(v)]);
+  if(camp.length)doc.autoTable({startY:doc.lastAutoTable.finalY+5,theme:'grid',head:[['Apontamento','']],headStyles:{fillColor:[140,191,63],fontSize:8.5},styles:{fontSize:8.5,cellPadding:2},columnStyles:{0:{cellWidth:48,fontStyle:'bold'}},margin:{left:m,right:m},body:camp});
+  y=doc.lastAutoTable.finalY+7;const ft=rpReqFotos(x,a.v||{}),lb=t=>(ft.find(r=>r[0]===t)||[0,rpFotoN(t)])[1],fs=a.fotos||[];
+  const ordem=[...new Set(ft.map(r=>r[0]).concat(fs.map(f=>f.t)))],F=[];
+  for(const t of ordem)for(const f of fs.filter(f=>f.t===t)){const d=await rpFotoData(f);if(d)F.push({data:d,fase:f.fase||(FF_FIX[t]||''),g:t,gt:lb(t),leg:f.o==='gal'?'galeria':''})}
+  if(F.length){if(y+20>H-12){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(40);doc.text('Fotos · antes e depois',m,y);y+=5;
+    /* Antes/Depois que são itens separados (Melhoria, Retirada, emenda) viram um par só */
+    const par={antes:'_ad',depois:'_ad',emA:'_em',emD:'_em'},pt={_ad:'Antes e depois',_em:'Emenda'};F.forEach(f=>{if(par[f.g]){f.gt=pt[par[f.g]];f.g=par[f.g]}});
+    ffPdfFotos(doc,F,y,{m,W,H})}
+  const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, rede externa ${x.cod}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
+  return doc.output('blob')}
+Object.assign(ACT,{rpPdfAp:async el=>{const x=rpGet(el.dataset.id),a=x&&rpAps(x).find(b=>b.id===el.dataset.a);if(!a)return;el.disabled=true;toast('Gerando o relatório fotográfico…');
+  try{const b=await rpPdfAp(x,a);rpBaixa(b,`relatorio-${x.cod}-${a.data||hoje()}.pdf`)}catch(e){toast('Não foi possível gerar o PDF: '+((e&&e.message)||e),'bad')}el.disabled=false}});
+
+/* ---------- 05/11: Rede Externa · prioridade com prazo ----------
+   Na abertura e na edição do chamado de rede externa a prioridade mostra o prazo: Normal (24h), Alta (8h), Escalonado (4h).
+   O valor gravado continua Normal/Alta/Escalonado (filtros, cores e Sala de situação não mudam).
+   O SLA do chamado de rede externa passa a valer para todas as categorias, com o prazo da prioridade, contado do início
+   (criação ou horário agendado) até a validação. O Painel de KPIs da Rede Externa troca o "SLA de 4 horas" por
+   "SLA por prioridade" (dentro/fora do prazo, por prioridade) e o card de SLA passa a contar todos os chamados validados. */
+const RE_PRIO={Normal:24,Alta:8,Escalonado:4};
+const reLimH=c=>RE_PRIO[c&&c.prioridade]||24,reLim=c=>reLimH(c)*GTD_H;
+const rePrCtx=()=>ui.cat==='gtd'&&(ui.gArea||'gtd')==='re';
+{const _s=gSla;gSla=function(c){if(!reDe(c))return _s.apply(this,arguments);if(c.status==='cancelado')return null;const ini=gIni(c),lim=ini+reLim(c),h=reLimH(c);
+  if(!c.validadoEm&&ini>Date.now())return{t:'SLA '+h+'h',cls:''};
+  if(c.validadoEm)return lim-c.validadoEm>=0?{t:'Dentro do SLA ('+h+'h)',cls:'ok',ok:true}:{t:'SLA '+h+'h estourado',cls:'bad',ok:false};
+  const d=lim-Date.now();return d>=0?{t:'SLA '+h+'h: faltam '+gDur(d),cls:d<Math.min(GTD_H,reLim(c)/4)?'warn':'info'}:{t:'SLA '+h+'h estourado há '+gDur(-d),cls:'bad'}}}
+/* painel: prazo pela prioridade */
+{const l0=g4Lim,g0=g4Grp;g4Lim=c=>reDe(c)?reLim(c):l0(c);g4Grp=c=>reDe(c)?(c.prioridade||'Normal')+' ('+reLimH(c)+'h)':g0(c)}
+{const _s=g4Secao;g4Secao=function(P){const h=_s.apply(this,arguments);if(!rePrCtx()||!h)return h;
+  return h.replace('<h3>SLA de 4 horas</h3><span class="muted">','<h3>SLA por prioridade</h3><span class="muted">Normal 24h · Alta 8h · Escalonado 4h · ')
+   .replace(/dentro de 4h/g,'dentro do prazo').replace(/Até 4 horas/g,'Dentro do prazo').replace(/Acima de 4 horas/g,'Fora do prazo')
+   .replace('<span>Por categoria</span><span>até 4h · eficiência</span>','<span>Por prioridade</span><span>no prazo · eficiência</span>')
+   .replace(/até 4 horas e (\d+) acima de 4 horas/,'no prazo e $1 fora do prazo').replace(/passou de 4h/g,'passou do prazo').replace(/passaram de 4h/g,'passaram do prazo')}}
+{const _p=gPainelGeral;gPainelGeral=function(){let h=_p.apply(this,arguments);if(!rePrCtx())return h;try{
+  const ini=ui.gpIni,fim=ui.gpFim,V=G.ch.filter(c=>c.status!=='cancelado'&&c.validadoEm&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim),ok=V.filter(c=>{const s=gSla(c);return s&&s.ok}).length;
+  h=h.replace(/<div class="kpi ([^"]*)"><b>[^<]*<\/b><span>SLA indisponibilidade \(\d+ de \d+ em até 4h\)<\/span><\/div>/,()=>`<div class="kpi ${V.length&&ok<V.length?'bad':'ok'}"><b>${V.length?pct(ok,V.length)+'%':'—'}</b><span>SLA por prioridade (${ok} de ${V.length} no prazo)</span></div>`)
+   .replace(/<div class="tvkv"><b class="[^"]*">[^<]*<\/b><small>SLA indisponibilidade · \d+ de \d+ em até 4h<\/small><\/div>/,()=>`<div class="tvkv"><b class="${V.length&&ok<V.length?'bad':''}">${V.length?pct(ok,V.length)+'%':'—'}</b><small>SLA por prioridade · ${ok} de ${V.length} no prazo</small></div>`)
+   .replace('<h3>Indisponibilidades em andamento (SLA 4h)</h3>','<h3>Indisponibilidades em andamento</h3>')}catch(e){console.warn('reprio',e)}return h}}
+/* rótulo com o prazo nas listas de prioridade (o valor gravado não muda) */
+function rePrioSel(){if(!rePrCtx())return;document.querySelectorAll('select[data-k="prioridade"],select#ge_prioridade').forEach(s=>{[...s.options].forEach(o=>{const v=o.value||o.textContent.trim();if(RE_PRIO[v]&&!o.dataset.rp){o.value=v;o.textContent=v+' ('+RE_PRIO[v]+'h)';o.dataset.rp='1'}})})}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{rePrioSel()}catch(e){}return o}}
 
 if(RECUP){showAuth('cNewPass');$('npTitle').textContent='Definir nova senha'}
 if(/error_code=otp_expired|error=access_denied/.test(location.hash)){history.replaceState(null,'',location.pathname);showAuth('cForgot');$('fgMsg').textContent='Esse link expirou ou já foi usado. Peça um novo abaixo.'}
