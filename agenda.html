@@ -3297,7 +3297,7 @@ const prazoPergunta=a=>a.status==='execucao'&&ultimoDia(a)&&a.ts&&a.ts.inicio&&(
 const prazoHoje=a=>a.prazo&&a.prazo.data===hoje()?a.prazo:null;
 const MOT_PRAZO=['Volume maior que o previsto','Infraestrutura parcialmente obstruída','Falta de material','Chuva ou condição climática','Acesso ao cliente restrito','Outro motivo'];
 function diasRange(ini,fim,uteis){const out=[];if(!ini)return out;fim=fim&&fim>=ini?fim:ini;if(fim===ini)return [ini];let d=ini;while(d<=fim&&out.length<62){const w=new Date(d+'T12:00:00').getDay();if(!uteis||(w!==0&&w!==6))out.push(d);d=addD(d,1)}return out}
-function criarAgs(etq,fases,tec,dias,por,extra){const g=uid(),fz=ALLF.map(f=>f.k).filter(k=>fases.includes(k));dias.forEach(d=>S.ags.push(Object.assign({id:uid(),etiqueta:etq,fase:fz[0],fases:fz,data:d,tec,status:'agendada',ts:{},rel:{},criadoPor:por,grupo:g},extra||{})));return fz}
+function criarAgs(etq,fases,tec,dias,por,extra){const g=uid(),fz=ALLF.map(f=>f.k).filter(k=>fases.includes(k));dias.forEach(d=>S.ags.push(Object.assign({id:uid(),etiqueta:etq,fase:fz[0],fases:fz,data:d,tec,status:'agendada',ts:{},rel:{},criadoPor:por,criadoEm:Date.now(),grupo:g},extra||{})));return fz}
 const rangeHtml=(pre,ini,fim,uteis)=>`<div class="grid2 even" style="gap:0 12px"><label class="f"><span>Data de início</span><input type="date" class="inp" id="${pre}Ini" data-ch="${pre==='ag'?'agF':'rpR'}" data-f="data" value="${ini}"></label><label class="f"><span>Data de fim</span><input type="date" class="inp" id="${pre}Fim" data-ch="${pre==='ag'?'agF':'rpR'}" data-f="dataFim" value="${fim}" min="${ini}"></label></div>
   <label class="chk" style="margin-top:-4px"><input type="checkbox" id="${pre}Ut" data-ch="${pre==='ag'?'agF':'rpR'}" data-f="uteis" ${uteis?'checked':''}> Somente dias úteis</label><p class="muted" id="${pre}Cnt" style="margin:-6px 0 12px;font-size:13.5px">${diasTxt(diasRange(ini,fim,uteis))}</p>${typeof ntBloco==='function'?ntBloco(pre):''}`;
 const diasTxt=L=>!L.length?'Nenhum dia no intervalo.':L.length===1?`1 dia: ${dBR(L[0])}.`:`${L.length} dias, de ${dBR(L[0])} a ${dBR(L[L.length-1])}.`;
@@ -9420,7 +9420,13 @@ Object.assign(ACT,{prAb:el=>{ui.prOpen=ui.prOpen||{};ui.prOpen[el.dataset.id]=!u
       a metragem do relatório entra em Rede executada. */
 /* ---- 1. continuação órfã ---- */
 function contOrfa(a){if(!a||a.status!=='agendada')return null;const fz=fasesOf(a);if(!fz.length)return null;let ult=null;
-  for(const f of fz){const x=faseFim(a.etiqueta,f);if(!x||x.id===a.id)return null;if(!ult||(x.ts&&ult.ts&&x.ts.conclusao>ult.ts.conclusao))ult=x}return ult}
+  for(const f of fz){const x=faseFim(a.etiqueta,f);if(!x||x.id===a.id)return null;if(!ult||(x.ts&&ult.ts&&x.ts.conclusao>ult.ts.conclusao))ult=x}
+  /* 06/11: só encerra o que é continuação de verdade (dia já trabalhado, aguardando continuação/prazo, outro dia do mesmo
+     agendamento ou criado antes da conclusão). Agendamento novo, feito depois que a fase foi concluída (retrabalho,
+     nova validação de link), não é cancelado. */
+  if(ult&&!contEhCont(a,ult))return null;return ult}
+function contEhCont(a,x){if((a.diario||[]).length||a.aguardaPrazo||(a.prazo&&a.prazo.status==='pendente'))return true;
+  if(a.grupo&&x.grupo&&a.grupo===x.grupo)return true;const fim=x.ts&&x.ts.conclusao;if(a.criadoEm&&fim)return a.criadoEm<fim;return false}
 function contFechar(a,x){a.status='cancelada';a.aguardaPrazo=false;if(a.prazo&&a.prazo.status==='pendente')a.prazo.status='encerrado';
   a.encOutra={por:x.fora?null:x.id,data:x.data,em:Date.now(),auto:true,fora:!!x.fora}}
 const contVarre=()=>{const L=[];S.ags.forEach(a=>{const x=contOrfa(a);if(x){contFechar(a,x);L.push(a)}});return L};
