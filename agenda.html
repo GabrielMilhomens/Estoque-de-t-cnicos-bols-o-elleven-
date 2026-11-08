@@ -15858,6 +15858,405 @@ Object.assign(ACT,{rkXlsx:()=>{const ini=ui.gpIni||hoje().slice(0,8)+'01',fim=ui
     ['Por origem',grp(x=>x.o==='rota'?'Rotas preventivas (Programadas)':'Chamados de preventiva','Origem')],['Por técnico',grp(x=>x.tec,'Técnico')],['Por cidade',grp(x=>x.cid,'Cidade')],['Detalhamento',det],
     ['Filtros',xFiltros({'Tela':'Painel de KPIs › Rede Externa › Preventiva','Período':dBR(ini)+' a '+dBR(fim),'Regra':'Tirado da LPU: rotas preventivas (apontamentos aprovados, pela data do apontamento) e chamados de preventiva (LPU enviada e não reprovada, pela data da LPU)','Itens da LPU':'Km aéreo/subterrâneo: SEV0083 · Caixas subterrâneas: SEV0022b · Postes: SEV0001 a SEV0004 (rota aérea: postes equipados do apontamento) · Caixas de emenda: SEV0084 e SEV0037 · Plaquetas: SEV0005','Linhas no detalhamento':det.length})]],'Planilha da preventiva baixada.')}});
 
+/* ---------- 08/11 (Etapa 2): Companhia elétrica no formato dos Acompanhamentos da ferramenta da Manutenção ----------
+   Rede Externa › Programadas › Companhia elétrica, com quatro abas:
+   * Mapa e rotas: o dia no mapa (só o dia, dia + atrasados, semana ou mês) com a rede GeoGrid por baixo; ao lado
+     Do dia (marcar, despachar, resultado, editar, baixar a lista), Atrasados (em blocos de até 3 km que cabem num dia)
+     e Rotas (monta a rota com os horários da companhia, mostra conflito e despacha para o técnico).
+   * Lista: Dia / Semana / Mês / Tudo, filtros de tipo, situação, rede e "só a acompanhar", busca, ordem de rota sugerida
+     no dia, "sem localização", Verificar rede de todos e Exportar (colunas da planilha TROCA DE POSTES).
+   * Painel do mês: recebidas, com ação, % improdutiva, despachadas e massivas; ação realizada, situação, tipo,
+     por cidade, atuação por equipe e pendentes no mês.
+   * Importar: e-mail da companhia colado (ou .eml, PDF, Excel) com a conferência da rede, e a base histórica
+     (planilha "TROCA DE POSTES", aba NOTIFICAÇÕES): importar de novo atualiza, sem mexer no que foi editado aqui.
+   Registros continuam em ag_re_prog (tipo cia). Massiva = risco para 3 ou mais clientes. O resultado vem do técnico
+   (apontamento) ou da gestão (Resultado). Entra na Esteira só quando é despachada. */
+const CIA_T=[['Troca de poste','#d97706',60,/troca d[eo] poste|substitui[cç][aã]o d[eo] poste|implanta[cç][aã]o de poste|remo[cç][aã]o de poste/],['Limpeza de cabo','#0284c7',90,/limpeza|cabos inativos|retirada de cabo/],
+  ['Reordenamento','#7c3aed',90,/reorden|ordenamento/],['Irregularidade','#dc2626',60,/irregular|clandestin/],['Regularização / ofício','#059669',90,/regulariza|of[ií]cio|emerg[eê]ncia/],['Outro','#6b7280',60,null]];
+RP_CIA_T.splice(0,RP_CIA_T.length,...CIA_T.map(t=>t[0]));
+const CIA_MASS=3;
+const ciaTp=x=>{const t=String((x&&x.cia||x||{}).tipo||'');if(CIA_T.some(c=>c[0]===t))return t;return t==='Limpeza'?'Limpeza de cabo':t==='Regularização'?'Regularização / ofício':ciaTipoDe(t)};
+function ciaTipoDe(txt){const t=normK(txt||'');let best='Outro',pos=1e9;CIA_T.forEach(([n,,,re])=>{if(!re)return;const m=t.match(re);if(m&&m.index<pos){pos=m.index;best=n}});return best}
+const ciaCor=x=>(CIA_T.find(t=>t[0]===ciaTp(x))||CIA_T[5])[1];
+const ciaDur=x=>(CIA_T.find(t=>t[0]===ciaTp(x))||CIA_T[5])[2];
+const ciaL=()=>rpProgs().filter(x=>x.tipo==='cia');
+const ciaC=x=>x.cia||(x.cia={});
+const CIA_R={prev:['Preventiva','Chegamos no local e tivemos efetivação direta para não romper cabo.'],imp:['Improdutiva','A companhia não compareceu no local.'],acomp:['Acompanhamento','Estivemos no local com a companhia, mas não precisou de ação (não havia risco).']};
+const CIA_ST={plan:['Planejado','warn'],conc:['Concluído','ok'],canc:['Cancelado',''],nreal:['Não realizado','bad'],natend:['Não atendido','bad']};
+const ciaApR=x=>rpAps(x).filter(a=>a.st!=='rej'&&a.v&&a.v.res).slice(-1)[0]||null;
+const ciaRes=x=>{const a=ciaApR(x);return a?a.v.res:((ciaC(x).res||{}).r||'')};
+const ciaSit=x=>{const c=ciaC(x);if(c.sit)return c.sit;return x.status==='concl'?'conc':x.status==='canc'?'canc':'plan'};
+const ciaEq=x=>x.tec?gTecN(x.tec):(ciaC(x).eq||'');
+const ciaLoc=x=>!!(x.lat&&x.lng);
+const ciaMass=x=>(+ciaC(x).cli||0)>=CIA_MASS||!!ciaC(x).massiva;
+const ciaHora=x=>ciaC(x).hora||'';
+const ciaMin=h=>{const m=/^(\d{1,2}):(\d{2})/.exec(String(h||''));return m?+m[1]*60+ +m[2]:null};
+const ciaHH=m=>pad(Math.floor(m/60)%24)+':'+pad(Math.round(m)%60);
+const ciaNum=x=>{const n=String(ciaC(x).prot||'').trim();return n&&!/^s\/?n$/i.test(n)?n:'s/n'};
+const ciaAberta=x=>ciaSit(x)==='plan'&&!ciaRes(x);
+const ciaRevN=()=>ciaL().filter(x=>rpAps(x).some(a=>a.st==='rev')).length;
+/* por que não entra na rota ('' = entra) */
+function ciaFora(x){if(ciaRes(x))return 'já tem resultado';const s=ciaSit(x);if(s!=='plan')return CIA_ST[s][0].toLowerCase();if(x.status==='campo')return 'técnico em campo';if(x.status==='desp'&&x.tec)return 'já despachada para '+gTecN(x.tec);if(!ciaLoc(x))return 'sem localização';return ''}
+const ciaD=()=>ui.cia||(ui.cia={per:'dia',mper:'datr',ref:hoje(),tipo:'',st:'',rede:'',so:false,q:'',semLoc:false,lado:'dia',sel:{},selDia:'',rota:null,tecR:'',geo:true});
+function ciaIntervalo(per,ref){ref=ref||hoje();if(per==='semana'){const a=semanaIni(ref);return[a,addD(a,6)]}if(per==='mes'){const a=ref.slice(0,8)+'01',d=new Date(a+'T12:00:00');return[a,isoD(new Date(d.getFullYear(),d.getMonth()+1,0))]}
+  if(per==='tudo')return['0000','9999'];return[ref,ref]}
+const ciaOrd=(a,b)=>(String(a.data)+(ciaHora(a)||'99')).localeCompare(String(b.data)+(ciaHora(b)||'99'));
+function ciaFiltro(L,F){const q=normK(F.q||'');return L.filter(x=>(!F.tipo||ciaTp(x)===F.tipo)&&(!F.st||ciaSit(x)===F.st)&&(!F.so||ciaAberta(x))
+  &&(!F.rede||(F.rede==='tem'?ciaC(x).rede&&ciaC(x).rede.tem:F.rede==='sem'?ciaC(x).rede&&!ciaC(x).rede.tem:!ciaC(x).rede))
+  &&(!q||normK([ciaNum(x),x.cidade,x.end,ciaEq(x),x.cod,ciaTp(x)].join(' ')).includes(q)))}
+/* ---- rota: tempo estimado (1,35 × a reta, 30 km/h, +5 min para estacionar); com hora marcada fica fixo,
+   sem hora ou atrasado entra nos intervalos, do mais perto, enquanto der tempo de chegar no próximo fixo ---- */
+const ciaTempo=(a,b)=>Math.round(5+rpDist(a,b)*1.35/1000/30*60);
+function ciaMontar(L,o){o=o||{};const tol=o.tol==null?15:o.tol,fimDia=ciaMin(o.fim||'18:00'),I=L.map(x=>({x,p:[+x.lat,+x.lng],h:o.livres&&o.livres(x)?null:ciaMin(ciaHora(x)),d:ciaDur(x)}));
+  const fixos=I.filter(i=>i.h!=null).sort((a,b)=>a.h-b.h),livres=I.filter(i=>i.h==null),seq=[],fora=[];let pos=null,t=null;
+  const ir=(i,hm)=>{const desl=pos?ciaTempo(pos.p,i.p):0,cheg=t==null?(hm!=null?hm:ciaMin(o.ini||'08:00')):t+desl,ini=hm!=null?Math.max(cheg,hm):cheg,atr=hm!=null?Math.max(0,cheg-hm):0;
+    seq.push({x:i.x,ordem:seq.length+1,desl,cheg:ciaHH(cheg),ini:ciaHH(ini),saida:ciaHH(ini+i.d),marcada:hm!=null?ciaHH(hm):'',atraso:atr,conflito:atr>tol,espera:Math.max(0,ini-cheg)});pos=i;t=ini+i.d};
+  const perto=(de,C)=>{let m=null,dm=1e9;C.forEach(j=>{const d=de?ciaTempo(de.p,j.p):0;if(d<dm){dm=d;m=j}});return m};
+  if(!fixos.length&&livres.length){let ini=livres[0],mx=-1;livres.forEach(i=>{const s=livres.reduce((a,j)=>a+(i===j?0:ciaTempo(i.p,j.p)),0);if(s>mx){mx=s;ini=i}});livres.splice(livres.indexOf(ini),1);ir(ini,null)}
+  fixos.forEach(f=>{for(let g=0;g<50&&livres.length&&t!=null;g++){const c=perto(pos,livres.filter(j=>t+ciaTempo(pos.p,j.p)+j.d+ciaTempo(j.p,f.p)<=f.h+tol));if(!c)break;livres.splice(livres.indexOf(c),1);ir(c,null)}ir(f,f.h)});
+  while(livres.length){const c=perto(pos,livres);livres.splice(livres.indexOf(c),1);if(t!=null&&t+(pos?ciaTempo(pos.p,c.p):0)+c.d>fimDia){fora.push(c.x);continue}ir(c,null)}
+  let km=0;seq.forEach((s,k)=>{if(k)km+=rpDist([+seq[k-1].x.lat,+seq[k-1].x.lng],[+s.x.lat,+s.x.lng])});
+  return{seq,fora,desl:seq.reduce((s,x)=>s+x.desl,0),conflitos:seq.filter(s=>s.conflito).length,termino:seq.length?seq[seq.length-1].saida:'',km:Math.round(km/100)/10}}
+/* atrasados (passou a data, sem resultado, até 30 dias) em blocos de serviços perto (até 3 km) que cabem num dia */
+const ciaAtras=d=>{d=d||hoje();const lim=addD(d,-30);return ciaL().filter(x=>!ciaFora(x)&&x.data<d&&x.data>=lim)};
+function ciaBlocos(L,raio,jornada){raio=(raio||3)*1000;jornada=jornada||480;const R=L.slice().sort((a,b)=>String(a.data).localeCompare(String(b.data))),B=[];
+  while(R.length){const b=[R.shift()];let tot=ciaDur(b[0]);for(;;){const u=b[b.length-1];let m=-1,dm=1e12;R.forEach((x,k)=>{const d=rpDist([+u.lat,+u.lng],[+x.lat,+x.lng]);if(d<dm){dm=d;m=k}});
+      if(m<0||dm>raio)break;const add=ciaDur(R[m])+ciaTempo([+u.lat,+u.lng],[+R[m].lat,+R[m].lng]);if(tot+add>jornada)break;tot+=add;b.push(R.splice(m,1)[0])}
+    B.push({L:b,min:tot,antigo:b[0].data})}return B}
+/* ---- rede nossa: cabo da base GeoGrid perto do ponto (até 50 m) ou ao longo da rua (até 20 m) ---- */
+function ciaIdx(N){if(N._cia)return N._cia;const G=new Map(),C=50;for(let s=0;s<N.SA.length;s++){if(!N.SV[s])continue;const a=N.SA[s],b=N.SB[s],x0=Math.floor(Math.min(N.X[a],N.X[b])/C),x1=Math.floor(Math.max(N.X[a],N.X[b])/C),y0=Math.floor(Math.min(N.Y[a],N.Y[b])/C),y1=Math.floor(Math.max(N.Y[a],N.Y[b])/C);
+    for(let i=x0;i<=x1;i++)for(let j=y0;j<=y1;j++){const k=i+','+j;(G.get(k)||G.set(k,[]).get(k)).push(s)}}
+  const near=(la,lo,max)=>{const[x,y]=N.xy(la,lo),cx=Math.floor(x/C),cy=Math.floor(y/C),R=Math.ceil(max/C);let best=1e12;
+    for(let i=-R;i<=R;i++)for(let j=-R;j<=R;j++)(G.get((cx+i)+','+(cy+j))||[]).forEach(s=>{const ax=N.X[N.SA[s]],ay=N.Y[N.SA[s]],dx=N.X[N.SB[s]]-ax,dy=N.Y[N.SB[s]]-ay,L2=dx*dx+dy*dy;let t=L2?((x-ax)*dx+(y-ay)*dy)/L2:0;t=Math.max(0,Math.min(1,t));const d=Math.hypot(ax+t*dx-x,ay+t*dy-y);if(d<best)best=d});
+    return best};return N._cia={near}}
+async function ciaRede(){if(!rpGeoArqs().length)throw new Error('nenhuma base do Geogrid importada (Preventiva › Base Geogrid)');const N=await rpGeoCarregar();if(!N)throw new Error(RPG.erro||'base do Geogrid indisponível');return N}
+let CIA_NOM=0;
+async function ciaGeocode(end,cid){const w=Math.max(0,CIA_NOM+1100-Date.now());if(w)await new Promise(r=>setTimeout(r,w));CIA_NOM=Date.now();
+  const rua=String(end||'').replace(/,?\s*\d+.*$/,'').replace(/^R\.\s*/i,'Rua ').replace(/^AV\.?\s*/i,'Avenida ').trim();
+  const u=`https://nominatim.openstreetmap.org/search?format=jsonv2&polygon_geojson=1&limit=1&countrycodes=br&street=${encodeURIComponent(rua)}&city=${encodeURIComponent(cid||'')}&state=${encodeURIComponent('São Paulo')}`;
+  let j;try{const r=await fetch(u,{headers:{'Accept-Language':'pt-BR'}});if(!r.ok)throw 0;j=await r.json()}catch(e){throw new Error('busca de endereço indisponível agora')}if(!Array.isArray(j))throw new Error('busca de endereço indisponível agora');if(!j.length)return null;const g=j[0].geojson||{};
+  let T=[];if(g.type==='LineString')T=[g.coordinates.map(c=>[c[1],c[0]])];else if(g.type==='MultiLineString')T=g.coordinates.map(l=>l.map(c=>[c[1],c[0]]));
+  return{lat:+j[0].lat,lng:+j[0].lon,T}}
+async function ciaVerif(x,o){o=o||{};const N=await ciaRede(),I=ciaIdx(N),c=ciaC(x);
+  if(!ciaLoc(x)&&x.end&&o.rua!==false){const g=await ciaGeocode(x.end,x.cidade);if(!g){c.rede={tem:false,falha:'endereço não localizado',em:Date.now()};return c.rede}
+    x.lat=+g.lat.toFixed(6);x.lng=+g.lng.toFixed(6);c.aprox=true;if(g.T.length){let m=0,ruaM=0;g.T.forEach(P=>{for(let i=1;i<P.length;i++){const d=rpDist(P[i-1],P[i]),n=Math.max(1,Math.ceil(d/10));for(let k=0;k<n;k++){const f=(k+.5)/n,p=[P[i-1][0]+f*(P[i][0]-P[i-1][0]),P[i-1][1]+f*(P[i][1]-P[i-1][1])];ruaM+=d/n;if(I.near(p[0],p[1],20)<=20)m+=d/n}}});
+      c.rede={tem:m>0,m:Math.round(m),ruaM:Math.round(ruaM),modo:'rua',em:Date.now()};return c.rede}}
+  if(!ciaLoc(x)){c.rede=null;return null}const d=I.near(+x.lat,+x.lng,500);c.rede={tem:d<=50,d:d<1e9?Math.round(d):null,modo:'ponto',em:Date.now()};return c.rede}
+const ciaRedeChip=x=>{const r=ciaC(x).rede;if(!r)return ciaLoc(x)||x.end?'<span class="chip">rede não conferida</span>':'';if(r.falha)return `<span class="chip">${esc(r.falha)}</span>`;
+  return r.tem?`<span class="chip ok">rede nossa · ${r.modo==='rua'?rpFmt(r.m)+' m de rua':rpFmt(r.d)+' m'}</span>`:`<span class="chip">sem rede nossa${r.d!=null&&r.d<500?' · cabo a '+rpFmt(r.d)+' m':''}</span>`};
+const ciaStChip=x=>{const s=ciaSit(x),r=ciaRes(x);let h=`<span class="chip ${CIA_ST[s][1]}">${CIA_ST[s][0]}</span>`;if(s==='plan'&&(x.status==='desp'||x.status==='campo'))h=`<span class="chip info">${x.status==='campo'?'Em campo':'Despachado'}</span>`;
+  if(r)h+=` <span class="chip ${r==='imp'?'bad':'ok'}">${CIA_R[r][0]}${ciaApR(x)&&ciaApR(x).st==='rev'?' · a revisar':''}</span>`;if(ciaMass(x))h+=' <span class="chip bad">massiva</span>';return h+' '+ciaRedeChip(x)};
+const ciaAcoes=x=>`${ciaAberta(x)&&x.status==='plan'&&rpPl()?`<button class="btn sm primary" data-act="ciaDesp" data-id="${x.id}">Despachar</button>`:''}<button class="btn sm" data-act="ciaRes" data-id="${x.id}">Resultado</button>${rpPl()?`<button class="btn sm" data-act="ciaEd" data-id="${x.id}">Editar</button>`:''}`;
+/* ---------- tela ---------- */
+function viewRpCia(){const e=rpEstado(),sub=rpSubDe('rpCia','mapa'),D=ciaD();
+  const segs=`<div class="views rpviews ciatabs">${[['mapa','Mapa e rotas'],['lista','Lista'],['painel','Painel do mês'],['importar','Importar']].map(([k,n])=>`<button data-act="rpSub" data-t="rpCia" data-v="${k}" aria-current="${sub===k}">${n}</button>`).join('')}</div>`;
+  const topo=`<div class="secth rpth ciatopo"><div><h2>Companhia elétrica</h2><p class="muted">Troca de poste, limpeza de cabo, reordenamento e demais serviços da companhia na nossa rede. Risco para ${CIA_MASS} ou mais clientes = massiva: a Manutenção acompanha. Conta ${esc(rpProg('cia')[3])}.</p></div>${rpPl()?'<button class="btn primary" data-act="ciaNovo">Novo agendamento</button>':''}</div>${segs}`;
+  if(e)return `<section class="panel">${topo}${e}</section>`;
+  const nr=ciaRevN(),sl=ciaL().filter(x=>!ciaLoc(x)&&ciaAberta(x)&&x.data>=hoje()).length;
+  const av=(nr?`<div class="rpbox warn ciaav"><span><b>${nr}</b> acompanhamento(s) com o resultado informado pelo técnico, aguardando a revisão.</span>${rpRv()?'<button class="btn sm primary" data-act="tab" data-t="rpRev">Revisar</button>':''}</div>`:'')
+    +(sl?`<div class="rpbox ciaav"><span><b>${sl}</b> notificação(ões) de hoje em diante sem localização: ficam fora do mapa e da rota.</span><button class="btn sm" data-act="ciaSemLoc">Ver</button></div>`:'');
+  return `<section class="panel">${topo}${av}${sub==='lista'?ciaLista():sub==='importar'?rpCiaImp():sub==='painel'?rpCiaPainel():rpCiaMapaHtml()}</section>`}
+const ciaTipoSel=(k,v)=>`<select class="inp" data-ch="ciaF" data-k="${k}"><option value="">Todos os tipos</option>${CIA_T.map(t=>`<option ${v===t[0]?'selected':''}>${t[0]}</option>`).join('')}</select>`;
+function ciaNav(per,k){const D=ciaD();return `<button class="btn" data-act="ciaPer" data-n="-1" data-k="${k}" aria-label="Anterior">◀</button><input type="date" class="inp" data-ch="ciaRef" value="${D.ref}"><button class="btn" data-act="ciaPer" data-n="1" data-k="${k}" aria-label="Próximo">▶</button><button class="btn" data-act="ciaPer" data-n="0" data-k="${k}">Hoje</button>`}
+/* ---- Lista ---- */
+function ciaLista(){const D=ciaD(),[a,b]=ciaIntervalo(D.per,D.ref);let L=ciaFiltro(ciaL().filter(x=>x.data>=a&&x.data<=b),D).sort(ciaOrd);if(D.semLoc)L=L.filter(x=>!ciaLoc(x));
+  const dia=D.per==='dia',R=dia?ciaMontar(L.filter(x=>!ciaFora(x))):null,sug={};if(R)R.seq.forEach(s=>sug[s.x.id]=s);
+  if(dia){const k=x=>x.rota?'1'+x.rota.id+pad(x.rota.ordem):sug[x.id]?'0'+String(sug[x.id].ordem).padStart(3,'0'):'2'+(ciaHora(x)||'99');L=L.slice().sort((p,q)=>k(p).localeCompare(k(q)))}
+  const rotaCel=x=>x.rota&&x.status!=='plan'?`<span class="chip info">${esc(x.rota.nome||'Rota')}</span><small class="muted"> parada ${x.rota.ordem}</small>`:sug[x.id]?`<span class="ciaord">${sug[x.id].ordem}</span> prev. ${sug[x.id].ini}${sug[x.id].conflito?' <span class="chip bad">conflito</span>':''}`:'—';
+  const nRede=ciaL().filter(x=>!ciaC(x).rede&&(ciaLoc(x)||x.end)).length;
+  return `<div class="rpsec ciafil"><div class="ciaflin"><div class="views">${[['dia','Dia'],['semana','Semana'],['mes','Mês'],['tudo','Tudo']].map(([k,n])=>`<button data-act="ciaPerV" data-k="per" data-v="${k}" aria-current="${D.per===k}">${n}</button>`).join('')}</div>${D.per!=='tudo'?ciaNav(D.per,'per'):''}
+     ${ciaTipoSel('tipo',D.tipo)}<select class="inp" data-ch="ciaF" data-k="st"><option value="">Todas as situações</option>${Object.entries(CIA_ST).map(([k,v])=>`<option value="${k}" ${D.st===k?'selected':''}>${v[0]}</option>`).join('')}</select>
+     <select class="inp" data-ch="ciaF" data-k="rede">${[['','Rede: todas'],['tem','Com rede nossa'],['sem','Sem rede nossa'],['nao','Rede não conferida']].map(([k,n])=>`<option value="${k}" ${D.rede===k?'selected':''}>${n}</option>`).join('')}</select>
+     <label class="chk"><input type="checkbox" data-ch="ciaFB" data-k="so" ${D.so?'checked':''}> só a acompanhar</label></div>
+    <input type="search" class="inp" id="ciaQ" data-in="ciaQ" value="${esc(D.q)}" placeholder="Buscar (notificação, cidade, rua, equipe, código)" autocomplete="off"><small class="muted">${D.per==='tudo'?'Todas as datas':dBR(a)+' a '+dBR(b)}</small></div>
+   ${dia&&R.seq.length?`<div class="rpbox info ciaav"><span>Ordem de rota sugerida para <b>${R.seq.length}</b> atividade(s) a despachar (estimada pela distância, respeitando a hora marcada pela companhia).</span>${rpPl()?'<button class="btn sm primary" data-act="ciaRotaMapa">Montar e despachar no mapa</button>':''}</div>`:''}
+   <section class="rpsec"><div class="secth"><h3>${L.length} notificação(ões)</h3><div class="tools"><label class="chk"><input type="checkbox" data-ch="ciaFB" data-k="semLoc" ${D.semLoc?'checked':''}> sem localização</label>${rpPl()?`<button class="btn sm" data-act="ciaRedeTodos">Verificar rede de todos (${nRede})</button>`:''}<button class="btn sm" data-act="ciaExp">Exportar</button></div></div>
+   ${L.length?`<div class="tablewrap"><table class="ciatab"><thead><tr>${dia?'<th>Rota</th>':''}<th>Data</th><th>Tipo</th><th>Notificação</th><th>Cidade / endereço</th><th>Situação / resultado</th><th>Equipe</th><th>Código</th><th></th></tr></thead><tbody>
+    ${L.slice(0,600).map(x=>`<tr>${dia?`<td class="nw">${rotaCel(x)}</td>`:''}<td class="nw">${dBR(x.data)} ${esc(ciaHora(x))}</td><td class="nw"><span class="ciadot" style="background:${ciaCor(x)}"></span>${esc(ciaTp(x))}</td><td class="mono">${esc(ciaNum(x))}</td>
+      <td>${esc(x.cidade||'')}<div class="muted">${esc(x.end||'')}${ciaLoc(x)?'':' <span class="chip warn">sem localização</span>'}</div></td><td class="ciast">${ciaStChip(x)}</td><td>${esc(ciaEq(x))}</td>
+      <td><button class="lnk" data-act="rpAbrir" data-id="${x.id}">${esc(x.cod)}</button></td><td><div class="ciaac">${ciaAcoes(x)}</div></td></tr>`).join('')}</tbody></table></div>${L.length>600?'<p class="muted">Mostrando 600: filtre ou exporte.</p>':''}`:'<p class="muted">Nada no filtro.</p>'}</section>`}
+/* ---- Mapa e rotas ---- */
+function ciaMapaL(){const D=ciaD(),T=D.ref,per=D.mper;let L;if(per==='semana'||per==='mes'){const[a,b]=ciaIntervalo(per,T);L=ciaL().filter(x=>x.data>=a&&x.data<=b)}
+  else{L=ciaL().filter(x=>x.data===T);if(per==='datr')L=L.concat(ciaAtras(T).filter(x=>!L.includes(x)))}return L.filter(x=>!D.tipo||ciaTp(x)===D.tipo)}
+function rpCiaMapaHtml(){const D=ciaD(),T=D.ref,dia=ciaL().filter(x=>x.data===T&&(!D.tipo||ciaTp(x)===D.tipo)).sort(ciaOrd),atr=ciaAtras(T).filter(x=>!D.tipo||ciaTp(x)===D.tipo),L=ciaMapaL();
+  if(D.selDia!==T){D.sel={};dia.filter(x=>!ciaFora(x)).forEach(x=>D.sel[x.id]=true);D.selDia=T;D.rota=null}
+  const rotas=ciaRotasDia(T),perto=atr.filter(x=>dia.some(y=>ciaLoc(y)&&rpDist([+x.lat,+x.lng],[+y.lat,+y.lng])<=3000));
+  const nSel=Object.keys(D.sel).filter(id=>D.sel[id]&&rpGet(id)&&!ciaFora(rpGet(id))).length;
+  const card=(x,chk)=>{const f=ciaFora(x);return `<div class="ciacard ${x.data<T&&ciaAberta(x)?'at':''}"><div class="ciach">${chk?`<input type="checkbox" data-ch="ciaSel" data-id="${x.id}" ${D.sel[x.id]&&!f?'checked':''} ${f?'disabled title="'+esc(f)+'"':''}>`:''}<div><b>${esc(ciaHora(x)||'sem hora')}</b> · <span class="ciadot" style="background:${ciaCor(x)}"></span>${esc(ciaTp(x))} · <span class="mono">${esc(ciaNum(x))}</span>${x.data!==T?` <span class="chip warn">${dBR(x.data).slice(0,5)}</span>`:''}
+      <div class="muted">${esc(x.cidade||'')}${x.end?' · '+esc(x.end):''}</div><div class="ciast">${ciaStChip(x)}${ciaEq(x)?` <span class="muted">· ${esc(ciaEq(x))}</span>`:''}</div></div></div><div class="ciaac">${ciaAcoes(x)}</div></div>`};
+  const lado=D.lado==='atr'?ciaLadoAtr(atr):D.lado==='rotas'?ciaLadoRotas(T,rotas):`<div class="ciabar"><button class="btn sm" data-act="ciaMarca" data-v="1">Marcar todos</button><button class="btn sm" data-act="ciaMarca" data-v="0">Desmarcar</button><button class="btn sm" data-act="ciaBaixaDia">Baixar lista do dia</button></div>
+    ${perto.length?`<div class="rpbox info ciaav"><span>${perto.length} atrasado(s) a até 3 km dos serviços do dia.</span><button class="btn sm" data-act="ciaLado" data-v="atr">Ver na lista de atrasados</button></div>`:''}
+    <div class="ciacards">${dia.map(x=>card(x,true)).join('')||'<p class="muted pad">Nenhum agendamento no dia.</p>'}</div>`;
+  const sum=`${dBR(T)}: ${dia.length} agendamento(s) · ${dia.filter(x=>x.tec).length} despachado(s) · ${dia.filter(x=>ciaRes(x)).length} com resultado · ${atr.length} atrasado(s) nos últimos 30 dias`;
+  return `<div class="rpsec ciafil"><div class="ciaflin">${ciaNav(D.mper,'mper')}<div class="views">${[['so','Só o dia'],['datr','Dia + atrasados'],['semana','Semana'],['mes','Mês']].map(([k,n])=>`<button data-act="ciaPerV" data-k="mper" data-v="${k}" aria-current="${D.mper===k}">${n}</button>`).join('')}</div>${ciaTipoSel('tipo',D.tipo)}</div><small class="muted">${sum}</small></div>
+   <div class="cia2col"><section class="rpsec ciamapw"><div class="ciamaph"><b>${L.length} no período · ${L.filter(ciaLoc).length} no mapa</b><label class="chk"><input type="checkbox" data-ch="ciaGeo" ${D.geo?'checked':''}> rede GeoGrid</label>${rpPl()?`<button class="btn sm ${D.novoMapa?'primary':''}" data-act="ciaNovoMapa">${D.novoMapa?'Toque no mapa…':'Novo no mapa'}</button>`:''}</div>
+     <div id="rpCiaMapa" class="rpmapa ciamapa"></div><div class="cialeg">${CIA_T.map(t=>`<span><i style="background:${t[1]}"></i>${t[0]}</span>`).join('')}<span><i class="o"></i>atrasado</span><span><i class="r"></i>já com resultado</span><span><i style="background:#cbd5e1"></i>cancelado</span><span><i class="p">1</i>parada da rota</span></div></section>
+    <section class="rpsec cialado"><div class="cialt" role="tablist">${[['dia',`Do dia (${dia.length})`],['atr',`Atrasados (${atr.length})`],['rotas',`Rotas (${rotas.length})`]].map(([k,n])=>`<button data-act="ciaLado" data-v="${k}" aria-current="${D.lado===k}">${n}</button>`).join('')}</div>
+     <div class="cialbody">${lado}</div>${D.lado!=='rotas'&&rpPl()?`<div class="ciafoot"><span>${nSel} marcado(s) para a rota</span><button class="btn primary" data-act="ciaMontar" ${nSel?'':'disabled'}>Montar rota</button></div>`:''}</section></div>`}
+function ciaLadoAtr(atr){const D=ciaD(),B=ciaBlocos(atr);if(!B.length)return '<p class="muted pad">Nenhum atrasado com localização nos últimos 30 dias.</p>';
+  return `<p class="muted">Atrasados dos últimos 30 dias em blocos de serviços próximos (até 3 km) que cabem num dia. Marque o bloco para montar a rota de ${dBR(D.ref)}.</p>${B.map((b,i)=>`<div class="ciablk"><div class="secth"><b>Bloco ${i+1} · ${b.L.length} serviço(s) · ~${Math.round(b.min/60*10)/10} h</b><button class="btn sm" data-act="ciaMarcaBloco" data-ids="${b.L.map(x=>x.id).join(',')}">Marcar o bloco</button></div>
+    ${b.L.map(x=>`<div class="ciacard at"><div class="ciach"><input type="checkbox" data-ch="ciaSel" data-id="${x.id}" ${D.sel[x.id]?'checked':''}><div><b>${dBR(x.data).slice(0,5)} ${esc(ciaHora(x))}</b> · ${esc(ciaTp(x))} · <span class="mono">${esc(ciaNum(x))}</span><div class="muted">${esc(x.cidade)}${x.end?' · '+esc(x.end):''}</div></div></div><div class="ciaac">${ciaAcoes(x)}</div></div>`).join('')}</div>`).join('')}`}
+const ciaRotasDia=d=>{const M={};ciaL().filter(x=>x.rota&&x.rota.dia===d&&x.tec).forEach(x=>{(M[x.rota.id]=M[x.rota.id]||{id:x.rota.id,nome:x.rota.nome,tec:x.tec,L:[]}).L.push(x)});return Object.values(M).map(r=>(r.L.sort((a,b)=>a.rota.ordem-b.rota.ordem),r))};
+function ciaLadoRotas(d,rotas){const D=ciaD(),R=D.rota;let h='';
+  if(R){h+=`<div class="ciarota"><h3>Rota montada · ${R.seq.length} parada(s)</h3><p class="muted">${R.km} km · ${R.desl} min de deslocamento · término ${R.termino||'—'}${R.conflitos?` · <b class="bad">${R.conflitos} conflito(s)</b>`:''}. Tempo no local: 60 min (troca de poste) ou 90 min (limpeza, reordenamento, regularização); tolerância de 15 min no horário da companhia.</p>
+    <ol class="ciaseq">${R.seq.map(s=>`<li><span class="ciaord">${s.ordem}</span><div><b>${s.cheg}</b>${s.marcada?` · marcado ${s.marcada}`:' · sem hora marcada'}${s.espera?` · espera ${s.espera} min`:''} · sai ${s.saida}${s.conflito?` <span class="chip bad">conflito · ${s.atraso} min</span>`:''}${s.x.data!==d?' <span class="chip warn">atrasado</span>':''}
+      <div class="muted">${esc(ciaTp(s.x))} · ${esc(ciaNum(s.x))} · ${esc(s.x.cidade)}${s.x.end?' · '+esc(s.x.end):''}${s.desl?` · ${s.desl} min de deslocamento`:''}</div></div></li>`).join('')}</ol>
+    ${R.fora.length?`<div class="rpbox warn">Não couberam até as 18:00: ${R.fora.map(x=>esc(ciaNum(x))).join(', ')}.</div>`:''}
+    <div class="ciafoot"><select class="inp" data-ch="ciaTecR"><option value="">Técnico da rota…</option>${rpTecs().map(t=>`<option value="${t.id}" ${D.tecR===t.id?'selected':''}>${esc(t.nome)}</option>`).join('')}</select><button class="btn" data-act="ciaRotaX">Desfazer</button><button class="btn primary" data-act="ciaRotaDesp">Despachar a rota</button></div></div>`}
+  h+=`<h3 class="ciah3">Rotas despachadas em ${dBR(d)}</h3>${rotas.map(r=>`<div class="ciablk"><b>${esc(r.nome||'Rota')} · ${esc(gTecN(r.tec))}</b> <span class="muted">${r.L.length} parada(s)</span><ol class="ciaseq">${r.L.map(x=>`<li><span class="ciaord">${x.rota.ordem}</span><div><b>${esc(x.rota.cheg||ciaHora(x)||'')}</b> · ${esc(ciaTp(x))} · ${esc(ciaNum(x))} ${ciaStChip(x)}<div class="muted">${esc(x.cidade)}${x.end?' · '+esc(x.end):''}</div></div></li>`).join('')}</ol></div>`).join('')||'<p class="muted">Nenhuma rota despachada no dia.</p>'}`;
+  return h}
+async function rpCiaMapa(){let el=$('rpCiaMapa');if(!el)return;RP_MPI.rpCiaMapa=1;try{await vtLib()}catch(e){RP_MPI.rpCiaMapa=0;el.innerHTML=`<p class="muted pad">${esc(e.message)}</p>`;return}RP_MPI.rpCiaMapa=0;el=$('rpCiaMapa');if(!el)return;
+  const LL=window.L,map=LL.map(el,{preferCanvas:true}).setView([-22.9056,-47.0608],10);LL.tileLayer(VT_FUNDOS.ruas.u,{maxNativeZoom:19,maxZoom:21,attribution:VT_FUNDOS.ruas.at}).addTo(map);
+  const o={el,map,geo:LL.layerGroup().addTo(map),ly:LL.layerGroup().addTo(map),draw:()=>rpCiaDesenha(o),k:'',gk:''};RP_MP.rpCiaMapa=o;
+  map.on('click',ev=>{const D=ciaD();if(!D.novoMapa)return;D.novoMapa=false;ACT.ciaNovo({dataset:{lat:ev.latlng.lat.toFixed(6),lng:ev.latlng.lng.toFixed(6)}})});rpCiaDesenha(o)}
+async function ciaGeoDesenha(o){const D=ciaD();if(!D.geo||!rpGeoArqs().length){o.geo.clearLayers();o.gk='';return}let N;try{N=await rpGeoCarregar()}catch(e){N=null}if(!N||!N.L)return;const k=RPG.redeK;if(o.gk===k)return;o.gk=k;o.geo.clearLayers();
+  const LL=window.L,R=LL.canvas({padding:.5});N.L.forEach(l=>LL.polyline(l.c.map(p=>[p[0],p[1]]),{color:'#6d28d9',weight:2,opacity:.75,renderer:R,interactive:false}).addTo(o.geo))}
+function rpCiaDesenha(o){const LL=window.L,D=ciaD(),T=D.ref,L=ciaMapaL(),R=D.rota,B=[];o.ly.clearLayers();ciaGeoDesenha(o);
+  const ord={};if(R)R.seq.forEach(s=>ord[s.x.id]=s.ordem);ciaRotasDia(T).forEach(r=>r.L.forEach(x=>{if(!(x.id in ord))ord[x.id]=x.rota.ordem}));
+  L.filter(ciaLoc).forEach(x=>{const s=ciaSit(x),res=!!ciaRes(x),at=x.data<T&&ciaAberta(x),c=s==='canc'?'#cbd5e1':ciaCor(x),ll=[+x.lat,+x.lng];B.push(ll);
+    let m;if(ord[x.id])m=LL.marker(ll,{icon:LL.divIcon({className:'ciapin',html:`<span style="background:${c}">${ord[x.id]}</span>`,iconSize:[24,24],iconAnchor:[12,12]})});
+    else m=LL.circleMarker(ll,{radius:8,color:at?'#c2410c':res?c:'#fff',weight:at?3:2,fillColor:res?'#fff':c,fillOpacity:1});
+    m.addTo(o.ly);m.bindTooltip(`${esc(ciaHora(x)||dBR(x.data).slice(0,5))} · ${esc(ciaTp(x))} · ${esc(ciaNum(x))}`);
+    m.bindPopup(()=>`<div class="ciapop"><b>${esc(ciaTp(x))} · ${esc(ciaNum(x))}</b><div>${dBR(x.data)} ${esc(ciaHora(x))}</div><div class="muted">${esc(x.cidade)}${x.end?' · '+esc(x.end):''}</div><div class="ciast">${ciaStChip(x)}</div><div class="ciaac">${ciaAcoes(x)}</div></div>`)});
+  if(R&&R.seq.length>1)LL.polyline(R.seq.map(s=>[+s.x.lat,+s.x.lng]),{color:'#1d4ed8',weight:4,opacity:.8,dashArray:'8 6'}).addTo(o.ly);
+  ciaRotasDia(T).forEach(r=>{if(r.L.length>1)LL.polyline(r.L.filter(ciaLoc).map(x=>[+x.lat,+x.lng]),{color:'#2563eb',weight:3,opacity:.6}).addTo(o.ly)});
+  const k=D.mper+T+D.tipo+L.length+(R?'r'+R.seq.length:'');if(o.k!==k){o.k=k;const BB=R&&R.seq.length?R.seq.map(s=>[+s.x.lat,+s.x.lng]):B;if(BB.length)try{o.map.fitBounds(LL.latLngBounds(BB),{padding:[30,30],maxZoom:15})}catch(e){}}}
+/* ---- Painel do mês ---- */
+function ciaPainelDados(m){const L=ciaL().filter(x=>(x.data||'').slice(0,7)===m),p={L,rec:L.length,un:new Set(L.map(x=>normK(ciaNum(x))==='s/n'?x.id:normK(ciaNum(x)))).size,com:0,sem:0,res:{prev:0,imp:0,acomp:0},st:{},tp:{},eq:{},cid:{},desp:0,mass:0};
+  L.forEach(x=>{const r=ciaRes(x);if(r){p.com++;p.res[r]++}else p.sem++;const s=ciaSit(x);p.st[s]=(p.st[s]||0)+1;const t=ciaTp(x);p.tp[t]=(p.tp[t]||0)+1;
+    const e=ciaEq(x)||'(sem equipe)',E=p.eq[e]=p.eq[e]||{t:0,prev:0,imp:0,acomp:0,sem:0};E.t++;if(r)E[r]++;else E.sem++;const c=x.cidade||'(sem cidade)',C=p.cid[c]=p.cid[c]||{t:0,com:0};C.t++;if(r)C.com++;
+    if(ciaC(x).despEm||(x.tec&&x.status!=='plan'))p.desp++;if(ciaMass(x))p.mass++});p.pi=p.com?Math.round(1000*p.res.imp/p.com)/10:0;return p}
+function rpCiaPainel(){const m=rpMes(),p=ciaPainelDados(m),tab=(cab,L)=>L.length?`<div class="tablewrap"><table class="ciatab"><thead><tr>${cab.map(c=>`<th class="${/^#/.test(c)?'r':''}">${c.replace(/^#/,'')}</th>`).join('')}</tr></thead><tbody>${L.join('')}</tbody></table></div>`:'<p class="muted">Sem dados.</p>';
+  const pend=p.L.filter(x=>!ciaRes(x)&&ciaSit(x)!=='canc').sort(ciaOrd);
+  return `<div class="rpfil"><label class="fld"><span>Mês</span><input type="month" class="inp" data-ch="rpMes" value="${m}"></label><button class="btn" data-act="ciaPainelX">Baixar planilha</button></div>
+   <div class="kpis rpk4">${kp(rpFmt(p.rec),`Recebidas · ${rpFmt(p.un)} notificações únicas`)}${kp(rpFmt(p.com),`Com ação registrada · ${rpFmt(p.sem)} sem ação`,'ok')}${kp(p.pi.toLocaleString('pt-BR',{minimumFractionDigits:1})+'%','% improdutiva · sobre as atuadas',p.pi>20?'bad':'')}${kp(rpFmt(p.desp),`Despachadas · ${rpFmt(p.mass)} massiva(s)`)}</div>
+   <div class="rp2"><section class="rpsec"><h3>Ação realizada</h3>${tab(['Resultado','#Qtd'],Object.entries(CIA_R).map(([k,v])=>`<tr><td>${v[0]}</td><td class="r">${p.res[k]}</td></tr>`))}</section>
+    <section class="rpsec"><h3>Situação</h3>${tab(['Situação','#Qtd'],Object.entries(CIA_ST).map(([k,v])=>`<tr><td>${v[0]}</td><td class="r">${p.st[k]||0}</td></tr>`))}</section>
+    <section class="rpsec"><h3>Tipo</h3>${tab(['Tipo','#Qtd'],CIA_T.filter(t=>p.tp[t[0]]).map(t=>`<tr><td><span class="ciadot" style="background:${t[1]}"></span>${t[0]}</td><td class="r">${p.tp[t[0]]}</td></tr>`))}</section>
+    <section class="rpsec"><h3>Por cidade</h3>${tab(['Cidade','#Total','#Com ação'],Object.entries(p.cid).sort((a,b)=>b[1].t-a[1].t).map(([c,o])=>`<tr><td>${esc(c)}</td><td class="r">${o.t}</td><td class="r">${o.com}</td></tr>`))}</section></div>
+   <section class="rpsec"><h3>Atuação por equipe</h3>${tab(['Equipe','#Total','#Preventiva','#Improdutiva','#Acompanhamento','#Sem ação'],Object.entries(p.eq).sort((a,b)=>b[1].t-a[1].t).map(([e,o])=>`<tr><td>${esc(e)}</td><td class="r">${o.t}</td><td class="r">${o.prev}</td><td class="r">${o.imp}</td><td class="r">${o.acomp}</td><td class="r">${o.sem}</td></tr>`))}</section>
+   <section class="rpsec"><h3>Pendentes no mês (sem ação) · ${pend.length}</h3>${tab(['Data','Notificação','Tipo','Cidade','Situação',''],pend.slice(0,200).map(x=>`<tr><td class="nw">${dBR(x.data)}</td><td class="mono">${esc(ciaNum(x))}</td><td>${esc(ciaTp(x))}</td><td>${esc(x.cidade||'')}</td><td class="ciast">${ciaStChip(x)}</td><td><div class="ciaac">${ciaAcoes(x)}</div></td></tr>`))}</section>`}
+/* ---- exportar (colunas da planilha TROCA DE POSTES, aba NOTIFICAÇÕES) ---- */
+const ciaLinhaX=x=>({'AÇÃO':ciaTp(x).toUpperCase(),'NOTIFICAÇÃO':ciaNum(x),'CIDADE':x.cidade||'','ENDEREÇO':x.end||'','COORDENADAS':ciaLoc(x)?`${x.lat}, ${x.lng}`:'','DATA':dBR(x.data),'PRAZO':ciaC(x).prazo?dBR(ciaC(x).prazo):'','HORA':ciaHora(x),
+  'STATUS':CIA_ST[ciaSit(x)][0].toUpperCase(),'EQUIPE':ciaEq(x),'AÇÃO2':ciaRes(x)?CIA_R[ciaRes(x)][0].toUpperCase():'','DATA DA PREVENTIVA':(ciaC(x).res||{}).data?dBR(ciaC(x).res.data):ciaApR(x)?dBR(ciaApR(x).data):'',
+  'CLIENTES EM RISCO':ciaC(x).cli||'','MASSIVA':ciaMass(x)?'SIM':'','REDE NET TURBO':ciaC(x).rede?(ciaC(x).rede.tem?'SIM':'NÃO'):'NÃO CONFERIDA','CÓDIGO':x.cod,'TÉCNICO':x.tec?gTecN(x.tec):''});
+/* ---------- importar ---------- */
+function ciaEmail(txt){const s=String(txt||'').replace(/\r/g,''),t=normK(s),out=[],cids=ciaCidades();
+  const assunto=((/(?:^|\n)\s*(?:assunto|subject)\s*:\s*([^\n]+)/i.exec(s)||[])[1]||s.split('\n').find(l=>l.trim())||'').trim();
+  /* programação semanal: "7700123 Campinas 59 postes Regularização 05/10/2026 09/10/2026 Endereço…" */
+  const LR=/(\d{6,8})\s+([A-Za-zÀ-ÿ'.\- ]{3,40}?)\s+(\d{1,4})\s*postes?[ \t]+([A-Za-zÀ-ÿ]+)[ \t]*(\d{1,2}\/\d{1,2}\/\d{4})?[ \t]*(\d{1,2}\/\d{1,2}\/\d{4})?[ \t]*([^\n]*?)(?=[ \t]+\d{6,8}[ \t]+[A-Za-zÀ-ÿ]|\n|$)/g;
+  const corpo=s.split('\n').map(l=>l.replace(/\t+/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean).join('\n');let m;const ach=[];LR.lastIndex=0;while((m=LR.exec(corpo)))ach.push(m);
+  const dt=v=>{const q=String(v||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(!q)return '';const y=q[3].length===2?'20'+q[3]:q[3];return `${y}-${pad(+q[2])}-${pad(+q[1])}`};
+  const cidOk=c=>{const k=normK(c);return cids.find(x=>normK(x)===k)||String(c||'').trim()};
+  if(ach.length>=2||(ach.length&&/qtd_?postes|report ocupa|programacao equipes/.test(t))){ach.forEach(m=>out.push({on:true,prot:m[1],cidade:cidOk(m[2]).toUpperCase(),postes:+m[3],tipo:'Regularização / ofício',data:dt(m[5])||dt(m[6]),hora:'',end:(m[7]||'').replace(/\s+-\s+SP\b.*$/i,'').trim(),cli:'',lat:'',lng:'',obs:`${m[3]} postes · ${m[4]}${m[6]?' até '+m[6]:''}`}));return out}
+  const tipo=ciaTipoDe(assunto+' '+s);let num=((/(\d{3,6}\s*\/\s*\d{4})/.exec(assunto)||[])[1]||(/\b(\d{7,8})\b/.exec(assunto)||[])[1]||'').replace(/\s+/g,'');
+  if(!num){const q=/(?:notifica[cç][aã]o|nota(?: de servi[cç]o)?|ordem(?: de servi[cç]o)?|protocolo|of[ií]cio|n[ºo°]\.?)\s*(?:n[ºo°.]*)?\s*[:#-]?\s*(\d{6,10}|\d{2,6}\s*\/\s*\d{4})/i.exec(s);num=q?q[1].replace(/\s+/g,''):((/\b(\d{7,8})\b/.exec(s)||[])[1]||'')}
+  const dd=/(?:no dia|dia|data[^:\n]{0,20}:?)\s*(\d{1,2}\/\d{1,2}\/\d{2,4})/i.exec(s)||/(\d{1,2}\/\d{1,2}\/\d{4})/.exec(s)||/(\d{1,2}-\d{1,2}-\d{4})/.exec(assunto),data=dd?dt(dd[1].replace(/-/g,'/')):'';
+  const hr=/(?:in[ií]cio previsto|in[ií]cio|hor[aá]rio|\bdas)\s*:?\s*(?:[àa]s\s*)?(\d{1,2})\s*[:h]\s*(\d{2})/i.exec(s)||/\b[àa]s\s+(\d{1,2})\s*[:h]\s*(\d{2})/i.exec(s),hora=hr?pad(+hr[1])+':'+hr[2]:'';
+  let cidA='';cids.forEach(c=>{if(normK(c).length>3&&normK(assunto).includes(normK(c)))cidA=c});
+  const cli=+((/(\d+)\s*clientes/i.exec(s)||[])[1]||0)||'',pts=[...s.matchAll(/(-2\d[.,]\d{4,})\s*[,;\s]\s*(-4\d[.,]\d{4,})/g)].map(q=>[+q[1].replace(',','.'),+q[2].replace(',','.')]);
+  const RUA=/^\s*(R\.|RUA|AV\.?|AVENIDA|ESTR\.?|ESTRADA|ROD\.?|RODOVIA|TRAVESSA|TV\.|ALAMEDA|AL\.|PRA[ÇC]A|P[ÇC]A\.?|VIELA|LARGO)\s/i,LO=s.split('\n'),ruas=[];
+  const linEnd=l=>{let x=String(l).replace(/\s+/g,' ').replace(/[–—]/g,'-').trim(),cid='',bai='';const q=/^(.*?)\s*\/\s*([^\/]+?)(?:\s*-\s*[A-Z]{2})?\s*$/.exec(x);if(q){x=q[1];cid=q[2].trim()}const b=/^(.*?)\s+-\s+(.+)$/.exec(x);if(b){x=b[1];bai=b[2]}return{rua:x.replace(/[,.;\s]+$/,'').trim(),bai,cid}};
+  let iE=LO.findIndex(l=>/seguintes enderecos|enderecos abaixo|nos enderecos/.test(normK(l)));if(iE>=0)for(let i=iE+1;i<LO.length&&ruas.length<30;i++){const l=LO[i].trim();if(!l)continue;if(RUA.test(l))ruas.push(linEnd(l));else if(ruas.length)break}
+  const campo=re=>{let v=null;LO.some(l=>{if(re.test(normK(l))){v=l.slice(l.indexOf(':')+1).trim();return true}return false});return v};
+  const local=campo(/^(local d[ae] (atuacao|execucao|intervencao)|endereco|local)\s*:/);if(!ruas.length&&local)ruas.push(linEnd(local));
+  if(!ruas.length){const e=/\b(RUA|R\.|AVENIDA|AV\.?|ESTRADA|ESTR\.|RODOVIA|ROD\.|TRAVESSA|ALAMEDA|PRA[ÇC]A|VIELA)\s+([^\n;|]{3,90})/i.exec(s);if(e)ruas.push(linEnd(e[1]+' '+e[2]))}
+  const enc=campo(/^ponto de encontro\s*:/)||'',cidT=campo(/^(municipio|cidade)\s*:/)||'';
+  (ruas.length?ruas:[{rua:'',bai:'',cid:''}]).forEach((r,i)=>{const cid=cidOk(r.cid||cidT||cidA||ciaCidTxt(s,cids));out.push({on:true,prot:num,data,hora,tipo:tipo==='Outro'&&ruas.length>1?'Limpeza de cabo':tipo,end:r.rua+(r.bai?' - '+r.bai:''),cidade:String(cid).toUpperCase(),cli,
+    lat:pts[i]?pts[i][0]:pts[0]?pts[0][0]:'',lng:pts[i]?pts[i][1]:pts[0]?pts[0][1]:'',obs:enc?'Ponto de encontro: '+enc:'',assunto})});return out}
+const ciaCidTxt=(s,cids)=>{const t=normK(s),c={};cids.forEach(x=>{const k=normK(x);if(k.length<4)return;const n=t.split(k).length-1;if(n)c[x]=n});return Object.keys(c).sort((a,b)=>c[b]-c[a]||b.length-a.length)[0]||''};
+const ciaCidades=()=>[...new Set(ciaL().map(x=>x.cidade).concat(typeof RP_SP!=='undefined'?RP_SP:[]).concat(['Campinas','Valinhos','Vinhedo','Sumaré','Hortolândia','Paulínia','Americana','Jundiaí','Itatiba','Indaiatuba','Piracicaba','Louveira','Sorocaba','Atibaia']).filter(Boolean))];
+/* .eml: assunto + corpo (texto ou html) */
+function ciaEml(bruto){const dec2047=v=>String(v||'').replace(/=\?([^?]+)\?([BQ])\?([^?]*)\?=/gi,(m,cs,e,t)=>{try{const by=e.toUpperCase()==='B'?Uint8Array.from(atob(t),c=>c.charCodeAt(0)):Uint8Array.from(t.replace(/_/g,' ').replace(/=([0-9A-F]{2})/gi,(q,h)=>String.fromCharCode(parseInt(h,16))),c=>c.charCodeAt(0));return new TextDecoder(cs).decode(by)}catch(e){return t}});
+  const parte=txt=>{const i=txt.search(/\r?\n\r?\n/),hd=txt.slice(0,i),bd=txt.slice(i).replace(/^\s+/,''),ct=(/content-type:\s*([^;\n]+)/i.exec(hd)||[])[1]||'text/plain',cte=(/content-transfer-encoding:\s*(\S+)/i.exec(hd)||[])[1]||'',bnd=(/boundary="?([^";\r\n]+)"?/i.exec(hd)||[])[1],cs=(/charset="?([^";\r\n]+)/i.exec(hd)||[])[1]||'utf-8';
+    if(bnd){const P=bd.split('--'+bnd).slice(1).filter(p=>!/^--/.test(p)).map(p=>parte(p.replace(/^\r?\n/,'')));return P.find(p=>/plain/.test(p.ct))||P.find(p=>/html/.test(p.ct))||P[0]||{ct,txt:''}}
+    let b=bd;try{if(/base64/i.test(cte))b=new TextDecoder(cs).decode(Uint8Array.from(atob(bd.replace(/\s+/g,'')),c=>c.charCodeAt(0)));else if(/quoted/i.test(cte))b=new TextDecoder(cs).decode(Uint8Array.from(bd.replace(/=\r?\n/g,'').replace(/=([0-9A-F]{2})/gi,(q,h)=>String.fromCharCode(parseInt(h,16))),c=>c.charCodeAt(0)))}catch(e){}
+    return{ct,txt:/html/i.test(ct)?ciaHtmlTxt(b):b}};
+  const assunto=dec2047((/^subject:\s*(.+(?:\r?\n[ \t].+)*)/im.exec(bruto)||[])[1]||'').replace(/\s+/g,' ').trim();return `Assunto: ${assunto}\n${parte(bruto).txt}`}
+const ciaHtmlTxt=h=>{const d=document.createElement('div');d.innerHTML=String(h).replace(/<(br|\/p|\/div|\/tr|\/li)[^>]*>/gi,'\n$&').replace(/<\/t[dh]>/gi,'\t$&');return d.textContent.replace(/ /g,' ')};
+async function ciaPdfTxt(f){if(typeof pdfjsLib==='undefined')throw new Error('leitor de PDF indisponível');const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;let out='';
+  for(let n=1;n<=pdf.numPages;n++){const it=(await (await pdf.getPage(n)).getTextContent()).items,L={};it.forEach(i=>{const y=Math.round(i.transform[5]/3);(L[y]=L[y]||[]).push(i)});Object.keys(L).map(Number).sort((a,b)=>b-a).forEach(y=>{out+=L[y].sort((a,b)=>a.transform[4]-b.transform[4]).map(i=>i.str).join(' ')+'\n'})}return out}
+async function ciaArquivos(files){const I=ui.rpCI||(ui.rpCI={txt:'',L:[]});let n0=I.L.length;
+  for(const f of files){try{const nm=f.name||'';if(/\.(xlsx|xls|csv)$/i.test(nm)){await rpciArquivo(f);continue}
+      const tx=/\.eml$/i.test(nm)?ciaEml(await f.text()):/\.pdf$/i.test(nm)?await ciaPdfTxt(f):await f.text();const L=ciaEmail(tx);(L.length?L:rpCiaParse(tx)).forEach(r=>{r.arq=nm;I.L.push(r)})}
+    catch(e){toast(`Não consegui ler ${f.name}: ${e.message||e}`,'bad')}}
+  render();if(I.L.length>n0)ciaConfRede(I.L.slice(n0))}
+async function ciaConfRede(L){const I=ui.rpCI;for(const r of L){if(r.rede)continue;r.rede={bus:true};rpRL();const x={lat:rpN(r.lat)||null,lng:rpN(r.lng)||null,end:r.end,cidade:r.cidade,cia:{}};
+    try{const v=await ciaVerif(x);if(x.lat&&!r.lat){r.lat=x.lat;r.lng=x.lng;r.aprox=true}r.rede=v||{falha:'sem localização'}}catch(e){r.rede={falha:e.message||String(e)}}if(ui.rpCI!==I)return;rpRL()}}
+const ciaRedeRow=r=>!r.rede?'<span class="muted">—</span>':r.rede.bus?'<span class="muted">conferindo…</span>':r.rede.falha?`<span class="chip">${esc(r.rede.falha)}</span>`:r.rede.tem?`<span class="chip ok">rede nossa${r.rede.modo==='rua'?' · '+rpFmt(r.rede.m)+' m de rua':' · '+rpFmt(r.rede.d)+' m'}</span>`:'<span class="chip">sem rede nossa</span>';
+function rpCiaImp(){const I=ui.rpCI||(ui.rpCI={txt:'',L:[]}),H=ui.ciaHist||{},n=ciaL().length,np=ciaL().filter(x=>ciaC(x).origem==='planilha').length;
+  const conf=I.L.length?`<section class="rpsec"><div class="secth"><h3>Conferir · ${I.L.filter(r=>r.on).length} de ${I.L.length}</h3><button class="btn sm" data-act="ciaConfTodas">Conferir a rede de novo</button></div><div class="tablewrap"><table class="rpimp"><thead><tr><th></th><th>Notificação</th><th>Data</th><th>Hora</th><th>Tipo</th><th>Endereço</th><th>Cidade</th><th>Rede</th><th>Clientes</th><th>Lat.</th><th>Long.</th></tr></thead><tbody>
+    ${I.L.map((r,i)=>{const f=(k,t,w)=>`<td><input class="inp" ${t?`type="${t}"`:''} data-ch="rpCiV" data-i="${i}" data-k="${k}" value="${esc(r[k]??'')}" style="${w?'min-width:'+w:''}"></td>`,ok=r.data&&(r.end||r.lat)&&r.cidade;
+      return `<tr class="${ok?'':'rpbadrow'}"><td><input type="checkbox" data-ch="rpCiOn" data-i="${i}" ${r.on?'checked':''}></td>${f('prot','','110px')}${f('data','date')}${f('hora','time')}<td><select class="inp" style="min-width:160px" data-ch="rpCiV" data-i="${i}" data-k="tipo">${CIA_T.map(t=>`<option ${ciaTp(r)===t[0]?'selected':''}>${t[0]}</option>`).join('')}</select></td>${f('end','','220px')}${f('cidade','','110px')}<td class="nw">${ciaRedeRow(r)}</td>${f('cli','number','60px')}${f('lat','','90px')}${f('lng','','90px')}</tr>`}).join('')}</tbody></table></div>
+    <p class="muted">Linha em vermelho: falta data, cidade ou endereço/coordenada. "Rede nossa": cabo da base GeoGrid a até 50 m do ponto ou ao longo da rua (até 20 m). Sem coordenada, a ferramenta localiza a rua pelo endereço.</p>
+    <div class="actions"><button class="btn" data-act="rpCiLimpa">Descartar</button><button class="btn primary" data-act="rpCiSalvar">Guardar ${I.L.filter(r=>r.on).length} notificação(ões) na agenda</button></div></section>`:'';
+  const pn=typeof rpciPainel==='function'?rpciPainel():'';
+  return `<div class="cia2col imp"><section class="rpsec"><h3>E-mail da companhia</h3><p class="muted">Abra o e-mail no Outlook, selecione tudo (Ctrl+A), copie (Ctrl+C) e cole aqui (Ctrl+V), com o assunto se puder. A ferramenta entende o tema, o número, a data, as ruas (ou a tabela da programação semanal), localiza cada rua e confere se <b>passa na nossa rede</b> (GeoGrid). Fica na agenda com o resultado da rede; entra na Esteira quando você despachar.</p>
+     <textarea class="inp" rows="8" id="rpCiTx" data-in="rpCiTx" placeholder="Cole aqui o e-mail inteiro (Ctrl+V)">${esc(I.txt)}</textarea>
+     <div class="actions" style="justify-content:flex-start"><button class="btn primary" data-act="rpCiLer">Ler e conferir a rede</button><button class="btn" data-act="rpCiLinha">Cadastrar uma à mão</button></div>
+     <label class="ciadrop" data-drop="ciaArq"><input type="file" multiple accept=".eml,.pdf,.xlsx,.xls,.csv,.txt,message/rfc822,application/pdf" data-ch="ciaArq" hidden><b>…ou solte aqui o e-mail salvo (.eml), o PDF ou o Excel</b><small class="muted">no Outlook: arraste o e-mail para a área de trabalho, ou "Salvar como"</small></label></section>
+    <section class="rpsec"><h3>Base histórica (planilha)</h3><p class="muted">A planilha da sala técnica ("TROCA DE POSTES", aba NOTIFICAÇÕES). Importar de novo atualiza: o que já foi editado, despachado ou com resultado registrado aqui é preservado.</p>
+     ${rpPl()?`<label class="ciadrop" data-drop="ciaHist"><input type="file" accept=".xlsx,.xls,.csv" data-ch="ciaHist" hidden><b>${H.bus?'Importando…':'Solte a planilha aqui'}</b><small class="muted">ou clique para escolher</small></label>`:'<p class="muted">A importação é feita pela gestão das programadas.</p>'}
+     <p class="muted">${rpFmt(n)} notificação(ões) na ferramenta · ${rpFmt(np)} da planilha.</p>${H.res?`<div class="rpbox ${H.res.erro?'bad':'ok'}">${H.res.erro?esc(H.res.erro):`<b>${esc(H.res.nome)}</b>: ${H.res.lidas} linha(s) lidas · ${H.res.novas} nova(s) · ${H.res.atual} atualizada(s) · ${H.res.pres} preservada(s) (editadas aqui) · ${H.res.iguais} sem mudança.`}</div>`:''}</section></div>${pn}${conf}`}
+/* planilha histórica → registros */
+function ciaHistLer(rows){const N=v=>normK(String(v??'')).replace(/[^a-z0-9]/g,''),hi=rows.slice(0,15).findIndex(r=>r.some(c=>N(c)==='notificacao')&&r.some(c=>N(c)==='data'));if(hi<0)throw new Error('não achei as colunas NOTIFICAÇÃO e DATA');
+  const cab=rows[hi].map(N),col=(...k)=>{for(const x of k){const i=cab.indexOf(x);if(i>=0)return i}return -1};
+  const I={acao:col('acao','tipo'),num:col('notificacao'),cid:col('cidade','municipio'),end:col('endereco','local'),co:col('coordenadas','coordenada'),data:col('data'),prazo:col('prazo'),hora:col('hora'),st:col('status','situacao'),eq:col('equipe'),res:col('acao2','resultado'),da:col('datadapreventiva','datadaatuacao'),cli:col('clientesemrisco','clientes')};
+  const v=(l,k)=>k>=0?l[k]:'',dt=x=>{if(x==null||x==='')return '';if(typeof x==='number'&&x>20000){const d=new Date(Math.round((x-25569)*864e5)+43200000);return isoD(new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()))}
+    if(x instanceof Date)return isoD(x);const q=String(x).match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(q)return `${q[3].length===2?'20'+q[3]:q[3]}-${pad(+q[2])}-${pad(+q[1])}`;const z=String(x).match(/(\d{4})-(\d{2})-(\d{2})/);return z?z[0]:''};
+  const hh=x=>{if(typeof x==='number'&&x<1){const m=Math.round(x*1440);return pad(Math.floor(m/60))+':'+pad(m%60)}const q=String(x||'').match(/(\d{1,2})\s*[:h]\s*(\d{2})/i);return q?pad(+q[1])+':'+q[2]:''};
+  const stDe=x=>{const t=normK(x);return /cancel/.test(t)?'canc':/nao realiz/.test(t)?'nreal':/nao atend/.test(t)?'natend':/conclu|realizad|finaliz/.test(t)?'conc':'plan'};
+  const resDe=x=>{const t=normK(x);return /prevent/.test(t)?'prev':/improdut/.test(t)?'imp':/acompanh/.test(t)?'acomp':''};
+  const out=[],graf={};rows.slice(hi+1).forEach((l,n)=>{if(!l||!l.some(c=>String(c??'').trim()))return;const data=dt(v(l,I.data));if(!data)return;const co=rpGeoCoord(String(v(l,I.co)||''));
+    const r={num:String(v(l,I.num)??'').trim(),tipo:ciaTipoDe(v(l,I.acao)),tipoOrig:String(v(l,I.acao)||'').trim(),cid:String(v(l,I.cid)||'').trim(),end:String(v(l,I.end)||'').trim(),lat:Array.isArray(co)?co[0]:null,lng:Array.isArray(co)?co[1]:null,coOrig:String(v(l,I.co)||'').trim(),
+      data,hora:hh(v(l,I.hora)),prazo:dt(v(l,I.prazo)),sit:stDe(v(l,I.st)),eq:String(v(l,I.eq)||'').replace(/\s*-\s*/g,' ').replace(/\?/g,'').trim(),res:resDe(v(l,I.res)),da:dt(v(l,I.da)),cli:+v(l,I.cli)||'',linha:hi+n+2};
+    const k=normK(r.cid);if(k){(graf[k]=graf[k]||{})[r.cid]=(graf[k][r.cid]||0)+1}out.push(r)});
+  const best={};Object.keys(graf).forEach(k=>{best[k]=Object.keys(graf[k]).sort((a,b)=>(/[^\x00-\x7f]/.test(b)-/[^\x00-\x7f]/.test(a))||graf[k][b]-graf[k][a])[0]});
+  const M=new Map();out.forEach(r=>{r.cid=(best[normK(r.cid)]||r.cid).toUpperCase();r.chave=ciaChave(r.num,r.data,r.cid,r);M.set(r.chave,r)});return[...M.values()]}
+const ciaChave=(num,data,cid,r)=>{const n=normK(num).replace(/[^a-z0-9]/g,'');return 'NOT-'+(n&&n!=='sn'?n:'sn'+normK(cid).replace(/[^a-z]/g,'').slice(0,6)+String((r&&r.lat)||'').replace(/[^0-9]/g,'').slice(0,8))+'-'+String(data||'').replace(/-/g,'')};
+const ciaChaveX=x=>ciaC(x).chave||ciaChave(ciaC(x).prot,x.data,x.cidade,x);
+async function ciaHistImporta(f){const H=ui.ciaHist=ui.ciaHist||{};H.bus=true;H.res=null;render();
+  try{if(typeof XLSX==='undefined')throw new Error('leitor de planilha indisponível (confira a internet)');let rows;
+    if(/\.csv$/i.test(f.name||'')){const tx=await f.text(),sep=(tx.split('\n')[0].match(/;/g)||[]).length?';':',';rows=tx.split(/\r?\n/).map(l=>l.split(sep))}
+    else{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),aba=wb.SheetNames.find(n=>/notifica/i.test(normK(n)))||wb.SheetNames[0];rows=XLSX.utils.sheet_to_json(wb.Sheets[aba],{header:1,defval:'',raw:true,blankrows:false})}
+    const R=ciaHistLer(rows),idx=new Map();ciaL().forEach(x=>idx.set(ciaChaveX(x),x));let novas=0,atual=0,pres=0,iguais=0,seq=Math.max(0,...RP.rows.filter(x=>/^CIA-/.test(x.cod||'')).map(x=>+String(x.cod).slice(4)||0));const S=[];
+    for(const r of R){const x=idx.get(r.chave),c0=x?ciaC(x).res:null;const campos={tipo:r.tipo,prot:r.num,hora:r.hora,prazo:r.prazo,eq:r.eq,cli:r.cli||undefined,sit:['nreal','natend'].includes(r.sit)?r.sit:undefined,res:r.res?(c0&&c0.r===r.res&&c0.data===(r.da||'')?c0:{r:r.res,data:r.da||'',por:'Planilha',em:Date.now()}):undefined,tipoOrig:r.tipoOrig,coOrig:r.coOrig,origem:'planilha',linha:r.linha,chave:r.chave};
+      const st=r.res||r.sit==='conc'||r.sit==='nreal'||r.sit==='natend'?'concl':r.sit==='canc'?'canc':'plan';
+      if(x){const c=ciaC(x);if(c.ed||x.tec||rpAps(x).length){pres++;continue}const antes=JSON.stringify([x.cidade,x.end,x.lat,x.lng,x.status,c]);
+        Object.assign(x,{cidade:r.cid||x.cidade,data:r.data,status:st});if(r.end)x.end=r.end;if(r.lat){x.lat=r.lat;x.lng=r.lng}Object.keys(campos).forEach(k=>{if(campos[k]===undefined)delete c[k];else c[k]=campos[k]});
+        if(JSON.stringify([x.cidade,x.end,x.lat,x.lng,x.status,c])===antes){iguais++;continue}atual++;S.push(x)}
+      else{seq++;const n={id:uid(),cod:'CIA-'+String(seq).padStart(5,'0'),tipo:'cia',status:st,cidade:r.cid,data:r.data,tec:null,end:r.end,lat:r.lat,lng:r.lng,cia:{},ap:[],jor:{},hist:[{acao:'Importada da planilha (linha '+r.linha+')',por:meNome(),em:Date.now()}],criado:new Date().toISOString(),por:meNome()};
+        Object.keys(campos).forEach(k=>{if(campos[k]!==undefined)n.cia[k]=campos[k]});novas++;S.push(n);RP.rows.push(n);idx.set(r.chave,n)}}
+    for(let i=0;i<S.length;i+=200){const r=await sb.from('ag_re_prog').upsert(S.slice(i,i+200).map(rpRow));if(r&&r.error)throw new Error('não foi possível gravar: '+r.error.message)}
+    H.res={nome:f.name,lidas:R.length,novas,atual,pres,iguais};toast(`Planilha importada: ${novas} nova(s), ${atual} atualizada(s), ${pres} preservada(s).`)}
+  catch(e){H.res={erro:'Não consegui importar: '+(e.message||e)}}H.bus=false;render()}
+/* ---------- ações ---------- */
+const ciaEdit=(x,acao)=>{ciaC(x).ed=true;rpH(x,acao)};
+function ciaForm(x,o){const c=x?ciaC(x):{},v=k=>esc(String(o&&o[k]!=null?o[k]:''));const T=x?ciaTp(x):'Troca de poste';
+  return `<div class="rpgrid"><label class="fld"><span>Tipo *</span><select class="inp" id="ciTp">${CIA_T.map(t=>`<option ${T===t[0]?'selected':''}>${t[0]}</option>`).join('')}</select></label>
+   <label class="fld"><span>Notificação (número)</span><input class="inp" id="ciNum" value="${esc(x?c.prot||'':'')}"></label>
+   <label class="fld"><span>Data *</span><input type="date" class="inp" id="ciData" value="${esc(x?x.data:(o&&o.data)||ciaD().ref)}"></label>
+   <label class="fld"><span>Hora marcada pela companhia</span><input type="time" class="inp" id="ciHora" value="${esc(x?c.hora||'':'')}"></label>
+   <label class="fld"><span>Prazo</span><input type="date" class="inp" id="ciPrazo" value="${esc(x?c.prazo||'':'')}"></label>
+   <label class="fld"><span>Cidade *</span><input class="inp" id="ciCid" value="${esc(x?x.cidade:'')}" list="ciCidL"></label>
+   <label class="fld rpw2"><span>Endereço</span><input class="inp" id="ciEnd" value="${esc(x?x.end||'':'')}" placeholder="Rua, número - bairro"></label>
+   <label class="fld rpw2"><span>Coordenada (lat, long ou link do Google Maps)</span><input class="inp" id="ciCo" value="${x&&ciaLoc(x)?x.lat+', '+x.lng:o&&o.lat?o.lat+', '+o.lng:''}"></label>
+   <label class="fld"><span>Clientes em risco</span><input type="number" min="0" class="inp" id="ciCli" value="${esc(x?c.cli||'':'')}"></label>
+   <label class="fld"><span>Postes</span><input type="number" min="0" class="inp" id="ciPost" value="${esc(x?c.postes||'':'')}"></label>
+   <label class="fld rpw2"><span>Observação</span><input class="inp" id="ciObs" value="${esc(x?c.obs||'':'')}"></label></div><datalist id="ciCidL">${ciaCidades().slice(0,80).map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+   <p class="muted">${CIA_MASS} ou mais clientes em risco = massiva. Sem coordenada, use "Localizar e verificar a rede" depois de salvar.</p>`}
+function ciaLeForm(){const co=rpGeoCoord($('ciCo').value);return{tipo:$('ciTp').value,prot:$('ciNum').value.trim(),data:$('ciData').value,hora:$('ciHora').value,prazo:$('ciPrazo').value,cidade:$('ciCid').value.trim().toUpperCase(),end:$('ciEnd').value.trim(),
+  co:Array.isArray(co)?co:null,coRuim:$('ciCo').value.trim()&&!Array.isArray(co),cli:+$('ciCli').value||'',postes:+$('ciPost').value||'',obs:$('ciObs').value.trim()}}
+Object.assign(ACT,{
+  ciaPerV:el=>{ciaD()[el.dataset.k]=el.dataset.v;if(el.dataset.k==='mper')ciaD().rota=null;render()},
+  ciaPer:el=>{const D=ciaD(),n=+el.dataset.n,per=D[el.dataset.k];if(!n)D.ref=hoje();else D.ref=per==='semana'?addD(D.ref,7*n):per==='mes'?(()=>{const d=new Date(D.ref.slice(0,8)+'01T12:00:00');d.setMonth(d.getMonth()+n);return isoD(d)})():addD(D.ref,n);render()},
+  ciaLado:el=>{ciaD().lado=el.dataset.v;render()},
+  ciaSemLoc:()=>{const D=ciaD();ui.rpSub.rpCia='lista';D.per='tudo';D.semLoc=true;D.so=true;render()},
+  ciaMarca:el=>{const D=ciaD();ciaL().filter(x=>x.data===D.ref).forEach(x=>{if(!ciaFora(x))D.sel[x.id]=el.dataset.v==='1'});render()},
+  ciaMarcaBloco:el=>{const D=ciaD();el.dataset.ids.split(',').forEach(id=>D.sel[id]=true);D.lado='dia';render();toast('Bloco marcado para a rota.')},
+  ciaMontar:()=>{const D=ciaD(),L=Object.keys(D.sel).filter(id=>D.sel[id]).map(rpGet).filter(x=>x&&!ciaFora(x));if(!L.length){toast('Marque as notificações da rota.','bad');return}
+    D.rota=ciaMontar(L,{livres:x=>x.data<D.ref});D.lado='rotas';render()},
+  ciaRotaX:()=>{ciaD().rota=null;render()},
+  ciaRotaMapa:()=>{const D=ciaD();ui.rpSub.rpCia='mapa';D.mper='datr';D.selDia='';render();ACT.ciaMontar()},
+  ciaRotaDesp:async()=>{const D=ciaD(),R=D.rota;if(!R||!R.seq.length)return;if(!D.tecR){toast('Escolha o técnico da rota.','bad');return}if(!rpPl())return semPerm();
+    const id='R'+D.ref.replace(/-/g,'').slice(2)+'-'+D.tecR.slice(0,4),nome=`Rota de ${gTecN(D.tecR).split(' ')[0]} · ${dBR(D.ref).slice(0,5)}`;let n=0;
+    for(const s of R.seq){const x=s.x,c=ciaC(x);if(x.data!==D.ref){c.dataOrig=c.dataOrig||x.data;rpH(x,`Reprogramada de ${dBR(x.data)} para ${dBR(D.ref)} (atrasada)`);x.data=D.ref}
+      x.tec=D.tecR;x.status='desp';x.jor={};x.ordem=s.ordem;x.eta=s.cheg;x.rota={id,nome,dia:D.ref,ordem:s.ordem,cheg:s.cheg};c.despEm=Date.now();c.despPor=meNome();if(s.conflito)c.conflito=s.atraso;
+      ciaEdit(x,`Despachada na ${nome} para ${gTecN(D.tecR)} (parada ${s.ordem}, chegada prevista ${s.cheg})`);if(await rpSalvar(x))n++}
+    D.rota=null;toast(`${n} notificação(ões) despachada(s) para ${gTecN(D.tecR)}.`);render()},
+  ciaDesp:el=>{const x=rpGet(el.dataset.id);if(!x)return;if(!rpPl())return semPerm();const c=ciaC(x);
+    openModal(`<h3>Despachar · ${esc(ciaTp(x))} ${esc(ciaNum(x))}</h3><p class="muted">${dBR(x.data)} ${esc(ciaHora(x))} · ${esc(x.cidade)}${x.end?' · '+esc(x.end):''}</p>${ciaRedeChip(x)}
+     <label class="fld" style="margin-top:10px"><span>Técnico *</span><select class="inp" id="ciTec"><option value="">Escolha…</option>${rpTecs().map(t=>`<option value="${t.id}" ${x.tec===t.id?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></label>
+     <label class="fld"><span>Data</span><input type="date" class="inp" id="ciDData" value="${esc(x.data<hoje()?hoje():x.data)}"></label>
+     <label class="fld"><span>Clientes em risco</span><input type="number" min="0" class="inp" id="ciDCli" value="${esc(c.cli||'')}"></label><label class="chk"><input type="checkbox" id="ciDMass" ${ciaMass(x)?'checked':''}> Massiva (risco para ${CIA_MASS} ou mais clientes)</label>
+     <p class="muted">O técnico recebe na lista dele e informa o resultado (Preventiva, Improdutiva ou Acompanhamento) com as fotos; a gestão revisa em Revisão de campo.</p>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="ciaDespOk" data-id="${x.id}">Despachar</button></div>`)},
+  ciaDespOk:async el=>{const x=rpGet(el.dataset.id),t=$('ciTec').value,d=$('ciDData').value||x.data;if(!t){toast('Escolha o técnico.','bad');return}const c=ciaC(x);
+    if(d!==x.data){c.dataOrig=c.dataOrig||x.data;rpH(x,`Reprogramada de ${dBR(x.data)} para ${dBR(d)}`);x.data=d}c.cli=+$('ciDCli').value||c.cli||'';c.massiva=$('ciDMass').checked;
+    x.tec=t;x.status='desp';x.jor={};c.despEm=Date.now();c.despPor=meNome();delete x.rota;ciaEdit(x,`Despachada para ${gTecN(t)}`);closeModal();await rpSalvar(x,`Despachada para ${gTecN(t)}.`);render()},
+  ciaRes:el=>{const x=rpGet(el.dataset.id);if(!x)return;const c=ciaC(x),a=ciaApR(x),r0=ciaRes(x),s0=ciaSit(x),R=c.res||{};
+    openModal(`<h3>Resultado · ${esc(ciaTp(x))} ${esc(ciaNum(x))}</h3><p class="muted">${dBR(x.data)} ${esc(ciaHora(x))} · ${esc(x.cidade)}${x.end?' · '+esc(x.end):''}</p>
+     ${a?`<div class="rpbox ${a.st==='rev'?'warn':'ok'}">O técnico informou <b>${CIA_R[a.v.res][0]}</b> em ${dBR(a.data)}${a.v.obs?' · '+esc(a.v.obs):''}${a.st==='rev'?' (aguardando a revisão)':''}.</div>`:''}
+     <div class="ciares">${Object.entries(CIA_R).map(([k,v])=>`<label class="ciaro"><input type="radio" name="ciR" value="${k}" ${r0===k?'checked':''} ${rpPl()?'':'disabled'}><span><b>${v[0]}</b><small>${v[1]}</small></span></label>`).join('')}</div>
+     <div class="rpgrid"><label class="fld"><span>Situação</span><select class="inp" id="ciSit" ${rpPl()?'':'disabled'}>${Object.entries(CIA_ST).map(([k,v])=>`<option value="${k}" ${(r0&&s0==='plan'?'conc':s0)===k?'selected':''}>${v[0]}</option>`).join('')}</select></label>
+      <label class="fld"><span>Data da atuação</span><input type="date" class="inp" id="ciRData" value="${esc(R.data||(a&&a.data)||x.data)}" ${rpPl()?'':'disabled'}></label>
+      <label class="fld rpw2"><span>Equipe</span><input class="inp" id="ciREq" value="${esc(ciaEq(x))}" ${x.tec||!rpPl()?'disabled':''}></label>
+      <label class="fld rpw2"><span>Observação</span><input class="inp" id="ciRObs" value="${esc(R.obs||'')}" ${rpPl()?'':'disabled'}></label></div>
+     <div class="actions"><button class="btn" data-act="close">Fechar</button><button class="btn" data-act="rpAbrir" data-id="${x.id}">Detalhes</button>${rpPl()?`<button class="btn primary" data-act="ciaResOk" data-id="${x.id}">Salvar resultado</button>`:''}</div>`)},
+  ciaResOk:async el=>{const x=rpGet(el.dataset.id),c=ciaC(x),r=(document.querySelector('input[name="ciR"]:checked')||{}).value||'';let s=$('ciSit').value;if(r&&s==='plan')s='conc';if(s==='conc'&&!r){toast('Escolha a ação realizada (Preventiva, Improdutiva ou Acompanhamento).','bad');return}
+    if(r)c.res={r,data:$('ciRData').value,obs:$('ciRObs').value.trim(),por:meNome(),em:Date.now()};else delete c.res;if(!x.tec&&$('ciREq'))c.eq=$('ciREq').value.trim();
+    if(s==='nreal'||s==='natend'){c.sit=s;x.status='concl'}else{delete c.sit;x.status=s==='conc'?'concl':s==='canc'?'canc':(x.tec?(x.status==='plan'?'desp':x.status):'plan')}
+    if(x.status==='concl'&&!x.gestao)x.gestao={por:meNome(),em:Date.now(),mot:'Resultado registrado na Companhia elétrica'};
+    ciaEdit(x,`Resultado: ${r?CIA_R[r][0]:'—'} · ${CIA_ST[s][0]}`);closeModal();await rpSalvar(x,'Resultado salvo.');render()},
+  ciaNovo:el=>{if(!rpPl())return semPerm();const o=el&&el.dataset&&el.dataset.lat?{lat:el.dataset.lat,lng:el.dataset.lng}:null;
+    openModal(`<h3>Novo agendamento da companhia</h3>${ciaForm(null,o)}<div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="ciaSalva">Salvar</button></div>`,'wide')},
+  ciaNovoMapa:()=>{const D=ciaD();D.novoMapa=!D.novoMapa;if(D.novoMapa)toast('Toque no mapa onde é o serviço.');render()},
+  ciaEd:el=>{const x=rpGet(el.dataset.id);if(!x)return;if(!rpPl())return semPerm();
+    openModal(`<h3>Editar · ${esc(x.cod)}</h3>${ciaForm(x)}${ciaC(x).origem==='planilha'?`<p class="muted">Veio da planilha (linha ${ciaC(x).linha||'—'}). Depois de editada aqui, a importação da planilha não muda mais esta notificação.</p>`:''}
+     <div class="actions"><button class="btn" data-act="close">Voltar</button>${ciaSit(x)!=='canc'?`<button class="btn" data-act="ciaCanc" data-id="${x.id}">Cancelar notificação</button>`:''}<button class="btn" data-act="ciaLoc" data-id="${x.id}">Localizar e verificar a rede</button><button class="btn primary" data-act="ciaSalva" data-id="${x.id}">Salvar</button></div>`,'wide')},
+  ciaSalva:async el=>{const id=el.dataset.id,f=ciaLeForm();if(!f.data||!f.cidade){toast('Informe a data e a cidade.','bad');return}if(f.coRuim){toast('Não entendi a coordenada. Use "lat, long" ou o link do Google Maps.','bad');return}
+    let x=id&&rpGet(id);const novo=!x;if(novo)x={id:uid(),cod:rpCod('CIA'),tipo:'cia',status:'plan',tec:null,cia:{origem:'manual'},ap:[],jor:{},hist:[],criado:new Date().toISOString(),por:meNome()};const c=ciaC(x),mov=f.co&&(!ciaLoc(x)||+x.lat!==f.co[0]||+x.lng!==f.co[1]);
+    Object.assign(x,{data:f.data,cidade:f.cidade,end:f.end});if(f.co){x.lat=f.co[0];x.lng=f.co[1];delete c.aprox}else if(!$('ciCo').value.trim()){x.lat=null;x.lng=null}
+    Object.assign(c,{tipo:f.tipo,prot:f.prot,hora:f.hora,prazo:f.prazo,cli:f.cli,postes:f.postes,obs:f.obs});if(mov||novo)delete c.rede;c.chave=ciaChave(f.prot,f.data,f.cidade,x);
+    ciaEdit(x,novo?'Agendamento criado':'Editada');closeModal();await rpSalvar(x,novo?'Agendamento criado.':'Salvo.');
+    if(ciaLoc(x)&&!c.rede&&rpGeoArqs().length){try{await ciaVerif(x);await rpSalvar(x)}catch(e){}}render()},
+  ciaCanc:el=>{const x=rpGet(el.dataset.id);rpPergunta('Cancelar a notificação',`${ciaTp(x)} ${ciaNum(x)} · ${dBR(x.data)}`,'Motivo do cancelamento',async m=>{const c=ciaC(x);delete c.sit;x.status='canc';ciaEdit(x,'Cancelada: '+m);await rpSalvar(x,'Notificação cancelada.');render()},true)},
+  ciaLoc:async el=>{const x=rpGet(el.dataset.id);closeModal();toast('Localizando e conferindo a rede…');try{const r=await ciaVerif(x);ciaEdit(x,'Rede conferida: '+(r?(r.tem?'rede nossa':'sem rede nossa'):'sem localização'));await rpSalvar(x);toast(r?(r.tem?'Passa na nossa rede.':'Não passa na nossa rede.'):'Não consegui localizar o endereço.',r&&r.tem?'':'bad')}catch(e){toast('Não consegui conferir: '+(e.message||e),'bad')}render()},
+  ciaRedeTodos:async()=>{const P=ciaL().filter(x=>!ciaC(x).rede&&(ciaLoc(x)||x.end));if(!P.length){toast('Todas já foram conferidas.');return}const sc=P.filter(x=>!ciaLoc(x)).length;
+    if(!confirm(`${P.length} notificação(ões) sem conferência de rede: ${P.length-sc} com coordenada (rápido)${sc?` e ${sc} só com endereço (localiza a rua, ~1 s cada)`:''}. Conferir agora?`))return;
+    let tem=0,sem=0,fal=0,i=0;const S=[];try{await ciaRede()}catch(e){toast('Não consegui conferir: '+e.message,'bad');return}
+    for(const x of P){i++;if(i%10===0)toast(`Conferindo a rede… ${i}/${P.length}`);try{const r=await ciaVerif(x);if(!r||r.falha)fal++;else if(r.tem)tem++;else sem++;S.push(x)}catch(e){fal++}}
+    for(let k=0;k<S.length;k+=200){await sb.from('ag_re_prog').upsert(S.slice(k,k+200).map(rpRow))}toast(`${S.length} conferida(s): ${tem} com rede nossa, ${sem} sem${fal?`, ${fal} sem localização`:''}.`);render()},
+  ciaExp:()=>{const D=ciaD(),[a,b]=ciaIntervalo(D.per,D.ref),L=ciaFiltro(ciaL().filter(x=>x.data>=a&&x.data<=b),D).sort(ciaOrd);
+    xlsxBaixar(`companhia_eletrica_${D.per==='tudo'?'tudo':a+'_a_'+b}`,[['NOTIFICAÇÕES',L.map(ciaLinhaX)],['Filtros',xFiltros({'Tela':'Rede Externa › Companhia elétrica › Lista','Período':D.per==='tudo'?'Tudo':dBR(a)+' a '+dBR(b),'Tipo':D.tipo||'Todos','Situação':D.st?CIA_ST[D.st][0]:'Todas','Linhas':L.length})]],`${L.length} notificação(ões) exportada(s).`)},
+  ciaBaixaDia:()=>{const D=ciaD(),L=ciaL().filter(x=>x.data===D.ref).sort(ciaOrd),R=ciaMontar(L.filter(x=>!ciaFora(x))),o={};R.seq.forEach(s=>o[s.x.id]=s);
+    xlsxBaixar(`companhia_eletrica_dia_${D.ref}`,[['Dia',L.map(x=>Object.assign({'ORDEM SUGERIDA':o[x.id]?o[x.id].ordem:'','CHEGADA PREVISTA':o[x.id]?o[x.id].cheg:''},ciaLinhaX(x)))]],'Lista do dia baixada.')},
+  ciaPainelX:()=>{const m=rpMes(),p=ciaPainelDados(m);xlsxBaixar(`companhia_eletrica_painel_${m}`,[['Indicadores',[{Indicador:'Recebidas',Valor:p.rec},{Indicador:'Notificações únicas',Valor:p.un},{Indicador:'Com ação registrada',Valor:p.com},{Indicador:'Sem ação',Valor:p.sem},{Indicador:'% improdutiva',Valor:p.pi},{Indicador:'Despachadas',Valor:p.desp},{Indicador:'Massivas',Valor:p.mass}]],
+    ['Por equipe',Object.entries(p.eq).map(([e,o])=>({Equipe:e,Total:o.t,Preventiva:o.prev,Improdutiva:o.imp,Acompanhamento:o.acomp,'Sem ação':o.sem}))],['Por cidade',Object.entries(p.cid).map(([c,o])=>({Cidade:c,Total:o.t,'Com ação':o.com}))],['Notificações',p.L.sort(ciaOrd).map(ciaLinhaX)],
+    ['Filtros',xFiltros({'Tela':'Rede Externa › Companhia elétrica › Painel do mês','Mês':m})]],'Planilha do painel baixada.')},
+  ciaConfTodas:()=>{const I=ui.rpCI;I.L.forEach(r=>delete r.rede);ciaConfRede(I.L)}});
+Object.assign(CH,{ciaF:el=>{ciaD()[el.dataset.k]=el.value;render()},ciaFB:el=>{ciaD()[el.dataset.k]=el.checked;render()},ciaRef:el=>{ciaD().ref=el.value||hoje();render()},
+  ciaSel:el=>{ciaD().sel[el.dataset.id]=el.checked;const n=Object.keys(ciaD().sel).filter(id=>ciaD().sel[id]).length;const f=document.querySelector('.ciafoot span');if(f)f.textContent=`${n} marcado(s) para a rota`;const b=document.querySelector('[data-act="ciaMontar"]');if(b)b.disabled=!n},
+  ciaTecR:el=>{ciaD().tecR=el.value},ciaGeo:el=>{ciaD().geo=el.checked;const o=RP_MP.rpCiaMapa;if(o){o.gk='';rpCiaDesenha(o)}},
+  ciaArq:el=>{const F=[...el.files];el.value='';if(F.length)ciaArquivos(F)},ciaHist:el=>{const f=el.files[0];el.value='';if(f)ciaHistImporta(f)}});
+Object.assign(IN,{ciaQ:el=>{ciaD().q=el.value;clearTimeout(window._ciaT);window._ciaT=setTimeout(()=>{render();const i=$('ciaQ');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)}});
+/* ler o e-mail colado: formatos da companhia; se nada, o leitor antigo (planilha colada continua no rpcia) */
+{const _l=ACT.rpCiLer;ACT.rpCiLer=function(){const I=ui.rpCI,tx=String(I.txt||''),ln=tx.split(/\r?\n/).filter(l=>l.trim());if(ln.length>=2&&ln.filter(l=>l.includes('\t')).length>=2&&!/assunto|subject|notifica/i.test(tx.slice(0,200)))return _l.apply(this,arguments);
+  const L=ciaEmail(tx).filter(r=>r.data||r.end||r.prot);if(!L.length)return _l.apply(this,arguments);const n0=I.L.length;I.L=I.L.concat(L);render();ciaConfRede(I.L.slice(n0))}}
+/* guardar: chave número + data + rua; repetida não entra */
+ACT.rpCiSalvar=async()=>{const I=ui.rpCI,L=I.L.filter(r=>r.on),bad=L.filter(r=>!(r.data&&r.cidade&&(r.end||r.lat)));if(bad.length){toast(`${bad.length} linha(s) sem data, cidade ou endereço/coordenada.`,'bad');return}
+  const ex=new Set(ciaL().map(x=>ciaChaveX(x)+'|'+normK(x.end||'').replace(/[^a-z0-9]/g,'').slice(0,24)));let n=0,dup=0;
+  for(const r of L){const ch=ciaChave(r.prot,r.data,r.cidade,r),k=ch+'|'+normK(r.end||'').replace(/[^a-z0-9]/g,'').slice(0,24);if(ex.has(k)){dup++;continue}ex.add(k);
+    const x={id:uid(),cod:rpCod('CIA'),tipo:'cia',status:'plan',cidade:String(r.cidade).toUpperCase(),data:r.data,tec:null,end:r.end||'',lat:rpN(r.lat)||null,lng:rpN(r.lng)||null,cia:{tipo:ciaTp(r),hora:r.hora||'',cli:+r.cli||'',prot:r.prot||'',postes:r.postes||'',obs:r.obs||'',origem:r.arq?'arquivo':'email',chave:ch,aprox:!!r.aprox},ap:[],jor:{},hist:[],criado:new Date().toISOString(),por:meNome()};
+    if(r.rede&&!r.rede.bus&&!r.rede.falha)x.cia.rede=Object.assign({},r.rede);rpH(x,'Notificação importada'+(r.arq?' ('+r.arq+')':' (e-mail)'));if(await rpSalvar(x))n++}
+  toast(`${n} notificação(ões) guardada(s) na agenda${dup?` · ${dup} já existia(m)`:''}.`);ui.rpCI={txt:'',L:[]};ui.rpSub.rpCia='lista';ciaD().per='tudo';ciaD().so=true;render()};
+/* Esteira: a notificação só entra quando é despachada (ou tem apontamento do técnico) */
+{const _c=rpColDe;rpColDe=function(x){if(x&&x.tipo==='cia'&&!rpAps(x).length&&(!x.tec||x.status==='concl'||x.status==='canc'))return null;return _c.apply(this,arguments)}}
+/* soltar arquivos nas áreas de "solte aqui" */
+document.addEventListener('dragover',e=>{const z=e.target.closest&&e.target.closest('[data-drop]');if(z){e.preventDefault();z.classList.add('on')}});
+document.addEventListener('dragleave',e=>{const z=e.target.closest&&e.target.closest('[data-drop]');if(z)z.classList.remove('on')});
+document.addEventListener('drop',e=>{const z=e.target.closest&&e.target.closest('[data-drop]');if(!z)return;e.preventDefault();z.classList.remove('on');const F=[...(e.dataTransfer.files||[])];if(!F.length)return;if(z.dataset.drop==='ciaHist')ciaHistImporta(F[0]);else ciaArquivos(F)});
+document.head.insertAdjacentHTML('beforeend',`<style>
+.ciatopo{align-items:flex-start}.ciatopo p{max-width:900px}.ciatabs{margin:4px 0 12px}.ciaav{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between;margin-bottom:10px}
+.ciafil{display:flex;flex-direction:column;gap:8px}.ciaflin{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.ciaflin select.inp{width:auto;min-width:150px}.ciaflin input[type=date]{width:auto}
+.ciatab td{vertical-align:top}.ciatab .nw,.nw{white-space:nowrap}.ciatab .mono,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}.ciaac{display:flex;gap:6px;flex-wrap:wrap}.ciaac .btn{white-space:nowrap}.ciatab td:last-child{min-width:250px}.ciatab td:nth-child(3){min-width:110px}.ciast .chip{margin:1px 0}
+.ciadot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:baseline}.ciaord{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#1d4ed8;color:#fff;font-size:12px;font-weight:700;margin-right:6px;flex:none}
+.lnk{background:none;border:0;color:var(--info,#245f80);text-decoration:underline;cursor:pointer;padding:0;font:inherit}
+.cia2col{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:14px;align-items:start}.cia2col.imp{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.ciamapa{height:620px;border-radius:10px}.ciamaph{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.ciamaph b{flex:1}
+.cialeg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:12.5px;color:var(--muted)}.cialeg span{display:inline-flex;align-items:center;gap:5px}.cialeg i{width:11px;height:11px;border-radius:50%;display:inline-block}.cialeg i.o{border:2px solid #c2410c}.cialeg i.r{border:2px solid #475569;background:#fff}.cialeg i.p{background:#1d4ed8;color:#fff;font-size:9px;font-style:normal;width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center}
+.cialado{display:flex;flex-direction:column;max-height:820px}.cialbody{overflow:auto;flex:1;min-height:0;padding-right:2px}.cialt{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px;flex:none}.cialt button{flex:1;border:0;background:var(--surface);padding:10px 6px;font:inherit;font-weight:600;cursor:pointer;color:var(--ink)}.cialt button+button{border-left:1px solid var(--line)}.cialt button[aria-current=true]{background:#2f4a1a;color:#fff}.ciabar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.ciacards{overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:120px}
+.ciacard{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}.ciacard.at{border-left:4px solid #c2410c}.ciach{display:flex;gap:10px;align-items:flex-start}.ciach input{width:19px;height:19px;margin-top:2px;accent-color:#8cbf3f}
+.ciafoot{display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px;margin-top:10px;flex-wrap:wrap}.ciafoot select{flex:1;min-width:160px}
+.ciablk{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}.ciah3{margin:14px 0 8px}
+.ciaseq{list-style:none;padding:0;margin:8px 0;display:flex;flex-direction:column;gap:8px}.ciaseq li{display:flex;gap:8px;align-items:flex-start}.ciarota{border:1px solid #bfdbfe;background:#eff6ff;border-radius:10px;padding:10px}.bad{color:var(--bad,#b3261e)}
+.ciapin span{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;color:#fff;font-weight:700;font-size:12px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.ciapop{display:flex;flex-direction:column;gap:4px;min-width:230px}.ciapop .ciaac{margin-top:6px}
+.ciares{display:flex;flex-direction:column;gap:8px;margin:10px 0}.ciaro{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px;cursor:pointer}.ciaro input{margin-top:3px;width:18px;height:18px}.ciaro span{display:flex;flex-direction:column}.ciaro small{color:var(--muted)}
+.ciadrop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px dashed var(--line);border-radius:12px;padding:26px 14px;text-align:center;cursor:pointer;margin-top:12px}.ciadrop.on,.ciadrop:hover{border-color:#8cbf3f;background:#f3f9ea}
+@media(max-width:900px){.cia2col,.cia2col.imp{grid-template-columns:1fr}.ciamapa{height:420px}.cialado{max-height:none}}
+</style>`);
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
