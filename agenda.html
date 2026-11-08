@@ -4945,7 +4945,7 @@ function viewGAgenda(){if(G.erro)return `<h2>Agenda · GTD Manutenção</h2>${gE
 /* ---------- PAINEL DE KPIs DO GTD ---------- */
 function gBarras(L,tot){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([n,q,ex])=>`<div class="gbar"><span>${esc(n)}</span><div><i style="width:${Math.round(q/mx*100)}%"></i></div><b>${q}</b>${ex!==undefined?`<small>${ex}</small>`:''}</div>`).join('')||'<p class="muted">Sem dados no período.</p>'}
 const GSEC=[['geral','Visão geral'],['tempos','Tempos de atendimento'],['fin','Financeiro']],GFSUB=[['budget','Budget e consumo','gf_budget'],['prest','Totais por prestador','gf_prest'],['det','Detalhamento das LPUs','gf_det'],['aprov','Aprovação de LPU','gAprov']];
-const gSubsOk=()=>GFSUB.filter(x=>pode(x[2])&&!(x[0]!=='budget'&&typeof reLadoP==='function'&&reLadoP())),gSecsOk=()=>{const L=GSEC.filter(([k])=>k==='geral'||(k==='tempos'&&pode('g_tempos'))||k==='fin'&&(pode('g_fin')&&gSubsOk().length));if(typeof reAt==='function'&&reAt()){if(typeof reLadoP==='function'&&reLadoP())return [['prev','KPIs da preventiva']].concat(L.some(x=>x[0]==='fin')?[['fin','Budget de preventiva']]:[]);L[0]=['geral','Corretiva']}return L};
+const gSubsOk=()=>GFSUB.filter(x=>pode(x[2])),gSecsOk=()=>{const L=GSEC.filter(([k])=>k==='geral'||(k==='tempos'&&pode('g_tempos'))||k==='fin'&&(pode('g_fin')&&gSubsOk().length));if(typeof reAt==='function'&&reAt()){if(typeof reLadoP==='function'&&reLadoP())return [['prev','KPIs da preventiva']].concat(L.some(x=>x[0]==='fin')?[['fin','Financeiro']]:[]);L[0]=['geral','Corretiva']}return L};
 const gNAprov=()=>pode('a_gAprovar')?G.lpus.filter(l=>l.status==='aguardando').length:0;
 /* item "Painel de KPIs" do menu do GTD, com Visão geral e Financeiro (Budget, Detalhamento, Aprovação), como na Implantação */
 function gNavPainel(){const open=ui.tab==='gPainel'&&!ui.gpFech,n=gNAprov(),bAp=n?`<span class="nbadge">${n}</span>`:'',ch=o=>`<span class="nch">${o?ICN.up:ICN.dn}</span>`;
@@ -13507,7 +13507,7 @@ const PR_RE=['Rede Externa Corretiva',[['re_painel','Painel de KPIs da Rede Exte
   ['re_cham','Chamados (Kanban)','t',[['re_a_desp','Despachar chamados para o técnico','a'],['re_a_edit','Agendar, editar e cancelar chamados','a'],['re_a_valid','Acesso NOC: validar chamados','a']]],
   ['re_agenda','Agenda da Rede Externa','t'],['re_novo','Criar chamado','t'],['re_hist','Histórico da Rede Externa','t'],['re_aprov','Aprovação de LPU da Rede Externa','t',[['re_a_aprovar','Aprovar, reprovar e devolver LPUs da Rede Externa','a']]]]];
 /* 08/11 (fim): Rede Externa Preventiva com o próprio grupo de permissões (rp_*): o que vê e o que aprova */
-const PR_RP=['Rede Externa Preventiva',[['rp_painel','Painel de KPIs da preventiva (km, caixas, postes, plaquetas)','t',[['rp_fin','Budget de serviços preventivos (3.1.1.2.05.0101)','t',[['rp_a_budget','Definir o budget de preventiva','a']]]]],
+const PR_RP=['Rede Externa Preventiva',[['rp_painel','Painel de KPIs da preventiva (km, caixas, postes, plaquetas)','t',[['rp_fin','Financeiro da preventiva · budget de serviços preventivos (3.1.1.2.05.0101)','t',[['rp_a_budget','Definir o budget de preventiva','a'],['rp_prest','Totais por prestador da preventiva','t'],['rp_det','Detalhamento das LPUs da preventiva','t'],['rp_aprovLpu','Aprovação de LPU da preventiva (chamados de preventiva e de companhia elétrica)','t',[['rp_a_aprovar','Aprovar, reprovar e devolver LPUs da preventiva','a']]]]]]],
   ['rp_est','Esteira das programadas','t'],['rp_t_prev','Preventiva (rotas aéreas e subterrâneas)','t'],['rp_t_mel','Melhoria de rede','t',[['rp_aprov','Aprovar projetos de melhoria','a']]],['rp_t_ret','Retirada de cabo','t'],['rp_t_cia','Companhia elétrica','t'],
   ['rp_plan','Planejar, editar e despachar as programadas','a'],['rp_rev','Revisão de campo (apontamentos e fotos)','t',[['rp_a_rev','Aprovar, rejeitar e reabrir apontamentos','a']]]]];
 const PR_ON=typeof reVe==='function';
@@ -16727,9 +16727,12 @@ function reMig(s,papel){if(!Array.isArray(s)||!PR_ON||s.includes('rp_v58'))retur
   if(['supervisor','encarregado'].includes(papel)){if(anyRe)add('rc_geo','rc_a_geoVal','rc_fisc','rc_a_fzPrazo');if(anyRp)add('rp_geo','rp_a_geoVal','rp_fisc','rp_a_fzPrazo')}
   if(has('a_geoCad')){if(anyRe)add('rc_geo','rc_a_geoCad');if(anyRp)add('rp_geo','rp_a_geoCad')}
   s.push('rp_v58');return s}
-{const _n=pxNorm;pxNorm=function(set,papel){return reMig(_n.apply(this,arguments),papel)}}
+/* 08/11 (fim, 2): Financeiro da preventiva completo (totais por prestador, detalhamento, aprovação de LPU) */
+function reMig2(s){if(!Array.isArray(s)||!PR_ON||s.includes('rp_v58b'))return s;s=s.slice();const has=k=>s.includes(k),add=(...L)=>L.forEach(k=>{if(!s.includes(k))s.push(k)});
+  if(has('rp_fin')||has('rp_painel')){if(has('ref_prest'))add('rp_prest');if(has('ref_det'))add('rp_det')}if(has('re_aprov'))add('rp_aprovLpu');if(has('re_a_aprovar'))add('rp_a_aprovar');s.push('rp_v58b');return s}
+{const _n=pxNorm;pxNorm=function(set,papel){return reMig2(reMig(_n.apply(this,arguments),papel))}}
 /* quem vê cada lado */
-const reTodas=()=>!ME?[]:['sup','enc','noc'].includes(ui.perfil)?pxNorm(permDe(ME.papel,'pBase' in ME?ME.pBase:ME.perm),ME.papel):reMig(permDe(ME.papel,ME.perm),ME.papel);
+const reTodas=()=>!ME?[]:['sup','enc','noc'].includes(ui.perfil)?pxNorm(permDe(ME.papel,'pBase' in ME?ME.pBase:ME.perm),ME.papel):reMig2(reMig(permDe(ME.papel,ME.perm),ME.papel));
 const reCorVe=()=>!!ME&&!gTecPerfil()&&(ui.perfil==='coord'||(ME.reCor!=null?ME.reCor:pode('m_re')));
 const rePrevVe=()=>!!ME&&!gTecPerfil()&&(ui.perfil==='coord'||(ME.rePrev!=null?ME.rePrev:reTodas().some(k=>RPK.includes(k))));
 const reLado=()=>{if(!rePrevVe())return 'cor';if(!reCorVe())return 'prev';return ui.reLado==='prev'?'prev':'cor'};
@@ -16737,12 +16740,12 @@ const reLadoP=()=>!!ME&&!gTecPerfil()&&ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'&
 const reLadoK=()=>reLadoP()?'rp':'rc';
 {const A=areaCfg('re');if(A)A.ve=()=>reCorVe()||rePrevVe()}
 /* permissões efetivas: no lado preventivo, as telas do motor (painel, budget, visão do técnico) vêm das chaves rp_* */
-const RP_EFF=[['rp_painel',['gPainel']],['rp_fin',['g_fin','gf_budget']],['rp_a_budget',['a_budget']],['rp_campo',['gCampo']],['rp_eqVer',['gEqVer']]];
+const RP_EFF=[['rp_painel',['gPainel']],['rp_fin',['g_fin','gf_budget']],['rp_prest',['gf_prest']],['rp_det',['gf_det']],['rp_aprovLpu',['gAprov']],['rp_a_aprovar',['a_gAprovar']],['rp_a_budget',['a_budget']],['rp_campo',['gCampo']],['rp_eqVer',['gEqVer']]];
 {const _p=permEff;permEff=function(){_p.apply(this,arguments);if(!ME||!['sup','enc','noc'].includes(ui.perfil))return;
   const b=pxNorm(permDe(ME.papel,ME.pBase),ME.papel);ME.reCor=b.some(k=>(PR_RK.includes(k)&&/^re_/.test(k))||RCK.includes(k));ME.rePrev=b.some(k=>RPK.includes(k));
   if(PR_ON&&(ME.reCor||ME.rePrev)&&!ME.perm.includes('m_re'))ME.perm.push('m_re');
   if(ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'&&reLado()==='prev'){const tira=new Set(Object.keys(PR_MAP).concat(['a_budget']));ME.perm=ME.perm.filter(k=>!tira.has(k));
-    RP_EFF.forEach(([k,L])=>{if(b.includes(k))L.forEach(x=>{if(!ME.perm.includes(x))ME.perm.push(x)})})}}}
+    RP_EFF.forEach(([k,L])=>{if(b.includes(k))L.forEach(x=>{if(!ME.perm.includes(x))ME.perm.push(x)})});if(!ME.perm.includes('_v24'))ME.perm.push('_v24')}}}
 /* menu de cada lado */
 const RP_TK={rpEst:'rp_est',rpPrev:'rp_t_prev',rpMel:'rp_t_mel',rpRet:'rp_t_ret',rpCia:'rp_t_cia'};
 const RE_PREV_T=['gPainel','gCampo','gEqVer'];
@@ -16768,13 +16771,31 @@ Object.assign(AR_D,{re:['RE Corretiva','Rompimentos, massivas e plantões'],rep:
   const r=_g.call(this,{dataset:{v:'re'}});if(r&&typeof r.then==='function')return r.then(x=>{fix();return x});fix();return r}}
 /* Financeiro da preventiva: o texto de ajuda e o título falam da conta de preventiva */
 {const _v=viewGPainel;viewGPainel=function(){const h=_v.apply(this,arguments);if(!reLadoP()||ui.gSec!=='fin')return h;
-  return h.replace(/Budget do mês da conta 3\.1\.1\.2\.05\.000[68][^<]*/,'Budget de serviços preventivos (3.1.1.2.05.0101): rotas preventivas, chamados de preventiva e tudo da companhia elétrica. Consome no mês do envio da LPU das programadas e no mês da aprovação da LPU dos chamados.').replace(/<h2>Financeiro · [^<]*<\/h2>/,'<h2>Budget · Rede Externa Preventiva</h2>')}}
+  return h.replace(/Budget do mês da conta 3\.1\.1\.2\.05\.000[68][^<]*/,'Budget de serviços preventivos (3.1.1.2.05.0101): rotas preventivas, chamados de preventiva e tudo da companhia elétrica. Consome no mês do envio da LPU das programadas e no mês da aprovação da LPU dos chamados.').replace(/<h2>Financeiro · [^<]*<\/h2>/,'<h2>Financeiro · Rede Externa Preventiva</h2>')}}
 document.head.insertAdjacentHTML('beforeend',`<style>.a-rep.ario,.a-rep .ario,.arb.a-rep[aria-current="true"] .ario{background:#DDE6F7;color:#26468A}
 .pxtabs{flex-wrap:wrap}</style>`);
 /* aba aberta por link, aviso, busca ou botão: abre no lado certo (programadas → preventiva; chamados, agenda, plantões → corretiva) */
 const RE_COR_T=['gCham','gAgenda','gNovo','gRel','gAprov','gPlant'];
 {const _r=render;render=function(){try{if(ME&&!gTecPerfil()&&ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'){const t=ui.tab;
   if(RP_TABS.includes(t)&&reLado()!=='prev'&&rePrevVe())ui.reLado='prev';else if(RE_COR_T.includes(t)&&reLado()==='prev'&&reCorVe())ui.reLado='cor'}}catch(e){console.warn('reLado',e)}return _r.apply(this,arguments)}}
+/* Financeiro de cada lado: totais por prestador, detalhamento e aprovação de LPU só com as LPUs do lado.
+   Preventiva: LPUs dos chamados de preventiva e de companhia elétrica (conta 0101) + LPU das programadas Preventiva e
+   Companhia elétrica (enviada = aprovada na data do envio; concluída e aprovada sem envio = aguardando). Corretiva: o resto. */
+function reLpusProg(){if(typeof RP==='undefined'||!RP.rows)return[];return rpProgs().filter(x=>['prev','cia'].includes(x.tipo)&&x.status!=='canc').map(x=>{const env=x.lpu&&x.lpu.env;if(!env&&!rpLpuPronta(x))return null;
+  const it=((env?x.lpu.itens:rpLpuSug(x))||[]).map(i=>{const r0=rpLpuIt(i.cod),r=Object.assign({},(typeof itemOf==='function'&&itemOf(i.cod))||{},r0.desc&&r0.desc!==i.cod?r0:{valor:r0.valor});return{cod:i.cod,desc:r.desc||i.cod,classe:r.classe||'Sem classe',medida:r.medida||'',unit:+r.valor||0,qtd:+i.qtd||0}}).filter(i=>i.qtd);
+  return{id:'rp:'+x.id,chamado:'rp:'+x.id,pom:x.cod,cliente:(x.tipo==='cia'?'Companhia elétrica':x.seg==='sub'?'Preventiva subterrânea':'Preventiva aérea')+' · '+(x.cidade||''),etiqueta:'',tec:x.tec,
+    status:env?'aprovada':'aguardando',total:it.reduce((s,i)=>s+i.unit*i.qtd,0),data:env?isoD(new Date(env.em)):(x.data||hoje()),itens:it,hist:env?[{acao:'Aprovada',por:env.por||'',em:env.em}]:[],
+    categoria:x.tipo==='cia'?'Companhia elétrica (programadas)':'Preventiva (programadas)',conta:RE_PREV,_rp:1}}).filter(Boolean)}
+const reLadoLpus=(L,comProg)=>reLado()==='prev'?L.filter(rePrevL).concat(comProg?reLpusProg():[]):L.filter(l=>!rePrevL(l));
+{const _v=viewGPainel;viewGPainel=function(){if(!reAt()||gTecPerfil()||ui.gSec!=='fin')return _v.apply(this,arguments);
+  const all=G.lpus,F=reLadoLpus(all,false);G.lpus=F;let h;try{h=_v.apply(this,arguments)}finally{if(G.lpus===F)G.lpus=all}
+  if(reLado()==='prev')h=h.replace(/todas na conta 3\.1\.1\.2\.05\.000[68] \([^)]*\)/,'chamados de preventiva e de companhia elétrica, na conta 3.1.1.2.05.0101 (Serviços preventivos)').replace(/LPU (do GTD|da Rede Externa) no período/,'LPU da preventiva no período (chamados e programadas Preventiva e Companhia elétrica)').replace(/LPUs de terceiros do (GTD|Rede Externa)/,'LPUs de terceiros da preventiva').replace(/das LPUs (do GTD|da Rede Externa) no período/,'das LPUs da preventiva (chamados e programadas) no período');
+  return h}}
+/* totais por prestador e detalhamento da preventiva: também as LPUs das programadas */
+{const _p=pPrest;pPrest=function(area){if(area!=='GTD'||!reAt()||reLado()!=='prev')return _p.apply(this,arguments);const all=G.lpus,F=all.concat(reLpusProg());G.lpus=F;try{return _p.apply(this,arguments)}finally{if(G.lpus===F)G.lpus=all}}}
+{const _d=gFinDet;gFinDet=function(){if(!reAt()||reLado()!=='prev')return _d.apply(this,arguments);const all=G.lpus,F=all.concat(reLpusProg());G.lpus=F;try{return _d.apply(this,arguments)}finally{if(G.lpus===F)G.lpus=all}}}
+{const _a=viewGAprov;viewGAprov=function(){if(!reAt()||gTecPerfil())return _a.apply(this,arguments);const all=G.lpus,F=reLadoLpus(all,false);G.lpus=F;
+  try{return _a.apply(this,arguments).replace(/Aprovação de LPU · (GTD|Rede Externa)(?! (Corretiva|Preventiva))/,'Aprovação de LPU · Rede Externa '+(reLado()==='prev'?'Preventiva':'Corretiva'))}finally{if(G.lpus===F)G.lpus=all}}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
