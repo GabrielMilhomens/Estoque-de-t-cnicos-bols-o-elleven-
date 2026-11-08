@@ -16322,6 +16322,12 @@ Object.assign(ACT,{rePbEdit:()=>{ui.bEdit2=!ui.bEdit2;render()},
     if(r.error){toast('Não foi possível salvar o budget: '+r.error.message+(/row-level|policy/i.test(r.error.message)?' (falta rodar o ajuste 56 no banco)':''),'bad');return}
     S.budget=S.budget||{};S.budget[mes]=S.budget[mes]||{};S.budget[mes][RE_PREV]=valor;ui.bEdit2=false;render();toast('Budget de preventiva de '+mesNome(mes)+' salvo.')}});
 
+/* 08/11: ícones das áreas no trilho (Implantação = prédio comercial, GTD = roteador/ONU, Rede Externa = postes com cabos, Transmissão = POP como no GeoGrid) */
+Object.assign(AR_IC,{impl:'M3 21h18M5 21V4h9v17M14 9h5v12M8 8h3M8 12h3M8 16h3M16.5 13h.01M16.5 17h.01',
+  gtd:'M3 13h18v7H3zM7 16.5h.01M10.5 16.5h.01M14 16.5h4M7 13 5.5 6M17 13l1.5-7',
+  re:'M5 22V4M19 22V4M3 7h4M17 7h4M5 9q7 5 14 0M5 12.5q7 4 14 0M3 22h4M17 22h4',
+  tx:'M12 10v11M9 21h6M13 8a1 1 0 1 1-2 0a1 1 0 1 1 2 0M8.6 4.6a5 5 0 0 0 0 6.8M15.4 4.6a5 5 0 0 1 0 6.8M5.5 2a9 9 0 0 0 0 12M18.5 2a9 9 0 0 1 0 12'});
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
