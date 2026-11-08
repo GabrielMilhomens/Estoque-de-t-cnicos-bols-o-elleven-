@@ -8455,7 +8455,7 @@ Object.assign(ACT,{vF:el=>{ui.vF=el.dataset.v;render()},
   vDispDesf:el=>{if(!pode('a_vistDisp'))return semPerm();const c=S.comp[el.dataset.e];if(c){delete c.vistDisp;save()}ui.vF='aguarda';render();toast('Dispensa desfeita. O projeto voltou para Aguardando vistoria.')},
   vPend:el=>{const a=getAg(el.dataset.id);if(!a||!a.vistoria)return;const v=a.vistoria,G2={critica:['Crítica','bad'],corrigir:['Corrigir','warn'],obs:['Observação','']};
     openModal(`<h3>Pendências da vistoria</h3><p class="muted">${tvNomeEtq(cliN(a.etiqueta)||'',a.etiqueta)} · ${esc(v.res)} em ${dBR(a.data)}${v.prazo?` · corrigir até ${dBR(v.prazo)}${v.prazoPor?' (prazo definido por '+esc(v.prazoPor)+')':''}`:' · <b>prazo a definir</b>'}</p>
-     <div class="v19pl">${(v.pend||[]).map(x=>`<div class="v19p"><div><span class="chip ${(G2[x.g]||['',''])[1]}">${(G2[x.g]||[x.g||'—'])[0]}</span> <b>${esc(x.id)}</b> · ${esc(x.item)}</div>${x.txt?`<span>${esc(x.txt)}</span>`:''}</div>`).join('')||'<p class="muted">Sem pendências listadas.</p>'}</div>
+     ${typeof vpSelTopo==='function'?vpSelTopo(a):''}<div class="v19pl">${(v.pend||[]).map((x,i)=>`<div class="v19p${typeof vpInc==='function'&&vpPode()&&!vpInc(v,i)?' vpfora':''}" id="vpc${i}">${typeof vpChk==='function'?vpChk(a,i):''}<div><span class="chip ${(G2[x.g]||['',''])[1]}">${(G2[x.g]||[x.g||'—'])[0]}</span> <b>${esc(x.id)}</b> · ${esc(x.item)}</div>${x.txt?`<span>${esc(x.txt)}</span>`:''}</div>`).join('')||'<p class="muted">Sem pendências listadas.</p>'}</div>
      <div class="actions"><button class="btn" data-act="close">Fechar</button>${a.rel&&a.rel.vist&&a.rel.vist.path?`<button class="btn" data-act="relVer" data-p="${esc(a.rel.vist.path)}">Relatório da vistoria</button>`:''}${typeof vpBtns==='function'?vpBtns(a):''}${pode('a_agendar')?`<button class="btn primary" data-act="vAgendar" data-e="${esc(a.etiqueta)}">Agendar revistoria</button>`:''}</div>`,'wide')}});
 {const _a=ACT.vAgendar;ACT.vAgendar=el=>{closeModal();return _a(el)}}
 Object.assign(IN,{vQ:el=>{ui.vQ=el.value;clearTimeout(window._v19t);window._v19t=setTimeout(()=>{render();const i=$('vQ');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)}});
@@ -15694,6 +15694,13 @@ const vpDz=v=>v&&v.prazo?Math.round((new Date(v.prazo+'T12:00:00')-new Date(hoje
 const vpPrz=v=>{if(!v.prazo)return `<b class="vpad">Prazo a definir</b><small class="muted">a gestão define a data</small>`;const d=vpDz(v);
   return `${dBR(v.prazo)}<small class="${d<0?'v19venc':''}">${d<0?`vencido há ${-d} ${-d===1?'dia':'dias'}`:d===0?'vence hoje':`faltam ${d} ${d===1?'dia':'dias'}`}</small>${v.prazoPor?`<small class="muted">definido por ${esc(v.prazoPor)}</small>`:''}`};
 const vpBtns=a=>vpPode()?`<button class="btn sm${a.vistoria.prazo?'':' primary'}" data-act="vpPrazo" data-id="${a.id}">${a.vistoria.prazo?'Alterar prazo':'Definir prazo'}</button><button class="btn sm" data-act="vpPdf" data-id="${a.id}">Pedido de correção (PDF)</button>`:'';
+/* 08/11: a gestão escolhe quais pontos vão no pedido (padrão: Corrigir e Crítica sim, Observação não) */
+const vpInc=(v,i)=>{const x=(v.pend||[])[i];if(!x)return false;const s=v.pedSel||{};return i in s?!!s[i]:x.g!=='obs'};
+const vpNInc=v=>(v.pend||[]).filter((x,i)=>vpInc(v,i)).length;
+const vpChk=(a,i)=>vpPode()?`<label class="vpchk" title="Vai no pedido de correção"><input type="checkbox" data-ch="vpSel" data-id="${a.id}" data-i="${i}" ${vpInc(a.vistoria,i)?'checked':''}><span>No pedido</span></label>`:'';
+const vpSelTopo=a=>vpPode()?`<p class="vptopo" id="vpTopo">Marque os pontos que são pendência de verdade: só eles vão no <b>Pedido de correção</b>. <span id="vpN">${vpNInc(a.vistoria)} de ${(a.vistoria.pend||[]).length} no pedido</span></p>`:'';
+Object.assign(CH,{vpSel:el=>{if(!vpPode())return;const a=getAg(el.dataset.id),v=a&&a.vistoria;if(!v)return;const i=+el.dataset.i;(v.pedSel=v.pedSel||{})[i]=!!el.checked;v.pedSelPor=meNome();v.pedSelEm=Date.now();save();
+  const c=$('vpc'+i);if(c)c.classList.toggle('vpfora',!el.checked);const n=$('vpN');if(n)n.textContent=`${vpNInc(v)} de ${(v.pend||[]).length} no pedido`}});
 /* fotos das pendências: sobem junto com a vistoria */
 async function vtPendFotos(a,L){const out=[];for(const[i,x]of L.entries()){const o={id:x.e.id,item:x.n,g:x.d.g||'',txt:x.d.txt||''};
   if(x.d.foto&&/^data:image/.test(x.d.foto)){try{const b=await (await fetch(x.d.foto)).blob(),path=`relatorios/${a.id}/vistoria/pendencias/${Date.now()}-${i+1}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)o.foto=path}catch(e){}}
@@ -15723,12 +15730,13 @@ async function vpPdfGera(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4
   const lb=s=>({content:s,styles:{fontStyle:'bold',fillColor:LAB,textColor:[90,100,95]}});
   doc.autoTable({startY:y,theme:'grid',styles:{fontSize:9,cellPadding:2.2,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},columnStyles:{0:{cellWidth:34},2:{cellWidth:34}},
     body:[[lb('Cliente'),cliN(a.etiqueta)||p.cliente||'—',lb('Etiqueta / protocolo'),a.etiqueta+(p.protocolo?' · '+p.protocolo:'')],[lb('Cidade'),p.cidade||'—',lb('Endereço'),c.endereco||'—'],
-      [lb('Lançamento executado por'),ln?ln.quem:'—',lb('Data do lançamento'),ln&&ln.data?dBR(ln.data):'—'],[lb('Vistoria'),`${dBR(a.data)} · ${v.res}`,lb('Pendências'),String(v.nPend||(v.pend||[]).length)]]});
+      [lb('Lançamento executado por'),ln?ln.quem:'—',lb('Data do lançamento'),ln&&ln.data?dBR(ln.data):'—'],[lb('Vistoria'),`${dBR(a.data)} · ${v.res}`,lb('Pendências'),String(vpNInc(v))]]});
   y=doc.lastAutoTable.finalY+6;
   doc.setFillColor(255,243,220);doc.setDrawColor(230,190,110);doc.setLineWidth(.3);doc.roundedRect(m,y,W-2*m,16,2,2,'FD');
   doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(138,90,0);doc.text(`Corrigir até ${dBR(v.prazo)}`,m+4,y+7);
   doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('Corrija os itens abaixo dentro do prazo e avise a Net Turbo. Depois da correção é feita a revistoria.',m+4,y+12.5,{maxWidth:W-2*m-8});y+=22;
-  const G={critica:'Crítica',corrigir:'Corrigir',obs:'Observação'},P=(v.pend||[]).filter(x=>x.g!=='obs').concat((v.pend||[]).filter(x=>x.g==='obs'));
+  const G={critica:'Crítica',corrigir:'Corrigir',obs:'Observação'},P0=(v.pend||[]).filter((x,i)=>vpInc(v,i)),P=P0.filter(x=>x.g!=='obs').concat(P0.filter(x=>x.g==='obs'));
+  if(!P.length)throw new Error('nenhum ponto marcado para o pedido. Abra Ver pendências e marque os pontos.');
   doc.autoTable({startY:y,theme:'grid',head:[['#','Ponto','Item','Gravidade','O que corrigir']],headStyles:{fillColor:VERDE,textColor:[19,32,24],fontSize:9},styles:{fontSize:9,cellPadding:2.2,lineColor:LINE,lineWidth:.3,textColor:40,valign:'top'},margin:{left:m,right:m},
     columnStyles:{0:{cellWidth:8},1:{cellWidth:18},2:{cellWidth:42},3:{cellWidth:24}},body:P.map((x,i)=>[String(i+1),x.id||'—',x.item||'—',G[x.g]||x.g||'—',x.txt||'—'])});
   y=doc.lastAutoTable.finalY+6;
@@ -15738,8 +15746,12 @@ async function vpPdfGera(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4
     if(y+(tit?8:0)+h>H-16){doc.addPage();y=18}if(tit){doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text(tit,m,y);y+=3}
     doc.addImage(r.d,'JPEG',m+(w-ww)/2,y,ww,h);y+=h+6};
   if(RC&&RC.mapa)img(RC.mapa,'Trecho do KMZ vistoriado · postes com pendência em vermelho',150);
-  if(RC&&RC.fotos.length)RC.fotos.forEach((f,i)=>img(f,i===0?'Fotos das pendências':'',H-40));
-  else{/* sem o relatório: fotos guardadas no envio da vistoria (a partir de 08/11) */
+  const FC=RC?RC.fotos.filter(f=>P.some(x=>x.id===f.id&&(!f.item||!x.item||vpNorm(x.item).startsWith(vpNorm(f.item).slice(0,18))||vpNorm(f.item).startsWith(vpNorm(x.item).slice(0,18))))):[];
+  if(FC.length){const fw=(W-2*m-12)/3,mh=72;if(y+20>H-16){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Fotos das pendências',m,y);y+=4;
+    let col=0,rh=0;FC.forEach((f,k)=>{const q=Math.min(fw/f.w,mh/f.h),w2=f.w*q,h2=f.h*q;if(col===0&&y+mh+10>H-16){doc.addPage();y=18}const xx=m+col*(fw+6);
+      doc.addImage(f.d,'JPEG',xx+(fw-w2)/2,y,w2,h2);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`Foto ${k+1}: ${f.id} · ${f.item||''}`,xx,y+h2+4,{maxWidth:fw});rh=Math.max(rh,h2);
+      col++;if(col===3){col=0;y+=rh+11;rh=0}});if(col)y+=rh+11}
+  if(!RC||!RC.fotos.length){/* sem o relatório: fotos guardadas no envio da vistoria (a partir de 08/11) */
   const F=[];for(const[i,x]of P.entries())if(x.foto){const d=await vpFoto(x.foto);if(d)F.push({d,t:`${i+1}. ${x.id||''} · ${x.item||''}`})}
   if(F.length){const fw=(W-2*m-6)/2,fh=fw*.72;if(y+12>H-40){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Fotos das pendências',m,y);y+=4;
     F.forEach((f,i)=>{const col=i%2;if(col===0&&y+fh+10>H-40){doc.addPage();y=18}const x=m+col*(fw+6);try{const pr=doc.getImageProperties(f.d),q=Math.min(fw/pr.width,fh/pr.height);doc.addImage(f.d,'JPEG',x+(fw-pr.width*q)/2,y+(fh-pr.height*q)/2,pr.width*q,pr.height*q)}catch(e){}
@@ -15752,25 +15764,35 @@ async function vpPdfGera(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4
   doc.text(`Documento emitido e baixado por ${quem} em ${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`,W/2,y+29,{align:'center'});
   const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7.5);doc.setTextColor(150);doc.text(`Pedido de correção · ${a.etiqueta}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
   return doc.output('blob')}
+const vpNorm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+/* tira a margem branca em volta da foto recortada */
+function vpApara(c){const g=c.getContext('2d'),D=g.getImageData(0,0,c.width,c.height).data,W2=c.width,H2=c.height;let x0=W2,y0=H2,x1=-1,y1=-1;
+  for(let y=0;y<H2;y+=2)for(let x=0;x<W2;x+=2){const k=(y*W2+x)*4;if(D[k]<238||D[k+1]<238||D[k+2]<238){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}}
+  if(x1<0||x1-x0<20||y1-y0<20)return null;const o=document.createElement('canvas');o.width=x1-x0+2;o.height=y1-y0+2;o.getContext('2d').drawImage(c,-x0,-y0);return o}
 /* recorta do relatório da vistoria (PDF) o mapa do trajeto e as fotos das pendências */
 async function vpRecortes(a){const pth=a.rel&&a.rel.vist&&a.rel.vist.path;if(!pth||typeof pdfjsLib==='undefined')return null;
   const r=await sb.storage.from('agenda').download(pth);if(r.error||!r.data)return null;
   const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await r.data.arrayBuffer())}).promise,out={mapa:null,fotos:[]};let emF=false;
-  for(let n=1;n<=pdf.numPages;n++){const pg=await pdf.getPage(n),v1=pg.getViewport({scale:1}),T=(await pg.getTextContent()).items.map(i=>({s:String(i.str||'').trim(),y:v1.height-i.transform[5],h:i.height||Math.abs(i.transform[3])||8})).filter(t=>t.s);
+  for(let n=1;n<=pdf.numPages;n++){const pg=await pdf.getPage(n),v1=pg.getViewport({scale:1}),T=(await pg.getTextContent()).items.map(i=>({s:String(i.str||'').trim(),x:i.transform[4],y:v1.height-i.transform[5],h:i.height||Math.abs(i.transform[3])||8})).filter(t=>t.s);
     let cv=null;const SC=2.2,mx=34;
-    const corta=async(y0,y1)=>{if(y1-y0<15)return null;if(!cv){const vp=pg.getViewport({scale:SC});cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;const g=cv.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);await pg.render({canvasContext:g,viewport:vp}).promise}
-      const c2=document.createElement('canvas');c2.width=Math.round((v1.width-2*mx)*SC);c2.height=Math.round((y1-y0)*SC);const g2=c2.getContext('2d');g2.fillStyle='#fff';g2.fillRect(0,0,c2.width,c2.height);g2.drawImage(cv,-Math.round(mx*SC),-Math.round(y0*SC));return{d:c2.toDataURL('image/jpeg',.9),w:c2.width,h:c2.height}};
+    const cw=(210-28-12)/3*72/25.4;const corta=async(y0,y1,x0,x1)=>{if(y1-y0<15)return null;const parte=x0!=null;if(!parte){x0=mx;x1=v1.width-mx}if(!cv){const vp=pg.getViewport({scale:SC});cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;const g=cv.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);await pg.render({canvasContext:g,viewport:vp}).promise}
+      let c2=document.createElement('canvas');c2.width=Math.round((x1-x0)*SC);c2.height=Math.round((y1-y0)*SC);const g2=c2.getContext('2d');g2.fillStyle='#fff';g2.fillRect(0,0,c2.width,c2.height);g2.drawImage(cv,-Math.round(x0*SC),-Math.round(y0*SC));
+      if(parte){c2=vpApara(c2);if(!c2)return null}return{d:c2.toDataURL('image/jpeg',.9),w:c2.width,h:c2.height}};
     const rod=T.find(t=>/^Net Turbo Telecom, (re)?vistoria/.test(t.s)),fimPg=rod?rod.y-rod.h-4:v1.height-28;
     const tj=T.find(t=>/^Trajeto vistoriado$/.test(t.s));
     if(tj&&!out.mapa){const mt=T.filter(t=>t.y>tj.y&&/metragem prevista|desenho do cabo|^Conforme \d/.test(t.s));out.mapa=await corta(tj.y+3,mt.length?Math.max(...mt.map(t=>t.y))+5:Math.min(fimPg,tj.y+360))}
     const fh=T.find(t=>/^Fotos das pendências$/.test(t.s));let ini=null;if(fh){emF=true;ini=fh.y+3}else if(emF)ini=40;
-    if(emF&&ini!=null){const cap=T.filter(t=>/^Foto \d+:/.test(t.s)&&t.y>ini&&t.y<fimPg),fimSec=T.filter(t=>t.y>ini&&/^Observações$|^Vistoriador ·/.test(t.s));
-      if(cap.length){const y1=Math.max(...cap.map(t=>t.y))+(T.some(t=>t.y>Math.max(...cap.map(c=>c.y))&&t.y<Math.max(...cap.map(c=>c.y))+12&&!/^Foto/.test(t.s))?13:5);out.fotos.push(await corta(ini,Math.min(y1,fimPg)))}
+    if(emF&&ini!=null){const cap=T.filter(t=>/^Foto \d+:/.test(t.s)&&t.y>ini&&t.y<fimPg).sort((a,b)=>a.y-b.y||a.x-b.x),fimSec=T.filter(t=>t.y>ini&&/^Observações$|^Vistoriador ·/.test(t.s));
+      const rows=[];cap.forEach(c=>{const r=rows.find(r=>Math.abs(r.y-c.y)<3);if(r)r.L.push(c);else rows.push({y:c.y,L:[c]})});
+      let topo=ini;for(const r of rows){let fundo=r.y;for(const c of r.L){const m2=c.s.match(/^Foto \d+:\s*([A-Z]+\d+)\s*·\s*(.*)$/);
+          const f=await corta(topo,r.y-c.h-1,c.x-2,c.x+cw+2);if(f&&m2)out.fotos.push(Object.assign(f,{id:m2[1],item:m2[2].trim()}));
+          T.filter(t=>t!==c&&Math.abs(t.x-c.x)<3&&t.y>c.y&&t.y<c.y+14).forEach(t=>fundo=Math.max(fundo,t.y))}
+        topo=fundo+3}
       if(fimSec.length||(!cap.length&&!fh))emF=false}}
   out.fotos=out.fotos.filter(Boolean);return out}
 /* lista "Com pendência": entra sem prazo, prazo a definir primeiro */
 {const _v=viewVist;viewVist=function(){const h=_v.apply(this,arguments);return h}}
-document.head.insertAdjacentHTML('beforeend','<style>.vpad{color:var(--warn,#8a5a00)}.v19ac{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}</style>');
+document.head.insertAdjacentHTML('beforeend','<style>.v19p{position:relative}.v19p:has(.vpchk){padding-right:132px}.vpchk{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--ink,#1d2b22);cursor:pointer;padding:6px 10px;border:1px solid var(--line,#d4ddd8);border-radius:9px;background:var(--surface,#fff)}@media(max-width:600px){.v19p:has(.vpchk){padding-right:12px;padding-bottom:52px}.vpchk{top:auto;bottom:10px;transform:none;left:12px;right:auto}}.vpchk input{width:20px;height:20px;accent-color:#8cbf3f}.v19p.vpfora{opacity:.55}.v19p.vpfora .vpchk{opacity:1}.vptopo{margin:4px 0 10px;padding:9px 12px;border-radius:10px;background:var(--ok-soft,#eef6e2);font-size:14px}.vptopo span{font-weight:700;white-space:nowrap}.vpad{color:var(--warn,#8a5a00)}.v19ac{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}</style>');
 
 /* ---------- 08/11: Painel de KPIs da Rede Externa separado em Corretiva e Preventiva ----------
    Corretiva: os chamados de rede externa (rompimento, massiva, rádio, companhia elétrica), sem a categoria Preventiva.
