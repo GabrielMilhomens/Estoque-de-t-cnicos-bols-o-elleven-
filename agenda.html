@@ -16271,6 +16271,56 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 @media(max-width:900px){.cia2col,.cia2col.imp{grid-template-columns:1fr}.ciamapa{height:420px}.cialado{max-height:none}}
 </style>`);
 
+/* ---------- 08/11: Rede Externa · budget de Serviços preventivos (3.1.1.2.05.0101) ----------
+   * Tudo que é companhia elétrica vai para a conta de preventiva: as programadas da Companhia elétrica (CIA-) e a LPU
+     dos chamados de categoria "Acompanhamento companhia elétrica" (a LPU nova já sai na conta 0101, com os itens dela;
+     as antigas dessa categoria também contam na preventiva e saem do budget de reparo emergencial).
+   * Painel de KPIs › Financeiro › Budget e consumo da Rede Externa ganha o segundo quadro, "Serviços preventivos":
+     budget do mês (definido por quem define o budget da Rede Externa), consumido no mês (LPU dos chamados de companhia
+     elétrica aprovada no mês + LPU das programadas Preventiva e Companhia elétrica enviada no mês), disponível e
+     aguardando (chamado com LPU aguardando ou em ajuste; programada concluída com tudo aprovado e LPU ainda não enviada).
+     Equipe própria (CLT) não consome o budget, como no reparo emergencial. Valor da programada = itens × valor da LPU. */
+const RE_PREV='3.1.1.2.05.0101 - Serviços Preventivos';
+{const c=RP_PROG.find(p=>p[0]==='cia');if(c)c[3]=RE_PREV}
+const reCiaCat=c=>!!c&&/companhia/i.test(normK(c.categoria||''));
+const rePrevL=l=>/^3\.1\.1\.2\.05\.0101/.test(l.conta||'')||reCiaCat(G.ch.find(c=>c.id===l.chamado))||/companhia/i.test(normK(l.categoria||''));
+/* LPU do chamado de companhia elétrica: conta de preventiva (itens, conferência e gravação) */
+function reCiaChAtual(){const s=ui.sign||{},k=String(s.key||ui.lpuTela||''),id=k.startsWith('G:')?k.slice(2):s.tipo==='gtd'?s.id:s.tipo==='ajuste'?((G.lpus.find(l=>l.id===s.id)||{}).chamado):null;
+  const c=id&&G.ch.find(x=>x.id===id);return c&&reDe(c)&&reCiaCat(c)?c:null}
+{const _a=areaModo;areaModo=function(k,fn){if(k!=='re')return _a.apply(this,arguments);return _a.call(this,k,()=>{if(!reCiaChAtual())return fn();const ct=GTD_CONTA;GTD_CONTA=RE_PREV;
+  let r;try{r=fn()}catch(e){GTD_CONTA=ct;throw e}if(r&&typeof r.then==='function')return r.finally(()=>{GTD_CONTA=ct});GTD_CONTA=ct;return r})}}
+/* budget: o reparo emergencial sem a companhia elétrica, e o quadro da preventiva logo abaixo */
+{const _b=gFinBudget;gFinBudget=function(){if(!reAt())return _b.apply(this,arguments);const all=G.lpus,F=all.filter(l=>!rePrevL(l));G.lpus=F;let h;try{h=_b.apply(this,arguments)}finally{if(G.lpus===F)G.lpus=all}
+  return h+rePrevBudget()}}
+{const _v=viewGPainel;viewGPainel=function(){const h=_v.apply(this,arguments);if(!reAt()||ui.gSec!=='fin'||ui.gFinSub!=='budget')return h;return h.replace('consumido pelas LPUs aprovadas no mês da aprovação.','consumido pelas LPUs aprovadas no mês da aprovação. Abaixo, o budget de Serviços preventivos (3.1.1.2.05.0101): preventiva aérea e subterrânea e tudo da companhia elétrica.')}}
+const rpLpuVal=L=>(L||[]).reduce((s,i)=>s+(+i.qtd||0)*(rpLpuIt(i.cod).valor||0),0);
+const reTerc=id=>!id||gTecV(id)!=='CLT';
+function rePrevDados(mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes,CH=G.lpus.filter(l=>rePrevL(l)&&!gLpuClt(l));
+  const chAp=CH.filter(doMes),chPe=CH.filter(l=>l.status==='aguardando'||l.status==='ajuste');
+  const P=(typeof RP!=='undefined'&&RP.rows?rpProgs():[]).filter(x=>['prev','cia'].includes(x.tipo)&&x.status!=='canc');
+  const env=x=>x.lpu&&x.lpu.env,pAp=P.filter(x=>env(x)&&mesDe(x.lpu.env.em)===mes&&reTerc(x.tec)),pPe=P.filter(x=>!env(x)&&rpLpuPronta(x)&&reTerc(x.tec)),clt=P.filter(x=>env(x)&&mesDe(x.lpu.env.em)===mes&&!reTerc(x.tec));
+  const vP=x=>rpLpuVal(env(x)?x.lpu.itens:rpLpuSug(x)),org=x=>x.tipo==='cia'?'Companhia elétrica (programadas)':x.seg==='sub'?'Preventiva subterrânea':'Preventiva aérea';
+  const uso=gSoma(chAp)+pAp.reduce((s,x)=>s+vP(x),0),comp=gSoma(chPe)+pPe.reduce((s,x)=>s+vP(x),0);
+  const O={};const add=(k,v,ap)=>{const o=O[k]=O[k]||{n:0,v:0,pn:0,pv:0};if(ap){o.n++;o.v+=v}else{o.pn++;o.pv+=v}};
+  chAp.forEach(l=>add('Chamados de companhia elétrica',+l.total||0,1));chPe.forEach(l=>add('Chamados de companhia elétrica',+l.total||0,0));pAp.forEach(x=>add(org(x),vP(x),1));pPe.forEach(x=>add(org(x),vP(x),0));
+  return{uso,comp,nAp:chAp.length+pAp.length,nPe:chPe.length+pPe.length,O,clt,cltV:clt.reduce((s,x)=>s+vP(x),0),chAp,chPe,pAp,pPe,vP,org}}
+function rePrevBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit2&&pode('a_budget'),B=(S.budget||{})[mes]||{},orc=+B[RE_PREV]||0;
+  if(typeof RP!=='undefined'&&!RP.ok&&!RP.bus)rpCarregar().catch(()=>{});
+  const d=rePrevDados(mes),disp=orc-d.uso,p=orc?Math.round(d.uso/orc*100):0,tot=Math.max(orc,d.uso+d.comp)||1,cor=p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)',nL=n=>n+(n===1?' LPU':' LPUs');
+  return `<section class="panel" style="margin-top:16px"><div class="secth"><div><h3>Budget de mão de obra terceirizada · Serviços preventivos</h3><span class="muted">${esc(RE_PREV)} · preventiva aérea e subterrânea e tudo da companhia elétrica</span></div>
+    <div class="tools">${pode('a_budget')?(ed?'<button class="btn primary" data-act="rePbSalvar">Salvar budget</button><button class="btn" data-act="rePbEdit">Cancelar</button>':'<button class="btn" data-act="rePbEdit">Definir budget de preventiva</button>'):''}</div></div>
+   ${ed?`<label class="f inline" style="margin:8px 0"><span>Budget de preventiva de ${mesNome(mes)} (R$)</span><input class="inp r" type="number" min="0" step="100" id="rePBud" value="${orc||''}" placeholder="0"></label>`:''}
+   ${typeof RP!=='undefined'&&!RP.ok?'<p class="muted">Carregando as programadas…</p>':''}
+   <div class="kpis" style="margin:10px 0">${kp(brl(orc),'Budget do mês')}${kp(brl(d.uso),`Consumido: ${p}% (${nL(d.nAp)})`,'ok')}${kp(brl(disp),'Disponível',disp<0?'bad':'')}${kp(brl(d.comp),`Aguardando (${nL(d.nPe)})`,'warn')}</div>
+   <div class="bbar"><i style="width:${d.uso/tot*100}%"></i><b style="width:${d.comp/tot*100}%"></b></div><small style="color:${cor};font-weight:600">${orc?p+'% consumido':'sem budget definido'}${orc&&d.uso+d.comp>orc?' · passa do budget se aprovar tudo':''}</small>
+   <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Origem</th><th class="r">Consumido no mês</th><th class="r">Valor</th><th class="r">Aguardando</th><th class="r">Valor</th></tr></thead><tbody>
+    ${['Preventiva aérea','Preventiva subterrânea','Companhia elétrica (programadas)','Chamados de companhia elétrica'].map(k=>{const o=d.O[k]||{n:0,v:0,pn:0,pv:0};return `<tr><td>${k}</td><td class="r">${o.n}</td><td class="r">${brl(o.v)}</td><td class="r">${o.pn}</td><td class="r">${brl(o.pv)}</td></tr>`}).join('')}</tbody></table></div>
+   <p class="muted" style="font-size:13px;margin:8px 0 0">Programadas: consome no mês em que a LPU é enviada (só o que foi aprovado na revisão de campo); aguardando = concluída e aprovada, com a LPU ainda não enviada. Chamados de companhia elétrica: consome no mês da aprovação da LPU. Equipe própria (CLT): ${nL(d.clt.length)} de programadas no mês (${brl(d.cltV)} de referência), não consomem o budget.</p></section>`}
+Object.assign(ACT,{rePbEdit:()=>{ui.bEdit2=!ui.bEdit2;render()},
+  rePbSalvar:async()=>{const mes=ui.bMes||hoje().slice(0,7),valor=parseFloat((($('rePBud')||{}).value||'0').replace(',','.'))||0;const r=await sb.from('ag_budget').upsert([{mes,conta:RE_PREV,valor}],{onConflict:'mes,conta'});
+    if(r.error){toast('Não foi possível salvar o budget: '+r.error.message+(/row-level|policy/i.test(r.error.message)?' (falta rodar o ajuste 56 no banco)':''),'bad');return}
+    S.budget=S.budget||{};S.budget[mes]=S.budget[mes]||{};S.budget[mes][RE_PREV]=valor;ui.bEdit2=false;render();toast('Budget de preventiva de '+mesNome(mes)+' salvo.')}});
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>

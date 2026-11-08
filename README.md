@@ -245,6 +245,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 54. `agenda_ajuste_53_budget_rede_externa.sql` — gravação do budget da Rede Externa pela permissão `re_a_budget` (`ag_budget_pode`).
 55. `agenda_ajuste_54_tecnicos_rede_externa.sql` — coluna `ag_equipe.re` (quem atua na Rede Externa).
 56. `agenda_ajuste_55_editar_mensagens.sql` — editar mensagens: `ag_mensagens.editado_em` e `edicoes`, gatilho `ag_msg_edita` e regra `agmsg_update` (só o autor edita); `ag_sala.edicoes` e `ag_sala_edita` guardando o texto anterior.
+57. `agenda_ajuste_56_budget_preventiva_rede_externa.sql` — `ag_budget_pode`: quem tem `re_a_budget` grava também o budget da conta 3.1.1.2.05.0101 (Serviços Preventivos).
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -718,6 +719,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - **Esteira:** a notificação da companhia só entra quando é despachada (ou tem apontamento do técnico); a importada da planilha fica fora.
   - Código: novo bloco `cia2.js` (`viewRpCia`, `ciaLista`, `rpCiaMapaHtml`, `rpCiaMapa`, `rpCiaDesenha`, `ciaMontar`, `ciaBlocos`, `ciaVerif`, `ciaEmail`, `ciaEml`, `ciaHistLer`, `ciaHistImporta`, `rpCiaPainel`, `rpCiaImp`, ações `cia*`) e `rpColDe` (Esteira).
 
+- **Rede Externa · budget de Serviços preventivos e companhia elétrica na preventiva (08/11):** tudo que é companhia elétrica vai para a conta **3.1.1.2.05.0101 - Serviços Preventivos**: as programadas da Companhia elétrica (`RP_PROG` cia) e a LPU dos chamados de categoria "Acompanhamento companhia elétrica" (na tela da LPU, na conferência e na gravação a conta passa a ser a 0101, com os itens dela; `reCiaChAtual` + `areaModo`). As LPUs antigas dessa categoria também contam na preventiva (`rePrevL`: conta 0101 ou categoria companhia elétrica) e saem do budget do reparo emergencial (0008). Rompimento, massiva, rádio e preventiva (chamado) continuam na 0008. Em **Painel de KPIs › Financeiro › Budget e consumo** da Rede Externa, depois do quadro do reparo emergencial, vem o quadro **Serviços preventivos**: budget do mês (botão **Definir budget de preventiva**, mesma permissão do budget da Rede Externa, `re_a_budget`), consumido (LPU de chamado de companhia elétrica aprovada no mês + LPU das programadas Preventiva e Companhia elétrica enviada no mês, valor = quantidade × valor comum da LPU), disponível, aguardando (LPU de chamado aguardando ou em ajuste; programada concluída e aprovada com a LPU ainda não enviada) e a tabela por origem (Preventiva aérea, Preventiva subterrânea, Companhia elétrica das programadas, Chamados de companhia elétrica). Equipe própria (CLT) não consome, só referência. Código: novo bloco `reprev.js` (`rePrevBudget`, `rePrevDados`, `ACT.rePbSalvar`, wrappers de `gFinBudget`, `areaModo` e `viewGPainel`). Banco: agenda_ajuste_56.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -782,6 +785,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 08/11/2026 | **Rede Externa · budget de preventiva**: companhia elétrica (programadas e chamados) passa para a conta 3.1.1.2.05.0101; o Financeiro da Rede Externa ganha o quadro de budget de Serviços preventivos (preventiva e companhia elétrica). Detalhes em 7. | agenda.html (`reprev.js`). **Rodar `agenda_ajuste_56_budget_preventiva_rede_externa.sql` no Supabase antes de publicar** (não subir no GitHub). |
 | 08/11/2026 | **Companhia elétrica · mapa**: clicar no ponto mostra a notificação (balão com os dados e as ações) e destaca o cartão na lista; vários pontos no mesmo lugar viram uma lista para escolher. Detalhes em 7. | agenda.html (`ciaPop`, `ciaPopVarios`, `ciaFoca`). Sem SQL. Publicar só o agenda.html. |
 | 08/11/2026 | **Companhia elétrica (Etapa 2)**: refeita no formato dos Acompanhamentos da Manutenção: Mapa e rotas (dia, atrasados em blocos, rota com horário da companhia e conflito, despacho da rota), Lista (filtros, ordem sugerida, verificar rede, exportar), Painel do mês e Importar (e-mail/.eml/PDF/Excel com conferência da rede GeoGrid e base histórica TROCA DE POSTES sem duplicar e preservando o editado). Detalhes em 7. | agenda.html (`cia2.js`). Sem SQL novo. Publicar só o agenda.html. |
 | 08/11/2026 | **Pedido de correção: escolher os pontos**: em Ver pendências, a caixa "No pedido" em cada ponto define o que vai no pedido (tabela e fotos). Padrão: Corrigir e Crítica sim, Observação não. Detalhes em 7. | agenda.html (`vpInc`, `vpChk`, `CH.vpSel`, `vpRecortes`, `vpPdfGera`). Sem SQL novo. Publicar só o agenda.html. |
