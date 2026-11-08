@@ -16575,9 +16575,18 @@ const plPer=x=>x.ini===x.fim?dBR(x.ini):`${dBR(x.ini).slice(0,5)} a ${dBR(x.fim)
 const plArea=()=>{const a=areaAt&&areaAt();return a==='re'?'re':'gtd'};
 /* 08/11 (fim): na Rede Externa Corretiva, permissões próprias (rc_plant ver, rc_a_plant encaminhar, rc_a_plantApr aprovar) */
 const plRe=()=>plArea()==='re';
-const plGest=()=>ui.perfil==='coord'||(plRe()?pode('rc_plant')||pode('rc_a_plant')||pode('rc_a_plantApr'):pode('a_gDespachar')||pode('a_gAprovar'));
-const plEnc=()=>ui.perfil==='coord'||(plRe()?pode('rc_a_plant'):pode('a_gDespachar')||pode('a_gAprovar'));
-const plAprova=()=>ui.perfil==='coord'||(plRe()?pode('rc_a_plantApr'):pode('a_gAprovar'));
+/* 08/11 (fim, 3): no GTD também, permissões próprias (gPlant ver, a_gPlant encaminhar, a_gPlantApr aprovar) */
+const plGest=()=>ui.perfil==='coord'||(plRe()?pode('rc_plant')||pode('rc_a_plant')||pode('rc_a_plantApr'):pode('gPlant')||pode('a_gPlant')||pode('a_gPlantApr'));
+const plEnc=()=>ui.perfil==='coord'||(plRe()?pode('rc_a_plant'):pode('a_gPlant'));
+const plAprova=()=>ui.perfil==='coord'||(plRe()?pode('rc_a_plantApr'):pode('a_gPlantApr'));
+/* Usuários e acessos › GTD Manutenção: Plantões do GTD */
+{const gtd=PERM_T.find(g=>g[0]==='GTD Manutenção');if(gtd&&!gtd[1].some(n=>n[0]==='gPlant')){const ic=gtd[1].findIndex(n=>n[0]==='gCampo');
+  gtd[1].splice(ic>=0?ic:gtd[1].length,0,['gPlant','Plantões do GTD','t',[['a_gPlant','Encaminhar e cancelar plantões','a'],['a_gPlantApr','Aprovar, devolver e reprovar a baixa do plantão','a']]]);
+  ['gPlant','a_gPlant','a_gPlantApr'].forEach(k=>{[PERM_ALL,PX_GK].forEach(A=>{if(!A.includes(k))A.push(k)});if(typeof GTD_KEYS!=='undefined'&&!GTD_KEYS.includes(k))GTD_KEYS.push(k)})}}
+/* listas gravadas antes: quem despachava encaminha; quem aprovava LPU aprova a baixa (marca gpl_v1) */
+function plMig(s){if(!Array.isArray(s)||s.includes('gpl_v1'))return s;s=s.slice();const add=(...L)=>L.forEach(k=>{if(!s.includes(k))s.push(k)});
+  if(s.includes('a_gDespachar'))add('gPlant','a_gPlant');if(s.includes('a_gAprovar'))add('gPlant','a_gPlantApr');s.push('gpl_v1');return s}
+{const _n=pxNorm;pxNorm=function(set,papel){return plMig(_n.apply(this,arguments))}}
 const plTecs=a=>a==='re'&&typeof rpTecs==='function'?rpTecs():(G.tecs||[]);
 /* ---- gestão ---- */
 function viewGPlant(){const a=plArea();if(!PLT.ok&&!PLT.err)plCarregar();const F=ui.plF||(ui.plF='baixa');
