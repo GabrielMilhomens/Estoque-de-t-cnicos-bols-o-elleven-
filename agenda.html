@@ -2757,11 +2757,11 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span>${['supply','visu'].includes(ui.perfil)?'':'<button class="wic sino" data-act="avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
-  const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','gerKpi','gerRel','finVis','finPrest','finDet','finLpu'],GRP={gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
+  const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando'&&!lpuTx(l)).length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
-  const nAprov=S.lpus.filter(l=>l.status==='aguardando').length,bAp=nAprov&&pode('f_aprov')?`<span class="nbadge">${nAprov}</span>`:'';
+  const nAprov=S.lpus.filter(l=>l.status==='aguardando'&&!lpuTx(l)).length,bAp=nAprov&&pode('f_aprov')?`<span class="nbadge">${nAprov}</span>`:'';
   const chev=o=>`<span class="nch">${o?ICN.up:ICN.dn}</span>`;let h='';
   grupos.forEach(g=>{const its=vis.filter(t=>GRP[t]===g),aberto=grupos.length===1||!!ui.grpOpen[g];
     h+=grupos.length===1?`<div class="ngb so"><span class="nic">${ICN[g]||''}</span><span class="nt">${g}</span></div>`:`<button class="ngb" data-act="grp" data-g="${g}" aria-expanded="${aberto}"><span class="nic">${ICN[g]||''}</span><span class="nt">${g}</span>${chev(aberto)}</button>`;
@@ -2881,8 +2881,8 @@ function pEquipes(){const b=pBase(),F=ui.eqF||'all',tecs=TEC.filter(t=>F==='all'
   <section><div class="secth"><h3>Produtividade por técnico</h3></div><div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Não concl.</th><th class="r">Taxa de conclusão</th><th class="r">Dias de execução</th><th class="r">Execução média</th></tr></thead><tbody>${tecR||'<tr><td colspan="9" class="muted">Sem atividades no período.</td></tr>'}</tbody></table></div></section>
   <section><div class="secth"><h3>Equipe própria x terceiros</h3></div><div class="tablewrap"><table><thead><tr><th>Equipe</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Taxa de conclusão</th><th class="r">Concl. por técnico/dia</th></tr></thead><tbody>${eqR}</tbody></table></div></section>`}
 function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&pode('a_budget'),B=(S.budget||{})[mes]||{};
-  const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC'),ap=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes),pe=LT.filter(l=>l.status==='aguardando'||l.status==='ajuste');
-  const contas=LPU_CONTAS.filter(c=>!/^3\.1\.1\.2\.05\.0006/.test(c)).filter(c=>ed||+B[c]>0||ap.some(l=>l.conta===c)||pe.some(l=>l.conta===c));
+  const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC'&&lpuImpl0005(l)),ap=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes),pe=LT.filter(l=>l.status==='aguardando'||l.status==='ajuste');
+  const contas=LPU_CONTAS.filter(c=>/^3\.1\.1\.2\.05\.0005/.test(c)).filter(c=>ed||+B[c]>0||ap.some(l=>l.conta===c)||pe.some(l=>l.conta===c));
   const cod=c=>c.split(' - ')[0],nome=c=>c.split(' - ').slice(1).join(' - ').replace(/^Serviços de /,'');
   const rows=contas.map(c=>{const orc=+B[c]||0,A=ap.filter(l=>l.conta===c),P=pe.filter(l=>l.conta===c),uso=A.reduce((s,l)=>s+l.total,0),comp=P.reduce((s,l)=>s+l.total,0),disp=orc-uso,p=orc?Math.round(uso/orc*100):0,tot=Math.max(orc,uso+comp)||1;return{c,orc,A,P,uso,comp,disp,p,wU:uso/tot*100,wC:comp/tot*100,est:orc&&uso+comp>orc}});
   const tO=rows.reduce((s,r)=>s+r.orc,0),tU=ap.reduce((s,l)=>s+l.total,0),tC=pe.reduce((s,l)=>s+l.total,0);
@@ -4766,7 +4766,7 @@ const GLST={registrada:['LPU registrada (CLT)','ok'],conferencia:['LPU em confer
 const G={ch:[],lpus:[],tecs:[],nMsg:{},nNova:{},msgs:{},msgBus:{},fotos:{},avisos:[],ok:false,erro:'',vista:true};
 
 /* ---------- regras e formatação ---------- */
-const gCatDe=t=>GTD_T.includes(t)?'gtd':'impl';
+const gCatDe=t=>(window.CAT_X&&window.CAT_X[t])||(GTD_T.includes(t)?'gtd':'impl');
 const gGest=()=>['coord','sup','enc'].includes(ui.perfil);
 const gVeGtd=()=>gGest()||ui.perfil==='noc';
 const gTecPerfil=()=>['clt','terc','func'].includes(ui.perfil);
@@ -6084,8 +6084,8 @@ function kcProj(p,t){const tp=normK(p.topologia||''),req=fasesReq(p).map(f=>f.k)
   const ds=kcDesloc(p.cidade);if(ds){if(t.diasPend>0)Lin.push(['desl',ds.cod,t.diasPend,'dias de campo restantes']);else fraco.push('sem previsão de dias para o deslocamento')}
   const L=kcMonta(Lin),v=L.reduce((s,x)=>s+x.v,0);return{L,comp:v,prev:v,fraco}}
 const kcR=v=>'R$ '+Math.round(v).toLocaleString('pt-BR');
-function kcOrc(){const mes=hoje().slice(0,7),B=(S.budget||{})[mes]||{},tO=LPU_CONTAS.filter(c=>!/^3\.1\.1\.2\.05\.0006/.test(c)).reduce((s,c)=>s+(+B[c]||0),0);
-  const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC');
+function kcOrc(){const mes=hoje().slice(0,7),B=(S.budget||{})[mes]||{},tO=LPU_CONTAS.filter(c=>/^3\.1\.1\.2\.05\.0005/.test(c)).reduce((s,c)=>s+(+B[c]||0),0);
+  const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC'&&lpuImpl0005(l));
   const tU=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes).reduce((s,l)=>s+(+l.total||0),0);return{tO,disp:tO-tU}}
 /* peças da tela */
 function kcTile(L,T){if(!kcVe())return '';const tot=L.reduce((s,p)=>s+kcProj(p,T[p.id]).prev,0),O=kcOrc(),pc=O.disp>0?Math.round(tot/O.disp*100):null;
@@ -9451,7 +9451,7 @@ Object.assign(CH,{uSemLpu:async el=>{const v=!!el.checked;const r=await sb.from(
 {const _c=carregar;carregar=async function(...x){const r=await _c(...x);
   try{if(['coord','sup','enc'].includes(ui.perfil)){const a=contVarre(),b=semLpuVarre();if(a.length||b.length)save()}}catch(e){console.warn('r23',e)}return r}}
 /* abas do financeiro da Implantação, no mesmo formato do financeiro do GTD */
-function finViews(FO,sub){if(!FO||FO.length<2)return '';const nA=S.lpus.filter(l=>l.status==='aguardando').length;
+function finViews(FO,sub){if(!FO||FO.length<2)return '';const nA=S.lpus.filter(l=>l.status==='aguardando'&&!lpuTx(l)).length;
   return `<div class="views" style="margin-bottom:14px;width:fit-content;max-width:100%">${FO.map(([k,n])=>`<button data-act="pSec" data-v="fin" data-s="${k}" aria-current="${k===sub}">${n}${k==='aprov'&&nA?` (${nA})`:''}</button>`).join('')}</div>`}
 /* atividade encerrada por continuação órfã: explica no detalhe */
 {const _b=blocoAcao;blocoAcao=function(a){const r=_b.apply(this,arguments);if(a&&a.status==='cancelada'&&a.encOutra&&r&&typeof r.act==='string')r.act=`<div class="result info" style="margin:0"><b>Encerrada automaticamente.</b> ${a.encOutra.fora?'As fases foram marcadas como concluídas fora da ferramenta':`As fases foram concluídas em outra atividade${a.encOutra.data?' de '+dBR(a.encOutra.data):''}`}, então esta continuação não precisa mais acontecer.</div>`+r.act;return r}}
@@ -11735,7 +11735,7 @@ function viewTxPainel(){const K=TXK_N[ui.txK]?ui.txK:'geral',ini=ui.txIni||addD(
    ${K==='cross'?`<div class="kpis">${kb(conc('cross'),'Cross connects realizados','ok','real')}${kb(ab('cross').length,'Em aberto no período','warn','aberto')}</div>`+(mostra()?`<section class="panel"><div class="secth"><h3>Cross connects realizados</h3><span class="muted">${crs.length}${limpa}</span></div>${crs.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>POP</th><th>Identificação</th><th>Equipamento / porta</th><th>Patch Panel</th><th>Nº de série / ID</th></tr></thead><tbody>${crs.map(c=>`<tr><td>${dBR(txDiaFim(c))}</td><td>${esc(c.cliente)}</td><td>${esc(c.rfo.xid||c.txXid||'')}</td><td>${esc(c.rfo.equip||'')}<br><small class="muted">${esc([c.rfo.intf,c.rfo.obs].filter(Boolean).join(' · '))}</small></td><td>${esc([c.rfo.pp,c.rfo.pos&&'pos. '+c.rfo.pos].filter(Boolean).join(' · ')||'—')}</td><td>${esc(c.rfo.xsn||'—')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nenhum no período.</p>'}</section>`:'')+(mostraAb('cross')?tabAb(ab('cross'),'Cross connects em aberto','Nenhum em aberto no período.'):''):''}
    ${K==='gmud'?`<div class="kpis">${kb(gm.length,'GMUDs no período','','')}${kb(gm.filter(c=>c.status==='concl').length,'Encerradas','ok','concl')}${kb(gm.filter(c=>GTD_ABERTOS.includes(c.status)).length,'Em aberto','warn','aberto')}</div><section class="panel"><div class="secth"><h3>GMUDs</h3><span class="muted">${gmF.length}${limpa}</span></div>${gmF.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>POP</th><th>GMUD</th><th>Técnico</th><th>Situação</th><th>Validada por</th></tr></thead><tbody>${gmF.map(c=>`<tr><td>${dt(c)}</td><td>${esc(c.cliente)}</td><td>${esc(c.txGmud||'')}</td><td>${esc(gTecN(c.tec))}</td><td>${esc(sit(c))}</td><td>${esc((c.rfo&&c.rfo.gnoc)||'—')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nenhuma GMUD.</p>'}</section>`:''}
    ${K==='outra'?`<div class="kpis">${kb(out.length,'Outras atividades no período','','')}${kb(out.filter(txConcl).length,'Concluídas','ok','concl')}${kb(out.filter(c=>GTD_ABERTOS.includes(c.status)).length,'Em aberto','warn','aberto')}</div><section class="panel"><div class="secth"><h3>Outras atividades</h3><span class="muted">${outF.length}${limpa}</span></div>${outF.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>POP</th><th>O que fazer</th><th>Técnico</th><th>Situação</th></tr></thead><tbody>${outF.map(c=>`<tr><td style="white-space:nowrap">${dt(c)}</td><td>${esc(c.cliente)}</td><td>${esc(c.motivo||'')}${c.rfo&&c.rfo.feito?'<br><small class="muted">Feito: '+esc(c.rfo.feito)+'</small>':''}</td><td>${esc(gTecN(c.tec))}</td><td>${esc(sit(c))}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nada.</p>'}</section>`:''}`}
-{const _v=viewGPainel;viewGPainel=function(){return txAt()&&!G.erro&&ui.gSec!=='tempos'?viewTxPainel():_v.apply(this,arguments)}}
+{const _v=viewGPainel;viewGPainel=function(){return txAt()&&!G.erro&&ui.gSec!=='tempos'&&ui.gSec!=='fin'?viewTxPainel():_v.apply(this,arguments)}}
 Object.assign(CH,{txPer:el=>{ui[el.dataset.k]=el.value;render()}});
 Object.assign(ACT,{txAgPrev:el=>{const F=txFNovo('prev');F.pop=el.dataset.id;ui.tab='gNovo';ui.gSel=null;render();window.scrollTo(0,0)}});
 
@@ -11775,7 +11775,7 @@ Object.assign(ACT,{
       const row=txPopRow(o);row.atualizado_por=meNome();const r=ex?await sb.from('ag_pops').update(row).eq('id',ex.id):await sb.from('ag_pops').insert(row);if(r.error){er=r.error.message;break}ex?u++:n++}
     el.disabled=false;await txPopsCarregar();if(er){toast('Parou com erro: '+er,'bad');render();return}closeModal();render();toast(`${n} POP(s) cadastrado(s)${u?`, ${u} atualizado(s)`:''}.`)}});
 /* Transmissão sem LPU: o menu do painel mostra só a Visão geral */
-{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(txAt()&&!gTecPerfil()){document.querySelectorAll('[data-act="gpSec"]').forEach(b=>{if(b.dataset.v==='fin'){b.hidden=true;const n=b.nextElementSibling;if(n&&n.classList.contains('nlv'))n.hidden=true}});
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(txAt()&&!gTecPerfil()){document.querySelectorAll('[data-act="gpSec"]').forEach(b=>{if(b.dataset.v==='fin'&&!(ui.perfil==='coord'||pode('g_fin'))){b.hidden=true;const n=b.nextElementSibling;if(n&&n.classList.contains('nlv'))n.hidden=true}});
   document.querySelectorAll('.gag button').forEach(b=>{if(/na Implantação/.test(b.textContent))b.hidden=true});document.querySelectorAll('[data-act="gpSec"][data-v="geral"]').forEach(b=>{const s=b.querySelector('.nt');if(s&&s.textContent==='Visão geral')s.textContent='Visão geral'})}}catch(e){}return o}}
 {const _t=window.toast;window.toast=function(m,c){if(typeof m==='string'&&((ui.gSel||(ui.tab==='campo'||ui.tab==='gCampo'))&&G.ch.some(x=>txDe(x)&&(x.id===ui.gSel||x.status==='rfo'))))m=m.replace(/relatório do RFO/,'relatório');return _t.apply(this,[m,c])}}
 /* Técnicos agora (Chamados) e despacho na Transmissão: a equipe é quem tem "Transmissão" na Equipe técnica */
@@ -13519,7 +13519,7 @@ const PR_RK=PR_ON?pxKeys(PR_RE):[],PX_TK=pxKeys(PX_TX),PX_GK=pxKeys(PERM_T.find(
 {AREA_PERM[1]=AREA_PERM[1].filter(n=>n[0]!=='m_gtd'&&n[0]!=='m_tx'&&n[0]!=='m_re');const ia=PERM_T.indexOf(AREA_PERM);if(!AREA_PERM[1].length&&ia>=0)PERM_T.splice(ia,1);
   const ig=PERM_T.findIndex(g=>g[0]==='GTD Manutenção');PERM_T.splice(ig>=0?ig+1:PERM_T.length,0,PX_TX);if(PR_ON)PERM_T.splice(PERM_T.indexOf(PX_TX)+1,0,PR_RE,PR_RP);
   const add=k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)},w=L=>L.forEach(n=>{add(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));add('m_gtd');add('m_tx');if(PR_ON)add('m_re')}
-const PX_AREA=gn=>gn==='GTD Manutenção'||gn==='Áreas de manutenção'?'gtd':gn==='Transmissão'?'tx':gn==='Rede Externa'||gn==='Rede Externa Corretiva'?'re':gn==='Rede Externa Preventiva'?'rep':'impl';
+const PX_AREA=gn=>gn==='GTD Manutenção'||gn==='Áreas de manutenção'?'gtd':gn==='Transmissão'?'tx':gn==='Rede Externa'||gn==='Rede Externa Corretiva'?'re':gn==='Rede Externa Preventiva'?'rep':gn==='Financeiro (todas as áreas)'||gn==='Visão gerencial'?'fin':'impl';
 const pxPapelTx=p=>p==='supervisor'||p==='encarregado'||p==='noc';
 /* 27/10: NOC com a aba Transmissão nas permissões. Padrão do NOC: Chamados, Agenda, Criar chamado, Histórico e validar,
    nas duas áreas. Lista do NOC gravada antes (sem nenhuma chave da Transmissão e sem a marca tx_v27) continua vendo a
@@ -13548,7 +13548,7 @@ function permEff(){if(!ME||!['sup','enc','noc'].includes(ui.perfil))return;if(!(
   if(!(ui.permEd&&ui.permEd.id===id))ui.permEd={id,set:pxNorm(permDe(pp.papel,pp.permissoes),pp.papel)};
   const tira=!pxPapelTx(pp.papel),ir=PR_ON?PERM_T.indexOf(PR_RE):-1,ip=PR_ON?PERM_T.indexOf(PR_RP):-1;if(tira&&ip>=0)PERM_T.splice(ip,1);if(tira&&ir>=0)PERM_T.splice(PERM_T.indexOf(PR_RE),1);const it=PERM_T.indexOf(PX_TX),nn=PX_TX[1].find(n=>n[0]==='tx_novo'),fil=nn&&nn[3],soNoc=pp.papel!=='noc'&&fil;if(tira&&it>=0)PERM_T.splice(it,1);if(soNoc)nn.length=3;let h;try{h=_v.apply(this,arguments)}finally{if(tira&&it>=0)PERM_T.splice(it,0,PX_TX);if(tira&&ir>=0)PERM_T.splice(PERM_T.indexOf(PX_TX)+1,0,PR_RE);if(tira&&ip>=0)PERM_T.splice(PERM_T.indexOf(PR_RE)+1,0,PR_RP);if(soNoc)nn[3]=fil}
   const P=new Set(ui.permEd.set),PT=PERM_T.filter(g=>!(tira&&(g===PX_TX||g===PR_RE||g===PR_RP))&&!(pp.papel==='delivery'&&g[0]==='GTD Manutenção'));
-  const AB=[['impl','Implantação'],['gtd','GTD Manutenção'],['tx','Transmissão'],['re','RE Corretiva'],['rep','RE Preventiva']].filter(([k])=>PT.some(g=>PX_AREA(g[0])===k));
+  const AB=[['impl','Implantação'],['gtd','GTD Manutenção'],['tx','Transmissão'],['re','RE Corretiva'],['rep','RE Preventiva'],['fin','Financeiro e gerencial']].filter(([k])=>PT.some(g=>PX_AREA(g[0])===k));
   if(AB.length<2)return h;if(!AB.some(a=>a[0]===ui.permAba))ui.permAba=AB[0][0];
   const telas=k=>{let n=0,t=0;PT.filter(g=>PX_AREA(g[0])===k).forEach(g=>{const w=(L,ok)=>L.forEach(x=>{if(x[2]==='t'){t++;if(ok&&P.has(x[0]))n++}if(x[3])w(x[3],ok&&P.has(x[0]))});w(g[1],true)});return [n,t]};
   const bar=`<div class="pxtabs" role="tablist" aria-label="Área">${AB.map(([k,n])=>{const[q,t]=telas(k);return `<button role="tab" data-act="pxAba" data-v="${k}" aria-selected="${ui.permAba===k}"><b>${n}</b><small class="${q?'on':''}">${q?q+' de '+t+' telas':'sem acesso'}</small></button>`}).join('')}</div>`;
@@ -16805,6 +16805,214 @@ const reLadoLpus=(L,comProg)=>reLado()==='prev'?L.filter(rePrevL).concat(comProg
 {const _d=gFinDet;gFinDet=function(){if(!reAt()||reLado()!=='prev')return _d.apply(this,arguments);const all=G.lpus,F=all.concat(reLpusProg());G.lpus=F;try{return _d.apply(this,arguments)}finally{if(G.lpus===F)G.lpus=all}}}
 {const _a=viewGAprov;viewGAprov=function(){if(!reAt()||gTecPerfil())return _a.apply(this,arguments);const all=G.lpus,F=reLadoLpus(all,false);G.lpus=F;
   try{return _a.apply(this,arguments).replace(/Aprovação de LPU · (GTD|Rede Externa)(?! (Corretiva|Preventiva))/,'Aprovação de LPU · Rede Externa '+(reLado()==='prev'?'Preventiva':'Corretiva'))}finally{if(G.lpus===F)G.lpus=all}}}
+
+/* ---------- 08/11 (noite): gestão financeira por área, menu Financeiro (consulta) e Visão gerencial ----------
+   1. Implantação: o budget mostra só a conta 3.1.1.2.05.0005 (Instalação cliente). A conta 0007 (Instalação rede ·
+      construção de rede) passa para a Transmissão: as LPUs da 0007 saem dos totais, do detalhamento e da aprovação da
+      Implantação e entram no Financeiro da Transmissão.
+   2. Transmissão ganha o Financeiro igual às outras áreas (Painel de KPIs › Financeiro): budget e consumo da 0007
+      (definir budget: tx_a_budget), totais por prestador, detalhamento das LPUs e aprovação de LPU (tx_a_aprovar).
+   3. Menu Financeiro (trilho): só consulta, todas as áreas: budget e consumo por área e conta, totais por prestador,
+      detalhamento das LPUs e a lista de todas as LPUs (com planilha). Permissões fin_*.
+   4. Visão gerencial (trilho): os KPIs de todas as áreas numa tela (Implantação, GTD, Transmissão, RE Corretiva,
+      RE Preventiva e Financeiro), com atalho para o painel completo, e a página de relatórios. Permissões ger_*.
+      Em Usuários e acessos, "Aplicar acesso gerencial (só ver)" marca todas as telas e nenhuma ação. */
+const FIN_C=c=>String(c||'').slice(0,15);/* "3.1.1.2.05.0005" */
+function lpuTx(l){return/^3\.1\.1\.2\.05\.0007/.test((l&&l.conta)||'')}
+function lpuImpl0005(l){return!l.conta||/^3\.1\.1\.2\.05\.0005/.test(l.conta)}
+const TX_FIN=(typeof LPU_CONTAS!=='undefined'&&LPU_CONTAS.find(c=>/^3\.1\.1\.2\.05\.0007/.test(c)))||'3.1.1.2.05.0007 - Serviços de Instalação REDE - CONSTRUÇÃO DE REDE';
+const txFinAt=()=>typeof areaAt==='function'&&areaAt()==='tx'&&!gTecPerfil();
+/* ===== 1. Implantação sem a 0007 ===== */
+{const _d=pDetalhe;pDetalhe=function(){const all=S.lpus,F=all.filter(l=>!lpuTx(l));S.lpus=F;try{return _d.apply(this,arguments)}finally{if(S.lpus===F)S.lpus=all}}}
+{const _p=pPrest;pPrest=function(area){if(area!=='Implantação')return _p.apply(this,arguments);const all=S.lpus,F=all.filter(l=>!lpuTx(l));S.lpus=F;try{return _p.apply(this,arguments)}finally{if(S.lpus===F)S.lpus=all}}}
+{const _a=viewAprov;viewAprov=function(){if(window.__txAprov)return _a.apply(this,arguments);const all=S.lpus,F=all.filter(l=>!lpuTx(l));S.lpus=F;try{return _a.apply(this,arguments)}finally{if(S.lpus===F)S.lpus=all}}}
+/* ===== 2. Financeiro da Transmissão ===== */
+if(typeof PX_TX!=='undefined'){const pn=PX_TX[1].find(n=>n[0]==='tx_painel');if(pn){pn[3]=pn[3]||[];pn[3].push(['tx_fin','Financeiro da Transmissão (instalação rede 3.1.1.2.05.0007)','t',[['txf_budget','Budget e consumo','t',[['tx_a_budget','Definir o budget de instalação rede','a']]],['txf_prest','Totais por prestador','t'],['txf_det','Detalhamento das LPUs','t'],['tx_aprov','Aprovação de LPU (instalação rede)','t',[['tx_a_aprovar','Aprovar, reprovar e devolver LPUs de instalação rede','a']]]]])}
+  ['tx_fin','txf_budget','tx_a_budget','txf_prest','txf_det','tx_aprov','tx_a_aprovar'].forEach(k=>{[PERM_ALL,PX_TK].forEach(A=>{if(!A.includes(k))A.push(k)})});
+  Object.assign(PX_MAP,{g_fin:'tx_fin',gf_budget:'txf_budget',gf_prest:'txf_prest',gf_det:'txf_det',gAprov:'tx_aprov'})}
+/* na Transmissão: "definir budget" = tx_a_budget e "aprovar LPU" = tx_a_aprovar */
+{const _p=permEff;permEff=function(){_p.apply(this,arguments);if(!ME||!['sup','enc','noc'].includes(ui.perfil)||ui.cat!=='gtd'||(ui.gArea||'gtd')!=='tx')return;
+  const b=pxNorm(permDe(ME.papel,ME.pBase),ME.papel);ME.perm=ME.perm.filter(k=>k!=='a_budget'&&k!=='a_aprovar'&&k!=='f_aprov');if(b.includes('tx_a_budget'))ME.perm.push('a_budget');if(b.includes('tx_a_aprovar'))ME.perm.push('a_aprovar','f_aprov')}}
+const txLpus=()=>S.lpus.filter(lpuTx);
+function txFinBudget(){const mes=ui.bMes||hoje().slice(0,7);ui.bMes=mes;const ed=ui.txbEd&&pode('a_budget'),B=(S.budget||{})[mes]||{},orc=+B[TX_FIN]||0;
+  const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes,terc=l=>tecT(l.tec)==='TERC';
+  const I=txLpus(),Gt=(G.lpus||[]).filter(l=>!gLpuClt(l)&&lpuTx(l));
+  const iA=I.filter(l=>terc(l)&&doMes(l)),iP=I.filter(l=>terc(l)&&['aguardando','ajuste'].includes(l.status)),gA=Gt.filter(doMes),gP=Gt.filter(l=>['aguardando','ajuste'].includes(l.status));
+  const soma=L=>L.reduce((s,l)=>s+(+l.total||0),0),uso=soma(iA)+soma(gA),comp=soma(iP)+soma(gP),disp=orc-uso,p=orc?Math.round(uso/orc*100):0,tot=Math.max(orc,uso+comp)||1,cor=p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)';
+  const clt=I.filter(l=>!terc(l)&&l.status!=='reprovada'&&String(l.data||'').slice(0,7)===mes);
+  const M=[];for(let k=-12;k<=2;k++){const d=new Date(hoje().slice(0,4),+hoje().slice(5,7)-1+k,1);M.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))}
+  const nL=n=>n+(n===1?' LPU':' LPUs');
+  return `<section class="panel"><div class="secth"><div><h3>Budget de mão de obra terceirizada · Instalação rede</h3><span class="muted">${esc(TX_FIN)}</span></div>
+    <div class="tools"><label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${M.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>${pode('a_budget')?(ed?'<button class="btn primary" data-act="txbSalvar">Salvar budget</button><button class="btn" data-act="txbEd">Cancelar</button>':'<button class="btn" data-act="txbEd">Definir budget de instalação rede</button>'):''}</div></div>
+   ${ed?`<label class="f inline" style="margin:8px 0"><span>Budget de ${mesNome(mes)} (R$)</span><input class="inp r" type="number" min="0" step="100" id="txBud" value="${orc||''}" placeholder="0"></label>`:''}
+   <div class="kpis" style="margin:10px 0">${kp(brl(orc),'Budget do mês')}${kp(brl(uso),`Consumido: ${p}% (${nL(iA.length+gA.length)})`,'ok')}${kp(brl(disp),'Disponível',disp<0?'bad':'')}${kp(brl(comp),`Aguardando aprovação (${nL(iP.length+gP.length)})`,'warn')}</div>
+   <div class="bbar"><i style="width:${uso/tot*100}%"></i><b style="width:${comp/tot*100}%"></b></div><small style="color:${cor};font-weight:600">${orc?p+'% consumido':'sem budget definido'}${orc&&uso+comp>orc?' · passa do budget se aprovar tudo':''}</small>
+   <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Origem</th><th class="r">Aprovadas no mês</th><th class="r">Valor</th><th class="r">Aguardando</th><th class="r">Valor</th></tr></thead><tbody>
+    <tr><td>Instalação rede (atividades com LPU na conta 0007)</td><td class="r">${iA.length}</td><td class="r">${brl(soma(iA))}</td><td class="r">${iP.length}</td><td class="r">${brl(soma(iP))}</td></tr>
+    <tr><td>Chamados da Transmissão na conta 0007</td><td class="r">${gA.length}</td><td class="r">${brl(soma(gA))}</td><td class="r">${gP.length}</td><td class="r">${brl(soma(gP))}</td></tr></tbody></table></div>
+   <p class="muted" style="font-size:13px;margin:8px 0 0">Consome no mês da aprovação da LPU. Equipe própria (CLT): ${nL(clt.length)} no mês (${brl(soma(clt))} de referência), não consomem o budget.</p></section>`}
+{const _b=gFinBudget;gFinBudget=function(){return txFinAt()?txFinBudget():_b.apply(this,arguments)}}
+{const _p=pPrest;pPrest=function(area){if(area!=='GTD'||!txFinAt())return _p.apply(this,arguments);const a=arguments,all=S.lpus,F=txLpus();S.lpus=F;try{return _p.call(this,'',a[1],a[2])}finally{if(S.lpus===F)S.lpus=all}}}
+{const _d=gFinDet;gFinDet=function(){if(!txFinAt())return _d.apply(this,arguments);const all=G.lpus,F=all.concat(txLpus());G.lpus=F;try{return _d.apply(this,arguments)}finally{if(G.lpus===F)G.lpus=all}}}
+{const _a=viewGAprov;viewGAprov=function(emb){if(!txFinAt())return _a.apply(this,arguments);const all=S.lpus,F=txLpus();S.lpus=F;window.__txAprov=1;
+  try{return `<p class="muted" style="margin:0 0 10px">LPUs de instalação rede (conta 3.1.1.2.05.0007).</p>`+viewAprov(true)}finally{window.__txAprov=0;if(S.lpus===F)S.lpus=all}}}
+{const _v=viewGPainel;viewGPainel=function(){const h=_v.apply(this,arguments);if(!txFinAt()||ui.gSec!=='fin')return h;
+  return h.replace(/Budget do mês da conta 3\.1\.1\.2\.05\.000[0-9][^<]*/,'Budget de instalação rede (3.1.1.2.05.0007), consumido pelas LPUs aprovadas no mês da aprovação.').replace(/todas na conta 3\.1\.1\.2\.05\.000[0-9] \([^)]*\)/,'na conta 3.1.1.2.05.0007 (Instalação rede)')}}
+Object.assign(ACT,{txbEd:()=>{ui.txbEd=!ui.txbEd;render()},
+  txbSalvar:async()=>{if(!pode('a_budget'))return semPerm();const mes=ui.bMes||hoje().slice(0,7),valor=parseFloat((($('txBud')||{}).value||'0').replace(',','.'))||0;const r=await sb.from('ag_budget').upsert([{mes,conta:TX_FIN,valor}],{onConflict:'mes,conta'});
+    if(r.error){toast('Não foi possível salvar o budget: '+r.error.message+(/row-level|policy/i.test(r.error.message)?' (falta rodar o ajuste 59 no banco)':''),'bad');return}
+    S.budget=S.budget||{};S.budget[mes]=S.budget[mes]||{};S.budget[mes][TX_FIN]=valor;ui.txbEd=false;render();toast('Budget de instalação rede de '+mesNome(mes)+' salvo.')}});
+/* ===== 3. Menu Financeiro (consulta) e 4. Visão gerencial ===== */
+const FIN_T=['finVis','finPrest','finDet','finLpu'],GER_T=['gerKpi','gerRel'];
+window.CAT_X=Object.assign(window.CAT_X||{},Object.fromEntries(FIN_T.map(t=>[t,'fin']).concat(GER_T.map(t=>[t,'ger']))));
+const FIN_G=['Financeiro (todas as áreas)',[['fin_vis','Budget e consumo de todas as áreas','t'],['fin_prest','Totais por prestador de todas as áreas','t'],['fin_det','Detalhamento das LPUs de todas as áreas','t'],['fin_lpu','Lista de todas as LPUs (consulta e planilha)','t']]];
+const GER_G=['Visão gerencial',[['ger_kpi','KPIs de todas as áreas numa tela','t'],['ger_rel','Relatórios das áreas','t']]];
+PERM_T.push(FIN_G,GER_G);pxKeys(FIN_G).concat(pxKeys(GER_G)).forEach(k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)});
+const FIN_K={finVis:'fin_vis',finPrest:'fin_prest',finDet:'fin_det',finLpu:'fin_lpu',gerKpi:'ger_kpi',gerRel:'ger_rel'};
+{const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments).filter(t=>!FIN_K[t]);if(!ME||gTecPerfil()||!NAV_GEST())return T;return T.concat(Object.keys(FIN_K).filter(t=>ui.perfil==='coord'||pode(FIN_K[t])))}}
+Object.assign(RP_TL,{finVis:'Budget de todas as áreas',finPrest:'Totais por prestador',finDet:'Detalhamento das LPUs',finLpu:'Todas as LPUs',gerKpi:'KPIs de todas as áreas',gerRel:'Relatórios'});
+try{Object.assign(NAV_TC,{finVis:'Budget',finPrest:'Prestadores',finDet:'Detalhe',finLpu:'LPUs',gerKpi:'KPIs',gerRel:'Relatórios'})}catch(e){}
+Object.assign(ICT,{finVis:'M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',finPrest:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0.01 0M22 21v-2a4 4 0 0 0-3-3.9',finDet:'M3 3v18h18M7 15l4-4 3 3 5-6',finLpu:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+  gerKpi:'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z',gerRel:'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h8'});
+ICN['Visão gerencial']=_sv('<path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/>');try{NAV_GC['Visão gerencial']='Gerencial'}catch(e){}
+/* trilho */
+Object.assign(AR_IC,{fin:'M2 6.5h20v11H2zM14.5 12a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0M5.5 9.5v5M18.5 9.5v5',ger:'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z'});
+Object.assign(AR_D,{fin:['Financeiro','Budget, prestadores e LPUs de todas as áreas'],ger:['Gerencial','KPIs e relatórios de todas as áreas']});
+{const _a=arCats;arCats=function(){const L=_a.apply(this,arguments),X=['fin','ger'].includes(ui.cat);if(X)L.forEach(a=>a.on=false);const T=tabsDe();
+  if(T.some(t=>CAT_X[t]==='fin'))L.push({k:'fin',n:'Financeiro',on:ui.cat==='fin'});if(T.some(t=>CAT_X[t]==='ger'))L.unshift({k:'ger',n:'Gerencial',on:ui.cat==='ger'});return L}}
+document.head.insertAdjacentHTML('beforeend',`<style>.a-fin.ario,.a-fin .ario,.arb.a-fin[aria-current="true"] .ario{background:#E9F3D6;color:#4B6B12}.a-ger.ario,.a-ger .ario,.arb.a-ger[aria-current="true"] .ario{background:#EDE3F3;color:#5B2C7A}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:14px}.fgcard{background:var(--card,#fff);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.fgcard h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px}.fgcard .secth{margin-bottom:8px}.fgcard .kpis{margin:8px 0 0}.fgcard .kpi b{font-size:20px}.fgmini{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.fgtop{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}.fgchips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+.fgbar{height:8px;border-radius:6px;background:var(--line);overflow:hidden;display:flex;min-width:120px}.fgbar i{background:var(--brand-ink,#3F6B12)}.fgbar b{background:var(--warn,#d4a017);opacity:.6}
+.rlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}.rlist .fgcard p{margin:4px 0 10px;color:var(--muted);font-size:14px}.rlist .fgcard .btn{margin:0 6px 6px 0}
+.fgchips .chip{cursor:pointer}.fgchips .chip.on{background:var(--brand-ink,#3F6B12);color:#fff;border-color:transparent}.fgempty{color:var(--muted);font-size:14px;margin:8px 0 0}.gerk{grid-template-columns:repeat(3,minmax(0,1fr))!important}.gerk .kpi span{font-size:12.5px}@media(max-width:560px){.gerk{grid-template-columns:repeat(2,minmax(0,1fr))!important}}</style>`);
+/* ---- dados financeiros de todas as áreas ---- */
+const FIN_AR=[['impl','Implantação','0005'],['gtd','GTD Manutenção','0006'],['tx','Transmissão','0007'],['re','RE Corretiva','0008'],['rep','RE Preventiva','0101']];
+const finChArea=l=>{const c=l&&l.chamado&&(G.ch||[]).find(x=>x.id===l.chamado);return c?areaDe(c):null};
+function finAreaL(l){if(l._rp)return 'rep';if(l._pl)return l._pl;if(!l.chamado)return lpuTx(l)?'tx':'impl';const a=finChArea(l)||'gtd';if(a==='re')return rePrevL(l)?'rep':'re';return a}
+function finPlantoes(){if(typeof PLT==='undefined')return[];if(!PLT.ok&&!PLT.err&&!PLT.bus&&typeof plCarregar==='function')plCarregar();return(PLT.rows||[]).filter(x=>x.status==='apr'&&x.baixa).map(x=>({id:'pl:'+x.id,chamado:null,_pl:x.area==='re'?'re':'gtd',tec:x.tec,status:'aprovada',total:+x.baixa.total||0,data:isoD(new Date(x.apr.em)),categoria:'Plantão',hist:[{acao:'Aprovada',por:x.apr.por,em:x.apr.em}],itens:x.baixa.itens||[],conta:x.area==='re'?RE_CONTA:GTD_CONTA,etiqueta:'Plantão '+plPer(x),cliente:'Plantão'}))}
+function finTodas(){if(typeof RP!=='undefined'&&!RP.ok&&!RP.bus)rpCarregar().then(()=>{if(['fin','ger'].includes(ui.cat))render()}).catch(()=>{});
+  return S.lpus.concat(G.lpus||[],typeof reLpusProg==='function'?reLpusProg():[],finPlantoes())}
+const finClt=l=>l.chamado||l._pl||l._rp?gLpuClt(l):tecT(l.tec)!=='TERC';
+function finMes(mes){const L=finTodas(),R={};FIN_AR.forEach(([k])=>R[k]={uso:0,comp:0,nAp:0,nPe:0});
+  L.forEach(l=>{const k=finAreaL(l);if(!R[k]||finClt(l))return;const t=+l.total||0;if(l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes){R[k].uso+=t;R[k].nAp++}else if(['aguardando','ajuste'].includes(l.status)){R[k].comp+=t;R[k].nPe++}});
+  return R}
+const finBud=(mes,cod)=>{const B=(S.budget||{})[mes]||{};const k=Object.keys(B).find(c=>c.startsWith('3.1.1.2.05.'+cod));return k?+B[k]||0:0};
+const finMeses=()=>{const M=[];for(let k=-12;k<=2;k++){const d=new Date(hoje().slice(0,4),+hoje().slice(5,7)-1+k,1);M.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))}return M};
+function finTabela(mes,compacto){const R=finMes(mes),rows=FIN_AR.map(([k,n,cod])=>{const r=R[k],orc=finBud(mes,cod),tot=Math.max(orc,r.uso+r.comp)||1;return Object.assign({k,n,cod,orc,disp:orc-r.uso,p:orc?Math.round(r.uso/orc*100):0,wU:r.uso/tot*100,wC:r.comp/tot*100},r)});
+  const T=rows.reduce((s,r)=>({orc:s.orc+r.orc,uso:s.uso+r.uso,comp:s.comp+r.comp,nAp:s.nAp+r.nAp,nPe:s.nPe+r.nPe}),{orc:0,uso:0,comp:0,nAp:0,nPe:0});
+  return `<div class="kpis" style="margin:10px 0">${kp(brl(T.orc),'Budget do mês (todas as áreas)')}${kp(brl(T.uso),`Consumido: ${T.orc?Math.round(T.uso/T.orc*100):0}% (${T.nAp} LPUs)`,'ok')}${kp(brl(T.orc-T.uso),'Disponível',T.orc-T.uso<0?'bad':'')}${kp(brl(T.comp),`Aguardando aprovação (${T.nPe})`,'warn')}</div>
+   <div class="tablewrap"><table><thead><tr><th>Área</th><th>Conta</th><th class="r">Budget</th><th class="r">Consumido</th><th class="r">Disponível</th>${compacto?'':'<th class="r">Aguardando</th>'}<th style="min-width:140px">Consumo</th></tr></thead><tbody>
+   ${rows.map(r=>`<tr><td><b>${r.n}</b></td><td><small>3.1.1.2.05.${r.cod}</small></td><td class="r">${brl(r.orc)}</td><td class="r">${brl(r.uso)}<br><small class="muted">${r.nAp} aprovada${r.nAp===1?'':'s'}</small></td><td class="r"><b style="color:${r.disp<0?'var(--bad)':'inherit'}">${brl(r.disp)}</b></td>${compacto?'':`<td class="r">${brl(r.comp)}<br><small class="muted">${r.nPe?r.nPe+' aguardando':'nenhuma'}</small></td>`}<td><div class="fgbar"><i style="width:${r.wU}%"></i><b style="width:${r.wC}%"></b></div><small style="font-weight:600">${r.orc?r.p+'% consumido':'sem budget'}</small></td></tr>`).join('')}
+   <tr><td><b>Total</b></td><td></td><td class="r"><b>${brl(T.orc)}</b></td><td class="r"><b>${brl(T.uso)}</b></td><td class="r"><b>${brl(T.orc-T.uso)}</b></td>${compacto?'':`<td class="r"><b>${brl(T.comp)}</b></td>`}<td></td></tr></tbody></table></div>`}
+const finTopo=(tit,sub,tools)=>`<div class="toolbar"><div><h2>${tit}</h2><p class="muted">${sub}</p></div>${tools?`<div class="tools">${tools}</div>`:''}</div>`;
+const finPer=()=>{ui.gpIni=ui.gpIni||hoje().slice(0,8)+'01';ui.gpFim=ui.gpFim||hoje();return `<label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ui.gpIni}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${ui.gpFim}"></label>`};
+function viewFinVis(){const mes=ui.fvMes||hoje().slice(0,7),M=finMeses();
+  const hist=M.slice(6,13).map(m=>[m,finMes(m)]),cel=(r)=>r.uso?brl(r.uso):'<span class="muted">—</span>';
+  return finTopo('Financeiro · budget de todas as áreas','Só consulta. Mão de obra terceirizada: consome no mês da aprovação da LPU (programadas da preventiva: no envio da LPU; plantões: na aprovação). Equipe própria (CLT) não consome. Definir budget e aprovar LPU continuam dentro de cada área.',`<label class="f inline"><span>Mês</span><select class="inp" data-ch="fvMes">${M.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>`)
+   +`<section class="panel">${finTabela(mes)}<p class="muted" style="font-size:13px;margin:8px 0 0">Barra: verde = consumido; amarelo = aguardando aprovação.</p></section>
+   <section class="panel" style="margin-top:16px"><div class="secth"><h3>Consumido por mês</h3><span class="muted">últimos 7 meses</span></div><div class="tablewrap"><table><thead><tr><th>Área</th>${hist.map(([m])=>`<th class="r">${mesNome(m).replace(/\/(\d{2})(\d{2})$/,'/$2')}</th>`).join('')}</tr></thead><tbody>
+   ${FIN_AR.map(([k,n])=>`<tr><td>${n}</td>${hist.map(([,R])=>`<td class="r">${cel(R[k])}</td>`).join('')}</tr>`).join('')}
+   <tr><td><b>Total</b></td>${hist.map(([,R])=>`<td class="r"><b>${brl(Object.values(R).reduce((s,r)=>s+r.uso,0))}</b></td>`).join('')}</tr></tbody></table></div></section>`}
+/* filtro por área (Implantação, GTD, Transmissão, RE Corretiva, RE Preventiva), o mesmo da lista de LPUs */
+const finAreaChips=()=>{const A=ui.flA||'';return `<div class="fgchips">${[['','Todas as áreas']].concat(FIN_AR.map(([k,n])=>[k,n])).map(([k,n])=>`<button class="chip ${A===k?'on':''}" data-act="flA" data-v="${k}" aria-pressed="${A===k}">${n}</button>`).join('')}</div>`};
+const finDaArea=L=>ui.flA?L.filter(l=>finAreaL(l)===ui.flA):L;
+/* descrição do item pela LPU quando a baixa só guardou o código */
+const finItFix=L=>L.map(l=>(l.itens||[]).some(i=>!i.desc||i.desc===i.cod)?Object.assign({},l,{itens:l.itens.map(i=>{if(i.desc&&i.desc!==i.cod)return i;const r=(typeof itemOf==='function'&&itemOf(i.cod))||{};return Object.assign({},i,{desc:r.desc||i.desc||i.cod,classe:i.classe||r.classe,medida:i.medida||r.medida})})}):l);
+const finAreaNome=()=>ui.flA?(FIN_AR.find(a=>a[0]===ui.flA)||[0,''])[1]:'todas as áreas';
+function viewFinPrest(){const gA=G.lpus,sA=S.lpus,F=finDaArea(gA.concat(typeof reLpusProg==='function'?reLpusProg():[],finPlantoes())),FS=finDaArea(sA);G.lpus=F;S.lpus=FS;let h;try{h=pPrest('',ui.gpIni||hoje().slice(0,8)+'01',ui.gpFim||hoje())}finally{if(G.lpus===F)G.lpus=gA;if(S.lpus===FS)S.lpus=sA}
+  return finTopo('Financeiro · totais por prestador',`Só consulta: LPUs de terceiros de ${finAreaNome()} pela data do atendimento, sem as reprovadas.`,finPer())+finAreaChips()+h}
+function viewFinDet(){const all=G.lpus,F=finItFix(finDaArea(all.concat(S.lpus,typeof reLpusProg==='function'?reLpusProg():[],finPlantoes())));G.lpus=F;let h;try{h=gFinDet()}finally{if(G.lpus===F)G.lpus=all}
+  return finTopo('Financeiro · detalhamento das LPUs',`Só consulta: itens mais usados e valor das LPUs de ${finAreaNome()} no período.`,finPer())+finAreaChips()+h}
+const FIN_ST={aprovada:['Aprovada','ok'],aguardando:['Aguardando aprovação','warn'],ajuste:['Devolvida para ajuste','warn'],reprovada:['Reprovada','bad'],registrada:['Registrada (CLT)','info'],conferencia:['Na conferência da empresa','info']};
+function finLinhas(){const ini=ui.gpIni||hoje().slice(0,8)+'01',fim=ui.gpFim||hoje(),A=ui.flA||'',st=ui.flSt||'',q=gtdNorm(ui.flQ||'');
+  return finTodas().map(l=>{const k=finAreaL(l),c=l.chamado&&!l._rp&&(G.ch||[]).find(x=>x.id===l.chamado),d=String(l.status==='aprovada'&&aprovEm(l)?isoD(new Date(aprovEm(l))):(l.data||'')).slice(0,10);
+    const ref=l._rp?l.pom:l._pl?l.etiqueta:c?'O&M '+(c.pom||'')+(c.cliente?' · '+c.cliente:''):(l.etiqueta||'')+(typeof cliN==='function'&&l.etiqueta?' · '+cliN(l.etiqueta):'');
+    return{l,k,an:(FIN_AR.find(a=>a[0]===k)||[0,k])[1],d,ref,tec:l.prestador||(typeof lpuEmpresa==='function'&&!l._rp&&!l._pl?(lpuEmpresa(l).n||gTecN(l.tec)):gTecN(l.tec)),conta:FIN_C(l.conta)||(k==='impl'?'3.1.1.2.05.0005':''),clt:finClt(l)}})
+   .filter(r=>r.d>=ini&&r.d<=fim&&(!A||r.k===A)&&(!st||r.l.status===st)&&(!q||gtdNorm(r.ref+' '+r.tec).includes(q))).sort((a,b)=>b.d.localeCompare(a.d))}
+function viewFinLpu(){const L=finLinhas(),A=ui.flA||'',st=ui.flSt||'',tot=L.reduce((s,r)=>s+(+r.l.total||0),0),pg=ui.flPg||100;
+  const chips=[['','Todas']].concat(FIN_AR.map(([k,n])=>[k,n])).map(([k,n])=>`<button class="chip ${A===k?'on':''}" data-act="flA" data-v="${k}" aria-pressed="${A===k}">${n}</button>`).join('');
+  return finTopo('Financeiro · todas as LPUs','Só consulta: a LPU de cada área com a situação. Para aprovar, devolver ou reprovar, abra a aprovação dentro da área.',finPer()+`<button class="btn" data-act="finXlsx">Baixar planilha</button>`)
+   +`<div class="fgchips">${chips}</div><div class="tools" style="margin-bottom:10px"><label class="f inline"><span>Situação</span><select class="inp" data-ch="flSt"><option value="">Todas</option>${Object.entries(FIN_ST).map(([k,[n]])=>`<option value="${k}" ${st===k?'selected':''}>${n}</option>`).join('')}</select></label><label class="f inline"><span>Buscar</span><input class="inp" data-ch="flQ" value="${esc(ui.flQ||'')}" placeholder="Cliente, O&M, código ou prestador"></label></div>
+   <div class="kpis" style="margin-bottom:12px">${kp(L.length,'LPUs')}${kp(brl(tot),'Valor')}${kp(brl(L.filter(r=>r.l.status==='aprovada'&&!r.clt).reduce((s,r)=>s+(+r.l.total||0),0)),'Aprovado (terceiros)','ok')}${kp(brl(L.filter(r=>['aguardando','ajuste'].includes(r.l.status)).reduce((s,r)=>s+(+r.l.total||0),0)),'Pendente','warn')}</div>
+   <div class="tablewrap"><table><thead><tr><th>Data</th><th>Área</th><th>Conta</th><th>Referência</th><th>Técnico / prestador</th><th>Situação</th><th class="r">Valor</th></tr></thead><tbody>
+   ${L.slice(0,pg).map(r=>{const s=FIN_ST[r.l.status]||[r.l.status||'—',''];return `<tr><td>${dBR(r.d)}</td><td>${r.an}</td><td><small>${esc(r.conta)}</small></td><td>${esc(r.ref)}</td><td>${esc(r.tec||'')}${r.clt?' <small class="muted">(CLT)</small>':''}</td><td><span class="chip ${s[1]}">${s[0]}</span></td><td class="r">${brl(+r.l.total||0)}</td></tr>`}).join('')||'<tr><td colspan="7" class="muted">Nenhuma LPU com esses filtros.</td></tr>'}</tbody></table></div>
+   ${L.length>pg?`<div class="actions" style="justify-content:center"><button class="btn" data-act="flMais">Mostrar mais (${L.length-pg})</button></div>`:''}`}
+Object.assign(CH,{fvMes:el=>{ui.fvMes=el.value;render()},flSt:el=>{ui.flSt=el.value;ui.flPg=100;render()},flQ:el=>{ui.flQ=el.value;ui.flPg=100;render();const i=document.querySelector('[data-ch="flQ"]');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}}});
+Object.assign(ACT,{flA:el=>{ui.flA=el.dataset.v;ui.flPg=100;render()},flMais:()=>{ui.flPg=(ui.flPg||100)+200;render()},
+  finXlsx:()=>{const L=finLinhas();xlsxBaixar(`lpus_todas_as_areas_${ui.gpIni}_${ui.gpFim}.xlsx`,[['LPUs',L.map(r=>({Data:dBR(r.d),Área:r.an,Conta:r.conta,Referência:r.ref,'Técnico / prestador':r.tec,Vínculo:r.clt?'CLT':'Terceiro',Situação:(FIN_ST[r.l.status]||[r.l.status])[0],Valor:Math.round((+r.l.total||0)*100)/100}))],
+    ['Filtros',xFiltros({'Tela':'Financeiro › Todas as LPUs','Período':dBR(ui.gpIni)+' a '+dBR(ui.gpFim),'Área':ui.flA?(FIN_AR.find(a=>a[0]===ui.flA)||[0,''])[1]:'Todas','Situação':ui.flSt?(FIN_ST[ui.flSt]||[ui.flSt])[0]:'Todas','Linhas':L.length})]],'Planilha das LPUs baixada.')}});
+/* ---- Visão gerencial ---- */
+const GER_AR=[['impl','Implantação','Ativações e agenda de campo'],['gtd','GTD Manutenção','Chamados de CPE no cliente'],['tx','Transmissão','POPs: corretiva, preventiva, expansões'],['re','RE Corretiva','Rompimentos, massivas e plantões'],['rep','RE Preventiva','Km percorrido, caixas, postes e plaquetas']];
+function gerHtml(k){const S0={cat:ui.cat,tab:ui.tab,gArea:ui.gArea,reLado:ui.reLado,gSec:ui.gSec,pSec:ui.pSec,gFinSub:ui.gFinSub},chA=G.ch,lA=G.lpus;let h='';
+  try{if(k==='impl'){if(!pode('painel')&&ui.perfil!=='coord')return null;ui.cat='impl';ui.tab='painel';ui.pSec='geral';h=viewPainel()}
+    else{const a=k==='rep'?'re':k;ui.cat='gtd';ui.tab='gPainel';ui.gArea=a;ui.reLado=k==='rep'?'prev':'cor';try{permEff()}catch(e){}
+      if(k==='rep'&&!(ui.perfil==='coord'||rePrevVe()))return null;if(k==='re'&&!(ui.perfil==='coord'||reCorVe()))return null;if(!(areaVis().some(x=>x.k===a)))return null;if(!(ui.perfil==='coord'||pode('gPainel')))return null;
+      const ok=c=>areaDe(c)===a,ids=new Map(chA.map(c=>[c.id,c]));G.ch=chA.filter(ok);G.lpus=lA.filter(l=>{const c=ids.get(l.chamado);return c?ok(c):a==='gtd'});
+      ui.gSec=k==='rep'?'prev':'geral';h=areaModo(a,()=>viewGPainel())}}
+  catch(e){console.warn('gerencial',k,e);h=''}finally{G.ch=chA;G.lpus=lA;Object.assign(ui,S0);try{permEff()}catch(e){}}
+  return h}
+/* indicadores do painel da área: os cartões .kpi (Implantação, Transmissão, preventiva) ou os .tvkv (GTD, RE Corretiva) */
+function gerKpis(html){if(html==null)return null;const d=document.createElement('div');d.innerHTML=html;
+  const I=[...d.querySelectorAll('.kpis .kpi, .tvkg .tvkv')].slice(0,9).map(e=>{const v=e.querySelector('b'),l=e.querySelector('span,small'),c=((e.className||'')+' '+((v&&v.className)||'')).match(/\b(ok|warn|bad)\b/);return[v?v.textContent.trim():'',l?l.textContent.trim():'',c?c[1]:'']}).filter(x=>x[0]);
+  return I.length?`<div class="kpis gerk">${I.map(([v,l,c])=>kp(esc(v),esc(l),c)).join('')}</div>`:'<p class="fgempty">Sem indicadores no período.</p>'}
+function viewGerKpi(){ui.gpIni=ui.gpIni||hoje().slice(0,8)+'01';ui.gpFim=ui.gpFim||hoje();ui.pIni=ui.gpIni;ui.pFim=ui.gpFim;
+  const cards=GER_AR.map(([k,n,sub])=>{const K=gerKpis(gerHtml(k));if(K===null)return '';return `<article class="fgcard"><div class="secth"><div><h3><span class="ario a-${k}" style="width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center">${arSvg(k,17)}</span>${n}</h3><small class="muted">${sub}</small></div><button class="btn sm" data-act="gerAbrir" data-k="${k}">Painel completo</button></div>${K}</article>`}).join('');
+  const mes=ui.gpFim.slice(0,7),fin=(ui.perfil==='coord'||pode('fin_vis'))?`<article class="fgcard" style="margin-top:14px"><div class="secth"><div><h3><span class="ario a-fin" style="width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center">${arSvg('fin',17)}</span>Financeiro · ${mesNome(mes)}</h3><small class="muted">Budget de mão de obra terceirizada por área (mês do fim do período)</small></div><button class="btn sm" data-act="gerAbrir" data-k="fin">Abrir o Financeiro</button></div>${finTabela(mes,true)}</article>`:'';
+  return `<div class="fgtop"><div><h2 style="margin:0">Visão gerencial</h2><p class="muted" style="margin:4px 0 0">Os indicadores de cada área no mesmo período. "Painel completo" abre o painel da área com todos os detalhes (só leitura no acesso gerencial).</p></div><div class="tools">${finPer()}<button class="btn" data-act="gerMes" data-v="0">Este mês</button><button class="btn" data-act="gerMes" data-v="-1">Mês passado</button></div></div>
+   <div class="fgrid">${cards||'<p class="muted">Nenhuma área liberada.</p>'}</div>${fin}`}
+const GER_REL=[['impl','Implantação',[['relat','Histórico de clientes','Atividades, atualizações e relatórios por cliente'],['vist','Vistorias de lançamento','Vistorias, pendências e pedidos de correção'],['painelDia','Painel do dia','O que está acontecendo hoje no campo']]],
+  ['gtd','GTD Manutenção',[['gRel','Histórico do GTD','Chamados por cliente, inclusive cancelados, com o relatório de cada um']]],
+  ['tx','Transmissão',[['gRel','Histórico e POPs','Chamados por POP com o relatório de cada um']]],
+  ['re','RE Corretiva',[['gRel','Histórico da Rede Externa','Chamados de rompimento e massiva com o relatório'],['reFisc','Fiscalização','Relatórios de fiscalização e pedidos de correção'],['gPlant','Plantões','Baixas de plantão com o PDF']]],
+  ['rep','RE Preventiva',[['@rkXlsx','Planilha de KPIs da preventiva','Km, caixas, postes e plaquetas por origem, técnico e cidade (período escolhido acima)'],['rpEst','Esteira das programadas','Preventiva, melhoria, retirada e companhia elétrica'],['rpCia','Companhia elétrica','Notificações, mapa e painel']]],
+  ['fin','Financeiro',[['@finXlsx','Planilha de todas as LPUs','Todas as áreas, com conta, prestador, situação e valor (período escolhido acima)'],['finVis','Budget de todas as áreas','Budget, consumido e disponível por área']]]];
+function viewGerRel(){ui.gpIni=ui.gpIni||hoje().slice(0,8)+'01';ui.gpFim=ui.gpFim||hoje();
+  return `<div class="fgtop"><div><h2 style="margin:0">Relatórios</h2><p class="muted" style="margin:4px 0 0">Atalhos para os relatórios de cada área. As planilhas usam o período escolhido.</p></div><div class="tools">${finPer()}</div></div>
+   <div class="rlist">${GER_REL.map(([k,n,L])=>`<article class="fgcard"><h3><span class="ario a-${k}" style="width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center">${arSvg(k,16)}</span>${n}</h3>${L.map(([t,tt,d])=>`<p><b>${tt}</b><br>${d}</p><button class="btn sm" data-act="gerIr" data-k="${k}" data-t="${t}">${t[0]==='@'?'Baixar':'Abrir'}</button>`).join('')}</article>`).join('')}</div>`}
+Object.assign(RP_VIEWS,{finVis:viewFinVis,finPrest:viewFinPrest,finDet:viewFinDet,finLpu:viewFinLpu,gerKpi:viewGerKpi,gerRel:viewGerRel});
+const gerVai=(k,tab,ex)=>{if(k==='fin'||k==='impl'){ACT.gCat({dataset:{v:k}});}else ACT.gCat({dataset:{v:k}});setTimeout(()=>{if(ex)ex();if(tab)ui.tab=tab;render();window.scrollTo(0,0)},0)};
+Object.assign(ACT,{gerAbrir:el=>{const k=el.dataset.k;if(k==='fin')return gerVai('fin','finVis');if(k==='impl')return gerVai('impl','painel',()=>{ui.pSec='geral';ui.pFech=false});gerVai(k,'gPainel',()=>{ui.gSec=k==='rep'?'prev':'geral';ui.gpFech=false})},
+  gerIr:el=>{const k=el.dataset.k,t=el.dataset.t;if(t[0]==='@'){const a=t.slice(1);if(a==='rkXlsx'){if(typeof RP!=='undefined'&&!RP.ok)return rpCarregar().then(()=>ACT.rkXlsx());return ACT.rkXlsx()}return ACT[a]&&ACT[a]()}gerVai(k,t)},
+  gerMes:el=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+(+el.dataset.v));const ini=isoD(d),e=new Date(d.getFullYear(),d.getMonth()+1,0),fim=+el.dataset.v?isoD(e):hoje();ui.gpIni=ini;ui.gpFim=fim;ui.pIni=ini;ui.pFim=fim;render()}});
+/* ---- Usuários e acessos: aba Financeiro e gerencial + "Aplicar acesso gerencial (só ver)" ---- */
+const GER_FORA=['gNovo','tx_novo','re_novo','usuarios','estAtual'];
+function gerPreset(){const o=[];const w=L=>L.forEach(n=>{if(n[2]==='t'&&!GER_FORA.includes(n[0]))o.push(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));
+  return [...new Set(o.concat(['m_gtd','m_tx','m_re','re_v01','rp_v58','rp_v58b','gpl_v1','_v18','_v19','_v22','_v23','_v24','_v25','tx_v27']))]}
+{const _v=viewPermissoes;viewPermissoes=function(){const h=_v.apply(this,arguments);if(!ui.permEd)return h;
+  return h.replace('<button class="btn" data-act="permPadrao">Restaurar padrão do papel</button>','<button class="btn" data-act="permPadrao">Restaurar padrão do papel</button><button class="btn" data-act="pxGer" title="Marca todas as telas de todas as áreas, o Financeiro e a Visão gerencial, sem nenhuma ação (aprovar, editar, despachar)">Aplicar acesso gerencial (só ver)</button>')}}
+Object.assign(ACT,{pxGer:()=>{if(!ui.permEd)return;ui.permEd.set=gerPreset();render();toast('Acesso gerencial marcado: todas as telas, nenhuma ação. Confira e salve.')}});
+/* quem tem só o acesso gerencial (telas, nenhuma ação) aparece como "Gerencial · só leitura" */
+const gerSoVer=()=>{if(!ME||ui.perfil!=='sup')return false;const b=permDe(ME.papel,'pBase' in ME?ME.pBase:ME.perm);return b.includes('ger_kpi')&&!b.some(k=>/^a_|_a_/.test(k))};
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(gerSoVer()){const s=document.querySelector('#whoBox .wn small');if(s)s.textContent='Gerencial · só leitura'}}catch(e){}return o}}
+/* ===== 08/11 (noite, 2): PDF das baixas (uma ou várias) e filtro por área no detalhamento e nos totais por prestador ===== */
+/* ---- PDF das baixas: uma por vez ou as selecionadas (zip) ---- */
+const finArqNome=r=>(typeof rpGeoNomeArq==='function'?rpGeoNomeArq:(s=>String(s).replace(/[^A-Za-z0-9._-]+/g,'_')))(`LPU_${r.an}_${r.ref}_${r.d}`)+'.pdf';
+async function finLpuBlob(r){const l=r.l;
+  if(l._pl){const x=typeof plGet==='function'&&plGet(String(l.id).slice(3));if(x)return plPdfGera(x)}
+  if(!l._rp&&l.pdf_path&&!(l.status==='aprovada'&&!l.pdfAprov)&&!(typeof lpuSemValor==='function'&&lpuSemValor(l))){try{const d=await sb.storage.from('agenda').download(l.pdf_path);if(d&&d.data&&!d.error)return d.data}catch(e){}}
+  return gerarPdfLpu(l,typeof lpuSemValor==='function'&&lpuSemValor(l)?{comValor:typeof verValor==='function'?verValor():true}:undefined)}
+const finSel=()=>ui.flSel||(ui.flSel=new Set());
+const finSalva=(b,n)=>(typeof baixaArq==='function'?baixaArq:rpBaixa)(b,n);
+Object.assign(ACT,{flPdf:async el=>{const r=finLinhas().find(x=>x.l.id===el.dataset.id);if(!r)return;toast('Gerando o PDF da baixa…');try{finSalva(await finLpuBlob(r),finArqNome(r))}catch(e){toast('Não foi possível gerar o PDF: '+((e&&e.message)||e),'bad')}},
+  flSelTodas:()=>{const S0=finSel(),L=finLinhas().slice(0,ui.flPg||100),todas=L.length&&L.every(r=>S0.has(r.l.id));L.forEach(r=>todas?S0.delete(r.l.id):S0.add(r.l.id));render()},
+  flSelLimpa:()=>{finSel().clear();render()},
+  flPdfSel:async el=>{const S0=finSel(),L=finLinhas().filter(r=>S0.has(r.l.id));if(!L.length){toast('Marque as baixas que quer baixar.','bad');return}
+    if(L.length===1)return ACT.flPdf({dataset:{id:L[0].l.id}});el.disabled=true;toast(`Gerando ${L.length} PDFs…`);
+    try{const Z=await kmzLib(),z=new Z(),usados=new Set();for(const r of L){let n=finArqNome(r),i=2;while(usados.has(n))n=n.replace(/(_\d+)?\.pdf$/,'_'+(i++)+'.pdf');usados.add(n);z.file(n,await finLpuBlob(r))}
+      finSalva(await z.generateAsync({type:'blob',mimeType:'application/zip'}),`baixas_LPU_${L.length}_${hoje()}.zip`);toast(`${L.length} baixas no arquivo .zip.`)}catch(e){toast('Não foi possível gerar os PDFs: '+((e&&e.message)||e),'bad')}finally{el.disabled=false}}});
+Object.assign(CH,{flSel:el=>{const S0=finSel();el.checked?S0.add(el.dataset.id):S0.delete(el.dataset.id);render()}});
+/* a lista de LPUs ganha a seleção, o PDF de cada baixa e o "Baixar selecionadas" */
+{const _v=viewFinLpu;viewFinLpu=function(){let h=_v.apply(this,arguments);const S0=finSel(),vis=new Set(finLinhas().map(r=>r.l.id));[...S0].forEach(id=>{if(!vis.has(id))S0.delete(id)});
+  const L=finLinhas().slice(0,ui.flPg||100),todas=L.length&&L.every(r=>S0.has(r.l.id)),n=S0.size;
+  h=h.replace('<thead><tr><th>Data</th>',`<thead><tr><th style="width:34px"><input type="checkbox" aria-label="Marcar todas da lista" data-act="flSelTodas" ${todas?'checked':''}></th><th>Data</th>`).replace('<th class="r">Valor</th></tr></thead>','<th class="r">Valor</th><th></th></tr></thead>');
+  let i=0;h=h.replace(/<tr><td>(\d{2}\/\d{2}\/\d{4})<\/td>([\s\S]*?)<\/tr>/g,(m,d,resto)=>{const r=L[i++];if(!r)return m;return `<tr class="${S0.has(r.l.id)?'flon':''}"><td><input type="checkbox" aria-label="Marcar a baixa" data-ch="flSel" data-id="${esc(r.l.id)}" ${S0.has(r.l.id)?'checked':''}></td><td>${d}</td>${resto}<td><button class="btn sm" data-act="flPdf" data-id="${esc(r.l.id)}">PDF</button></td></tr>`});
+  h=h.replace('colspan="7" class="muted">Nenhuma LPU','colspan="9" class="muted">Nenhuma LPU');
+  const barra=`<div class="flbar ${n?'on':''}"><span>${n?`<b>${n}</b> baixa${n>1?'s':''} marcada${n>1?'s':''}`:'Marque as baixas para baixar várias de uma vez'}</span><span>${n?'<button class="btn sm" data-act="flSelLimpa">Desmarcar</button>':''}<button class="btn sm primary" data-act="flPdfSel" ${n?'':'disabled'}>Baixar ${n>1?'as '+n+' baixas (.zip)':n===1?'o PDF':'selecionadas'}</button></span></div>`;
+  return h.replace('<div class="tablewrap"><table>',barra+'<div class="tablewrap"><table class="fltab">')}}
+RP_VIEWS.finLpu=viewFinLpu;
+document.head.insertAdjacentHTML('beforeend','<style>.flbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;margin:0 0 10px;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:14px;position:sticky;top:8px;z-index:3;background:var(--card,#fff)}.flbar.on{border-color:var(--brand,#8dc63f);color:inherit}.flbar span{display:flex;gap:8px;align-items:center}tr.flon td{background:rgba(141,198,63,.08)}.fitab td:first-child,.fitab td b,.fil td:first-child,.fltab td:nth-child(2),.fltab td:nth-child(4),.fltab .btn{white-space:nowrap}</style>');
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
