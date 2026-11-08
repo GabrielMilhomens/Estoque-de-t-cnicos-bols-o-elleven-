@@ -4945,7 +4945,7 @@ function viewGAgenda(){if(G.erro)return `<h2>Agenda · GTD Manutenção</h2>${gE
 /* ---------- PAINEL DE KPIs DO GTD ---------- */
 function gBarras(L,tot){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([n,q,ex])=>`<div class="gbar"><span>${esc(n)}</span><div><i style="width:${Math.round(q/mx*100)}%"></i></div><b>${q}</b>${ex!==undefined?`<small>${ex}</small>`:''}</div>`).join('')||'<p class="muted">Sem dados no período.</p>'}
 const GSEC=[['geral','Visão geral'],['tempos','Tempos de atendimento'],['fin','Financeiro']],GFSUB=[['budget','Budget e consumo','gf_budget'],['prest','Totais por prestador','gf_prest'],['det','Detalhamento das LPUs','gf_det'],['aprov','Aprovação de LPU','gAprov']];
-const gSubsOk=()=>GFSUB.filter(x=>pode(x[2])),gSecsOk=()=>GSEC.filter(([k])=>k==='geral'||(k==='tempos'&&pode('g_tempos'))||k==='fin'&&(pode('g_fin')&&gSubsOk().length));
+const gSubsOk=()=>GFSUB.filter(x=>pode(x[2])),gSecsOk=()=>{const L=GSEC.filter(([k])=>k==='geral'||(k==='tempos'&&pode('g_tempos'))||k==='fin'&&(pode('g_fin')&&gSubsOk().length));if(typeof reAt==='function'&&reAt()){L[0]=['geral','Corretiva'];L.splice(1,0,['prev','Preventiva'])}return L};
 const gNAprov=()=>pode('a_gAprovar')?G.lpus.filter(l=>l.status==='aguardando').length:0;
 /* item "Painel de KPIs" do menu do GTD, com Visão geral e Financeiro (Budget, Detalhamento, Aprovação), como na Implantação */
 function gNavPainel(){const open=ui.tab==='gPainel'&&!ui.gpFech,n=gNAprov(),bAp=n?`<span class="nbadge">${n}</span>`:'',ch=o=>`<span class="nch">${o?ICN.up:ICN.dn}</span>`;
@@ -5189,7 +5189,7 @@ async function gChatVistas(){const ch=ui.chat;if(!ch)return;if(ch.t==='s')return
 /* com a conversa aberta, confere novas mensagens a cada 5 s (além do tempo real) */
 setInterval(()=>{if(ME&&ui.chat&&document.visibilityState==='visible')gChatCarregar(true)},5000);
 function gChatLista(){if(ui.chat&&ui.chat.t==='s')return gSalaLista();const k=gChatK(),L=G.msgs[k];if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
-  return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}</small>${chxMsgTxt(m)}${chxAnexo(m)}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
+  return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}${m.editado_em?msgEdTag(m,'a'):''}${eu&&msgPodeEd(m)&&ui.msgEd!==m.id?msgEdBtn(m):''}</small>${ui.msgEd===m.id?msgEdBox(m):chxMsgTxt(m)}${chxAnexo(m)}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
 function gChatPintar(){const el=$('chatList');if(!el)return;const fim=el.scrollHeight-el.scrollTop-el.clientHeight<80;el.innerHTML=gChatLista();if(fim)el.scrollTop=el.scrollHeight;chxArqsAtual()}
 function viewChat(){if(ui.chat&&ui.chat.t==='s')return viewSala();const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);
   let tit='',sub='',quem='';if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};tit='O&M '+(c.pom||'');sub=c.cliente||'';quem='Técnico, NOC e O&M'}else{const a=getAg(ch.id)||((typeof PD!=='undefined'&&PD.rows)||[]).find(r=>r.id===ch.id)||{};tit=a.etiqueta||'Atividade';sub=(cliN(a.etiqueta||'')||a.cliente||'')+(a.fases?' · '+fasesN(a):'');quem='Técnico, Delivery e O&M'}
@@ -6639,7 +6639,7 @@ const HOLD_MS=3000;
     if(typeof campoRO==='function'&&campoRO()){toast('Na Visão do técnico, supervisão e encarregados só consultam. Quem age é o técnico.','bad');return}
     e.preventDefault();const ms=+el.dataset.hold||HOLD_MS;H={el,t0:performance.now(),ok:false};el.classList.add('holding');
     const go=()=>{if(!H)return;const p=Math.min(1,(performance.now()-H.t0)/ms);el.style.setProperty('--p',(p*100).toFixed(1)+'%');
-      if(p>=1){H.ok=true;try{navigator.vibrate&&navigator.vibrate(60)}catch(x){}const f=ACT[el.dataset.act];fim(true);if(f)f(el);return}H.raf=requestAnimationFrame(go)};H.raf=requestAnimationFrame(go)},true);
+      if(p>=1){H.ok=true;try{navigator.vibrate&&navigator.vibrate(60)}catch(x){}const f=ACT[el.dataset.act];fim(true);if(f){el.classList.add('hbusy');let r;try{r=f(el)}catch(x){el.classList.remove('hbusy');throw x}Promise.resolve(r).finally(()=>{try{el.classList.remove('hbusy')}catch(x){}})}return}H.raf=requestAnimationFrame(go)};H.raf=requestAnimationFrame(go)},true);
   ['pointerup','pointercancel','pointerleave'].forEach(t=>document.addEventListener(t,e=>{if(H&&(t!=='pointerleave'||e.target===H.el))fim(false)},true));
   document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el){e.preventDefault();e.stopImmediatePropagation()}},true);
   document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()},true);
@@ -6857,9 +6857,8 @@ Object.assign(ACT,{agBk:el=>{ui.agBk=ui.agBk||{};const k=el.dataset.k;ui.agBk[k]
 /* 16/10: "Você termina hoje?" às 15h (sim ou não), Encerrar o dia e continuação agendada pela gestão */
 const thHoje=a=>a.th&&a.th.data===hoje()?a.th.resp:null;
 function thAcoes(a,nok){const ph=prazoHoje(a),prox=proxDia(a),th=thHoje(a),antigo=ph&&ph.status==='pendente'&&!ph.tipo;let pre='';
-  if(!prox&&!th&&!antigo&&hmAgora()>=15*60)thNotif(a);
-  if(!prox&&!th&&!antigo&&hmAgora()>=15*60)pre+=`<section class="pzq"><b>Você termina esta atividade hoje?</b><div class="pzb"><button class="btn" data-act="thResp" data-id="${a.id}" data-v="sim">Sim</button><button class="btn" data-act="thResp" data-id="${a.id}" data-v="nao">Não</button></div></section>`;
-  const nao=!prox&&(th==='nao'||antigo);
+  if(false)pre+=`<section class="pzq"><b>Você termina esta atividade hoje?</b><div class="pzb"><button class="btn" data-act="thResp" data-id="${a.id}" data-v="sim">Sim</button><button class="btn" data-act="thResp" data-id="${a.id}" data-v="nao">Não</button></div></section>`;
+  const nao=false;/* 08/11: Encerrar o dia só em atividade de vários dias, fora do último dia */
   if(nao)pre+=`<div class="result" style="margin:0;background:var(--info-soft);color:var(--info)">Você disse que não termina hoje. Ao parar, segure <b>Encerrar o dia</b>. Se conseguir terminar, é só concluir.</div>`;
   const conc=`<button class="bigbtn" data-act="go" data-id="${a.id}" data-hold="3000">Segure para concluir a atividade</button>`;
   const enc=l=>`<button class="bigbtn diab2" data-act="diaFim" data-id="${a.id}" data-hold="3000">${l}</button>`;
@@ -7352,7 +7351,7 @@ VT_IT.rt.push(['inst','Reserva técnica instalada','']);
 const VT_CONF={rt:['inst','A reserva técnica foi instalada?','Reserva não instalada'],esp:['esp','O lance foi espinado?','Lance não espinado']};
 const VT_GRAV=[['critica','Crítica · risco ou norma da concessionária'],['corrigir','Corrigir · fora do padrão'],['obs','Observação · sem correção']];
 const VT_MOT=['Poste do projeto ocupado ou sem condição','Poste inexistente ou removido','Obstáculo (árvore, obra, rede de energia)','Pedido do cliente ou do condomínio','Travessia mais segura','Outro'];
-const VT_PRAZO={'Aprovado com ressalvas':15,'Reprovado':5};
+const VT_PRAZO={};/* 08/11: o vistoriador não define prazo; quem define é a gestão (Vistorias de lançamento) */
 const VT_TIPON={poste:'postes',esp:'lances espinados',rt:'reservas técnicas',ceo:'CEO',cto:'CTO',cli:'cliente'};
 const VT_COR_EXEC='#0f9d9a';
 const VT={M:null,R:null,map:null,LY:{},kml:'',nome:'',base:null,eu:null,_t:null};
@@ -7698,7 +7697,7 @@ Object.assign(ACT,{
       const r=vtResul(),dz=VT_PRAZO[r]||0,L=vtPend();
       a.rel=a.rel||{};a.rel.vist={path,em:Date.now(),res:r};
       a.vistoria={res:r,sug:vtSug(),just:R.res&&R.res!==vtSug()?R.just:'',conf:vtConf(),pontos:vtAtivos(),nPend:L.length,prazo:dz?addD(hoje(),dz):null,dias:dz||null,em:Date.now(),por:meNome(),revis:!!R.revis,mMed:+R.mMed||0,mPrev:VT.M.mPrev,kmz:VT.nome,
-        obs:String(R.obs||'').trim(),pend:L.map(x=>({id:x.e.id,item:x.n,g:x.d.g||'',txt:x.d.txt||''})),alt:R.alt.map(a2=>{const[v1,v2]=vtViz(a2);return{de:v1,ate:v2,proj:Math.round(a2.m2-a2.m1),exec:vtLen(a2.pts),motivo:a2.motivo,sit:a2.sit}}),estado:vtSer(R,false)};
+        obs:String(R.obs||'').trim(),pend:await vtPendFotos(a,L),alt:R.alt.map(a2=>{const[v1,v2]=vtViz(a2);return{de:v1,ate:v2,proj:Math.round(a2.m2-a2.m1),exec:vtLen(a2.pts),motivo:a2.motivo,sit:a2.sit}}),estado:vtSer(R,false)};
       a.medicoes=Object.assign({},a.medicoes||{},{'vist:metros':+R.mMed||0});
       /* 17/10 noite: vistoria só de vistoria, preenchida durante a execução: enviar o relatório conclui a atividade e segue para a LPU */
       let conc=false;if(a.status==='execucao'&&vtSo(a)){a.fasesFin=fasesOf(a);a.ts.conclusao=Date.now();if(a.dias)a.dias=a.dias.filter(d=>d<=a.data);a.status='relatorios';conc=true}
@@ -8239,7 +8238,7 @@ function tvNomeEtq(cli,etq){cli=String(cli||'').trim();etq=String(etq||'').trim(
 let CHAT_COLA=[];
 function chatImgsDe(dt){const F=[];if(!dt)return F;[...(dt.items||[])].forEach(it=>{if(it.kind==='file'&&/^image\//.test(it.type||'')){const f=it.getAsFile();if(f)F.push(f)}});
   if(!F.length&&dt.files)[...dt.files].forEach(f=>{if(/^image\//.test(f.type||''))F.push(f)});return F}
-function chatColarPrevia(F){F=F.slice(0,5);if(!F.length)return;CHAT_COLA=F.map((f,i)=>new File([f],(f.name&&!/^image\.\w+$/.test(f.name)?f.name:`imagem-colada-${Date.now()}-${i+1}.${(f.type.split('/')[1]||'png').replace('jpeg','jpg')}`),{type:f.type||'image/png'}));
+function chatColarPrevia(F){F=F.slice(0,10);if(!F.length)return;CHAT_COLA=F.map((f,i)=>new File([f],(f.name&&!/^image\.\w+$/.test(f.name)?f.name:`imagem-colada-${Date.now()}-${i+1}.${(f.type.split('/')[1]||'png').replace('jpeg','jpg')}`),{type:f.type||'image/png'}));
   const urls=CHAT_COLA.map(f=>URL.createObjectURL(f)),txt=(($('chatTxt')||{}).value||'').trim();
   openModal(`<h3>Enviar ${CHAT_COLA.length===1?'esta imagem':'estas '+CHAT_COLA.length+' imagens'}?</h3>${txt?`<p class="muted">Vai junto com a mensagem: “${esc(txt.slice(0,140))}${txt.length>140?'…':''}”</p>`:''}
    <div class="chatcolap">${urls.map((u,i)=>`<img src="${u}" alt="Imagem colada ${i+1}">`).join('')}</div>
@@ -8421,14 +8420,14 @@ function v19Linhas(){const T=hoje(),out=[];
     const disp=(S.comp[e]||{}).vistDisp,met=+p.metros?(+p.metros).toLocaleString('pt-BR')+' m':'';
     const base={e,p,ln,met,ult,ab,disp};
     if(ab)out.push(Object.assign(base,{st:'agend',revis:!!ult}));
-    else if(ult&&ult.vistoria.res!=='Aprovado'&&ult.vistoria.prazo){const dz=Math.round((new Date(ult.vistoria.prazo+'T12:00:00')-new Date(T+'T12:00:00'))/864e5);out.push(Object.assign(base,{st:'pend',dz}))}
+    else if(ult&&ult.vistoria.res!=='Aprovado'){const dz=ult.vistoria.prazo?Math.round((new Date(ult.vistoria.prazo+'T12:00:00')-new Date(T+'T12:00:00'))/864e5):null;out.push(Object.assign(base,{st:'pend',dz}))}
     else if(ult)out.push(Object.assign(base,{st:'ok'}));
     else if(disp)out.push(Object.assign(base,{st:'disp'}));
     else if(ln){const esp=Math.max(0,Math.round((new Date(T+'T12:00:00')-new Date(ln.data+'T12:00:00'))/864e5));out.push(Object.assign(base,{st:'aguarda',esp}))}});
   return out}
 const V19_K=[['aguarda','Aguardando vistoria','w'],['agend','Agendadas',''],['pend','Com pendência','b'],['ok','Aprovadas','o'],['disp','Dispensadas','m']];
 function viewVist(){const L=v19Linhas(),f=ui.vF||'aguarda',n=k=>L.filter(x=>x.st===k).length,venc=L.filter(x=>x.st==='pend'&&x.dz<0).length,q=normK(ui.vQ||'');
-  const R=L.filter(x=>x.st===f&&(!q||normK([x.p.cliente,x.e].join(' ')).includes(q))).sort((a,b)=>f==='aguarda'?b.esp-a.esp:f==='pend'?a.dz-b.dz:f==='agend'?a.ab.data.localeCompare(b.ab.data):((b.ult&&b.ult.vistoria.em)||(b.disp&&b.disp.em)||0)-((a.ult&&a.ult.vistoria.em)||(a.disp&&a.disp.em)||0));
+  const R=L.filter(x=>x.st===f&&(!q||normK([x.p.cliente,x.e].join(' ')).includes(q))).sort((a,b)=>f==='aguarda'?b.esp-a.esp:f==='pend'?(a.dz==null?-1e9:a.dz)-(b.dz==null?-1e9:b.dz):f==='agend'?a.ab.data.localeCompare(b.ab.data):((b.ult&&b.ult.vistoria.em)||(b.disp&&b.disp.em)||0)-((a.ult&&a.ult.vistoria.em)||(a.disp&&a.disp.em)||0));
   const cli=x=>`<b>${tvNomeEtq(x.p.cliente||'',x.e)}</b><small>${esc(x.p.cidade||'')}</small>`,lan=x=>x.ln?`${esc(x.ln.quem)}<small>${dBR(x.ln.data)}${x.met?' · '+x.met:''}</small>`:'—';
   const res=v=>`<span class="chip ${v.res==='Aprovado'?'ok':v.res==='Reprovado'?'bad':'warn'}">${esc(v.res)}</span>${v.conf!=null?`<small>${v.conf}% conforme</small>`:''}`;
   const pdf=a=>a&&a.rel&&a.rel.vist&&a.rel.vist.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.vist.path)}">Abrir PDF</button>`:'';
@@ -8437,7 +8436,7 @@ function viewVist(){const L=v19Linhas(),f=ui.vF||'aguarda',n=k=>L.filter(x=>x.st
   const row=x=>{let c3='',c4='',ac='';
     if(f==='aguarda'){c3=`<span class="${x.esp>7?'v19venc':''}">${x.esp} ${x.esp===1?'dia':'dias'}</span>`;ac=`${pode('a_vistDisp')?`<button class="btn sm" data-act="vDisp" data-e="${esc(x.e)}">Dispensar</button>`:''}${ag(x)}`}
     else if(f==='agend'){c3=`${dBR(x.ab.data)}${x.revis?'<small>revistoria</small>':''}`;c4=esc(r19Nome(x.ab));ac=`<button class="btn sm" data-act="agOpen" data-id="${x.ab.id}">Abrir atividade</button>`}
-    else if(f==='pend'){const v=x.ult.vistoria;c3=res(v)+`<small>${v.nPend} ${v.nPend===1?'pendência':'pendências'}</small>`;c4=`${dBR(v.prazo)}<small class="${x.dz<0?'v19venc':''}">${x.dz<0?`vencido há ${-x.dz} ${-x.dz===1?'dia':'dias'}`:x.dz===0?'vence hoje':`faltam ${x.dz} ${x.dz===1?'dia':'dias'}`}</small>`;ac=`<button class="btn sm" data-act="vPend" data-id="${x.ult.id}">Ver pendências</button>${ag(x,1)}`}
+    else if(f==='pend'){const v=x.ult.vistoria;c3=res(v)+`<small>${v.nPend} ${v.nPend===1?'pendência':'pendências'}</small>`;c4=vpPrz(v);ac=`<button class="btn sm" data-act="vPend" data-id="${x.ult.id}">Ver pendências</button>${vpBtns(x.ult)}${ag(x,1)}`}
     else if(f==='ok'){c3=res(x.ult.vistoria);c4=`${dBR(x.ult.data)}<small>${esc(x.ult.vistoria.por||tecN(x.ult.tec))}</small>`;ac=pdf(x.ult)}
     else{c3=`${esc(x.disp.por)}<small>${dtBR(x.disp.em)}</small>`;c4=esc(x.disp.motivo);ac=pode('a_vistDisp')?`<button class="btn sm" data-act="vDispDesf" data-e="${esc(x.e)}">Desfazer</button>`:''}
     return `<tr><td>${cli(x)}</td><td>${lan(x)}</td><td>${c3}</td><td>${c4}</td><td class="r"><div class="v19ac">${ac}</div></td></tr>`};
@@ -8455,9 +8454,9 @@ Object.assign(ACT,{vF:el=>{ui.vF=el.dataset.v;render()},
     const c=S.comp[e]=S.comp[e]||{};c.vistDisp={por:meNome(),em:Date.now(),motivo:m};save();closeModal();ui.vF='disp';render();toast('Vistoria dispensada.')},
   vDispDesf:el=>{if(!pode('a_vistDisp'))return semPerm();const c=S.comp[el.dataset.e];if(c){delete c.vistDisp;save()}ui.vF='aguarda';render();toast('Dispensa desfeita. O projeto voltou para Aguardando vistoria.')},
   vPend:el=>{const a=getAg(el.dataset.id);if(!a||!a.vistoria)return;const v=a.vistoria,G2={critica:['Crítica','bad'],corrigir:['Corrigir','warn'],obs:['Observação','']};
-    openModal(`<h3>Pendências da vistoria</h3><p class="muted">${tvNomeEtq(cliN(a.etiqueta)||'',a.etiqueta)} · ${esc(v.res)} em ${dBR(a.data)}${v.prazo?` · corrigir até ${dBR(v.prazo)}`:''}</p>
+    openModal(`<h3>Pendências da vistoria</h3><p class="muted">${tvNomeEtq(cliN(a.etiqueta)||'',a.etiqueta)} · ${esc(v.res)} em ${dBR(a.data)}${v.prazo?` · corrigir até ${dBR(v.prazo)}${v.prazoPor?' (prazo definido por '+esc(v.prazoPor)+')':''}`:' · <b>prazo a definir</b>'}</p>
      <div class="v19pl">${(v.pend||[]).map(x=>`<div class="v19p"><div><span class="chip ${(G2[x.g]||['',''])[1]}">${(G2[x.g]||[x.g||'—'])[0]}</span> <b>${esc(x.id)}</b> · ${esc(x.item)}</div>${x.txt?`<span>${esc(x.txt)}</span>`:''}</div>`).join('')||'<p class="muted">Sem pendências listadas.</p>'}</div>
-     <div class="actions"><button class="btn" data-act="close">Fechar</button>${a.rel&&a.rel.vist&&a.rel.vist.path?`<button class="btn" data-act="relVer" data-p="${esc(a.rel.vist.path)}">Abrir PDF</button>`:''}${pode('a_agendar')?`<button class="btn primary" data-act="vAgendar" data-e="${esc(a.etiqueta)}">Agendar revistoria</button>`:''}</div>`,'wide')}});
+     <div class="actions"><button class="btn" data-act="close">Fechar</button>${a.rel&&a.rel.vist&&a.rel.vist.path?`<button class="btn" data-act="relVer" data-p="${esc(a.rel.vist.path)}">Relatório da vistoria</button>`:''}${typeof vpBtns==='function'?vpBtns(a):''}${pode('a_agendar')?`<button class="btn primary" data-act="vAgendar" data-e="${esc(a.etiqueta)}">Agendar revistoria</button>`:''}</div>`,'wide')}});
 {const _a=ACT.vAgendar;ACT.vAgendar=el=>{closeModal();return _a(el)}}
 Object.assign(IN,{vQ:el=>{ui.vQ=el.value;clearTimeout(window._v19t);window._v19t=setTimeout(()=>{render();const i=$('vQ');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)}});
 
@@ -13446,7 +13445,7 @@ function gSalaLista(){const L=G.msgs[salaK()];
     const cont=!!(prev&&prev.autor===m.autor&&t-new Date(prev.em)<5*60000);prev=m;
     const hue=salaHue(m.autor),c=m.chamado?G.ch.find(x=>x.id===m.chamado):null;
     const foto=m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):'';
-    h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?salaRefC(c,m.chamado):''}${ui.salaEd===m.id?salaEdBox(m):chxMsgTxt(m)}${chxAnexo(m)}${foto}<small class="salahr">${m.editado_em?'<i class="salaedt">editada</i> ':''}${salaHora(m.em)}${eu&&salaPodeEd(m)&&ui.salaEd!==m.id?` <button type="button" class="salaedb" data-act="salaEd" data-id="${m.id}" aria-label="Editar a mensagem" title="Editar">${_sv('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',13)}</button>`:''}</small></div></div>`;return h}).join('')}
+    h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?salaRefC(c,m.chamado):''}${ui.salaEd===m.id?salaEdBox(m):chxMsgTxt(m)}${chxAnexo(m)}${foto}<small class="salahr">${m.editado_em?msgEdTag(m,'s')+' ':''}${salaHora(m.em)}${eu&&salaPodeEd(m)&&ui.salaEd!==m.id?` <button type="button" class="salaedb" data-act="salaEd" data-id="${m.id}" aria-label="Editar a mensagem" title="Editar">${_sv('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',13)}</button>`:''}</small></div></div>`;return h}).join('')}
 function viewSala(){const k=salaK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
   const ab=G.ch.filter(c=>GTD_ABERTOS.includes(c.status)).sort(gSalaOrd),cit=ui.salaCh&&G.ch.find(x=>x.id===ui.salaCh);
   const nEsc=ab.filter(c=>c.prioridade==='Escalonado').length,nAlta=ab.filter(c=>c.prioridade==='Alta').length,nND=ab.filter(c=>c.status==='aberto'&&!c.tec).length;
@@ -15624,6 +15623,196 @@ function vtaHtml(l){const d=vtaDe(l);if(!d)return '';
    ${P.length?`<ul class="vtal">${P.slice(0,10).map(q=>`<li><b>${esc(q.item||'')}</b>${q.g?` <span class="chip ${q.g==='critica'?'bad':q.g==='obs'?'':'warn'}">${esc(vtaGrav(q.g))}</span>`:''}${q.txt?` <span class="muted">${esc(q.txt)}</span>`:''}</li>`).join('')}${P.length>10?`<li class="muted">e mais ${P.length-10}…</li>`:''}</ul>`:''}
    ${bl?`<div class="result warn" style="margin:8px 0 0"><b>Lançamento com pendência na vistoria.</b> Confira as pendências antes de decidir: dá para aprovar mesmo assim, devolver para ajuste ou reprovar.</div>`:''}</section>`}
 document.head.insertAdjacentHTML('beforeend','<style>.vta{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}.vta.bl{border-color:var(--bad)}.vta .lsub{margin:0 0 6px}.vtah{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:14px}.vtal{margin:8px 0 0;padding-left:18px;font-size:14px}.vtal li{margin:3px 0}</style>');
+
+/* ---------- 08/11: chats · editar mensagem e várias fotos de uma vez ----------
+   Conversa da atividade (Implantação), do chamado (GTD, Transmissão e Rede Externa) e Chat com NOC (sala):
+   só quem escreveu edita o texto (lápis ao lado da hora). A mensagem fica com "editada"; tocar em "editada"
+   mostra o texto original e as versões anteriores (o banco guarda em edicoes, ajuste 55). Fotos e mensagens
+   automáticas não se editam. Galeria aceita várias fotos (até 10): aparece a prévia e vão todas juntas. */
+const MSG_AJ55='Rode o script agenda_ajuste_55_editar_mensagens.sql no Supabase para editar mensagens.';
+const msgPodeEd=m=>!!(m&&ME&&m.autor===ME.id&&m.texto&&!(m.anexo&&m.anexo.auto));
+const msgEdBtn=m=>` <button type="button" class="salaedb msgedb" data-act="msgEd" data-id="${m.id}" aria-label="Editar a mensagem" title="Editar">${_sv('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',13)}</button>`;
+const msgEdTag=(m,t)=>` <button type="button" class="msgedt" data-act="msgHist" data-id="${m.id}" data-t="${t}" title="Ver o texto original">editada</button>`;
+const msgEdBox=m=>`<div class="salaedw"><textarea class="inp" id="msgEdTxt" rows="2" aria-label="Editar a mensagem">${esc(m.texto||'')}</textarea><span><button type="button" class="btn sm" data-act="msgEdX">Cancelar</button><button type="button" class="btn sm primary" data-act="msgEdOk" data-id="${m.id}">Salvar</button></span></div>`;
+const msgDe=id=>{for(const k in G.msgs){const m=(G.msgs[k]||[]).find(x=>x.id===id);if(m)return m}return null};
+Object.assign(ACT,{
+  msgEd:el=>{ui.msgEd=el.dataset.id;gChatPintar();const t=$('msgEdTxt');if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length)}},
+  msgEdX:()=>{ui.msgEd=null;gChatPintar()},
+  msgEdOk:async el=>{const id=el.dataset.id,m=msgDe(id),t=(($('msgEdTxt')||{}).value||'').trim();if(!m)return;
+    if(!t&&!m.foto&&!m.anexo){toast('A mensagem não pode ficar vazia.','bad');return}
+    if(t===(m.texto||'')){ui.msgEd=null;gChatPintar();return}
+    el.disabled=true;const antes=m.texto;const r=await sb.from('ag_mensagens').update({texto:t||null}).eq('id',id).select().maybeSingle();el.disabled=false;
+    if(r.error||!r.data){toast(r.error&&/editado_em|edicoes|policy|permission|row-level/i.test(r.error.message||'')?MSG_AJ55:'Não foi possível editar: '+((r.error&&r.error.message)||'sem permissão'),'bad');return}
+    Object.assign(m,r.data);if(!m.editado_em)m.editado_em=new Date().toISOString();if(!Array.isArray(m.edicoes)||!m.edicoes.length)m.edicoes=[{texto:antes,em:new Date().toISOString()}];
+    ui.msgEd=null;gChatPintar();toast('Mensagem editada.')},
+  msgHist:el=>{const m=msgDe(el.dataset.id);if(!m)return;const E=(Array.isArray(m.edicoes)?m.edicoes:[]).slice();
+    const q=x=>new Date(x).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    openModal(`<h3>Mensagem editada</h3><p class="muted">${esc(m.autor_nome||'')} · enviada em ${q(m.em)}${m.editado_em?' · editada em '+q(m.editado_em):''}</p>
+     <div class="msgh"><div class="msghi atual"><small>Texto atual</small><p>${chxTxt(m.texto||'')}</p></div>
+     ${E.length?E.slice().reverse().map((x,i)=>`<div class="msghi"><small>${i===E.length-1?'Texto original':'Versão anterior'} · ${x.em?'trocado em '+q(x.em):''}</small><p>${chxTxt(x.texto||'—')}</p></div>`).join(''):'<p class="muted">O texto original desta mensagem não foi guardado (editada antes do ajuste 55).</p>'}</div>
+     <div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)}});
+/* sala: guarda a versão anterior também quando o banco ainda não devolve edicoes */
+{const _o=ACT.salaEdOk;ACT.salaEdOk=async el=>{const m=msgDe(el.dataset.id),antes=m&&m.texto;const r=await _o(el);if(m&&m.texto!==antes&&m.editado_em&&(!Array.isArray(m.edicoes)||!m.edicoes.length))m.edicoes=[{texto:antes,em:new Date().toISOString()}];return r}}
+document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='msgEdTxt'){if(e.key==='Escape'){e.preventDefault();ACT.msgEdX()}else if(e.key==='Enter'&&!e.shiftKey&&matchMedia('(pointer:fine)').matches){e.preventDefault();const b=document.querySelector('[data-act="msgEdOk"]');if(b)ACT.msgEdOk(b)}}});
+/* galeria com várias fotos: prévia e envio de todas */
+{const _f=CH.chatFoto;CH.chatFoto=async(el,e)=>{const fs=[...((el&&el.files)||[])];if(fs.length>1){chatColarPrevia(fs);try{el.value=''}catch(x){}return}return _f(el,e)}}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);document.querySelectorAll('input[type=file][data-ch="chatFoto"]:not([capture]):not([multiple])').forEach(i=>i.multiple=true);return o}}
+document.head.insertAdjacentHTML('beforeend','<style>.msgedt{border:0;background:none;padding:0 2px;font:italic 600 12px Barlow,sans-serif;color:inherit;opacity:.75;text-decoration:underline dotted;cursor:pointer}.salaedt{font-style:normal}.msgh{display:flex;flex-direction:column;gap:8px;margin:10px 0}.msghi{border:1px solid var(--line);border-radius:10px;padding:8px 10px}.msghi.atual{border-color:var(--brand)}.msghi small{color:var(--muted);font-size:12.5px}.msghi p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}</style>');
+
+
+/* ---------- 08/11: ações do técnico (Implantação) ----------
+   1. Barrinha de carregamento: todo botão de "segure" mostra a barra enchendo (mais visível em "Não foi possível" e
+      "Encerrar o dia") e, depois de confirmar, uma barrinha andando até terminar de gravar. A confirmação da janela
+      de "Não foi possível concluir/realizar" e de "Encerrar o dia" também passa a ser "segure" (2 s), igual a concluir.
+   2. Encerrar o dia só aparece em atividade agendada para mais de um dia e nunca no último dia: no último dia (ou
+      em atividade de um dia) aparece "Não foi possível concluir". Sai a pergunta "Você termina hoje?" das 15h. */
+const HOLD_CONF=['naoOk','diaOk'];
+{const _o=openModal;openModal=function(){const r=_o.apply(this,arguments);try{document.querySelectorAll('#modal [data-act]').forEach(b=>{if(!HOLD_CONF.includes(b.dataset.act)||b.dataset.hold)return;b.dataset.hold='2000';b.classList.add('holdconf');
+  const t=b.textContent.trim();b.textContent='Segure: '+t.charAt(0).toLowerCase()+t.slice(1)})}catch(e){}return r}}
+document.head.insertAdjacentHTML('beforeend',`<style>
+[data-hold]{overflow:hidden;background-size:var(--p,0%) 100%!important;background-repeat:no-repeat!important}
+[data-hold]::after{content:'';position:absolute;left:0;bottom:0;height:5px;width:var(--p,0%);background:currentColor;opacity:.6;border-radius:0 3px 3px 0;pointer-events:none}
+.btn.ghost[data-hold]{background-image:linear-gradient(rgba(214,69,58,.30),rgba(214,69,58,.30))}
+.bigbtn.diab2[data-hold]{background-image:linear-gradient(rgba(0,0,0,.16),rgba(0,0,0,.16))}
+[data-hold].hbusy{pointer-events:none}
+[data-hold].hbusy::after{width:35%;animation:hbusy 1.1s linear infinite}
+@keyframes hbusy{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
+.holdconf{min-height:46px}
+</style>`);
+
+
+/* ---------- 08/11: Vistoria de lançamento · prazo pela gestão e pedido de correção ----------
+   1. O vistoriador não define nem vê prazo: o relatório dele sai sem "prazo do prestador".
+   2. Vistorias de lançamento › Com pendência: vistoria com ressalvas ou reprovada entra mesmo sem prazo, como
+      "Prazo a definir". A gestão escolhe a data-limite (Definir prazo / Alterar); fica gravado quem definiu e quando.
+   3. Pedido de correção (PDF): pendências, prazo e dados do projeto, sem o nome nem a assinatura do vistoriador.
+      Assina quem baixa: nome, função, data e hora do download. Cada download fica registrado (vistoria.pedidos).
+   4. As fotos das pendências passam a ser guardadas no envio da vistoria (entram no pedido de correção). */
+const vpPode=()=>!!ME&&ui.perfil!=='clt'&&ui.perfil!=='terc'&&ui.perfil!=='func'&&(ui.perfil==='coord'||pode('vist'));
+const vpFunc=()=>({coord:'Coordenação',sup:'Supervisão',enc:'Encarregado',noc:'NOC',del:'Delivery'})[ui.perfil]||'Gestão';
+const vpDz=v=>v&&v.prazo?Math.round((new Date(v.prazo+'T12:00:00')-new Date(hoje()+'T12:00:00'))/864e5):null;
+const vpPrz=v=>{if(!v.prazo)return `<b class="vpad">Prazo a definir</b><small class="muted">a gestão define a data</small>`;const d=vpDz(v);
+  return `${dBR(v.prazo)}<small class="${d<0?'v19venc':''}">${d<0?`vencido há ${-d} ${-d===1?'dia':'dias'}`:d===0?'vence hoje':`faltam ${d} ${d===1?'dia':'dias'}`}</small>${v.prazoPor?`<small class="muted">definido por ${esc(v.prazoPor)}</small>`:''}`};
+const vpBtns=a=>vpPode()?`<button class="btn sm${a.vistoria.prazo?'':' primary'}" data-act="vpPrazo" data-id="${a.id}">${a.vistoria.prazo?'Alterar prazo':'Definir prazo'}</button><button class="btn sm" data-act="vpPdf" data-id="${a.id}">Pedido de correção (PDF)</button>`:'';
+/* fotos das pendências: sobem junto com a vistoria */
+async function vtPendFotos(a,L){const out=[];for(const[i,x]of L.entries()){const o={id:x.e.id,item:x.n,g:x.d.g||'',txt:x.d.txt||''};
+  if(x.d.foto&&/^data:image/.test(x.d.foto)){try{const b=await (await fetch(x.d.foto)).blob(),path=`relatorios/${a.id}/vistoria/pendencias/${Date.now()}-${i+1}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)o.foto=path}catch(e){}}
+  out.push(o)}return out}
+Object.assign(ACT,{
+  vpPrazo:el=>{if(!vpPode())return semPerm();const a=getAg(el.dataset.id),v=a&&a.vistoria;if(!v)return;const hj=hoje(),cur=v.prazo||'',q=n=>`<button type="button" class="btn sm" data-act="vpQ" data-n="${n}">${n} dias</button>`;
+    openModal(`<h3>${cur?'Alterar o prazo de correção':'Definir o prazo de correção'}</h3><p class="muted">${tvNomeEtq(cliN(a.etiqueta)||'',a.etiqueta)} · vistoria de ${dBR(a.data)} · <b>${esc(v.res)}</b>, ${v.nPend} ${v.nPend===1?'pendência':'pendências'}.</p>
+     <label class="f" style="margin-top:10px"><span>Corrigir até *</span><input type="date" class="inp" id="vpData" min="${hj}" value="${esc(cur)}"></label>
+     <div class="tools" style="margin:0 0 6px">${q(5)}${q(10)}${q(15)}${q(30)}</div>
+     <p class="muted" style="font-size:13.5px">O prazo sai no Pedido de correção e na lista de vistorias com pendência. Fica gravado com seu nome.</p>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="vpPrazoOk" data-id="${a.id}">Salvar prazo</button></div>`)},
+  vpQ:el=>{const i=$('vpData');if(i)i.value=addD(hoje(),+el.dataset.n)},
+  vpPrazoOk:el=>{if(!vpPode())return semPerm();const a=getAg(el.dataset.id),v=a&&a.vistoria,d=(($('vpData')||{}).value||'');if(!v)return;if(!d){toast('Escolha a data-limite.','bad');return}if(d<hoje()){toast('A data-limite não pode ser no passado.','bad');return}
+    (v.prazoHist=v.prazoHist||[]).push({de:v.prazo||null,para:d,por:meNome(),em:Date.now()});v.prazo=d;v.dias=Math.max(0,Math.round((new Date(d+'T12:00:00')-new Date(hoje()+'T12:00:00'))/864e5));v.prazoPor=meNome();v.prazoEm=Date.now();
+    save();closeModal();render();toast(`Prazo de correção: até ${dBR(d)}.`)},
+  vpPdf:async el=>{if(!vpPode())return semPerm();const a=getAg(el.dataset.id),v=a&&a.vistoria;if(!v)return;
+    if(!v.prazo){toast('Defina o prazo de correção antes de baixar o pedido.','bad');return ACT.vpPrazo(el)}
+    toast('Gerando o pedido de correção…');try{const b=await vpPdfGera(a),nome=`pedido-correcao-${a.etiqueta}-${hoje()}.pdf`;
+      (v.pedidos=v.pedidos||[]).push({por:meNome(),funcao:vpFunc(),em:Date.now()});save();
+      (typeof baixaArq==='function'?baixaArq:rpBaixa)(b,nome)}catch(e){toast('Não foi possível gerar o PDF: '+((e&&e.message)||e),'bad')}}});
+async function vpFoto(p){try{const r=await sb.storage.from('agenda').createSignedUrl(p,300);if(r.error)return null;const b=await (await fetch(r.data.signedUrl)).blob();return await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=()=>ok(null);f.readAsDataURL(b)})}catch(e){return null}}
+async function vpPdfGera(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m=14,W=210,H=297,v=a.vistoria,p=pPor(a.etiqueta)||{},c=S.comp[a.etiqueta]||{},ln=typeof v19Lanc==='function'?v19Lanc(a.etiqueta):null,agora=new Date(),quem=meNome(),fun=vpFunc();
+  const VERDE=[140,191,63],LAB=[244,249,236],LINE=[212,221,216];let y=18;
+  doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(40);doc.text('Pedido de correção',m,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(110);doc.text('Lançamento de cabo · Net Turbo Telecom',m,y+5.5);doc.text(`${a.etiqueta} · emitido em ${agora.toLocaleDateString('pt-BR')}`,W-m,y,{align:'right'});
+  doc.setDrawColor(...VERDE);doc.setLineWidth(.8);doc.line(m,y+8.5,W-m,y+8.5);y+=13;
+  const lb=s=>({content:s,styles:{fontStyle:'bold',fillColor:LAB,textColor:[90,100,95]}});
+  doc.autoTable({startY:y,theme:'grid',styles:{fontSize:9,cellPadding:2.2,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},columnStyles:{0:{cellWidth:34},2:{cellWidth:34}},
+    body:[[lb('Cliente'),cliN(a.etiqueta)||p.cliente||'—',lb('Etiqueta / protocolo'),a.etiqueta+(p.protocolo?' · '+p.protocolo:'')],[lb('Cidade'),p.cidade||'—',lb('Endereço'),c.endereco||'—'],
+      [lb('Lançamento executado por'),ln?ln.quem:'—',lb('Data do lançamento'),ln&&ln.data?dBR(ln.data):'—'],[lb('Vistoria'),`${dBR(a.data)} · ${v.res}`,lb('Pendências'),String(v.nPend||(v.pend||[]).length)]]});
+  y=doc.lastAutoTable.finalY+6;
+  doc.setFillColor(255,243,220);doc.setDrawColor(230,190,110);doc.setLineWidth(.3);doc.roundedRect(m,y,W-2*m,16,2,2,'FD');
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(138,90,0);doc.text(`Corrigir até ${dBR(v.prazo)}`,m+4,y+7);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('Corrija os itens abaixo dentro do prazo e avise a Net Turbo. Depois da correção é feita a revistoria.',m+4,y+12.5,{maxWidth:W-2*m-8});y+=22;
+  const G={critica:'Crítica',corrigir:'Corrigir',obs:'Observação'},P=(v.pend||[]).filter(x=>x.g!=='obs').concat((v.pend||[]).filter(x=>x.g==='obs'));
+  doc.autoTable({startY:y,theme:'grid',head:[['#','Ponto','Item','Gravidade','O que corrigir']],headStyles:{fillColor:VERDE,textColor:[19,32,24],fontSize:9},styles:{fontSize:9,cellPadding:2.2,lineColor:LINE,lineWidth:.3,textColor:40,valign:'top'},margin:{left:m,right:m},
+    columnStyles:{0:{cellWidth:8},1:{cellWidth:18},2:{cellWidth:42},3:{cellWidth:24}},body:P.map((x,i)=>[String(i+1),x.id||'—',x.item||'—',G[x.g]||x.g||'—',x.txt||'—'])});
+  y=doc.lastAutoTable.finalY+6;
+  /* fotos das pendências (vistorias enviadas a partir de 08/11) */
+  const F=[];for(const[i,x]of P.entries())if(x.foto){const d=await vpFoto(x.foto);if(d)F.push({d,t:`${i+1}. ${x.id||''} · ${x.item||''}`})}
+  if(F.length){const fw=(W-2*m-6)/2,fh=fw*.72;if(y+12>H-40){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Fotos das pendências',m,y);y+=4;
+    F.forEach((f,i)=>{const col=i%2;if(col===0&&y+fh+10>H-40){doc.addPage();y=18}const x=m+col*(fw+6);try{const pr=doc.getImageProperties(f.d),q=Math.min(fw/pr.width,fh/pr.height);doc.addImage(f.d,'JPEG',x+(fw-pr.width*q)/2,y+(fh-pr.height*q)/2,pr.width*q,pr.height*q)}catch(e){}
+      doc.setDrawColor(...LINE);doc.rect(x,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90);doc.text(f.t,x,y+fh+4,{maxWidth:fw});if(col===1||i===F.length-1)y+=fh+9})}
+  /* assinatura de quem baixou */
+  if(y+38>H-14){doc.addPage();y=24}y=Math.max(y+8,H-62);
+  doc.setDrawColor(60);doc.setLineWidth(.3);doc.line(m+30,y+14,W-m-30,y+14);
+  doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text(quem,W/2,y+19,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90);doc.text(`${fun} · Net Turbo Telecom`,W/2,y+24,{align:'center'});
+  doc.text(`Documento emitido e baixado por ${quem} em ${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`,W/2,y+29,{align:'center'});
+  const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7.5);doc.setTextColor(150);doc.text(`Pedido de correção · ${a.etiqueta}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
+  return doc.output('blob')}
+/* lista "Com pendência": entra sem prazo, prazo a definir primeiro */
+{const _v=viewVist;viewVist=function(){const h=_v.apply(this,arguments);return h}}
+document.head.insertAdjacentHTML('beforeend','<style>.vpad{color:var(--warn,#8a5a00)}.v19ac{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}</style>');
+
+/* ---------- 08/11: Painel de KPIs da Rede Externa separado em Corretiva e Preventiva ----------
+   Corretiva: os chamados de rede externa (rompimento, massiva, rádio, companhia elétrica), sem a categoria Preventiva.
+   Preventiva: KPIs tirados da LPU, somando as rotas preventivas (Programadas › Preventiva, só apontamentos aprovados,
+   pela data do apontamento) e os chamados de categoria Preventiva (LPU enviada, pela data da LPU; reprovadas não entram).
+   Item da LPU → KPI:
+     SEV0083 Preventiva – percorrendo cabo  → km percorrido aéreo (rota aérea) ou subterrâneo (rota subterrânea;
+             no chamado, subterrâneo quando a LPU tem abertura de caixa SEV0022b)
+     SEV0022b Abertura/fechamento de tampa  → caixas subterrâneas trabalhadas
+     SEV0001–SEV0004 ancoragem/encabeçamento → postes aéreos equipados (na rota aérea: "Postes equipados" do apontamento,
+             que a LPU da preventiva não cobra)
+     SEV0084 Correção fiberloop/posição de CEO e SEV0037 Reabertura de CEO → caixas de emenda readequadas
+     SEV0005 Plaqueta de identificação → plaquetas instaladas */
+const RK_K=[['kmA','Km percorrido aéreo'],['kmS','Km percorrido subterrâneo'],['cxS','Caixas subterrâneas trabalhadas'],['post','Postes aéreos equipados'],['ceo','Caixas de emenda readequadas'],['plaq','Plaquetas instaladas']];
+const RK_C={kmA:'Km aéreo',kmS:'Km subterrâneo',cxS:'Caixas subt.',post:'Postes equipados',ceo:'Caixas de emenda',plaq:'Plaquetas'};
+const RK_POSTE=['SEV0001','SEV0002','SEV0003','SEV0004'],RK_CEO=['SEV0084','SEV0037'];
+const rk0=()=>({kmA:0,kmS:0,cxS:0,post:0,ceo:0,plaq:0});
+const rkSoma=(a,b)=>{RK_K.forEach(([k])=>a[k]+=b[k]||0);return a};
+const rkPrevCh=c=>!!c&&reDe(c)&&c.categoria==='Preventiva';
+/* itens da LPU → KPIs */
+function rkDeItens(itens,sub){const o=rk0(),q=c=>(itens||[]).filter(i=>i.cod===c).reduce((s,i)=>s+(+i.qtd||0),0),qs=L=>L.reduce((s,c)=>s+q(c),0);
+  const m=q('SEV0083');if(sub==null)sub=q('SEV0022b')>0;o[sub?'kmS':'kmA']=m/1000;o.cxS=q('SEV0022b');o.post=qs(RK_POSTE);o.ceo=qs(RK_CEO);o.plaq=q('SEV0005');return o}
+/* contribuição de um apontamento aprovado da rota preventiva (as mesmas regras de rpLpuSug) */
+function rkAp(x,a,mSub){const v=a.v||{},o=rk0();
+  if(x.seg==='sub'){o.kmS=mSub/1000;o.cxS=v.abriu==='sim'?1:0;return o}
+  o.kmA=rpN(v.metros)/1000;o.post=rpN(v.postes);o.ceo=rpN(v.sobra);o.plaq=rpN(v.plaq);return o}
+function rkLinhas(ini,fim){const L=[],den=d=>d&&d>=ini&&d<=fim;
+  if(typeof RP!=='undefined'&&RP.rows)RP.rows.filter(x=>x.tipo==='prev'&&x.status!=='canc').forEach(x=>{const A=rpAps(x).filter(a=>a.st==='ok');if(!A.length)return;
+    const mSub=x.seg==='sub'?rpMetragemCampo(x).m/A.length:0;
+    A.forEach(a=>{const d=String(a.data||'').slice(0,10);if(!den(d))return;L.push({o:'rota',x,d,tec:gTecN(a.tec||x.tec),cid:x.cidade||'',ref:x.cod,k:rkAp(x,a,mSub)})})});
+  G.ch.filter(rkPrevCh).forEach(c=>{G.lpus.filter(l=>l.chamado===c.id&&!['reprovada'].includes(l.status)).forEach(l=>{const d=String(l.data||'').slice(0,10)||gDiaDe(c);if(!den(d))return;
+    L.push({o:'ch',c,d,tec:gTecN(l.tec||c.tec),cid:c.cidade||'',ref:c.pom||c.etiqueta||'',k:rkDeItens(l.itens)})})});
+  return L}
+const rkKm=v=>(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:v&&v<10?2:1,maximumFractionDigits:2})+' km';
+const rkF=(k,v)=>k==='kmA'||k==='kmS'?rkKm(v):rpFmt(v);
+function rePrevPainel(){const ini=ui.gpIni||hoje().slice(0,8)+'01',fim=ui.gpFim||hoje();ui.gpIni=ini;ui.gpFim=fim;
+  if(typeof RP!=='undefined'&&!RP.ok&&!RP.bus)rpCarregar().then(()=>{if(ui.tab==='gPainel')render()}).catch(()=>{});
+  const L=rkLinhas(ini,fim),T=L.reduce((s,x)=>rkSoma(s,x.k),rk0()),grp=f=>{const M=new Map();L.forEach(x=>{const k=f(x)||'—';M.set(k,rkSoma(M.get(k)||rk0(),x.k))});return[...M].sort((a,b)=>(b[1].kmA+b[1].kmS)-(a[1].kmA+a[1].kmS))};
+  const rotas=new Set(L.filter(x=>x.o==='rota').map(x=>x.x.id)).size,chs=new Set(L.filter(x=>x.o==='ch').map(x=>x.c.id)).size;
+  const tab=(tit,G2,col)=>`<section class="panel"><div class="secth"><h3>${tit}</h3></div><div class="tablewrap"><table class="rktab"><thead><tr><th>${col}</th>${RK_K.map(([k,n])=>`<th class="r" title="${n}">${RK_C[k]}</th>`).join('')}</tr></thead><tbody>${G2.map(([k,v])=>`<tr><td>${esc(k)}</td>${RK_K.map(([kk])=>`<td class="r">${v[kk]?rkF(kk,v[kk]):'<span class="muted">—</span>'}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="7" class="muted">Nada no período.</td></tr>`}</tbody></table></div></section>`;
+  const orig=[['Rotas preventivas (Programadas)',L.filter(x=>x.o==='rota').reduce((s,x)=>rkSoma(s,x.k),rk0())],['Chamados de preventiva',L.filter(x=>x.o==='ch').reduce((s,x)=>rkSoma(s,x.k),rk0())]];
+  return `<div class="toolbar"><div><h2>Painel de KPIs · Rede Externa · Preventiva</h2><p class="muted">Tirado da LPU: rotas preventivas (só apontamentos aprovados, pela data do apontamento) e chamados de preventiva (LPU enviada, pela data da LPU). A corretiva fica em Painel de KPIs › Corretiva.</p></div>
+    <div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${fim}"></label><button class="btn" data-act="rkXlsx" title="Indicadores, por origem, por técnico, por cidade e o detalhamento de cada rota e chamado">Baixar planilha</button></div></div>
+   ${typeof RP!=='undefined'&&RP.bus&&!RP.ok?'<p class="muted">Carregando as rotas preventivas…</p>':''}
+   <div class="kpis rpk6 rkk">${RK_K.map(([k,n])=>kp(rkF(k,T[k]),n)).join('')}</div>
+   <p class="muted rkn">${rotas} ${rotas===1?'rota':'rotas'} e ${chs} ${chs===1?'chamado':'chamados'} de preventiva no período.</p>
+   ${tab('Por origem',orig,'Origem')}${tab('Por equipe',grp(x=>x.tec),'Técnico')}${tab('Por cidade',grp(x=>x.cid),'Cidade')}`}
+/* seções do Painel de KPIs da Rede Externa */
+{const _v=viewGPainel;viewGPainel=function(){if(!reAt()||G.erro)return _v.apply(this,arguments);
+  const sec=gSecsOk().some(x=>x[0]===ui.gSec)?ui.gSec:'geral';ui.gSec=sec;if(sec==='prev')return rePrevPainel();
+  if(sec!=='geral'&&sec!=='tempos')return _v.apply(this,arguments);
+  const all=G.ch,F=all.filter(c=>!rkPrevCh(c));G.ch=F;let h;try{h=_v.apply(this,arguments)}finally{if(G.ch===F)G.ch=all}
+  if(sec==='geral')h=h.replace(/(<h2>Painel de KPIs[^<]*?)(<\/h2>)(<p class="muted">)?/,(m,a,b,p)=>a+' · Corretiva'+b+(p||'<p class="muted">')+'Chamados de rompimento, massiva, rádio e companhia elétrica. A preventiva fica em Painel de KPIs › Preventiva. '+(p?'':'</p>'));
+  return h}}
+{const st=document.createElement('style');st.textContent=`.rkk .kpi b{font-size:22px}.rkn{margin:-4px 0 14px}.rktab th.r,.rktab td.r{text-align:right;white-space:nowrap}.rktab td:first-child{min-width:170px}`;document.head.appendChild(st)}
+
+/* planilha da preventiva */
+Object.assign(ACT,{rkXlsx:()=>{const ini=ui.gpIni||hoje().slice(0,8)+'01',fim=ui.gpFim||hoje(),L=rkLinhas(ini,fim).sort((a,b)=>a.d.localeCompare(b.d));
+  const num=(k,v)=>k==='kmA'||k==='kmS'?Math.round((+v||0)*1000)/1000:Math.round((+v||0)*10)/10,cols=v=>Object.fromEntries(RK_K.map(([k,n])=>[n,num(k,v[k])]));
+  const T=L.reduce((s,x)=>rkSoma(s,x.k),rk0()),grp=(f,col)=>{const M=new Map();L.forEach(x=>{const k=f(x)||'—';M.set(k,rkSoma(M.get(k)||rk0(),x.k))});return[...M].sort((a,b)=>(b[1].kmA+b[1].kmS)-(a[1].kmA+a[1].kmS)).map(([k,v])=>Object.assign({[col]:k},cols(v)))};
+  const det=L.map(x=>Object.assign({Data:dBR(x.d),Origem:x.o==='rota'?'Rota preventiva':'Chamado de preventiva',Referência:x.ref,Tipo:x.o==='rota'?(x.x.seg==='sub'?'Subterrânea':'Aérea'):'Chamado',Cidade:x.cid,Técnico:x.tec},cols(x.k)));
+  xlsxBaixar(`kpis_preventiva_rede_externa_${ini}_a_${fim}`,[['Indicadores',RK_K.map(([k,n])=>({Indicador:n,Valor:num(k,T[k]),Unidade:k==='kmA'||k==='kmS'?'km':'unidade'}))],
+    ['Por origem',grp(x=>x.o==='rota'?'Rotas preventivas (Programadas)':'Chamados de preventiva','Origem')],['Por técnico',grp(x=>x.tec,'Técnico')],['Por cidade',grp(x=>x.cid,'Cidade')],['Detalhamento',det],
+    ['Filtros',xFiltros({'Tela':'Painel de KPIs › Rede Externa › Preventiva','Período':dBR(ini)+' a '+dBR(fim),'Regra':'Tirado da LPU: rotas preventivas (apontamentos aprovados, pela data do apontamento) e chamados de preventiva (LPU enviada e não reprovada, pela data da LPU)','Itens da LPU':'Km aéreo/subterrâneo: SEV0083 · Caixas subterrâneas: SEV0022b · Postes: SEV0001 a SEV0004 (rota aérea: postes equipados do apontamento) · Caixas de emenda: SEV0084 e SEV0037 · Plaquetas: SEV0005','Linhas no detalhamento':det.length})]],'Planilha da preventiva baixada.')}});
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
