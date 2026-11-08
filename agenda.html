@@ -2757,7 +2757,7 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span>${['supply','visu'].includes(ui.perfil)?'':'<button class="wic sino" data-act="avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer'],GRP={gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando').length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -3493,7 +3493,7 @@ function fotoView(a){const D=ui.rf,I=itensFoto(a),st=fotoStatus(a),fasesG=[...ne
     if(i.tipo==='medida')return `<section class="rfi"><div class="rfh"><b>${i.nome}</b><span class="chip">Se houve lançamento</span></div><div class="tgrid"><label class="f" style="margin:0"><span>Metragem no início</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-ch="rfRe" data-k="${i.lf}:lote_ini:m" value="${esc(D.campos[i.lf+':lote_ini:m']||'')}" placeholder="Ex.: 1000"></label><label class="f" style="margin:0"><span>Metragem no fim</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-ch="rfRe" data-k="${i.lf}:lote_fim:m" value="${esc(D.campos[i.lf+':lote_fim:m']||'')}" placeholder="Ex.: 1180"></label></div><div class="rfmet" id="rfMetros-${i.lf}" style="margin:0">${metrosHtml(i.lf)}</div></section>`;
     const fs=D.fotos[i.k]||[],n=fs.length,opc=i.tipo==='opcional',multi=i.tipo!=='unica',ok=ok0,pode=!(opc&&D.nao)&&(multi||n===0);
     return `<section class="rfi ${ok?'ok':''}"><div class="rfh"><b>${i.nome}</b><span class="chip ${ok?'ok':opc?'':'warn'}">${ok?'Feito':opc?'Se houver':'Obrigatória'}</span></div>
-     ${i.dica?`<small class="muted">${i.dica}</small>`:''}${n?`<div class="rfth">${fs.map((u,x)=>`<div class="rft"><img src="${u}" alt="Foto ${x+1} de ${esc(i.nome)}"><button class="rfx" data-act="rfDel" data-k="${i.k}" data-i="${x}" aria-label="Remover foto ${x+1}">✕</button></div>`).join('')}</div>`:''}
+     ${i.dica?`<small class="muted">${i.dica}</small>`:''}${n?`<div class="rfth">${fs.map((u,x)=>`<div class="rft"><img src="${u}" alt="Foto ${x+1} de ${esc(i.nome)}"><button class="rfx" data-act="rfDel" data-k="${i.k}" data-i="${x}" aria-label="Remover foto ${x+1}">✕</button>${legInp(`data-in="rfCampo" data-k="${i.k}:${x}:leg"`,D.campos[i.k+':'+x+':leg'])}</div>`).join('')}</div>`:''}
      ${/:reserva$/.test(i.k)&&n?rsvCampos(i,fs):''}${i.campo==='lote'?`<div class="tgrid"><label class="f" style="margin:0"><span>Lote do cabo</span><input class="inp" data-in="rfCampo" data-ch="rfRe" data-k="${i.k}:lote" value="${esc(D.campos[i.k+':lote']||'')}" placeholder="Ex.: 2405-118"></label><label class="f" style="margin:0"><span>Metragem (m)</span><input class="inp" type="number" inputmode="numeric" data-in="rfCampo" data-ch="rfRe" data-k="${i.k}:m" value="${esc(D.campos[i.k+':m']||'')}" placeholder="Ex.: 1250"></label></div>`:''}
      ${i.campo==='sinal'?(()=>{const v=String(D.campos[i.k+':dbm']||''),pos=v?!v.startsWith('-'):!!(D.pos&&D.pos[i.k]),cls='dbmv-'+i.k.replace(':','-');return `<div class="f" style="margin:0"><span>Nível de sinal (dBm)</span><div class="dbm"><button class="dbms ${pos?'':'neg'}" data-act="rfSinal" data-k="${i.k}" aria-label="Sinal ${pos?'positivo':'negativo'}. Tocar para trocar">${pos?'+':'−'}</button><input class="inp" type="text" inputmode="decimal" data-in="rfDbm" data-ch="rfRe" data-k="${i.k}" value="${esc(v.replace(/^[-+]/,'').replace('.',','))}" placeholder="Ex.: 18,40" aria-label="Valor do nível de sinal em dBm"><span class="muted">dBm</span></div><small class="muted">Toque em ${pos?'+':'−'} para trocar o sinal. Valor registrado: <b class="${cls}">${v?esc(v.replace('.',','))+' dBm':'—'}</b></small></div>`})():''}
      ${opc&&!n?`<label class="chk" style="margin:0"><input type="checkbox" data-act="rfNao" ${D.nao?'checked':''}> Não houve reserva técnica</label>`:''}
@@ -3513,7 +3513,7 @@ function pdfFotos(a){const{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'p',un
   if(D.nao&&I.some(i=>i.tipo==='opcional'))dados.push(['Reservas técnicas','Não houve reserva técnica']);dados.push(...lmPdfLinhas(a,D,I));
   if(dados.length){doc.autoTable({startY:y,theme:'grid',head:[['Medição','Valor']],body:dados,headStyles:{fillColor:[140,191,63],fontSize:8.5},styles:{fontSize:8.5,cellPadding:2},margin:{left:m,right:m}});y=doc.lastAutoTable.finalY+6}
   const fw=(W-2*m-6)/2,fh=fw*0.75;let col=0;
-  I.forEach(i=>{(D.fotos[i.k]||[]).forEach((u,x)=>{if(y+fh+10>H-12){doc.addPage();y=16;col=0}const xx=m+col*(fw+6);try{const pr=doc.getImageProperties(u),r=Math.min(fw/pr.width,fh/pr.height),w=pr.width*r,h=pr.height*r;doc.addImage(u,'JPEG',xx+(fw-w)/2,y+(fh-h)/2,w,h)}catch(e){}doc.setDrawColor(212,221,216);doc.setLineWidth(.3);doc.rect(xx,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`${i.f==='parc'?'':faseN(i.f)+': '}${i.nome}${(D.fotos[i.k]||[]).length>1?' ('+(x+1)+')':''}`,xx,y+fh+4,{maxWidth:fw});col++;if(col===2){col=0;y+=fh+10}})});
+  I.forEach(i=>{(D.fotos[i.k]||[]).forEach((u,x)=>{if(y+fh+10>H-12){doc.addPage();y=16;col=0}const xx=m+col*(fw+6);try{const pr=doc.getImageProperties(u),r=Math.min(fw/pr.width,fh/pr.height),w=pr.width*r,h=pr.height*r;doc.addImage(u,'JPEG',xx+(fw-w)/2,y+(fh-h)/2,w,h)}catch(e){}doc.setDrawColor(212,221,216);doc.setLineWidth(.3);doc.rect(xx,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);const lg=String(D.campos[i.k+':'+x+':leg']||'').trim();doc.text(`${i.f==='parc'?'':faseN(i.f)+': '}${i.nome}${(D.fotos[i.k]||[]).length>1?' ('+(x+1)+')':''}${lg?' · '+lg:''}`,xx,y+fh+4,{maxWidth:fw});col++;if(col===2){col=0;y+=fh+(lg?13:10)}})});
   const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, ${a.parcial?'relatório da não conclusão':'relatório fotográfico'} ${a.etiqueta}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
   return doc.output('blob')}
 function detalhe(a){
@@ -4945,7 +4945,7 @@ function viewGAgenda(){if(G.erro)return `<h2>Agenda · GTD Manutenção</h2>${gE
 /* ---------- PAINEL DE KPIs DO GTD ---------- */
 function gBarras(L,tot){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([n,q,ex])=>`<div class="gbar"><span>${esc(n)}</span><div><i style="width:${Math.round(q/mx*100)}%"></i></div><b>${q}</b>${ex!==undefined?`<small>${ex}</small>`:''}</div>`).join('')||'<p class="muted">Sem dados no período.</p>'}
 const GSEC=[['geral','Visão geral'],['tempos','Tempos de atendimento'],['fin','Financeiro']],GFSUB=[['budget','Budget e consumo','gf_budget'],['prest','Totais por prestador','gf_prest'],['det','Detalhamento das LPUs','gf_det'],['aprov','Aprovação de LPU','gAprov']];
-const gSubsOk=()=>GFSUB.filter(x=>pode(x[2])),gSecsOk=()=>{const L=GSEC.filter(([k])=>k==='geral'||(k==='tempos'&&pode('g_tempos'))||k==='fin'&&(pode('g_fin')&&gSubsOk().length));if(typeof reAt==='function'&&reAt()){L[0]=['geral','Corretiva'];L.splice(1,0,['prev','Preventiva'])}return L};
+const gSubsOk=()=>GFSUB.filter(x=>pode(x[2])&&!(x[0]!=='budget'&&typeof reLadoP==='function'&&reLadoP())),gSecsOk=()=>{const L=GSEC.filter(([k])=>k==='geral'||(k==='tempos'&&pode('g_tempos'))||k==='fin'&&(pode('g_fin')&&gSubsOk().length));if(typeof reAt==='function'&&reAt()){if(typeof reLadoP==='function'&&reLadoP())return [['prev','KPIs da preventiva']].concat(L.some(x=>x[0]==='fin')?[['fin','Budget de preventiva']]:[]);L[0]=['geral','Corretiva']}return L};
 const gNAprov=()=>pode('a_gAprovar')?G.lpus.filter(l=>l.status==='aguardando').length:0;
 /* item "Painel de KPIs" do menu do GTD, com Visão geral e Financeiro (Budget, Detalhamento, Aprovação), como na Implantação */
 function gNavPainel(){const open=ui.tab==='gPainel'&&!ui.gpFech,n=gNAprov(),bAp=n?`<span class="nbadge">${n}</span>`:'',ch=o=>`<span class="nch">${o?ICN.up:ICN.dn}</span>`;
@@ -5319,7 +5319,7 @@ Object.assign(ACT,{
       const fotos=[];for(const f of F){const d=await gImgData(f);if(d)fotos.push({data:d,leg:f.leg||''})}
       const blob=await gRfoPdf(c0,fotos),path=`chat/g/${id}/rfo/relatorio-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
     catch(e){toast('O RFO será gravado, mas o PDF do relatório não foi gerado: '+(e.message||e),'bad')}
-    const nv=await gAcao(id,c=>{if(c.status!=='rfo'){toast('O RFO já foi gerado.','bad');return false}c.desfecho=R.desfecho;c.encEquipe=R.desfecho==='Encaminhado'?String(R.encEquipe).trim():'';const{fotos,notaAdm,...rr}=R;c.rfo=rr;if(notaAdm&&String(notaAdm).trim())c.notaAdm={texto:String(notaAdm).trim(),em:Date.now(),por:ME?ME.nome:''};c.rfoFotos=F.map(f=>({path:f.path,leg:f.leg||''}));if(pdf)c.rfoPdf=pdf;c.rfoTxt=gRfoTexto(c);c.status='lpu';c.ts.rfo=Date.now();gHist(c,'RFO gerado ('+R.desfecho+')'+(F.length?', '+F.length+' foto(s)':''))},ui.perfil==='func'?'RFO gerado. O administrador da sua empresa foi avisado.':'RFO gerado. Agora preencha a LPU.');
+    const nv=await gAcao(id,c=>{if(c.status!=='rfo'){toast('O RFO já foi gerado.','bad');return false}c.desfecho=R.desfecho;c.encEquipe=R.desfecho==='Encaminhado'?String(R.encEquipe).trim():'';const{fotos,notaAdm,...rr}=R;c.rfo=rr;if(notaAdm&&String(notaAdm).trim())c.notaAdm={texto:String(notaAdm).trim(),em:Date.now(),por:ME?ME.nome:''};c.rfoFotos=F.map(f=>({path:f.path,leg:f.leg||'',tipo:f.tipo||''}));if(pdf)c.rfoPdf=pdf;c.rfoTxt=gRfoTexto(c);c.status='lpu';c.ts.rfo=Date.now();gHist(c,'RFO gerado ('+R.desfecho+')'+(F.length?', '+F.length+' foto(s)':''))},ui.perfil==='func'?'RFO gerado. O administrador da sua empresa foi avisado.':'RFO gerado. Agora preencha a LPU.');
     el.disabled=false;if(nv){delete ui.gRfo[id];IDB.del('gr:'+id).catch(()=>{});if(ui.perfil!=='func')ACT.gLpuAbrir({dataset:{id}})}},
   gRfoFotoRem:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R||!R.fotos)return;R.fotos.splice(+el.dataset.k,1);gRfoSalvar(el.dataset.id);const y=window.scrollY;render();window.scrollTo(0,y)},
   gAceitar:async el=>{await gAcao(el.dataset.id,c=>{if(c.status!=='aberto'||c.tec!==ME.id&&ui.perfil!=='coord'){toast('Este chamado não está mais com você.','bad');return false}c.aceite={tec:c.tec,em:Date.now(),por:meNome()};gHist(c,'Aceito pelo técnico')},'Chamado aceito. Informe a previsão de chegada ao sair.');window.scrollTo(0,0)},
@@ -11129,7 +11129,7 @@ function reBlocos(c,R){const B=[],res=reRes(R),imp=R.desfecho==='Improdutivo';
 const reCam=(c,tipo,lab)=>`<label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} ${lab||'Câmera'}<input type="file" accept="image/*" capture="environment" data-ch="gRfoFoto" data-id="${c.id}" data-cam="1" data-tipo="${tipo}" hidden></label>`;
 const reGal=(c,tipo)=>`<label class="btn sm chatfoto">${_sv('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',16)} Galeria<input type="file" accept="image/*" multiple data-ch="gRfoFoto" data-id="${c.id}" data-tipo="${tipo}" hidden></label>`;
 function reFotosTipo(c,R,tipo,tit,req){const L=(R.fotos||[]).map((f,k)=>[f,k]).filter(([f])=>f.tipo===tipo);
-  return `<div class="r2f"><span class="r2l">${tit}${req?' <em>*</em>':''}</span>${L.length?`<div class="rfog">${L.map(([f,k])=>`<figure><img src="${esc(f.data||G.fotos[f.path]||'')}" alt="${esc(tit)}">${typeof ffTag==='function'?ffTag(f):''}<button class="icon rfox" data-act="gRfoFotoRem" data-id="${c.id}" data-k="${k}" aria-label="Remover foto">✕</button>${f.path?'':'<small class="muted">enviando…</small>'}</figure>`).join('')}</div>`:''}<span class="r2cg">${reCam(c,tipo)}${reGal(c,tipo)}</span></div>`}
+  return `<div class="r2f"><span class="r2l">${tit}${req?' <em>*</em>':''}</span>${L.length?`<div class="rfog">${L.map(([f,k])=>`<figure><img src="${esc(f.data||G.fotos[f.path]||'')}" alt="${esc(tit)}">${typeof ffTag==='function'?ffTag(f):''}<button class="icon rfox" data-act="gRfoFotoRem" data-id="${c.id}" data-k="${k}" aria-label="Remover foto">✕</button>${f.path?'':'<small class="muted">enviando…</small>'}${legInp(`data-in="gRfoLeg" data-id="${c.id}" data-k="${k}"`,f.leg)}</figure>`).join('')}</div>`:''}<span class="r2cg">${reCam(c,tipo)}${reGal(c,tipo)}</span></div>`}
 function reGeoHtml(c,lat,lng,acc,i){const ok=reGeo(lat,lng),di=i==null?'':` data-i="${i}"`;
   return `<div class="regeo ${ok?'ok':''}">${ok?`<span><b>📍 ${(+lat).toFixed(6)}, ${(+lng).toFixed(6)}</b>${acc?`<small>precisão de ${acc} m</small>`:''}</span><a class="btn sm" href="${reMapa(lat,lng)}" target="_blank" rel="noopener">Ver no mapa</a>`:'<span class="muted">Sem localização</span>'}
    <button type="button" class="btn sm ${ok?'':'primary'}" data-act="reGps" data-id="${c.id}"${di}>${ok?'Atualizar':'Usar minha localização'}</button>
@@ -11559,7 +11559,7 @@ function txR(c){ui.gRfo=ui.gRfo||{};let R=ui.gRfo[c.id];if(R&&R.v==='tx'&&R.tipo
 const txFt=(R,t)=>(R.fotos||[]).filter(f=>f.tipo===t);
 const txCam=(c,tipo)=>`<label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} Câmera<input type="file" accept="image/*" capture="environment" data-ch="gRfoFoto" data-id="${c.id}" data-cam="1" data-tipo="${tipo}" hidden></label>`;
 const txGal=(c,tipo)=>`<label class="btn sm chatfoto">${_sv('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',16)} Galeria<input type="file" accept="image/*" multiple data-ch="gRfoFoto" data-id="${c.id}" data-tipo="${tipo}" hidden></label>`;
-const txFotoL=(c,R,tipo)=>{const L=(R.fotos||[]).map((f,k)=>[f,k]).filter(([f])=>f.tipo===tipo);return L.length?`<div class="rfog">${L.map(([f,k])=>`<figure><img src="${esc(f.data||G.fotos[f.path]||'')}" alt="Foto"><button class="icon rfox" data-act="gRfoFotoRem" data-id="${c.id}" data-k="${k}" aria-label="Remover foto">✕</button>${f.path?'':'<small class="muted">enviando…</small>'}</figure>`).join('')}</div>`:''};
+const txFotoL=(c,R,tipo)=>{const L=(R.fotos||[]).map((f,k)=>[f,k]).filter(([f])=>f.tipo===tipo);return L.length?`<div class="rfog">${L.map(([f,k])=>`<figure><img src="${esc(f.data||G.fotos[f.path]||'')}" alt="Foto"><button class="icon rfox" data-act="gRfoFotoRem" data-id="${c.id}" data-k="${k}" aria-label="Remover foto">✕</button>${f.path?'':'<small class="muted">enviando…</small>'}${legInp(`data-in="gRfoLeg" data-id="${c.id}" data-k="${k}"`,f.leg)}</figure>`).join('')}</div>`:''};
 function txFotos(c,R,tipo,tit,req){return `<div class="r2f"><span class="r2l">${tit}${req?' <em>*</em>':''}</span>${txFotoL(c,R,tipo)}<span class="r2cg">${txCam(c,tipo)}${txGal(c,tipo)}</span></div>`}
 function txOutras(c,R){const L=(R.fotos||[]).map((f,k)=>[f,k]).filter(([f])=>!f.tipo);
   return `<div class="rfof"><div class="ah"><b>Outras fotos</b><span class="muted" style="font-size:13px">${L.length?L.length+(L.length>1?' fotos':' foto'):'opcional'}</span></div><div class="rfog">${L.map(([f,k])=>`<figure><img src="${esc(f.data||G.fotos[f.path]||'')}" alt="Foto ${k+1}"><button class="icon rfox" data-act="gRfoFotoRem" data-id="${c.id}" data-k="${k}" aria-label="Remover foto">✕</button><input class="inp" placeholder="Legenda" data-in="gRfoLeg" data-id="${c.id}" data-k="${k}" value="${esc(f.leg||'')}"></figure>`).join('')}</div><span class="r2cg">${txCam(c,'')}${txGal(c,'')}</span></div>`}
@@ -13503,10 +13503,13 @@ const PX_TX=['Transmissão',[['tx_painel','Painel de KPIs da Transmissão','t',[
   ['tx_agenda','Agenda da Transmissão','t'],['tx_novo','Criar chamado','t',[['tx_n_corr','NOC pode abrir: Manutenção corretiva','a'],['tx_n_prev','NOC pode abrir: Manutenção preventiva','a'],['tx_n_expT','NOC pode abrir: Expansão transceiver','a'],['tx_n_expI','NOC pode abrir: Expansão infraestrutura','a'],['tx_n_cross','NOC pode abrir: Cross Connect','a'],['tx_n_gmud','NOC pode abrir: GMUD','a'],['tx_n_outra','NOC pode abrir: Outras','a']]],['tx_hist','Histórico e POPs','t']]];
 /* 01/11: Rede Externa com o próprio grupo (re_*), igual ao GTD e à Transmissão, com as Programadas dentro dele */
 const PR_MAP={gPainel:'re_painel',g_tempos:'re_tempos',a_gExpurgo:'re_a_expurgo',gCham:'re_cham',a_gDespachar:'re_a_desp',a_gEditar:'re_a_edit',a_gValidar:'re_a_valid',gAgenda:'re_agenda',gNovo:'re_novo',gRel:'re_hist',gAprov:'re_aprov',a_gAprovar:'re_a_aprovar'};
-const PR_RE=['Rede Externa',[['re_painel','Painel de KPIs da Rede Externa','t',[['re_tempos','Tempos de atendimento da Rede Externa','t',[['re_a_expurgo','Expurgar tempos dos chamados','a']]]]],
+const PR_RE=['Rede Externa Corretiva',[['re_painel','Painel de KPIs da Rede Externa','t',[['re_tempos','Tempos de atendimento da Rede Externa','t',[['re_a_expurgo','Expurgar tempos dos chamados','a']]]]],
   ['re_cham','Chamados (Kanban)','t',[['re_a_desp','Despachar chamados para o técnico','a'],['re_a_edit','Agendar, editar e cancelar chamados','a'],['re_a_valid','Acesso NOC: validar chamados','a']]],
-  ['re_agenda','Agenda da Rede Externa','t'],['re_novo','Criar chamado','t'],['re_hist','Histórico da Rede Externa','t'],['re_aprov','Aprovação de LPU da Rede Externa','t',[['re_a_aprovar','Aprovar, reprovar e devolver LPUs da Rede Externa','a']]],
-  ['rp_plan','Programadas: planejar e despachar (preventiva, melhoria, retirada, companhia elétrica)','t',[['rp_aprov','Aprovar projetos de melhoria','a']]],['rp_rev','Programadas: revisão de campo (apontamentos e fotos)','t']]];
+  ['re_agenda','Agenda da Rede Externa','t'],['re_novo','Criar chamado','t'],['re_hist','Histórico da Rede Externa','t'],['re_aprov','Aprovação de LPU da Rede Externa','t',[['re_a_aprovar','Aprovar, reprovar e devolver LPUs da Rede Externa','a']]]]];
+/* 08/11 (fim): Rede Externa Preventiva com o próprio grupo de permissões (rp_*): o que vê e o que aprova */
+const PR_RP=['Rede Externa Preventiva',[['rp_painel','Painel de KPIs da preventiva (km, caixas, postes, plaquetas)','t',[['rp_fin','Budget de serviços preventivos (3.1.1.2.05.0101)','t',[['rp_a_budget','Definir o budget de preventiva','a']]]]],
+  ['rp_est','Esteira das programadas','t'],['rp_t_prev','Preventiva (rotas aéreas e subterrâneas)','t'],['rp_t_mel','Melhoria de rede','t',[['rp_aprov','Aprovar projetos de melhoria','a']]],['rp_t_ret','Retirada de cabo','t'],['rp_t_cia','Companhia elétrica','t'],
+  ['rp_plan','Planejar, editar e despachar as programadas','a'],['rp_rev','Revisão de campo (apontamentos e fotos)','t',[['rp_a_rev','Aprovar, rejeitar e reabrir apontamentos','a']]]]];
 const PR_ON=typeof reVe==='function';
 /* telas que liberam o GTD (as chaves novas que permDe acrescenta sozinho, como Totais por prestador, não contam) */
 const PX_GTEL=['gPainel','g_tempos','gCham','gAgenda','gNovo','gRel','gAprov'];
@@ -13514,9 +13517,9 @@ const pxKeys=g=>{const o=[];const w=L=>L.forEach(n=>{o.push(n[0]);if(n[3])w(n[3]
 const PR_RK=PR_ON?pxKeys(PR_RE):[],PX_TK=pxKeys(PX_TX),PX_GK=pxKeys(PERM_T.find(g=>g[0]==='GTD Manutenção')||['',[]]);
 /* grupos: Transmissão logo depois do GTD; "Áreas de manutenção" só fica se sobrar outra área (Rede Externa) */
 {AREA_PERM[1]=AREA_PERM[1].filter(n=>n[0]!=='m_gtd'&&n[0]!=='m_tx'&&n[0]!=='m_re');const ia=PERM_T.indexOf(AREA_PERM);if(!AREA_PERM[1].length&&ia>=0)PERM_T.splice(ia,1);
-  const ig=PERM_T.findIndex(g=>g[0]==='GTD Manutenção');PERM_T.splice(ig>=0?ig+1:PERM_T.length,0,PX_TX);if(PR_ON)PERM_T.splice(PERM_T.indexOf(PX_TX)+1,0,PR_RE);
+  const ig=PERM_T.findIndex(g=>g[0]==='GTD Manutenção');PERM_T.splice(ig>=0?ig+1:PERM_T.length,0,PX_TX);if(PR_ON)PERM_T.splice(PERM_T.indexOf(PX_TX)+1,0,PR_RE,PR_RP);
   const add=k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)},w=L=>L.forEach(n=>{add(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));add('m_gtd');add('m_tx');if(PR_ON)add('m_re')}
-const PX_AREA=gn=>gn==='GTD Manutenção'||gn==='Áreas de manutenção'?'gtd':gn==='Transmissão'?'tx':gn==='Rede Externa'?'re':'impl';
+const PX_AREA=gn=>gn==='GTD Manutenção'||gn==='Áreas de manutenção'?'gtd':gn==='Transmissão'?'tx':gn==='Rede Externa'||gn==='Rede Externa Corretiva'?'re':gn==='Rede Externa Preventiva'?'rep':'impl';
 const pxPapelTx=p=>p==='supervisor'||p==='encarregado'||p==='noc';
 /* 27/10: NOC com a aba Transmissão nas permissões. Padrão do NOC: Chamados, Agenda, Criar chamado, Histórico e validar,
    nas duas áreas. Lista do NOC gravada antes (sem nenhuma chave da Transmissão e sem a marca tx_v27) continua vendo a
@@ -13543,9 +13546,9 @@ function permEff(){if(!ME||!['sup','enc','noc'].includes(ui.perfil))return;if(!(
 /* tela de permissões */
 {const _v=viewPermissoes;viewPermissoes=function(){const id=ui.permSel,pp=USR&&USR.pp.find(x=>x.user_id===id);if(!pp)return _v.apply(this,arguments);
   if(!(ui.permEd&&ui.permEd.id===id))ui.permEd={id,set:pxNorm(permDe(pp.papel,pp.permissoes),pp.papel)};
-  const tira=!pxPapelTx(pp.papel),ir=PR_ON?PERM_T.indexOf(PR_RE):-1;if(tira&&ir>=0)PERM_T.splice(ir,1);const it=PERM_T.indexOf(PX_TX),nn=PX_TX[1].find(n=>n[0]==='tx_novo'),fil=nn&&nn[3],soNoc=pp.papel!=='noc'&&fil;if(tira&&it>=0)PERM_T.splice(it,1);if(soNoc)nn.length=3;let h;try{h=_v.apply(this,arguments)}finally{if(tira&&it>=0)PERM_T.splice(it,0,PX_TX);if(tira&&ir>=0)PERM_T.splice(PERM_T.indexOf(PX_TX)+1,0,PR_RE);if(soNoc)nn[3]=fil}
-  const P=new Set(ui.permEd.set),PT=PERM_T.filter(g=>!(tira&&(g===PX_TX||g===PR_RE))&&!(pp.papel==='delivery'&&g[0]==='GTD Manutenção'));
-  const AB=[['impl','Implantação'],['gtd','GTD Manutenção'],['tx','Transmissão'],['re','Rede Externa']].filter(([k])=>PT.some(g=>PX_AREA(g[0])===k));
+  const tira=!pxPapelTx(pp.papel),ir=PR_ON?PERM_T.indexOf(PR_RE):-1,ip=PR_ON?PERM_T.indexOf(PR_RP):-1;if(tira&&ip>=0)PERM_T.splice(ip,1);if(tira&&ir>=0)PERM_T.splice(PERM_T.indexOf(PR_RE),1);const it=PERM_T.indexOf(PX_TX),nn=PX_TX[1].find(n=>n[0]==='tx_novo'),fil=nn&&nn[3],soNoc=pp.papel!=='noc'&&fil;if(tira&&it>=0)PERM_T.splice(it,1);if(soNoc)nn.length=3;let h;try{h=_v.apply(this,arguments)}finally{if(tira&&it>=0)PERM_T.splice(it,0,PX_TX);if(tira&&ir>=0)PERM_T.splice(PERM_T.indexOf(PX_TX)+1,0,PR_RE);if(tira&&ip>=0)PERM_T.splice(PERM_T.indexOf(PR_RE)+1,0,PR_RP);if(soNoc)nn[3]=fil}
+  const P=new Set(ui.permEd.set),PT=PERM_T.filter(g=>!(tira&&(g===PX_TX||g===PR_RE||g===PR_RP))&&!(pp.papel==='delivery'&&g[0]==='GTD Manutenção'));
+  const AB=[['impl','Implantação'],['gtd','GTD Manutenção'],['tx','Transmissão'],['re','RE Corretiva'],['rep','RE Preventiva']].filter(([k])=>PT.some(g=>PX_AREA(g[0])===k));
   if(AB.length<2)return h;if(!AB.some(a=>a[0]===ui.permAba))ui.permAba=AB[0][0];
   const telas=k=>{let n=0,t=0;PT.filter(g=>PX_AREA(g[0])===k).forEach(g=>{const w=(L,ok)=>L.forEach(x=>{if(x[2]==='t'){t++;if(ok&&P.has(x[0]))n++}if(x[3])w(x[3],ok&&P.has(x[0]))});w(g[1],true)});return [n,t]};
   const bar=`<div class="pxtabs" role="tablist" aria-label="Área">${AB.map(([k,n])=>{const[q,t]=telas(k);return `<button role="tab" data-act="pxAba" data-v="${k}" aria-selected="${ui.permAba===k}"><b>${n}</b><small class="${q?'on':''}">${q?q+' de '+t+' telas':'sem acesso'}</small></button>`}).join('')}</div>`;
@@ -14146,9 +14149,9 @@ GTD_T.push(...RP_TABS);
 /* 01/11: rp_plan, rp_rev e rp_aprov ficam no grupo Rede Externa (permtx.js) */
 const rpCo=()=>ui.perfil==='coord';
 const rpPl=()=>rpCo()||pode('rp_plan');
-const rpRv=()=>rpCo()||pode('rp_rev');
+const rpRv=()=>rpCo()||pode('rp_a_rev');const rpRvV=()=>rpRv()||pode('rp_rev');
 const rpApr=()=>rpCo()||pode('rp_aprov');
-const rpVeTabs=()=>!!ME&&!gTecPerfil()&&ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'&&reVe()&&(rpPl()||rpRv());
+const rpVeTabs=()=>!!ME&&!gTecPerfil()&&ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'&&reVe();
 
 /* ---------- dados ---------- */
 const rpDe=r=>{const x=Object.assign({},r.dados||{},{id:r.id,cod:r.codigo,tipo:r.tipo,status:r.status,cidade:r.cidade||'',data:r.data||'',tec:r.tecnico||null,criado:r.criado_em});
@@ -14199,7 +14202,7 @@ const rpDet=x=>x.tipo==='prev'?(x.seg==='sub'?`Subterrânea · cluster ${x.clust
 
 /* ---------- abas no menu (só dentro da área Rede Externa) ---------- */
 {const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments).filter(t=>!RP_TABS.includes(t));if(!rpVeTabs())return T;
-  const add=RP_TABS.filter(t=>t==='rpRev'?rpRv():t==='rpEst'?true:rpPl());return T.concat(add)}}
+  const add=RP_TABS.filter(t=>t==='rpRev'?rpRvV():t==='rpEst'?true:rpPl());return T.concat(add)}}
 Object.assign(ICT,{rpEst:'M4 4h4v16H4zM10 4h4v10h-4zM16 4h4v13h-4z',rpPrev:'M9 4h6v3H9zM9 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-3M9 14l2 2 4-4',
   rpMel:'M3 17l6-6 4 4 8-8M15 7h6v6',rpRet:'M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3',rpCia:'M13 2L4 14h7l-1 8 9-12h-7z',rpRev:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z'});
 ICN['Programadas']=_sv('<path d="M4 4h4v16H4zM10 4h4v10h-4zM16 4h4v13h-4z"/>');
@@ -14236,7 +14239,7 @@ function rpLista(tipo,opt){opt=opt||{};const k='rpL'+tipo;ui[k]=ui[k]||{st:'aber
 function rpInfo(L){return `<dl class="rpdl">${L.filter(r=>r&&r[1]!==''&&r[1]!=null).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${v}</dd>`).join('')}</dl>`}
 function rpApLinha(x,a){const s=RP_AP[a.st]||['—',''],t=x.tipo==='prev'&&x.seg==='sub'?`Caixa ${esc(a.cs||'')}`:(a.tipo==='final'?'Finalizado':'Parcial');
   return `<div class="rpap"><div><b>${t}</b> · ${a.data?dBR(a.data):''} <span class="chip ${s[1]}">${s[0]}</span><br><small class="muted">${esc(rpApResumo(x,a))}</small>${a.st==='rej'&&(a.mot||[]).length?`<br><small class="rpbad">Motivo: ${esc(a.mot.map(m=>(RP_REJ.find(r=>r[0]===m)||[0,m])[1]).join(', '))}${a.motT?' · '+esc(a.motT):''}</small>`:''}</div>
-   ${rpRv()?`<button class="btn sm" data-act="rpRevAbrir" data-id="${x.id}" data-a="${a.id}">${a.st==='rev'?'Revisar':'Ver'}</button>`:''}</div>`}
+   ${rpRvV()?`<button class="btn sm" data-act="rpRevAbrir" data-id="${x.id}" data-a="${a.id}">${a.st==='rev'&&rpRv()?'Revisar':'Ver'}</button>`:''}</div>`}
 function rpApResumo(x,a){const v=a.v||{};if(x.tipo==='prev'&&x.seg!=='sub')return [v.metros?rpM(v.metros)+' percorridos':'',v.postes?v.postes+' postes':'',v.cord?rpM(v.cord)+' de cordoalha':'',v.plaq?v.plaq+' plaquetas':'',v.sobra?v.sobra+' sobras':''].filter(Boolean).join(' · ')||'Sem produção';
   if(x.tipo==='prev')return v.abriu==='nao'?`Não abriu: ${v.motNao||'—'}`:`${({conf:'Conforme',ress:'Conforme com ressalva',nconf:'Não conforme'})[v.conc]||'—'}${v.prio?' · prioridade '+v.prio:''}`;
   if(x.tipo==='ret')return `${rpM(rpN(v.metros))} de cabo · ${rpN(v.ceo)} CEO/CTO`;
@@ -14855,7 +14858,7 @@ const rpDk=(x,cs)=>x.id+(cs?':'+cs:'');
 const rpDr=(x,cs)=>{ui.rpD=ui.rpD||{};const k=rpDk(x,cs);return ui.rpD[k]||(ui.rpD[k]={tipo:x.tipo==='cia'?'final':'parcial',data:hoje(),v:x.tipo==='prev'&&x.seg==='sub'?{anom:[],div:[]}:x.tipo==='mel'?{itens:(x.pac?[]:[])}:{},fotos:[]})};
 function rpFotoSlot(k,t,lb,n,d){const L=d.fotos.filter(f=>f.t===t),fal=L.length<n;
   return `<div class="rpslot ${n&&fal?'falta':''}"><div class="rpslh"><b>${esc(lb)}</b><small>${n?`${L.length} de ${n}`:`${L.length} · opcional`}</small></div>
-   <div class="rpfg">${L.map(f=>`<span class="rpthm"><img src="${rpFU(f)}" alt="">${typeof ffTag==='function'?ffTag(f):''}${f.o==='gal'?'<i>galeria</i>':''}<button data-act="rpFDel" data-k="${k}" data-u="${d.fotos.indexOf(f)}" aria-label="Apagar foto">×</button></span>`).join('')}
+   <div class="rpfg">${L.map(f=>`<span class="rpthm"><img src="${rpFU(f)}" alt="">${typeof ffTag==='function'?ffTag(f):''}${f.o==='gal'?'<i>galeria</i>':''}<button data-act="rpFDel" data-k="${k}" data-u="${d.fotos.indexOf(f)}" aria-label="Apagar foto">×</button>${legInp(`data-in="rpFLeg" data-k="${k}" data-u="${d.fotos.indexOf(f)}"`,f.leg)}</span>`).join('')}
     <label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} Câmera<input type="file" accept="image/*" capture="environment" data-ch="rpFoto" data-k="${k}" data-t="${t}" data-o="cam" hidden></label>
     <label class="btn sm chatfoto">Galeria<input type="file" accept="image/*" multiple data-ch="rpFoto" data-k="${k}" data-t="${t}" data-o="gal" hidden></label></div></div>`}
 const rpNumT=(k,f,lb,d,o)=>`<label class="fld"><span>${lb}${o&&o.req?' *':''}</span><input class="inp" type="number" min="0" step="${o&&o.dec?'any':'1'}" data-ch="rpTv" data-k="${k}" data-f="${f}" value="${esc(d.v[f]??'')}"></label>`;
@@ -15197,7 +15200,7 @@ async function rpTecMapa(el){const id=el.id;RP_MPI[id]=1;try{await vtLib()}catch
     else if(t.dataset.teu){if(!navigator.geolocation){toast('Este aparelho não informa a localização.','bad');return}
       navigator.geolocation.getCurrentPosition(p=>{const c=[p.coords.latitude,p.coords.longitude];eu.clearLayers();LL.circle(c,{radius:Math.min(p.coords.accuracy||20,80),color:'#2563eb',weight:1,fillOpacity:.12}).addTo(eu);LL.circleMarker(c,{radius:7,color:'#fff',weight:3,fillColor:'#2563eb',fillOpacity:1}).addTo(eu);map.setView(c,Math.max(map.getZoom(),17))},
         e=>toast('Não consegui pegar a localização: '+(e.message||'permissão negada'),'bad'),{enableHighAccuracy:true,timeout:15000,maximumAge:10000})}});
-  const k=x.kmz,g=k.geo||{};k.linhas.forEach(l=>{LL.polyline(l.c,{color:'#ffffff',weight:9,opacity:.9}).addTo(ly);LL.polyline(l.c,{color:'#ff8a00',weight:5}).addTo(ly)});
+  const k=x.kmz,g=k.geo||{};k.linhas.forEach((l,i)=>{LL.polyline(l.c,{color:'#ffffff',weight:9,opacity:.9}).addTo(ly);LL.polyline(l.c,{color:i&&l.junto?'#2563eb':'#ff8a00',weight:5}).bindTooltip(`${i?esc(l.nome||'Cabo '+(i+1)):'Rota'} · ${rpM(l.m||0)}`,{sticky:true}).addTo(ly)});
   (x.pontos||[]).forEach(p=>LL.circleMarker([p.lat,p.lng],{radius:7,color:'#fff',weight:2,fillColor:p.tp==='CEO'?'#1d4ed8':'#7c3aed',fillOpacity:1}).bindTooltip(`${p.nome}${p.tp?' · '+p.tp:''}`).addTo(ly));
   const c0=k.linhas[0].c,a=g.a||c0[0],b=g.b||c0[c0.length-1];LL.marker(a,{icon:rpPin('A','#2e9e3d')}).bindTooltip('Ponta A').addTo(ly);LL.marker(b,{icon:rpPin('B','#c0392b')}).bindTooltip('Ponta B').addTo(ly);
   RPTM={el,map,draw:null};RP_MP[id]=RPTM;RP_MPI[id]=0;tudo()}
@@ -15433,7 +15436,7 @@ function rpTecTela(x){const j=x.jor||{},A=rpAps(x),c=x.cia||{},T=Date.now(),rj=A
   return `<div class="tvhd"><button class="tvback" data-act="rpTVolta">${TVI.back}Voltar</button></div>${top}
   ${pre?`<div class="tvpre">${pre}</div>`:''}
   ${tvAcc('rp:faz:'+x.id,!emCampo,TVI.alert,'O que fazer',esc(rpTvOque(x)),faz||'<p class="muted" style="margin:0">Sem detalhes.</p>')}
-  ${tvAcc('rp:loc:'+x.id,x.status==='desp'&&!!j.desloc||temRota&&!emCampo,IC.pin,'Local e rota',esc(endT||'Endereço não informado')+(temRota?' · rota e KMZ':''),loc)}
+  ${tvAcc('rp:loc:'+x.id,x.status==='desp'&&!!j.desloc||temRota&&!emCampo,IC.pin,'Local e rota',esc(endT||'Endereço não informado')+(temRota?((n=>n>1?` · rota com ${n} cabos e KMZ`:' · rota e KMZ')((x.kmz.linhas||[]).filter(l=>(l.c||[]).length>1).length)):''),loc)}
   ${A.length?tvAcc('rp:ap:'+x.id,!!rj,IC.doc,'Meus apontamentos',A.length+' enviado(s)'+(rj?' · 1 para refazer':''),apL):''}
   ${form?`<div class="rptvform">${form}</div>`:''}
   ${tvFoot(foot)}`}
@@ -15512,7 +15515,7 @@ async function rpPdfAp(x,a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4
   if(camp.length)doc.autoTable({startY:doc.lastAutoTable.finalY+5,theme:'grid',head:[['Apontamento','']],headStyles:{fillColor:[140,191,63],fontSize:8.5},styles:{fontSize:8.5,cellPadding:2},columnStyles:{0:{cellWidth:48,fontStyle:'bold'}},margin:{left:m,right:m},body:camp});
   y=doc.lastAutoTable.finalY+7;const ft=rpReqFotos(x,a.v||{}),lb=t=>(ft.find(r=>r[0]===t)||[0,rpFotoN(t)])[1],fs=a.fotos||[];
   const ordem=[...new Set(ft.map(r=>r[0]).concat(fs.map(f=>f.t)))],F=[];
-  for(const t of ordem)for(const f of fs.filter(f=>f.t===t)){const d=await rpFotoData(f);if(d)F.push({data:d,fase:f.fase||(FF_FIX[t]||''),g:t,gt:lb(t),leg:f.o==='gal'?'galeria':''})}
+  for(const t of ordem)for(const f of fs.filter(f=>f.t===t)){const d=await rpFotoData(f);if(d)F.push({data:d,fase:f.fase||(FF_FIX[t]||''),g:t,gt:lb(t),leg:[f.leg,f.o==='gal'?'galeria':''].filter(Boolean).join(' · ')})}
   if(F.length){if(y+20>H-12){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(40);doc.text('Fotos · antes e depois',m,y);y+=5;
     /* Antes/Depois que são itens separados (Melhoria, Retirada, emenda) viram um par só */
     const par={antes:'_ad',depois:'_ad',emA:'_em',emD:'_em'},pt={_ad:'Antes e depois',_em:'Emenda'};F.forEach(f=>{if(par[f.g]){f.gt=pt[par[f.g]];f.g=par[f.g]}});
@@ -15834,7 +15837,7 @@ function rePrevPainel(){const ini=ui.gpIni||hoje().slice(0,8)+'01',fim=ui.gpFim|
   const rotas=new Set(L.filter(x=>x.o==='rota').map(x=>x.x.id)).size,chs=new Set(L.filter(x=>x.o==='ch').map(x=>x.c.id)).size;
   const tab=(tit,G2,col)=>`<section class="panel"><div class="secth"><h3>${tit}</h3></div><div class="tablewrap"><table class="rktab"><thead><tr><th>${col}</th>${RK_K.map(([k,n])=>`<th class="r" title="${n}">${RK_C[k]}</th>`).join('')}</tr></thead><tbody>${G2.map(([k,v])=>`<tr><td>${esc(k)}</td>${RK_K.map(([kk])=>`<td class="r">${v[kk]?rkF(kk,v[kk]):'<span class="muted">—</span>'}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="7" class="muted">Nada no período.</td></tr>`}</tbody></table></div></section>`;
   const orig=[['Rotas preventivas (Programadas)',L.filter(x=>x.o==='rota').reduce((s,x)=>rkSoma(s,x.k),rk0())],['Chamados de preventiva',L.filter(x=>x.o==='ch').reduce((s,x)=>rkSoma(s,x.k),rk0())]];
-  return `<div class="toolbar"><div><h2>Painel de KPIs · Rede Externa · Preventiva</h2><p class="muted">Tirado da LPU: rotas preventivas (só apontamentos aprovados, pela data do apontamento) e chamados de preventiva (LPU enviada, pela data da LPU). A corretiva fica em Painel de KPIs › Corretiva.</p></div>
+  return `<div class="toolbar"><div><h2>Painel de KPIs · Rede Externa Preventiva</h2><p class="muted">Tirado da LPU: rotas preventivas (só apontamentos aprovados, pela data do apontamento) e chamados de preventiva (LPU enviada, pela data da LPU). A corretiva fica em RE Corretiva.</p></div>
     <div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${fim}"></label><button class="btn" data-act="rkXlsx" title="Indicadores, por origem, por técnico, por cidade e o detalhamento de cada rota e chamado">Baixar planilha</button></div></div>
    ${typeof RP!=='undefined'&&RP.bus&&!RP.ok?'<p class="muted">Carregando as rotas preventivas…</p>':''}
    <div class="kpis rpk6 rkk">${RK_K.map(([k,n])=>kp(rkF(k,T[k]),n)).join('')}</div>
@@ -15842,10 +15845,10 @@ function rePrevPainel(){const ini=ui.gpIni||hoje().slice(0,8)+'01',fim=ui.gpFim|
    ${tab('Por origem',orig,'Origem')}${tab('Por equipe',grp(x=>x.tec),'Técnico')}${tab('Por cidade',grp(x=>x.cid),'Cidade')}`}
 /* seções do Painel de KPIs da Rede Externa */
 {const _v=viewGPainel;viewGPainel=function(){if(!reAt()||G.erro)return _v.apply(this,arguments);
-  const sec=gSecsOk().some(x=>x[0]===ui.gSec)?ui.gSec:'geral';ui.gSec=sec;if(sec==='prev')return rePrevPainel();
+  const SO=gSecsOk(),sec=SO.some(x=>x[0]===ui.gSec)?ui.gSec:SO[0][0];ui.gSec=sec;if(sec==='prev')return rePrevPainel();
   if(sec!=='geral'&&sec!=='tempos')return _v.apply(this,arguments);
   const all=G.ch,F=all.filter(c=>!rkPrevCh(c));G.ch=F;let h;try{h=_v.apply(this,arguments)}finally{if(G.ch===F)G.ch=all}
-  if(sec==='geral')h=h.replace(/(<h2>Painel de KPIs[^<]*?)(<\/h2>)(<p class="muted">)?/,(m,a,b,p)=>a+' · Corretiva'+b+(p||'<p class="muted">')+'Chamados de rompimento, massiva, rádio e companhia elétrica. A preventiva fica em Painel de KPIs › Preventiva. '+(p?'':'</p>'));
+  if(sec==='geral')h=h.replace(/(<h2>Painel de KPIs[^<]*?)(<\/h2>)(<p class="muted">)?/,(m,a,b,p)=>a+' · Corretiva'+b+(p||'<p class="muted">')+'Chamados de rompimento, massiva, rádio e companhia elétrica. Os chamados de preventiva entram nos KPIs da RE Preventiva. '+(p?'':'</p>'));
   return h}}
 {const st=document.createElement('style');st.textContent=`.rkk .kpi b{font-size:22px}.rkn{margin:-4px 0 14px}.rktab th.r,.rktab td.r{text-align:right;white-space:nowrap}.rktab td:first-child{min-width:170px}`;document.head.appendChild(st)}
 
@@ -16291,9 +16294,9 @@ function reCiaChAtual(){const s=ui.sign||{},k=String(s.key||ui.lpuTela||''),id=k
 {const _a=areaModo;areaModo=function(k,fn){if(k!=='re')return _a.apply(this,arguments);return _a.call(this,k,()=>{if(!reCiaChAtual())return fn();const ct=GTD_CONTA;GTD_CONTA=RE_PREV;
   let r;try{r=fn()}catch(e){GTD_CONTA=ct;throw e}if(r&&typeof r.then==='function')return r.finally(()=>{GTD_CONTA=ct});GTD_CONTA=ct;return r})}}
 /* budget: o reparo emergencial sem a companhia elétrica, e o quadro da preventiva logo abaixo */
-{const _b=gFinBudget;gFinBudget=function(){if(!reAt())return _b.apply(this,arguments);const all=G.lpus,F=all.filter(l=>!rePrevL(l));G.lpus=F;let h;try{h=_b.apply(this,arguments)}finally{if(G.lpus===F)G.lpus=all}
-  return h+rePrevBudget()}}
-{const _v=viewGPainel;viewGPainel=function(){const h=_v.apply(this,arguments);if(!reAt()||ui.gSec!=='fin'||ui.gFinSub!=='budget')return h;return h.replace('consumido pelas LPUs aprovadas no mês da aprovação.','consumido pelas LPUs aprovadas no mês da aprovação. Abaixo, o budget de Serviços preventivos (3.1.1.2.05.0101): preventiva (programadas e chamados) e tudo da companhia elétrica.')}}
+{const _b=gFinBudget;gFinBudget=function(){if(!reAt())return _b.apply(this,arguments);if(typeof reLadoP==='function'&&reLadoP())return rePrevBudget(true);const all=G.lpus,F=all.filter(l=>!rePrevL(l));G.lpus=F;let h;try{h=_b.apply(this,arguments)}finally{if(G.lpus===F)G.lpus=all}
+  return h}}
+{const _v=viewGPainel;viewGPainel=function(){const h=_v.apply(this,arguments);if(!reAt()||ui.gSec!=='fin'||ui.gFinSub!=='budget'||(typeof reLadoP==='function'&&reLadoP()))return h;return h.replace('consumido pelas LPUs aprovadas no mês da aprovação.','consumido pelas LPUs aprovadas no mês da aprovação. A preventiva e a companhia elétrica (3.1.1.2.05.0101) ficam em RE Preventiva › Painel de KPIs › Budget.')}}
 const rpLpuVal=L=>(L||[]).reduce((s,i)=>s+(+i.qtd||0)*(rpLpuIt(i.cod).valor||0),0);
 const reTerc=id=>!id||gTecV(id)!=='CLT';
 function rePrevDados(mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes,CH=G.lpus.filter(l=>rePrevL(l)&&!gLpuClt(l));
@@ -16305,11 +16308,11 @@ function rePrevDados(mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesD
   const O={};const add=(k,v,ap)=>{const o=O[k]=O[k]||{n:0,v:0,pn:0,pv:0};if(ap){o.n++;o.v+=v}else{o.pn++;o.pv+=v}};
   const chO=l=>{const c=G.ch.find(x=>x.id===l.chamado);return /preventiva/i.test(normK((c&&c.categoria)||l.categoria||''))?'Chamados de preventiva':'Chamados de companhia elétrica'};chAp.forEach(l=>add(chO(l),+l.total||0,1));chPe.forEach(l=>add(chO(l),+l.total||0,0));pAp.forEach(x=>add(org(x),vP(x),1));pPe.forEach(x=>add(org(x),vP(x),0));
   return{uso,comp,nAp:chAp.length+pAp.length,nPe:chPe.length+pPe.length,O,clt,cltV:clt.reduce((s,x)=>s+vP(x),0),chAp,chPe,pAp,pPe,vP,org}}
-function rePrevBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit2&&pode('a_budget'),B=(S.budget||{})[mes]||{},orc=+B[RE_PREV]||0;
+function rePrevBudget(solo){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit2&&pode('a_budget'),B=(S.budget||{})[mes]||{},orc=+B[RE_PREV]||0;
   if(typeof RP!=='undefined'&&!RP.ok&&!RP.bus)rpCarregar().catch(()=>{});
   const d=rePrevDados(mes),disp=orc-d.uso,p=orc?Math.round(d.uso/orc*100):0,tot=Math.max(orc,d.uso+d.comp)||1,cor=p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)',nL=n=>n+(n===1?' LPU':' LPUs');
-  return `<section class="panel" style="margin-top:16px"><div class="secth"><div><h3>Budget de mão de obra terceirizada · Serviços preventivos</h3><span class="muted">${esc(RE_PREV)} · preventiva (programadas e chamados) e tudo da companhia elétrica</span></div>
-    <div class="tools">${pode('a_budget')?(ed?'<button class="btn primary" data-act="rePbSalvar">Salvar budget</button><button class="btn" data-act="rePbEdit">Cancelar</button>':'<button class="btn" data-act="rePbEdit">Definir budget de preventiva</button>'):''}</div></div>
+  return `<section class="panel" style="${solo?'':'margin-top:16px'}"><div class="secth"><div><h3>Budget de mão de obra terceirizada · Serviços preventivos</h3><span class="muted">${esc(RE_PREV)} · preventiva (programadas e chamados) e tudo da companhia elétrica</span></div>
+    <div class="tools">${solo?(()=>{ui.bMes=mes;const M=[];for(let k=-12;k<=2;k++){const d=new Date(hoje().slice(0,4),+hoje().slice(5,7)-1+k,1);M.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))}return `<label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${M.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>`})():''}${pode('a_budget')?(ed?'<button class="btn primary" data-act="rePbSalvar">Salvar budget</button><button class="btn" data-act="rePbEdit">Cancelar</button>':'<button class="btn" data-act="rePbEdit">Definir budget de preventiva</button>'):''}</div></div>
    ${ed?`<label class="f inline" style="margin:8px 0"><span>Budget de preventiva de ${mesNome(mes)} (R$)</span><input class="inp r" type="number" min="0" step="100" id="rePBud" value="${orc||''}" placeholder="0"></label>`:''}
    ${typeof RP!=='undefined'&&!RP.ok?'<p class="muted">Carregando as programadas…</p>':''}
    <div class="kpis" style="margin:10px 0">${kp(brl(orc),'Budget do mês')}${kp(brl(d.uso),`Consumido: ${p}% (${nL(d.nAp)})`,'ok')}${kp(brl(disp),'Disponível',disp<0?'bad':'')}${kp(brl(d.comp),`Aguardando (${nL(d.nPe)})`,'warn')}</div>
@@ -16327,6 +16330,451 @@ Object.assign(AR_IC,{impl:'M3 21h18M5 21V4h9v17M14 9h5v12M8 8h3M8 12h3M8 16h3M16
   gtd:'M3 13h18v7H3zM7 16.5h.01M10.5 16.5h.01M14 16.5h4M7 13 5.5 6M17 13l1.5-7',
   re:'M5 22V4M19 22V4M3 7h4M17 7h4M5 9q7 5 14 0M5 12.5q7 4 14 0M3 22h4M17 22h4',
   tx:'M12 10v11M9 21h6M13 8a1 1 0 1 1-2 0a1 1 0 1 1 2 0M8.6 4.6a5 5 0 0 0 0 6.8M15.4 4.6a5 5 0 0 1 0 6.8M5.5 2a9 9 0 0 0 0 12M18.5 2a9 9 0 0 1 0 12'});
+
+/* ---------- 08/11: legenda opcional em todas as fotos do técnico ----------
+   Implantação (relatório fotográfico), GTD, Transmissão e Rede Externa (fotos do RFO/relatório, inclusive as de tipo:
+   defeito, caixas, antes/depois) e Programadas da Rede Externa (apontamentos). A legenda sai embaixo da foto no PDF.
+   Implantação: guardada em campos[<item>:<n>:leg]; chamados: f.leg; programadas: f.leg. */
+const LEG_MAX=120;
+const legInp=(attrs,v)=>`<input class="inp fleg" maxlength="${LEG_MAX}" placeholder="Legenda (opcional)" ${attrs} value="${esc(v||'')}">`;
+/* apagar foto no relatório da Implantação: a legenda anda junto */
+{const _d=ACT.rfDel;ACT.rfDel=el=>{const D=ui.rf,k=el.dataset.k;if(D){const n=(D.fotos[k]||[]).length,i=+el.dataset.i;for(let x=i;x<n-1;x++)D.campos[k+':'+x+':leg']=D.campos[k+':'+(x+1)+':leg']||'';delete D.campos[k+':'+(n-1)+':leg']}return _d(el)}}
+Object.assign(IN,{rpFLeg:el=>{const d=rpDrK(el.dataset.k),f=d&&d.fotos[+el.dataset.u];if(f)f.leg=el.value.slice(0,LEG_MAX)}});
+document.head.insertAdjacentHTML('beforeend','<style>.fleg{margin-top:6px;font-size:13.5px;padding:7px 9px;min-height:0;width:100%}.rft{display:flex;flex-direction:column}.rft .fleg{max-width:100%}.rpthm{display:inline-flex;flex-direction:column;vertical-align:top}.rpthm{width:140px}.rpthm img{width:140px!important;height:105px!important;object-fit:cover}.rpthm .fleg{width:140px;margin-top:4px}figure .fleg{margin-top:6px}</style>');
+
+/* ---------- 08/11: Rede Externa · Cadastro GeoGrid (caixa nova) e Fiscalização ----------
+   Registros em ag_re_reg (ajuste 57): tipo 'geo' (cadastro) ou 'fisc' (fiscalização), origem 'ch' (chamado) ou 'rp'
+   (programada), ref = id da origem, situação e dados (jsonb). Fotos e evidências no Storage em rereg/<registro>/.
+   * Cadastro GeoGrid: entra na fila só o que teve CAIXA NOVA — chamado de rede externa com caixa "adicionada agora
+     (nova)" no relatório, ou programada concluída com montagem de caixa (SEV0029 a SEV0032 na LPU). Reparo só com caixa
+     existente não aparece. Fluxo como na Implantação: aguardando validação → validado (encarregado/supervisão) →
+     cadastrado no GeoGrid (analista), com observação, evidências (arquivo, foto, print colado) e registro.
+   * Fiscalização: chamados (com relatório, sem improdutivo) e programadas concluídas (preventiva, melhoria, retirada)
+     dos últimos 60 dias; caixa nova e lançamento primeiro. Checklist por item (conforme, não conforme, não se aplica)
+     com observação e foto no não conforme, localização do fiscal, resultado (conforme, com ressalvas, não conforme)
+     e relatório em PDF. */
+const REG={rows:[],ok:false,bus:false,err:''};
+const regDe=r=>Object.assign({},r.dados||{},{id:r.id,tipo:r.tipo,origem:r.origem,ref:r.ref,status:r.status,em:r.atualizado_em});
+const regRow=x=>{const d=Object.assign({},x);['id','tipo','origem','ref','status','em'].forEach(k=>delete d[k]);return{id:x.id,tipo:x.tipo,origem:x.origem,ref:x.ref,status:x.status,dados:d,atualizado_em:new Date().toISOString()}};
+async function regCarregar(f){if(REG.bus||(REG.ok&&!f))return;REG.bus=true;try{const r=await sb.from('ag_re_reg').select('*');if(r.error)throw r.error;REG.rows=(r.data||[]).map(regDe);REG.ok=true;REG.err=''}
+  catch(e){REG.err=(e&&e.message)||String(e)}REG.bus=false;render()}
+const regGet=id=>REG.rows.find(x=>x.id===id);
+async function regSalvar(x,msg){const i=REG.rows.findIndex(y=>y.id===x.id);if(i>=0)REG.rows[i]=x;else REG.rows.push(x);const r=await sb.from('ag_re_reg').upsert(regRow(x));
+  if(r&&r.error){toast('Não foi possível salvar: '+r.error.message+(/ag_re_reg|relation|does not exist/i.test(r.error.message)?' (falta rodar o ajuste 57 no banco)':''),'bad');return false}if(msg)toast(msg);return true}
+const regEstado=()=>{if(!REG.ok&&!REG.err){regCarregar();return '<p class="muted pad">Carregando…</p>'}if(REG.err)return `<div class="rpbox bad"><b>Não carregou.</b> ${esc(REG.err)}${/ag_re_reg|relation|does not exist/i.test(REG.err)?'<br>Falta rodar o ajuste 57 no banco.':''} <button class="btn sm" data-act="regRecarr">Tentar de novo</button></div>`;
+  if(typeof RP!=='undefined'&&!RP.ok&&!RP.bus)rpCarregar();return ''};
+const regH=(x,acao,obs)=>{(x.hist=x.hist||[]).push({acao,por:meNome(),em:Date.now(),obs:obs||''})};
+async function regUp(regId,f,nome){const ext=(String(nome||f.name||'').match(/\.(\w{2,5})$/)||[,'jpg'])[1].toLowerCase(),path=`rereg/${regId}/${Date.now()}-${Math.random().toString(36).slice(2,6)}.${ext}`;
+  const up=await sb.storage.from('agenda').upload(path,f,{contentType:f.type||'application/octet-stream',upsert:false});if(up.error)throw up.error;return path}
+const reOrig=(o,ref)=>o==='ch'?G.ch.find(c=>c.id===ref):rpGet(ref);
+const reOrigTit=(o,v)=>!v?'—':o==='ch'?`${esc(v.categoria||'Chamado')} · OM ${esc(v.pom||'')}`:`${esc(rpProg(v.tipo)[1])} · ${esc(v.cod)}`;
+const reOrigLoc=(o,v)=>!v?'':o==='ch'?[v.cliente,v.cidade].filter(Boolean).map(esc).join(' · '):[v.cidade,v.end].filter(Boolean).map(esc).join(' · ');
+const reOrigData=(o,v)=>!v?'':o==='ch'?isoD(new Date((v.ts&&v.ts.rfo)||v.validadoEm||v.criadoEm)):(rpAps(v).slice(-1)[0]||{}).data||v.data;
+const reOrigTec=(o,v)=>!v?'':o==='ch'?gTecN(v.tec):rpTecN(v.tec);
+const reMaps=(la,lo)=>la&&lo?`<a href="https://www.google.com/maps?q=${la},${lo}" target="_blank" rel="noopener">${(+la).toFixed(6)}, ${(+lo).toFixed(6)}</a>`:'<span class="muted">sem coordenada</span>';
+/* itens de LPU da origem */
+const reItens=(o,v)=>o==='ch'?((G.lpus.filter(l=>l.chamado===v.id&&l.status!=='reprovada').slice(-1)[0]||{}).itens||[]):(v.lpu&&v.lpu.itens)||rpLpuSug(v);
+const reQ=(L,cods)=>L.filter(i=>cods.includes(i.cod)).reduce((s,i)=>s+(+i.qtd||0),0);
+const RE_CX_COD=['SEV0029','SEV0030','SEV0031','SEV0032'],RE_LANC_COD=['SEV0006','SEV0008','SEV0011','SEV0014','SEV0015','SEV0009','SEV0010','SEV0088'];
+const reCxNovas=(o,v)=>o==='ch'?((v.rfo&&v.rfo.cx)||[]).filter(x=>x.sit==='nova'):[];
+const reTemCx=(o,v)=>o==='ch'?reCxNovas(o,v).length>0||reQ(reItens(o,v),RE_CX_COD)>0:reQ(reItens(o,v),RE_CX_COD)>0;
+const reTemLanc=(o,v)=>reQ(reItens(o,v),RE_LANC_COD)>0||(o==='rp'&&v.tipo==='mel');
+const reVeTab=()=>!!ME&&!gTecPerfil()&&ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'&&reVe();
+/* 08/11 (fim): permissões por lado da Rede Externa (rc_ = corretiva, rp_ = preventiva), em Usuários e acessos */
+const reLk=()=>typeof reLadoK==='function'?reLadoK():'rc';
+const reFora=()=>!['sup','enc','noc','coord'].includes(ui.perfil);/* papéis sem a aba da Rede Externa nas permissões (ex.: analista de cadastro) */
+const geoVal=()=>ui.perfil==='coord'||pode(reLk()+'_a_geoVal');/* Vinicius (supervisão) ou os encarregados dele validam */
+const reGeoSoCad=()=>geoCad()&&!geoVal();/* analista: só vê o que já foi validado */
+const geoCad=()=>ui.perfil==='coord'||pode(reLk()+'_a_geoCad')||(reFora()&&pode('a_geoCad'));
+const fiscPode=()=>ui.perfil==='coord'||pode(reLk()+'_a_fisc');
+const reGeoVe=()=>geoVal()||geoCad()||pode(reLk()+'_geo'),reFiscVe=()=>fiscPode()||pode(reLk()+'_fisc');
+const reLadoO=it=>it.o===(reLk()==='rp'?'rp':'ch');
+/* ===================== CADASTRO GEOGRID ===================== */
+function geoFila(){const L=[];G.ch.filter(c=>reDe(c)&&c.rfo&&c.ts&&c.ts.rfo&&c.status!=='cancelado'&&reCxNovas('ch',c).length).forEach(c=>L.push({o:'ch',v:c}));
+  if(typeof RP!=='undefined'&&RP.rows)rpProgs().filter(x=>['mel','ret','prev'].includes(x.tipo)&&x.status==='concl'&&reQ(reItens('rp',x),RE_CX_COD)>0).forEach(x=>L.push({o:'rp',v:x}));
+  return L.filter(reLadoO).map(it=>{const id='geo:'+it.o+':'+it.v.id,r=regGet(id);return Object.assign(it,{id,r,st:r?r.status:'aval',dt:reOrigData(it.o,it.v)})}).sort((a,b)=>String(b.dt).localeCompare(String(a.dt)))}
+const RGEO_ST={aval:['Aguardando validação','warn'],val:['Validado · aguardando cadastro','info'],cad:['Cadastrado no GeoGrid','ok']};
+function viewReGeo(){const e=regEstado(),F=ui.reGeoF||(ui.reGeoF='pend');const top=`<div class="secth rpth"><div><h2>Cadastro GeoGrid · Rede Externa</h2><p class="muted">Só o que teve <b>caixa nova</b> na rede: chamado com caixa adicionada no reparo ou programada com montagem de caixa (SEV0029 a SEV0032). Reparo só com caixas existentes não entra. Primeiro a supervisão ou um encarregado da Rede Externa valida; só depois vai para o analista cadastrar no GeoGrid.</p></div></div>`;
+  if(e)return `<section class="panel">${top}${e}</section>`;
+  const L=geoFila().filter(x=>!reGeoSoCad()||x.st!=='aval'),cnt=k=>L.filter(x=>k==='pend'?x.st!=='cad':k==='all'?true:x.st===k).length,V=L.filter(x=>F==='pend'?x.st!=='cad':F==='all'?true:x.st===F);
+  const chips=[['pend','Pendentes'],['aval','Aguardando validação'],['val','Validados'],['cad','Cadastrados'],['all','Todos']].filter(c=>!reGeoSoCad()||c[0]!=='aval');
+  return `<section class="panel">${top}<div class="gdf rpchips">${chips.map(([k,n])=>`<button data-act="reGeoF" data-v="${k}" aria-pressed="${F===k}">${n} · ${cnt(k)}</button>`).join('')}</div>
+   <div class="regl">${V.map(geoCard).join('')||'<p class="muted pad">Nada aqui.</p>'}</div></section>`}
+function geoCard(it){const{o,v,r,id}=it,st=RGEO_ST[it.st],cx=reCxNovas(o,v),q=reQ(reItens(o,v),RE_CX_COD),fot=o==='ch'?(v.rfoFotos||[]):[];
+  const cxH=o==='ch'?cx.map((x,i)=>{const F=fot.filter(f=>f.tipo==='cx:'+x.id);return `<div class="regcx"><b>Caixa nova ${i+1}${x.nome?' · '+esc(x.nome):''}</b><span>${esc(x.tipo||'tipo não informado')}</span><span>${reMaps(x.lat,x.lng)}</span>${F.length?`<span>${F.map((f,k)=>`<button class="btn sm" data-act="relVer" data-p="${esc(f.path)}">Foto ${k+1}${f.leg?' · '+esc(f.leg):''}</button>`).join(' ')}</span>`:''}</div>`}).join('')
+    :`<div class="regcx"><b>${q} caixa(s) montada(s) na LPU</b><span>${reItens(o,v).filter(i=>RE_CX_COD.includes(i.cod)).map(i=>esc(i.cod+' · '+(rpLpuIt(i.cod).desc||'')+' × '+i.qtd)).join('<br>')}</span><span>${(v.pontos||[]).length?`${v.pontos.length} ponto(s) no traçado`:''}${v.kmz?' · KMZ da rota':''}</span></div>`;
+  const h=(r&&r.hist)||[];
+  return `<article class="regc"><div class="regh"><div><b>${reOrigTit(o,v)}</b><div class="muted">${reOrigLoc(o,v)}</div><small class="muted">${esc(reOrigTec(o,v))} · ${it.dt?dBR(it.dt):''}</small></div><span class="chip ${st[1]}">${st[0]}</span></div>
+   ${cxH}
+   ${o==='ch'&&v.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(typeof v.rfoPdf==='string'?v.rfoPdf:v.rfoPdf.path||'')}">Relatório do chamado (PDF)</button>`:''}${o==='rp'?`<button class="btn sm" data-act="rpAbrir" data-id="${v.id}">Detalhes da programada</button>`:''}
+   ${r&&r.evid&&r.evid.length?`<div class="regev"><b>Evidências do cadastro</b> ${r.evid.map((p,k)=>`<button class="btn sm" data-act="relVer" data-p="${esc(p.path)}">${esc(p.nome||'Evidência '+(k+1))}</button>`).join(' ')}</div>`:''}
+   ${h.length?`<details class="reghist"><summary>Registro (${h.length})</summary>${h.map(x=>`<div><b>${esc(x.acao)}</b> · ${esc(x.por)} · ${rpDH(x.em)}${x.obs?` · ${esc(x.obs)}`:''}</div>`).join('')}</details>`:''}
+   <div class="actions"><button class="btn sm" data-act="geoCopia" data-id="${id}">Copiar dados para o GeoGrid</button>${it.st==='aval'&&geoVal()?`<button class="btn sm primary" data-act="geoVal" data-id="${id}">Validar</button>`:''}${it.st==='val'&&geoCad()?`<button class="btn sm primary" data-act="geoCad" data-id="${id}">Cadastrado no GeoGrid</button>`:''}${it.st==='cad'&&geoCad()?`<button class="btn sm" data-act="geoCad" data-id="${id}" data-mais="1">Incluir evidência</button>`:''}</div></article>`}
+const geoIt=id=>geoFila().find(x=>x.id===id);
+function regGeoTexto(it){const{o,v}=it;const L=[`${o==='ch'?'Chamado de rede externa OM '+(v.pom||''):rpProg(v.tipo)[1]+' '+v.cod} · ${v.cidade||''}`];
+  if(o==='ch')reCxNovas(o,v).forEach((x,i)=>L.push(`Caixa nova ${i+1}: ${x.nome||'—'} · ${x.tipo||'—'} · ${x.lat&&x.lng?(+x.lat).toFixed(6)+', '+(+x.lng).toFixed(6):'sem coordenada'}`));
+  else reItens(o,v).filter(i=>RE_CX_COD.includes(i.cod)).forEach(i=>L.push(`${i.cod} ${(rpLpuIt(i.cod).desc||'')} × ${i.qtd}`));L.push('Técnico: '+reOrigTec(o,v));return L.join('\n')}
+Object.assign(ACT,{regRecarr:()=>{REG.err='';regCarregar(true)},reGeoF:el=>{ui.reGeoF=el.dataset.v;render()},
+  geoCopia:async el=>{const it=geoIt(el.dataset.id);if(!it)return;try{await navigator.clipboard.writeText(regGeoTexto(it));toast('Dados copiados.')}catch(e){openModal(`<h3>Dados para o GeoGrid</h3><textarea class="inp" rows="8">${esc(regGeoTexto(it))}</textarea><div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)}},
+  geoVal:el=>{const it=geoIt(el.dataset.id);if(!it||!geoVal())return semPerm();openModal(`<h3>Validar o cadastro</h3><p class="muted">${reOrigTit(it.o,it.v)} · ${reOrigLoc(it.o,it.v)}</p><p>Confira as caixas novas, as coordenadas e as fotos antes de liberar para o analista cadastrar no GeoGrid.</p>
+    <label class="fld"><span>Observação para o analista</span><textarea class="inp" id="geoObs" rows="3"></textarea></label><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="geoValOk" data-id="${it.id}">Validar</button></div>`)},
+  geoValOk:async el=>{const it=geoIt(el.dataset.id),r=it.r||{id:it.id,tipo:'geo',origem:it.o,ref:it.v.id,hist:[],evid:[]};r.status='val';r.val={por:meNome(),em:Date.now(),obs:$('geoObs').value.trim()};regH(r,'Validado',r.val.obs);closeModal();await regSalvar(r,'Validado. Vai para o analista cadastrar.');render()},
+  geoCad:el=>{const it=geoIt(el.dataset.id);if(!it||!geoCad())return semPerm();ui.geoEv=[];const mais=el.dataset.mais==='1';
+    openModal(`<h3>${mais?'Incluir evidência':'Cadastrado no GeoGrid'}</h3><p class="muted">${reOrigTit(it.o,it.v)} · ${reOrigLoc(it.o,it.v)}</p>${it.r&&it.r.val&&it.r.val.obs?`<div class="rpbox">Observação da validação: ${esc(it.r.val.obs)}</div>`:''}
+     <label class="fld"><span>Observação</span><textarea class="inp" id="geoCObs" rows="3" placeholder="Ex.: CEO cadastrada no poste 34; cole aqui um print com Ctrl+V"></textarea></label>
+     <div class="tools"><label class="btn sm">Arquivo ou foto<input type="file" multiple accept="image/*,application/pdf" data-ch="geoEvArq" hidden></label><label class="btn sm">Câmera<input type="file" accept="image/*" capture="environment" data-ch="geoEvArq" hidden></label></div><div id="geoEvL" class="muted">Nenhuma evidência anexada.</div>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="geoCadOk" data-id="${it.id}" data-mais="${mais?1:0}">${mais?'Incluir':'Confirmar cadastro'}</button></div>`);
+    setTimeout(()=>{const t=$('geoCObs');if(t)t.addEventListener('paste',e=>{const F=[...(e.clipboardData&&e.clipboardData.files||[])].filter(f=>/^image\//.test(f.type));if(F.length){e.preventDefault();F.forEach(f=>ui.geoEv.push(new File([f],'print-'+Date.now()+'.png',{type:f.type})));geoEvL()}})},50)},
+  geoCadOk:async el=>{const it=geoIt(el.dataset.id),r=it.r||{id:it.id,tipo:'geo',origem:it.o,ref:it.v.id,hist:[],evid:[]},mais=el.dataset.mais==='1',obs=$('geoCObs').value.trim();if(mais&&!ui.geoEv.length&&!obs){toast('Anexe uma evidência ou escreva a observação.','bad');return}
+    toast('Salvando…');r.evid=r.evid||[];for(const f of ui.geoEv||[]){if(f.size>10*1024*1024){toast(`${f.name}: maior que 10 MB.`,'bad');continue}try{r.evid.push({path:await regUp(r.id,f),nome:f.name,por:meNome(),em:Date.now()})}catch(e){toast('Evidência não enviada: '+(e.message||e),'bad')}}
+    if(!mais){r.status='cad';r.cad={por:meNome(),em:Date.now(),obs}}regH(r,mais?'Evidência incluída':'Cadastrado no GeoGrid',obs+(ui.geoEv.length?` (${ui.geoEv.length} evidência(s))`:''));closeModal();await regSalvar(r,mais?'Evidência incluída.':'Cadastro registrado.');render()}});
+const geoEvL=()=>{const el=$('geoEvL');if(el)el.innerHTML=(ui.geoEv||[]).length?ui.geoEv.map(f=>esc(f.name)).join(' · '):'Nenhuma evidência anexada.'};
+Object.assign(CH,{geoEvArq:el=>{ui.geoEv=(ui.geoEv||[]).concat([...el.files]);el.value='';geoEvL()}});
+/* ===================== FISCALIZAÇÃO ===================== */
+const FZ_IT=[['cx','Caixa de emenda',[['cx_fix','Caixa fixada no padrão (altura, posição no poste/vão)'],['cx_res','Reserva técnica (fiberloop) no padrão'],['cx_ved','Caixa vedada e bem fechada'],['cx_id','Identificação/plaqueta na caixa'],['cx_org','Organização das fusões e da bandeja']]],
+  ['lanc','Lançamento',[['la_esp','Cabo espinado/fixado na cordoalha em todo o lance'],['la_anc','Ancoragens e encabeçamentos no padrão'],['la_plq','Plaquetas de identificação nos postes'],['la_alt','Altura e afastamento da rede elétrica respeitados'],['la_dan','Cabo sem danos ou dobras'],['la_sob','Sobras no padrão e cabo retirado do local']]],
+  ['ger','Geral',[['ge_lim','Local limpo, sem material abandonado'],['ge_seg','Serviço conforme o relatório e a LPU']]]];
+const FZ_RES={conf:['Conforme','ok'],ress:['Conforme com ressalvas','warn'],nconf:['Não conforme','bad']};
+function fzFila(){const lim=addD(hoje(),-60),L=[];G.ch.filter(c=>reDe(c)&&c.ts&&c.ts.rfo&&c.desfecho!=='Improdutivo'&&c.status!=='cancelado'&&isoD(new Date(c.ts.rfo))>=lim).forEach(c=>L.push({o:'ch',v:c}));
+  if(typeof RP!=='undefined'&&RP.rows)rpProgs().filter(x=>['prev','mel','ret'].includes(x.tipo)&&x.status==='concl'&&String(reOrigData('rp',x))>=lim).forEach(x=>L.push({o:'rp',v:x}));
+  return L.filter(reLadoO).map(it=>{const id='fisc:'+it.o+':'+it.v.id,r=regGet(id);return Object.assign(it,{id,r,cx:reTemCx(it.o,it.v),la:reTemLanc(it.o,it.v),dt:reOrigData(it.o,it.v)})})
+   .sort((a,b)=>(!!a.r-!!b.r)||((b.cx+b.la)-(a.cx+a.la))||String(b.dt).localeCompare(String(a.dt)))}
+function viewReFisc(){const e=regEstado(),F=ui.reFzF||(ui.reFzF='fila');const top=`<div class="secth rpth"><div><h2>Fiscalização · Rede Externa</h2><p class="muted">Confere se a caixa foi colocada dentro do padrão e se o lançamento está correto, em chamados e programadas concluídos (últimos 60 dias). Caixa nova e lançamento aparecem primeiro.</p></div></div>`;
+  if(e)return `<section class="panel">${top}${e}</section>`;const L=fzFila(),fl=L.filter(x=>!x.r),fe=REG.rows.filter(r=>r.tipo==='fisc');
+  const pd=fe.filter(r=>r.res!=='conf'),chips=[['fila','A fiscalizar',fl.length],['pend','Com pendência',pd.length],['conf','Conformes',fe.filter(r=>r.res==='conf').length],['all','Fiscalizadas',fe.length]];
+  const V=F==='fila'?fl:fe.filter(r=>F==='all'||(F==='pend'?r.res!=='conf':r.res===F)).sort((a,b)=>F==='pend'?((a.prazo?1:0)-(b.prazo?1:0)||String(a.prazo||'').localeCompare(String(b.prazo||''))):(b.fz||{}).em-(a.fz||{}).em).map(r=>({o:r.origem,v:reOrig(r.origem,r.ref),r,id:r.id}));
+  return `<section class="panel">${top}<div class="gdf rpchips">${chips.map(([k,n,c])=>`<button data-act="reFzF" data-v="${k}" aria-pressed="${F===k}">${n} · ${c}</button>`).join('')}</div>
+   <div class="tablewrap"><table class="ciatab fztab"><thead><tr><th>Serviço</th><th>Local</th><th>Técnico</th><th>Data</th><th>O que conferir</th><th>${F==='fila'?'':'Resultado'}</th>${F==='fila'?'':'<th>Prazo</th>'}<th></th></tr></thead><tbody>
+   ${V.map(it=>{const{o,v,r}=it,cx=it.cx!=null?it.cx:v&&reTemCx(o,v),la=it.la!=null?it.la:v&&reTemLanc(o,v);return `<tr><td><b>${reOrigTit(o,v)}</b></td><td>${reOrigLoc(o,v)}</td><td>${esc(reOrigTec(o,v))}</td><td class="nw">${v?dBR(reOrigData(o,v)):''}</td>
+     <td>${cx?'<span class="chip info">caixa nova</span> ':''}${la?'<span class="chip info">lançamento</span>':''}${!cx&&!la?'<span class="muted">geral</span>':''}</td><td>${r?`<span class="chip ${FZ_RES[r.res][1]}">${FZ_RES[r.res][0]}</span><br><small class="muted">${esc((r.fz||{}).por||'')} · ${rpDH((r.fz||{}).em)}${r.nPend?` · ${r.nPend} pendência(s)`:''}</small>`:''}</td>${F==='fila'?'':`<td class="nw">${r&&r.res!=='conf'?fzPrz(r):'<span class="muted">—</span>'}</td>`}
+     <td><div class="ciaac">${r?`<button class="btn sm" data-act="fzVer" data-id="${r.id}">Ver</button><button class="btn sm" data-act="fzPdf" data-id="${r.id}">Relatório</button>${fzBtns(r)}${fiscPode()?`<button class="btn sm" data-act="fzAbre" data-id="${r.id}">Refazer</button>`:''}`:fiscPode()?`<button class="btn sm primary" data-act="fzAbre" data-id="${it.id}">Fiscalizar</button>`:''}${o==='ch'&&v&&v.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(typeof v.rfoPdf==='string'?v.rfoPdf:v.rfoPdf.path||'')}">Relatório</button>`:''}${o==='rp'&&v?`<button class="btn sm" data-act="rpAbrir" data-id="${v.id}">Detalhes</button>`:''}</div></td></tr>`}).join('')||`<tr><td colspan="8" class="muted">Nada aqui.</td></tr>`}</tbody></table></div></section>`}
+function fzForm(){const Z=ui.fz,v=reOrig(Z.o,Z.ref);const grp=FZ_IT.filter(g=>g[0]==='ger'||Z.grp[g[0]]);
+  const sug=fzSug();return `<h3>Fiscalização · ${reOrigTit(Z.o,v)}</h3><p class="muted">${reOrigLoc(Z.o,v)} · ${esc(reOrigTec(Z.o,v))}</p>
+   <div class="fzgr"><label class="chk"><input type="checkbox" data-ch="fzGrp" data-k="cx" ${Z.grp.cx?'checked':''}> Conferir caixa de emenda</label><label class="chk"><input type="checkbox" data-ch="fzGrp" data-k="lanc" ${Z.grp.lanc?'checked':''}> Conferir lançamento</label></div>
+   ${grp.map(([g,gt,L])=>`<h4 class="fzh">${gt}</h4>${L.map(([k,n])=>{const it=Z.it[k]||{};return `<div class="fzi ${it.st==='nc'?'nc':''}"><div class="fzin"><span>${n}</span><div class="fzb">${[['c','Conforme'],['nc','Não conforme'],['na','N/A']].map(([s,l])=>`<button type="button" data-act="fzSt" data-k="${k}" data-s="${s}" aria-pressed="${it.st===s}" class="fz${s}">${l}</button>`).join('')}</div></div>
+     ${it.st==='nc'?`<input class="inp" data-in="fzTxt" data-k="${k}" value="${esc(it.txt||'')}" placeholder="O que está errado *"><div class="fzf">${(it.fotos||[]).map((f,i)=>`<span class="rpthm"><img src="${f.u||''}" alt=""><button data-act="fzFDel" data-k="${k}" data-i="${i}" aria-label="Apagar foto">×</button></span>`).join('')}<label class="btn sm">Câmera<input type="file" accept="image/*" capture="environment" data-ch="fzFoto" data-k="${k}" hidden></label><label class="btn sm">Galeria<input type="file" accept="image/*" multiple data-ch="fzFoto" data-k="${k}" hidden></label></div>`:''}</div>`}).join('')}`).join('')}
+   <label class="fld"><span>Localização do fiscal</span><div class="tools"><button type="button" class="btn sm" data-act="fzGps">Registrar minha localização</button><span class="muted" id="fzGpsT">${Z.gps?`${Z.gps[0].toFixed(6)}, ${Z.gps[1].toFixed(6)} (±${Math.round(Z.gps[2]||0)} m)`:'não registrada'}</span></div></label>
+   <label class="fld"><span>Resultado</span><select class="inp" data-ch="fzRes"><option value="">Sugerido: ${FZ_RES[sug][0]}</option>${Object.entries(FZ_RES).map(([k,[n]])=>`<option value="${k}" ${Z.res===k?'selected':''}>${n}</option>`).join('')}</select></label>
+   <label class="fld"><span>Observações</span><textarea class="inp" rows="3" data-in="fzObs">${esc(Z.obs||'')}</textarea></label>
+   <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="fzSalva">Salvar fiscalização</button></div>`}
+function fzSug(){const Z=ui.fz,ks=FZ_IT.filter(g=>g[0]==='ger'||Z.grp[g[0]]).flatMap(g=>g[2].map(x=>x[0])),nc=ks.filter(k=>(Z.it[k]||{}).st==='nc');return !nc.length?'conf':nc.some(k=>/^(cx_fix|cx_ved|la_esp|la_alt|la_dan)$/.test(k))?'nconf':'ress'}
+const fzRe=()=>{const m=$('modal');if(m&&m.classList.contains('open')){const sh=m.querySelector('.sheetm'),y=sh?sh.scrollTop:0;if(sh){sh.innerHTML=fzForm();sh.scrollTop=y}}};
+Object.assign(ACT,{reFzF:el=>{ui.reFzF=el.dataset.v;render()},
+  fzAbre:el=>{if(!fiscPode())return semPerm();const id=el.dataset.id,[,o,ref]=id.split(':'),v=reOrig(o,ref),r=regGet(id);if(!v){toast('Serviço não encontrado.','bad');return}
+    ui.fz=r?{id,o,ref,grp:Object.assign({},r.grp),it:JSON.parse(JSON.stringify(r.it||{})),res:r.res,obs:r.obs||'',gps:r.gps||null}:{id,o,ref,grp:{cx:reTemCx(o,v),lanc:reTemLanc(o,v)},it:{},res:'',obs:'',gps:null};
+    Object.values(ui.fz.it).forEach(it=>(it.fotos||[]).forEach(f=>{if(!f.u&&f.path)vpFoto(f.path).then(d=>{f.u=d;fzRe()})}));openModal(fzForm(),'wide')},
+  fzSt:el=>{const it=ui.fz.it[el.dataset.k]=ui.fz.it[el.dataset.k]||{};it.st=it.st===el.dataset.s?'':el.dataset.s;fzRe()},
+  fzFDel:el=>{ui.fz.it[el.dataset.k].fotos.splice(+el.dataset.i,1);fzRe()},
+  fzGps:()=>{if(!navigator.geolocation){toast('Localização indisponível neste aparelho.','bad');return}navigator.geolocation.getCurrentPosition(p=>{ui.fz.gps=[p.coords.latitude,p.coords.longitude,p.coords.accuracy];fzRe()},()=>toast('Não consegui a localização.','bad'),{enableHighAccuracy:true,timeout:12000})},
+  fzSalva:async()=>{const Z=ui.fz,ks=FZ_IT.filter(g=>g[0]==='ger'||Z.grp[g[0]]).flatMap(g=>g[2]),falta=ks.filter(([k])=>!(Z.it[k]||{}).st),semTxt=ks.filter(([k])=>(Z.it[k]||{}).st==='nc'&&!String(Z.it[k].txt||'').trim());
+    if(falta.length){toast(`Falta marcar ${falta.length} item(ns): ${falta[0][1]}${falta.length>1?'…':''}`,'bad');return}if(semTxt.length){toast('Escreva o que está errado em: '+semTxt[0][1],'bad');return}
+    const r=regGet(Z.id)||{id:Z.id,tipo:'fisc',origem:Z.o,ref:Z.ref,hist:[]};toast('Salvando a fiscalização…');
+    for(const it of Object.values(Z.it))for(const f of it.fotos||[])if(!f.path&&f.u){try{const b=await (await fetch(f.u)).blob();f.path=await regUp(r.id,new File([b],'foto.jpg',{type:'image/jpeg'}))}catch(e){toast('Foto não enviada: '+(e.message||e),'bad');return}}
+    const it={};Object.entries(Z.it).forEach(([k,x])=>{it[k]={st:x.st,txt:x.txt||'',fotos:(x.fotos||[]).map(f=>({path:f.path}))}});
+    Object.assign(r,{grp:Z.grp,it,res:Z.res||fzSug(),obs:Z.obs,gps:Z.gps,nPend:Object.values(it).filter(x=>x.st==='nc').length,fz:{por:meNome(),em:Date.now()},status:'feita'});regH(r,(r.hist.length?'Refeita':'Fiscalizada')+': '+FZ_RES[r.res][0]);
+    closeModal();ui.fz=null;await regSalvar(r,'Fiscalização salva.');render()},
+  fzVer:el=>{const r=regGet(el.dataset.id),v=reOrig(r.origem,r.ref),L=FZ_IT.filter(g=>g[0]==='ger'||(r.grp||{})[g[0]]);
+    openModal(`<h3>Fiscalização · ${reOrigTit(r.origem,v)}</h3><p class="muted">${reOrigLoc(r.origem,v)} · fiscalizada por ${esc(r.fz.por)} em ${rpDH(r.fz.em)}</p><p><span class="chip ${FZ_RES[r.res][1]}">${FZ_RES[r.res][0]}</span>${r.nPend?` · ${r.nPend} pendência(s)`:''}</p>
+     ${L.map(([g,gt,I])=>`<h4 class="fzh">${gt}</h4>${I.map(([k,n])=>{const x=(r.it||{})[k]||{};return `<div class="fzi ${x.st==='nc'?'nc':''}"><div class="fzin"><span>${n}</span><b>${({c:'Conforme',nc:'Não conforme',na:'N/A'})[x.st]||'—'}</b></div>${x.txt?`<small>${esc(x.txt)}</small>`:''}${(x.fotos||[]).map((f,i)=>`<button class="btn sm" data-act="relVer" data-p="${esc(f.path)}">Foto ${i+1}</button>`).join(' ')}</div>`}).join('')}`).join('')}
+     ${r.obs?`<p><b>Observações:</b> ${esc(r.obs)}</p>`:''}${r.res!=='conf'?`<p><b>Prazo de correção:</b> ${r.prazo?dBR(r.prazo)+(r.prazoPor?' (definido por '+esc(r.prazoPor)+')':''):'a definir pela gestão'}</p>`:''}<div class="actions"><button class="btn" data-act="close">Fechar</button>${fzBtns(r)}<button class="btn primary" data-act="fzPdf" data-id="${r.id}">Relatório (PDF)</button></div>`,'wide')},
+  fzPdf:async el=>{const r=regGet(el.dataset.id);toast('Gerando o relatório…');try{const b=await fzPdfGera(r);(typeof baixaArq==='function'?baixaArq:rpBaixa)(b,`fiscalizacao-${r.origem==='ch'?'OM'+((reOrig('ch',r.ref)||{}).pom||''):((reOrig('rp',r.ref)||{}).cod||'')}-${hoje()}.pdf`)}catch(e){toast('Não foi possível gerar o PDF: '+(e.message||e),'bad')}}});
+Object.assign(CH,{fzGrp:el=>{ui.fz.grp[el.dataset.k]=el.checked;fzRe()},fzRes:el=>{ui.fz.res=el.value},
+  fzFoto:async el=>{const k=el.dataset.k,fs=[...el.files];el.value='';const it=ui.fz.it[k];for(const f of fs){try{(it.fotos=it.fotos||[]).push({u:await reduzirFoto(f,{etq:'FISC',cam:el.hasAttribute('capture')})})}catch(e){toast('Não consegui ler a foto.','bad')}}fzRe()}});
+Object.assign(IN,{fzTxt:el=>{ui.fz.it[el.dataset.k].txt=el.value},fzObs:el=>{ui.fz.obs=el.value}});
+async function fzPdfGera(r){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m=14,W=210,H=297,v=reOrig(r.origem,r.ref),VERDE=[140,191,63],LINE=[212,221,216];let y=18;
+  doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(40);doc.text('Relatório de fiscalização · Rede Externa',m,y);doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(120);doc.text(rpDH(r.fz.em),W-m,y,{align:'right'});doc.setDrawColor(...VERDE);doc.setLineWidth(.8);doc.line(m,y+3,W-m,y+3);
+  const lb=s=>({content:s,styles:{fontStyle:'bold',fillColor:[244,249,236],textColor:[90,100,95]}}),tx=h=>String(h||'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+  doc.autoTable({startY:y+7,theme:'grid',styles:{fontSize:8.5,cellPadding:2,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},columnStyles:{0:{cellWidth:30},2:{cellWidth:30}},
+    body:[[lb('Serviço'),tx(reOrigTit(r.origem,v)),lb('Data do serviço'),v?dBR(reOrigData(r.origem,v)):''],[lb('Local'),tx(reOrigLoc(r.origem,v)),lb('Técnico'),reOrigTec(r.origem,v)],[lb('Fiscal'),r.fz.por,lb('Localização'),r.gps?`${r.gps[0].toFixed(6)}, ${r.gps[1].toFixed(6)}`:'—']]});
+  y=doc.lastAutoTable.finalY+5;const fx=r.res==='conf'?[[238,246,226],[79,122,18]]:r.res==='nconf'?[[253,233,231],[160,32,32]]:[[255,243,220],[138,90,0]];doc.setFillColor(...fx[0]);doc.roundedRect(m,y,W-2*m,13,2,2,'F');doc.setFont('helvetica','bold');doc.setFontSize(12.5);doc.setTextColor(...fx[1]);doc.text(FZ_RES[r.res][0].toUpperCase(),m+4,y+8.5);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(`${r.nPend||0} pendência(s)`,W-m-4,y+8.5,{align:'right'});y+=18;
+  const body=[];FZ_IT.filter(g=>g[0]==='ger'||(r.grp||{})[g[0]]).forEach(([g,gt,I])=>{body.push([{content:gt,colSpan:3,styles:{fontStyle:'bold',fillColor:[244,249,236]}}]);I.forEach(([k,n])=>{const x=(r.it||{})[k]||{};body.push([n,({c:'Conforme',nc:'Não conforme',na:'N/A'})[x.st]||'—',x.txt||''])})});
+  doc.autoTable({startY:y,theme:'grid',head:[['Item','Situação','Observação']],headStyles:{fillColor:VERDE,textColor:[19,32,24],fontSize:9},styles:{fontSize:8.5,cellPadding:2,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},columnStyles:{0:{cellWidth:80},1:{cellWidth:28}},body,
+    didParseCell:d=>{if(d.section==='body'&&d.column.index===1&&d.cell.raw==='Não conforme'){d.cell.styles.textColor=[179,38,30];d.cell.styles.fontStyle='bold'}}});y=doc.lastAutoTable.finalY+7;
+  const F=[];for(const[k,x]of Object.entries(r.it||{}))for(const f of x.fotos||[]){const d=await vpFoto(f.path);if(d)F.push({d,t:(FZ_IT.flatMap(g=>g[2]).find(i=>i[0]===k)||[,k])[1]})}
+  if(F.length){const fw=(W-2*m-6)/2,fh=fw*.72;if(y+fh+14>H-16){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Fotos das não conformidades',m,y);y+=4;
+    F.forEach((f,i)=>{const col=i%2;if(col===0&&y+fh+10>H-16){doc.addPage();y=18}const xx=m+col*(fw+6);try{const pr=doc.getImageProperties(f.d),q=Math.min(fw/pr.width,fh/pr.height);doc.addImage(f.d,'JPEG',xx+(fw-pr.width*q)/2,y+(fh-pr.height*q)/2,pr.width*q,pr.height*q)}catch(e){}doc.setDrawColor(...LINE);doc.rect(xx,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(`Foto ${i+1} · ${f.t}`,xx,y+fh+4,{maxWidth:fw});if(col===1||i===F.length-1)y+=fh+10})}
+  if(r.obs){if(y>H-40){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Observações',m,y);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(60);const t=doc.splitTextToSize(r.obs,W-2*m);doc.text(t,m,y+5);y+=t.length*4+8}
+  if(y+30>H-14){doc.addPage();y=24}y=Math.max(y+10,H-50);doc.setDrawColor(60);doc.setLineWidth(.3);doc.line(m+40,y+12,W-m-40,y+12);doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text(r.fz.por,W/2,y+17,{align:'center'});doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(110);doc.text(`Fiscal · ${rpDH(r.fz.em)}`,W/2,y+22,{align:'center'});
+  const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7.5);doc.setTextColor(150);doc.text('Net Turbo Telecom · fiscalização da Rede Externa',m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}return doc.output('blob')}
+/* ===================== abas no menu (área Rede Externa) ===================== */
+GTD_T.push('reGeo','reFisc');Object.assign(RP_TL,{reGeo:'Cadastro GeoGrid',reFisc:'Fiscalização'});Object.assign(NAV_TC,{reGeo:'GeoGrid',reFisc:'Fiscal.'});
+Object.assign(ICT,{reGeo:'M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12zM12 6.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5z',reFisc:'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9'});
+Object.assign(RP_VIEWS,{reGeo:viewReGeo,reFisc:viewReFisc});
+{const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments).filter(t=>t!=='reGeo'&&t!=='reFisc');if(!reVeTab())return T;const A=[];if(geoVal()||geoCad())A.push('reGeo');if(fiscPode())A.push('reFisc');return T.concat(A)}}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.regl{display:flex;flex-direction:column;gap:12px;margin-top:12px}.regc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.regh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.regcx{display:flex;flex-direction:column;gap:4px;border-left:4px solid #8cbf3f;padding:6px 10px;background:var(--bg,#f5f7f2);border-radius:6px}
+.regev{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.reghist{font-size:13px;color:var(--muted)}.reghist div{padding:2px 0}
+.fztab td:nth-child(1){min-width:170px}.fztab td:nth-child(2){min-width:150px}.fzgr{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0}.fzh{margin:14px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.fzi{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px;display:flex;flex-direction:column;gap:6px}.fzi.nc{border-color:#e7a29b;background:#fdf1ef}
+.fzin{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.fzb{display:flex;gap:4px}.fzb button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 9px;font:inherit;font-size:13px;cursor:pointer}
+.fzb button.fzc[aria-pressed=true]{background:#e6f3d4;border-color:#8cbf3f;font-weight:700}.fzb button.fznc[aria-pressed=true]{background:#f9d9d5;border-color:#c0392b;font-weight:700}.fzb button.fzna[aria-pressed=true]{background:#e5e7eb;border-color:#6b7280;font-weight:700}
+.fzf{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.fzf img{width:70px;height:70px;object-fit:cover;border-radius:6px}
+</style>`);
+
+/* ---- 08/11: prazo de correção pela gestão e pedido de correção (como na vistoria de lançamento da Implantação) ----
+   Fiscalização com ressalvas ou não conforme entra em "Com pendência" como "Prazo a definir". Quem define o prazo é a
+   gestão (coordenação, supervisão, encarregado). Com o prazo, sai o Pedido de correção em PDF: itens não conformes com as
+   fotos, "Corrigir até", sem o nome do fiscal, assinado por quem baixou (nome, função, data e hora); cada download fica
+   registrado. Refazer a fiscalização (revisita) mantém o histórico. */
+const fzGestao=()=>ui.perfil==='coord'||pode(reLk()+'_a_fzPrazo');
+const fzDz=r=>r.prazo?Math.round((new Date(r.prazo+'T12:00:00')-new Date(hoje()+'T12:00:00'))/864e5):null;
+const fzPrz=r=>{if(!r.prazo)return `<b class="vpad">Prazo a definir</b><small class="muted" style="display:block">a gestão define a data</small>`;const d=fzDz(r);
+  return `${dBR(r.prazo)}<small class="${d<0?'v19venc':'muted'}" style="display:block">${d<0?`vencido há ${-d} ${-d===1?'dia':'dias'}`:d===0?'vence hoje':`faltam ${d} ${d===1?'dia':'dias'}`}</small>${r.prazoPor?`<small class="muted" style="display:block">definido por ${esc(r.prazoPor)}</small>`:''}`};
+const fzBtns=r=>r&&r.res!=='conf'&&fzGestao()?`<button class="btn sm${r.prazo?'':' primary'}" data-act="fzPrazo" data-id="${r.id}">${r.prazo?'Alterar prazo':'Definir prazo'}</button><button class="btn sm" data-act="fzPed" data-id="${r.id}">Pedido de correção (PDF)</button>`:'';
+Object.assign(ACT,{
+  fzPrazo:el=>{if(!fzGestao())return semPerm();const r=regGet(el.dataset.id),v=reOrig(r.origem,r.ref),q=n=>`<button type="button" class="btn sm" data-act="fzQ" data-n="${n}">${n} dias</button>`;
+    openModal(`<h3>${r.prazo?'Alterar o prazo de correção':'Definir o prazo de correção'}</h3><p class="muted">${reOrigTit(r.origem,v)} · fiscalizada em ${dBR(isoD(new Date(r.fz.em)))} · <b>${FZ_RES[r.res][0]}</b>, ${r.nPend||0} pendência(s).</p>
+     <label class="f" style="margin-top:10px"><span>Corrigir até *</span><input type="date" class="inp" id="fzData" min="${hoje()}" value="${esc(r.prazo||'')}"></label>
+     <div class="tools" style="margin:0 0 6px">${q(5)}${q(10)}${q(15)}${q(30)}</div><p class="muted" style="font-size:13.5px">O prazo sai no Pedido de correção e na lista Com pendência. Fica gravado com seu nome.</p>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="fzPrazoOk" data-id="${r.id}">Salvar prazo</button></div>`)},
+  fzQ:el=>{const i=$('fzData');if(i)i.value=addD(hoje(),+el.dataset.n)},
+  fzPrazoOk:async el=>{if(!fzGestao())return semPerm();const r=regGet(el.dataset.id),d=($('fzData')||{}).value||'';if(!d){toast('Escolha a data-limite.','bad');return}if(d<hoje()){toast('A data-limite não pode ser no passado.','bad');return}
+    (r.prazoHist=r.prazoHist||[]).push({de:r.prazo||null,para:d,por:meNome(),em:Date.now()});r.prazo=d;r.prazoPor=meNome();r.prazoEm=Date.now();regH(r,'Prazo de correção: até '+dBR(d));closeModal();await regSalvar(r,`Prazo de correção: até ${dBR(d)}.`);render()},
+  fzPed:async el=>{if(!fzGestao())return semPerm();const r=regGet(el.dataset.id);if(!r.prazo){toast('Defina o prazo de correção antes de baixar o pedido.','bad');return ACT.fzPrazo(el)}
+    toast('Gerando o pedido de correção…');try{const b=await fzPedGera(r),v=reOrig(r.origem,r.ref),nm=`pedido-correcao-fiscalizacao-${r.origem==='ch'?'OM'+((v||{}).pom||''):((v||{}).cod||'')}-${hoje()}.pdf`;
+      (r.pedidos=r.pedidos||[]).push({por:meNome(),funcao:typeof vpFunc==='function'?vpFunc():'Gestão',em:Date.now()});regH(r,'Pedido de correção baixado');await regSalvar(r);(typeof baixaArq==='function'?baixaArq:rpBaixa)(b,nm)}catch(e){toast('Não foi possível gerar o PDF: '+((e&&e.message)||e),'bad')}}});
+async function fzPedGera(r){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m=14,W=210,H=297,v=reOrig(r.origem,r.ref),agora=new Date(),quem=meNome(),fun=typeof vpFunc==='function'?vpFunc():'Gestão',VERDE=[140,191,63],LAB=[244,249,236],LINE=[212,221,216];let y=18;
+  const tx=h=>String(h||'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+  doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(40);doc.text('Pedido de correção',m,y);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(110);doc.text('Fiscalização da Rede Externa · Net Turbo Telecom',m,y+5.5);doc.text(`emitido em ${agora.toLocaleDateString('pt-BR')}`,W-m,y,{align:'right'});
+  doc.setDrawColor(...VERDE);doc.setLineWidth(.8);doc.line(m,y+8.5,W-m,y+8.5);y+=13;const lb=s=>({content:s,styles:{fontStyle:'bold',fillColor:LAB,textColor:[90,100,95]}});
+  doc.autoTable({startY:y,theme:'grid',styles:{fontSize:9,cellPadding:2.2,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},columnStyles:{0:{cellWidth:34},2:{cellWidth:34}},
+    body:[[lb('Serviço'),tx(reOrigTit(r.origem,v)),lb('Data do serviço'),v?dBR(reOrigData(r.origem,v)):''],[lb('Local'),tx(reOrigLoc(r.origem,v)),lb('Executado por'),reOrigTec(r.origem,v)],[lb('Fiscalização'),`${dBR(isoD(new Date(r.fz.em)))} · ${FZ_RES[r.res][0]}`,lb('Pendências'),String(r.nPend||0)]]});
+  y=doc.lastAutoTable.finalY+6;doc.setFillColor(255,243,220);doc.setDrawColor(230,190,110);doc.setLineWidth(.3);doc.roundedRect(m,y,W-2*m,16,2,2,'FD');doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(138,90,0);doc.text(`Corrigir até ${dBR(r.prazo)}`,m+4,y+7);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('Corrija os itens abaixo dentro do prazo e avise a Net Turbo. Depois da correção é feita nova fiscalização.',m+4,y+12.5,{maxWidth:W-2*m-8});y+=22;
+  const NC=FZ_IT.flatMap(([g,gt,I])=>I.map(([k,n])=>({k,n,gt}))).filter(i=>((r.it||{})[i.k]||{}).st==='nc');
+  doc.autoTable({startY:y,theme:'grid',head:[['#','Grupo','Item','O que corrigir']],headStyles:{fillColor:VERDE,textColor:[19,32,24],fontSize:9},styles:{fontSize:9,cellPadding:2.2,lineColor:LINE,lineWidth:.3,textColor:40,valign:'top'},margin:{left:m,right:m},columnStyles:{0:{cellWidth:8},1:{cellWidth:30},2:{cellWidth:62}},
+    body:NC.map((i,k)=>[String(k+1),i.gt,i.n,r.it[i.k].txt||'—'])});y=doc.lastAutoTable.finalY+7;
+  const F=[];for(const[k0,i]of NC.entries())for(const f of r.it[i.k].fotos||[]){const d=await vpFoto(f.path);if(d)F.push({d,t:`${k0+1}. ${i.n}`})}
+  if(F.length){const fw=(W-2*m-6)/2,fh=fw*.72;if(y+fh+14>H-40){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Fotos das pendências',m,y);y+=4;
+    F.forEach((f,i)=>{const col=i%2;if(col===0&&y+fh+10>H-40){doc.addPage();y=18}const xx=m+col*(fw+6);try{const pr=doc.getImageProperties(f.d),q=Math.min(fw/pr.width,fh/pr.height);doc.addImage(f.d,'JPEG',xx+(fw-pr.width*q)/2,y+(fh-pr.height*q)/2,pr.width*q,pr.height*q)}catch(e){}doc.setDrawColor(...LINE);doc.rect(xx,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90);doc.text(f.t,xx,y+fh+4,{maxWidth:fw});if(col===1||i===F.length-1)y+=fh+9})}
+  if(y+38>H-14){doc.addPage();y=24}y=Math.max(y+8,H-62);doc.setDrawColor(60);doc.setLineWidth(.3);doc.line(m+30,y+14,W-m-30,y+14);doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text(quem,W/2,y+19,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90);doc.text(`${fun} · Net Turbo Telecom`,W/2,y+24,{align:'center'});doc.text(`Documento emitido e baixado por ${quem} em ${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`,W/2,y+29,{align:'center'});
+  const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7.5);doc.setTextColor(150);doc.text('Pedido de correção · fiscalização da Rede Externa',m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}return doc.output('blob')}
+
+/* ---------- 08/11: Baixa do plantão (GTD e Rede Externa) ----------
+   A gestão encaminha o plantão (técnico, período, observação) pelo menu Plantões da área. O técnico vê o plantão na
+   lista dele e dá a baixa pelo item SEV0077 (Mão de obra disponível, por hora): horas no comum e horas no crítico,
+   acionamentos e assinatura (nome e declaração). A gestão aprova, devolve para ajuste ou reprova e baixa o PDF.
+   O plantão aprovado de terceiro entra no budget da área no mês da aprovação (GTD 3.1.1.2.05.0006, Rede Externa
+   3.1.1.2.05.0008); equipe própria (CLT) fica só como referência. Registros em ag_plantao (ajuste 57). */
+const PLT={rows:[],ok:false,bus:false,err:''};
+const PL_ST={env:['Aguardando a baixa do técnico','warn'],ajuste:['Devolvido para ajuste','warn'],baixa:['Baixa enviada · aprovar','info'],apr:['Aprovado','ok'],rep:['Reprovado','bad'],canc:['Cancelado','']};
+const PL_AREA={gtd:'GTD',re:'Rede Externa'};
+const plIt=()=>rpLpuIt('SEV0077');
+const plUC=()=>+plIt().valor||0,plUK=()=>+(plIt().valorCritico||plIt().valor)||0;
+const plDe=r=>Object.assign({},r.dados||{},{id:r.id,area:r.area,tec:r.tecnico,ini:r.ini,fim:r.fim,status:r.status,em:r.atualizado_em,criado:r.criado_em});
+const plRow=x=>{const d=Object.assign({},x);['id','area','tec','ini','fim','status','em','criado'].forEach(k=>delete d[k]);return{id:x.id,area:x.area,tecnico:x.tec,ini:x.ini,fim:x.fim,status:x.status,dados:d,atualizado_em:new Date().toISOString()}};
+async function plCarregar(f){if(PLT.bus||(PLT.ok&&!f))return;PLT.bus=true;try{const r=await sb.from('ag_plantao').select('*');if(r.error)throw r.error;PLT.rows=(r.data||[]).map(plDe);PLT.ok=true;PLT.err=''}catch(e){PLT.err=(e&&e.message)||String(e)}PLT.bus=false;render()}
+async function plSalvar(x,msg){const i=PLT.rows.findIndex(y=>y.id===x.id);if(i>=0)PLT.rows[i]=x;else PLT.rows.push(x);const r=await sb.from('ag_plantao').upsert(plRow(x));
+  if(r&&r.error){toast('Não foi possível salvar: '+r.error.message+(/ag_plantao|relation|does not exist/i.test(r.error.message)?' (falta rodar o ajuste 57 no banco)':''),'bad');return false}if(msg)toast(msg);return true}
+const plGet=id=>PLT.rows.find(x=>x.id===id);
+const plH=(x,acao,obs)=>{(x.hist=x.hist||[]).push({acao,por:meNome(),em:Date.now(),obs:obs||''})};
+const plTot=b=>b?(+b.hc||0)*plUC()+(+b.hk||0)*plUK():0;
+const plPer=x=>x.ini===x.fim?dBR(x.ini):`${dBR(x.ini).slice(0,5)} a ${dBR(x.fim)}`;
+const plArea=()=>{const a=areaAt&&areaAt();return a==='re'?'re':'gtd'};
+/* 08/11 (fim): na Rede Externa Corretiva, permissões próprias (rc_plant ver, rc_a_plant encaminhar, rc_a_plantApr aprovar) */
+const plRe=()=>plArea()==='re';
+const plGest=()=>ui.perfil==='coord'||(plRe()?pode('rc_plant')||pode('rc_a_plant')||pode('rc_a_plantApr'):pode('a_gDespachar')||pode('a_gAprovar'));
+const plEnc=()=>ui.perfil==='coord'||(plRe()?pode('rc_a_plant'):pode('a_gDespachar')||pode('a_gAprovar'));
+const plAprova=()=>ui.perfil==='coord'||(plRe()?pode('rc_a_plantApr'):pode('a_gAprovar'));
+const plTecs=a=>a==='re'&&typeof rpTecs==='function'?rpTecs():(G.tecs||[]);
+/* ---- gestão ---- */
+function viewGPlant(){const a=plArea();if(!PLT.ok&&!PLT.err)plCarregar();const F=ui.plF||(ui.plF='baixa');
+  const top=`<div class="secth rpth"><div><h2>Plantões · ${PL_AREA[a]}</h2><p class="muted">Encaminhe o plantão para o técnico; ele dá a baixa na ferramenta pelo item SEV0077 (Mão de obra disponível): horas no comum (${brl(plUC())}/h) e no crítico (${brl(plUK())}/h). Aprovado, entra no budget da área no mês da aprovação.</p></div>${plEnc()?'<button class="btn primary" data-act="plNovo">Encaminhar plantão</button>':''}</div>`;
+  if(PLT.err)return `<section class="panel">${top}<div class="rpbox bad">${esc(PLT.err)}${/ag_plantao|relation|does not exist/i.test(PLT.err)?'<br>Falta rodar o ajuste 57 no banco.':''} <button class="btn sm" data-act="plRecarr">Tentar de novo</button></div></section>`;
+  if(!PLT.ok)return `<section class="panel">${top}<p class="muted pad">Carregando…</p></section>`;
+  const L=PLT.rows.filter(x=>x.area===a),cnt=k=>L.filter(x=>k==='all'||(k==='env'?['env','ajuste'].includes(x.status):x.status===k)).length;
+  const chips=[['baixa','Para aprovar'],['env','Aguardando o técnico'],['apr','Aprovados'],['rep','Reprovados'],['all','Todos']];
+  const V=L.filter(x=>F==='all'||(F==='env'?['env','ajuste'].includes(x.status):x.status===F)).sort((p,q)=>String(q.ini).localeCompare(String(p.ini)));
+  return `<section class="panel">${top}<div class="gdf rpchips">${chips.map(([k,n])=>`<button data-act="plF" data-v="${k}" aria-pressed="${F===k}">${n} · ${cnt(k)}</button>`).join('')}</div>
+   <div class="tablewrap"><table class="ciatab"><thead><tr><th>Técnico</th><th>Período</th><th>Situação</th><th class="r">Comum (h)</th><th class="r">Crítico (h)</th><th class="r">Valor</th><th></th></tr></thead><tbody>
+   ${V.map(x=>{const b=x.baixa;return `<tr><td><b>${esc(gTecN(x.tec))}</b>${x.obs?`<br><small class="muted">${esc(x.obs)}</small>`:''}</td><td class="nw">${plPer(x)}</td><td><span class="chip ${PL_ST[x.status][1]}">${PL_ST[x.status][0]}</span>${x.dev?`<br><small class="muted">${esc(x.dev)}</small>`:''}</td>
+     <td class="r">${b?rpFmt(b.hc,1):'—'}</td><td class="r">${b?rpFmt(b.hk,1):'—'}</td><td class="r">${b?brl(plTot(b)):'—'}</td>
+     <td><div class="ciaac">${b?`<button class="btn sm" data-act="plVer" data-id="${x.id}">Ver baixa</button><button class="btn sm" data-act="plPdf" data-id="${x.id}">PDF</button>`:''}${x.status==='baixa'&&plAprova()?`<button class="btn sm primary" data-act="plApr" data-id="${x.id}">Aprovar</button><button class="btn sm" data-act="plDev" data-id="${x.id}" data-t="ajuste">Devolver</button><button class="btn sm" data-act="plDev" data-id="${x.id}" data-t="rep">Reprovar</button>`:''}${['env','ajuste'].includes(x.status)&&plEnc()?`<button class="btn sm" data-act="plCanc" data-id="${x.id}">Cancelar</button>`:''}</div></td></tr>`}).join('')||'<tr><td colspan="7" class="muted">Nada aqui.</td></tr>'}</tbody></table></div></section>`}
+/* ---- técnico ---- */
+function plTecHtml(tid){if(!tid)return '';if(!PLT.ok&&!PLT.err){plCarregar();return ''}const L=PLT.rows.filter(x=>x.tec===tid&&['env','ajuste','baixa'].includes(x.status)).sort((a,b)=>String(a.ini).localeCompare(String(b.ini)));if(!L.length)return '';
+  return `<section class="plcards">${L.map(x=>`<div class="plcard ${x.status==='baixa'?'ok':''}"><div><b>Plantão ${esc(PL_AREA[x.area]||'')} · ${plPer(x)}</b><small>${x.status==='baixa'?`Baixa enviada (${rpFmt(x.baixa.hc,1)} h comum, ${rpFmt(x.baixa.hk,1)} h crítico) · aguardando aprovação`:x.status==='ajuste'?`Devolvido para ajuste: ${esc(x.dev||'')}`:`Encaminhado por ${esc(x.por||'')}${x.obs?' · '+esc(x.obs):''}`}</small></div>
+    ${x.status!=='baixa'?`<button class="bigbtn" data-act="plBaixa" data-id="${x.id}">Dar baixa do plantão</button>`:''}</div>`).join('')}</section>`}
+function plForm(x){const b=x.baixa||{};return `<h3>Baixa do plantão · ${plPer(x)}</h3><p class="muted">${esc(PL_AREA[x.area])} · ${esc(gTecN(x.tec))}${x.obs?' · '+esc(x.obs):''}</p>${x.status==='ajuste'?`<div class="rpbox warn">Devolvido: ${esc(x.dev||'')}</div>`:''}
+  <p class="muted">Item SEV0077 · Mão de obra disponível (por hora). Informe as horas de plantão no <b>comum</b> e no <b>crítico</b>.</p>
+  <div class="rpgrid"><label class="fld"><span>Horas no comum (${brl(plUC())}/h)</span><input type="number" min="0" step="0.5" class="inp" id="plHc" value="${esc(b.hc??'')}" data-in="plCalc"></label>
+   <label class="fld"><span>Horas no crítico (${brl(plUK())}/h)</span><input type="number" min="0" step="0.5" class="inp" id="plHk" value="${esc(b.hk??'')}" data-in="plCalc"></label></div>
+  <p class="pltot">Total: <b id="plTot">${brl(plTot(b))}</b></p>
+  <label class="fld"><span>Acionamentos e observações</span><textarea class="inp" rows="4" id="plObs" placeholder="Ex.: sáb 22h10 chamado OM 1234 em Campinas, voltei 01h30">${esc(b.obs||'')}</textarea></label>
+  <label class="fld"><span>Nome de quem assina *</span><input class="inp" id="plNome" value="${esc(b.nome||ME.nome||'')}"></label>
+  <label class="chk"><input type="checkbox" id="plDecl"> Declaro que fiquei de plantão no período e que as horas informadas são verdadeiras.</label>
+  <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="plBaixaOk" data-id="${x.id}">Enviar a baixa</button></div>`}
+Object.assign(ACT,{plRecarr:()=>{PLT.err='';plCarregar(true)},plF:el=>{ui.plF=el.dataset.v;render()},
+  plNovo:()=>{if(!plEnc())return semPerm();const a=plArea(),T=plTecs(a),sab=(()=>{const d=new Date(),w=d.getDay();d.setDate(d.getDate()+((6-w+7)%7));return isoD(d)})();
+    openModal(`<h3>Encaminhar plantão · ${PL_AREA[a]}</h3><div class="rpgrid"><label class="fld"><span>Início *</span><input type="date" class="inp" id="plIni" value="${sab}"></label><label class="fld"><span>Fim *</span><input type="date" class="inp" id="plFim" value="${addD(sab,1)}"></label></div>
+     <label class="fld"><span>Técnicos *</span></label><div class="pltl">${T.map(t=>`<label class="chk"><input type="checkbox" class="plTec" value="${t.id}"> ${esc(t.nome)}</label>`).join('')||'<p class="muted">Nenhum técnico na área.</p>'}</div>
+     <label class="fld"><span>Observação</span><input class="inp" id="plOb" placeholder="Ex.: plantão do fim de semana · base Valinhos"></label>
+     <p class="muted">Cada técnico recebe o plantão na lista dele para dar a baixa.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="plNovoOk">Encaminhar</button></div>`,'wide')},
+  plNovoOk:async()=>{const a=plArea(),ini=$('plIni').value,fim=$('plFim').value,T=[...document.querySelectorAll('.plTec:checked')].map(i=>i.value),obs=$('plOb').value.trim();
+    if(!ini||!fim||fim<ini){toast('Confira o início e o fim.','bad');return}if(!T.length){toast('Escolha pelo menos um técnico.','bad');return}closeModal();let n=0;
+    for(const t of T){const x={id:uid(),area:a,tec:t,ini,fim,status:'env',obs,por:meNome(),hist:[]};plH(x,'Plantão encaminhado',obs);if(await plSalvar(x))n++}toast(`${n} plantão(ões) encaminhado(s).`);render()},
+  plBaixa:el=>{const x=plGet(el.dataset.id);if(!x)return;openModal(plForm(x))},
+  plBaixaOk:async el=>{const x=plGet(el.dataset.id),hc=rpN($('plHc').value),hk=rpN($('plHk').value),nome=$('plNome').value.trim();if(!(hc+hk>0)){toast('Informe as horas no comum e/ou no crítico.','bad');return}if(!nome){toast('Informe o nome de quem assina.','bad');return}if(!$('plDecl').checked){toast('Marque a declaração para enviar.','bad');return}
+    x.baixa={hc,hk,obs:$('plObs').value.trim(),nome,em:Date.now(),uc:plUC(),uk:plUK(),itens:[hc?{cod:'SEV0077',desc:plIt().desc,qtd:hc,fator:'comum',unit:plUC()}:null,hk?{cod:'SEV0077',desc:plIt().desc,qtd:hk,fator:'critico',unit:plUK()}:null].filter(Boolean)};x.baixa.total=plTot(x.baixa);x.status='baixa';delete x.dev;plH(x,'Baixa enviada',`${hc} h comum, ${hk} h crítico`);closeModal();await plSalvar(x,'Baixa do plantão enviada para aprovação.');render()},
+  plVer:el=>{const x=plGet(el.dataset.id),b=x.baixa;openModal(`<h3>Baixa do plantão · ${esc(gTecN(x.tec))}</h3><p class="muted">${esc(PL_AREA[x.area])} · ${plPer(x)} · <span class="chip ${PL_ST[x.status][1]}">${PL_ST[x.status][0]}</span></p>
+    <div class="tablewrap"><table><thead><tr><th>Item</th><th>Fator</th><th class="r">Horas</th><th class="r">Unitário</th><th class="r">Total</th></tr></thead><tbody>${(b.itens||[]).map(i=>`<tr><td>SEV0077 · ${esc(i.desc||'')}</td><td>${i.fator==='critico'?'Crítico':'Comum'}</td><td class="r">${rpFmt(i.qtd,1)}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.qtd*i.unit)}</td></tr>`).join('')}<tr><td colspan="4"><b>Total</b></td><td class="r"><b>${brl(b.total)}</b></td></tr></tbody></table></div>
+    ${b.obs?`<p><b>Acionamentos:</b> ${esc(b.obs)}</p>`:''}<p class="muted">Assinado por ${esc(b.nome)} em ${rpDH(b.em)}</p>${(x.hist||[]).length?`<details class="reghist"><summary>Registro</summary>${x.hist.map(h=>`<div><b>${esc(h.acao)}</b> · ${esc(h.por)} · ${rpDH(h.em)}${h.obs?' · '+esc(h.obs):''}</div>`).join('')}</details>`:''}
+    <div class="actions"><button class="btn" data-act="close">Fechar</button><button class="btn" data-act="plPdf" data-id="${x.id}">PDF</button>${x.status==='baixa'&&plAprova()?`<button class="btn" data-act="plDev" data-id="${x.id}" data-t="ajuste">Devolver</button><button class="btn primary" data-act="plApr" data-id="${x.id}">Aprovar</button>`:''}</div>`,'wide')},
+  plApr:async el=>{if(!plAprova())return semPerm();const x=plGet(el.dataset.id);x.status='apr';x.apr={por:meNome(),em:Date.now()};plH(x,'Aprovado');closeModal();await plSalvar(x,'Plantão aprovado.');render()},
+  plDev:el=>{if(!plAprova())return semPerm();const x=plGet(el.dataset.id),aj=el.dataset.t==='ajuste';rpPergunta(aj?'Devolver para ajuste':'Reprovar a baixa',`${gTecN(x.tec)} · ${plPer(x)}`,'Motivo',async m=>{x.status=aj?'ajuste':'rep';x.dev=m;plH(x,aj?'Devolvido para ajuste':'Reprovado',m);await plSalvar(x,aj?'Devolvido para o técnico.':'Baixa reprovada.');render()},true)},
+  plCanc:el=>{if(!plEnc())return semPerm();const x=plGet(el.dataset.id);rpPergunta('Cancelar o plantão',`${gTecN(x.tec)} · ${plPer(x)}`,'Motivo',async m=>{x.status='canc';plH(x,'Cancelado',m);await plSalvar(x,'Plantão cancelado.');render()},true)},
+  plPdf:async el=>{const x=plGet(el.dataset.id);try{const b=plPdfGera(x);(typeof baixaArq==='function'?baixaArq:rpBaixa)(b,`baixa-plantao-${gTecN(x.tec).split(' ')[0]}-${x.ini}.pdf`)}catch(e){toast('Não foi possível gerar o PDF: '+(e.message||e),'bad')}}});
+Object.assign(IN,{plCalc:()=>{const t=$('plTot');if(t)t.textContent=brl(plTot({hc:rpN(($('plHc')||{}).value),hk:rpN(($('plHk')||{}).value)}))}});
+function plPdfGera(x){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),m=14,W=210,H=297,b=x.baixa||{},VERDE=[140,191,63],LINE=[212,221,216];let y=18;
+  doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(40);doc.text('Baixa do plantão',m,y);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(110);doc.text(`${PL_AREA[x.area]} · Net Turbo Telecom`,m,y+5.5);doc.setDrawColor(...VERDE);doc.setLineWidth(.8);doc.line(m,y+8.5,W-m,y+8.5);y+=13;
+  const lb=s=>({content:s,styles:{fontStyle:'bold',fillColor:[244,249,236],textColor:[90,100,95]}});
+  doc.autoTable({startY:y,theme:'grid',styles:{fontSize:9,cellPadding:2.2,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},columnStyles:{0:{cellWidth:34},2:{cellWidth:34}},
+    body:[[lb('Técnico'),gTecN(x.tec),lb('Período'),plPer(x)],[lb('Encaminhado por'),x.por||'',lb('Situação'),PL_ST[x.status][0]],[lb('Aprovado por'),x.apr?`${x.apr.por} · ${rpDH(x.apr.em)}`:'—',lb('Conta'),x.area==='re'?'3.1.1.2.05.0008':'3.1.1.2.05.0006']]});
+  doc.autoTable({startY:doc.lastAutoTable.finalY+6,theme:'grid',head:[['Item','Fator','Horas','Unitário','Total']],headStyles:{fillColor:VERDE,textColor:[19,32,24],fontSize:9},styles:{fontSize:9,cellPadding:2.2,lineColor:LINE,lineWidth:.3,textColor:40},margin:{left:m,right:m},columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}},
+    body:(b.itens||[]).map(i=>[`SEV0077 · ${i.desc||'Mão de Obra Disponível'}`,i.fator==='critico'?'Crítico':'Comum',rpFmt(i.qtd,1),brl(i.unit),brl(i.qtd*i.unit)]).concat([[{content:'Total',colSpan:4,styles:{fontStyle:'bold'}},{content:brl(b.total),styles:{fontStyle:'bold',halign:'right'}}]])});
+  y=doc.lastAutoTable.finalY+8;if(b.obs){doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Acionamentos e observações',m,y);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(60);const t=doc.splitTextToSize(b.obs,W-2*m);doc.text(t,m,y+5);y+=t.length*4+10}
+  y=Math.max(y+10,H-60);doc.setDrawColor(60);doc.setLineWidth(.3);doc.line(m+40,y+12,W-m-40,y+12);doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text(b.nome||'',W/2,y+17,{align:'center'});doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(110);doc.text(`Técnico · assinado na ferramenta em ${rpDH(b.em)} · declarou que ficou de plantão e que as horas são verdadeiras`,W/2,y+22,{align:'center',maxWidth:W-2*m});
+  doc.setFontSize(7.5);doc.setTextColor(150);doc.text(`Baixa do plantão · ${gTecN(x.tec)} · ${plPer(x)}`,m,H-7);return doc.output('blob')}
+/* ---- técnico: plantões no topo da lista dele ---- */
+{const _v=viewCampo;viewCampo=function(){const h=_v.apply(this,arguments);if(ui.campoSel||ui.gSel||ui.rpT||ui.lpuTela||ui.rf)return h;const p=plTecHtml(ui.tec);if(!p)return h;const i=h.indexOf('<div class="views');return i>=0?h.slice(0,i)+p+h.slice(i):p+h}}
+/* ---- budget: plantão aprovado de terceiro conta na área ---- */
+{const _b=gFinBudget;gFinBudget=function(){const a=areaAt&&areaAt();if(!['gtd','re'].includes(a||'gtd')||!PLT.ok){if(!PLT.ok&&!PLT.err)plCarregar();return _b.apply(this,arguments)}
+  const P=PLT.rows.filter(x=>x.area===(a||'gtd')&&x.status==='apr'&&x.baixa).map(x=>({id:'pl:'+x.id,chamado:null,tec:x.tec,status:'aprovada',total:x.baixa.total,categoria:'Plantão',hist:[{acao:'Aprovada',por:x.apr.por,em:x.apr.em}],itens:x.baixa.itens,conta:GTD_CONTA}));
+  if(!P.length)return _b.apply(this,arguments);const all=G.lpus;G.lpus=all.concat(P);try{return _b.apply(this,arguments)}finally{G.lpus=all}}}
+/* ---- aba no menu (GTD e Rede Externa) ---- */
+GTD_T.push('gPlant');Object.assign(RP_TL,{gPlant:'Plantões'});Object.assign(NAV_TC,{gPlant:'Plantões'});Object.assign(ICT,{gPlant:'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM12 13v3l2 1'});Object.assign(RP_VIEWS,{gPlant:viewGPlant});
+{const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments).filter(t=>t!=='gPlant');if(!ME||gTecPerfil()||ui.cat!=='gtd'||!['gtd','re'].includes(ui.gArea||'gtd')||!plGest())return T;return T.concat('gPlant')}}
+document.head.insertAdjacentHTML('beforeend',`<style>.plcards{display:flex;flex-direction:column;gap:10px;margin:0 0 14px}.plcard{border:2px solid #e8b04b;background:#fff8e8;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}.plcard.ok{border-color:#8cbf3f;background:#f3f9ea}.plcard small{display:block;color:var(--muted);margin-top:2px}.pltl{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:10px}.pltot{font-size:16px;margin:4px 0 10px}</style>`);
+
+/* ---------- 08/11: Rede Externa · KMZ no padrão construtivo e cabos que passam junto na rota ----------
+   1. KMZ baixado da rota (preventiva, melhoria, retirada): os elementos saem com os ícones do padrão construtivo
+      (IOP.2.5.1.001): caixa de emenda e CTO existentes = alfinete amarelo (como a vistoria lê "CEO/CE existente"),
+      separados em pastas; antes saíam com a bolinha de "passagem com fita", que no padrão é poste.
+   2. Rota pelos cabos da base GeoGrid: os outros cabos da base que correm junto da rota (de 3 a 30 m, trecho de 20 m
+      ou mais) aparecem tracejados em roxo no mapa; tocar no cabo inclui (azul) ou tira. O cabo incluído entra na
+      metragem prevista (km da preventiva), no KMZ, nos pontos no caminho (CEO/CTO a até 30 m dele) e o técnico vê
+      a quantidade de cabos na rota e cada cabo no mapa. */
+const RPK_EX='pushpin/ylw-pushpin';
+function rpGeoKml(o){const ln=(o.linhas||[]).filter(l=>l.c&&l.c.length>1&&l.on!==false),cc=c=>c.map(p=>`${p[1]},${p[0]},0`).join(' ');
+  const pm=(n,c,st,d)=>`<Placemark><name>${rpXml(n)}</name>${d?`<description>${rpXml(d)}</description>`:''}<styleUrl>#${st}</styleUrl><Point><coordinates>${c[1]},${c[0]},0</coordinates></Point></Placemark>`;
+  const P=o.pts||[],grp=[['CEO','CAIXAS DE EMENDA EXISTENTES','ceoEx'],['CTO','CTO EXISTENTES','ctoEx'],['Ponto','OUTROS PONTOS DA REDE','info']];
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${rpXml(o.nome)}</name><description>Rota gerada na Ferramenta de Gestão O&amp;M pela base GeoGrid. Elementos no padrão construtivo IOP.2.5.1.001 (rede existente).</description>
+<Style id="rota"><LineStyle><color>ff00b4ff</color><width>5</width></LineStyle></Style>
+<Style id="junto"><LineStyle><color>ffeb6325</color><width>4</width></LineStyle></Style>
+<Style id="pa"><IconStyle><color>ff3d9e2e</color><scale>1.2</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/A.png</href></Icon></IconStyle></Style>
+<Style id="pb"><IconStyle><color>ff2b39c0</color><scale>1.2</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/B.png</href></Icon></IconStyle></Style>
+<Style id="ceoEx"><IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/${RPK_EX}.png</href></Icon><hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/></IconStyle></Style>
+<Style id="ctoEx"><IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/${RPK_EX}.png</href></Icon><hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/></IconStyle></Style>
+<Style id="info"><IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/shapes/info-i.png</href></Icon></IconStyle></Style>
+<Folder><name>CABOS</name>${ln.map((l,i)=>`<Placemark><name>${rpXml(i?l.nome||'Cabo '+(i+1):l.nome&&l.nome!=='Rota'?l.nome:'Rota')}</name><description>${rpXml((l.m?rpM(l.m):'')+(o.desc?' · '+o.desc:''))}</description><styleUrl>#${i?'junto':'rota'}</styleUrl><LineString><tessellate>1</tessellate><coordinates>${cc(l.c)}</coordinates></LineString></Placemark>`).join('\n')}</Folder>
+${o.a?pm('Ponta A',o.a,'pa',o.aD):''}${o.b?pm('Ponta B',o.b,'pb',o.bD):''}
+${grp.map(([tp,fn,st])=>{const L=P.filter(p=>(p.tp||'Ponto')===tp||(tp==='Ponto'&&!['CEO','CTO'].includes(p.tp)));return L.length?`<Folder><name>${fn}</name>${L.map(p=>pm(p.nome,[p.lat,p.lng],st,`${tp==='Ponto'?(p.tp||'')+' · ':''}existente${p.d!=null?' · '+p.d+' m do traçado':''}`)).join('')}</Folder>`:''}).join('\n')}
+</Document></kml>`}
+/* ---- cabos que correm junto da rota ---- */
+function rpJuntoCands(g){if(!g||!g.res||!g.res.ok||!RPG.rede)return[];const key=RPG.redeK+'|'+g.res.c.length+'|'+g.res.m;if(g._jk===key&&g._jc)return g._jc;
+  const R=g.res.c;let a0=90,a1=-90,o0=180,o1=-180;R.forEach(([a,b])=>{a0=Math.min(a0,a);a1=Math.max(a1,a);o0=Math.min(o0,b);o1=Math.max(o1,b)});const pd=0.0005,dentro=p=>p[0]>=a0-pd&&p[0]<=a1+pd&&p[1]>=o0-pd&&p[1]<=o1+pd;
+  const dR=p=>{let d=1e9;for(let i=1;i<R.length;i++){const s=rpDistSeg(p,R[i-1],R[i]);if(s<d)d=s;if(d<1)break}return d};const C=[];
+  RPG.rede.L.forEach((l,li)=>{if(!l.c.some(dentro))return;const S=[];for(let i=1;i<l.c.length;i++){const a=l.c[i-1],b=l.c[i],n=Math.max(1,Math.ceil(rpDist(a,b)/5));for(let k=0;k<=n;k++){if(i>1&&k===0)continue;const f=k/n;S.push([a[0]+f*(b[0]-a[0]),a[1]+f*(b[1]-a[1])])}}
+    let run=[],ri=0;const fecha=()=>{if(run.length>1){let m=0;for(let i=1;i<run.length;i++)m+=rpDist(run[i-1],run[i]);if(m>=20)C.push({k:li+':'+(ri++),c:run.map(p=>[+p[0].toFixed(7),+p[1].toFixed(7)]),m:Math.round(m)})}run=[]};
+    S.forEach(p=>{if(!dentro(p)){fecha();return}const d=dR(p);if(d>3&&d<=30)run.push(p);else fecha()});fecha()});
+  g._jk=key;g._jc=C;return C}
+function rpJuntoApl(F){const g=F.geo,r=g.res;if(!r||!r.ok||!F.kmz)return;const C=rpJuntoCands(g),sel=C.filter(c=>(g.junto||[]).includes(c.k));
+  F.kmz.linhas=[F.kmz.linhas[0]].concat(sel.map((c,i)=>({nome:`Cabo junto ${i+1}`,m:c.m,c:c.c,on:true,junto:true})));F.metros=String(r.m+sel.reduce((s,c)=>s+c.m,0));
+  const pts=(r.pts||[]).slice(),ja=new Set(pts.map(p=>p.nome+'|'+p.lat));(RPG.rede.P||[]).forEach(p=>{if(ja.has(p[0]+'|'+p[1]))return;let d=1e9;sel.forEach(c=>{for(let i=1;i<c.c.length;i++)d=Math.min(d,rpDistSeg([p[1],p[2]],c.c[i-1],c.c[i]))});
+    if(d>30)return;const tp=p[3]||rpGeoTipo(p);if(tp==='Poste')return;ja.add(p[0]+'|'+p[1]);pts.push({nome:p[0],lat:p[1],lng:p[2],d:Math.round(d),tp,on:tp==='CEO'||tp==='CTO',junto:true})});
+  F.pontos=pts;F.kmz.geo=Object.assign({},F.kmz.geo||{},{junto:sel.length,juntoM:sel.reduce((s,c)=>s+c.m,0)})}
+{const _c=rpGeoCalc;rpGeoCalc=async function(){const g=rpGeoF().geo;g.junto=[];g._jc=null;const r=await _c.apply(this,arguments);return r}}
+{const _d=rpGeoDesenha;rpGeoDesenha=function(){const o=_d.apply(this,arguments);try{const F=rpGeoF(),g=F.geo;if(!RPGM||!g.res||!g.res.ok)return o;const LL=window.L,C=rpJuntoCands(g),S=g.junto||[];
+  C.forEach(c=>{const on=S.includes(c.k);LL.polyline(c.c,on?{color:'#ffffff',weight:8,opacity:.9}:{color:'#a855f7',weight:4,opacity:.9,dashArray:'8 6'}).addTo(RPGM.ly);if(on)LL.polyline(c.c,{color:'#2563eb',weight:5}).addTo(RPGM.ly);
+    LL.polyline(c.c,{color:'#000',weight:18,opacity:0}).bindTooltip(`Cabo junto · ${rpM(c.m)} · toque para ${on?'tirar':'incluir'}`,{sticky:true}).on('click',ev=>{LL.DomEvent.stopPropagation(ev);const s=g.junto=g.junto||[];const i=s.indexOf(c.k);if(i>=0)s.splice(i,1);else s.push(c.k);rpJuntoApl(F);rpGeoAt()}).addTo(RPGM.ly)})}catch(e){console.warn('cabos junto',e)}return o}}
+{const _f=rpGeoForm;rpGeoForm=function(){let h=_f.apply(this,arguments);try{const F=rpGeoF(),g=F.geo;if(!g.res||!g.res.ok)return h;const C=rpJuntoCands(g),S=C.filter(c=>(g.junto||[]).includes(c.k));
+  const tx=C.length?`<span class="rpjunto">${S.length?`<b>+ ${S.length} cabo${S.length>1?'s':''} junto${S.length>1?'s':''} (${rpM(S.reduce((s,c)=>s+c.m,0))}) · total ${rpM(+F.metros||0)}</b><br>`:''}${C.length} cabo${C.length>1?'s':''} da base passa${C.length>1?'m':''} junto da rota (tracejado roxo no mapa). Toque no cabo para incluir na rota: entra na metragem da preventiva, no KMZ e nos pontos.</span>`:'';
+  return tx?h.replace(/(<div class="rpbox ok rpgres">[\s\S]*?)(<\/div>)/,'$1'+tx+'$2'):h}catch(e){return h}}}
+/* técnico: quantos cabos passam na rota */
+{const _t=rpTecRota;rpTecRota=function(x){const h=_t.apply(this,arguments);try{const n=((x.kmz||{}).linhas||[]).filter(l=>(l.c||[]).length>1).length;if(n<2)return h;
+  return h.replace('</small></h3>',` · <b>${n} cabos na rota</b></small></h3><p class="rpjunto">${x.kmz.linhas.map((l,i)=>`${i?'<span style="color:#2563eb">●</span> '+esc(l.nome||'Cabo '+(i+1)):'<span style="color:#ff8a00">●</span> Rota'} · ${rpM(l.m||0)}`).join(' &nbsp; ')}</p>`)}catch(e){return h}}}
+document.head.insertAdjacentHTML('beforeend','<style>.rpjunto{display:block;margin-top:6px;font-size:13px;color:var(--muted)}.rpjunto b{color:#1d4ed8}</style>');
+
+/* ---------- 08/11 (fim): Rede Externa Corretiva e Rede Externa Preventiva ----------
+   O trilho de áreas mostra duas entradas: RE Corretiva (chamados, agenda, criar chamado, histórico, aprovação de LPU,
+   plantões, chat com o NOC, fiscalização e cadastro GeoGrid dos chamados, painel da corretiva e budget de reparo
+   emergencial 0008) e RE Preventiva (todas as Programadas: esteira, preventiva, melhoria, retirada, companhia elétrica
+   e revisão de campo; fiscalização e cadastro GeoGrid das programadas; KPIs da preventiva e budget de serviços
+   preventivos 0101). Por dentro continua a mesma área ('re'); ui.reLado diz qual lado está aberto.
+   Usuários e acessos ganha as abas "RE Corretiva" (re_*, rc_*) e "RE Preventiva" (rp_*): o que cada um vê e o que aprova.
+   Listas gravadas antes recebem as chaves novas equivalentes ao que já tinham (marca rp_v58). */
+const RC_EXTRA=[['rc_plant','Plantões da Rede Externa','t',[['rc_a_plant','Encaminhar e cancelar plantões','a'],['rc_a_plantApr','Aprovar, devolver e reprovar a baixa do plantão','a']]],
+  ['rc_fisc','Fiscalização dos chamados','t',[['rc_a_fisc','Fiscalizar em campo (checklist e fotos)','a'],['rc_a_fzPrazo','Dar prazo e gerar o pedido de correção','a']]],
+  ['rc_geo','Cadastro GeoGrid dos chamados (caixa nova)','t',[['rc_a_geoVal','Validar a caixa nova','a'],['rc_a_geoCad','Marcar como cadastrado no GeoGrid (analista)','a']]]];
+const RP_EXTRA=[['rp_fisc','Fiscalização das programadas','t',[['rp_a_fisc','Fiscalizar em campo (checklist e fotos)','a'],['rp_a_fzPrazo','Dar prazo e gerar o pedido de correção','a']]],
+  ['rp_geo','Cadastro GeoGrid das programadas (caixa nova)','t',[['rp_a_geoVal','Validar a caixa nova','a'],['rp_a_geoCad','Marcar como cadastrado no GeoGrid (analista)','a']]],
+  ['rp_campo','Visão do técnico (programadas)','t'],['rp_eqVer','Visão da empresa terceira (programadas)','t']];
+if(PR_ON){const ic=PR_RE[1].findIndex(n=>n[0]==='re_campo');PR_RE[1].splice(ic>=0?ic:PR_RE[1].length,0,...RC_EXTRA);PR_RP[1].push(...RP_EXTRA);
+  /* nomes: o grupo da corretiva fala só da corretiva */
+  PR_RE[1].forEach(n=>{if(n[0]==='re_campo')n[1]='Visão do técnico (chamados da Rede Externa)';if(n[0]==='re_eqVer')n[1]='Visão da empresa terceira (chamados da Rede Externa)';if(n[0]==='re_painel')n[1]='Painel de KPIs da corretiva'});
+  const pn=PR_RE[1].find(n=>n[0]==='re_painel'),fn=pn&&pn[3]&&pn[3].find(n=>n[0]==='re_fin');if(fn){fn[1]='Financeiro da corretiva (reparo emergencial 3.1.1.2.05.0008)';(fn[3]||[]).forEach(n=>{if(n[0]==='re_a_budget')n[1]='Definir o budget de reparo emergencial'})}
+  pxKeys(PR_RP).concat(pxKeys(['',RC_EXTRA])).forEach(k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)})}
+const RPK=PR_ON?pxKeys(PR_RP):[],RCK=PR_ON?pxKeys(['',RC_EXTRA]):[];
+/* listas gravadas antes: chaves novas equivalentes ao que a pessoa já tinha */
+function reMig(s,papel){if(!Array.isArray(s)||!PR_ON||s.includes('rp_v58'))return s;s=s.slice();const has=k=>s.includes(k),add=(...L)=>L.forEach(k=>{if(!s.includes(k))s.push(k)});
+  const anyRe=s.some(k=>/^re_/.test(k)&&k!=='re_v01')||has('m_re'),anyRp=has('rp_plan')||has('rp_rev')||has('rp_aprov');
+  if(has('rp_plan'))add('rp_est','rp_t_prev','rp_t_mel','rp_t_ret','rp_t_cia');
+  if(has('rp_rev'))add('rp_est','rp_a_rev','rp_fisc','rp_a_fisc','rc_fisc','rc_a_fisc');
+  if(has('re_painel'))add('rp_painel');if(has('ref_budget'))add('rp_fin');if(has('re_a_budget'))add('rp_a_budget');if(has('re_campo'))add('rp_campo');if(has('re_eqVer'))add('rp_eqVer');
+  if(has('re_a_desp'))add('rc_plant','rc_a_plant');if(has('re_a_aprovar'))add('rc_plant','rc_a_plantApr');
+  if(['supervisor','encarregado'].includes(papel)){if(anyRe)add('rc_geo','rc_a_geoVal','rc_fisc','rc_a_fzPrazo');if(anyRp)add('rp_geo','rp_a_geoVal','rp_fisc','rp_a_fzPrazo')}
+  if(has('a_geoCad')){if(anyRe)add('rc_geo','rc_a_geoCad');if(anyRp)add('rp_geo','rp_a_geoCad')}
+  s.push('rp_v58');return s}
+{const _n=pxNorm;pxNorm=function(set,papel){return reMig(_n.apply(this,arguments),papel)}}
+/* quem vê cada lado */
+const reTodas=()=>!ME?[]:['sup','enc','noc'].includes(ui.perfil)?pxNorm(permDe(ME.papel,'pBase' in ME?ME.pBase:ME.perm),ME.papel):reMig(permDe(ME.papel,ME.perm),ME.papel);
+const reCorVe=()=>!!ME&&!gTecPerfil()&&(ui.perfil==='coord'||(ME.reCor!=null?ME.reCor:pode('m_re')));
+const rePrevVe=()=>!!ME&&!gTecPerfil()&&(ui.perfil==='coord'||(ME.rePrev!=null?ME.rePrev:reTodas().some(k=>RPK.includes(k))));
+const reLado=()=>{if(!rePrevVe())return 'cor';if(!reCorVe())return 'prev';return ui.reLado==='prev'?'prev':'cor'};
+const reLadoP=()=>!!ME&&!gTecPerfil()&&ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'&&reLado()==='prev';
+const reLadoK=()=>reLadoP()?'rp':'rc';
+{const A=areaCfg('re');if(A)A.ve=()=>reCorVe()||rePrevVe()}
+/* permissões efetivas: no lado preventivo, as telas do motor (painel, budget, visão do técnico) vêm das chaves rp_* */
+const RP_EFF=[['rp_painel',['gPainel']],['rp_fin',['g_fin','gf_budget']],['rp_a_budget',['a_budget']],['rp_campo',['gCampo']],['rp_eqVer',['gEqVer']]];
+{const _p=permEff;permEff=function(){_p.apply(this,arguments);if(!ME||!['sup','enc','noc'].includes(ui.perfil))return;
+  const b=pxNorm(permDe(ME.papel,ME.pBase),ME.papel);ME.reCor=b.some(k=>(PR_RK.includes(k)&&/^re_/.test(k))||RCK.includes(k));ME.rePrev=b.some(k=>RPK.includes(k));
+  if(PR_ON&&(ME.reCor||ME.rePrev)&&!ME.perm.includes('m_re'))ME.perm.push('m_re');
+  if(ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'&&reLado()==='prev'){const tira=new Set(Object.keys(PR_MAP).concat(['a_budget']));ME.perm=ME.perm.filter(k=>!tira.has(k));
+    RP_EFF.forEach(([k,L])=>{if(b.includes(k))L.forEach(x=>{if(!ME.perm.includes(x))ME.perm.push(x)})})}}}
+/* menu de cada lado */
+const RP_TK={rpEst:'rp_est',rpPrev:'rp_t_prev',rpMel:'rp_t_mel',rpRet:'rp_t_ret',rpCia:'rp_t_cia'};
+const RE_PREV_T=['gPainel','gCampo','gEqVer'];
+{const _t=tabsDe;tabsDe=function(){let T=_t.apply(this,arguments);if(!ME||gTecPerfil()||ui.cat!=='gtd'||(ui.gArea||'gtd')!=='re')return T;
+  T=T.filter(t=>!RP_TABS.includes(t)&&t!=='reGeo'&&t!=='reFisc');
+  if(reLado()==='prev'){T=T.filter(t=>!GTD_T.includes(t)||RE_PREV_T.includes(t));RP_TABS.forEach(t=>{if(t==='rpRev'?rpRvV():pode(RP_TK[t]))T.push(t)})}
+  if(reGeoVe())T.push('reGeo');if(reFiscVe())T.push('reFisc');return T}}
+/* visão do técnico / empresa terceira: cada lado com o que é dele */
+['gCampo','gEqVer'].forEach(k=>{const f=RP_VIEWS[k];if(!f)return;RP_VIEWS[k]=function(){if(!reAt())return f.apply(this,arguments);
+  if(reLado()==='prev'){const a=G.ch,l=G.lpus;G.ch=[];G.lpus=[];try{return f.apply(this,arguments)}finally{G.ch=a;G.lpus=l}}
+  const rr=RP.rows;RP.rows=rr.filter(x=>x.tipo==='prj');try{return f.apply(this,arguments)}finally{RP.rows=rr}}});
+/* revisão de campo: só quem aprova aprova */
+['rpRej','rpApr','rpReab'].forEach(k=>{const f=ACT[k];if(f)ACT[k]=function(){if(!rpRv())return semPerm();return f.apply(this,arguments)}});
+/* trilho: RE Corretiva e RE Preventiva */
+Object.assign(AR_IC,{re:'M5 22V4M19 22V4M3 7h4M17 7h4M5 9q7 5 14 0M3 22h4M17 22h4M5 12.5q3 1.5 3.6 4.5q.3 2 1.2 4M19 12.5q-3 1.5-3.6 4.5q-.3 2-1.2 4',
+  rep:'M3 22V5M14 22V5M1.5 8h3M12.5 8h3M3 10q5.5 4 11 0M3 14q5.5 3.5 11 0M1.5 22h3M12.5 22h3M19.3 5.8a3.2 3.2 0 1 0 0.01 0M21.6 11.3L23.4 13.1'});
+Object.assign(AR_D,{re:['RE Corretiva','Rompimentos, massivas e plantões'],rep:['RE Preventiva','Programadas, KPIs e budget de preventiva']});
+{const _a=arCats;arCats=function(){const L=_a.apply(this,arguments),i=L.findIndex(a=>a.k==='re');if(i<0)return L;const on=ui.cat!=='impl'&&(ui.gArea||'gtd')==='re',P=reLado()==='prev',o=[];
+  if(reCorVe())o.push({k:'re',n:'Rede Externa Corretiva',on:on&&!P});if(rePrevVe())o.push({k:'rep',n:'Rede Externa Preventiva',on:on&&P});L.splice(i,1,...o);return L}}
+{const _g=ACT.gCat;ACT.gCat=function(el){const v=el&&el.dataset&&el.dataset.v;if(v!=='rep'&&v!=='re')return _g.apply(this,arguments);
+  const ant=ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'?reLado():null;ui.reLado=v==='rep'?'prev':'cor';if(ant&&ant!==reLado()){ui.gSel=null;ui.gSec=null}
+  const fix=()=>{try{permEff();const T=tabsDe(),P=reLado()==='prev';if(T.length&&(!T.includes(ui.tab)||(P&&ant!=='prev'&&!RP_TABS.includes(ui.tab)))){ui.tab=P&&T.includes('rpEst')?'rpEst':T[0];render()}}catch(e){console.warn('reLado',e)}};
+  const r=_g.call(this,{dataset:{v:'re'}});if(r&&typeof r.then==='function')return r.then(x=>{fix();return x});fix();return r}}
+/* Financeiro da preventiva: o texto de ajuda e o título falam da conta de preventiva */
+{const _v=viewGPainel;viewGPainel=function(){const h=_v.apply(this,arguments);if(!reLadoP()||ui.gSec!=='fin')return h;
+  return h.replace(/Budget do mês da conta 3\.1\.1\.2\.05\.000[68][^<]*/,'Budget de serviços preventivos (3.1.1.2.05.0101): rotas preventivas, chamados de preventiva e tudo da companhia elétrica. Consome no mês do envio da LPU das programadas e no mês da aprovação da LPU dos chamados.').replace(/<h2>Financeiro · [^<]*<\/h2>/,'<h2>Budget · Rede Externa Preventiva</h2>')}}
+document.head.insertAdjacentHTML('beforeend',`<style>.a-rep.ario,.a-rep .ario,.arb.a-rep[aria-current="true"] .ario{background:#DDE6F7;color:#26468A}
+.pxtabs{flex-wrap:wrap}</style>`);
+/* aba aberta por link, aviso, busca ou botão: abre no lado certo (programadas → preventiva; chamados, agenda, plantões → corretiva) */
+const RE_COR_T=['gCham','gAgenda','gNovo','gRel','gAprov','gPlant'];
+{const _r=render;render=function(){try{if(ME&&!gTecPerfil()&&ui.cat==='gtd'&&(ui.gArea||'gtd')==='re'){const t=ui.tab;
+  if(RP_TABS.includes(t)&&reLado()!=='prev'&&rePrevVe())ui.reLado='prev';else if(RE_COR_T.includes(t)&&reLado()==='prev'&&reCorVe())ui.reLado='cor'}}catch(e){console.warn('reLado',e)}return _r.apply(this,arguments)}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
