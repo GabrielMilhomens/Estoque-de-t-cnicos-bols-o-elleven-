@@ -754,6 +754,15 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - Permissões em Usuários e acessos › Transmissão: `tx_mel` (ver) e `tx_a_mel` (projetar, editar e despachar). O despacho ainda não abre atividade no app do técnico.
   - Código: `txmel.js`. Banco: agenda_ajuste_60.
 
+- **Google Maps nas telas de desenho de projeto** (08/11/2026):
+  - Só em duas telas: o desenho do trecho da **Melhoria de rede** e o **"Desenhar o projeto pelas coordenadas"** da Implantação. O resto da ferramenta continua com o mapa Esri e as rotas ORS.
+  - Mapa do Google (Ruas e Satélite) dentro do laboratório, mantendo toda a edição de postes, trechos e cordoalhas.
+  - Rota pelo Google (Routes API, modo a pé): segue as ruas sem respeitar mão de direção, como o cabo no poste.
+  - Se o Google falhar (chave, cota ou internet), volta sozinho para o mapa e a rota de antes. O canto do mapa mostra "Google Maps" ou "Mapa padrão · Google indisponível".
+  - Chave pública de navegador no `agenda.html`, travada no Google Cloud (projeto "Ferramenta OEM Mapas") para o site do GitHub Pages e só para Maps JavaScript API + Routes API. Ela não é segredo de servidor.
+  - Uso: até 10.000 mapas e 10.000 rotas grátis por mês em cada API. Conta em teste gratuito de 90 dias sem cobrança automática. Antes de ativar a conta completa, colocar a cota de 300 por dia.
+  - Código: `gmaps.js`. Sem SQL.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -818,6 +827,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 08/11/2026 | Google Maps (mapa e rota) nas telas de desenho da Melhoria de rede e da Implantação, com volta automática para Esri/ORS | `agenda.html`. Sem SQL. Chave travada no Google Cloud para o site e para Maps JavaScript + Routes |
 | 08/11/2026 | **Transmissão · Melhoria de rede**: lançamento (caixa a caixa ou POP para caixa, desenhado no laboratório de KMZ), CFO nas caixas pelo KMZ (splitter e extensão de fibra), infraestrutura do POP, custos previstos completos, acompanhamento com status e observações, realizado por LPU baixada e planilha do Grafana, e painel por motivo e POP. Detalhes em 7. | agenda.html (`txmel.js`). **Rodar `agenda_ajuste_60_melhoria_de_rede_transmissao.sql` no Supabase antes de publicar** (não subir no GitHub). Depois, liberar "Melhoria de rede" em Usuários e acessos › Transmissão. |
 | 08/11/2026 | **Financeiro por área, menu Financeiro e Visão gerencial**: Implantação só com a conta 0005; Transmissão com o Financeiro da 0007 (instalação rede); menu Financeiro de consulta com todas as áreas (budget, prestadores, detalhamento com filtro por área, todas as LPUs com PDF de cada baixa e .zip de várias); Visão gerencial com os KPIs de todas as áreas e relatórios; acesso gerencial só leitura para o gerente. Detalhes em 7. | agenda.html (`fingest.js`). **Rodar `agenda_ajuste_59_financeiro_transmissao.sql` no Supabase antes de publicar** (não subir no GitHub). Depois: aprovar o cadastro do Rubens em Usuários e acessos como Supervisor e usar "Aplicar acesso gerencial (só ver)". |
 | 08/11/2026 | **GTD · permissões de plantão**: em Usuários e acessos › GTD Manutenção, Plantões do GTD com encaminhar e aprovar separados. Detalhes em 7. | agenda.html (`plantao.js`). Sem SQL. Publicar só o agenda.html. |

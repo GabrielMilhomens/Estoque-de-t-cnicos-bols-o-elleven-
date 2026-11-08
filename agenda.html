@@ -12669,7 +12669,7 @@ async function klabMapa(){const D=KLB.D,box=document.getElementById('klMap');if(
   try{await vtLib()}catch(e){box.innerHTML='<p class="muted" style="padding:12px">Não foi possível carregar o mapa. O KMZ pode ser baixado normalmente.</p>';return}
   let vw=null;if(KLB.map){if(KLB.manter)vw={c:KLB.map.getCenter(),z:KLB.map.getZoom()};try{KLB.map.remove()}catch(e){}KLB.map=null}if(!vw&&KLB.vwSalvo)vw=KLB.vwSalvo;KLB.vwSalvo=null;
   const LL=window.L,m=LL.map(box,{zoomControl:true,keyboard:false}),F=VT_FUNDOS[KLB.fundo]||VT_FUNDOS.ruas;KLB.map=m;
-  LL.tileLayer(F.u,{maxNativeZoom:KLB.fundo==='sat'?18:F.max,maxZoom:21,attribution:F.at,crossOrigin:true}).addTo(m);if(F.sob)LL.tileLayer(F.sob,{maxNativeZoom:KLB.fundo==='sat'?18:F.max,maxZoom:21,crossOrigin:true}).addTo(m);
+  await klTiles(m,F);if(KLB.map!==m)return;
   const cab=(KA_CABO[D.cabo]||KA_CABO.drop)[1],cor='#'+cab.slice(6,8)+cab.slice(4,6)+cab.slice(2,4);
   const btn=(t,f,cls)=>{const b=document.createElement('button');b.type='button';b.className='btn sm'+(cls?' '+cls:'');b.textContent=t;b.onclick=e=>{e.stopPropagation();m.closePopup();f()};return b};
   const pop=(ll,tit,fill)=>{const b=document.createElement('div');b.className='klpop';b.innerHTML=`<b>${tit}</b>`;fill(b);LL.popup({minWidth:210}).setLatLng(ll).setContent(b).openOn(m)};
@@ -17358,6 +17358,49 @@ ACT.tmXlsx=()=>{const{ini,fim,L}=tmPainelDados();xlsxBaixar(`melhorias_de_rede_$
   'Início previsto':r.x.iniP?dBR(r.x.iniP):'','Término previsto':r.x.fimP?dBR(r.x.fimP):'','Início':r.x.iniR?dBR(r.x.iniR):'','Término':r.x.fimR?dBR(r.x.fimR):'',Previsto:r.C.tot,'Mão de obra (LPU)':r.Rr.mo,'Materiais (Grafana)':r.Rr.mat,Investido:r.Rr.tot}))],
   ['Filtros',xFiltros({'Tela':'Transmissão › Melhoria de rede › Painel','Período (início)':dBR(ini)+' a '+dBR(fim),'Melhorias':L.length})]],'Planilha das melhorias baixada.')};
 document.head.insertAdjacentHTML('beforeend','<style>.tmtl{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto}.tmtl li{border-left:3px solid var(--line);padding:2px 0 2px 10px}.tmtl p{margin:4px 0 0}</style>');
+
+/* ---------- 08/11: Google Maps só nas telas de desenho de projeto ----------
+   Melhoria de rede (desenho do trecho) e Implantação ("Desenhar o projeto pelas coordenadas") usam o mapa do Google
+   (ruas e satélite) e a rota a pé do Google (Routes API), que não respeita mão de rua, como o cabo no poste.
+   O resto da ferramenta continua com Esri/ORS. Se o Google falhar (chave, cota, internet), volta sozinho para
+   o mapa e a rota de antes, com um aviso discreto no canto do mapa.
+   A chave é pública de navegador: travada no Google Cloud só para este site e só para Maps JavaScript + Routes. */
+const GM_KEY='AIzaSyCaF4ProOSSbB-OzSDDLoFqqaIvP6Ssq-M';
+const GM={ok:false,falhou:false,mot:'',p:null};
+const gmUsa=()=>!!(typeof KLB!=='undefined'&&KLB.wiz)&&!GM.falhou;
+function gmFalha(m){if(GM.falhou)return;GM.falhou=true;GM.ok=false;GM.mot=m||'Google indisponível';console.warn('Google Maps:',GM.mot);
+  try{if(typeof KLB!=='undefined'&&KLB.wiz&&KLB.map&&KLB.gm){KLB.manter=true;klabRes()}}catch(e){}}
+window.gm_authFailure=()=>gmFalha('chave do Google recusada');
+function gmScript(src,id){return new Promise((ok,er)=>{if(id&&document.getElementById(id))return ok();const s=document.createElement('script');if(id)s.id=id;s.src=src;s.async=true;s.referrerPolicy='no-referrer-when-downgrade';s.onload=()=>ok();s.onerror=()=>er(new Error('não carregou '+src));document.head.appendChild(s)})}
+/* carrega Maps JS + o plugin que põe o mapa do Google dentro do Leaflet (mantém toda a edição do laboratório) */
+function gmPrep(){if(GM.falhou)return Promise.resolve(false);if(GM.ok)return Promise.resolve(true);
+  return GM.p||(GM.p=(async()=>{try{await vtLib();
+      await Promise.race([new Promise((ok,er)=>{window.__gmPronto=ok;gmScript(`https://maps.googleapis.com/maps/api/js?key=${GM_KEY}&v=weekly&loading=async&language=pt-BR&region=BR&callback=__gmPronto`,'gmJs').catch(er)}),
+        new Promise((_,er)=>setTimeout(()=>er(new Error('Google demorou para responder')),9000))]);
+      if(google.maps.importLibrary)await google.maps.importLibrary('maps');
+      await gmScript('https://cdn.jsdelivr.net/npm/leaflet.gridlayer.googlemutant@0.16.0/dist/Leaflet.GoogleMutant.js','gmMut');
+      if(!window.L.gridLayer||!window.L.gridLayer.googleMutant)throw new Error('plugin do mapa indisponível');
+      if(GM.falhou)return false;GM.ok=true;return true}catch(e){gmFalha(e.message||String(e));return false}})())}
+/* fundo do mapa no laboratório: Google nas telas de desenho, Esri no resto */
+async function klTiles(m,F){const LL=window.L;KLB.gm=false;
+  if(gmUsa()&&KLB.fundo!=='liso'&&await gmPrep()&&!GM.falhou){try{LL.gridLayer.googleMutant({type:KLB.fundo==='sat'?'hybrid':'roadmap',maxZoom:21}).addTo(m);KLB.gm=true;gmSelo(m);return}catch(e){gmFalha(e.message)}}
+  if(F.u)LL.tileLayer(F.u,{maxNativeZoom:KLB.fundo==='sat'?18:F.max,maxZoom:21,attribution:F.at,crossOrigin:true}).addTo(m);if(F.sob)LL.tileLayer(F.sob,{maxNativeZoom:KLB.fundo==='sat'?18:F.max,maxZoom:21,crossOrigin:true}).addTo(m);
+  if(KLB.wiz&&GM.falhou)gmSelo(m)}
+function gmSelo(m){const LL=window.L,c=LL.control({position:'bottomleft'});c.onAdd=()=>{const d=LL.DomUtil.create('div','gmselo'+(GM.falhou?' off':''));
+    d.textContent=GM.falhou?'Mapa padrão · Google indisponível':'Google Maps';if(GM.falhou)d.title=GM.mot;return d};c.addTo(m)}
+/* rota a pé do Google (Routes API): segue as ruas sem respeitar mão de direção */
+function gmDecode(s){const o=[];let i=0,la=0,lo=0;while(i<s.length){for(const k of[0,1]){let r=0,sh=0,b;do{b=s.charCodeAt(i++)-63;r|=(b&31)<<sh;sh+=5}while(b>=32);const d=r&1?~(r>>1):r>>1;if(k)lo+=d;else la+=d}o.push([la/1e5,lo/1e5])}return o}
+async function gmRota(a,b){if(!(await gmPrep()))return null;
+  const ac=new AbortController(),t=setTimeout(()=>ac.abort(),10000);
+  try{const r=await fetch('https://routes.googleapis.com/directions/v2:computeRoutes',{method:'POST',signal:ac.signal,referrerPolicy:'no-referrer-when-downgrade',
+      headers:{'Content-Type':'application/json','X-Goog-Api-Key':GM_KEY,'X-Goog-FieldMask':'routes.polyline.encodedPolyline,routes.distanceMeters'},
+      body:JSON.stringify({origin:{location:{latLng:{latitude:a[0],longitude:a[1]}}},destination:{location:{latLng:{latitude:b[0],longitude:b[1]}}},travelMode:'WALK',languageCode:'pt-BR',units:'METRIC'})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error('Routes API '+r.status+((j.error&&j.error.message)?': '+j.error.message:''))}
+    const j=await r.json(),p=j.routes&&j.routes[0]&&j.routes[0].polyline&&j.routes[0].polyline.encodedPolyline;if(!p)return null;const c=gmDecode(p);return c.length>1?c:null}
+  catch(e){console.warn('rota Google',e);GM.rotaErro=e.message||String(e);return null}finally{clearTimeout(t)}}
+{const _r=kaRota;kaRota=async function(cli,cx){if(gmUsa()){const c=await gmRota(cli,cx);if(c&&!GM.falhou){KLB.rotaG=true;return{c,ors:true,google:true}}}
+  if(typeof KLB!=='undefined')KLB.rotaG=false;return _r.apply(this,arguments)}}
+document.head.insertAdjacentHTML('beforeend','<style>.gmselo{background:rgba(255,255,255,.9);color:#1f2937;font:600 11px/1.2 system-ui,sans-serif;padding:3px 7px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.25)}.gmselo.off{color:#92400e;background:#fffbeb}</style>');
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
