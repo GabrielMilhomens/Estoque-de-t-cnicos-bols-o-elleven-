@@ -15732,11 +15732,18 @@ async function vpPdfGera(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4
   doc.autoTable({startY:y,theme:'grid',head:[['#','Ponto','Item','Gravidade','O que corrigir']],headStyles:{fillColor:VERDE,textColor:[19,32,24],fontSize:9},styles:{fontSize:9,cellPadding:2.2,lineColor:LINE,lineWidth:.3,textColor:40,valign:'top'},margin:{left:m,right:m},
     columnStyles:{0:{cellWidth:8},1:{cellWidth:18},2:{cellWidth:42},3:{cellWidth:24}},body:P.map((x,i)=>[String(i+1),x.id||'—',x.item||'—',G[x.g]||x.g||'—',x.txt||'—'])});
   y=doc.lastAutoTable.finalY+6;
-  /* fotos das pendências (vistorias enviadas a partir de 08/11) */
+  /* trecho do KMZ com os postes e fotos das pendências: recortados do relatório da vistoria (PDF do vistoriador) */
+  let RC=null;try{RC=await vpRecortes(a)}catch(e){RC=null}
+  const img=(r,tit,maxH)=>{if(!r)return;const w=W-2*m;let h=r.h*w/r.w,ww=w;if(h>maxH){ww=w*maxH/h;h=maxH}
+    if(y+(tit?8:0)+h>H-16){doc.addPage();y=18}if(tit){doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text(tit,m,y);y+=3}
+    doc.addImage(r.d,'JPEG',m+(w-ww)/2,y,ww,h);y+=h+6};
+  if(RC&&RC.mapa)img(RC.mapa,'Trecho do KMZ vistoriado · postes com pendência em vermelho',150);
+  if(RC&&RC.fotos.length)RC.fotos.forEach((f,i)=>img(f,i===0?'Fotos das pendências':'',H-40));
+  else{/* sem o relatório: fotos guardadas no envio da vistoria (a partir de 08/11) */
   const F=[];for(const[i,x]of P.entries())if(x.foto){const d=await vpFoto(x.foto);if(d)F.push({d,t:`${i+1}. ${x.id||''} · ${x.item||''}`})}
   if(F.length){const fw=(W-2*m-6)/2,fh=fw*.72;if(y+12>H-40){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(40);doc.text('Fotos das pendências',m,y);y+=4;
     F.forEach((f,i)=>{const col=i%2;if(col===0&&y+fh+10>H-40){doc.addPage();y=18}const x=m+col*(fw+6);try{const pr=doc.getImageProperties(f.d),q=Math.min(fw/pr.width,fh/pr.height);doc.addImage(f.d,'JPEG',x+(fw-pr.width*q)/2,y+(fh-pr.height*q)/2,pr.width*q,pr.height*q)}catch(e){}
-      doc.setDrawColor(...LINE);doc.rect(x,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90);doc.text(f.t,x,y+fh+4,{maxWidth:fw});if(col===1||i===F.length-1)y+=fh+9})}
+      doc.setDrawColor(...LINE);doc.rect(x,y,fw,fh);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90);doc.text(f.t,x,y+fh+4,{maxWidth:fw});if(col===1||i===F.length-1)y+=fh+9})}}
   /* assinatura de quem baixou */
   if(y+38>H-14){doc.addPage();y=24}y=Math.max(y+8,H-62);
   doc.setDrawColor(60);doc.setLineWidth(.3);doc.line(m+30,y+14,W-m-30,y+14);
@@ -15745,6 +15752,22 @@ async function vpPdfGera(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4
   doc.text(`Documento emitido e baixado por ${quem} em ${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`,W/2,y+29,{align:'center'});
   const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7.5);doc.setTextColor(150);doc.text(`Pedido de correção · ${a.etiqueta}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
   return doc.output('blob')}
+/* recorta do relatório da vistoria (PDF) o mapa do trajeto e as fotos das pendências */
+async function vpRecortes(a){const pth=a.rel&&a.rel.vist&&a.rel.vist.path;if(!pth||typeof pdfjsLib==='undefined')return null;
+  const r=await sb.storage.from('agenda').download(pth);if(r.error||!r.data)return null;
+  const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await r.data.arrayBuffer())}).promise,out={mapa:null,fotos:[]};let emF=false;
+  for(let n=1;n<=pdf.numPages;n++){const pg=await pdf.getPage(n),v1=pg.getViewport({scale:1}),T=(await pg.getTextContent()).items.map(i=>({s:String(i.str||'').trim(),y:v1.height-i.transform[5],h:i.height||Math.abs(i.transform[3])||8})).filter(t=>t.s);
+    let cv=null;const SC=2.2,mx=34;
+    const corta=async(y0,y1)=>{if(y1-y0<15)return null;if(!cv){const vp=pg.getViewport({scale:SC});cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;const g=cv.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);await pg.render({canvasContext:g,viewport:vp}).promise}
+      const c2=document.createElement('canvas');c2.width=Math.round((v1.width-2*mx)*SC);c2.height=Math.round((y1-y0)*SC);const g2=c2.getContext('2d');g2.fillStyle='#fff';g2.fillRect(0,0,c2.width,c2.height);g2.drawImage(cv,-Math.round(mx*SC),-Math.round(y0*SC));return{d:c2.toDataURL('image/jpeg',.9),w:c2.width,h:c2.height}};
+    const rod=T.find(t=>/^Net Turbo Telecom, (re)?vistoria/.test(t.s)),fimPg=rod?rod.y-rod.h-4:v1.height-28;
+    const tj=T.find(t=>/^Trajeto vistoriado$/.test(t.s));
+    if(tj&&!out.mapa){const mt=T.filter(t=>t.y>tj.y&&/metragem prevista|desenho do cabo|^Conforme \d/.test(t.s));out.mapa=await corta(tj.y+3,mt.length?Math.max(...mt.map(t=>t.y))+5:Math.min(fimPg,tj.y+360))}
+    const fh=T.find(t=>/^Fotos das pendências$/.test(t.s));let ini=null;if(fh){emF=true;ini=fh.y+3}else if(emF)ini=40;
+    if(emF&&ini!=null){const cap=T.filter(t=>/^Foto \d+:/.test(t.s)&&t.y>ini&&t.y<fimPg),fimSec=T.filter(t=>t.y>ini&&/^Observações$|^Vistoriador ·/.test(t.s));
+      if(cap.length){const y1=Math.max(...cap.map(t=>t.y))+(T.some(t=>t.y>Math.max(...cap.map(c=>c.y))&&t.y<Math.max(...cap.map(c=>c.y))+12&&!/^Foto/.test(t.s))?13:5);out.fotos.push(await corta(ini,Math.min(y1,fimPg)))}
+      if(fimSec.length||(!cap.length&&!fh))emF=false}}
+  out.fotos=out.fotos.filter(Boolean);return out}
 /* lista "Com pendência": entra sem prazo, prazo a definir primeiro */
 {const _v=viewVist;viewVist=function(){const h=_v.apply(this,arguments);return h}}
 document.head.insertAdjacentHTML('beforeend','<style>.vpad{color:var(--warn,#8a5a00)}.v19ac{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}</style>');
