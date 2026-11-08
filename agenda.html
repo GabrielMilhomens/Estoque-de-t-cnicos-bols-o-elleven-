@@ -12667,9 +12667,8 @@ function klHint(){const m=KLB.modo;if(m==='rt')return 'Toque no cabo onde vai a 
   return 'Toque num poste para mudar o tipo; arraste qualquer poste, o <b>C</b> (cabo interno), o <b>R</b> e os ícones para mudar de lugar.'}
 async function klabMapa(){const D=KLB.D,box=document.getElementById('klMap');if(!D||!box)return;
   try{await vtLib()}catch(e){box.innerHTML='<p class="muted" style="padding:12px">Não foi possível carregar o mapa. O KMZ pode ser baixado normalmente.</p>';return}
-  let vw=null;if(KLB.map){if(KLB.manter)vw={c:KLB.map.getCenter(),z:KLB.map.getZoom()};try{KLB.map.remove()}catch(e){}KLB.map=null}if(!vw&&KLB.vwSalvo)vw=KLB.vwSalvo;KLB.vwSalvo=null;
-  const LL=window.L,m=LL.map(box,{zoomControl:true,keyboard:false}),F=VT_FUNDOS[KLB.fundo]||VT_FUNDOS.ruas;KLB.map=m;
-  await klTiles(m,F);if(KLB.map!==m)return;
+  let vw=null;if(KLB.map){if(KLB.manter)vw={c:KLB.map.getCenter(),z:KLB.map.getZoom()};klMapRm();KLB.map=null}if(!vw&&KLB.vwSalvo)vw=KLB.vwSalvo;KLB.vwSalvo=null;
+  const LL=window.L,F=VT_FUNDOS[KLB.fundo]||VT_FUNDOS.ruas,m=await klMapaNovo(box,LL,F);if(!m)return;KLB.map=m;
   const cab=(KA_CABO[D.cabo]||KA_CABO.drop)[1],cor='#'+cab.slice(6,8)+cab.slice(4,6)+cab.slice(2,4);
   const btn=(t,f,cls)=>{const b=document.createElement('button');b.type='button';b.className='btn sm'+(cls?' '+cls:'');b.textContent=t;b.onclick=e=>{e.stopPropagation();m.closePopup();f()};return b};
   const pop=(ll,tit,fill)=>{const b=document.createElement('div');b.className='klpop';b.innerHTML=`<b>${tit}</b>`;fill(b);LL.popup({minWidth:210}).setLatLng(ll).setContent(b).openOn(m)};
@@ -12709,7 +12708,7 @@ async function klabMapa(){const D=KLB.D,box=document.getElementById('klMap');if(
   if(cm)cm.on('dragend',()=>{const g=cm.getLatLng();D.c[0]=[g.lat,g.lng];klabRefaz(true)});
   if(cm)cm.on('click',ev=>{LL.DomEvent.stop(ev);if(KLB.modo!=='cab')return;if(!KLB.sel){KLB.sel='C';KLB.manter=true;klabRes();return}if(KLB.sel==='C')return;D.seg.push({a:'C',b:KLB.sel,cabo:KLB.cabK||'drop'});KLB.sel=null;KLB.modo='';klabRefaz(true)});
   LL.marker(D.c[D.c.length-1],{keyboard:false,icon:di('X','#ca8a04',KLB.cxn||'Caixa'),interactive:false,zIndexOffset:400}).addTo(m);/* não interativo: o toque passa para o poste da caixa */
-  const toque=e=>{const md=KLB.modo;let ll=[e.latlng.lat,e.latlng.lng];
+  const toque=e=>{const md=KLB.modo;let ll=[e.latlng.lat,e.latlng.lng];if(md==='via'){klViaAdd(ll);return}
     if(md==='rt'){const q=labProj(D.c,ll);if(q.d>40){toast('Toque mais perto do cabo.','bad');return}
       if(D.P.some(p=>kmHav(p.ll,q.ll)<4))toast('A reserva ficou em cima de um poste: o padrão pede no meio do vão. Arraste o R se precisar.','warn');const r={ll:q.ll};D.rts.push(r);klRtRegra(D,r);KLB.modo='';klabRefaz(true);return}
     if(md==='ico'){const k=KLB.icoK||'poste';if(k==='poste'){const np={t:'EF',ll,s:0};D.P.push(np);const q=labProj(D.c,ll);if(q.d<25)klCaboPoste(D,np,q.ll)}else{const n=D.X.filter(x=>x.k===k).length+1;const sn=k==='cs'?labProj(D.c,ll):null;if(sn&&sn.d<30)ll=sn.ll;D.X.push({k,ll,nome:{cs:'CS',ceo:'CEO NOVA',cto:'CTO NOVA',spl:'SPLITTER',info:'INFORMAÇÃO'}[k]+' '+n})}KLB.modo='';klabRefaz(true)}};
@@ -12814,7 +12813,7 @@ function klabResResumo(){const el=document.getElementById('klRes'),I=KLB.info,D=
     <div class="klkpi" style="margin-top:8px"><div><small>Materiais</small><b>${b(V.vMat)}</b></div><div><small>Mão de obra${at?'':' (sem ativação e sem cliente)'}</small><b>${b(V.mo.tot||0)}</b></div><div class="t"><small>Custo total${roi!=null?` · ROI ${String(roi).replace('.',',')} meses`:''}</small><b>${b(V.tot)}</b></div></div></section>
    <div class="klnav"><button type="button" class="btn" data-act="klabEtapa" data-v="info">Voltar</button><span><button type="button" class="btn" data-act="klabBaixa">Baixar o KMZ</button> <button type="button" class="btn primary" data-act="klabFim">Concluir o teste</button></span></div>`}
 function klabRes(){const e=KLB.etapa||'des';if(!KLB.D||e==='des'){klabResDes();const el=document.getElementById('klRes');if(KLB.D&&el&&!KLB.wiz&&!el.querySelector('.klpassos'))el.insertAdjacentHTML('afterbegin',klPassos());return}
-  if(KLB.map){KLB.vwSalvo={c:KLB.map.getCenter(),z:KLB.map.getZoom()};try{KLB.map.remove()}catch(x){}KLB.map=null}
+  if(KLB.map){KLB.vwSalvo={c:KLB.map.getCenter(),z:KLB.map.getZoom()};klMapRm();KLB.map=null}
   if(e==='info')klabResInfo();else klabResResumo();const el=document.getElementById('klRes');if(el)el.scrollIntoView({block:'start'})}
 Object.assign(ACT,{
   klabEtapa:async el=>{const v=el.dataset.v;KLB.info=KLB.info||{tipo:KLB.mel?'me':'at',at:{},me:{}};KLB.info.tipo=KLB.mel?'me':'at';if((KLB.etapa||'des')==='info')klInfoLer();
@@ -17369,7 +17368,7 @@ const GM_KEY='AIzaSyCaF4ProOSSbB-OzSDDLoFqqaIvP6Ssq-M';
 const GM={ok:false,falhou:false,mot:'',p:null};
 const gmUsa=()=>!!(typeof KLB!=='undefined'&&KLB.wiz)&&!GM.falhou;
 function gmFalha(m){if(GM.falhou)return;GM.falhou=true;GM.ok=false;GM.mot=m||'Google indisponível';console.warn('Google Maps:',GM.mot);
-  try{if(typeof KLB!=='undefined'&&KLB.wiz&&KLB.map&&KLB.gm){KLB.manter=true;klabRes()}}catch(e){}}
+  try{if(typeof KLB!=='undefined'&&GM.lm){const vw=KLB.map===GM.lm?{c:GM.lm.getCenter(),z:GM.lm.getZoom()}:null;gmMataMapa();if(KLB.wiz&&KLB.D){KLB.vwSalvo=vw;klabRes()}}}catch(e){}}
 window.gm_authFailure=()=>gmFalha('chave do Google recusada');
 function gmScript(src,id){return new Promise((ok,er)=>{if(id&&document.getElementById(id))return ok();const s=document.createElement('script');if(id)s.id=id;s.src=src;s.async=true;s.referrerPolicy='no-referrer-when-downgrade';s.onload=()=>ok();s.onerror=()=>er(new Error('não carregou '+src));document.head.appendChild(s)})}
 /* carrega Maps JS + o plugin que põe o mapa do Google dentro do Leaflet (mantém toda a edição do laboratório) */
@@ -17381,11 +17380,21 @@ function gmPrep(){if(GM.falhou)return Promise.resolve(false);if(GM.ok)return Pro
       await gmScript('https://cdn.jsdelivr.net/npm/leaflet.gridlayer.googlemutant@0.16.0/dist/Leaflet.GoogleMutant.js','gmMut');
       if(!window.L.gridLayer||!window.L.gridLayer.googleMutant)throw new Error('plugin do mapa indisponível');
       if(GM.falhou)return false;GM.ok=true;return true}catch(e){gmFalha(e.message||String(e));return false}})())}
-/* fundo do mapa no laboratório: Google nas telas de desenho, Esri no resto */
-async function klTiles(m,F){const LL=window.L;KLB.gm=false;
-  if(gmUsa()&&KLB.fundo!=='liso'&&await gmPrep()&&!GM.falhou){try{LL.gridLayer.googleMutant({type:KLB.fundo==='sat'?'hybrid':'roadmap',maxZoom:21}).addTo(m);KLB.gm=true;gmSelo(m);return}catch(e){gmFalha(e.message)}}
+/* mapa do laboratório: nas telas de desenho, um único mapa do Google fica vivo enquanto o laboratório está aberto
+   (cada mapa novo do Google conta 1 carregamento na cota); a cada redesenho só as camadas do desenho são trocadas */
+function gmMataMapa(){if(GM.lm){try{GM.lm.remove()}catch(e){}if(KLB.map===GM.lm)KLB.map=null}GM.lm=null;GM.lc=null;GM.lg=null;GM.lt=''}
+function klMapRm(){const m=KLB.map;if(!m)return;if(m===GM.lm&&!GM.falhou)return;try{m.remove()}catch(e){}if(m===GM.lm)gmMataMapa()}
+async function klMapaNovo(box,LL,F){KLB.gm=false;const tp=KLB.fundo==='sat'?'hybrid':'roadmap';
+  if(gmUsa()&&KLB.fundo!=='liso'&&await gmPrep()&&!GM.falhou){if(!document.body.contains(box))return null;
+    try{let m=GM.lm;if(m){box.appendChild(GM.lc);m.eachLayer(l=>{if(l!==GM.lg)m.removeLayer(l)});m.off('click')}
+      else{const c=document.createElement('div');c.style.cssText='width:100%;height:100%';box.appendChild(c);m=LL.map(c,{zoomControl:true,keyboard:false});GM.lc=c;GM.lm=m;gmSelo(m)}
+      if(GM.lt!==tp){if(GM.lg)m.removeLayer(GM.lg);GM.lg=LL.gridLayer.googleMutant({type:tp,maxZoom:21}).addTo(m);GM.lt=tp}
+      m.invalidateSize(false);KLB.gm=true;return m}catch(e){gmFalha(e.message||String(e))}}
+  if(GM.lm)gmMataMapa();if(!document.body.contains(box))return null;
+  const m=LL.map(box,{zoomControl:true,keyboard:false});
   if(F.u)LL.tileLayer(F.u,{maxNativeZoom:KLB.fundo==='sat'?18:F.max,maxZoom:21,attribution:F.at,crossOrigin:true}).addTo(m);if(F.sob)LL.tileLayer(F.sob,{maxNativeZoom:KLB.fundo==='sat'?18:F.max,maxZoom:21,crossOrigin:true}).addTo(m);
-  if(KLB.wiz&&GM.falhou)gmSelo(m)}
+  if(KLB.wiz&&GM.falhou)gmSelo(m);return m}
+{const _f=ACT.klabFecha;ACT.klabFecha=function(){gmMataMapa();return _f.apply(this,arguments)}}
 function gmSelo(m){const LL=window.L,c=LL.control({position:'bottomleft'});c.onAdd=()=>{const d=LL.DomUtil.create('div','gmselo'+(GM.falhou?' off':''));
     d.textContent=GM.falhou?'Mapa padrão · Google indisponível':'Google Maps';if(GM.falhou)d.title=GM.mot;return d};c.addTo(m)}
 /* rota a pé do Google (Routes API): segue as ruas sem respeitar mão de direção */
@@ -17400,7 +17409,56 @@ async function gmRota(a,b){if(!(await gmPrep()))return null;
   catch(e){console.warn('rota Google',e);GM.rotaErro=e.message||String(e);return null}finally{clearTimeout(t)}}
 {const _r=kaRota;kaRota=async function(cli,cx){if(gmUsa()){const c=await gmRota(cli,cx);if(c&&!GM.falhou){KLB.rotaG=true;return{c,ors:true,google:true}}}
   if(typeof KLB!=='undefined')KLB.rotaG=false;return _r.apply(this,arguments)}}
-document.head.insertAdjacentHTML('beforeend','<style>.gmselo{background:rgba(255,255,255,.9);color:#1f2937;font:600 11px/1.2 system-ui,sans-serif;padding:3px 7px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.25)}.gmselo.off{color:#92400e;background:#fffbeb}</style>');
+document.head.insertAdjacentHTML('beforeend','<style>.gmselo{background:rgba(255,255,255,.9);color:#1f2937;font:600 11px/1.2 system-ui,sans-serif;padding:3px 7px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.25)}.gmselo.off{color:#92400e;background:#fffbeb}#klab .klmap.klmira .leaflet-container{cursor:crosshair}</style>');
+
+/* ---------- 08/11: Indicar caminho no desenho ----------
+   Botão "Indicar caminho": cada toque no mapa marca um ponto azul numerado por onde o cabo deve passar e o traçado
+   é refeito na hora (pelas ruas, ponto a ponto, ou em linha reta entre os pontos). Os pontos podem ser arrastados
+   ou removidos. Mudou a coordenada de origem ou de destino, os pontos somem.
+   Refazer o traçado gera de novo os postes do caminho: edições feitas antes (reserva, trechos, ícones) saem. */
+KLB.via=KLB.via||[];
+const klViaK=(a,b)=>a&&b?a.map(v=>(+v).toFixed(6)).join(',')+'|'+b.map(v=>(+v).toFixed(6)).join(','):'';
+GM.seg=GM.seg||{};
+async function klViaSeg(a,b,_r){const k=klViaK(a,b)+(gmUsa()?'|g':'|o');if(GM.seg[k])return GM.seg[k];let c=null;
+  if(gmUsa())c=await gmRota(a,b);if(!c){try{const R=await _r(a,b);if(R&&R.ors)c=R.c}catch(e){}}
+  if(!c)c=[a,b];GM.seg[k]=c;return c}
+{const _r=kaRota;kaRota=async function(cli,cx){
+  if(KLB.via&&KLB.via.length&&KLB.viaK!==klViaK(cli,cx))KLB.via=[];
+  if(!KLB.via||!KLB.via.length)return _r.apply(this,arguments);
+  const P=[cli].concat(KLB.via).concat([cx]);if(KLB.viaReta)return{c:P.map(p=>p.slice()),ors:true,via:true};
+  let c=[];for(let i=1;i<P.length;i++){const s=await klViaSeg(P[i-1],P[i],_r);c=c.concat(i>1?s.slice(1):s)}
+  return{c,ors:true,via:true}}}
+/* novo ponto entra na posição que menos alonga o caminho */
+function klViaAdd(ll){const v=id=>(($(id)||{}).value||'').trim(),cli=kaLL(v('klCli')),cx=kaLL(v('klCx'));if(!cli||!cx)return;
+  const k=klViaK(cli,cx);if(KLB.viaK!==k){KLB.via=[];KLB.viaK=k}
+  const P=[cli].concat(KLB.via).concat([cx]);let bi=0,bc=1e12;for(let i=0;i<P.length-1;i++){const c=kmHav(P[i],ll)+kmHav(ll,P[i+1])-kmHav(P[i],P[i+1]);if(c<bc){bc=c;bi=i}}
+  KLB.via.splice(bi,0,ll);klViaRefaz()}
+let _klViaT=0;
+async function klViaRefaz(){const b=document.querySelector('#klab [data-act="klabGera"]:not([data-l])')||document.querySelector('[data-act="klabGera"]');if(!b)return;const t=++_klViaT;
+  if(KLB.map)KLB.vwSalvo={c:KLB.map.getCenter(),z:KLB.map.getZoom()};const vw=KLB.vwSalvo,ed=KLB.ed;
+  await ACT.klabGera(b);if(t!==_klViaT)return;
+  if(ed&&KLB.wiz)KLB.ed=ed;KLB.modo='via';KLB.vwSalvo=vw;KLB.manter=false;klabRes()}
+/* mapa: pontos do caminho */
+{const _k=klabMapa;klabMapa=async function(){const r=await _k.apply(this,arguments);try{const m=KLB.map,LL=window.L,D=KLB.D;if(!m||!D)return r;
+  const v=id=>(($(id)||{}).value||'').trim(),k=klViaK(kaLL(v('klCli')),kaLL(v('klCx')));if(KLB.viaK!==k)KLB.via=[];
+  if(KLB.modo==='via'&&KLB.vwSalvo){m.setView(KLB.vwSalvo.c,KLB.vwSalvo.z,{animate:false});KLB.vwSalvo=null}
+  (KLB.via||[]).forEach((p,i)=>{const mk=LL.marker(p,{draggable:true,keyboard:false,zIndexOffset:900,icon:LL.divIcon({className:'klvia',html:`<span>${i+1}</span>`,iconSize:[26,26],iconAnchor:[13,13]})}).addTo(m)
+      .bindTooltip(`Ponto de passagem ${i+1} · arraste para mudar · toque para remover`);
+    mk.on('dragend',()=>{const g=mk.getLatLng();KLB.via[i]=[g.lat,g.lng];klViaRefaz()});
+    mk.on('click',ev=>{LL.DomEvent.stop(ev);const b=document.createElement('div');b.className='klpop';b.innerHTML=`<b>Ponto de passagem ${i+1}</b>`;const bt=document.createElement('button');bt.type='button';bt.className='btn sm klrem';bt.textContent='Remover ponto';
+      bt.onclick=e=>{e.stopPropagation();m.closePopup();KLB.via.splice(i,1);klViaRefaz()};b.appendChild(bt);LL.popup({minWidth:200}).setLatLng(p).setContent(b).openOn(m)})})}catch(e){console.warn('caminho',e)}return r}}
+/* barra: botão Indicar caminho e dica com as opções */
+{const _h=klHint;klHint=function(){if(KLB.modo!=='via')return _h.apply(this,arguments);const n=(KLB.via||[]).length;
+  return `<b>Indicar caminho:</b> toque no mapa por onde o cabo deve passar; o traçado é refeito a cada ponto. Arraste o ponto azul para ajustar, toque nele para remover.
+   <span class="klviab"><span class="seg" role="group" aria-label="Como ligar os pontos"><button type="button" class="btn sm${KLB.viaReta?'':' primary'}" data-act="klViaReta" data-v="">Pelas ruas</button><button type="button" class="btn sm${KLB.viaReta?' primary':''}" data-act="klViaReta" data-v="1">Linha reta entre os pontos</button></span>
+   ${n?`<button type="button" class="btn sm ghost" data-act="klViaLimpa">Limpar caminho (${n} ponto${n>1?'s':''})</button>`:''}</span>`}}
+{const _d=klabResDes;klabResDes=function(){const o=_d.apply(this,arguments);try{const t=document.querySelector('#klRes .kled');if(t&&!t.querySelector('[data-v="via"]'))
+  t.insertAdjacentHTML('afterbegin',`<button type="button" class="btn sm klviabt${KLB.modo==='via'?' primary':''}" data-act="klabModo" data-v="via" aria-pressed="${KLB.modo==='via'}">✋ Indicar caminho${(KLB.via||[]).length?` (${KLB.via.length})`:''}</button>`)}catch(e){}return o}}
+Object.assign(ACT,{
+  klViaReta:el=>{KLB.viaReta=!!el.dataset.v;if((KLB.via||[]).length)klViaRefaz();else{KLB.manter=true;klabRes()}},
+  klViaLimpa:()=>{KLB.via=[];klViaRefaz()}});
+{const _f=ACT.klabFecha;ACT.klabFecha=function(){KLB.via=[];KLB.viaK='';KLB.viaReta=false;return _f.apply(this,arguments)}}
+document.head.insertAdjacentHTML('beforeend','<style>.klvia span{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#2563eb;color:#fff;font:700 13px/1 system-ui,sans-serif;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);cursor:grab}.klviab{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.klviabt{border-color:#2563eb!important}</style>');
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();

@@ -763,6 +763,14 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - Uso: até 10.000 mapas e 10.000 rotas grátis por mês em cada API. Conta em teste gratuito de 90 dias sem cobrança automática. Antes de ativar a conta completa, colocar a cota de 300 por dia.
   - Código: `gmaps.js`. Sem SQL.
 
+- **Indicar caminho no desenho** (08/11/2026, Melhoria de rede e Implantação):
+  - Botão **✋ Indicar caminho**: cada toque no mapa marca um ponto azul numerado por onde o cabo deve passar, e o traçado é refeito na hora.
+  - O ponto novo entra na ordem que menos alonga o caminho. Dá para arrastar o ponto para ajustar ou tocar nele para remover.
+  - Duas formas de ligar os pontos: **Pelas ruas** (rota ponto a ponto) ou **Linha reta entre os pontos** (o cabo passa exatamente pelos pontos marcados).
+  - Se a coordenada de origem ou de destino mudar, os pontos são limpos. Refazer o traçado gera de novo os postes, então reserva, trechos e ícones colocados antes saem.
+  - Economia de cota: um só mapa do Google fica aberto enquanto o laboratório está aberto (redesenhar não conta novo carregamento), e cada trecho de rota já calculado é reaproveitado.
+  - Código: `gmvia.js` e ajuste em `gmaps.js`. Sem SQL.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -827,6 +835,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 08/11/2026 | Indicar caminho no desenho (pontos de passagem pelas ruas ou em linha reta) e um só mapa do Google por sessão do laboratório | `agenda.html`. Sem SQL |
 | 08/11/2026 | Google Maps (mapa e rota) nas telas de desenho da Melhoria de rede e da Implantação, com volta automática para Esri/ORS | `agenda.html`. Sem SQL. Chave travada no Google Cloud para o site e para Maps JavaScript + Routes |
 | 08/11/2026 | **Transmissão · Melhoria de rede**: lançamento (caixa a caixa ou POP para caixa, desenhado no laboratório de KMZ), CFO nas caixas pelo KMZ (splitter e extensão de fibra), infraestrutura do POP, custos previstos completos, acompanhamento com status e observações, realizado por LPU baixada e planilha do Grafana, e painel por motivo e POP. Detalhes em 7. | agenda.html (`txmel.js`). **Rodar `agenda_ajuste_60_melhoria_de_rede_transmissao.sql` no Supabase antes de publicar** (não subir no GitHub). Depois, liberar "Melhoria de rede" em Usuários e acessos › Transmissão. |
 | 08/11/2026 | **Financeiro por área, menu Financeiro e Visão gerencial**: Implantação só com a conta 0005; Transmissão com o Financeiro da 0007 (instalação rede); menu Financeiro de consulta com todas as áreas (budget, prestadores, detalhamento com filtro por área, todas as LPUs com PDF de cada baixa e .zip de várias); Visão gerencial com os KPIs de todas as áreas e relatórios; acesso gerencial só leitura para o gerente. Detalhes em 7. | agenda.html (`fingest.js`). **Rodar `agenda_ajuste_59_financeiro_transmissao.sql` no Supabase antes de publicar** (não subir no GitHub). Depois: aprovar o cadastro do Rubens em Usuários e acessos como Supervisor e usar "Aplicar acesso gerencial (só ver)". |
