@@ -17854,6 +17854,45 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 @media(max-width:600px){.tmet{flex-wrap:wrap}.tmeta{width:100%;justify-content:flex-end}.tmets-sel{width:100%}}
 </style>`);if(!ACT.closeModal)ACT.closeModal=()=>closeModal();
 
+/* ---------- 08/11 (noite, 5): Melhoria de rede · cidade e POP com busca ----------
+   Cidade: as 645 cidades do estado de São Paulo, com busca pelo nome (sem acento e em qualquer parte do nome).
+   POP de referência e POP de origem do trecho: busca pela sigla, pelo nome ou pela cidade.
+   Enter escolhe a primeira opção da lista; Esc fecha. Cidade fora da lista fica como foi digitada. */
+const tmCbN=s=>normK(String(s||'')).replace(/\s+/g,' ').trim();
+const tmCbCid=()=>(typeof RP_SP!=='undefined'?RP_SP:[]).slice().sort((a,b)=>a.localeCompare(b,'pt-BR'));
+function tmCbItens(k){if(k==='cid')return tmCbCid().map(c=>({v:c,t:c,q:tmCbN(c)}));
+  return tmPopL().map(p=>({v:String(p.id),t:tmPopN(p)+(p.cidade?' · '+p.cidade:''),q:tmCbN([p.sigla,p.nome,p.cidade].join(' '))})).sort((a,b)=>a.t.localeCompare(b.t,'pt-BR'))}
+function tmCbHtml(k,val,lab,ph,i){return `<div class="tmcb" data-cb="${k}"${i!=null?` data-i="${i}"`:''}><input class="inp" data-in="tmCbQ" data-cbv="${esc(val||'')}" value="${esc(lab||'')}" placeholder="${esc(ph)}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false"><svg class="tmcbv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg><div class="tmcbl" role="listbox" hidden></div></div>`}
+function tmCbMostra(inp,todos){const w=inp.closest('.tmcb'),L=w.querySelector('.tmcbl'),q=todos?'':tmCbN(inp.value),I=tmCbItens(w.dataset.cb);
+  const ws=q?q.split(' '):[],R=I.filter(x=>ws.every(p=>x.q.includes(p))).sort((a,b)=>q?(b.q.startsWith(q)-a.q.startsWith(q)):0).slice(0,80);
+  L.innerHTML=R.length?R.map((x,j)=>`<button type="button" class="tmcbo${j?'':' on'}" role="option" data-act="tmCbPick" data-v="${esc(x.v)}">${esc(x.t)}</button>`).join(''):`<p class="muted tmcbz">${w.dataset.cb==='cid'?'Nenhuma cidade de SP com esse nome. O que você digitou fica como cidade.':'Nenhum POP encontrado.'}</p>`;
+  L.hidden=false;inp.setAttribute('aria-expanded','true')}
+function tmCbFecha(w){const L=w&&w.querySelector('.tmcbl');if(L){L.hidden=true;const i=w.querySelector('input');if(i)i.setAttribute('aria-expanded','false')}}
+function tmCbAplica(w,v){const D=tmD(),k=w.dataset.cb;if(!D)return;
+  if(k==='cid'){D.cidade=v;render();return}
+  if(k==='pop'){CH.tmPop({value:v});return}
+  if(k==='trpop'){CH.tmTrPop({value:v,dataset:{i:w.dataset.i}});const P=tmPopL().find(p=>String(p.id)===String(v));if(P&&!D.cidade){D.cidade=P.cidade||'';render()}}}
+Object.assign(IN,{tmCbQ:el=>tmCbMostra(el)});
+ACT.tmCbPick=el=>{const w=el.closest('.tmcb');if(!w)return;tmCbFecha(w);tmCbAplica(w,el.dataset.v)};
+document.addEventListener('focusin',e=>{const i=e.target;if(i&&i.matches&&i.matches('.tmcb input')){i.select();tmCbMostra(i,true)}});
+document.addEventListener('focusout',e=>{const i=e.target;if(!i||!i.matches||!i.matches('.tmcb input'))return;const w=i.closest('.tmcb');
+  setTimeout(()=>{if(w.contains(document.activeElement))return;tmCbFecha(w);const D=tmD();if(!D||!document.body.contains(w))return;
+    if(w.dataset.cb==='cid'){const t=i.value.trim(),m=tmCbCid().find(c=>tmCbN(c)===tmCbN(t));const nv=m||t;if(nv!==(D.cidade||''))tmCbAplica(w,nv)}
+    else{const P=tmPopL().find(p=>String(p.id)===String(i.dataset.cbv));i.value=P?tmPopN(P)+(P.cidade?' · '+P.cidade:''):''}},180)});
+document.addEventListener('keydown',e=>{const i=e.target;if(!i||!i.matches||!i.matches('.tmcb input'))return;const w=i.closest('.tmcb'),L=w.querySelector('.tmcbl'),O=[...L.querySelectorAll('.tmcbo')];let j=O.findIndex(o=>o.classList.contains('on'));
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(L.hidden)tmCbMostra(i);const O2=[...L.querySelectorAll('.tmcbo')];if(!O2.length)return;j=Math.max(0,Math.min(O2.length-1,j+(e.key==='ArrowDown'?1:-1)));O2.forEach((o,k)=>o.classList.toggle('on',k===j));O2[j].scrollIntoView({block:'nearest'})}
+  else if(e.key==='Enter'){e.preventDefault();const o=O[j>=0?j:0];if(o){tmCbFecha(w);tmCbAplica(w,o.dataset.v)}else if(w.dataset.cb==='cid'){tmCbFecha(w);tmCbAplica(w,i.value.trim())}}
+  else if(e.key==='Escape'){tmCbFecha(w);i.blur()}});
+/* troca os campos no editor da melhoria (só quando dá para editar) */
+{const _e=tmEditor;tmEditor=function(){let h=_e.apply(this,arguments);const D=tmD();if(!D)return h;try{
+  h=h.replace(/<input class="inp" data-ch="tmCampo" data-k="cidade" value="([^"]*)" placeholder="[^"]*"\s*>/,(m,v)=>tmCbHtml('cid',v,v.replace(/&quot;/g,'"').replace(/&amp;/g,'&'),'Digite para buscar a cidade'));
+  const lab=id=>{const P=tmPopL().find(p=>String(p.id)===String(id));return P?tmPopN(P)+(P.cidade?' · '+P.cidade:''):''};
+  h=h.replace(/<select class="inp" data-ch="tmPop"\s*>[\s\S]*?<\/select>/,()=>tmCbHtml('pop',D.popId||'',lab(D.popId),'Digite a sigla, o nome ou a cidade do POP'));
+  h=h.replace(/<select class="inp" data-ch="tmTrPop" data-i="(\d+)"\s*>[\s\S]*?<\/select>/g,(m,i)=>{const t=(D.trechos||[])[+i]||{};return tmCbHtml('trpop',t.oPop||'',lab(t.oPop),'Digite a sigla, o nome ou a cidade do POP',i)})}catch(e){console.warn('busca',e)}return h}}
+document.head.insertAdjacentHTML('beforeend',`<style>.tmcb{position:relative}.tmcb .inp{padding-right:34px;width:100%}.tmcbv{position:absolute;right:10px;top:50%;width:18px;height:18px;margin-top:-9px;fill:none;stroke:currentColor;stroke-width:2;pointer-events:none;opacity:.6}
+.tmcbl{position:absolute;z-index:60;left:0;right:0;top:calc(100% + 4px);max-height:300px;overflow:auto;background:var(--card,#fff);border:1px solid var(--line,#d1d5db);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:4px}
+.tmcbo{display:block;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:7px;font:inherit;color:inherit;cursor:pointer}.tmcbo:hover,.tmcbo.on{background:rgba(106,143,47,.14)}.tmcbz{margin:6px 8px;font-size:13px}</style>`);
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>

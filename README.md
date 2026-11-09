@@ -809,6 +809,12 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Correção: "Cancelar" das janelas da Melhoria de rede** (08/11/2026): os botões Cancelar (delegar, responder, despachar, nova tarefa, despacho e outras janelas da melhoria) não fechavam a janela. Agora fecham. Sem SQL.
 
+- **Melhoria de rede · cidade e POP com busca** (08/11/2026):
+  - O campo Cidade traz as 645 cidades do estado de São Paulo, com busca por qualquer parte do nome e sem precisar de acento (ex.: "sao jose rio" encontra São José do Rio Preto e São José do Rio Pardo). Cidade fora da lista fica como foi digitada.
+  - POP de referência e POP de origem do trecho: busca pela sigla, pelo nome ou pela cidade do POP.
+  - Setas escolhem na lista, Enter confirma e Esc fecha.
+  - Código: `tmcombo.js`. Sem SQL.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -873,6 +879,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 08/11/2026 | Melhoria de rede: cidade (todas as cidades de SP) e POP com busca | `agenda.html`. Sem SQL |
 | 08/11/2026 | Correção: o botão Cancelar das janelas da Melhoria de rede não fechava a janela | `agenda.html`. Sem SQL |
 | 08/11/2026 | **Melhoria de rede · gestão de projeto**: etapas definidas na criação (com a conferência de materiais e mão de obra no fim), despacho das etapas de campo pela tela de criar chamados da Transmissão, delegação de etapas internas com prazo, prints e anexos e aviso no sino, linha do tempo com anexos, visualização do projeto, quadro por etapa, cabos 72/144FO, coluna Melhoria TX e permissão de despachar. Detalhes em 7. | agenda.html (`tmgp.js`, `txmel.js`). **Rodar `agenda_ajuste_61_melhoria_campo_e_gestao.sql` no Supabase antes de publicar** (não subir no GitHub). Depois, marcar a Melhoria TX na Equipe técnica e as permissões em Usuários e acessos › Transmissão. |
 | 08/11/2026 | Ícones do padrão construtivo (os mesmos do KMZ) nos postes, caixas e reserva do mapa de desenho | `agenda.html`. Sem SQL |
