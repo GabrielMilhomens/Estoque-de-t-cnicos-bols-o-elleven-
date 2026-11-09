@@ -17177,7 +17177,7 @@ Object.assign(ACT,{
     openModal(`<h3>Despachar ${esc(D.codigo)}</h3><p class="muted">Quem executa e quando. A melhoria passa para Despachada.</p>
       <label class="f"><span>Responsável (técnico ou empresa terceira) *</span><select class="inp" id="tmdTec"><option value="">Escolha</option>${tecs.map(t=>`<option value="${t.id}">${esc(t.nome)}${t.vinculo==='terceiro'||t.tipo==='TERC'?' (terceiro)':''}</option>`).join('')}</select></label>
       <label class="f"><span>Data prevista *</span><input class="inp" type="date" id="tmdData" value="${hoje()}"></label><label class="f"><span>Observação</span><input class="inp" id="tmdObs"></label>
-      <div class="actions"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn primary" data-act="tmDespOk">Despachar</button></div>`)},
+      <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="tmDespOk">Despachar</button></div>`)},
   tmDespOk:async el=>{const D=tmD(),tec=($('tmdTec')||{}).value,data=($('tmdData')||{}).value;if(!tec||!data){toast('Escolha o responsável e a data.','bad');return}
     D.desp={tec,tecN:gTecN(tec),data,obs:(($('tmdObs')||{}).value||'').trim(),por:meNome(),em:Date.now()};D.status='desp';D.hist=(D.hist||[]).concat([{acao:'Despachada para '+D.desp.tecN,por:meNome(),em:Date.now()}]);D.acomp=(D.acomp||[]).concat([{em:Date.now(),por:meNome(),st:'desp',obs:`Despachada para ${D.desp.tecN}, previsto ${dBR(data)}.${D.desp.obs?' '+D.desp.obs:''}`}]);if(!D.iniP)D.iniP=data;closeModal();await ACT.tmSalvar()},
   tmConcl:()=>{const D=tmD();rpPergunta('Marcar como concluída?','A melhoria sai da lista em andamento.','Concluir',async()=>{D.status='concl';D.hist=(D.hist||[]).concat([{acao:'Concluída',por:meNome(),em:Date.now()}]);const s=ACT.tmSalvar;ui.tmPodeConcl=true;await s()})}});
@@ -17249,7 +17249,7 @@ Object.assign(ACT,{
   tmItAdd:async el=>{ui.tmBt=el.dataset.v;ui.tmBq='';if(ui.tmBt==='mat'){try{await krCarregaPrecos()}catch(e){}}
     openModal(`<h3>Incluir ${ui.tmBt==='mat'?'material (tabela de preços)':'mão de obra (LPU)'}</h3><label class="f"><span>Buscar por código ou descrição</span><input class="inp" data-in="tmBusca" placeholder="${ui.tmBt==='mat'?'Ex.: DIO, cordão, splitter':'Ex.: DIO, bastidor, fusão'}" autofocus></label><div id="tmBres" class="tmbres">${tmBuscaRes()}</div>
       <details style="margin-top:10px"><summary>Item que não está na lista</summary><div class="tmform"><label class="f tmw"><span>Descrição</span><input class="inp" id="tmLd"></label><label class="f"><span>Valor unitário (R$)</span><input class="inp" id="tmLv" type="number" min="0" step="0.01"></label><label class="f"><span>Quantidade</span><input class="inp" id="tmLq" type="number" min="0" step="any" value="1"></label></div><div class="actions"><button class="btn" data-act="tmItLivre">Incluir</button></div></details>
-      <div class="actions"><button class="btn" data-act="closeModal">Fechar</button></div>`)},
+      <div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)},
   tmItEsc:el=>{const D=tmD();D.extra=D.extra||[];const cod=el.dataset.cod;let desc=cod,un='';if(ui.tmBt==='mo'){const it=kcItem(cod)||{};desc=it.desc||cod;un=it.medida||''}else{const pr=krPr(cod);desc=(pr&&pr.desc)||cod;un='UN'}
     D.extra.push({tipo:ui.tmBt,cod,desc,un,qtd:1});closeModal();render();toast('Item incluído. Ajuste a quantidade na tabela.')},
   tmItLivre:()=>{const d=(($('tmLd')||{}).value||'').trim(),v=+(($('tmLv')||{}).value||0),q=+(($('tmLq')||{}).value||1);if(!d){toast('Informe a descrição.','bad');return}const D=tmD();D.extra=D.extra||[];D.extra.push({tipo:ui.tmBt,cod:'',desc:d,vu:v,qtd:q});closeModal();render()},
@@ -17298,13 +17298,13 @@ Object.assign(ACT,{
     <label class="f"><span>Data</span><input class="inp" type="date" id="tmsD" value="${hoje()}"></label>
     <label class="f"><span>Observação</span><textarea class="inp" id="tmsO" rows="3" placeholder="O que aconteceu, o que falta, quem está com a pendência"></textarea></label>
     <p class="muted" style="font-size:13px">Em execução preenche o início realizado; Concluída preenche o término realizado (se ainda estiverem vazios).</p>
-    <div class="actions"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn primary" data-act="tmStOk">Salvar</button></div>`)},
+    <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="tmStOk">Salvar</button></div>`)},
   tmStOk:async()=>{const D=tmD(),st=$('tmsS').value,dt=$('tmsD').value||hoje(),obs=($('tmsO').value||'').trim();if(st===D.status&&!obs){toast('Mude o status ou escreva uma observação.','bad');return}
     if(st==='exec'&&!D.iniR)D.iniR=dt;if(st==='concl'){if(!D.fimR)D.fimR=dt;if(!D.iniR)D.iniR=D.iniP&&D.iniP<=dt?D.iniP:dt}
     D.acomp=(D.acomp||[]).concat([{em:Date.now(),por:meNome(),st:st!==D.status?st:'',obs,data:dt}]);D.status=st;closeModal();await ACT.tmSalvar()},
   tmMpMais:()=>{ui.tmMp=1e6;render()},
   tmLpuAdd:()=>{const D=tmD(),usadas=new Set(TM.L.filter(x=>x.id!==D.id).flatMap(x=>x.lpus||[]).concat(D.lpus||[]));ui.tmLq='';ui.tmLtodas=false;openModal(`<h3>Vincular LPU baixada</h3><p class="muted">LPUs da conta 3.1.1.2.05.0007 (instalação rede) que ainda não estão em outra melhoria.</p>
-    <label class="f"><span>Buscar</span><input class="inp" data-in="tmLb" placeholder="Etiqueta, O&M ou prestador"></label><label class="chk"><input type="checkbox" data-ch="tmLtodas"> Mostrar LPUs de outras contas</label><div id="tmLres" class="tmbres">${tmLpuRes(usadas)}</div><div class="actions"><button class="btn" data-act="closeModal">Fechar</button></div>`)},
+    <label class="f"><span>Buscar</span><input class="inp" data-in="tmLb" placeholder="Etiqueta, O&M ou prestador"></label><label class="chk"><input type="checkbox" data-ch="tmLtodas"> Mostrar LPUs de outras contas</label><div id="tmLres" class="tmbres">${tmLpuRes(usadas)}</div><div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)},
   tmLpuEsc:async el=>{const D=tmD();D.lpus=(D.lpus||[]).concat([el.dataset.id]);closeModal();await ACT.tmSalvar();toast('LPU vinculada à melhoria.')},
   tmLpuDel:el=>{const D=tmD();rpPergunta('Desvincular a LPU?','Ela deixa de contar no realizado desta melhoria.','Desvincular',async()=>{D.lpus=(D.lpus||[]).filter(i=>i!==el.dataset.id);await ACT.tmSalvar()})},
   tmGfLimpa:()=>{const D=tmD();rpPergunta('Apagar os materiais importados?','Os materiais realizados desta melhoria ficam zerados até importar de novo.','Apagar',async()=>{D.matReal=[];D.imports=(D.imports||[]).concat([{arq:'(apagados)',n:0,v:0,em:Date.now(),por:meNome()}]);await ACT.tmSalvar()})},
@@ -17334,7 +17334,7 @@ function tmGfModal(){const G0=ui.tmGf,L=tmGfLinhas(),v=L.reduce((s,r)=>s+r.vt,0)
    <div class="tmform">${TM_GF.map(([k,n])=>`<label class="f"><span>${n}</span>${sel(k)}</label>`).join('')}<label class="f tmw"><span>Só as linhas que têm (na coluna de referência; sem ela, em qualquer coluna)</span><input class="inp" data-ch="tmGfF" value="${esc(G0.filtro||'')}" placeholder="Vazio = todas as linhas"></label></div>
    <p><b>${L.length} linha${L.length===1?'':'s'}</b> para importar · <b>${brl(v)}</b>${L.some(r=>r.vu==null)?` · <span class="bad">${L.filter(r=>r.vu==null).length} sem valor (nem na planilha nem na tabela de preços)</span>`:''}</p>
    <div class="tablewrap" style="max-height:30vh"><table class="tmct"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th class="r">Qtd.</th><th class="r">Total</th></tr></thead><tbody>${L.slice(0,8).map(r=>`<tr><td>${r.data?dBR(r.data):''}</td><td>${esc(r.cod)}</td><td>${esc(r.desc)}</td><td class="r">${r.qtd}</td><td class="r">${brl(r.vt)}</td></tr>`).join('')}</tbody></table></div>
-   <div class="actions"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn primary" data-act="tmGfOk">Importar ${L.length} linha${L.length===1?'':'s'}</button></div>`)}
+   <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="tmGfOk">Importar ${L.length} linha${L.length===1?'':'s'}</button></div>`)}
 CH.tmGfMap=el=>{ui.tmGf.map[el.dataset.k]=el.value===''?null:+el.value;tmGfModal()};CH.tmGfF=el=>{ui.tmGf.filtro=el.value;tmGfModal()};
 /* ---------- painel das melhorias ---------- */
 function tmViews(){const v=ui.tmV||'lista';return `<div class="views" style="margin-bottom:10px"><button data-act="tmView" data-v="lista" aria-current="${v==='lista'}">Melhorias</button><button data-act="tmView" data-v="painel" aria-current="${v==='painel'}">Painel</button></div>`}
@@ -17551,7 +17551,7 @@ const tmAvs=(ids,lid)=>(ids||[]).map(id=>`<span class="tmav${id===lid?' lid':''}
 async function tmPatch(id,fn,st){const x=tmGet(id);if(!x)return false;const{id:_i,codigo,status,criado_em,...dados}=tmLimpa(x);if(ui.tmD&&ui.tmD.id===id&&Array.isArray(dados.etapas))tmEtFim(dados);fn(dados);const row={dados,atualizado_em:new Date().toISOString()};if(st)row.status=st;
   const r=await sb.from('ag_tx_mel').update(row).eq('id',id);if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return false}
   Object.assign(x,dados,st?{status:st}:{});if(ui.tmD&&ui.tmD.id===id){fn(ui.tmD);if(st)ui.tmD.status=st}render();return true}
-function tmConfirma(tit,txt,bt,cb){ui.tmCb=cb;openModal(`<h3>${esc(tit)}</h3><p class="muted">${esc(txt)}</p><div class="actions"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn primary" data-act="tmConfOk">${esc(bt)}</button></div>`)}
+function tmConfirma(tit,txt,bt,cb){ui.tmCb=cb;openModal(`<h3>${esc(tit)}</h3><p class="muted">${esc(txt)}</p><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="tmConfOk">${esc(bt)}</button></div>`)}
 ACT.tmConfOk=async()=>{const f=ui.tmCb;ui.tmCb=null;closeModal();if(f)await f()};
 const tmEv=(obs,st)=>Object.assign({em:Date.now(),por:meNome(),obs},st?{st}:{});
 function tmTimeline(D){const E=(D.acomp||[]).map(a=>({em:a.em,por:a.por,obs:a.obs,st:a.st,campo:a.campo,anx:a.anx})).concat((D.hist||[]).filter(h=>!/^Editada|^Despachada|^Equipe atualizada/.test(h.acao)).map(h=>({em:h.em,por:h.por,obs:h.acao,sis:true})));
@@ -17609,7 +17609,7 @@ ACT.tmDlg=async el=>{if(!tmAcPode())return semPerm();const D=tmD(),e=tmEtapas(D)
      <label class="f"><span>Prazo *</span><input class="inp" type="date" id="tmdlD" value="${esc(e.prazo||e.fimP||'')}"></label></div>
     <div class="f"><span>O que precisa ser feito *</span>${dnCampos('tmdl',e.id,'Direcionamento e observações. Cole prints aqui (Ctrl+V) ou anexe fotos e arquivos.')}</div>
     ${e.dir&&(e.dir.anx||[]).length?`<small class="muted">Anexos já enviados: ${e.dir.anx.length} (continuam na etapa)</small>`:''}
-    <div class="actions"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn primary" data-act="tmDlgOk" data-e="${e.id}">Delegar</button></div>`)};
+    <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="tmDlgOk" data-e="${e.id}">Delegar</button></div>`)};
 ACT.tmDlgOk=async el=>{const D=tmD(),id=el.dataset.e,e0=tmEtapas(D).find(x=>x.id===id),pid=($('tmdlP')||{}).value,pz=($('tmdlD')||{}).value,txt=dnTxt('tmdl',id),F=(DN.tmdl[id]||[]).slice();
   if(!e0)return;if(!pid||!pz||!txt){toast('Escolha o responsável, o prazo e escreva o que precisa ser feito.','bad');return}
   const P=(TMP.L||[]).find(p=>p.id===pid)||{nome:''};el.disabled=true;
@@ -17622,7 +17622,7 @@ ACT.tmResp=el=>{const D=tmD(),e=tmEtapas(D).find(x=>x.id===el.dataset.e);if(!e)r
   openModal(`<h3>Responder · ${esc(e.nome)}</h3><p class="muted">${esc(D.codigo)} · ${esc(D.titulo||'')}${e.prazo?' · prazo '+dBR(e.prazo):''}</p>
     <label class="f"><span>Situação da etapa</span><select class="inp" id="tmrsS">${[['pend','Pendente'],['and','Em andamento'],['concl','Concluída']].map(([k,n])=>`<option value="${k}" ${(e.st||'pend')===k?'selected':''}>${n}</option>`).join('')}</select></label>
     <div class="f"><span>Atualização</span>${dnCampos('tmrs',e.id,'O que foi feito, o que falta. Cole prints aqui (Ctrl+V) ou anexe fotos e arquivos.')}</div>
-    <div class="actions"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn primary" data-act="tmRespOk" data-e="${e.id}">Enviar</button></div>`)};
+    <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="tmRespOk" data-e="${e.id}">Enviar</button></div>`)};
 ACT.tmRespOk=async el=>{const D=tmD(),id=el.dataset.e,e=tmEtapas(D).find(x=>x.id===id),st=($('tmrsS')||{}).value,txt=dnTxt('tmrs',id),F=(DN.tmrs[id]||[]).slice();if(!e)return;
   if(!txt&&!F.length&&st===(e.st||'pend')){toast('Escreva a atualização, anexe um arquivo ou mude a situação.','bad');return}el.disabled=true;
   try{const anx=F.length?await tmSobe(D.id,F):[];closeModal();if(await tmEtResp(D.id,id,st,txt,anx)){dnLimpa('tmrs',id);toast('Atualização enviada.')}}catch(x){toast('Não foi possível enviar: '+(x.message||x),'bad')}finally{el.disabled=false}};
@@ -17852,7 +17852,8 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 @media(max-width:600px){.tmvermap{height:300px}.tmetfx{grid-template-columns:28px 1fr}}
 @media(max-width:1100px){.tmetr{grid-template-columns:28px 1fr auto;}.tmetr .tmetk{grid-column:2/-1}.tmetr .tmetd{grid-column:auto}.tmetr .tmetbt{grid-column:2/-1;justify-content:flex-end}}
 @media(max-width:600px){.tmet{flex-wrap:wrap}.tmeta{width:100%;justify-content:flex-end}.tmets-sel{width:100%}}
-</style>`);
+</style>`);if(!ACT.closeModal)ACT.closeModal=()=>closeModal();
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
