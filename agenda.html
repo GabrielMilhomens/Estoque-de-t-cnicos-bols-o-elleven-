@@ -2716,7 +2716,7 @@ const diaExec=a=>a.ts&&a.ts.inicio?isoD(new Date(a.ts.inicio)):null;
 const diasExecAg=a=>{const L=(a.diario||[]).filter(x=>x.ts&&x.ts.inicio).map(x=>isoD(new Date(x.ts.inicio)));const d=diaExec(a);if(d&&!L.includes(d))L.push(d);return L};
 const diasExec=(e,filtro)=>new Set(S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&(!filtro||filtro(a))).flatMap(diasExecAg)).size;
 const realDias=(e,f)=>diasExec(e,a=>fasesOf(a).includes(f));
-const faseFim=(e,f)=>(S.agsExt&&S.agsExt.length?S.ags.concat(S.agsExt):S.ags).filter(a=>a.etiqueta===e&&a.ts&&a.ts.conclusao&&!['nao_concluida','cancelada'].includes(a.status)&&(a.fasesFin||[]).includes(f)).sort((a,b)=>a.ts.conclusao-b.ts.conclusao)[0]||foraFim(e,f);
+const faseFim=(e,f)=>{const L=(S.agsExt&&S.agsExt.length?S.ags.concat(S.agsExt):S.ags).filter(a=>a.etiqueta===e&&!['nao_concluida','cancelada'].includes(a.status)),ok=a=>a.ts&&a.ts.conclusao&&(a.fasesFin||[]).includes(f),V=[];L.filter(ok).forEach(a=>{const g=a.frente&&a.frente.g;if(!g){V.push(a);return}const M=L.filter(x=>x.frente&&x.frente.g===g);if(M.some(x=>!(x.ts&&x.ts.conclusao)&&(x.fases||[x.fase]).includes(f))||M.some(x=>x.ext&&x.frente.pend>0))return;V.push(M.filter(ok).sort((p,q)=>q.ts.conclusao-p.ts.conclusao)[0])});return V.sort((a,b)=>a.ts.conclusao-b.ts.conclusao)[0]||foraFim(e,f)};
 const pPor=e=>S.previsao.find(x=>x.etiqueta===e)||(S.prevCanc||[]).find(x=>x.etiqueta===e)||{};
 // Fases que precisam ser feitas antes da ativação:
 //  * Firewall: nenhuma (ativa direto)
@@ -3217,7 +3217,7 @@ const IDB={p:null,open(){if(!this.p)this.p=new Promise((res,rej)=>{try{const r=i
   put(k,v){return this.tx('readwrite',s=>s.put(v,k))},get(k){return this.tx('readonly',s=>s.get(k))},del(k){return this.tx('readwrite',s=>s.delete(k))}};
 const ANX={kmzL:'KMZ de lançamento',kmzA:'KMZ de extensão',outro:'Anexo'};
 const temExt=p=>p.semExt===false||(p.semExt===undefined&&+p.dExt>0);
-const anxDe=e=>S.anexos.filter(x=>x.etiqueta===e);
+const anxDe=e=>{const L=S.anexos.filter(x=>x.etiqueta===e);return typeof anxComPartes==='function'?anxComPartes(e,L):L};
 /* os KMZ (lançamento e extensão) ficam até a ativação ser concluída */
 const anxFases=x=>x.tipo==='kmzL'||x.tipo==='kmzA'?['ativ']:[x.fase||'ativ'];
 const anxRegra=x=>{if(KMZ_T(x))return 'excluído na virada do mês, depois da ativação e de todos os relatórios e baixas deste cliente';const fs=anxFases(x);return `excluído ao finalizar ${fs.map(k=>FCURTO[k].toLowerCase()).join(' e ')}`};
@@ -4269,7 +4269,7 @@ async function carregar(){
   S.ags=ag.map(r=>Object.assign({ts:{},rel:{}},r.dados,{id:r.id,etiqueta:r.etiqueta,tec:r.tecnico,data:r.data,status:r.status,fases:r.fases,fase:(r.fases||[])[0]}));
   /* técnico só lê as próprias atividades; as fases que OUTRO técnico já finalizou no mesmo projeto vêm desta consulta (só leitura, fora do salvamento) */
   S.agsExt=[];S.tecExt={};if(!g){try{const r=await sb.rpc('ag_fases_outros_tecnicos');if(r.error)throw r.error;const meus=new Set(S.ags.map(a=>a.id));
-    (r.data||[]).filter(x=>!meus.has(x.id)).forEach(x=>{S.agsExt.push({id:x.id,etiqueta:x.etiqueta,tec:x.tecnico,data:x.data,status:x.status,fases:x.fases,fase:(x.fases||[])[0],ts:x.ts||{},fasesFin:Array.isArray(x.fases_fin)?x.fases_fin:[],ext:true});if(x.tecnico_nome)S.tecExt[x.tecnico]=x.tecnico_nome})}
+    (r.data||[]).filter(x=>!meus.has(x.id)).forEach(x=>{S.agsExt.push({id:x.id,etiqueta:x.etiqueta,tec:x.tecnico,data:x.data,status:x.status,fases:x.fases,fase:(x.fases||[])[0],ts:x.ts||{},fasesFin:Array.isArray(x.fases_fin)?x.fases_fin:[],frente:x.frente||null,ext:true});if(x.tecnico_nome)S.tecExt[x.tecnico]=x.tecnico_nome})}
     catch(e){console.warn('fases de outros técnicos (rode o agenda_ajuste_17 no Supabase)',e)}}
   S.equipe=[];if(ui.perfil==='terc'){try{const r=await sb.rpc('ag_minha_equipe');if(r.error)throw r.error;S.equipe=(r.data||[]).filter(x=>x.ativo!==false).map(x=>({id:x.id,nome:x.nome}));S.equipe.forEach(x=>{S.tecExt[x.id]=x.nome})}catch(e){console.warn('equipe (rode o agenda_ajuste_19 no Supabase)',e)}}
   S.lpus=lp.filter(r=>!r.chamado&&ui.perfil!=='func').map(r=>Object.assign({},r.dados,{id:r.id,ag:r.agendamento,etiqueta:r.etiqueta,tec:r.tecnico,status:r.status,total:+r.total,pdf_path:r.pdf_path,prestador:r.prestador||undefined}));
@@ -5627,7 +5627,7 @@ async function anxGravar(e,tipo,f){await flushSync();const id=uid(),path=`anexos
   const old=S.anexos.filter(x=>x.etiqueta===e&&x.tipo===tipo);if(old.length){await sb.storage.from('agenda').remove(old.map(x=>x.path));await sb.from('ag_anexos').delete().in('id',old.map(x=>x.id));S.anexos=S.anexos.filter(x=>!old.includes(x))}
   const ins=await sb.from('ag_anexos').insert({id,etiqueta:e,tipo,fase:null,nome:f.name,tamanho:f.size,path});if(ins.error)throw ins.error;
   S.anexos.push({id,etiqueta:e,tipo,fase:null,nome:f.name,tam:f.size,em:Date.now(),por:meNome(),path});return path}
-const anxKmz=(e,tipo)=>e?S.anexos.find(x=>x.etiqueta===e&&x.tipo===tipo):null;
+const anxKmz=(e,tipo)=>{if(!e)return null;const P=typeof anxKmzP==='function'?anxKmzP(e,tipo):null;if(P)return P.fora?null:P;return S.anexos.find(x=>x.etiqueta===e&&x.tipo===tipo)||null};
 async function anxTexto(x){const r=await sb.storage.from('agenda').createSignedUrl(x.path,120);if(r.error)throw r.error;const b=await (await fetch(r.data.signedUrl)).arrayBuffer();return kmzTexto(b,x.nome)}
 /* ---------- etapa 4 do cadastro ---------- */
 function wizTemExt(){const W=ui.wiz;if(!W)return false;const v=semExtOf(W.t);if(v!==null)return v===false;const p=W.id?S.previsao.find(x=>x.id===W.id):null;return !!(p&&p.semExt===false)}
@@ -9471,7 +9471,7 @@ Object.assign(ACT,{geoSub:el=>{ui.geoSub=el.dataset.s;if(ui.tab!=='geo'){ui.cat=
 /* dia trabalhado de atividade cancelada: não diz mais que continua */
 const contCancTxt=a=>`<div class="result warn" style="margin:10px 0 0"><b>Continuação cancelada.</b> ${(a.diario||[]).length===1?'O dia trabalhado fica registrado':'Os dias trabalhados ficam registrados'}; as fases desta atividade continuam pendentes.</div>`;
 /* ---------- 21/10 noite: fase já concluída por outra atividade não conclui de novo ---------- */
-const fzOutra=(a,k)=>{const x=faseFim(a.etiqueta,k);return x&&x.id!==a.id?x:null};
+const fzOutra=(a,k)=>{const x=faseFim(a.etiqueta,k);return x&&x.id!==a.id&&!(a.frente&&x.frente&&x.frente.g===a.frente.g)?x:null};
 const fzOutraTxt=x=>x.fora?`concluída fora da ferramenta em ${dBR(x.data)}`:`já concluída por ${esc(x.equipe&&typeof agResp==='function'?agResp(x):tecN(x.tec))} em ${dBR(x.data).slice(0,5)}${x.ts&&x.ts.conclusao?' às '+hmA(x.ts.conclusao):''}`;
 function fzFinHtml(a){return fasesOf(a).map(k=>{const x=fzOutra(a,k);return x?`<label class="dis"><input type="checkbox" class="fzFin" value="${k}" disabled><span>${faseN(k)}<small style="color:var(--warn)">${fzOutraTxt(x)}</small></span></label>`:`<label><input type="checkbox" class="fzFin" value="${k}" checked><span>${faseN(k)}</span></label>`}).join('')}
 {const _c=ACT.concluirOk;ACT.concluirOk=el=>{const a=getAg(el.dataset.id);if(!a)return;
@@ -10214,7 +10214,7 @@ let AF_LOCK=0;
     openModal(`<h3>Este cliente já tem atividade nesse dia</h3><p class="muted">Confira antes de criar outra:</p>
      <ul class="afex">${ex.map(a=>`<li><b>${esc(fasesN(a))}</b> · ${esc(tecN(a.tec))} · ${dBR(a.data)} · ${esc((ST[a.status]||[a.status])[0]||a.status)}</li>`).join('')}</ul>
      <p class="muted">${alvo&&novas.length?`Se a ideia é só incluir <b>${esc(novas.map(faseN).join(' + '))}</b>, adicione na atividade que já está em andamento.`:'Se for para mudar a atividade existente, use Editar (antes do técnico sair) ou Adicionar fase (com o técnico em campo).'}</p>
-     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn" data-act="agDupSim">Criar outra mesmo assim</button>${alvo&&novas.length?`<button class="btn primary" data-act="agDupAdd" data-id="${alvo.id}" data-f="${novas.join(',')}">Adicionar na atividade existente</button>`:''}</div>`);return}
+     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn" data-act="agDupSim">Criar outra mesmo assim</button><button class="btn" data-act="agDupFr" data-id="${ex[0].id}" title="Mesma fase, outra empresa ou técnico, cada um por uma ponta">É outra frente (outra ponta)</button>${alvo&&novas.length?`<button class="btn primary" data-act="agDupAdd" data-id="${alvo.id}" data-f="${novas.join(',')}">Adicionar na atividade existente</button>`:''}</div>`);return}
   delete F.__dupOk;AF_LOCK=Date.now();try{return _ag(...x)}finally{setTimeout(()=>{AF_LOCK=0},2500)}}}
 Object.assign(ACT,{
   agDupSim:()=>{closeModal();ui.agForm=ui.agForm||{};ui.agForm.__dupOk=true;ACT.agendar()},
@@ -18037,6 +18037,168 @@ function volLiga(){if(VOL.on)return;VOL.on=true;volGuarda();
     if(Date.now()-VOL.sair<2000){VOL.sair=0;try{history.back()}catch(e){}return}
     VOL.sair=Date.now();toast('Toque em voltar de novo para sair');clearTimeout(VOL.tm);VOL.tm=setTimeout(()=>{if(VOL.sair){VOL.sair=0;volGuarda()}},2000)})}
 {const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(!VOL.on&&document.body.classList.contains('app-on'))volLiga()}catch(e){}return o}}
+
+/* ---------- 09/11: frentes de trabalho na mesma fase ----------
+   Serviço grande (ex.: lançamento muito extenso): a gestão divide a mesma fase em frentes, cada uma com
+   empresa ou técnico próprio, começando por uma ponta. Não é reforço: cada frente é uma atividade independente,
+   faz o seu relatório e a sua LPU e marca a fase quando termina a sua parte. A fase do cliente só conta como
+   concluída quando a última frente terminar (a data da fase é a da última). Grupo em a.frente = {g, n, t, desc}.
+   Só a gestão vê as frentes: o técnico vê a atividade dele como qualquer outra (sem selo, aviso nem mensagem).
+   Dias de execução (por circuito e por fase) contam datas distintas: duas frentes no mesmo dia = 1 dia. */
+const frGest=()=>!['terc','func','clt'].includes(ui.perfil)&&!(typeof gTecPerfil==='function'&&gTecPerfil());
+let FR_CTX=null,FR_DE=null;
+const frG=a=>a&&a.frente&&a.frente.g||'';
+const frGrupo=a=>{const g=frG(a);if(!g)return[];return S.ags.filter(x=>frG(x)===g&&!['cancelada','nao_concluida'].includes(x.status)).sort((p,q)=>(p.frente.n||0)-(q.frente.n||0)||String(p.data).localeCompare(String(q.data)))};
+const frTot=a=>{const g=frGrupo(a);return g.length?new Set(g.map(x=>x.frente.n)).size:((a&&a.frente&&a.frente.t)||1)};
+function frSync(a){const L=frGrupo(a),t=new Set(L.map(x=>x.frente.n)).size;let m=false;L.forEach(x=>{if(x.frente.t!==t){x.frente=Object.assign({},x.frente,{t});m=true}});return m}
+const frRot=a=>`Frente ${a.frente.n} de ${frTot(a)}${a.frente.desc?' · '+a.frente.desc:''}`;
+/* atividade nova herda a frente: pelo contexto (dividir) ou da atividade de origem (replicar, continuação) */
+{const _c=criarAgs;criarAgs=function(etq,fases,tec,dias,por,extra){let x=extra||{};
+  if(FR_CTX)x=Object.assign({},x,{frente:Object.assign({},FR_CTX)});
+  else if(!x.frente&&!x.refDe){const o=getAg(x.origem||x.replicaDe);if(o&&o.frente&&o.etiqueta===etq)x=Object.assign({},x,{frente:Object.assign({},o.frente)})}
+  return _c.call(this,etq,fases,tec,dias,por,x)}}
+/* detalhe (gestão): quadro das frentes e botões */
+{const _b=refBloco;refBloco=function(a){let h=_b.apply(this,arguments);if(!a||a.ext||!frGest())return h;const gest=true;
+  if(a.frente){const L=frGrupo(a);h+=`<div class="refbox frbox"><h3 class="lsub" style="margin-top:0">Frentes de trabalho deste serviço</h3><p class="muted" style="margin:0 0 6px;font-size:13px">Cada frente é independente: faz o seu relatório e a sua LPU. A fase do cliente só conta como concluída quando todas as frentes terminarem.</p>
+    ${L.map(x=>`<div class="refl${x.id===a.id?' at':''}"><span class="refchip frchip">Frente ${x.frente.n}</span><b>${esc(refNomeDe(x))}</b>${x.frente.desc?`<small>começa por ${esc(x.frente.desc)}</small>`:''}<small>${dBR(x.data)}</small><small>${chip(x.status)}</small>${(x.fasesFin||[]).length?'<small style="color:var(--ok)">✔ terminou a sua parte</small>':''}</div>`).join('')}
+    ${gest&&refPode()?`<div class="tools" style="margin-top:8px"><button class="btn sm ghost" data-act="frSai" data-id="${a.id}">Tirar esta atividade das frentes</button></div>`:''}</div>`;
+    const bx=h.slice(h.lastIndexOf('<div class="refbox frbox">'));h=h.slice(0,h.length-bx.length);const it=h.lastIndexOf('<div class="tools" style="margin-top:10px">');h=it>=0?h.slice(0,it)+bx+h.slice(it):h+bx}
+  if(gest&&refPode()&&!a.refDe&&!FIM.includes(a.status)&&!['relatorios','lpu','cancelada'].includes(a.status)){
+    const bt=`<button class="btn sm" data-act="frAbrir" data-id="${a.id}">${a.frente?'Adicionar outra frente':'Dividir em frentes (outra empresa por outra ponta)'}</button>`;
+    const i=h.indexOf('data-act="refAbrir"');if(i>=0){const j=h.lastIndexOf('<button',i);h=h.slice(0,j)+bt+h.slice(j)}else h+=`<div class="tools" style="margin-top:10px">${bt}</div>`}
+  return h}}
+Object.assign(ACT,{
+  frAbrir:el=>{if(!refPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const d=a.data<hoje()?hoje():a.data;
+    openModal(`<h3>${a.frente?'Adicionar outra frente':'Dividir em frentes'}</h3><p class="muted">${esc(a.etiqueta)} · ${esc(cliN(a.etiqueta)||'')} · ${fasesN(a)}</p>
+     <div class="result info" style="margin:10px 0">Não é reforço: a nova frente é uma atividade independente, com a mesma fase, outra empresa ou técnico, relatório e LPU próprios. Cada frente marca a fase quando termina a sua parte; a fase do cliente só conta como concluída quando a última frente terminar. Só a gestão vê que é uma frente: para o técnico é uma atividade normal.</div>
+     ${a.frente?'':`<label class="f"><span>Por onde a atividade atual (${esc(refNomeDe(a))}) começa</span><input class="inp" id="frDesc0" maxlength="80" placeholder="Ex.: ponta do POP Centro"></label>`}
+     <label class="f"><span>Empresa, equipe ou técnico da nova frente *</span><select class="inp" id="frQuem"><option value="">Selecione</option>${refOpcoes(a)}</select></label>
+     <label class="f"><span>Por onde a nova frente começa</span><input class="inp" id="frDesc" maxlength="80" placeholder="Ex.: ponta do cliente"></label>
+     <label class="f"><span>Data *</span><input type="date" class="inp" id="frData" value="${d}"></label>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="frOk" data-id="${a.id}">Criar a frente</button></div>`)},
+  frOk:el=>{if(!refPode())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const q=($('frQuem')||{}).value||'',d=($('frData')||{}).value||'',ds=(($('frDesc')||{}).value||'').trim(),d0=(($('frDesc0')||{}).value||'').trim();
+    if(!q)return toast('Escolha quem faz a nova frente.','bad');if(!d)return toast('Informe a data.','bad');
+    let tec=q,eqx=null,nome='';if(q.startsWith('eq:')){const e=nteDe(q.slice(3));if(!e)return;const c=nteComp(e,[d]);if(!c.pres.length)return toast('Os técnicos dessa equipe estão ausentes nesse dia.','bad');
+      tec=e.estoque&&c.pres.includes(e.estoque)?e.estoque:c.pres[0];eqx=nteCampos({eq:e.id,tec,data:d,dataFim:d,uteis:false});nome=e.nome}else nome=tecN(tec);
+    const nv0=!a.frente;if(nv0)a.frente={g:uid(),n:1,t:1,desc:d0};const g=a.frente.g,n=Math.max(...frGrupo(a).map(x=>x.frente.n||1),1)+1;
+    const n0=S.ags.length;NTE_X=eqx;FR_CTX={g,n,t:n,desc:ds};try{criarAgs(a.etiqueta,fasesOf(a),tec,[d],meNome(),a.obs?{obs:a.obs}:{})}finally{NTE_X=null;FR_CTX=null}
+    const nv=S.ags[S.ags.length-1];if(S.ags.length===n0||!nv){if(nv0)delete a.frente;return}frSync(a);save();
+    closeModal();render();toast(`Frente ${n} criada para ${nome} em ${dBR(d)}.`)},
+  frSai:el=>{if(!refPode())return semPerm();const a=getAg(el.dataset.id);if(!a||!a.frente)return;
+    if(!confirm('Tirar esta atividade das frentes? Ela volta a ser uma atividade comum e, ao concluir, fecha a fase sozinha.'))return;
+    const g=frGrupo(a).filter(x=>x.id!==a.id);delete a.frente;if(new Set(g.map(x=>x.frente.n)).size<=1)g.forEach(x=>delete x.frente);else frSync(g[0]);save();render();toast('Atividade tirada das frentes.')},
+  /* agendar pelo formulário: "Este cliente já tem atividade nesse dia" → "É outra frente" */
+  agDupFr:el=>{const a=getAg(el.dataset.id);if(!a)return;closeModal();ui.agForm=ui.agForm||{};ui.agForm.__dupOk=true;FR_DE=a.id;ACT.agendar()}});
+{const _ag=ACT.agendar;ACT.agendar=function(...x){if(!FR_DE)return _ag.apply(this,x);const a=getAg(FR_DE);FR_DE=null;if(!a)return _ag.apply(this,x);
+  const nv0=!a.frente;if(nv0)a.frente={g:uid(),n:1,t:1,desc:''};const n=Math.max(...frGrupo(a).map(y=>y.frente.n||1),1)+1,n0=S.ags.length;
+  FR_CTX={g:a.frente.g,n,t:n,desc:''};let r;try{r=_ag.apply(this,x)}finally{FR_CTX=null}
+  const novas=S.ags.slice(n0);if(!novas.length){if(nv0)delete a.frente;return r}frSync(a);save();
+  setTimeout(()=>toast(`Criada como frente ${n}. A fase só conta como concluída quando todas as frentes terminarem.`),400);return r}}
+/* card da agenda: selo da frente */
+{const _e=agEv;agEv=function(a){const h=_e.apply(this,arguments);if(!a||!a.frente||a.status==='cancelada'||!frGest())return h;const i=h.lastIndexOf('</button>');return i<0?h:h.slice(0,i)+`<span class="refsel frsel">${esc(frRot(a))}</span>`+h.slice(i)}}
+/* gestão: se uma frente foi cancelada, acerta o total nas outras (o celular do técnico usa esse total) */
+{let _fv='';const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(typeof refPode==='function'&&refPode()&&!['terc','func','clt','tec'].includes(ui.perfil)){const G=new Map();S.ags.forEach(a=>{if(a.frente&&a.frente.g&&!G.has(a.frente.g))G.set(a.frente.g,a)});
+  const k=[...G.keys()].join(',')+'|'+S.ags.filter(a=>a.frente).map(a=>a.status).join(',');if(k!==_fv){_fv=k;let m=false;G.forEach(a=>{if(frSync(a))m=true});if(m)save()}}}catch(e){}return o}}
+document.head.insertAdjacentHTML('beforeend','<style>.frchip{background:color-mix(in srgb,#7c3aed 14%,transparent);color:#6d28d9}.frsel{color:#6d28d9!important;background:color-mix(in srgb,#7c3aed 12%,transparent)!important}.frbox .refl small{color:var(--muted)}</style>');
+/* ---------- anexo só deste agendamento ----------
+   Qualquer agendamento (com ou sem frentes) pode ter anexo próprio e deixar de enviar anexos do projeto.
+   - O anexo do projeto nunca sai por aqui: no agendamento, "Não enviar neste agendamento" só o esconde deste
+     agendamento (a.anxFora). Para mexer no anexo do projeto há "Gerenciar anexos do projeto" (vale para todos).
+   - Anexo só deste agendamento (a.partes): arquivo em anexos/<etiqueta>/partes/... (mesmas regras de leitura do
+     Storage). Um KMZ próprio entra no lugar do KMZ do projeto do mesmo tipo, para o técnico e para os relatórios
+     (vistoria, fusões da extensão, alteração de trajeto). Remover tira só deste agendamento.
+   - Agendamento novo: o que se escolhe no formulário vale para os agendamentos criados; replicar e reagendar levam junto. */
+const FR_PT={kmzL:'KMZ de lançamento',kmzA:'KMZ de extensão',outro:'Outro anexo'};
+let PT_CTX=null;
+const frPtPad=a=>{const f=(a&&(a.fases||[a.fase]))||[];return f.includes('ext')?'kmzA':f.includes('rua')?'kmzL':'outro'};
+const frPtSel=(id,a)=>`<select class="inp" id="${id}" aria-label="Tipo do anexo">${Object.entries(FR_PT).map(([k,n])=>`<option value="${k}" ${k===frPtPad(a)?'selected':''}>${n}</option>`).join('')}</select>`;
+const frPtAll=()=>{const o=[];S.ags.forEach(a=>(a.partes||[]).forEach(p=>o.push([a,p])));((ui.agForm||{}).ptN||[]).forEach(p=>o.push([null,p]));return o};
+async function frPtUpload(e,dono,files,tipo,fase){const ok=[];for(const f of files){if(tipo!=='outro'&&!/\.km[lz]$/i.test(f.name)){toast(f.name+': para KMZ envie .kmz ou .kml.','bad');continue}
+    const id=uid(),path=`anexos/${e}/partes/${dono}/${id}-${f.name.replace(/[^\w.\-]+/g,'_')}`;const up=await sb.storage.from('agenda').upload(path,f,{contentType:f.type||'application/octet-stream'});
+    if(up.error){toast('Falha ao enviar '+f.name+': '+up.error.message,'bad');continue}ok.push({id,nome:f.name,tam:f.size,path,tipo,fase:tipo==='outro'?(fase||'ativ'):null,em:Date.now(),por:meNome()})}return ok}
+async function frPtSobe(a,files,tipo){const ok=await frPtUpload(a.etiqueta,a.id,files,tipo,(a.fases||[a.fase])[0]);if(ok.length){a.partes=(a.partes||[]).concat(ok);save()}return ok.length}
+const ptUsado=(path,ex)=>S.ags.some(a=>a!==ex&&(a.partes||[]).some(p=>p.path===path));
+/* agendamento em foco (para o técnico e para os relatórios) */
+function ptCtx(e){const me=ui.tec||(ME&&ME.id),ger=typeof frGest==='function'&&frGest();
+  for(const id of [ui.fu&&ui.fu.ag,ui.vt&&ui.vt.ag,ui.lm&&ui.lm.ag,ui.campoSel]){const a=id&&getAg(id);if(a&&a.etiqueta===e)return a}
+  if(ger)return null;const M=S.ags.filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&(!me||a.tec===me||a.__tec0===me)&&((a.partes||[]).length||(a.anxFora||[]).length));
+  return M.find(x=>!FIM.includes(x.status))||M[0]||null}
+/* o que o agendamento recebe: anexos do projeto (menos os tirados e os KMZ trocados) + os próprios */
+function anxDoAg(a,L){const P=(a.partes||[]).map(p=>Object.assign({etiqueta:a.etiqueta,parte:true},p)),tp=new Set(P.filter(p=>p.tipo!=='outro').map(p=>p.tipo)),fora=new Set(a.anxFora||[]);
+  return L.filter(x=>!fora.has(x.id)&&!tp.has(x.tipo)).concat(P)}
+function anxComPartes(e,L){if(typeof frGest!=='function')return L;
+  if(frGest()){if(ui.tab==='agenda'&&ui.agSel===e&&!ui.__anxProj){const E=ui.agEd&&ui.agEd.modo==='edit'?getAg(ui.agEd.id):null,F=ui.agForm||{};return anxDoAg(E||{etiqueta:e,partes:F.ptN||[],anxFora:F.anxFora||[]},L)}if(ui.tab!=='campo')return L}
+  const a=ptCtx(e);return a?anxDoAg(a,L):L}
+function anxKmzP(e,tipo){const a=ptCtx(e);if(!a)return null;const p=(a.partes||[]).find(x=>x.tipo===tipo);if(p)return Object.assign({etiqueta:e,parte:true},p);
+  const x=S.anexos.find(y=>y.etiqueta===e&&y.tipo===tipo);return x&&(a.anxFora||[]).includes(x.id)?{fora:true}:null}
+{const _o=ACT.anxOpen;ACT.anxOpen=function(el){const id=el.dataset.id;if(S.anexos.some(a=>a.id===id))return _o.apply(this,arguments);const f=frPtAll().find(([,p])=>p.id===id);if(!f)return;const x=f[1];
+  return abreLink(async()=>{const r=await sb.storage.from('agenda').createSignedUrl(x.path,120,{download:x.nome});if(r.error)throw r.error;return r.data.signedUrl})}}
+const ptLinha=(p,ed,ag)=>`<div class="anx frpt"><span><b>${esc(p.nome)}</b><small>${FR_PT[p.tipo]||'Anexo'} só deste agendamento, ${kb(p.tam)}${p.por?', '+esc(p.por):''}</small></span><span class="bt"><button class="btn sm" data-act="anxOpen" data-id="${p.id}">Baixar</button>${ed?`<button class="icon" data-act="ptDel" data-ag="${ag||''}" data-id="${p.id}" aria-label="Remover só deste agendamento" title="Remover só deste agendamento">✕</button>`:''}</span></div>`;
+/* bloco "Anexo só deste agendamento" (detalhe e formulário) */
+function ptBloco(alvo,e,ed){const isF=!alvo,F=ui.agForm||{},ag=alvo||{etiqueta:e,fases:F.fases||[],partes:F.ptN||[],anxFora:F.anxFora||[]},L=S.anexos.filter(x=>x.etiqueta===e),fora=new Set(ag.anxFora||[]),tp=new Set((ag.partes||[]).filter(p=>p.tipo!=='outro').map(p=>p.tipo));
+  const prj=L.map(x=>{const off=fora.has(x.id),tr=!off&&tp.has(x.tipo);return `<div class="anx${off||tr?' ptoff':''}"><span><b>${esc(x.nome)}</b><small>${ANX[x.tipo]||'Anexo'} do projeto${off?' · não vai neste agendamento':tr?' · trocado pelo anexo deste agendamento':''}</small></span><span class="bt"><button class="btn sm" data-act="anxOpen" data-id="${x.id}">Baixar</button>${ed&&!tr?`<button class="btn sm ghost" data-act="ptFora" data-ag="${alvo?alvo.id:''}" data-id="${x.id}">${off?'Enviar neste agendamento':'Não enviar neste agendamento'}</button>`:''}</span></div>`}).join('');
+  return `<div class="refbox ptbox"><h3 class="lsub" style="margin-top:0">Anexos deste agendamento</h3>
+   <p class="muted" style="font-size:13px;margin:0 0 6px">O técnico recebe os anexos do projeto e os anexos só deste agendamento. Um KMZ só deste agendamento entra no lugar do KMZ do projeto do mesmo tipo, também nos relatórios. Nada do que se faz aqui apaga o anexo do projeto.</p>
+   ${prj||'<p class="muted" style="font-size:13px;margin:0">O projeto não tem anexos.</p>'}${(ag.partes||[]).map(p=>ptLinha(p,ed,alvo?alvo.id:'')).join('')}
+   ${ed?`<div class="frup"><b>Anexo só deste agendamento</b><div class="tools">${frPtSel('ptT',ag)}<label class="btn sm">Escolher arquivo<input type="file" multiple hidden data-ch="ptUp" data-ag="${alvo?alvo.id:''}"></label></div><small class="muted">Ex.: o KMZ só do trecho deste agendamento. O anexo principal continua no projeto.</small></div>`:''}
+   ${isF?'':''}</div>`}
+const ptPodeEd=a=>refPode()&&(!a||!FIM.includes(a.status)&&a.status!=='cancelada');
+const ptRedesenha=a=>{if(a&&$('modal').classList.contains('open')){try{ACT.agOpen({dataset:{id:a.id}});return}catch(e){}}const y=window.scrollY;render();window.scrollTo(0,y)};
+Object.assign(CH,{ptUp:async el=>{if(!refPode())return semPerm();const fs=[...(el.files||[])];el.value='';if(!fs.length)return;const t=($('ptT')||{}).value||'outro',a=el.dataset.ag?getAg(el.dataset.ag):null;
+  await flushSync();toast('Enviando…');let n=0;
+  if(a)n=await frPtSobe(a,fs,t);else{const F=ui.agForm=ui.agForm||{},e=ui.agSel;if(!e)return;const ok=await frPtUpload(e,'pend-'+uid(),fs,t,(F.fases||[])[0]);F.ptN=(F.ptN||[]).concat(ok);n=ok.length}
+  if(n){if(a)await flushSync();toast(n>1?n+' anexos incluídos só neste agendamento.':'Anexo incluído só neste agendamento.')}ptRedesenha(a)}});
+Object.assign(ACT,{
+  ptDel:async el=>{if(!refPode())return semPerm();const a=el.dataset.ag?getAg(el.dataset.ag):null,F=ui.agForm||{},L=a?(a.partes||[]):(F.ptN||[]),p=L.find(x=>x.id===el.dataset.id);if(!p)return;
+    if(!confirm(`Remover ${p.nome} deste agendamento? O anexo do projeto não muda.`))return;
+    if(a){a.partes=L.filter(x=>x!==p);save()}else F.ptN=L.filter(x=>x!==p);if(!ptUsado(p.path)){try{await sb.storage.from('agenda').remove([p.path])}catch(e){}}toast('Removido só deste agendamento.');ptRedesenha(a)},
+  ptFora:el=>{if(!refPode())return semPerm();const a=el.dataset.ag?getAg(el.dataset.ag):null,F=ui.agForm=ui.agForm||{},o=a||F,s=new Set(o.anxFora||[]),id=el.dataset.id;
+    if(s.has(id))s.delete(id);else s.add(id);o.anxFora=[...s];if(a)save();ptRedesenha(a)}});
+/* detalhe do agendamento (gestão): frentes + anexos deste agendamento */
+{const _b=refBloco;refBloco=function(a){let h=_b.apply(this,arguments);if(!a||a.ext||!frGest()||a.status==='cancelada')return h;
+  const pb=ptBloco(a,a.etiqueta,ptPodeEd(a)),k='<div class="refbox frbox">',i=h.indexOf(k);
+  if(i>=0){const L=frGrupo(a),pts=L.filter(x=>x.id!==a.id&&(x.partes||[]).length).map(x=>`<div class="frpts"><small class="muted">Frente ${x.frente.n} · ${esc(refNomeDe(x))}</small>${x.partes.map(p=>ptLinha(p,false,x.id)).join('')}</div>`).join('');
+    const j=h.indexOf('<div class="tools" style="margin-top:8px"><button class="btn sm ghost" data-act="frSai"',i);if(pts&&j>=0)h=h.slice(0,j)+`<h3 class="lsub" style="margin:10px 0 4px">Anexos das outras frentes</h3>${pts}`+h.slice(j)}
+  const it=h.lastIndexOf('<div class="tools" style="margin-top:10px">');return it>=0?h.slice(0,it)+pb+h.slice(it):h+pb}}
+/* tela de agendamento: a seção Anexos passa a ser deste agendamento; o projeto só em "Gerenciar anexos do projeto" */
+{const _a=anexosEdit;anexosEdit=function(p){if(ui.__anxProj||!p||ui.agSel!==p.etiqueta||!refPode())return _a.apply(this,arguments);
+  const E=ui.agEd&&ui.agEd.modo==='edit'?getAg(ui.agEd.id):null;
+  return ptBloco(E,p.etiqueta,true)+`<div class="tools" style="margin-top:8px"><button class="btn sm" data-act="anxProj">Gerenciar anexos do projeto</button><small class="muted">Enviar, substituir ou excluir o anexo do projeto (vale para todos os agendamentos do cliente).</small></div>`}}
+Object.assign(ACT,{anxProj:()=>{const p=pPor(ui.agSel);if(!p)return;ui.__anxProj=true;let h='';try{h=anexosEdit(p)}finally{ui.__anxProj=false}
+  openModal(`<div class="anxproj"><h3>Anexos do projeto</h3><div class="result warn" style="margin:8px 0">Aqui a alteração vale para o projeto inteiro: enviar, substituir ou excluir muda o anexo de todos os agendamentos do cliente.</div>${h}<div class="actions"><button class="btn" data-act="close">Fechar</button></div></div>`,'wide')}});
+for(const [o,k] of [[CH,'anexo'],[ACT,'anxDel']]){const _f=o[k];if(_f)o[k]=async function(){const r=await _f.apply(this,arguments);try{if(document.querySelector('#modal.open .anxproj'))ACT.anxProj()}catch(e){}return r}}
+/* agendamento novo / editado / replicado: aplica o que foi escolhido no formulário */
+{const _f=agFormDe;agFormDe=function(a,modo){const F=_f.apply(this,arguments);if(F&&a&&modo==='rep'){F.anxFora=(a.anxFora||[]).slice();F.ptN=(a.partes||[]).map(p=>Object.assign({},p))}return F}}
+{const _ag=ACT.agendar;ACT.agendar=function(...x){const F=ui.agForm||{};if(ui.agEd&&ui.agEd.modo==='edit')return _ag.apply(this,x);
+  const n0=S.ags.length,fora=(F.anxFora||[]).slice(),pt=(F.ptN||[]).slice();PT_CTX=fora.length||pt.length?{anxFora:fora,partes:pt}:null;let r;try{r=_ag.apply(this,x)}finally{PT_CTX=null}return r}}
+{const _c=criarAgs;criarAgs=function(etq,fases,tec,dias,por,extra){let x=extra||{};
+  if(PT_CTX)x=Object.assign({},x,{anxFora:PT_CTX.anxFora.slice(),partes:PT_CTX.partes.map(p=>Object.assign({},p))});
+  else if(!x.partes){const o=getAg(x.origem||x.replicaDe||x.refDe);if(o&&o.etiqueta===etq&&((o.partes||[]).length||(o.anxFora||[]).length))x=Object.assign({},x,{anxFora:(o.anxFora||[]).slice(),partes:(o.partes||[]).map(p=>Object.assign({},p))})}
+  return _c.call(this,etq,fases,tec,dias,por,x)}}
+/* ao criar a frente: anexo da parte no mesmo formulário */
+{const _a=ACT.frAbrir;ACT.frAbrir=function(el){const r=_a.apply(this,arguments);const a=getAg(el.dataset.id);const d=document.querySelector('#modal #frData');if(a&&d){const l=d.closest('label');
+  l.insertAdjacentHTML('afterend',`<div class="f"><span>Anexo só deste agendamento (opcional)</span><div class="tools">${frPtSel('frNvT',a)}<input type="file" id="frNvF" multiple class="inp"></div><small class="muted">Ex.: o KMZ só do trecho desta frente. O anexo principal continua no projeto.</small></div>`)}return r}}
+{const _k=ACT.frOk;ACT.frOk=async function(el){const fs=[...((($('frNvF')||{}).files)||[])],t=($('frNvT')||{}).value||'outro',n0=S.ags.length;
+  if(fs.length&&t!=='outro'&&fs.some(f=>!/\.km[lz]$/i.test(f.name)))return toast('Para KMZ envie arquivos .kmz ou .kml.','bad');
+  const r=_k.apply(this,arguments);const nv=S.ags.length>n0?S.ags[S.ags.length-1]:null;if(nv&&fs.length){await flushSync();const n=await frPtSobe(nv,fs,t);if(n){await flushSync();toast(`Frente ${nv.frente.n} criada com ${n>1?n+' anexos':'o anexo'} só deste agendamento.`)}}return r}}
+/* virada do mês: o KMZ próprio sai junto com o KMZ do projeto */
+{const _l=limparAnexos;limparAnexos=function(e){const r=_l.apply(this,arguments);try{if(typeof kmzSai==='function'&&kmzSai(e)&&faseFim(e,'ativ')){const P=new Set();let m=false;
+    S.ags.filter(a=>a.etiqueta===e&&(a.partes||[]).length).forEach(a=>{const fica=a.partes.filter(p=>p.tipo==='outro');a.partes.filter(p=>p.tipo!=='outro').forEach(p=>P.add(p.path));if(fica.length!==a.partes.length){a.partes=fica;m=true}});
+    if(P.size){sb.storage.from('agenda').remove([...P]).then(()=>{},()=>{})}if(m)save()}}catch(x){}return r}}
+/* relatórios que leem o KMZ: o do agendamento; trocou o KMZ depois que o técnico abriu, o rascunho antigo é descartado */
+const frKmzAt=(a,k)=>{const x=k==='vt'?anxKmz(a.etiqueta,'kmzL'):(anxKmz(a.etiqueta,'kmzA')||anxKmz(a.etiqueta,'kmzL'));return x&&!x.fora?x:null};
+{const _p=IDB.put.bind(IDB);IDB.put=function(k,v){try{const m=/^(vt|fu):(.+)$/.exec(k);if(m&&v&&typeof v==='object'){const a=getAg(m[2]),x=a&&frKmzAt(a,m[1]);if(x)v=Object.assign({},v,{src:x.path})}}catch(e){}return _p(k,v)}}
+for(const [k,nm] of [['vt','vtAbrir'],['fu','fuAbrir']]){const _f=nm==='vtAbrir'?vtAbrir:fuAbrir;const w=async function(id){try{const a=getAg(id);if(a){const key=k+':'+id;ui[k]={ag:id,st:'carregando'};const x=frKmzAt(a,k),d=await IDB.get(key).catch(()=>null);
+    if(d&&x&&((d.src&&d.src!==x.path)||(!d.src&&d.nome&&d.nome!==x.nome))){await IDB.del(key).catch(()=>{});setTimeout(()=>toast('O KMZ deste agendamento foi trocado: o relatório abriu em cima do KMZ novo.'),600)}}}catch(e){}return _f.apply(this,arguments)};
+  if(nm==='vtAbrir')vtAbrir=w;else fuAbrir=w}
+document.head.insertAdjacentHTML('beforeend','<style>.frpts{margin:4px 0}.frup{margin-top:8px;padding:8px;border:1px dashed var(--line);border-radius:8px}.frup .tools{margin:6px 0;gap:6px;flex-wrap:wrap}.frup select{width:auto}.ptbox .anx.ptoff b{text-decoration:line-through;opacity:.6}.ptbox .anx.ptoff small{color:var(--warn)}.anxproj .slot{margin-bottom:10px}</style>');
+/* excluir ou substituir o anexo do projeto: só supervisão e coordenação (a limpeza automática da virada do mês continua) */
+const anxPrjDel=()=>['coord','sup'].includes(ui.perfil);
+{const _d=ACT.anxDel;ACT.anxDel=function(el){if(!anxPrjDel()){toast('Só a supervisão e a coordenação podem excluir o anexo do projeto.','bad');return}return _d.apply(this,arguments)}}
+{const _u=CH.anexo;CH.anexo=function(el){const t=el&&el.dataset&&el.dataset.tipo,e=ui.agSel;if(t&&t!=='outro'&&!anxPrjDel()&&S.anexos.some(x=>x.etiqueta===e&&x.tipo===t)){el.value='';toast('Só a supervisão e a coordenação podem substituir o KMZ do projeto. Para este agendamento, use "Anexo só deste agendamento".','bad');return}return _u.apply(this,arguments)}}
+{const _p=ACT.anxProj;ACT.anxProj=function(){const r=_p.apply(this,arguments);if(anxPrjDel())return r;const m=document.querySelector('#modal.open .anxproj');if(!m)return r;
+  m.querySelectorAll('[data-act="anxDel"]').forEach(b=>b.remove());m.querySelectorAll('input[data-ch="anexo"][data-tipo="kmzL"],input[data-ch="anexo"][data-tipo="kmzA"]').forEach(i=>{const u=i.closest('.upl')||i,par=u.parentElement;if(par&&par.querySelector('.anx'))u.remove()});
+  const w=m.querySelector('.result.warn');if(w)w.insertAdjacentHTML('afterend','<p class="muted" style="font-size:13px;margin:0 0 8px">Excluir ou substituir o anexo do projeto é só para a supervisão e a coordenação. Você pode enviar anexos novos.</p>');return r}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
