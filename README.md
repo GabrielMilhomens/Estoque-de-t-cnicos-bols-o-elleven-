@@ -252,6 +252,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 61. `agenda_ajuste_60_melhoria_de_rede_transmissao.sql` — tabela `ag_tx_mel` (melhorias de rede da Transmissão) com RLS (lê `tx_mel`/`tx_a_mel`, grava `tx_a_mel`, apaga a coordenação) e arquivos em `txmel/` no Storage.
 62. `agenda_ajuste_61_melhoria_campo_e_gestao.sql` — coluna `ag_equipe.txmel` (Melhoria TX na Equipe técnica), permissão `tx_a_mel_desp` (despachar etapas) na gravação da melhoria, leitura do KMZ pelo técnico do chamado da etapa, delegação de etapas (`ag_tx_mel_pessoas`, `ag_tx_mel_etapa`, `ag_tx_mel_avisar`, `ag_tx_mel_resp`) e avisos no sino.
 63. `agenda_ajuste_62_corrige_aprovacao_lpu.sql` — corrige o erro "permission denied for function ag_pode_exato" ao aprovar, devolver ou reprovar LPU e ao técnico reenviar LPU corrigida (a regra aglp_update passa a usar `ag_lpu_tx_aprova()`).
+64. `agenda_ajuste_63_escolha_de_avisos.sql` — tabela `ag_aviso_pref` (escolha de avisos de cada pessoa por área), `ag_aviso_area()` e `ag_avisar` respeitando a escolha (aviso direcionado à própria pessoa sempre chega).
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -843,6 +844,20 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - KMZ excluído não volta: para o técnico fazer o relatório, anexe de novo em Projeto › aba Anexos › KMZ de extensão (ou de lançamento) › Selecionar .kmz.
   - Código: `kmzmes.js`. Sem SQL.
 
+- **Escolher avisos por área** (09/11/2026):
+  - No sino, botão **Escolher avisos** (só para a gestão, não para técnicos).
+  - Para cada área (Implantação, GTD Manutenção, Transmissão e Rede Externa), três opções:
+    - **Sino e celular** (padrão);
+    - **Só no sino**, sem notificação no celular;
+    - **Desligado**.
+  - Vale para os avisos dos grupos (novo chamado, técnico a caminho, validação pedida, LPU para aprovar etc.). Aviso direcionado à própria pessoa (chamado despachado para você, LPU para preencher, etapa delegada) sempre chega.
+  - A área vem do chamado (ou da LPU do chamado). A lista do sino passa a mostrar a área de cada aviso.
+  - Código: `avisopref.js`. Banco: agenda_ajuste_63.
+
+- **Rodapé do menu repaginado (09/11/2026):** nome e cargo ficam inteiros em cima; embaixo, quatro botões com nome: **Avisos** (sino com o número), **Conta** (ícone de pessoa: senha e notificações; antes era um ícone parecido com um sol), **Sair** e **Recolher/Abrir** o menu. Saiu o botão do mapinha (laboratório de KMZ), já que o desenho agora fica na Melhoria de rede da Transmissão. Com o menu recolhido aparecem só os ícones. O menu lateral não tem mais rolagem para o lado.
+
+- **Botão voltar do celular (09/11/2026):** o voltar do Android (e o gesto de voltar) fecha o que estiver aberto em vez de sair do aplicativo: janela (chamado, atividade, avisos), tela cheia (KMZ, previsão, desenho), menu, escolha de área, ou a tela de detalhe (chamado, conversa, melhoria) volta para a lista. Dentro de uma janela com "‹ Voltar", volta um nível. Sem nada aberto, aparece "Toque em voltar de novo para sair"; só o segundo toque em até 2 segundos fecha o aplicativo.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -907,6 +922,9 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 09/11/2026 | Botão voltar do celular fecha a janela ou tela aberta em vez de sair do aplicativo; para sair, dois toques | `agenda.html` |
+| 09/11/2026 | Rodapé do menu repaginado: botões Avisos, Conta e Sair com nome, ícone de conta novo, saiu o mapinha do laboratório de KMZ, sem rolagem lateral | `agenda.html` |
+| 09/11/2026 | Escolher avisos por área no sino (sino e celular, só no sino ou desligado) | `agenda.html`. **Rodar `agenda_ajuste_63_escolha_de_avisos.sql` no Supabase antes** (não subir no GitHub) |
 | 09/11/2026 | KMZ de lançamento e de extensão só são excluídos na virada do mês, com a ativação, os relatórios e as baixas do cliente concluídos | `agenda.html`. Sem SQL |
 | 09/11/2026 | **Correção urgente**: aprovar, devolver e reprovar LPU e reenviar LPU corrigida davam "permission denied for function ag_pode_exato" (regra do ajuste 59) | **Rodar `agenda_ajuste_62_corrige_aprovacao_lpu.sql` no Supabase** (não subir no GitHub). `agenda.html` não muda. |
 | 09/11/2026 | Desenho: cordoalha acompanha o poste, centro da esquina arrastável e "Ajustar cabo". Melhoria salva sozinha ao usar o traçado, com o aviso "Salvo às" ou "Alterações não salvas" e confirmação ao sair sem salvar | `agenda.html`. Sem SQL |

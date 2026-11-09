@@ -2756,7 +2756,7 @@ function render(){
   const TT=tabsDe(),cats=[...new Set(TT.map(gCatDe))];if(!cats.includes(ui.cat))ui.cat=cats.includes(gCatDe(ui.tab))?gCatDe(ui.tab):(cats[0]||'impl');
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
-  $('whoBox').innerHTML=`<span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span>${['supply','visu'].includes(ui.perfil)?'':'<button class="wic sino" data-act="avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic" data-act="conta" aria-label="Configurações da conta" title="Alterar senha e notificações">${ICN.gear}</button><button class="wic" data-act="logout" aria-label="Sair" title="Sair">${ICN.sair}</button>`;
+  $('whoBox').innerHTML=`<div class="whc"><span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span></div><div class="wbar">${['supply','visu'].includes(ui.perfil)?'':'<button class="wic wbb sino" data-act="avisos" data-l="Avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic wbb" data-act="conta" data-l="Conta" aria-label="Minha conta: senha e notificações" title="Minha conta: senha e notificações">${WHO_CONTA}</button><button class="wic wbb" data-act="logout" data-l="Sair" aria-label="Sair" title="Sair">${ICN.sair}</button></div>`;
   const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu'],GRP={txMel:'Operação',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando'&&!lpuTx(l)).length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
@@ -17955,6 +17955,88 @@ let _kmzVirou=false;
 function kmzVirada(){if(_kmzVirou)return;if(!(typeof S!=='undefined'&&S.anexos&&S.ags&&S.ags.length))return;if(!(ui.perfil==='coord'||pode('a_anexos')))return;_kmzVirou=true;
   try{const E=[...new Set(S.anexos.filter(KMZ_T).map(x=>x.etiqueta))].filter(kmzSai);let n=0;E.forEach(e=>{n+=limparAnexos(e).length});if(n){save();console.info('KMZ excluídos na virada do mês:',n)}}catch(x){console.warn('limpeza de KMZ',x)}}
 {const _r=render;render=function(){const o=_r.apply(this,arguments);if(!_kmzVirou&&ME)setTimeout(kmzVirada,4000);return o}}
+
+/* ---------- 09/11: cada pessoa escolhe os avisos que recebe, por área (ajuste 63) ----------
+   No sino, "Escolher avisos": para Implantação, GTD Manutenção, Transmissão e Rede Externa, escolher
+   "Sino e celular" (padrão), "Só no sino" (sem notificação no celular) ou "Desligado".
+   Aviso direcionado à própria pessoa (chamado despachado para você, LPU para preencher, etapa delegada) sempre chega.
+   A lista do sino também mostra de qual área é cada aviso. */
+const AVP_AREAS=[['impl','Implantação'],['gtd','GTD Manutenção'],['tx','Transmissão'],['re','Rede Externa']];
+const AVP_OP=[['tudo','Sino e celular'],['sino','Só no sino'],['nada','Desligado']];
+const AVP={cfg:null,bus:false,err:''};
+const avpGestao=()=>!['clt','terc','func'].includes(ui.perfil);
+async function avpCarrega(){if(AVP.cfg||AVP.bus||!ME)return AVP.cfg||{};AVP.bus=true;try{const r=await sb.from('ag_aviso_pref').select('cfg').eq('user_id',ME.id).maybeSingle();
+  if(r.error){AVP.err=/ag_aviso_pref|relation|schema cache/i.test(r.error.message||'')?'Falta rodar o ajuste 63 no banco.':r.error.message;AVP.cfg={}}else AVP.cfg=(r.data&&r.data.cfg)||{}}catch(e){AVP.cfg={}}finally{AVP.bus=false}return AVP.cfg}
+function avpHtml(){const c=AVP.cfg||{};return `<div class="ah"><h3>Escolher avisos</h3></div><p class="muted" style="margin:4px 0 12px">Escolha, por área, como quer receber os avisos dos grupos em que você está. Avisos direcionados a você (chamado despachado para você, LPU para preencher, etapa delegada) sempre chegam.</p>
+  ${AVP.err?`<p class="bad">${esc(AVP.err)}</p>`:''}<div class="avpl">${AVP_AREAS.map(([k,n])=>{const v=c[k]||'tudo';return `<div class="avpr"><b>${n}</b><div class="seg" role="radiogroup" aria-label="${n}">${AVP_OP.map(([o,l])=>`<button type="button" class="btn sm${v===o?' primary':''}" data-act="avpSet" data-k="${k}" data-v="${o}" role="radio" aria-checked="${v===o}">${l}</button>`).join('')}</div></div>`}).join('')}</div>
+  <div class="actions"><button class="btn" data-act="avpVolta">Voltar aos avisos</button><button class="btn primary" data-act="avpSalvar">Salvar</button></div>`}
+Object.assign(ACT,{
+  avpAbrir:async()=>{await avpCarrega();AVP.ed=Object.assign({},AVP.cfg||{});const c0=AVP.cfg;AVP.cfg=AVP.ed;openModal(avpHtml());AVP.cfg=c0},
+  avpSet:el=>{AVP.ed=AVP.ed||{};AVP.ed[el.dataset.k]=el.dataset.v;const c0=AVP.cfg;AVP.cfg=AVP.ed;openModal(avpHtml());AVP.cfg=c0},
+  avpVolta:()=>{AVP.ed=null;gAvisosModal()},
+  avpSalvar:async el=>{const cfg=Object.assign({},AVP.ed||{});Object.keys(cfg).forEach(k=>{if(cfg[k]==='tudo')delete cfg[k]});el.disabled=true;
+    const r=await sb.from('ag_aviso_pref').upsert({user_id:ME.id,cfg,atualizado_em:new Date().toISOString()},{onConflict:'user_id'});el.disabled=false;
+    if(r.error){toast(/ag_aviso_pref|relation|schema cache/i.test(r.error.message||'')?'Rode o script agenda_ajuste_63_escolha_de_avisos.sql para salvar a escolha.':'Não foi possível salvar: '+r.error.message,'bad');return}
+    AVP.cfg=cfg;AVP.ed=null;closeModal();toast('Escolha de avisos salva. Vale para os próximos avisos.')}});
+/* área do aviso na lista do sino (pela URL/ref; sem como saber, fica a categoria) */
+function avpArea(a){if(a.cat==='impl')return 'Implantação';if(/mel=/.test(a.url||''))return 'Transmissão';
+  try{const c=(G.ch||[]).find(x=>String(x.id)===String(a.ref));if(c)return c.area==='tx'?'Transmissão':c.area==='re'?'Rede Externa':'GTD Manutenção'}catch(e){}return 'GTD Manutenção'}
+{const _g=gAvisosModal;gAvisosModal=function(){const r=_g.apply(this,arguments);try{const sh=document.querySelector('#modal .sheetm');if(!sh)return r;
+  if(avpGestao()){const ah=sh.querySelector('.ah');if(ah&&!ah.querySelector('[data-act="avpAbrir"]'))ah.insertAdjacentHTML('beforeend','<button class="btn sm" data-act="avpAbrir">Escolher avisos</button>')}
+  sh.querySelectorAll('.avi[data-id]').forEach(b=>{const a=(G.avisos||[]).find(x=>String(x.id)===b.dataset.id);const sm=b.querySelector('small');if(a&&sm)sm.textContent=avpArea(a)+' · '+gQuando(new Date(a.em).getTime())})}catch(e){}return r}}
+document.head.insertAdjacentHTML('beforeend','<style>.avpl{display:flex;flex-direction:column;gap:10px}.avpr{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line,#e5e7eb);border-radius:10px}.avpr .seg{display:flex;flex-wrap:wrap;gap:4px}.ah{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ah h3{margin-right:auto}</style>');
+
+/* ---------- 09/11: rodapé do menu repaginado ----------
+   Nome e papel em cima, sem cortar; embaixo, três botões com nome: Avisos (sino com o número), Conta (senha e
+   notificações; antes era um ícone parecido com um sol) e Sair. O botão do laboratório de KMZ (mapinha) saiu: o
+   desenho agora fica na Melhoria de rede. Menu recolhido: só os ícones. Sem rolagem lateral no menu. */
+const WHO_CONTA='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
+klabBotao=function(){document.querySelectorAll('.klabBtn').forEach(b=>b.remove())};
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{const wb=$('whoBox'),bar=wb&&wb.querySelector('.wbar'),nc=wb&&wb.querySelector(':scope>.ncol');if(bar&&nc){nc.classList.add('wbb');nc.dataset.l=NAVS.mini?'Abrir':'Recolher';bar.appendChild(nc)}document.querySelectorAll('.klabBtn').forEach(b=>b.remove())}catch(e){}return o}}
+document.head.insertAdjacentHTML('beforeend',`<style>
+#whoBox.who{flex-direction:column;align-items:stretch;gap:8px;padding:12px 4px 4px}
+#whoBox .whc{display:flex;align-items:center;gap:10px;min-width:0}
+#whoBox .wbar{display:flex;gap:2px;justify-content:space-between}
+#whoBox .wbb{flex:1 1 0;width:auto;min-width:0;height:auto;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;margin:0;font:600 11.5px/1.1 Barlow,sans-serif;color:var(--muted);border-radius:8px}
+#whoBox .wbb::after{content:attr(data-l)}
+#whoBox .wbb:hover{background:var(--bg);color:var(--ink)}
+#whoBox .wbb.sino{position:relative}
+#whoBox .wbb .sinon{top:0;right:calc(50% - 22px)}
+#whoBox .wbb svg{width:20px;height:20px}
+.side{overflow-x:hidden}
+body.navmini #whoBox .wbar{flex-direction:column;gap:4px}
+body.navmini #whoBox .wbb::after{content:none}
+body.navmini #whoBox .whc{justify-content:center}
+</style>`);
+
+/* ---------- 09/11: botão voltar do celular ----------
+   O voltar do Android (e o gesto de voltar) fecha a camada de cima em vez de sair do aplicativo: janela aberta,
+   tela cheia (KMZ, previsão, desenho), menu, ou a tela de detalhe (chamado, conversa, melhoria...) volta para a lista.
+   Sem nada para fechar: aparece "Toque em voltar de novo para sair"; um segundo toque em até 2 s sai. */
+const VOL={on:false,sair:0,tm:null};
+const VOL_SEL='[data-act="close"],[data-act="closeModal"],[data-act$="Fechar"],[data-act$="Fecha"],[data-act$="Volta"],[data-act$="Voltar"],[data-act="agEdSair"],[data-act="tmCtxSai"]';
+const VOL_NAO=new Set(['updFechar','pushFechar','navFechar','menuFechar','navPalFechar']);
+const volVis=e=>!!(e&&e.getClientRects().length&&!e.disabled&&!e.closest('[hidden]'));
+function volBotao(raiz){if(!raiz)return null;const bs=[...raiz.querySelectorAll('button,a,[role="button"]')].filter(volVis);
+  const vt=bs.find(b=>/^\s*(‹|←)/.test(b.textContent||'')&&b.dataset.act&&!VOL_NAO.has(b.dataset.act));if(vt)return vt;
+  return bs.find(b=>b.matches(VOL_SEL)&&!VOL_NAO.has(b.dataset.act))||null}
+function volFecha(){
+  for(const s of['.iosov','.ffov']){const o=[...document.querySelectorAll(s)].pop();if(o){const b=[...o.querySelectorAll('button')].filter(volVis).find(x=>/cancel|fechar|agora não|não/i.test(x.textContent||''));if(b)b.click();else o.remove();return true}}
+  const md=$('modal');if(md&&md.classList.contains('open')){const b=volBotao(md);if(b)b.click();else closeModal();return true}
+  for(const[id,f]of[['kvFull','kvFecha'],['krFull','krFecha'],['pvFull','pvFecha'],['klab','klabFecha']]){const o=document.getElementById(id);if(o){const b=volBotao(o);if(b&&!/Fecha$/.test(b.dataset.act||'x'))b.click();else if(ACT[f])ACT[f](b||o);else o.remove();return true}}
+  if(ui.arSh&&ACT.arFechar){ACT.arFechar();return true}
+  if(ui.navPal&&ACT.navPalFechar){ACT.navPalFechar();return true}
+  if(ui.navSheet){ui.navSheet=null;render();return true}
+  if(document.body.classList.contains('menu')){document.body.classList.remove('menu');return true}
+  const b=volBotao($('app'));if(b){b.click();return true}
+  return false}
+function volGuarda(){try{history.pushState({agVolta:1},'')}catch(e){}}
+function volLiga(){if(VOL.on)return;VOL.on=true;volGuarda();
+  window.addEventListener('popstate',()=>{if(!document.body.classList.contains('app-on'))return;let ok=false;try{ok=volFecha()}catch(e){console.warn('voltar',e)}
+    if(ok){VOL.sair=0;volGuarda();return}
+    if(Date.now()-VOL.sair<2000){VOL.sair=0;try{history.back()}catch(e){}return}
+    VOL.sair=Date.now();toast('Toque em voltar de novo para sair');clearTimeout(VOL.tm);VOL.tm=setTimeout(()=>{if(VOL.sair){VOL.sair=0;volGuarda()}},2000)})}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(!VOL.on&&document.body.classList.contains('app-on'))volLiga()}catch(e){}return o}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
