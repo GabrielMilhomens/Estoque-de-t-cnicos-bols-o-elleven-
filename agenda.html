@@ -13519,7 +13519,7 @@ const PR_RK=PR_ON?pxKeys(PR_RE):[],PX_TK=pxKeys(PX_TX),PX_GK=pxKeys(PERM_T.find(
   const ig=PERM_T.findIndex(g=>g[0]==='GTD Manutenção');PERM_T.splice(ig>=0?ig+1:PERM_T.length,0,PX_TX);if(PR_ON)PERM_T.splice(PERM_T.indexOf(PX_TX)+1,0,PR_RE,PR_RP);
   const add=k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)},w=L=>L.forEach(n=>{add(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));add('m_gtd');add('m_tx');if(PR_ON)add('m_re')}
 const PX_AREA=gn=>gn==='GTD Manutenção'||gn==='Áreas de manutenção'?'gtd':gn==='Transmissão'?'tx':gn==='Rede Externa'||gn==='Rede Externa Corretiva'?'re':gn==='Rede Externa Preventiva'?'rep':gn==='Financeiro (todas as áreas)'||gn==='Visão gerencial'?'fin':'impl';
-const pxPapelTx=p=>p==='supervisor'||p==='encarregado'||p==='noc';
+const pxPapelTx=p=>p==='supervisor'||p==='encarregado'||p==='noc'||p==='visualizacao';
 /* 27/10: NOC com a aba Transmissão nas permissões. Padrão do NOC: Chamados, Agenda, Criar chamado, Histórico e validar,
    nas duas áreas. Lista do NOC gravada antes (sem nenhuma chave da Transmissão e sem a marca tx_v27) continua vendo a
    Transmissão com as mesmas telas do GTD. */

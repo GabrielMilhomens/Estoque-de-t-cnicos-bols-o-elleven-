@@ -253,6 +253,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 62. `agenda_ajuste_61_melhoria_campo_e_gestao.sql` — coluna `ag_equipe.txmel` (Melhoria TX na Equipe técnica), permissão `tx_a_mel_desp` (despachar etapas) na gravação da melhoria, leitura do KMZ pelo técnico do chamado da etapa, delegação de etapas (`ag_tx_mel_pessoas`, `ag_tx_mel_etapa`, `ag_tx_mel_avisar`, `ag_tx_mel_resp`) e avisos no sino.
 63. `agenda_ajuste_62_corrige_aprovacao_lpu.sql` — corrige o erro "permission denied for function ag_pode_exato" ao aprovar, devolver ou reprovar LPU e ao técnico reenviar LPU corrigida (a regra aglp_update passa a usar `ag_lpu_tx_aprova()`).
 64. `agenda_ajuste_63_escolha_de_avisos.sql` — tabela `ag_aviso_pref` (escolha de avisos de cada pessoa por área), `ag_aviso_area()` e `ag_avisar` respeitando a escolha (aviso direcionado à própria pessoa sempre chega).
+65. `agenda_ajuste_64_visualizacao_rede_externa_preventiva.sql` — quem tem o papel Visualização com tela da RE Preventiva passa a ler `ag_re_prog` (função `ag_re_prog_visu()`, política `agrp_select_visu`); só leitura.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -858,6 +859,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Botão voltar do celular (09/11/2026):** o voltar do Android (e o gesto de voltar) fecha o que estiver aberto em vez de sair do aplicativo: janela (chamado, atividade, avisos), tela cheia (KMZ, previsão, desenho), menu, escolha de área, ou a tela de detalhe (chamado, conversa, melhoria) volta para a lista. Dentro de uma janela com "‹ Voltar", volta um nível. Sem nada aberto, aparece "Toque em voltar de novo para sair"; só o segundo toque em até 2 segundos fecha o aplicativo.
 
+- **Acesso gerencial com Transmissão e Rede Externa (09/11/2026):** nas permissões de quem tem o papel **Visualização** aparecem também as abas **Transmissão**, **RE Corretiva** e **RE Preventiva** (antes só Implantação, GTD e Financeiro). "Aplicar acesso gerencial (só ver)" marca as telas dessas áreas também, sem nenhuma ação. A RE Preventiva (km, caixas, postes e plaquetas) passa a carregar para a Visualização com o ajuste 64.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -922,6 +925,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 09/11/2026 | Visualização: abas Transmissão e Rede Externa nas permissões; acesso gerencial vê todas as áreas | `agenda.html`. **Rodar `agenda_ajuste_64_visualizacao_rede_externa_preventiva.sql` no Supabase** (não subir no GitHub) |
 | 09/11/2026 | Botão voltar do celular fecha a janela ou tela aberta em vez de sair do aplicativo; para sair, dois toques | `agenda.html` |
 | 09/11/2026 | Rodapé do menu repaginado: botões Avisos, Conta e Sair com nome, ícone de conta novo, saiu o mapinha do laboratório de KMZ, sem rolagem lateral | `agenda.html` |
 | 09/11/2026 | Escolher avisos por área no sino (sino e celular, só no sino ou desligado) | `agenda.html`. **Rodar `agenda_ajuste_63_escolha_de_avisos.sql` no Supabase antes** (não subir no GitHub) |
