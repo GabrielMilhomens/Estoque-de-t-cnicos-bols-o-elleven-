@@ -815,6 +815,15 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - Setas escolhem na lista, Enter confirma e Esc fecha.
   - Código: `tmcombo.js`. Sem SQL.
 
+- **Desenho: mover cabo e cordoalha, e confirmação de que a melhoria salvou** (09/11/2026):
+  - Ao arrastar um poste, a ponta da cordoalha que estava nele vai junto.
+  - O centro da esquina (círculo branco onde as cordoalhas em cruz se encontram) pode ser arrastado: move o cruzamento das cordoalhas e o cabo que passa por ali.
+  - Botão **✥ Ajustar cabo**: o "+" no meio de cada trecho cria uma dobra ao arrastar; o quadrado branco move a dobra, e tocar nele tira a dobra. A metragem, os materiais e o KMZ são refeitos.
+  - Melhoria: "Usar este traçado na melhoria" agora **salva a melhoria na hora**, se ela tiver título, e confirma com "Traçado salvo na melhoria".
+  - Ao lado do Salvar aparece "✓ Salvo às HH:MM" ou "● Alterações não salvas". O "Tudo salvo" da Implantação, que não valia para a melhoria, não aparece mais nessa tela.
+  - Fechar ou recarregar a página com algo sem salvar pede confirmação.
+  - Código: `klajuste.js`. Sem SQL.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -879,6 +888,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 09/11/2026 | Desenho: cordoalha acompanha o poste, centro da esquina arrastável e "Ajustar cabo". Melhoria salva sozinha ao usar o traçado, com o aviso "Salvo às" ou "Alterações não salvas" e confirmação ao sair sem salvar | `agenda.html`. Sem SQL |
 | 08/11/2026 | Melhoria de rede: cidade (todas as cidades de SP) e POP com busca | `agenda.html`. Sem SQL |
 | 08/11/2026 | Correção: o botão Cancelar das janelas da Melhoria de rede não fechava a janela | `agenda.html`. Sem SQL |
 | 08/11/2026 | **Melhoria de rede · gestão de projeto**: etapas definidas na criação (com a conferência de materiais e mão de obra no fim), despacho das etapas de campo pela tela de criar chamados da Transmissão, delegação de etapas internas com prazo, prints e anexos e aviso no sino, linha do tempo com anexos, visualização do projeto, quadro por etapa, cabos 72/144FO, coluna Melhoria TX e permissão de despachar. Detalhes em 7. | agenda.html (`tmgp.js`, `txmel.js`). **Rodar `agenda_ajuste_61_melhoria_campo_e_gestao.sql` no Supabase antes de publicar** (não subir no GitHub). Depois, marcar a Melhoria TX na Equipe técnica e as permissões em Usuários e acessos › Transmissão. |
