@@ -3220,8 +3220,8 @@ const temExt=p=>p.semExt===false||(p.semExt===undefined&&+p.dExt>0);
 const anxDe=e=>S.anexos.filter(x=>x.etiqueta===e);
 /* os KMZ (lançamento e extensão) ficam até a ativação ser concluída */
 const anxFases=x=>x.tipo==='kmzL'||x.tipo==='kmzA'?['ativ']:[x.fase||'ativ'];
-const anxRegra=x=>{const fs=anxFases(x);return `excluído ao finalizar ${fs.map(k=>FCURTO[k].toLowerCase()).join(' e ')}`};
-function limparAnexos(e){const rem=S.anexos.filter(x=>x.etiqueta===e&&anxFases(x).every(k=>faseFim(e,k))&&!(typeof geoSegura==='function'&&geoSegura(e,x)));if(!rem.length)return [];
+const anxRegra=x=>{if(KMZ_T(x))return 'excluído na virada do mês, depois da ativação e de todos os relatórios e baixas deste cliente';const fs=anxFases(x);return `excluído ao finalizar ${fs.map(k=>FCURTO[k].toLowerCase()).join(' e ')}`};
+function limparAnexos(e){const rem=S.anexos.filter(x=>x.etiqueta===e&&anxFases(x).every(k=>faseFim(e,k))&&(!KMZ_T(x)||kmzSai(e))&&!(typeof geoSegura==='function'&&geoSegura(e,x)));if(!rem.length)return [];
   S.anexos=S.anexos.filter(x=>!rem.includes(x));S.anexosLog=S.anexosLog||[];
   rem.forEach(x=>S.anexosLog.push({etiqueta:e,nome:x.nome,tipo:x.tipo,em:Date.now()}));
   (async()=>{try{await sb.storage.from('agenda').remove(rem.map(x=>x.path));await sb.from('ag_anexos').delete().in('id',rem.map(x=>x.id));await sb.from('ag_anexos_log').insert(rem.map(x=>({etiqueta:e,nome:x.nome,tipo:x.tipo})))}catch(err){console.warn(err)}})();
@@ -3235,7 +3235,7 @@ function anexosEdit(p){const L=anxDe(p.etiqueta),slot=(tipo,titulo,sub)=>{const 
    ${temExt(p)?slot('kmzA','KMZ de extensão','Projeto com extensão de sinal. Pela etapa 4 do cadastro do projeto, o KMZ também calcula os metros e as caixas de emenda.'):''}
    ${!(+p.metros>0)&&!temExt(p)?'<p class="muted" style="margin-bottom:10px">Este projeto não tem cabo para lançar nem extensão de sinal, então não pede KMZ.</p>':''}
    <div class="slot ${outros.length?'ok':''}"><h4>Outros anexos</h4><p class="muted">Fotos, projetos, autorizações ou qualquer arquivo de apoio.</p>${outros.map(x=>anxLinha(x,1)).join('')}<div class="tools" style="margin-top:8px"><label class="f inline"><span>Vincular à fase</span><select class="inp" id="anxFase">${FASES.filter(f=>!(f.k==='ext'&&!temExt(p))).map(f=>`<option value="${f.k}" ${f.k===(ui.anxFase||'ativ')?'selected':''}>${f.n}</option>`).join('')}</select></label><span class="upl btn sm">Adicionar arquivos<input type="file" multiple data-ch="anexo" data-tipo="outro"></span></div></div>
-   <p class="muted" style="font-size:13px">Os anexos aparecem para o técnico em todas as fases. Para liberar espaço, os KMZ (lançamento e extensão) são excluídos automaticamente quando a ativação é concluída, e os outros anexos quando a fase a que pertencem é finalizada.</p>
+   <p class="muted" style="font-size:13px">Os anexos aparecem para o técnico em todas as fases. Para liberar espaço, os KMZ (lançamento e extensão) são excluídos na virada do mês, depois que a ativação e todos os relatórios e baixas do cliente estiverem concluídos, e os outros anexos quando a fase a que pertencem é finalizada.</p>
    ${(S.anexosLog||[]).filter(x=>x.etiqueta===p.etiqueta).length?`<h3 class="lsub">Excluídos após conclusão</h3>${S.anexosLog.filter(x=>x.etiqueta===p.etiqueta).map(x=>`<div class="anx"><span>${esc(x.nome)}<small>${ANX[x.tipo]}, excluído em ${dtBR(x.em)}</small></span></div>`).join('')}`:''}`}
 function anexosTec(e){const L=anxDe(e);return L.length?`<div><span class="muted">Anexos do projeto</span>${L.map(x=>anxLinha(x,0)).join('')}</div>`:''}
 
@@ -5685,7 +5685,7 @@ function kmzAplica(p,W){const k=W.k;if(!k)return;if(p.semExt){return}
 function kmzLAplica(p,W){const kl=W.kL;if(!kl||!kl.arq)return;const f=kl.arq,etq=p.etiqueta;setTimeout(()=>anxGravar(etq,'kmzL',f).then(()=>{render();toast('KMZ de lançamento anexado ao projeto.')}).catch(e=>toast('Projeto salvo, mas o KMZ de lançamento não foi anexado: '+(e.message||e),'bad')),0)}
 function kmzLBloco(W,p){const top=normK((ui.roiTmp&&ui.roiTmp.topologia)||(p&&p.topologia)||'');if(top==='fwa'||top==='firewall')return '';
   const kl=W.kL||{},ax=p&&anxKmz(p.etiqueta,'kmzL'),roi=+((ui.roiTmp&&ui.roiTmp.metros)||(p&&p.metros)||0);
-  return `<div class="slot kmzl ${ax||kl.arq?'ok':''}"><h4>KMZ de lançamento</h4><p class="muted">Opcional. Fica anexado ao projeto para a equipe de campo nos agendamentos de lançamento e é excluído quando a ativação é concluída.</p>
+  return `<div class="slot kmzl ${ax||kl.arq?'ok':''}"><h4>KMZ de lançamento</h4><p class="muted">Opcional. Fica anexado ao projeto para a equipe de campo nos agendamentos de lançamento e é excluído na virada do mês, depois da ativação e de todos os relatórios e baixas.</p>
    ${ax&&!kl.arq?`<div class="anx"><span><b>${esc(ax.nome)}</b><small>Anexado em ${dtBR(ax.em)}</small></span><span class="bt"><button class="btn sm" data-act="anxOpen" data-id="${ax.id}">Baixar</button></span></div>`:''}
    ${kl.arq?`<div class="anx"><span><b>${esc(kl.nome)}</b><small>${kl.total!=null?`${kmzN(Math.round(kl.total))} m de linhas no KMZ${roi?` · ROI: ${kmzN(roi)} m`:''}`:'Arquivo lido'} · será anexado ao salvar${ax?' (substitui o atual)':''}</small></span></div>`:''}
    <span class="upl btn sm" style="margin-top:8px">${ax||kl.arq?'Substituir arquivo':'Selecionar arquivo .kmz'}<input type="file" accept=".kmz,.kml" data-ch="kmzLArq"></span></div>`}
@@ -17938,6 +17938,23 @@ document.head.insertAdjacentHTML('beforeend',`<style>.klesqh i{display:block;wid
 .klajv i{display:block;width:16px;height:16px;background:#fff;border:2px solid #2563eb;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:grab}
 .klajm i{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#2563eb;color:#fff;font:700 15px/1 system-ui,sans-serif;font-style:normal;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:grab;opacity:.9}
 .tmsv{font-size:13px;font-weight:600;padding:6px 10px;border-radius:99px;align-self:center}.tmsv.ok{color:#166534;background:#dcfce7}.tmsv.bad{color:#991b1b;background:#fee2e2}</style>`);
+
+/* ---------- 09/11: KMZ só sai na virada do mês, e só com tudo feito ----------
+   Antes o KMZ de lançamento e o de extensão eram excluídos quando a ativação era concluída. Com relatório ou baixa
+   ainda pendentes (ex.: extensão feita, ativação concluída, relatório e baixa da extensão por fazer), o técnico ficava
+   sem o KMZ. Agora o KMZ só é excluído quando:
+     · a ativação foi concluída num mês anterior ao atual (virou o mês);
+     · nenhuma atividade desse cliente está aberta, com relatório pendente ou com LPU (baixa) pendente;
+     · o cadastro no GeoGrid (cabo e fibras) já foi validado, como antes.
+   A limpeza roda sozinha quando alguém da gestão abre a ferramenta. Os outros anexos seguem a regra de antes. */
+const KMZ_T=x=>x&&(x.tipo==='kmzL'||x.tipo==='kmzA');
+const kmzMes=ms=>{const d=new Date(ms);return d.getFullYear()*12+d.getMonth()};
+function kmzSai(e){try{const f=faseFim(e,'ativ');if(!f)return false;const fim=f.ts&&f.ts.conclusao;if(fim&&kmzMes(fim)>=kmzMes(Date.now()))return false;
+  const A=(S.agsExt&&S.agsExt.length?S.ags.concat(S.agsExt):S.ags).filter(a=>a.etiqueta===e);return !A.some(a=>!['concluida','nao_concluida','cancelada'].includes(a.status))}catch(x){return false}}
+let _kmzVirou=false;
+function kmzVirada(){if(_kmzVirou)return;if(!(typeof S!=='undefined'&&S.anexos&&S.ags&&S.ags.length))return;if(!(ui.perfil==='coord'||pode('a_anexos')))return;_kmzVirou=true;
+  try{const E=[...new Set(S.anexos.filter(KMZ_T).map(x=>x.etiqueta))].filter(kmzSai);let n=0;E.forEach(e=>{n+=limparAnexos(e).length});if(n){save();console.info('KMZ excluídos na virada do mês:',n)}}catch(x){console.warn('limpeza de KMZ',x)}}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);if(!_kmzVirou&&ME)setTimeout(kmzVirada,4000);return o}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();

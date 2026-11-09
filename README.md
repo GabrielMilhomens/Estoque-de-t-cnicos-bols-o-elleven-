@@ -251,6 +251,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 60. `agenda_ajuste_59_financeiro_transmissao.sql` — `ag_budget_pode`: `tx_a_budget` grava o budget da conta 3.1.1.2.05.0007 (instalação rede); regra `aglp_update`: `tx_a_aprovar` decide as LPUs da conta 0007.
 61. `agenda_ajuste_60_melhoria_de_rede_transmissao.sql` — tabela `ag_tx_mel` (melhorias de rede da Transmissão) com RLS (lê `tx_mel`/`tx_a_mel`, grava `tx_a_mel`, apaga a coordenação) e arquivos em `txmel/` no Storage.
 62. `agenda_ajuste_61_melhoria_campo_e_gestao.sql` — coluna `ag_equipe.txmel` (Melhoria TX na Equipe técnica), permissão `tx_a_mel_desp` (despachar etapas) na gravação da melhoria, leitura do KMZ pelo técnico do chamado da etapa, delegação de etapas (`ag_tx_mel_pessoas`, `ag_tx_mel_etapa`, `ag_tx_mel_avisar`, `ag_tx_mel_resp`) e avisos no sino.
+63. `agenda_ajuste_62_corrige_aprovacao_lpu.sql` — corrige o erro "permission denied for function ag_pode_exato" ao aprovar, devolver ou reprovar LPU e ao técnico reenviar LPU corrigida (a regra aglp_update passa a usar `ag_lpu_tx_aprova()`).
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -824,6 +825,24 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - Fechar ou recarregar a página com algo sem salvar pede confirmação.
   - Código: `klajuste.js`. Sem SQL.
 
+- **Correção: aprovar LPU e reenviar LPU davam "permission denied for function ag_pode_exato"** (09/11/2026):
+  - A regra de atualização das LPUs criada no ajuste 59 (financeiro da Transmissão) chamava `ag_pode_exato` direto. Essa função é fechada para os usuários desde o ajuste 45.
+  - Por isso, qualquer atualização de LPU dava erro: aprovar, devolver e reprovar (gestão) e reenviar a LPU corrigida (técnico).
+  - O ajuste 62 troca a chamada por `ag_lpu_tx_aprova()` (security definer). As permissões não mudam.
+  - O arquivo do ajuste 59 também foi corrigido, caso seja rodado de novo.
+  - Só SQL, o `agenda.html` não muda.
+
+- **KMZ só é excluído na virada do mês, com tudo feito** (09/11/2026):
+  - Antes, o KMZ de lançamento e o de extensão eram excluídos quando a ativação era concluída. Se o relatório ou a baixa da extensão ainda estivessem pendentes, o técnico ficava sem o KMZ.
+  - Agora o KMZ só sai quando três coisas valem ao mesmo tempo:
+    - a ativação foi concluída num mês anterior ao atual;
+    - nenhuma atividade do cliente está aberta, com relatório pendente ou com LPU (baixa) pendente;
+    - o cadastro no GeoGrid já foi validado, como antes.
+  - A limpeza roda sozinha quando alguém da gestão (coordenação ou quem tem "Enviar e apagar anexos") abre a ferramenta.
+  - Os outros anexos seguem a regra de antes. Os textos da ficha (aba Anexos) explicam a nova regra.
+  - KMZ excluído não volta: para o técnico fazer o relatório, anexe de novo em Projeto › aba Anexos › KMZ de extensão (ou de lançamento) › Selecionar .kmz.
+  - Código: `kmzmes.js`. Sem SQL.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -888,6 +907,8 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 09/11/2026 | KMZ de lançamento e de extensão só são excluídos na virada do mês, com a ativação, os relatórios e as baixas do cliente concluídos | `agenda.html`. Sem SQL |
+| 09/11/2026 | **Correção urgente**: aprovar, devolver e reprovar LPU e reenviar LPU corrigida davam "permission denied for function ag_pode_exato" (regra do ajuste 59) | **Rodar `agenda_ajuste_62_corrige_aprovacao_lpu.sql` no Supabase** (não subir no GitHub). `agenda.html` não muda. |
 | 09/11/2026 | Desenho: cordoalha acompanha o poste, centro da esquina arrastável e "Ajustar cabo". Melhoria salva sozinha ao usar o traçado, com o aviso "Salvo às" ou "Alterações não salvas" e confirmação ao sair sem salvar | `agenda.html`. Sem SQL |
 | 08/11/2026 | Melhoria de rede: cidade (todas as cidades de SP) e POP com busca | `agenda.html`. Sem SQL |
 | 08/11/2026 | Correção: o botão Cancelar das janelas da Melhoria de rede não fechava a janela | `agenda.html`. Sem SQL |
