@@ -250,6 +250,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 59. `agenda_ajuste_58_financeiro_preventiva_rede_externa.sql` — `ag_pode_de`: "Aprovar LPUs da preventiva" (`rp_a_aprovar`) e "Aprovação de LPU da preventiva" (`rp_aprovLpu`) valem no banco como a aprovação de LPU da manutenção.
 60. `agenda_ajuste_59_financeiro_transmissao.sql` — `ag_budget_pode`: `tx_a_budget` grava o budget da conta 3.1.1.2.05.0007 (instalação rede); regra `aglp_update`: `tx_a_aprovar` decide as LPUs da conta 0007.
 61. `agenda_ajuste_60_melhoria_de_rede_transmissao.sql` — tabela `ag_tx_mel` (melhorias de rede da Transmissão) com RLS (lê `tx_mel`/`tx_a_mel`, grava `tx_a_mel`, apaga a coordenação) e arquivos em `txmel/` no Storage.
+62. `agenda_ajuste_61_melhoria_campo_e_gestao.sql` — coluna `ag_equipe.txmel` (Melhoria TX na Equipe técnica), permissão `tx_a_mel_desp` (despachar etapas) na gravação da melhoria, leitura do KMZ pelo técnico do chamado da etapa, delegação de etapas (`ag_tx_mel_pessoas`, `ag_tx_mel_etapa`, `ag_tx_mel_avisar`, `ag_tx_mel_resp`) e avisos no sino.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -778,6 +779,34 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - O poste selecionado fica com contorno vermelho. A legenda abaixo do mapa usa as mesmas figuras.
   - Código: `klicones.js`. Sem SQL.
 
+- **Melhoria de rede · gestão de projeto, etapas, despacho de campo e delegação** (08/11/2026):
+  - Cabos AS **72FO** e **144FO** no desenho (materiais INS000090 e INS000088).
+  - **Etapas do projeto** definidas na criação (aba Projeto), com modelo pelo tipo:
+    - só lançamento: pedido de material, expedição, lançamento, vistoria do lançamento, virada do cabo;
+    - só CFO: pedido, expedição, preparação da rede, GMUD (virada noturna);
+    - lançamento + CFO: as duas listas;
+    - infraestrutura: pedido, expedição, serviço no POP.
+    Dá para incluir, renomear, reordenar, tirar, marcar como etapa de campo e colocar datas.
+  - Toda melhoria termina na etapa fixa **Conferência de materiais e mão de obra**, que tem o botão "Conferir custos". "Concluir a melhoria" só aparece com todas as etapas concluídas.
+  - **Etapa de campo:** "Despachar" abre a tela **Criar · Transmissão**, já com o tipo Melhoria de rede, o POP, a data e o que fazer (um item por linha).
+    - Vira um chamado na Agenda da Transmissão, no fluxo normal: aceite, deslocamento, atendimento, relatório e LPU.
+    - O técnico vê os itens da etapa com "Navegar" e o KMZ.
+    - A etapa acompanha o chamado e conclui quando ele é validado. A LPU do chamado entra no custo realizado.
+  - **Etapa interna:** a gestão muda a situação ou **delega**: responsável, prazo e o que fazer, com prints colados e anexos.
+    - O responsável recebe aviso no sino, vê "Etapas com você" no topo da Melhoria de rede, responde com anexos e muda a situação, mesmo sem permissão de editar.
+    - Ao concluir, quem delegou é avisado.
+  - **Acompanhamento:**
+    - Quadro com uma coluna por etapa atual, Lista, Cronograma e Painel.
+    - Na melhoria, abas Visão geral (etapas, progresso, prazo, custo e linha do tempo com anexos e prints), Projeto e Custos realizados.
+    - Na aba Projeto, o projeto pronto abre em **visualização** (mapa, etapas, trechos, caixas, custos); "Editar o projeto" abre a edição.
+  - **Equipe técnica:** coluna **Melhoria TX**, que define quem aparece no despacho das etapas.
+  - **Permissões** (Usuários e acessos › Transmissão › Melhoria de rede):
+    - ver os projetos;
+    - criar e editar os projetos;
+    - despachar as etapas de campo e acompanhar as etapas.
+    Quem despacha também precisa poder agendar chamados na Transmissão.
+  - Código: `tmgp.js` (e ajustes em `txmel.js`). Banco: agenda_ajuste_61.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -842,6 +871,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 08/11/2026 | **Melhoria de rede · gestão de projeto**: etapas definidas na criação (com a conferência de materiais e mão de obra no fim), despacho das etapas de campo pela tela de criar chamados da Transmissão, delegação de etapas internas com prazo, prints e anexos e aviso no sino, linha do tempo com anexos, visualização do projeto, quadro por etapa, cabos 72/144FO, coluna Melhoria TX e permissão de despachar. Detalhes em 7. | agenda.html (`tmgp.js`, `txmel.js`). **Rodar `agenda_ajuste_61_melhoria_campo_e_gestao.sql` no Supabase antes de publicar** (não subir no GitHub). Depois, marcar a Melhoria TX na Equipe técnica e as permissões em Usuários e acessos › Transmissão. |
 | 08/11/2026 | Ícones do padrão construtivo (os mesmos do KMZ) nos postes, caixas e reserva do mapa de desenho | `agenda.html`. Sem SQL |
 | 08/11/2026 | Indicar caminho em duas etapas: pontos mudam só a linha de prévia e os postes saem em "Desenhar com postes"; corrigido desenho antigo que ficava no mapa | `agenda.html`. Sem SQL |
 | 08/11/2026 | Indicar caminho no desenho (pontos de passagem pelas ruas ou em linha reta) e um só mapa do Google por sessão do laboratório | `agenda.html`. Sem SQL |

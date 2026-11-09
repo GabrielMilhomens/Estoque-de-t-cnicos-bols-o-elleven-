@@ -17031,9 +17031,9 @@ const TM_AC=[['troca','Troca de splitter'],['rem','Remoção de splitter'],['add
 const TM_MOT=['Clean Up','Alívio de Rede','Infraestrutura'];
 const tmTemL=D=>D.tipo==='lc'||D.tipo==='l',tmTemC=D=>D.tipo==='lc'||D.tipo==='c';
 /* permissões: na Transmissão, gMel/a_gMel vêm de tx_mel/tx_a_mel */
-if(typeof PX_TX!=='undefined'){const pn=PX_TX[1];if(!pn.some(n=>n[0]==='tx_mel'))pn.splice(Math.max(0,pn.findIndex(n=>n[0]==='tx_hist')+1),0,['tx_mel','Melhoria de rede','t',[['tx_a_mel','Projetar, editar e despachar melhorias de rede','a']]]);
-  ['tx_mel','tx_a_mel'].forEach(k=>{[PERM_ALL,PX_TK].forEach(A=>{if(!A.includes(k))A.push(k)})});Object.assign(PX_MAP,{gMel:'tx_mel',a_gMel:'tx_a_mel'})}
-const tmVe=()=>ui.perfil==='coord'||pode('gMel')||pode('a_gMel'),tmPode=()=>ui.perfil==='coord'||pode('a_gMel');
+if(typeof PX_TX!=='undefined'){const pn=PX_TX[1];if(!pn.some(n=>n[0]==='tx_mel'))pn.splice(Math.max(0,pn.findIndex(n=>n[0]==='tx_hist')+1),0,['tx_mel','Melhoria de rede (ver os projetos)','t',[['tx_a_mel','Criar e editar os projetos de melhoria','a'],['tx_a_mel_desp','Despachar as etapas de campo e acompanhar as etapas','a']]]);
+  ['tx_mel','tx_a_mel','tx_a_mel_desp'].forEach(k=>{[PERM_ALL,PX_TK].forEach(A=>{if(!A.includes(k))A.push(k)})});Object.assign(PX_MAP,{gMel:'tx_mel',a_gMel:'tx_a_mel',a_gMelDesp:'tx_a_mel_desp'})}
+const tmVe=()=>ui.perfil==='coord'||pode('gMel')||pode('a_gMel')||pode('a_gMelDesp'),tmPode=()=>ui.perfil==='coord'||pode('a_gMel');
 GTD_T.push('txMel');Object.assign(RP_TL,{txMel:'Melhoria de rede'});try{Object.assign(NAV_TC,{txMel:'Melhoria'})}catch(e){}
 ICT.txMel='M3 17l6-6 4 4 8-8M14 7h7v7';
 {const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments).filter(t=>t!=='txMel');if(!ME||gTecPerfil()||ui.cat!=='gtd'||(ui.gArea||'gtd')!=='tx')return T;if(tmVe())T.push('txMel');return T}}
@@ -17491,6 +17491,368 @@ function klIcoG(k,sel){const h=KA_HREF[k];if(!h)return null;const LL=window.L,cl
 const klLegIco=t=>KA_HREF[t]?`<img class="klgleg" src="${KLI_URL(KA_HREF[t])}" alt="">`:`<i style="background:${klCor(t)}"></i>`;
 document.head.insertAdjacentHTML('beforeend','<style>.klgi{filter:drop-shadow(0 0 1px #000) drop-shadow(0 1px 1px rgba(0,0,0,.6))}.klgi.sel{filter:drop-shadow(0 0 2px #dc2626) drop-shadow(0 0 3px #dc2626) drop-shadow(0 0 3px #dc2626)}.klgleg{width:16px;height:16px;vertical-align:-3px;margin-right:4px;background:#6b7280;border-radius:50%;padding:1px}</style>');
 
+/* ---------- 08/11 (noite, 4): Melhoria de rede · etapas do projeto, despacho por etapa e cabos 72/144FO ----------
+   1. Cabos AS 72FO e 144FO no desenho (melhoria e laboratório), com os materiais INS000090 e INS000088.
+   2. Equipe técnica › coluna "Melhoria TX" (ag_equipe.txmel, ajuste 61): quem atua em melhoria de rede da Transmissão.
+      O despacho das etapas lista esses técnicos (sem ninguém marcado, todos).
+   3. Etapas do projeto, definidas na criação (aba Projeto): modelo pelo tipo (pedido de material, expedição,
+      lançamento, vistoria, virada do cabo; preparação da rede e GMUD no CFO; serviço no POP na infraestrutura),
+      com incluir, renomear, reordenar, tirar, marcar como etapa de campo e datas previstas.
+   4. Etapa interna: a gestão muda a situação (pendente, em andamento, concluída). Etapa de campo: "Despachar" abre um
+      chamado de Melhoria de rede na Transmissão, no mesmo fluxo das outras atividades (aceite, deslocamento,
+      atendimento, validação, relatório e LPU). O técnico vê no chamado os itens da etapa, navegar e o KMZ.
+      A etapa acompanha o chamado e conclui quando o chamado é validado. A LPU do chamado entra no custo realizado.
+   5. Gestão de projeto: Quadro (colunas pela etapa atual), Lista, Cronograma e Painel; dentro da melhoria, abas
+      Visão geral (etapas, progresso, prazo, custo e linha do tempo com atualizações), Projeto e Custos realizados. */
+Object.assign(KA_CABO,{fo72:['CABO 72FO','ff0080ff'],fo144:['CABO 144FO','ff0000ff']});Object.assign(KA_CABO_N,{fo72:'Cabo AS 72FO',fo144:'Cabo AS 144FO'});
+if(typeof TX_TIPOS!=='undefined'&&!TX_TIPOS.some(t=>t[0]==='mel'))TX_TIPOS.push(['mel','Melhoria de rede']);
+{const _v=viewTxNovo;viewTxNovo=function(){const ctx=ui.tmCtx;
+  if(!ctx){const i=TX_TIPOS.findIndex(t=>t[0]==='mel'),x=i>=0?TX_TIPOS.splice(i,1)[0]:null;try{return _v.apply(this,arguments)}finally{if(x)TX_TIPOS.splice(i,0,x)}}
+  const sv=TX_TIPOS.splice(0,TX_TIPOS.length,['mel','Melhoria de rede']);let h;try{txFNovo().tipo='mel';h=_v.apply(this,arguments)}finally{TX_TIPOS.splice(0,TX_TIPOS.length,...sv)}
+  h=h.replace('<small>undefined</small>','<small>Etapa de campo da melhoria</small>');
+  const{L}=tmTecs(),tec=txFNovo().tec;h=h.replace(/(<select class="inp" data-ch="txF" data-k="tec"><option value="">[^<]*<\/option>)[\s\S]*?(<\/select>)/,(m,a,b)=>a+L.map(t=>`<option value="${t.id}" ${t.id===tec?'selected':''}>${esc(t.nome)}${t.vinculo==='terceiro'||t.tipo==='TERC'?' (terceiro)':''}</option>`).join('')+b);
+  const ban=`<div class="rpbox info tmctx"><div><b>Despacho da etapa "${esc(ctx.nome)}" · ${esc(ctx.cod)}</b><span>${esc(ctx.tit||'')}</span>${(ctx.itens||[]).length?`<ul>${ctx.itens.map(i=>`<li>${esc(i.t)}${i.d?` <small class="muted">${esc(i.d)}</small>`:''}</li>`).join('')}</ul>`:''}<small class="muted">O chamado entra na Agenda da Transmissão com os itens da etapa${ctx.kmz?' e o KMZ':''}. Ao agendar, a etapa volta para a melhoria como despachada.</small></div><button class="btn sm" data-act="tmCtxSai">Voltar à melhoria</button></div>`;
+  return ban+h}}
+const tmDespPode=()=>ui.perfil==='coord'||pode('a_gMelDesp'),tmAcPode=()=>tmPode()||tmDespPode();
+const tmIni=n=>String(n||'?').trim().split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase();
+const tmDia=s=>s?new Date(s+'T12:00:00'):null;
+const tmDd=(a,b)=>Math.round((tmDia(b)-tmDia(a))/864e5);
+/* ---------- equipe técnica: coluna Melhoria TX ---------- */
+const tmEqMel=id=>!!((typeof EQP!=='undefined'&&EQP.rows&&EQP.rows[id])||{}).txmel;
+function tmTecsTodos(){return((typeof G!=='undefined'&&G.tecs&&G.tecs.length)?G.tecs:(typeof TEC!=='undefined'?TEC:[])).filter(t=>t&&t.id)}
+function tmTecs(){const L=tmTecsTodos(),m=L.filter(t=>tmEqMel(t.id));return{L:m.length?m:L,conf:m.length>0}}
+const tmTecN=id=>{const t=tmTecsTodos().find(x=>x.id===id);return t?t.nome:(typeof gTecN==='function'?gTecN(id):'')||'Técnico'};
+{const _v=viewEqTec;viewEqTec=function(){let h=_v.apply(this,arguments);try{const ed=eqEdita();
+  const bt=id=>{const on=tmEqMel(id);return `<button class="eqb area g ${on?'on':''}" data-act="eqT" data-id="${id}" data-k="txmel" aria-pressed="${on}" aria-label="Atua em melhoria de rede da Transmissão" ${ed?'':'disabled'}>${on?'Sim':'Não'}</button>`};
+  h=h.replace('<th class="gg">REDE EXTERNA</th></tr>','<th class="gg">REDE EXTERNA</th><th class="sp"></th><th class="gg">MELHORIA TX</th></tr>');
+  h=h.replace(/(<tr>(?:<th[^>]*>[^<]*<\/th>)*?<th class="gg2">Atua<\/th>)<\/tr>/,(m,a)=>a.split('<th class="gg2">Atua</th>').length>=4?`${a}<th class="sp"></th><th class="gg2">Atua</th></tr>`:m);
+  h=h.replace(/(data-act="eqT" data-id="([^"]+)" data-k="re"[^>]*>[^<]*<\/button><\/td>)<\/tr>/g,(m,a,id)=>`${a}<td class="sp"></td><td class="gg2">${bt(id)}</td></tr>`);
+  h=h.replace(/(<td class="gg2"><b class="g">\d+<\/b><\/td>)<\/tr><\/tfoot>/,`$1<td class="sp"></td><td class="gg2"><b class="g">${(typeof TEC!=='undefined'?TEC:[]).filter(t=>tmEqMel(t.id)).length}</b></td></tr></tfoot>`).replace('colspan="13"','colspan="15"');
+  return h.replace(/(A Rede Externa usa a coluna própria \(não a do GTD\)\.)/,'$1 "Melhoria TX" marca quem recebe as melhorias de rede da Transmissão.')}catch(e){return h}}}
+{const _t=ACT.eqT;ACT.eqT=async el=>{if(el.dataset.k!=='txmel')return _t(el);if(!eqEdita())return semPerm();const id=el.dataset.id,a=eqDe(id),ant=EQP.rows[id];
+  const n={tecnico:id,impl:!!a.impl,servicos:(a.servicos||[]).slice(),gtd:!!a.gtd,tx:!!a.tx,re:!!a.re,txmel:!a.txmel};EQP.rows[id]=Object.assign({},a,n);render();
+  const r=await sb.from('ag_equipe').upsert({tecnico:id,impl:n.impl,servicos:n.servicos,gtd:n.gtd,tx:n.tx,re:n.re,txmel:n.txmel,atualizado_por_nome:meNome()},{onConflict:'tecnico'});
+  if(r.error){if(ant)EQP.rows[id]=ant;else delete EQP.rows[id];render();toast(/txmel|column/.test(r.error.message||'')?'Rode o script agenda_ajuste_61_melhoria_campo_e_gestao.sql para marcar a Melhoria TX.':'Não foi possível salvar: '+r.error.message,'bad')}}}
+/* ---------- itens do projeto (trechos, caixas do CFO, serviço no POP) ---------- */
+const tmAcTxt=s=>s.acao==='troca'?`troca de splitter ${s.de||'?'} → ${s.para||'?'}`:s.acao==='add'?`adição de splitter ${s.spl||'?'}`:s.acao==='rem'?`remoção de splitter ${s.spl||'?'}`:'melhoria';
+function tmItens(D){const T=[];
+  if(D.tipo==='infra')T.push({k:'infra',g:'POP',t:'Serviços no POP'+(D.popNome?' · '+D.popNome:''),d:D.infraDesc||''});
+  if(tmTemL(D))(D.trechos||[]).forEach((t,i)=>{const P=t.oTipo==='pop'&&tmPopL().find(p=>String(p.id)===String(t.oPop)),o=t.oTipo==='pop'?(P?tmPopN(P):'POP'):(t.oNome||'caixa de origem');
+    T.push({k:'tr:'+t.id,g:'Lançamento',t:`Trecho ${i+1}: ${o} → ${t.dNome||'caixa de destino'}`,d:[KA_CABO_N[t.cabo]||'',t.des?tmM(t.des.m)+' · '+t.des.postes+' postes':''].filter(Boolean).join(' · '),ll:t.oTipo==='pop'?(P&&P.lat!=null?[P.lat,P.lng]:tmLL(t.dCoord)):tmLL(t.oCoord)})});
+  if(tmTemC(D)&&D.cfo)Object.entries(D.cfo.sel||{}).forEach(([id,s])=>{const p=(D.cfo.pts||[]).find(x=>x.id===id)||{};
+    T.push({k:'cx:'+id,g:'CFO',t:`${p.nome||'Caixa'}: ${tmAcTxt(s)}${+s.qtd>1?' ('+s.qtd+'×)':''}`,d:[s.ext?`extensão de fibra ${s.extM||'?'} m`:'',s.obs||''].filter(Boolean).join(' · '),ll:p.lat!=null?[p.lat,p.lon]:null})});
+  return T}
+function tmPrazo(D){if(!D.fimP)return{txt:'Sem término previsto',cls:''};const ref=D.status==='concl'||D.status==='valid'?(D.fimR||hoje()):hoje(),d=tmDd(ref,D.fimP);
+  if(D.status==='concl'||D.status==='valid')return d>=0?{txt:'Concluída no prazo',cls:'ok'}:{txt:`Concluída ${-d} dia${d===-1?'':'s'} após o previsto`,cls:'bad'};
+  if(D.status==='canc')return{txt:'Cancelada',cls:''};return d<0?{txt:`Atrasada ${-d} dia${d===-1?'':'s'}`,cls:'bad',atr:true}:d===0?{txt:'Termina hoje',cls:'warn'}:{txt:`${d} dia${d===1?'':'s'} para o término`,cls:d<=2?'warn':'ok'}}
+const tmBar=(p,cls)=>`<span class="tmbar ${cls||''}" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></span>`;
+const tmAvs=(ids,lid)=>(ids||[]).map(id=>`<span class="tmav${id===lid?' lid':''}" title="${esc(tmTecN(id))}${id===lid?' (líder)':''}">${esc(tmIni(tmTecN(id)))}</span>`).join('');
+/* grava só o que muda (acompanhamento, tarefas, status) sobre a versão salva */
+async function tmPatch(id,fn,st){const x=tmGet(id);if(!x)return false;const{id:_i,codigo,status,criado_em,...dados}=tmLimpa(x);if(ui.tmD&&ui.tmD.id===id&&Array.isArray(dados.etapas))tmEtFim(dados);fn(dados);const row={dados,atualizado_em:new Date().toISOString()};if(st)row.status=st;
+  const r=await sb.from('ag_tx_mel').update(row).eq('id',id);if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return false}
+  Object.assign(x,dados,st?{status:st}:{});if(ui.tmD&&ui.tmD.id===id){fn(ui.tmD);if(st)ui.tmD.status=st}render();return true}
+function tmConfirma(tit,txt,bt,cb){ui.tmCb=cb;openModal(`<h3>${esc(tit)}</h3><p class="muted">${esc(txt)}</p><div class="actions"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn primary" data-act="tmConfOk">${esc(bt)}</button></div>`)}
+ACT.tmConfOk=async()=>{const f=ui.tmCb;ui.tmCb=null;closeModal();if(f)await f()};
+const tmEv=(obs,st)=>Object.assign({em:Date.now(),por:meNome(),obs},st?{st}:{});
+function tmTimeline(D){const E=(D.acomp||[]).map(a=>({em:a.em,por:a.por,obs:a.obs,st:a.st,campo:a.campo,anx:a.anx})).concat((D.hist||[]).filter(h=>!/^Editada|^Despachada|^Equipe atualizada/.test(h.acao)).map(h=>({em:h.em,por:h.por,obs:h.acao,sis:true})));
+  return E.sort((a,b)=>(b.em||0)-(a.em||0))}
+const tmQuando=ms=>{if(!ms)return'';const d=new Date(ms);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})};
+function tmTlHtml(D,n){const E=tmTimeline(D),L=n?E.slice(0,n):E;return L.length?`<ol class="tmtl">${L.map(e=>`<li class="${e.st?'st':e.campo?'cp':e.sis?'sis':''}"><i class="tmd" aria-hidden="true"></i><div class="tmtlh"><b>${esc(e.por||'')}</b>${e.campo?'<span class="chip info">campo</span>':''}${e.st&&TM_ST[e.st]?`<span class="chip ${TM_ST[e.st][1]}">${TM_ST[e.st][0]}</span>`:''}<small class="muted">${tmQuando(e.em)}</small></div>${e.obs?`<p>${esc(e.obs)}</p>`:''}${(e.anx||[]).length?dnThumbs(e.anx):''}</li>`).join('')}</ol>`:'<p class="muted">Nenhuma atualização ainda.</p>'}
+/* ---------- etapas ---------- */
+const TM_EK=[['lanc','Lançamento'],['vist','Vistoria'],['cfo','CFO / preparação da rede'],['gmud','GMUD (virada)'],['pop','Serviço no POP'],['outra','Outra atividade']];
+const TM_ORD=['Pedido de material','Expedição do material','Lançamento','Vistoria do lançamento','Preparação da rede','Virada do cabo','GMUD · virada noturna','Serviço no POP'];
+const TM_FIM='Conferência de materiais e mão de obra';
+function tmEtFim(D){if(!D||!Array.isArray(D.etapas))return;const i=D.etapas.findIndex(e=>e.fixo);const f=i>=0?D.etapas.splice(i,1)[0]:{id:'efim',nome:TM_FIM,campo:false,k:'',st:'pend',fixo:true};f.nome=TM_FIM;f.campo=false;f.fixo=true;D.etapas.push(f)}
+const tmEtNovo=(nome,campo,k)=>({id:'e'+Math.random().toString(36).slice(2,9),nome,campo:!!campo,k:campo?(k||'outra'):'',st:'pend'});
+function tmEtModelo(tipo){const M=n=>tmEtNovo(n,false),C=(n,k)=>tmEtNovo(n,true,k),mat=[M('Pedido de material'),M('Expedição do material')],L=[C('Lançamento','lanc'),C('Vistoria do lançamento','vist')],F=[C('Preparação da rede','cfo')];
+  if(tipo==='infra')return mat.concat([C('Serviço no POP','pop')]);if(tipo==='l')return mat.concat(L,[C('Virada do cabo','gmud')]);if(tipo==='c')return mat.concat(F,[C('GMUD · virada noturna','gmud')]);
+  if(tipo==='lc')return mat.concat(L,F,[C('GMUD · virada noturna','gmud')]);return mat}
+function tmEtAuto(D){if(!D)return;const t=D.tipo||'';if(!Array.isArray(D.etapas)||(D.etapasAuto&&D.etapasTipo!==t)){const f=(D.etapas||[]).find(e=>e.fixo);D.etapas=tmEtModelo(t);if(f)D.etapas.push(f);D.etapasAuto=true;D.etapasTipo=t}tmEtFim(D)}
+const tmEtCh=E=>E&&E.ch&&typeof G!=='undefined'?(G.ch||[]).find(c=>c.id===E.ch):null;
+function tmEtSt(E){if(!E.campo||!E.ch)return E.st==='concl'?{k:'concl',t:'Concluída',c:'ok'}:E.st==='and'?{k:'and',t:'Em andamento',c:'info'}:{k:'pend',t:E.campo?'Aguardando despacho':'Pendente',c:''};
+  const c=tmEtCh(E);if(!c)return{k:'and',t:'Despachada',c:'info'};const s=c.status;
+  if(s==='cancelado')return{k:'pend',t:'Chamado cancelado',c:'bad',ch:c,canc:true};if(['rfo','lpu','aprov','concl'].includes(s))return{k:'concl',t:'Concluída em campo',c:'ok',ch:c};
+  if(s==='valid')return{k:'and',t:'Em validação',c:'warn',ch:c};if(['desloc','local','atend'].includes(s))return{k:'and',t:(GST[s]||[s])[0],c:'info',ch:c};
+  return{k:'and',t:c.tec?(gAceito(c)?'Aceita pelo técnico':'Despachada'):'Não despachada',c:c.tec?'info':'warn',ch:c}}
+const tmEtapas=D=>{if(!D||!Array.isArray(D.etapas))return [];if(!D.etapas.some(e=>e.fixo))tmEtFim(D);return D.etapas};
+const tmEtAtual=D=>tmEtapas(D).find(e=>tmEtSt(e).k!=='concl')||null;
+function tmProg(D){const E=tmEtapas(D),ok=E.filter(e=>tmEtSt(e).k==='concl').length;return{E,ok,n:E.length,pct:E.length?Math.round(ok*100/E.length):D.status==='concl'?100:0}}
+function tmItensEt(D,E){const I=tmItens(D),g={lanc:'Lançamento',vist:'Lançamento',cfo:'CFO',pop:'POP'}[E.k];const L=g?I.filter(i=>i.g===g):I;return L.length?L:I}
+{const _r=tmReal;tmReal=function(x){const chs=new Set(tmEtapas(x).map(e=>e.ch).filter(Boolean));if(!chs.size)return _r.apply(this,arguments);
+  const ex=tmTodasLpus().filter(l=>chs.has(l.chamado)).map(l=>l.id);return _r(Object.assign({},x,{lpus:[...new Set((x.lpus||[]).concat(ex))]}))}}
+function tmFasesHtml(D){const E=tmEtapas(D),a=tmEtAtual(D);if(!E.length)return '';return `<ol class="tmfases" aria-label="Etapas da melhoria">${E.map((e,i)=>{const s=tmEtSt(e),at=e===a;
+  return `<li class="${s.k==='concl'?'ok':at?(D.status==='pausa'?'pz':'at'):''}"${at?' aria-current="step"':''}><i>${s.k==='concl'?'✓':i+1}</i><span>${esc(e.nome)}</span>${e.campo?'<small>campo</small>':''}</li>`}).join('')}</ol>`}
+function tmEtapasHtml(D){const E=tmEtapas(D),ativo=!['concl','canc'].includes(D.status),pode=tmAcPode()&&ativo,dp=tmDespPode(),a=tmEtAtual(D),eu=ME&&ME.id;
+  if(!E.length)return `<p class="muted">Sem etapas. Defina as etapas na aba Projeto.</p>${pode?'<button class="btn sm" data-act="tmPT" data-v="proj">Definir etapas</button>':''}`;
+  return `<ol class="tmets">${E.map((e,i)=>{const s=tmEtSt(e),c=s.ch;
+    const ac=(e.fixo?`<button class="btn sm" data-act="tmPT" data-v="real">Conferir custos</button>`:'')+(!pode?'':e.campo?(dp&&(!e.ch||s.canc)?`<button class="btn sm primary" data-act="tmEtDesp" data-e="${e.id}">${s.canc?'Despachar de novo':'Despachar'}</button>`:'')
+      :`<select class="inp tmets-sel" data-ch="tmEtSt" data-e="${e.id}" aria-label="Situação: ${esc(e.nome)}">${[['pend','Pendente'],['and','Em andamento'],['concl','Concluída']].map(([k,n])=>`<option value="${k}" ${(e.st||'pend')===k?'selected':''}>${n}</option>`).join('')}</select><button class="btn sm" data-act="tmDlg" data-e="${e.id}">${e.resp?'Delegar de novo':'Delegar'}</button>`)
+      +(!pode&&ativo&&!e.campo&&e.resp&&e.resp===eu?`<select class="inp tmets-sel" data-ch="tmEtStR" data-e="${e.id}" aria-label="Situação: ${esc(e.nome)}">${[['pend','Pendente'],['and','Em andamento'],['concl','Concluída']].map(([k,n])=>`<option value="${k}" ${(e.st||'pend')===k?'selected':''}>${n}</option>`).join('')}</select>`:'')
+      +(ativo&&!e.campo&&e.resp&&(e.resp===eu||pode)?`<button class="btn sm" data-act="tmResp" data-e="${e.id}">Responder</button>`:'');
+    const pzE=e.prazo&&!e.campo?(()=>{const d=tmDd(hoje(),e.prazo);return s.k==='concl'?'':d<0?`<span class="chip bad">Atrasada ${-d} dia${d===-1?'':'s'}</span>`:d===0?'<span class="chip warn">Prazo hoje</span>':''})():'';
+    return `<li class="tmet ${s.k}${e===a?' at':''}"><span class="tmetn">${s.k==='concl'?'✓':i+1}</span><div class="tmetb"><div class="tmeth"><b>${esc(e.nome)}</b><span class="chip ${e.campo?'info':''}">${e.campo?'Campo':e.fixo?'Etapa final':'Interna'}</span><span class="chip ${s.c}">${esc(s.t)}</span></div>
+      ${e.iniP||e.fimP?`<small class="muted">Previsto: ${e.iniP?dBR(e.iniP):'—'}${e.fimP&&e.fimP!==e.iniP?' a '+dBR(e.fimP):''}</small>`:''}
+      ${c?`<small>${esc(gTecN(c.tec)||'sem técnico')}${c.agendaEm?' · '+gQuando(c.agendaEm):''} · <button class="linkbtn" data-act="tmEtAbreCh" data-id="${c.id}">abrir o chamado</button></small>`:''}
+      ${e.resp&&!e.campo?`<small class="tmresp"><span class="tmav lid">${esc(tmIni(e.respN))}</span><b>${esc(e.respN||'')}</b>${e.prazo?` · prazo ${dBR(e.prazo)}`:''}${e.resp===eu?' <span class="chip info">com você</span>':''} ${pzE}</small>`:''}
+      ${e.dir&&(e.dir.txt||(e.dir.anx||[]).length)?`<details class="tmdir"${e.resp===eu&&s.k!=='concl'?' open':''}><summary>O que fazer${e.dir.por?` · ${esc(e.dir.por)}`:''}</summary>${e.dir.txt?`<p>${esc(e.dir.txt)}</p>`:''}${dnThumbs(e.dir.anx)}</details>`:''}
+      ${!e.campo&&e.st!=='pend'&&e.por?`<small class="muted">${esc(e.por)} · ${tmQuando(e.em)}</small>`:''}</div><div class="tmeta">${ac}</div></li>`}).join('')}</ol>`}
+/* ---------- delegar etapa: pessoa, prazo e o que fazer (texto, prints e anexos) ---------- */
+const TMP={L:null,bus:false};
+async function tmPessoas(){if(TMP.L)return TMP.L;const r=await sb.rpc('ag_tx_mel_pessoas');if(r.error){TMP.err=/function|schema cache|does not exist/i.test(r.error.message||'')?'Falta rodar o ajuste 61 no banco.':r.error.message;return []}TMP.L=(r.data||[]).map(x=>({id:x.id,nome:x.nome||'',papel:x.papel||''}));return TMP.L}
+const TM_PAP={coordenador:'Coordenação',supervisor:'Supervisão',encarregado:'Encarregado',noc:'NOC',delivery:'Delivery',supply:'Supply',tecnico:'Técnico'};
+DN.tmdl=DN.tmdl||{};DN.tmrs=DN.tmrs||{};
+ACT.tmDlg=async el=>{if(!tmAcPode())return semPerm();const D=tmD(),e=tmEtapas(D).find(x=>x.id===el.dataset.e);if(!e)return;const L=await tmPessoas();
+  if(!L.length){toast(TMP.err||'Nenhuma pessoa com acesso à Melhoria de rede.','bad');return}
+  (ui.dnT=ui.dnT||{})['tmdl'+e.id]=(ui.dnT['tmdl'+e.id])||(e.dir&&e.dir.txt)||'';
+  openModal(`<h3>Delegar · ${esc(e.nome)}</h3><p class="muted">${esc(D.codigo)} · ${esc(D.titulo||'')}. A pessoa recebe o aviso no sino e vê a etapa na melhoria.</p>
+    <div class="tmform"><label class="f"><span>Responsável *</span><select class="inp" id="tmdlP"><option value="">Escolha</option>${L.map(p=>`<option value="${p.id}" ${p.id===e.resp?'selected':''}>${esc(p.nome)}${TM_PAP[p.papel]?' · '+TM_PAP[p.papel]:''}</option>`).join('')}</select></label>
+     <label class="f"><span>Prazo *</span><input class="inp" type="date" id="tmdlD" value="${esc(e.prazo||e.fimP||'')}"></label></div>
+    <div class="f"><span>O que precisa ser feito *</span>${dnCampos('tmdl',e.id,'Direcionamento e observações. Cole prints aqui (Ctrl+V) ou anexe fotos e arquivos.')}</div>
+    ${e.dir&&(e.dir.anx||[]).length?`<small class="muted">Anexos já enviados: ${e.dir.anx.length} (continuam na etapa)</small>`:''}
+    <div class="actions"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn primary" data-act="tmDlgOk" data-e="${e.id}">Delegar</button></div>`)};
+ACT.tmDlgOk=async el=>{const D=tmD(),id=el.dataset.e,e0=tmEtapas(D).find(x=>x.id===id),pid=($('tmdlP')||{}).value,pz=($('tmdlD')||{}).value,txt=dnTxt('tmdl',id),F=(DN.tmdl[id]||[]).slice();
+  if(!e0)return;if(!pid||!pz||!txt){toast('Escolha o responsável, o prazo e escreva o que precisa ser feito.','bad');return}
+  const P=(TMP.L||[]).find(p=>p.id===pid)||{nome:''};el.disabled=true;
+  try{const anx=F.length?await tmSobe(D.id,F):[],dir={txt,anx:((e0.dir&&e0.dir.anx)||[]).concat(anx),por:meNome(),porId:ME&&ME.id,em:Date.now()},ev=tmEv(`${e0.nome}: delegada para ${P.nome}, prazo ${dBR(pz)}. ${txt}`);if(anx.length)ev.anx=anx;ev.etapa=id;
+    closeModal();const ok=await tmPatch(D.id,d=>{const e=(d.etapas||[]).find(x=>x.id===id);if(e){e.resp=pid;e.respN=P.nome;e.prazo=pz;e.dir=dir;if(!e.fimP||e.fimP<pz)e.fimP=pz}d.acomp=(d.acomp||[]).concat([ev])});
+    if(ok){dnLimpa('tmdl',id);try{await sb.rpc('ag_tx_mel_avisar',{p_id:D.id,p_para:pid,p_titulo:'Etapa delegada para você',p_texto:`${D.codigo} · ${e0.nome}: prazo ${dBR(pz)}.`})}catch(x){}render();toast(`Etapa delegada para ${P.nome}.`)}}
+  catch(x){toast('Não foi possível delegar: '+(x.message||x),'bad')}finally{el.disabled=false}};
+/* responder (responsável ou gestão): texto, prints e anexos, com a situação da etapa */
+ACT.tmResp=el=>{const D=tmD(),e=tmEtapas(D).find(x=>x.id===el.dataset.e);if(!e)return;
+  openModal(`<h3>Responder · ${esc(e.nome)}</h3><p class="muted">${esc(D.codigo)} · ${esc(D.titulo||'')}${e.prazo?' · prazo '+dBR(e.prazo):''}</p>
+    <label class="f"><span>Situação da etapa</span><select class="inp" id="tmrsS">${[['pend','Pendente'],['and','Em andamento'],['concl','Concluída']].map(([k,n])=>`<option value="${k}" ${(e.st||'pend')===k?'selected':''}>${n}</option>`).join('')}</select></label>
+    <div class="f"><span>Atualização</span>${dnCampos('tmrs',e.id,'O que foi feito, o que falta. Cole prints aqui (Ctrl+V) ou anexe fotos e arquivos.')}</div>
+    <div class="actions"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn primary" data-act="tmRespOk" data-e="${e.id}">Enviar</button></div>`)};
+ACT.tmRespOk=async el=>{const D=tmD(),id=el.dataset.e,e=tmEtapas(D).find(x=>x.id===id),st=($('tmrsS')||{}).value,txt=dnTxt('tmrs',id),F=(DN.tmrs[id]||[]).slice();if(!e)return;
+  if(!txt&&!F.length&&st===(e.st||'pend')){toast('Escreva a atualização, anexe um arquivo ou mude a situação.','bad');return}el.disabled=true;
+  try{const anx=F.length?await tmSobe(D.id,F):[];closeModal();if(await tmEtResp(D.id,id,st,txt,anx)){dnLimpa('tmrs',id);toast('Atualização enviada.')}}catch(x){toast('Não foi possível enviar: '+(x.message||x),'bad')}finally{el.disabled=false}};
+CH.tmEtStR=async el=>{await tmEtResp(tmD().id,el.dataset.e,el.value,'',[])};
+async function tmEtResp(mid,eid,st,txt,anx){const r=await sb.rpc('ag_tx_mel_etapa',{p_id:mid,p_etapa:eid,p_st:st||null,p_txt:txt||null,p_anx:anx&&anx.length?anx:null});
+  if(r.error){toast(/function|schema cache|does not exist/i.test(r.error.message||'')?'Falta rodar o ajuste 61 no banco.':r.error.message,'bad');return false}
+  const d=r.data||{},x=tmGet(mid);if(x&&d.dados){Object.keys(x).forEach(k=>{if(!['id','codigo','status','criado_em'].includes(k))delete x[k]});Object.assign(x,d.dados);if(d.status)x.status=d.status}
+  if(ui.tmD&&ui.tmD.id===mid&&d.dados){ui.tmD.etapas=JSON.parse(JSON.stringify(d.dados.etapas||[]));ui.tmD.acomp=JSON.parse(JSON.stringify(d.dados.acomp||[]));if(d.status)ui.tmD.status=d.status}render();return true}
+/* etapas delegadas para mim (topo da Melhoria de rede) */
+function tmMinhasEt(){const eu=ME&&ME.id;if(!eu)return [];const L=[];TM.L.forEach(x=>{if(['concl','canc'].includes(x.status))return;tmEtapas(x).forEach(e=>{if(e.resp===eu&&!e.campo&&tmEtSt(e).k!=='concl')L.push({x,e})})});return L.sort((a,b)=>String(a.e.prazo||'9').localeCompare(String(b.e.prazo||'9')))}
+function tmMinhasHtml(){const L=tmMinhasEt();if(!L.length)return '';return `<section class="panel tmmin"><div class="secth"><h3>Etapas com você <small class="muted">${L.length}</small></h3></div><div class="tmminl">${L.map(({x,e})=>{const d=e.prazo?tmDd(hoje(),e.prazo):null,s=tmEtSt(e);
+  return `<button type="button" class="tmq" data-act="tmAbrir" data-id="${x.id}"><span class="tmqh"><b>${esc(e.nome)}</b><span class="chip ${s.c}">${esc(s.t)}</span></span><span>${esc(x.codigo)} · ${esc(x.titulo||'')}</span>${e.prazo?`<small class="${d<0?'bad':d<=1?'warn':'muted'}">${d<0?`Atrasada ${-d} dia${d===-1?'':'s'} · `:''}prazo ${dBR(e.prazo)}</small>`:''}<small class="muted">Delegada por ${esc((e.dir&&e.dir.por)||'')}</small></button>`}).join('')}</div></section>`}
+/* aviso do sino: ?mel=<id> abre a melhoria */
+async function tmIr(id){ui.chat=null;try{if(areaAt()!=='tx'){const r=ACT.gCat({dataset:{v:'tx'}});if(r&&r.then)await r;await new Promise(x=>setTimeout(x,50))}}catch(e){}ui.tab='txMel';ui.tmD=null;ui.tmLink=id;render();window.scrollTo(0,0)}
+{const _g=gIr;gIr=function(url){let q;try{q=new URL(url||'',location.href).searchParams}catch(e){return _g.apply(this,arguments)}const m=q.get('mel');if(m)return tmIr(m);return _g.apply(this,arguments)}}
+{const q=new URLSearchParams(location.search).get('mel');if(q){try{history.replaceState(null,'',location.pathname)}catch(e){}window.__tmLink=q}}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(window.__tmLink&&ME&&document.body.classList.contains('app-on')){const id=window.__tmLink;window.__tmLink=null;setTimeout(()=>tmIr(id),0)}
+  if(ui.tmLink&&ui.tab==='txMel'&&TM.ok){const id=ui.tmLink,x=tmGet(id);ui.tmLink=null;if(x)setTimeout(()=>ACT.tmAbrir({dataset:{id}}),0)}}catch(e){}return o}}
+function tmGeralHtml(D){const{ok,n,pct}=tmProg(D),pz=tmPrazo(D),C=tmCustos(D),Rr=tmReal(D),pode=tmAcPode(),a=tmEtAtual(D),sa=a&&tmEtSt(a);
+  const kp=(t,v,s)=>`<div class="tmk"><small>${t}</small><b>${v}</b>${s||''}</div>`,usoC=C.tot?Math.round(Rr.tot*100/C.tot):0,tudo=n&&ok===n&&!['concl','canc'].includes(D.status);
+  return `${tmFasesHtml(D)}
+   ${tudo?`<div class="rpbox ok tmval"><div><b>Todas as etapas concluídas.</b> Confira os custos realizados e conclua a melhoria.</div>${tmPode()?'<div class="actions"><button class="btn primary" data-act="tmConcluir">Concluir a melhoria</button></div>':''}</div>`:''}
+   ${D.status==='pausa'?`<div class="rpbox bad"><b>Pausada.</b> ${esc(((tmTimeline(D).find(e=>e.st==='pausa')||{}).obs)||'')}</div>`:''}
+   <div class="tmks">${kp('Progresso',pct+'%',tmBar(pct)+`<small class="muted">${ok} de ${n} etapa${n===1?'':'s'}</small>`)}
+    ${kp('Etapa atual',a?esc(a.nome):D.status==='concl'?'Concluída':'—',sa?`<small class="muted">${esc(sa.t)}</small>`:'')}
+    ${kp('Prazo',`<span class="${pz.cls}">${pz.txt}</span>`,`<small class="muted">${D.iniP?dBR(D.iniP):'—'} a ${D.fimP?dBR(D.fimP):'—'}${D.iniR?` · início real ${dBR(D.iniR)}`:''}</small>`)}
+    ${kp('Custo realizado',brl(Rr.tot),C.tot?tmBar(usoC,usoC>100?'bad':'')+`<small class="muted">${usoC}% do previsto (${brl(C.tot)})</small>`:'<small class="muted">Sem custo previsto</small>')}</div>
+   <div class="tmgcols"><section class="panel"><div class="secth"><h3>Etapas</h3>${tmPode()?'<button class="btn sm" data-act="tmEdEtapas">Editar etapas</button>':''}</div>${tmEtapasHtml(D)}</section>
+    <section class="panel"><div class="secth"><h3>Linha do tempo</h3>${tmPode()?'<button class="btn sm" data-act="tmSt">Mudar status</button>':''}</div>
+     ${pode?`<div class="tmpost">${dnCampos('tmp',D.id,'Escreva uma atualização do projeto. Cole prints aqui (Ctrl+V) ou anexe fotos e arquivos.')}<button class="btn sm primary" data-act="tmPost">Publicar</button></div>`:''}
+     ${tmTlHtml(D)}</section></div>`}
+/* editor das etapas (aba Projeto e nova melhoria) */
+function tmEtEdHtml(D,ro){tmEtAuto(D);const E=tmEtapas(D),dis=ro?'disabled':'';
+  return `<section class="panel tmeted" style="margin-top:14px"><div class="secth"><div><h3>Etapas do projeto</h3><small class="muted">O modelo vem do tipo de melhoria. Inclua, renomeie, mude a ordem ou tire etapas. Etapa de campo é despachada para um técnico e vira um chamado da Transmissão.</small></div></div>
+   <ol class="tmetl">${E.map((e,i)=>{const tr=!!e.ch,d2=ro||tr||e.fixo?'disabled':'',nf=E.length-1;if(e.fixo)return `<li class="tmetr tmetfx"><span class="tmetn">${i+1}</span><div class="tmetfxn"><b>${esc(e.nome)}</b><small class="muted">Etapa final de toda melhoria: conferência dos materiais e da mão de obra realizados.</small></div>
+     <label class="tmetd"><small>Início</small><input class="inp" type="date" data-ch="tmEt" data-i="${i}" data-k="iniP" value="${esc(e.iniP||'')}" ${dis}></label><label class="tmetd"><small>Término</small><input class="inp" type="date" data-ch="tmEt" data-i="${i}" data-k="fimP" value="${esc(e.fimP||'')}" ${dis}></label><span class="tmetbt"></span></li>`;return `<li class="tmetr${e.campo?' cp':''}"><span class="tmetn">${i+1}</span>
+     <input class="inp tmetnm" data-ch="tmEt" data-i="${i}" data-k="nome" value="${esc(e.nome)}" aria-label="Nome da etapa ${i+1}" ${d2}>
+     <label class="chk tmetcp"><input type="checkbox" data-ch="tmEtCampo" data-i="${i}" ${e.campo?'checked':''} ${d2}> Campo</label>
+     ${e.campo?`<select class="inp tmetk" data-ch="tmEt" data-i="${i}" data-k="k" aria-label="Tipo da atividade de campo" ${d2}>${TM_EK.map(([k,n])=>`<option value="${k}" ${e.k===k?'selected':''}>${n}</option>`).join('')}</select>`:'<span class="tmetk"></span>'}
+     <label class="tmetd"><small>Início</small><input class="inp" type="date" data-ch="tmEt" data-i="${i}" data-k="iniP" value="${esc(e.iniP||'')}" ${dis}></label>
+     <label class="tmetd"><small>Término</small><input class="inp" type="date" data-ch="tmEt" data-i="${i}" data-k="fimP" value="${esc(e.fimP||'')}" ${dis}></label>
+     <span class="tmetbt">${ro?'':`<button type="button" class="btn sm ghost" data-act="tmEtMove" data-i="${i}" data-d="-1" aria-label="Subir" ${i?'':'disabled'}>↑</button><button type="button" class="btn sm ghost" data-act="tmEtMove" data-i="${i}" data-d="1" aria-label="Descer" ${i<E.length-1&&!(E[i+1]||{}).fixo?'':'disabled'}>↓</button><button type="button" class="btn sm ghost" data-act="tmEtDel" data-i="${i}" aria-label="Tirar a etapa" ${tr?'disabled':''}>✕</button>`}</span>
+     ${tr?'<small class="muted tmettr">Já despachada: nome e tipo travados.</small>':''}</li>`}).join('')}</ol>
+   ${ro?'':`<div class="actions"><button class="btn sm" data-act="tmEtAdd" data-c="0">+ Etapa interna</button><button class="btn sm" data-act="tmEtAdd" data-c="1">+ Etapa de campo</button>${E.some(e=>e.ch)?'':'<button class="btn sm ghost" data-act="tmEtModelo">Voltar ao modelo do tipo</button>'}</div>`}</section>`}
+const tmEtMud=D=>{D.etapasAuto=false;D.iniP=tmEtapas(D).map(e=>e.iniP).filter(Boolean).sort()[0]||D.iniP;D.fimP=tmEtapas(D).map(e=>e.fimP||e.iniP).filter(Boolean).sort().slice(-1)[0]||D.fimP};
+Object.assign(CH,{
+  tmEt:el=>{const D=tmD(),e=tmEtapas(D)[+el.dataset.i];if(!e)return;const k=el.dataset.k;e[k]=el.value;if(k==='iniP'&&e.fimP&&e.fimP<e.iniP)e.fimP=e.iniP;tmEtMud(D);if(k!=='nome')render()},
+  tmEtCampo:el=>{const D=tmD(),e=tmEtapas(D)[+el.dataset.i];if(!e)return;e.campo=el.checked;e.k=e.campo?(e.k||'outra'):'';tmEtMud(D);render()},
+  tmEtSt:async el=>{if(!tmAcPode())return semPerm();const D=tmD(),id=el.dataset.e,v=el.value,por=meNome(),em=Date.now(),e0=tmEtapas(D).find(e=>e.id===id);if(!e0)return;
+    const ev=tmEv(`${e0.nome}: ${{pend:'pendente',and:'em andamento',concl:'concluída'}[v]}.`),st=D.status==='proj'&&v!=='pend'?'exec':null;
+    await tmPatch(D.id,d=>{const e=(d.etapas||[]).find(x=>x.id===id);if(e){e.st=v;e.por=por;e.em=em}d.acomp=(d.acomp||[]).concat([ev]);if(st&&!d.iniR)d.iniR=hoje()},st)}});
+Object.assign(ACT,{
+  tmEtAdd:el=>{const D=tmD();tmEtAuto(D);D.etapas.splice(D.etapas.findIndex(e=>e.fixo),0,tmEtNovo(el.dataset.c==='1'?'Nova atividade de campo':'Nova etapa',el.dataset.c==='1','outra'));tmEtMud(D);render();setTimeout(()=>{const L=document.querySelectorAll('.tmetnm');const i=L[L.length-1];if(i){i.focus();i.select()}},50)},
+  tmEtDel:el=>{const D=tmD(),i=+el.dataset.i;if(tmEtapas(D)[i]&&(tmEtapas(D)[i].ch||tmEtapas(D)[i].fixo))return;D.etapas.splice(i,1);tmEtMud(D);render()},
+  tmEtMove:el=>{const D=tmD(),i=+el.dataset.i,j=i+ +el.dataset.d,E=tmEtapas(D);if(j<0||j>=E.length||E[i].fixo||E[j].fixo)return;[E[i],E[j]]=[E[j],E[i]];tmEtMud(D);render()},
+  tmEtModelo:()=>{const D=tmD(),f=tmEtapas(D).find(e=>e.fixo);D.etapas=tmEtModelo(D.tipo);if(f)D.etapas.push(f);tmEtFim(D);D.etapasAuto=true;D.etapasTipo=D.tipo||'';render()},
+  tmEtAbreCh:el=>{ui.gSel=el.dataset.id;ui.tab='gCham';ui.tmVoltaD=ui.tmD;render();window.scrollTo(0,0)},
+  tmConcluir:()=>{const D=tmD();tmConfirma('Concluir a melhoria?',`${D.codigo} passa para Concluída.`,'Concluir',async()=>{const e=tmEv('Melhoria concluída.','concl');await tmPatch(D.id,d=>{d.acomp=(d.acomp||[]).concat([e]);d.fimR=d.fimR||hoje();d.hist=(d.hist||[]).concat([{acao:'Concluída',por:meNome(),em:Date.now()}])},'concl');toast('Melhoria concluída.')})}});
+/* despacho de etapa de campo: abre a tela "Criar · Transmissão" (agendar e enviar ao técnico) com a etapa preenchida */
+ACT.tmEtDesp=async el=>{if(!tmDespPode())return semPerm();const D=tmD(),E=tmEtapas(D).find(e=>e.id===el.dataset.e);if(!D||!D.id||!E)return;
+  const P=(typeof txPop==='function'&&txPop(D.popId))||null;if(!P){toast('Escolha o POP de referência da melhoria (aba Projeto) e salve antes de despachar.','bad');return}
+  const sv=tmGet(D.id),ek=x=>JSON.stringify(tmEtapas(x).filter(e=>!e.fixo).map(e=>[e.id,e.nome,e.campo,e.k]));if(sv&&ek(sv)!==ek(D)){toast('Salve a melhoria antes de despachar.','bad');return}
+  const I=tmItensEt(D,E);let kmz=null;
+  if(E.k!=='pop'){const R=tmResumo(D);if(R.nDes||R.nCx){try{toast('Preparando o KMZ da etapa…');const b=await kaKmz(await tmKml(D)),p=`txmel/${D.id}/campo_${E.id}.kmz`;const u=await sb.storage.from('agenda').upload(p,b,{upsert:true,contentType:'application/vnd.google-earth.kmz'});if(!u.error)kmz=p}catch(e){console.warn('kmz campo',e)}}}
+  ui.tmCtx={id:D.id,cod:D.codigo,tit:D.titulo||'',etapa:E.id,nome:E.nome,k:E.k,itens:I.map(i=>({t:i.t,d:i.d||'',ll:i.ll||null})),kmz,antes:(G.ch||[]).filter(c=>c.txMel&&c.txMel.etapa===E.id).map(c=>c.id),D};
+  ui.txF=null;const F=txFNovo('mel');Object.assign(F,{tipo:'mel',pop:P.id,data:E.iniP||hoje(),hora:E.k==='gmud'?'00:00':'08:00',tec:E.tec||''});
+  DN.prob=DN.prob||{};DN.prob.novo=[];(ui.dnT=ui.dnT||{}).probnovo=`${E.nome} da melhoria ${D.codigo} · ${D.titulo||''}\n`+I.map(i=>'• '+i.t+(i.d?' ('+i.d+')':'')).join('\n');
+  ui.tab='gNovo';ui.gSel=null;render();window.scrollTo(0,0)};
+ACT.tmCtxSai=()=>{const c=ui.tmCtx;ui.tmCtx=null;ui.txF=null;if(ui.dnT)delete ui.dnT.probnovo;ui.tab='txMel';if(c)ui.tmD=c.D;render();window.scrollTo(0,0)};
+{const _p=gParaRow;gParaRow=function(c){const x=ui.tmCtx;if(x&&c&&c.area==='tx'&&c.txTipo==='mel'&&!c.txMel){const{D,antes,...m}=x;c.txMel=Object.assign({},m,{id:x.id});c.categoria='Melhoria de rede · '+x.nome;
+  const ll=(x.itens.find(i=>i.ll)||{}).ll;if(ll){c.lat=ll[0];c.lng=ll[1]}}return _p.apply(this,arguments)}}
+{const _c=ACT.txCriar;ACT.txCriar=async function(){const x=ui.tmCtx,r=await _c.apply(this,arguments);if(!x)return r;
+  const nv=(G.ch||[]).find(c=>c.txMel&&c.txMel.id===x.id&&c.txMel.etapa===x.etapa&&!x.antes.includes(c.id));if(!nv)return r;
+  ui.tmCtx=null;ui.txF=null;ui.tab='txMel';ui.tmD=x.D;ui.tmPT='geral';const dt=nv.agendaEm?isoD(new Date(nv.agendaEm)):'',st=x.D.status==='proj'?'exec':null;
+  const ev=tmEv(`${x.nome}: despachada para ${gTecN(nv.tec)||'a Transmissão'}${nv.agendaEm?' em '+gQuando(nv.agendaEm):''} (chamado na Agenda da Transmissão).`);
+  await tmPatch(x.id,d=>{const e=(d.etapas||[]).find(y=>y.id===x.etapa);if(e){e.ch=nv.id;e.tec=nv.tec||'';if(dt)e.iniP=e.iniP||dt}d.acomp=(d.acomp||[]).concat([ev]);if(st&&!d.iniR)d.iniR=hoje()},st);window.scrollTo(0,0);toast(`Etapa "${x.nome}" despachada. O chamado está na Agenda da Transmissão.`);return r}}
+/* técnico: itens da melhoria, navegar e KMZ dentro do chamado */
+{const _t=gTecView;gTecView=function(c){let h=_t.apply(this,arguments);const m=c&&c.txMel;if(!m||ui.lpuTela)return h;try{
+  const box=`<section class="tbox tmtec"><b>Melhoria de rede · ${esc(m.cod||'')}</b><span>${esc(m.nome||'')}${m.tit?' · '+esc(m.tit):''}</span>
+    ${(m.itens||[]).length?`<ul class="tmteci">${m.itens.map(i=>`<li><div><b>${esc(i.t)}</b>${i.d?`<small>${esc(i.d)}</small>`:''}</div>${i.ll?`<a class="btn sm" href="https://www.google.com/maps/dir/?api=1&destination=${i.ll[0]},${i.ll[1]}" target="_blank" rel="noopener">Navegar</a>`:''}</li>`).join('')}</ul>`:''}
+    ${m.kmz?`<button class="btn" data-act="tmKmzCh" data-p="${esc(m.kmz)}" data-n="${esc((m.cod||'melhoria')+'_'+(m.nome||''))}">Baixar o KMZ da melhoria</button>`:''}</section>`;
+  h=h.split('<p style="margin:0;font-size:16px;line-height:1.4">').join('<p style="margin:0;font-size:16px;line-height:1.4;white-space:pre-line">');
+  const k='<section class="tacc">',i=h.indexOf(k);return i>=0?h.slice(0,i)+box+h.slice(i):h+box}catch(e){return h}}}
+ACT.tmKmzCh=async el=>{try{const r=await sb.storage.from('agenda').download(el.dataset.p);if(r.error)throw r.error;tmSalvaArq(r.data,tmArq(el.dataset.n||'melhoria')+'.kmz')}catch(e){toast('Não foi possível baixar o KMZ: '+(e.message||e),'bad')}};
+DN.tmp=DN.tmp||{};
+async function tmSobe(id,F){const out=[];for(const f of F){let blob=f,tipo=f.type||'application/octet-stream',nome=f.name||'arquivo';
+    if(/^image\//.test(tipo)&&!/gif$/.test(tipo)){try{const d=await gReduz(f);blob=d instanceof Blob?d:await (await fetch(d)).blob();tipo='image/jpeg';nome=nome.replace(/\.\w+$/,'')+'.jpg'}catch(e){}}
+    const path=`txmel/${id}/anexos/${Date.now()}-${out.length+1}-${nome.replace(/[^\w.-]+/g,'_').slice(-60)}`,r=await sb.storage.from('agenda').upload(path,blob,{contentType:tipo,upsert:false});
+    if(r.error)throw r.error;out.push({path,nome,tipo})}return out}
+/* ---------- aba Projeto: visualização do projeto inteiro (desenhado e com etapas) ---------- */
+function tmPronto(D){if(!D||!D.id||!tmEtapas(D).length)return false;if(D.tipo==='infra')return !!String(D.infraDesc||'').trim();const R=tmResumo(D);return (!tmTemL(D)||(R.nT>0&&R.nDes===R.nT))&&(!tmTemC(D)||R.nCx>0)}
+function tmVerHtml(D){const R=tmResumo(D),C=tmCustos(D),tp=D.tipo==='infra'?'Infraestrutura do POP':(TM_TIPO.find(t=>t[0]===D.tipo)||[0,''])[1],kv=(l,v)=>v?`<div class="tmkv"><small>${l}</small><span>${v}</span></div>`:'';
+  const sel=Object.entries((D.cfo&&D.cfo.sel)||{});
+  return `<div class="tmver">${tmPode()&&!['concl','canc'].includes(D.status)?`<div class="tmverbar"><span class="muted">Visualização do projeto. Para mudar o desenho, as etapas ou os custos, edite.</span><button class="btn primary" data-act="tmEditar">Editar o projeto</button></div>`:''}
+   <section class="panel"><div class="secth"><h3>Dados da melhoria</h3><span class="chip">${esc(tp)}</span></div><div class="tmkvs">${kv('Título',esc(D.titulo||''))}${kv('Motivo',esc(D.motivo||''))}${kv('POP de referência',esc(D.popNome||''))}${kv('Cidade',esc(D.cidade||''))}
+     ${kv('Previsto',(D.iniP?dBR(D.iniP):'—')+' a '+(D.fimP?dBR(D.fimP):'—'))}${kv('Região crítica',D.crit?'Sim':'')}</div>${D.obs?`<p class="tmobs">${esc(D.obs)}</p>`:''}</section>
+   ${D.tipo!=='infra'?`<section class="panel"><div class="secth"><h3>Mapa do projeto</h3><button class="btn sm" data-act="tmKmz">Baixar o KMZ</button></div><div id="tmVerMap" class="tmmap tmvermap" role="region" aria-label="Mapa do projeto"></div>
+     <p class="kaleg">${tmTemL(D)?'<span><i class="tmlg x"></i>lançamento</span>':''}${tmTemC(D)?'<span><i class="tmlg cx"></i>caixas com melhoria</span>':''}</p></section>`:''}
+   <section class="panel"><div class="secth"><h3>Etapas</h3></div><ol class="tmvet">${tmEtapas(D).map((e,i)=>`<li><span class="tmetn">${i+1}</span><div><b>${esc(e.nome)}</b> <span class="chip ${e.campo?'info':''}">${e.campo?'Campo · '+esc((TM_EK.find(k=>k[0]===e.k)||['',''])[1]):e.fixo?'Etapa final':'Interna'}</span><small class="muted">${e.iniP?dBR(e.iniP):''}${e.fimP&&e.fimP!==e.iniP?' a '+dBR(e.fimP):''}</small></div></li>`).join('')}</ol></section>
+   ${D.tipo==='infra'?`<section class="panel"><h3>Serviços no POP</h3><p style="white-space:pre-line">${esc(D.infraDesc||'')}</p></section>`:''}
+   ${tmTemL(D)?`<section class="panel"><div class="secth"><h3>Lançamento</h3><small class="muted">${R.nT} trecho${R.nT===1?'':'s'} · ${tmM(R.m)} · ${R.postes} postes</small></div><div class="tmvtr">${(D.trechos||[]).map((t,i)=>{const P=t.oTipo==='pop'&&tmPopL().find(p=>String(p.id)===String(t.oPop)),o=t.oTipo==='pop'?(P?tmPopN(P):'POP'):(t.oNome||'Caixa de origem');
+      return `<article class="tmvtc"><b>Trecho ${i+1}</b><span>${esc(o)} → ${esc(t.dNome||'caixa de destino')}</span><small class="muted">${esc(KA_CABO_N[t.cabo]||'')}${t.esp?' · espinado na rede existente':''} · vão ${esc(t.vao||35)} m</small>
+        ${t.des?`<div class="tmvtn"><span><b>${tmM(t.des.m)}</b><small>cabo</small></span><span><b>${t.des.postes}</b><small>postes</small></span><span><b>${brl(t.des.mat)}</b><small>materiais</small></span><span><b>${brl(t.des.mo)}</b><small>mão de obra</small></span></div><button class="btn sm" data-act="tmTrKmz" data-i="${i}">KMZ do trecho</button>`:'<small class="bad">Sem traçado</small>'}</article>`}).join('')}</div></section>`:''}
+   ${tmTemC(D)?`<section class="panel"><div class="secth"><h3>CFO nas caixas</h3><small class="muted">${R.nCx} caixa${R.nCx===1?'':'s'}${R.nExt?` · ${R.nExt} com extensão de fibra (${tmM(R.mExt)})`:''}</small></div><ul class="tmvcx">${sel.map(([id,v])=>{const p=((D.cfo&&D.cfo.pts)||[]).find(x=>x.id===id)||{};return `<li><b>${esc(p.nome||'Caixa')}</b><span>${esc(tmAcTxt(v))}${+v.qtd>1?' ('+v.qtd+'×)':''}${v.ext?` · extensão de fibra ${esc(v.extM||'?')} m`:''}</span>${v.obs?`<small class="muted">${esc(v.obs)}</small>`:''}</li>`}).join('')}</ul></section>`:''}
+   <section class="panel"><div class="secth"><h3>Custos previstos</h3><b>${brl(C.tot)}</b></div><div class="tmvtn"><span><b>${brl(C.vMat)}</b><small>materiais</small></span><span><b>${brl(C.vMo)}</b><small>mão de obra</small></span><span><b>${brl(C.tot)}</b><small>total</small></span></div>
+     <details class="tmvdet"><summary>Ver os itens</summary>${tmCustosHtml(D,R,true)}</details></section></div>`}
+let TMV=null;
+async function tmVerMapa(){const D=tmD(),box=document.getElementById('tmVerMap');if(!D||!box||box.dataset.ok)return;box.dataset.ok='1';try{await vtLib()}catch(e){box.innerHTML='<p class="muted" style="padding:12px">Mapa indisponível.</p>';return}
+  const LL=window.L;if(TMV){try{TMV.remove()}catch(e){}TMV=null}const m=TMV=LL.map(box,{zoomControl:true});LL.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,maxNativeZoom:18,attribution:'Esri'}).addTo(m);
+  LL.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,maxNativeZoom:18}).addTo(m);
+  const b=[];try{const k=await tmKml(D),doc=new DOMParser().parseFromString(k,'application/xml'),cc=t=>t.trim().split(/\s+/).map(x=>x.split(',').map(Number)).filter(x=>x.length>1&&!isNaN(x[0])).map(x=>[x[1],x[0]]);
+    [...doc.getElementsByTagNameNS('*','Placemark')].forEach(pm=>{const nm=(pm.getElementsByTagNameNS('*','name')[0]||{}).textContent||'',ls=pm.getElementsByTagNameNS('*','LineString')[0],pt=pm.getElementsByTagNameNS('*','Point')[0];
+      if(ls){const c=cc(ls.getElementsByTagNameNS('*','coordinates')[0].textContent);if(c.length>1){const cord=/CORDOALHA/i.test(nm);LL.polyline(c,{color:cord?'#f59e0b':'#2563eb',weight:cord?2:4,opacity:.95,dashArray:cord?'4 4':null}).addTo(m).bindTooltip(nm);if(!cord)m._tmLn=true;c.forEach(x=>b.push(x))}}
+      else if(pt){const c=cc(pt.getElementsByTagNameNS('*','coordinates')[0].textContent)[0];if(!c)return;const cx=/^(CEO|CE|CTO|CDO|CX)\b|CAIXA|POP/i.test(nm);if(/^POSTE/i.test(nm)){LL.circleMarker(c,{radius:3,color:'#fff',weight:1,fillColor:'#1f2937',fillOpacity:1}).addTo(m).bindTooltip(nm)}
+        else LL.circleMarker(c,{radius:cx?7:5,color:'#fff',weight:2,fillColor:cx?'#dc2626':'#7c3aed',fillOpacity:1}).addTo(m).bindTooltip(nm);b.push(c)}})}catch(e){console.warn('mapa do projeto',e)}
+  if(tmTemL(D)&&!m._tmLn){(D.trechos||[]).forEach((t,i)=>{const P=t.oTipo==='pop'&&tmPopL().find(p=>String(p.id)===String(t.oPop)),a=t.oTipo==='pop'?(P&&P.lat!=null?[P.lat,P.lng]:null):tmLL(t.oCoord),z=tmLL(t.dCoord);if(a&&z){LL.polyline([a,z],{color:'#2563eb',weight:3,dashArray:'6 6'}).addTo(m).bindTooltip(`Trecho ${i+1} (sem o traçado salvo: linha reta)`);b.push(a,z)}})}
+  if(b.length)m.fitBounds(LL.latLngBounds(b),{padding:[24,24],maxZoom:18});else{const P=tmPopL().find(p=>String(p.id)===String(D.popId));m.setView(P&&P.lat!=null?[P.lat,P.lng]:[-22.97,-47.0],14)}setTimeout(()=>{try{m.invalidateSize()}catch(e){}},60)}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(ui.tab==='txMel'&&document.getElementById('tmVerMap'))setTimeout(tmVerMapa,0);else if(TMV&&!document.getElementById('tmVerMap')){try{TMV.remove()}catch(e){}TMV=null}}catch(e){}return o}}
+Object.assign(ACT,{tmEditar:()=>{ui.tmEd=true;render();window.scrollTo(0,0)},tmVer:()=>{ui.tmEd=false;render();window.scrollTo(0,0)},
+  tmEdEtapas:()=>{ui.tmPT='proj';ui.tmEd=true;render();setTimeout(()=>{const x=document.querySelector('.tmeted');if(x)x.scrollIntoView({block:'start'})},200)}});
+/* ---------- abas da melhoria ---------- */
+{const _e=tmEditor;tmEditor=function(){const D=tmD();if(D)tmEtAuto(D);const h=_e.apply(this,arguments);if(!D)return h;const ro=!tmPode()||D.status==='concl'||D.status==='canc';
+  const ins=s=>{const ed=tmEtEdHtml(D,ro);let i=s.indexOf('class="tmtipos"');if(i<0)i=s.indexOf('2. Serviços no POP');const j=i>=0?s.indexOf('</section>',i):-1;return j>=0?s.slice(0,j+10)+ed+s.slice(j+10):s+ed};
+  if(!D.id)return ins(h);const t=ui.tmPT||'geral',i=h.indexOf('<section'),top=i>=0?h.slice(0,i):h,corpo=i>=0?h.slice(i):'';
+  const ac=tmAcompHtml(D),re=tmRealHtml(D),proj=ins(corpo.replace(ac+re,''));
+  const tabs=`<div class="views tmpt" role="tablist">${[['geral','Visão geral'],['proj','Projeto'],['real','Custos realizados']].map(([k,n])=>`<button role="tab" data-act="tmPT" data-v="${k}" aria-current="${t===k}" aria-selected="${t===k}">${n}</button>`).join('')}</div>`;
+  const top2=top.replace(/<button class="btn" data-act="tmDesp">Despachar<\/button>/,'').replace(/<button class="btn" data-act="tmSt">Atualizar status<\/button>/,'').replace(/ · Responsável: [^<]*/,'');
+  const ver=t==='proj'&&!ui.tmEd&&tmPronto(D);return top2+tabs+(t==='geral'?tmGeralHtml(D):t==='real'?re:ver?tmVerHtml(D):(tmPronto(D)?`<div class="rpbox info tmedb"><span><b>Editando o projeto.</b> Salve para guardar as mudanças.</span><button class="btn sm" data-act="tmVer">Ver o projeto</button></div>`:'')+proj)}}
+Object.assign(ACT,{
+  tmPT:el=>{ui.tmPT=el.dataset.v;if(el.dataset.v!=='proj')ui.tmEd=false;render();window.scrollTo(0,0)},
+  tmPost:async el=>{if(!tmAcPode())return semPerm();const D=tmD(),t=dnTxt('tmp',D.id),F=(DN.tmp[D.id]||[]).slice();if(!t&&!F.length){toast('Escreva a atualização ou anexe um arquivo.','bad');return}
+    if(el)el.disabled=true;try{const anx=F.length?await tmSobe(D.id,F):[],e=tmEv(t);if(anx.length)e.anx=anx;if(await tmPatch(D.id,d=>{d.acomp=(d.acomp||[]).concat([e])})){dnLimpa('tmp',D.id);render();toast('Atualização publicada.')}}
+    catch(e){toast('Não foi possível enviar os anexos: '+(e.message||e),'bad')}finally{if(el)el.disabled=false}}});
+{const _a=ACT.tmAbrir;ACT.tmAbrir=function(){ui.tmPT='geral';ui.tmEd=false;return _a.apply(this,arguments)}}
+{const _n=ACT.tmNova;ACT.tmNova=function(){ui.tmPT='proj';return _n.apply(this,arguments)}}
+
+/* ---------- visões: Quadro, Lista, Cronograma, Painel ---------- */
+tmViews=function(){const v=ui.tmV||'quadro';return `<div class="views" style="margin-bottom:10px" role="tablist">${[['quadro','Quadro'],['lista','Lista'],['crono','Cronograma'],['painel','Painel']].map(([k,n])=>`<button data-act="tmView" data-v="${k}" aria-current="${v===k}">${n}</button>`).join('')}</div>`};
+if(!ACT.tmView)ACT.tmView=el=>{ui.tmV=el.dataset.v;render()};
+function tmFiltrados(){const q=normK(ui.tmQ||''),f=ui.tmF2||'and';return TM.L.filter(x=>(f==='todas'||(f==='and'?!['concl','canc'].includes(x.status):['concl','canc'].includes(x.status)))&&(!q||normK([x.codigo,x.titulo,x.cidade,x.popNome,x.motivo,tmEtapas(x).map(e=>e.nome+' '+(e.tec?tmTecN(e.tec):'')).join(' ')].join(' ')).includes(q)))}
+function tmColDe(x){if(x.status==='canc')return null;if(x.status==='concl')return '__concl';const E=tmEtapas(x);if(x.status==='proj'&&!E.some(e=>e.ch||(e.st&&e.st!=='pend')))return '__proj';const a=tmEtAtual(x);return a?a.nome:E.length?'__fim':'__exec'}
+const TM_COLN={__proj:'Em projeto',__exec:'Em andamento',__fim:'Etapas concluídas',__concl:'Concluída'};
+function tmCardQ(x){const{pct,n}=tmProg(x),pz=tmPrazo(x),C=tmCustos(x),a=tmEtAtual(x),sa=a&&tmEtSt(a),c=sa&&sa.ch;
+  return `<button type="button" class="tmq" data-act="tmAbrir" data-id="${x.id}"><span class="tmqh"><b>${esc(x.codigo||'')}</b>${x.motivo?`<span class="chip">${esc(x.motivo)}</span>`:''}</span><span class="tmqt">${esc(x.titulo||'Sem título')}</span>
+    <small class="muted">${esc([x.popNome,x.cidade].filter(Boolean).join(' · '))}</small>${x.status==='pausa'?'<span class="chip bad">Pausada</span>':''}${sa&&x.status!=='proj'?`<span class="tmqe"><span class="chip ${sa.c}">${esc(sa.t)}</span>${c?`<small>${esc(gTecN(c.tec)||'')}</small>`:''}</span>`:''}
+    ${n?`<span class="tmqp">${tmBar(pct,pct===100?'ok':'')}<small>${tmProg(x).ok}/${n} etapas</small></span>`:''}
+    <span class="tmqf">${x.fimP?`<small class="${pz.atr?'bad':'muted'}">${pz.atr?'⚠ ':''}término ${dBR(x.fimP).slice(0,5)}</small>`:''}${C.tot?`<small class="muted">${brl(C.tot)}</small>`:''}</span></button>`}
+function tmQuadro(L){const G0={};L.forEach(x=>{const k=tmColDe(x);if(k)(G0[k]=G0[k]||[]).push(x)});const f=ui.tmF2||'and';
+  const nomes=Object.keys(G0).filter(k=>!k.startsWith('__')).sort((a,b)=>{const i=TM_ORD.indexOf(a),j=TM_ORD.indexOf(b);return (i<0?99:i)-(j<0?99:j)||a.localeCompare(b)});
+  const cols=['__proj'].concat(nomes,['__exec','__fim'].filter(k=>G0[k]),f==='and'?[]:['__concl']);
+  return `<div class="tmboard">${cols.map(k=>{const C=G0[k]||[];return `<section class="tmcol ${k==='__proj'?'tmc-proj':k==='__concl'?'tmc-concl':k==='__fim'?'tmc-valid':'tmc-exec'}"><h3><span>${esc(TM_COLN[k]||k)}</span><b>${C.length}</b></h3>${C.map(tmCardQ).join('')||'<p class="muted tmvz">Nada aqui</p>'}</section>`}).join('')}</div>`}
+function tmLista(L){return `<div class="tblwrap"><table class="tbl tmtbl"><thead><tr><th>Melhoria</th><th>Situação</th><th>Progresso</th><th>Previsto</th><th>Prazo</th><th>Etapa atual</th><th class="num">Previsto R$</th><th class="num">Realizado R$</th></tr></thead><tbody>
+  ${L.map(x=>{const{pct,n}=tmProg(x),pz=tmPrazo(x),C=tmCustos(x),R=tmReal(x),st=TM_ST[x.status]||[x.status,''];
+    return `<tr data-act="tmAbrir" data-id="${x.id}" tabindex="0"><td><b>${esc(x.codigo||'')}</b><br><span>${esc(x.titulo||'')}</span><br><small class="muted">${esc([x.motivo,x.popNome].filter(Boolean).join(' · '))}</small></td><td><span class="chip ${st[1]}">${st[0]}</span></td>
+      <td>${n?tmBar(pct)+`<small>${pct}%</small>`:'<small class="muted">—</small>'}</td><td><small>${x.iniP?dBR(x.iniP):'—'}<br>${x.fimP?dBR(x.fimP):'—'}</small></td><td><small class="${pz.cls}">${pz.txt}</small></td><td>${(()=>{const a=tmEtAtual(x),s=a&&tmEtSt(a);return a?`<small>${esc(a.nome)}</small><br><span class="chip ${s.c}">${esc(s.t)}</span>`:'<small class="muted">—</small>'})()}</td><td class="num">${C.tot?brl(C.tot):'—'}</td><td class="num">${R.tot?brl(R.tot):'—'}</td></tr>`}).join('')}</tbody></table></div>`}
+function tmCrono(L){const LL=L.filter(x=>x.iniP||x.fimP||x.iniR);if(!LL.length)return '<div class="empty"><p>Nenhuma melhoria com datas previstas. Informe início e término no despacho.</p></div>';
+  const ds=[];LL.forEach(x=>[x.iniP,x.fimP,x.iniR,x.fimR].forEach(d=>d&&ds.push(d)));ds.push(hoje());ds.sort();let a=tmDia(ds[0]),b=tmDia(ds[ds.length-1]);a=new Date(a-3*864e5);b=new Date(+b+3*864e5);if((b-a)/864e5<21)b=new Date(+a+21*864e5);
+  const tot=(b-a)/864e5,pos=d=>((tmDia(d)-a)/864e5)/tot*100,hj=pos(hoje()),sem=[];for(let d=new Date(a);d<=b;d=new Date(+d+864e5))if(d.getDay()===1)sem.push(d);
+  const iso=d=>d.toISOString().slice(0,10);
+  return `<div class="tmgantt"><div class="tmgi"><div class="tmgr tmghd"><div class="tmgn"></div><div class="tmgb">${sem.map(d=>`<span style="left:${pos(iso(d))}%">${d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</span>`).join('')}</div></div>
+   ${LL.map(x=>{const st=TM_ST[x.status]||[x.status,''],pz=tmPrazo(x),i0=x.iniP||x.fimP,i1=x.fimP||x.iniP,r1=x.fimR||(['exec','pausa','valid'].includes(x.status)?hoje():null),{pct}=tmProg(x);
+     return `<div class="tmgr" data-act="tmAbrir" data-id="${x.id}" role="button" tabindex="0"><div class="tmgn"><b>${esc(x.codigo||'')}</b><small>${esc(x.titulo||'')}</small><span class="chip ${st[1]}">${st[0]}</span></div>
+      <div class="tmgb">${sem.map(d=>`<i class="tmgl" style="left:${pos(iso(d))}%"></i>`).join('')}<i class="tmghj" style="left:${hj}%"></i>
+       ${i0?`<span class="tmgp${pz.atr?' atr':''}" style="left:${pos(i0)}%;width:${Math.max(.8,pos(i1)-pos(i0)+100/tot)}%" title="Previsto: ${dBR(i0)} a ${dBR(i1)}"></span>`:''}
+       ${x.iniR&&r1?`<span class="tmgx" style="left:${pos(x.iniR)}%;width:${Math.max(.8,pos(r1)-pos(x.iniR)+100/tot)}%" title="Realizado: ${dBR(x.iniR)} a ${x.fimR?dBR(x.fimR):'hoje'} · ${pct}%"></span>`:''}</div></div>`}).join('')}</div>
+   <p class="kaleg"><span><i class="tmlg p"></i>previsto</span><span><i class="tmlg x"></i>realizado</span><span><i class="tmlg a"></i>atrasada</span><span><i class="tmlg h"></i>hoje</span></p></div>`}
+{const _v=viewTxMel;viewTxMel=function(){if(ui.tmCtx){const c=ui.tmCtx;ui.tmCtx=null;ui.txF=null;if(!ui.tmD)ui.tmD=c.D}if(ui.tmD||ui.tmV==='painel')return _v.apply(this,arguments);const h0=_v.apply(this,arguments),v=ui.tmV||'quadro';
+  const top=h0.slice(0,h0.indexOf('<div class="views"')),L=tmFiltrados(),f=ui.tmF2||'and';
+  const fil=`<div class="tmfil"><div class="seg" role="group" aria-label="Situação">${[['and','Em andamento'],['concl','Concluídas e canceladas'],['todas','Todas']].map(([k,n])=>`<button class="btn sm${f===k?' primary':''}" data-act="tmF2" data-v="${k}" aria-pressed="${f===k}">${n}</button>`).join('')}</div>
+    <input class="inp" type="search" placeholder="Buscar código, título, POP ou técnico" value="${esc(ui.tmQ||'')}" data-ch="tmQ" aria-label="Buscar melhoria"></div>`;
+  const atr=TM.L.filter(x=>tmPrazo(x).atr).length,val=TM.L.filter(x=>{const P=tmProg(x);return P.n&&P.ok===P.n&&!['concl','canc'].includes(x.status)}).length,exe=TM.L.filter(x=>x.status==='exec').length;
+  const res=`<div class="tmsum"><span><b>${TM.L.filter(x=>!['concl','canc'].includes(x.status)).length}</b> em andamento</span><span><b>${exe}</b> em execução</span>${val?`<span class="warn"><b>${val}</b> com todas as etapas concluídas</span>`:''}${atr?`<span class="bad"><b>${atr}</b> atrasada${atr>1?'s':''}</span>`:''}</div>`;
+  return top+tmMinhasHtml()+tmViews()+(TM.bus&&!TM.L.length?'<p class="muted">Carregando…</p>':res+fil+(v==='lista'?(L.length?tmLista(L):'<div class="empty"><p>Nenhuma melhoria.</p></div>'):v==='crono'?tmCrono(L):tmQuadro(L)))}}
+ACT.tmF2=el=>{ui.tmF2=el.dataset.v;render()};
+CH.tmQ=el=>{ui.tmQ=el.value;clearTimeout(CH._tmQt);CH._tmQt=setTimeout(()=>{render();const i=document.querySelector('[data-ch="tmQ"]');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)};
+document.head.insertAdjacentHTML('beforeend',`<style>
+.tmbar{display:inline-block;vertical-align:middle;width:100%;max-width:160px;height:7px;border-radius:9px;background:var(--line,#e5e7eb);overflow:hidden}.tmbar i{display:block;height:100%;background:var(--accent,#6a8f2f);border-radius:9px}.tmbar.ok i{background:#16a34a}.tmbar.bad i{background:#dc2626}
+.tmav{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#e7efdc;color:#2f4a1a;font:700 11px/1 system-ui,sans-serif;margin-right:-6px;border:2px solid var(--card,#fff)}.tmav.lid{background:#6a8f2f;color:#fff}.tmavs{display:inline-flex;align-items:center;padding-right:6px;gap:0}.tmavs small{margin-left:12px}
+.tmfases{display:flex;list-style:none;padding:0;margin:4px 0 14px;gap:0;overflow-x:auto}.tmfases li{flex:1;min-width:84px;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;font-size:12.5px;color:var(--muted,#6b7280)}
+.tmfases li::before{content:"";position:absolute;top:14px;left:-50%;width:100%;height:3px;background:var(--line,#e5e7eb);z-index:0}.tmfases li:first-child::before{display:none}.tmfases li.ok::before,.tmfases li.at::before,.tmfases li.pz::before{background:#6a8f2f}
+.tmfases i{position:relative;z-index:1;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--card,#fff);border:2px solid var(--line,#d1d5db);font-style:normal;font-weight:700}.tmfases li.ok i{background:#6a8f2f;border-color:#6a8f2f;color:#fff}.tmfases li.at i{border-color:#6a8f2f;color:#3f5f16;box-shadow:0 0 0 4px rgba(106,143,47,.18)}.tmfases li.pz i{border-color:#dc2626;color:#dc2626}.tmfases li.at span,.tmfases li.pz span{font-weight:700;color:var(--ink,#111)}
+.tmks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}.tmk{background:var(--card,#fff);border:1px solid var(--line,#e5e7eb);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}.tmk>small:first-child{color:var(--muted,#6b7280);font-size:12px}.tmk>b{font-size:18px}.tmk .tmbar{max-width:none}
+.tmgcols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}.tmgcols .panel{margin:0}
+.tmtg h4{margin:10px 0 6px;font-size:13px}.tmtks{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}.tmtks li{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:var(--card,#fff)}.tmtks li.ok{background:rgba(22,163,74,.06);border-color:rgba(22,163,74,.3)}
+.tmck{flex:none;width:30px;height:30px;border-radius:8px;border:2px solid #9ca3af;background:var(--card,#fff);color:#fff;font-weight:800;cursor:pointer}.tmtks li.ok .tmck{background:#16a34a;border-color:#16a34a}.tmck:disabled{cursor:default;opacity:.7}.tmtkt{flex:1;min-width:0;display:flex;flex-direction:column}.tmtkt small{font-size:12px}.tmtks li.ok .tmtkt b{text-decoration:line-through;color:var(--muted,#6b7280)}
+.tminst{margin:10px 0 0;font-size:13px}.tmpost{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.tmpost>.btn{align-self:flex-end}.tmtl .dnanx{margin-top:6px}.tmctx{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;margin-bottom:12px}.tmctx>div{display:flex;flex-direction:column;gap:4px}.tmctx ul{margin:4px 0;padding-left:18px}
+.tmtl{list-style:none;margin:0 0 0 7px;padding:0;border-left:2px solid var(--line,#e5e7eb)}.tmtl li{position:relative;padding:0 0 12px 16px;margin:0}.tmtl li::before{display:none!important}.tmtl .tmd{position:absolute;left:-8px;top:4px;width:14px;height:14px;box-sizing:border-box;border-radius:50%;background:#9ca3af;border:3px solid var(--card,#fff)}.tmtl li.st .tmd{background:#6a8f2f}.tmtl li.cp .tmd{background:#2563eb}.tmtl li.sis .tmd{background:#d1d5db}
+.tmtlh{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.tmtlh small{margin-left:auto}.tmtl p{margin:3px 0 0;font-size:13.5px;white-space:pre-wrap}
+.tmval{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}.tmval .actions{margin:0}
+.tmsum{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}.tmsum span{background:var(--card,#fff);border:1px solid var(--line,#e5e7eb);border-radius:99px;padding:4px 12px;font-size:13px}.tmsum .warn{border-color:#f59e0b;background:#fffbeb;color:#92400e}.tmsum .bad{border-color:#fca5a5;background:#fef2f2;color:#991b1b}
+.tmfil{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}.tmfil .inp{max-width:320px;flex:1;min-width:200px}
+.tmboard{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory;align-items:flex-start}.tmcol{flex:1 0 210px;max-width:300px;scroll-snap-align:start;background:rgba(0,0,0,.035);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:8px;border-top:4px solid #9ca3af}
+.tmcol h3{display:flex;justify-content:space-between;margin:2px 4px 2px;font-size:13.5px}.tmcol h3 b{background:var(--card,#fff);border-radius:99px;padding:0 8px;font-size:12px}.tmc-proj{border-top-color:#f59e0b}.tmc-mat{border-top-color:#fb923c}.tmc-desp{border-top-color:#60a5fa}.tmc-exec{border-top-color:#2563eb}.tmc-pausa{border-top-color:#dc2626}.tmc-valid{border-top-color:#a855f7}.tmc-concl{border-top-color:#16a34a}
+.tmvz{margin:4px;font-size:12.5px}.tmq,.tmcc{display:flex;flex-direction:column;gap:5px;text-align:left;background:var(--card,#fff);border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:10px;cursor:pointer;font:inherit;color:inherit;width:100%}.tmq:hover,.tmcc:hover{border-color:#6a8f2f;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.tmqh{display:flex;justify-content:space-between;gap:6px;align-items:center;flex-wrap:wrap}.tmqt{font-weight:600}.tmqp{display:flex;align-items:center;gap:6px}.tmqp small{font-size:11.5px}.tmqf{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.tmqf small{font-size:12px}
+.tmtbl tbody tr{cursor:pointer}.tmtbl tbody tr:hover{background:rgba(106,143,47,.06)}.tmtbl .tmbar{max-width:110px}.tmtbl td{vertical-align:top}
+.tmgantt{overflow-x:auto;border:1px solid var(--line,#e5e7eb);border-radius:12px;background:var(--card,#fff)}.tmgi{min-width:760px}.tmgr{display:flex;border-bottom:1px solid var(--line,#eef0f2);cursor:pointer}.tmgr:hover{background:rgba(106,143,47,.05)}.tmghd{cursor:default;background:rgba(0,0,0,.03)}
+.tmgn{flex:0 0 220px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line,#eef0f2);min-width:0}.tmgn small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tmgn .chip{align-self:flex-start;font-size:11px}
+.tmgb{flex:1;position:relative;min-height:58px}.tmghd .tmgb{min-height:26px}.tmghd .tmgb span{position:absolute;top:5px;font-size:11px;color:var(--muted,#6b7280);transform:translateX(-50%)}.tmgl{position:absolute;top:0;bottom:0;width:1px;background:var(--line,#eef0f2)}.tmghj{position:absolute;top:0;bottom:0;width:2px;background:#dc2626;opacity:.7}
+.tmgp{position:absolute;top:12px;height:14px;border-radius:7px;background:#c7d9a8}.tmgp.atr{background:#fecaca}.tmgx{position:absolute;top:30px;height:10px;border-radius:5px;background:#2563eb}.tmlg{display:inline-block;width:18px;height:9px;border-radius:5px;margin-right:4px;vertical-align:middle}.tmlg.p{background:#c7d9a8}.tmlg.x{background:#2563eb}.tmlg.a{background:#fecaca}.tmlg.h{width:2px;background:#dc2626}
+.tmpt{margin:6px 0 12px}
+@media(max-width:900px){.tmks{grid-template-columns:repeat(2,minmax(0,1fr))}.tmgcols{grid-template-columns:1fr}}
+@media(max-width:600px){.tmcol{flex-basis:82vw}.tmgn{flex-basis:150px}.tmpost{flex-direction:column;align-items:stretch}.tmk>b{font-size:16px}.tmtks li{flex-wrap:wrap}.tmtks li .btn{margin-left:40px}}
+</style>`);
+RP_VIEWS.txMel=viewTxMel;
+document.head.insertAdjacentHTML('beforeend',`<style>
+.tmfases li small{font-size:10.5px;color:#2563eb}
+.tmets{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}.tmet{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:var(--card,#fff)}.tmet.at{border-color:#6a8f2f;box-shadow:0 0 0 2px rgba(106,143,47,.15)}.tmet.concl{background:rgba(22,163,74,.05)}
+.tmetn{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#eef2e6;font-weight:700;font-size:13px}.tmet.concl .tmetn{background:#16a34a;color:#fff}.tmet.at .tmetn{background:#6a8f2f;color:#fff}
+.tmetb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.tmeth{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.tmeta{flex:none;display:flex;gap:6px;align-items:center}.tmets-sel{min-width:150px}
+.tmetl{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-direction:column;gap:8px}.tmetr{display:grid;grid-template-columns:28px minmax(160px,1.4fr) auto minmax(150px,1fr) 140px 140px auto;gap:8px;align-items:end;padding:8px;border:1px solid var(--line,#e5e7eb);border-radius:10px}.tmetr.cp{border-left:4px solid #2563eb}
+.tmetr .tmetn{align-self:center}.tmetcp{margin:0;align-self:center;white-space:nowrap}.tmetd{display:flex;flex-direction:column;gap:2px}.tmetd small{font-size:11px;color:var(--muted,#6b7280)}.tmetbt{display:flex;gap:2px;align-self:center}.tmettr{grid-column:2/-1;font-size:12px}
+.tmedi{border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:8px 12px;margin:4px 0 10px;font-size:13.5px}.tmedi ul{margin:6px 0 0;padding-left:18px}
+.tmqe{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.tmqe small{font-size:12px}
+.tmtec ul.tmteci{list-style:none;margin:6px 0;padding:0;display:flex;flex-direction:column;gap:6px;width:100%}.tmteci li{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:8px 10px}.tmteci li div{display:flex;flex-direction:column}.tmteci small{font-size:12.5px;color:var(--muted,#6b7280)}
+.tmetfx{background:rgba(106,143,47,.06);grid-template-columns:28px 1fr 140px 140px auto}.tmetfxn{display:flex;flex-direction:column;align-self:center}
+.tmresp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.tmresp .tmav{margin-right:0}.tmdir{margin-top:4px;border-left:3px solid #6a8f2f;padding:2px 0 2px 10px}.tmdir summary{cursor:pointer;font-weight:600;font-size:13px}.tmdir p{margin:4px 0;white-space:pre-line;font-size:13.5px}
+.tmmin{margin-bottom:12px;border-left:4px solid #2563eb}.tmminl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}.tmet{flex-wrap:wrap}.tmetb{flex:1 1 260px}.tmeta{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-end;padding-left:38px}.tmeta:empty{display:none}.tmeta .tmets-sel{min-width:160px;width:auto}
+.tmver{display:flex;flex-direction:column;gap:14px}.tmver .panel{margin:0}.tmverbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border:1px dashed var(--line,#d1d5db);border-radius:12px}.tmedb{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.tmkvs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px 16px}.tmkv{display:flex;flex-direction:column}.tmkv small{color:var(--muted,#6b7280);font-size:12px}.tmobs{margin:10px 0 0;white-space:pre-line}
+.tmvermap{height:420px;border-radius:10px}.tmlg.cx{background:#dc2626;width:10px;height:10px;border-radius:50%}
+.tmvet{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}.tmvet li{display:flex;gap:10px;align-items:center}.tmvet li>div{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tmvtr{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}.tmvtc{border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.tmvtn{display:flex;flex-wrap:wrap;gap:8px 18px}.tmvtn span{display:flex;flex-direction:column}.tmvtn small{color:var(--muted,#6b7280);font-size:12px}
+.tmvcx{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}.tmvcx li{display:flex;flex-direction:column;border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:8px 10px}
+.tmvdet{margin-top:10px}.tmvdet summary{cursor:pointer;font-weight:600}
+@media(max-width:600px){.tmvermap{height:300px}.tmetfx{grid-template-columns:28px 1fr}}
+@media(max-width:1100px){.tmetr{grid-template-columns:28px 1fr auto;}.tmetr .tmetk{grid-column:2/-1}.tmetr .tmetd{grid-column:auto}.tmetr .tmetbt{grid-column:2/-1;justify-content:flex-end}}
+@media(max-width:600px){.tmet{flex-wrap:wrap}.tmeta{width:100%;justify-content:flex-end}.tmets-sel{width:100%}}
+</style>`);
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
