@@ -18269,6 +18269,20 @@ Object.assign(ACT,{
   const k='<div class="gdet"><div class="stack">',i=h.indexOf(k);return i>=0?h.slice(0,i+k.length)+box+h.slice(i+k.length):box+h}}
 document.head.insertAdjacentHTML('beforeend','<style>.txnao{margin-top:10px}.txnbox li{margin:4px 0}</style>');
 
+/* ---------- 10/11: baixa do plantão pelo técnico não gravava ----------
+   O plantão era salvo com upsert; no banco, o upsert também passa pela regra de "inserir", que só a gestão tem.
+   Resultado: a baixa do técnico era recusada ("new row violates row-level security policy for table ag_plantao") e a
+   gestão continuava vendo "Aguardando a baixa do técnico". Agora: plantão que já existe é gravado com update (a regra
+   do banco já deixa o técnico dar a baixa do plantão dele); só o plantão novo (gestão) usa insert. Se o banco recusar,
+   a tela volta ao que está gravado, sem mostrar "Baixa enviada" por engano. */
+plSalvar=async function(x,msg){const i=PLT.rows.findIndex(y=>y.id===x.id),ant=i>=0?PLT.rows[i]:null;
+  if(i>=0)PLT.rows[i]=x;else PLT.rows.push(x);const row=plRow(x);let r=null;
+  if(ant){r=await sb.from('ag_plantao').update(row).eq('id',x.id).select('id');if(r&&!r.error&&Array.isArray(r.data)&&!r.data.length)r=null}
+  if(!r)r=await sb.from('ag_plantao').insert(row).select('id');
+  if(r&&r.error){const m=r.error.message||'';if(ant)PLT.rows[i]=ant;else PLT.rows=PLT.rows.filter(y=>y!==x);
+    toast('Não foi possível salvar: '+m+(/relation|does not exist/i.test(m)?' (falta rodar o ajuste 57 no banco)':''),'bad');try{plCarregar(true)}catch(e){}render();return false}
+  if(msg)toast(msg);return true};
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>

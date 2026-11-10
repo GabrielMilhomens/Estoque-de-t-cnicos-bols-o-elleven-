@@ -871,6 +871,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Não foi possível realizar / concluir na Transmissão (10/11/2026):** nas atividades agendadas da Transmissão (preventiva, expansões, melhoria de rede; corretiva e GMUD seguem com o NOC), o técnico em deslocamento ou no POP vê **Segure: não foi possível realizar** e, em execução, **Segure: não foi possível concluir**. Escolhe o motivo (sem acesso ao POP, problema no local, falta de material, clima, tempo insuficiente, veículo, outro) e conta o que aconteceu (e o que ficou feito). A atividade volta para despachada, com o mesmo técnico e a mesma data, e a gestão da Transmissão é avisada no sino; o card mostra **Não realizada / Não concluída em dd/mm: defina a nova data** até a gestão mudar a data ou o técnico (ou o técnico sair de novo), e o detalhe lista as tentativas com motivo. Os horários da tentativa ficam guardados e não contam como realizada nos KPIs; não gera relatório nem LPU. Banco: ajuste 66.
 
+- **Correção: baixa do plantão pelo técnico (10/11/2026):** o plantão era salvo com `upsert`, que no banco também passa pela regra de inserir (só a gestão pode criar plantão); a baixa do técnico era recusada ("new row violates row-level security policy for table ag_plantao") e a gestão continuava em "Aguardando a baixa do técnico". Agora o plantão que já existe é gravado com `update` (o banco já permite o técnico dar a baixa do plantão dele) e só o plantão novo usa `insert`. Se o banco recusar, a tela volta ao que está gravado, em vez de mostrar "Baixa enviada". Sem mudança no banco.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -935,6 +937,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 10/11/2026 | **Correção:** baixa do plantão pelo técnico era recusada pelo banco (upsert passava pela regra de inserir); agora grava com update | `agenda.html` |
 | 10/11/2026 | Transmissão: "Não foi possível realizar" e "Não foi possível concluir" nas atividades agendadas (volta para a gestão definir a nova data) | `agenda.html`. **Rodar `agenda_ajuste_66_tx_nao_realizada.sql` no Supabase antes** (não subir no GitHub) |
 | 10/11/2026 | Equipe técnica no menu da RE Corretiva e da RE Preventiva, marcando só a coluna Rede Externa (permissões `re_eqTec`/`re_a_eqTec` e `rp_eqTec`/`rp_a_eqTec`) | `agenda.html` |
 | 09/11/2026 | **Frentes de trabalho** na mesma fase (fase fecha na última frente, só a gestão vê), **anexos deste agendamento** (anexo próprio e "não enviar", sem apagar o do projeto; relatórios no KMZ do agendamento) e excluir/substituir anexo do projeto só por supervisão e coordenação | `agenda.html`. **Rodar `agenda_ajuste_65_frentes_de_trabalho.sql` no Supabase antes** (não subir no GitHub) |
