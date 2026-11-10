@@ -18232,6 +18232,43 @@ Object.assign(RP_VIEWS,{gEqTec:viewGEqTec});
   if(!Array.isArray(ME.perm)||ME.perm.includes('a_eqTec'))return _t.apply(this,arguments);ME.perm.push('a_eqTec');try{return await _t.apply(this,arguments)}finally{if(Array.isArray(ME.perm))ME.perm=ME.perm.filter(k=>k!=='a_eqTec')}}}
 document.head.insertAdjacentHTML('beforeend','<style>.eqb.eqro[disabled]{opacity:.55;cursor:default}</style>');
 
+/* ---------- 10/11: "Não foi possível realizar / concluir" nas atividades agendadas da Transmissão ----------
+   Em deslocamento ou no POP: "Segure: não foi possível realizar"; em execução: "Segure: não foi possível concluir".
+   O técnico escolhe o motivo e conta o que aconteceu. A atividade volta para despachada (mesmo técnico e mesma data),
+   com o selo "Não realizada" / "Não concluída" até a gestão mudar a data ou o técnico, ou o técnico sair de novo.
+   Os horários da tentativa ficam em dados.naoReal e no histórico; a gestão da Transmissão é avisada. Banco: ajuste 66. */
+const TXN_MOT=['Sem acesso ao POP (chave, portaria ou autorização)','Problema no local (energia, estrutura, segurança)','Falta de material ou equipamento','Condições climáticas','Tempo insuficiente para terminar','Problema no veículo','Outro'];
+const txNaoPode=c=>!!c&&txAg(c)&&['desloc','local','atend'].includes(c.status)&&!!ME&&c.tec===ME.id;
+const txNaoT=c=>c.status==='atend'?'concluir':'realizar';
+const txNaoAt=c=>{const e=c&&c.naoPend;if(!e||c.status!=='aberto'||!txDe(c))return null;const a=e.ag?new Date(e.ag).getTime():0,b=c.agendaEm?new Date(c.agendaEm).getTime():0;
+  return a===b&&(!e.tec||c.tec===e.tec)?e:null};
+const txNaoChip=c=>{const e=txNaoAt(c);return e?`<span class="chip bad" title="${esc(e.motivo+': '+e.obs)}">${e.tipo==='concluir'?'Não concluída':'Não realizada'} em ${dBR(new Date(e.em).toISOString().slice(0,10))}: defina a nova data</span>`:''};
+/* técnico: botão abaixo do principal */
+{const _t=gTecView;gTecView=function(c){let h=_t.apply(this,arguments);try{if(!txNaoPode(c))return h;
+  const b=`<button class="btn ghost wide txnao" data-act="txNao" data-id="${c.id}" data-hold="3000">Segure: não foi possível ${txNaoT(c)}</button>`;
+  const re=/<button class="bigbtn" data-act="gTecPasso"[^>]*>[^<]*<\/button>(\s*<small class="tvnota">[^<]*<\/small>)?/g;let m,last=null;while((m=re.exec(h)))last=m;
+  if(last){const j=last.index+last[0].length;h=h.slice(0,j)+b+h.slice(j)}else{const k=h.lastIndexOf('</section>');h=k>=0?h.slice(0,k)+b+h.slice(k):h+b}}catch(e){}return h}}
+Object.assign(ACT,{
+  txNao:el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(!txNaoPode(c))return;const t=txNaoT(c);
+    openModal(`<h3>Não foi possível ${t}</h3><p class="muted">${esc(txTipoN(txT(c)))} · ${esc(c.cliente||'POP')}</p>
+     <div class="result info" style="margin:10px 0">A atividade volta para a gestão definir a nova data. ${t==='concluir'?'O que você já preencheu no relatório fica guardado neste aparelho.':''}</div>
+     <label class="f"><span>Motivo *</span><select class="inp" id="txnM"><option value="">Selecione</option>${TXN_MOT.map(m=>`<option>${esc(m)}</option>`).join('')}</select></label>
+     <label class="f"><span>O que aconteceu ${t==='concluir'?'e o que ficou feito ':''}*</span><textarea class="inp" id="txnO" rows="4" maxlength="800" placeholder="${t==='concluir'?'Ex.: fiz a parte elétrica e o banco de baterias; faltou o ambiente porque escureceu.':'Ex.: a chave do POP não estava na portaria; liguei para o responsável e ninguém atendeu.'}"></textarea></label>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="txNaoOk" data-id="${c.id}" data-t="${t}">Enviar para a gestão</button></div>`)},
+  txNaoOk:async el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(!c)return;const m=($('txnM')||{}).value||'',o=(($('txnO')||{}).value||'').trim();
+    if(!m)return toast('Escolha o motivo.','bad');if(o.length<5)return toast('Conte o que aconteceu.','bad');el.disabled=true;
+    const r=await sb.rpc('ag_tx_nao_realizou',{p_id:c.id,p_tipo:el.dataset.t,p_motivo:m,p_obs:o});el.disabled=false;
+    if(r.error){toast(/ag_tx_nao_realizou|does not exist|function/.test(r.error.message||'')?'Rode o script agenda_ajuste_66_tx_nao_realizada.sql no Supabase.':'Não foi possível enviar: '+r.error.message,'bad');return}
+    if(r.data&&typeof r.data==='object')Object.assign(c,{naoReal:r.data.naoReal,naoPend:r.data.naoPend,ts:r.data.ts||c.ts,hist:r.data.hist||c.hist});c.status='aberto';
+    closeModal();ui.gSel=null;render();toast('Enviado. A gestão vai definir a nova data.')}});
+/* gestão: selo nos cards e quadro no detalhe */
+{const _c=gCard;gCard=function(c){const h=_c.apply(this,arguments),x=txNaoChip(c);if(!x)return h;const i=h.indexOf('<span class="kct">');return i>=0?h.slice(0,i+18)+x+h.slice(i+18):h.replace('</button>',`<span class="kct">${x}</span></button>`)}}
+{const _d=gDetalhe;gDetalhe=function(c){const h=_d.apply(this,arguments),e=txNaoAt(c),L=(c&&c.naoReal)||[];if(!L.length)return h;
+  const lin=L.slice().reverse().map(x=>`<li><b>${x.tipo==='concluir'?'Não concluída':'Não realizada'}</b> em ${dtBR(x.em)} por ${esc(x.nome||'técnico')}: ${esc(x.motivo)}. <span class="muted">${esc(x.obs)}</span></li>`).join('');
+  const box=`<section class="panel txnbox"><h3 style="margin:0 0 6px">${e?'Atividade voltou para a gestão':'Tentativas anteriores'}</h3>${e?'<div class="result warn" style="margin:0 0 8px">Defina a nova data (ou outro técnico) e despache de novo.</div>':''}<ul style="margin:0;padding-left:18px">${lin}</ul></section>`;
+  const k='<div class="gdet"><div class="stack">',i=h.indexOf(k);return i>=0?h.slice(0,i+k.length)+box+h.slice(i+k.length):box+h}}
+document.head.insertAdjacentHTML('beforeend','<style>.txnao{margin-top:10px}.txnbox li{margin:4px 0}</style>');
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>

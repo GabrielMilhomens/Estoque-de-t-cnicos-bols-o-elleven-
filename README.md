@@ -255,6 +255,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 64. `agenda_ajuste_63_escolha_de_avisos.sql` — tabela `ag_aviso_pref` (escolha de avisos de cada pessoa por área), `ag_aviso_area()` e `ag_avisar` respeitando a escolha (aviso direcionado à própria pessoa sempre chega).
 65. `agenda_ajuste_64_visualizacao_rede_externa_preventiva.sql` — quem tem o papel Visualização com tela da RE Preventiva passa a ler `ag_re_prog` (função `ag_re_prog_visu()`, política `agrp_select_visu`); só leitura.
 66. `agenda_ajuste_65_frentes_de_trabalho.sql` — `ag_fases_outros_tecnicos()` passa a devolver a coluna `frente` (grupo, número, total e quantas frentes do grupo ainda estão em aberto), para o celular do técnico não dar a fase como concluída antes da última frente. Recria a função (drop + create).
+67. `agenda_ajuste_66_tx_nao_realizada.sql` — função `ag_tx_nao_realizou(p_id, p_tipo, p_motivo, p_obs)`: o técnico da atividade agendada da Transmissão (em deslocamento, no POP ou em execução) registra que não foi possível realizar/concluir; a atividade volta para `aberto` com o mesmo técnico e data, guarda a tentativa em `dados.naoReal`/`dados.naoPend` e no histórico, e avisa `tx_gestao`.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -868,6 +869,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Equipe técnica na RE Corretiva e na RE Preventiva (10/11/2026):** a tela **Equipe técnica** aparece também no menu das duas áreas da Rede Externa (Administração › Equipe técnica). Lá só a coluna **Rede Externa** pode ser marcada (a mesma coluna `ag_equipe.re` para corretiva e preventiva); as colunas das outras áreas aparecem só para consulta e as Equipes NT da Implantação ficam de fora. Permissões em Usuários e acessos: aba **RE Corretiva** › "Equipe técnica (quem atua na Rede Externa)" (`re_eqTec`) e "Marcar quem atua na Rede Externa" (`re_a_eqTec`); aba **RE Preventiva** › `rp_eqTec` e `rp_a_eqTec`. Quem já tinha a Equipe técnica da Implantação e acesso à Rede Externa recebe as chaves equivalentes. Sem mudança no banco (gravar a equipe continua restrito a supervisor e coordenador).
 
+- **Não foi possível realizar / concluir na Transmissão (10/11/2026):** nas atividades agendadas da Transmissão (preventiva, expansões, melhoria de rede; corretiva e GMUD seguem com o NOC), o técnico em deslocamento ou no POP vê **Segure: não foi possível realizar** e, em execução, **Segure: não foi possível concluir**. Escolhe o motivo (sem acesso ao POP, problema no local, falta de material, clima, tempo insuficiente, veículo, outro) e conta o que aconteceu (e o que ficou feito). A atividade volta para despachada, com o mesmo técnico e a mesma data, e a gestão da Transmissão é avisada no sino; o card mostra **Não realizada / Não concluída em dd/mm: defina a nova data** até a gestão mudar a data ou o técnico (ou o técnico sair de novo), e o detalhe lista as tentativas com motivo. Os horários da tentativa ficam guardados e não contam como realizada nos KPIs; não gera relatório nem LPU. Banco: ajuste 66.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -932,6 +935,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 10/11/2026 | Transmissão: "Não foi possível realizar" e "Não foi possível concluir" nas atividades agendadas (volta para a gestão definir a nova data) | `agenda.html`. **Rodar `agenda_ajuste_66_tx_nao_realizada.sql` no Supabase antes** (não subir no GitHub) |
 | 10/11/2026 | Equipe técnica no menu da RE Corretiva e da RE Preventiva, marcando só a coluna Rede Externa (permissões `re_eqTec`/`re_a_eqTec` e `rp_eqTec`/`rp_a_eqTec`) | `agenda.html` |
 | 09/11/2026 | **Frentes de trabalho** na mesma fase (fase fecha na última frente, só a gestão vê), **anexos deste agendamento** (anexo próprio e "não enviar", sem apagar o do projeto; relatórios no KMZ do agendamento) e excluir/substituir anexo do projeto só por supervisão e coordenação | `agenda.html`. **Rodar `agenda_ajuste_65_frentes_de_trabalho.sql` no Supabase antes** (não subir no GitHub) |
 | 09/11/2026 | Visualização: abas Transmissão e Rede Externa nas permissões; acesso gerencial vê todas as áreas | `agenda.html`. **Rodar `agenda_ajuste_64_visualizacao_rede_externa_preventiva.sql` no Supabase** (não subir no GitHub) |
