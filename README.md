@@ -873,6 +873,10 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Correção: baixa do plantão pelo técnico (10/11/2026):** o plantão era salvo com `upsert`, que no banco também passa pela regra de inserir (só a gestão pode criar plantão); a baixa do técnico era recusada ("new row violates row-level security policy for table ag_plantao") e a gestão continuava em "Aguardando a baixa do técnico". Agora o plantão que já existe é gravado com `update` (o banco já permite o técnico dar a baixa do plantão dele) e só o plantão novo usa `insert`. Se o banco recusar, a tela volta ao que está gravado, em vez de mostrar "Baixa enviada". Sem mudança no banco.
 
+- **Desenho do trecho: materiais e LPU seguem o desenho (10/11/2026):** (1) o ajuste do projetista na prévia vira uma diferença sobre o que o desenho calcula (ex.: +100 m de cabo): mexeu no desenho (tipo de poste, reserva técnica, cordoalha, ícone), materiais e mão de obra se recalculam e o ajuste continua somado; a quantidade final também é gravada, para o cadastro da Implantação. (2) A lista de materiais de baixo passou a ser a mesma da prévia, com os ajustes e "como foi calculado". (3) Os ajustes ficam guardados no trecho da melhoria e voltam em "Ajustar o traçado" (antes se perdiam ao reabrir, e a prévia ficava diferente do trecho). (4) No trecho, "cabo" passou a ser o cabo da lista de materiais (desenho + 5% + pontas + reservas + ajustes); a metragem só do desenho fica guardada em `des.mDes`. (5) Botão **PDF de materiais e mão de obra** em cada trecho (no formulário e na visualização do projeto). (6) Cores do cabo no padrão construtivo: 4/6FO preto, 12FO azul, **24FO rosa**, **72FO ciano**, 144FO preto (com 144FO no nome), drop verde (antes o 24FO saía azul e era lido como 12FO; o 72FO saía laranja).
+
+- **Enviar só a orientação da gestão (10/11/2026):** no detalhe do chamado (Transmissão, GTD e Rede Externa), o campo "Orientações para o técnico" do quadro de despacho/troca ganhou o botão **Enviar só a orientação**: registra o texto e os anexos no chamado sem trocar o técnico. No rodapé do chamado, **Registrar orientação** abre a janela de orientação em qualquer situação em aberto (também em deslocamento, no local ou em execução, e sem técnico ainda). Fica em `c.orient` e no histórico ("Orientação da gestão registrada"); com técnico no chamado, ele vê na tela em "Orientações da gestão" e recebe aviso no chat.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -937,6 +941,8 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 10/11/2026 | Chamados: "Enviar só a orientação" no quadro de despacho/troca e "Registrar orientação" no rodapé, sem trocar técnico nem editar o chamado | `agenda.html` |
+| 10/11/2026 | Desenho do trecho: ajustes como diferença (seguem o desenho), lista de baixo igual à prévia, ajustes guardados no trecho, cabo do trecho pelos materiais, PDF de materiais e mão de obra por trecho e cores 24FO rosa / 72FO ciano | `agenda.html` |
 | 10/11/2026 | **Correção:** baixa do plantão pelo técnico era recusada pelo banco (upsert passava pela regra de inserir); agora grava com update | `agenda.html` |
 | 10/11/2026 | Transmissão: "Não foi possível realizar" e "Não foi possível concluir" nas atividades agendadas (volta para a gestão definir a nova data) | `agenda.html`. **Rodar `agenda_ajuste_66_tx_nao_realizada.sql` no Supabase antes** (não subir no GitHub) |
 | 10/11/2026 | Equipe técnica no menu da RE Corretiva e da RE Preventiva, marcando só a coluna Rede Externa (permissões `re_eqTec`/`re_a_eqTec` e `rp_eqTec`/`rp_a_eqTec`) | `agenda.html` |

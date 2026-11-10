@@ -17048,8 +17048,11 @@ const tmLL=s=>{const m=String(s||'').match(/(-?\d+(?:[.,]\d+)?)\s*[,; ]\s*(-?\d+
 const tmPopL=()=>((typeof TXP!=='undefined'&&TXP.L)||[]).filter(p=>p.ativo!==false);
 const tmPopN=p=>p?(typeof txPopN==='function'?txPopN(p):(p.sigla?p.sigla+' · ':'')+p.nome):'';
 const tmM=m=>kmN0(Math.round(+m||0))+' m';
+/* cabo do trecho = o que está na lista de materiais (desenho + correção + pontas + reservas + ajustes do projetista) */
+function tmCab(d){if(!d)return 0;const C=typeof KM_CABO==='object'?Object.values(KM_CABO):[];const L=(d.matL||[]).filter(i=>String(i.un||'').toUpperCase()==='M'&&(C.includes(i.cod)||/CABO\s+(Ó|O)PTICO|CABO DROP/i.test(i.desc||'')));
+  return L.length?Math.round(L.reduce((s,i)=>s+(+i.qtd||0),0)):Math.round(+d.m||0)}
 function tmResumo(D){const T=D.trechos||[],sel=Object.entries((D.cfo&&D.cfo.sel)||{}),dz=T.filter(t=>t.des);
-  return{nT:T.length,nDes:dz.length,m:dz.reduce((s,t)=>s+(+t.des.m||0),0),postes:dz.reduce((s,t)=>s+(+t.des.postes||0),0),vMat:dz.reduce((s,t)=>s+(+t.des.mat||0),0),vMo:dz.reduce((s,t)=>s+(+t.des.mo||0),0),
+  return{nT:T.length,nDes:dz.length,m:dz.reduce((s,t)=>s+tmCab(t.des),0),postes:dz.reduce((s,t)=>s+(+t.des.postes||0),0),vMat:dz.reduce((s,t)=>s+(+t.des.mat||0),0),vMo:dz.reduce((s,t)=>s+(+t.des.mo||0),0),
     nCx:sel.length,ac:Object.fromEntries(TM_AC.map(([k])=>[k,sel.filter(([,v])=>v.acao===k).length])),nExt:sel.filter(([,v])=>v.ext).length,mExt:sel.reduce((s,[,v])=>s+(v.ext?+v.extM||0:0),0),
     vSpl:sel.reduce((s,[,v])=>{const t=v.acao==='troca'?v.para:v.acao==='add'?v.spl:'';if(!t)return s;const pr=typeof krPr==='function'&&krPr(klSplCod(t));return s+(pr?pr.v*(+v.qtd||1):0)},0)}}
 /* ---------- tela ---------- */
@@ -17077,8 +17080,8 @@ function tmEditor(){const D=tmD(),ro=!tmPode()||D.status==='concl'||D.status==='
       <label class="f"><span>Cabo</span><select class="inp" data-ch="tmTr" data-i="${i}" data-k="cabo" ${dis}>${Object.entries(KA_CABO_N).filter(([k])=>k!=='drop').map(([k,n])=>`<option value="${k}" ${(t.cabo||'fo12')===k?'selected':''}>${n}</option>`).join('')}</select></label>
       <label class="f"><span>Vão médio entre postes (m)</span><input class="inp" type="number" min="15" max="80" data-ch="tmTr" data-i="${i}" data-k="vao" value="${esc(t.vao||35)}" ${dis}></label></div>
      <label class="chk"><input type="checkbox" data-ch="tmTrEsp" data-i="${i}" ${t.esp?'checked':''} ${dis}> Todo o trecho espinado na rede existente</label>
-     ${t.des?`<div class="tmdes"><div class="kpis">${kp(tmM(t.des.m),'Cabo lançado')}${kp(t.des.postes,'Postes')}${kp(brl(t.des.mat),'Materiais')}${kp(brl(t.des.mo),'Mão de obra (LPU)')}</div>${t.des.novo?'<small class="muted">Desenho novo: salve a melhoria para guardar o KMZ.</small>':''}</div>`:''}
-     <div class="actions">${ro?'':`<button class="btn sm ${t.des?'':'primary'}" data-act="tmDes" data-i="${i}">${t.des?'Ajustar o traçado':'Desenhar o traçado'}</button>`}${t.des?`<button class="btn sm" data-act="tmTrKmz" data-i="${i}">KMZ do trecho</button>`:''}</div></article>`};
+     ${t.des?`<div class="tmdes"><div class="kpis">${kp(tmM(tmCab(t.des)),'Cabo (materiais)')}${kp(t.des.postes,'Postes')}${kp(brl(t.des.mat),'Materiais')}${kp(brl(t.des.mo),'Mão de obra (LPU)')}</div>${t.des.novo?'<small class="muted">Desenho novo: salve a melhoria para guardar o KMZ.</small>':''}</div>`:''}
+     <div class="actions">${ro?'':`<button class="btn sm ${t.des?'':'primary'}" data-act="tmDes" data-i="${i}">${t.des?'Ajustar o traçado':'Desenhar o traçado'}</button>`}${t.des?`<button class="btn sm" data-act="tmTrKmz" data-i="${i}">KMZ do trecho</button><button class="btn sm" data-act="tmTrPdf" data-i="${i}">PDF de materiais e mão de obra</button>`:''}</div></article>`};
   const C=D.cfo,sel=(C&&C.sel)||{},soCx=ui.tmTodos?false:true,P=C?C.pts.filter(p=>!soCx||p.cx||sel[p.id]):[];
   const cfoLin=p=>{const s=sel[p.id],sp=(k,v)=>`<select class="inp" data-ch="tmCx" data-id="${p.id}" data-k="${k}" ${dis}><option value="">Escolha</option>${KL_SPL.map(x=>`<option ${v===x?'selected':''}>${x}</option>`).join('')}</select>`;
     return `<div class="tmcx ${s?'on':''}" id="tmcx-${p.id}"><label class="chk"><input type="checkbox" data-ch="tmCxSel" data-id="${p.id}" ${s?'checked':''} ${dis}> <b>${esc(p.nome)}</b> <small class="muted">${esc(p.tp||'')}${p.pasta?' · '+esc(p.pasta):''}</small></label>
@@ -17140,13 +17143,13 @@ function tmAbreLab(i){const D=tmD(),t=D.trechos[i],o=tmTrOrig(t),d=tmLL(t.dCoord
   if(!o.ll){toast(t.oTipo==='pop'?'Escolha um POP com coordenadas.':'Informe a coordenada da caixa de origem.','bad');return}if(!d){toast('Informe a coordenada da caixa de destino.','bad');return}
   Object.assign(KLB,{wiz:true,melWiz:true,txMel:{tid:t.id},wizRef:null,D:null,M:null,V:null,kml:'',kmz:null,ext:null,extF:null,extErr:'',erro:'',modo:'',sel:null,etapa:'des',info:null,mel:true,
     form:{klTipo:'me',klCli:o.ll.join(', '),klCliN:o.nome,klCx:d.join(', '),klCxN:t.dNome||'CAIXA DESTINO',klCabo:t.cabo||'fo12',klVao:String(t.vao||35),klTopo:'GPON',klCid:D.cidade||'',crit:!!D.crit,esp:!!t.esp}});
-  KLB.ed=klEdVazio();const ex=document.getElementById('klab');if(ex)ex.remove();klabTela();klabForm();try{CH.klabTipoF({value:'me'})}catch(e){}document.body.classList.add('krfull-on');KLB.manter=false;
+  KLB.ed=t.des&&t.des.ed?JSON.parse(JSON.stringify(t.des.ed)):klEdVazio();const ex=document.getElementById('klab');if(ex)ex.remove();klabTela();klabForm();try{CH.klabTipoF({value:'me'})}catch(e){}document.body.classList.add('krfull-on');KLB.manter=false;
   if(t.des&&t.des.serial){try{klDeserial(t.des.serial);if(KLB.D){klabRefaz(false);return}}catch(e){console.warn('tm serial',e)}}klabRes()}
 {const _r=klabRes;klabRes=function(){const o=_r.apply(this,arguments);try{if(KLB.txMel){const h=document.querySelector('#klab .klh h2');if(h)h.textContent='Melhoria de rede · desenhar o trecho';const s=document.querySelector('#klab .klh small');if(s)s.textContent='Traçado pelas ruas no padrão construtivo. Ao terminar, use o desenho na melhoria.';
   const c=document.querySelector('#klab .klconf');if(c){const sm=c.querySelector('small');if(sm)sm.textContent='O traçado entra na melhoria de rede: metragem, postes, materiais, mão de obra e o KMZ do trecho.';const b=c.querySelector('[data-act="klabUsar"]');if(b)b.textContent='Usar este traçado na melhoria'}}}catch(e){}return o}}
 {const _u=ACT.klabUsar;ACT.klabUsar=async function(el){if(!KLB.txMel)return _u.apply(this,arguments);const D=tmD(),t=D&&D.trechos.find(x=>x.id===KLB.txMel.tid);if(!t||!KLB.D||!KLB.kmz){toast('Desenhe o traçado antes.','bad');return}
-  const V=KLB.V||{};t.des={matL:(V.mat||[]).map(i=>({cod:i.cod||'',desc:i.desc||'',qtd:+i.qtd||0,un:i.un||'',vu:i.vu==null?null:+i.vu})),moL:((V.mo&&V.mo.L)||[]).map(x=>({cod:x.cod,desc:x.desc,q:+x.q||0,u:+x.u||0,v:+x.v||0})),m:Math.round(KLB.D.tot||0),postes:(KLB.D.P||[]).length,mat:Math.round((V.vMat||0)*100)/100,mo:Math.round(((V.mo&&V.mo.tot)||0)*100)/100,nMat:(V.mat||[]).length,serial:klSerial(),em:Date.now(),novo:true,kmzPath:t.des&&t.des.kmzPath||null};
-  t._kml=KLB.kml;t._kmz=KLB.kmz;KLB.txMel=null;ACT.klabFecha();KLB.wiz=false;KLB.melWiz=false;render();toast('Traçado usado no trecho. Salve a melhoria.')}}
+  const V=KLB.V||{};t.des={matL:(V.mat||[]).map(i=>({cod:i.cod||'',desc:i.desc||'',qtd:+i.qtd||0,un:i.un||'',vu:i.vu==null?null:+i.vu})),moL:((V.mo&&V.mo.L)||[]).map(x=>({cod:x.cod,desc:x.desc,q:+x.q||0,u:+x.u||0,v:+x.v||0})),m:0,mDes:Math.round(KLB.D.tot||0),ed:JSON.parse(JSON.stringify(klEd())),postes:(KLB.D.P||[]).length,mat:Math.round((V.vMat||0)*100)/100,mo:Math.round(((V.mo&&V.mo.tot)||0)*100)/100,nMat:(V.mat||[]).length,serial:klSerial(),em:Date.now(),novo:true,kmzPath:t.des&&t.des.kmzPath||null};
+  t.des.m=tmCab(t.des);t._kml=KLB.kml;t._kmz=KLB.kmz;KLB.txMel=null;ACT.klabFecha();KLB.wiz=false;KLB.melWiz=false;render();toast('Traçado usado no trecho. Salve a melhoria.')}}
 {const _f=ACT.klabFecha;ACT.klabFecha=function(){const r=_f.apply(this,arguments);if(KLB.txMel){KLB.txMel=null;KLB.wiz=false;KLB.melWiz=false}return r}}
 /* ações */
 const tmNovo=()=>({titulo:'',cidade:'',popId:'',motivo:'',obs:'',crit:false,tipo:'lc',trechos:[],cfo:null,status:'proj',hist:[]});
@@ -17538,7 +17541,7 @@ const tmAcTxt=s=>s.acao==='troca'?`troca de splitter ${s.de||'?'} → ${s.para||
 function tmItens(D){const T=[];
   if(D.tipo==='infra')T.push({k:'infra',g:'POP',t:'Serviços no POP'+(D.popNome?' · '+D.popNome:''),d:D.infraDesc||''});
   if(tmTemL(D))(D.trechos||[]).forEach((t,i)=>{const P=t.oTipo==='pop'&&tmPopL().find(p=>String(p.id)===String(t.oPop)),o=t.oTipo==='pop'?(P?tmPopN(P):'POP'):(t.oNome||'caixa de origem');
-    T.push({k:'tr:'+t.id,g:'Lançamento',t:`Trecho ${i+1}: ${o} → ${t.dNome||'caixa de destino'}`,d:[KA_CABO_N[t.cabo]||'',t.des?tmM(t.des.m)+' · '+t.des.postes+' postes':''].filter(Boolean).join(' · '),ll:t.oTipo==='pop'?(P&&P.lat!=null?[P.lat,P.lng]:tmLL(t.dCoord)):tmLL(t.oCoord)})});
+    T.push({k:'tr:'+t.id,g:'Lançamento',t:`Trecho ${i+1}: ${o} → ${t.dNome||'caixa de destino'}`,d:[KA_CABO_N[t.cabo]||'',t.des?tmM(tmCab(t.des))+' · '+t.des.postes+' postes':''].filter(Boolean).join(' · '),ll:t.oTipo==='pop'?(P&&P.lat!=null?[P.lat,P.lng]:tmLL(t.dCoord)):tmLL(t.oCoord)})});
   if(tmTemC(D)&&D.cfo)Object.entries(D.cfo.sel||{}).forEach(([id,s])=>{const p=(D.cfo.pts||[]).find(x=>x.id===id)||{};
     T.push({k:'cx:'+id,g:'CFO',t:`${p.nome||'Caixa'}: ${tmAcTxt(s)}${+s.qtd>1?' ('+s.qtd+'×)':''}`,d:[s.ext?`extensão de fibra ${s.extM||'?'} m`:'',s.obs||''].filter(Boolean).join(' · '),ll:p.lat!=null?[p.lat,p.lon]:null})});
   return T}
@@ -17725,7 +17728,7 @@ function tmVerHtml(D){const R=tmResumo(D),C=tmCustos(D),tp=D.tipo==='infra'?'Inf
    ${D.tipo==='infra'?`<section class="panel"><h3>Serviços no POP</h3><p style="white-space:pre-line">${esc(D.infraDesc||'')}</p></section>`:''}
    ${tmTemL(D)?`<section class="panel"><div class="secth"><h3>Lançamento</h3><small class="muted">${R.nT} trecho${R.nT===1?'':'s'} · ${tmM(R.m)} · ${R.postes} postes</small></div><div class="tmvtr">${(D.trechos||[]).map((t,i)=>{const P=t.oTipo==='pop'&&tmPopL().find(p=>String(p.id)===String(t.oPop)),o=t.oTipo==='pop'?(P?tmPopN(P):'POP'):(t.oNome||'Caixa de origem');
       return `<article class="tmvtc"><b>Trecho ${i+1}</b><span>${esc(o)} → ${esc(t.dNome||'caixa de destino')}</span><small class="muted">${esc(KA_CABO_N[t.cabo]||'')}${t.esp?' · espinado na rede existente':''} · vão ${esc(t.vao||35)} m</small>
-        ${t.des?`<div class="tmvtn"><span><b>${tmM(t.des.m)}</b><small>cabo</small></span><span><b>${t.des.postes}</b><small>postes</small></span><span><b>${brl(t.des.mat)}</b><small>materiais</small></span><span><b>${brl(t.des.mo)}</b><small>mão de obra</small></span></div><button class="btn sm" data-act="tmTrKmz" data-i="${i}">KMZ do trecho</button>`:'<small class="bad">Sem traçado</small>'}</article>`}).join('')}</div></section>`:''}
+        ${t.des?`<div class="tmvtn"><span><b>${tmM(tmCab(t.des))}</b><small>cabo</small></span><span><b>${t.des.postes}</b><small>postes</small></span><span><b>${brl(t.des.mat)}</b><small>materiais</small></span><span><b>${brl(t.des.mo)}</b><small>mão de obra</small></span></div><span class="tools" style="gap:6px;flex-wrap:wrap"><button class="btn sm" data-act="tmTrKmz" data-i="${i}">KMZ do trecho</button><button class="btn sm" data-act="tmTrPdf" data-i="${i}">PDF materiais e mão de obra</button></span>`:'<small class="bad">Sem traçado</small>'}</article>`}).join('')}</div></section>`:''}
    ${tmTemC(D)?`<section class="panel"><div class="secth"><h3>CFO nas caixas</h3><small class="muted">${R.nCx} caixa${R.nCx===1?'':'s'}${R.nExt?` · ${R.nExt} com extensão de fibra (${tmM(R.mExt)})`:''}</small></div><ul class="tmvcx">${sel.map(([id,v])=>{const p=((D.cfo&&D.cfo.pts)||[]).find(x=>x.id===id)||{};return `<li><b>${esc(p.nome||'Caixa')}</b><span>${esc(tmAcTxt(v))}${+v.qtd>1?' ('+v.qtd+'×)':''}${v.ext?` · extensão de fibra ${esc(v.extM||'?')} m`:''}</span>${v.obs?`<small class="muted">${esc(v.obs)}</small>`:''}</li>`}).join('')}</ul></section>`:''}
    <section class="panel"><div class="secth"><h3>Custos previstos</h3><b>${brl(C.tot)}</b></div><div class="tmvtn"><span><b>${brl(C.vMat)}</b><small>materiais</small></span><span><b>${brl(C.vMo)}</b><small>mão de obra</small></span><span><b>${brl(C.tot)}</b><small>total</small></span></div>
      <details class="tmvdet"><summary>Ver os itens</summary>${tmCustosHtml(D,R,true)}</details></section></div>`}
@@ -18282,6 +18285,79 @@ plSalvar=async function(x,msg){const i=PLT.rows.findIndex(y=>y.id===x.id),ant=i>
   if(r&&r.error){const m=r.error.message||'';if(ant)PLT.rows[i]=ant;else PLT.rows=PLT.rows.filter(y=>y!==x);
     toast('Não foi possível salvar: '+m+(/relation|does not exist/i.test(m)?' (falta rodar o ajuste 57 no banco)':''),'bad');try{plCarregar(true)}catch(e){}render();return false}
   if(msg)toast(msg);return true};
+
+/* ---------- 10/11: desenho do trecho · materiais e mão de obra seguem o desenho ----------
+   1. Ajuste do projetista vira diferença (+100 m de cabo, −2 fechos...) sobre o que o desenho calcula: mexeu no desenho
+      (poste, reserva, cordoalha, ícone), as quantidades e a LPU se recalculam e o ajuste continua somado.
+      (Também grava a quantidade final, para o cadastro da Implantação que lê o ajuste antigo.)
+   2. A lista de materiais de baixo é a mesma da prévia (com os ajustes) e diz como cada linha foi calculada.
+   3. Os ajustes ficam guardados no trecho da melhoria e voltam ao abrir "Ajustar o traçado".
+   4. Cores do cabo no padrão construtivo: 4/6FO preto, 12FO azul, 24FO rosa, 72FO ciano, 144FO preto (nome 144FO), drop verde. */
+Object.assign(KA_CABO,{fo4:['CABO 4FO','ff000000'],fo6:['CABO 6FO','ff000000'],fo12:['CABO 12FO','ffff0000'],fo24:['CABO 24FO','ffb400ff'],fo72:['CABO 72FO','ffffff00'],fo144:['CABO 144FO','ff000000'],drop:['CABO DROP FIG8 4FO','ff00ff00']});
+const klEdN=E=>{['mat','mo'].forEach(g=>{E[g]=E[g]||{del:{},q:{},add:[]};E[g].dq=E[g].dq||{}});return E};
+function klValores(){const D=KLB.D,M=KLB.M;if(!D||!M)return null;const E=klEdN(klEd());
+  const base=M.itens.map(i=>{const pr=krPr(i.cod);return{k:'PONTA A|'+(i.cod||i.desc),cod:i.cod||'',desc:(pr&&pr.desc)||i.desc,qtd:i.qtd,un:i.un,vu:pr?pr.v:null,memo:i.memo||''}});
+  D.X.filter(x=>x.k==='ceo'&&x.spl).forEach(x=>{const cod=klSplCod(x.spl),pr=krPr(cod);base.push({k:'spl|'+x.nome,cod:cod||'',desc:(pr&&pr.desc)||('SPLITTER '+x.spl.toUpperCase()),qtd:1,un:'UN',vu:pr?pr.v:null,spl:x.nome,memo:'splitter da '+x.nome})});
+  const mat=[],rem=[];base.forEach(i=>{if(E.mat.del[i.k]){rem.push(i);return}
+    if(E.mat.dq[i.k]!=null){i.orig=i.qtd;i.dq=+E.mat.dq[i.k];i.qtd=Math.max(0,Math.round((i.qtd+i.dq)*100)/100);E.mat.q[i.k]=i.qtd}
+    else if(E.mat.q[i.k]!=null){i.orig=i.qtd;i.qtd=E.mat.q[i.k];i.dq=Math.round((i.qtd-i.orig)*100)/100}mat.push(i)});
+  E.mat.add.forEach((a,ix)=>{if(a.spl)return;const pr=krPr(a.cod);mat.push({k:'add|'+ix,add:ix,cod:a.cod,desc:(pr&&pr.desc)||a.desc||a.cod,qtd:a.qtd,un:a.un||'UN',vu:pr?pr.v:null,memo:'incluído pelo projetista'})});
+  mat.forEach(i=>{i.vt=i.vu==null?null:Math.round(i.vu*i.qtd*100)/100});const vMat=Math.round(mat.reduce((s,i)=>s+(i.vt||0),0)*100)/100;
+  let mo=null;try{mo=kleCalc({topologia:KLB.topo||'GPON',fator:KLB.crit?'critico':'comum',cidade:KLB.cid||'',dRua:0,dInterno:0,dExt:0,dAtiv:0,semExt:!KLB.ext,klExt:KLB.ext?{m:KLB.ext.m,cx:KLB.ext.cx}:null,kl:{q:M.kq}})}catch(e){mo={L:[],tot:0,fraco:['não foi possível calcular a mão de obra: '+(e.message||e)]}}
+  if(KLB.mel&&mo&&mo.L)mo.L=mo.L.filter(x=>x.fase!=='ativ'&&x.grupo!=='Cliente');
+  const crit=!!KLB.crit,moRem=[];mo.L=(mo.L||[]).filter(x=>{const k=x.fase+'|'+x.cod;x.k=k;if(E.mo.del[k]){moRem.push(x);return false}
+    if(E.mo.dq[k]!=null){x.orig=x.q;x.dq=+E.mo.dq[k];x.q=Math.max(0,Math.round((x.q+x.dq)*100)/100);E.mo.q[k]=x.q;x.v=Math.round(x.q*x.u*100)/100}
+    else if(E.mo.q[k]!=null){x.orig=x.q;x.q=E.mo.q[k];x.dq=Math.round((x.q-x.orig)*100)/100;x.v=Math.round(x.q*x.u*100)/100}return true});
+  E.mo.add.forEach((a,ix)=>{const it=kcItem(a.cod);if(!it)return;const u=crit&&it.valorCritico!=null?+it.valorCritico:+it.valor||0;mo.L.push({k:'add|'+ix,add:ix,fase:a.fase||'lanc',cod:a.cod,desc:it.desc,q:a.q,u,v:Math.round(a.q*u*100)/100,regra:'incluído pelo projetista'})});
+  mo.tot=Math.round(mo.L.reduce((s,x)=>s+x.v,0)*100)/100;mo.rem=moRem;
+  return{mat,rem,vMat,mo,tot:Math.round((vMat+(mo.tot||0))*100)/100,sem:mat.filter(i=>i.vu==null)}}
+/* mudar a quantidade: guarda a diferença sobre o calculado */
+CH.klabQ=el=>{const E=klEdN(klEd()),g=el.dataset.g,k=el.dataset.k,v=krNum(el.value);if(!(v>0)){toast('Quantidade inválida. Para tirar o item, use o ✕.','bad');klEdRe();return}
+  if(/^add\|/.test(k)){const a=E[g].add[+k.split('|')[1]];if(a){if(g==='mat')a.qtd=v;else a.q=v}klEdRe();return}
+  const V=KLB.V||{},it=g==='mat'?(V.mat||[]).find(i=>i.k===k):((V.mo&&V.mo.L)||[]).find(x=>x.k===k),b=it?(it.orig!=null?it.orig:(g==='mat'?it.qtd:it.q)):v;
+  const d=Math.round((v-b)*100)/100;if(Math.abs(d)<1e-9){delete E[g].dq[k];delete E[g].q[k]}else{E[g].dq[k]=d;E[g].q[k]=v}klEdRe()};
+{const _v=ACT.klabEdVolta;if(_v)ACT.klabEdVolta=function(el){const r=_v.apply(this,arguments);return r}}
+/* na prévia: mostra o ajuste como diferença */
+{const _h=klEdHtml;klEdHtml=function(V){let h=_h.apply(this,arguments);try{(V.mat||[]).concat((V.mo&&V.mo.L)||[]).forEach(i=>{if(!i.dq)return;const s=(i.dq>0?'+':'−')+kmN0(Math.abs(i.dq));
+  const k=`data-k="${esc(i.k)}" value=`,j=h.indexOf(k);if(j<0)return;const e=h.indexOf('>',j);h=h.slice(0,e+1)+`<small class="kldq" title="Ajuste do projetista sobre o calculado pelo desenho">${s}</small>`+h.slice(e+1)})}catch(e){}return h}}
+/* lista de baixo = a mesma da prévia */
+{const _d=klabResDes;klabResDes=function(){const o=_d.apply(this,arguments);try{const V=KLB.V,el=document.getElementById('klRes');if(!V||!el)return o;const hs=[...el.querySelectorAll('h3')].find(h=>/Lista de materiais/.test(h.textContent));if(!hs)return o;
+  hs.textContent='Lista de materiais do projeto (a mesma da prévia, com os ajustes)';const tb=hs.nextElementSibling&&hs.nextElementSibling.querySelector('tbody');if(!tb)return o;
+  tb.innerHTML=V.mat.map(i=>{const aj=i.dq?`${i.memo?' · ':''}ajuste do projetista ${i.dq>0?'+':'−'}${kmN0(Math.abs(i.dq))} ${esc(i.un)} (calculado ${kmN0(i.orig)})`:'';return `<tr${i.dq||i.add!=null?' class="kred"':''}><td>${esc(i.cod||'')}</td><td>${esc(i.desc)}</td><td style="text-align:right;white-space:nowrap"><b>${kmN0(i.qtd)}</b> ${esc(i.un)}</td><td class="muted" style="font-size:12.5px">${esc(i.memo||'')}${aj}</td></tr>`}).join('')+
+    (V.rem.length?`<tr><td colspan="4" class="muted" style="font-size:12.5px">Excluídos pelo projetista: ${V.rem.map(i=>esc(i.desc)).join(', ')}</td></tr>`:'')}catch(e){console.warn('lista',e)}return o}}
+/* PDF de materiais e mão de obra do trecho */
+ACT.tmTrPdf=el=>{const D=tmD()||{},t=(D.trechos||[])[+el.dataset.i],d=t&&t.des;if(!d)return toast('Desenhe o traçado antes.','bad');if(!(window.jspdf&&window.jspdf.jsPDF))return toast('Gerador de PDF indisponível. Recarregue a página.','bad');
+  const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true}),m=14,W=210,n=+el.dataset.i+1,o=tmTrOrig(t),bR=v=>'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}),q=v=>(+v||0).toLocaleString('pt-BR',{maximumFractionDigits:2});
+  doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(40,40,40);doc.text('Materiais e mão de obra · Trecho '+n,m,18);doc.setDrawColor(140,191,63);doc.setLineWidth(.8);doc.line(m,22,W-m,22);
+  doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(80,80,80);
+  [`Melhoria de rede: ${D.codigo||'(sem código)'}${D.titulo?' · '+D.titulo:''}`,`Trecho ${n}: ${o.nome||'origem'} > ${t.dNome||'destino'} · ${KA_CABO_N[t.cabo]||t.cabo||''} · vão ${t.vao||35} m${t.esp?' · espinado na rede existente':''}`,
+   `Cabo (materiais): ${kmN0(tmCab(d))} m · desenho: ${kmN0(d.mDes||d.m||0)} m · ${d.postes||0} postes${D.cidade?' · '+D.cidade:''}${D.crit?' · região crítica':''}`,`Gerado em ${dtBR(Date.now())} por ${meNome()}`].forEach((l,i)=>doc.text(doc.splitTextToSize(l,W-2*m),m,28+i*5));
+  const st={theme:'grid',styles:{fontSize:8,cellPadding:1.8,lineColor:[212,221,216],lineWidth:.2},headStyles:{fillColor:[244,249,236],textColor:[60,60,60],fontStyle:'bold'},margin:{left:m,right:m}};
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(40,40,40);doc.text('Materiais',m,52);
+  doc.autoTable(Object.assign({},st,{startY:54,head:[['Código','Material','Qtd','Un','Unitário','Total']],body:(d.matL||[]).map(i=>[i.cod||'',i.desc||'',q(i.qtd),i.un||'',i.vu==null?'sem preço':bR(i.vu),i.vu==null?'':bR(i.vu*i.qtd)]),
+    foot:[['','Total de materiais','','','',bR(d.mat)]],footStyles:{fillColor:[244,249,236],textColor:[40,40,40],fontStyle:'bold'},columnStyles:{2:{halign:'right'},4:{halign:'right'},5:{halign:'right'}}}));
+  let y=doc.lastAutoTable.finalY+9;if(y>260){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('Mão de obra (LPU)',m,y);
+  doc.autoTable(Object.assign({},st,{startY:y+2,head:[['Código','Serviço','Qtd','Unitário','Total']],body:(d.moL||[]).map(x=>[x.cod||'',x.desc||'',q(x.q),bR(x.u),bR(x.v)]),
+    foot:[['','Total de mão de obra','','',bR(d.mo)]],footStyles:{fillColor:[244,249,236],textColor:[40,40,40],fontStyle:'bold'},columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}}}));
+  y=doc.lastAutoTable.finalY+8;if(y>275){doc.addPage();y=18}doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(`Total do trecho: ${bR((+d.mat||0)+(+d.mo||0))}`,m,y);
+  const pg=doc.getNumberOfPages();for(let i=1;i<=pg;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(140,140,140);doc.text(`Ferramenta de Gestão O&M · página ${i} de ${pg}`,m,290)}
+  tmSalvaArq(doc.output('blob'),tmArq((D.codigo||'melhoria')+'_trecho_'+n+'_materiais_mao_de_obra')+'.pdf')};
+document.head.insertAdjacentHTML('beforeend','<style>.kldq{display:block;font-size:11px;color:var(--warn,#b45309);text-align:right;margin-top:2px}</style>');
+
+/* ---------- 10/11: enviar só a orientação da gestão, sem trocar o técnico nem editar o chamado ----------
+   No quadro de despacho/troca: botão "Enviar só a orientação" logo abaixo do campo (usa o texto e os anexos
+   do campo "Orientações para o técnico"). No rodapé do chamado: "Registrar orientação" (abre a janela de orientação).
+   Fica em c.orient e no histórico; com técnico no chamado, ele vê na tela e recebe aviso no chat. Vale para Transmissão,
+   GTD e Rede Externa (qualquer chamado em aberto). */
+{const _d=gDetalhe;gDetalhe=function(c){let h=_d.apply(this,arguments);try{if(!c||!dnPodeOrient(c))return h;
+  const bt=`<button class="btn" data-act="dnSoOrient" data-id="${c.id}" title="Registra a orientação no chamado sem trocar o técnico">Enviar só a orientação</button>`;
+  const i=h.indexOf('<div class="dndesp">'),j=i>=0?h.indexOf('</section>',i):-1;if(j>=0)h=h.slice(0,j)+`<div class="tools dnsob" style="margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap">${bt}<small class="muted">Registra no chamado sem trocar o técnico${c.tec?'; ele recebe o aviso':''}.</small></div>`+h.slice(j);
+  const ed=`<button class="btn sm" data-act="gEditar" data-id="${c.id}">Editar dados</button>`;if(h.includes(ed))h=h.replace(ed,`<button class="btn sm" data-act="dnAddAbre" data-id="${c.id}">Registrar orientação</button>`+ed)}catch(e){console.warn('orient',e)}return h}}
+{const _a=ACT.dnAddAbre;ACT.dnAddAbre=function(el){const r=_a.apply(this,arguments);try{const c=G.ch.find(x=>x.id===el.dataset.id);if(c&&!c.tec){const p=document.querySelector('#modal.open p.muted');if(p)p.textContent=`O&M ${c.pom||'—'} · ${c.cliente||''}. Fica registrada no chamado e aparece para o técnico quando ele for despachado.`;const h=document.querySelector('#modal.open h3');if(h)h.textContent='Registrar orientação no chamado'}}catch(e){}return r}}
+ACT.dnSoOrient=async el=>{if(!gPodeDesp())return semPerm();const id=el.dataset.id,txt=dnTxt('desp',id),F=DN.desp[id]||[];if(!txt&&!F.length){toast('Escreva a orientação ou anexe algo no campo "Orientações para o técnico".','bad');return}
+  el.disabled=true;let anx=[];try{if(F.length){toast('Enviando os anexos…');anx=await dnSobe(id,'orient',F)}}catch(e){el.disabled=false;toast('Não foi possível enviar os anexos: '+(e.message||e),'bad');return}
+  let tec=null;const ok=await gAcao(id,c=>{if(!GTD_ABERTOS.includes(c.status)){toast('Este chamado já foi encerrado.','bad');return false}tec=c.tec;c.orient=(c.orient||[]).concat([{txt,anx,por:meNome(),em:Date.now()}]);gHist(c,'Orientação da gestão registrada',{obs:txt,anexos:anx.length})},'Orientação registrada no chamado.');
+  el.disabled=false;if(ok!==false){dnLimpa('desp',id);if(tec)sb.from('ag_mensagens').insert({chamado:id,texto:'Nova orientação da gestão'+(txt?': '+txt.slice(0,300):'')+(anx.length?` (${anx.length} anexo${anx.length>1?'s':''} na tela do chamado)`:'')}).then(()=>{},()=>{});render()}};
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
