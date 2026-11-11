@@ -2757,7 +2757,7 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<div class="whc"><span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span></div><div class="wbar">${['supply','visu'].includes(ui.perfil)?'':'<button class="wic wbb sino" data-act="avisos" data-l="Avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic wbb" data-act="conta" data-l="Conta" aria-label="Minha conta: senha e notificações" title="Minha conta: senha e notificações">${WHO_CONTA}</button><button class="wic wbb" data-act="logout" data-l="Sair" aria-label="Sair" title="Sair">${ICN.sair}</button></div>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu','melKpi','melMin','cxProj','cxCrono','cxDesp','oxProj','oxCrono','oxDesp','melAprov','melBud','melDet','melPrest','melEq'],GRP={txMel:'Operação',melKpi:'Acompanhamento',melMin:'Acompanhamento',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu','melKpi','melMin','cxProj','cxCrono','cxDesp','oxProj','oxCrono','oxDesp','melAprov','melBud','melDet','melPrest','melEq','gEst','gEstAt','gEstHist'],GRP={txMel:'Operação',gEst:'Estoque',gEstAt:'Estoque',gEstHist:'Estoque',melKpi:'Acompanhamento',melMin:'Acompanhamento',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando'&&!lpuTx(l)).length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -18399,7 +18399,7 @@ const melTem=k=>!!ME&&(ui.perfil==='coord'||melB().includes(k));
 const melVeNat=n=>melTem('mel_'+n)||['ed','dlg','desp','lpu'].some(a=>melTem(`mel_${n}_${a}`));
 const melNats=()=>['cx','ox'].filter(melVeNat);
 const melMinhasN=()=>{try{return TM.ok?tmMinhasEt().length:0}catch(e){return 0}};
-const melVe=()=>!!ME&&!gTecPerfil()&&(ui.perfil==='coord'||melNats().length>0||['mel_eq','mel_eq_ed','mel_fin'].some(melTem)||melMinhasN()>0);
+const melVe=()=>!!ME&&!gTecPerfil()&&(ui.perfil==='coord'||melNats().length>0||['mel_eq','mel_eq_ed','mel_fin','mel_estoque','mel_estAtual','mel_estHist'].some(melTem)||melMinhasN()>0);
 const melAt=()=>!!ME&&!gTecPerfil()&&ui.cat==='gtd'&&ui.gArea==='tx'&&!!ui.melAt;
 function melNatCur(){if(ui.tmD)return melNat(ui.tmD);if(/^(cx|ox)/.test(ui.tab||''))return ui.tab.slice(0,2);return ui.melNat||melNats()[0]||'cx'}
 const melTmTab=()=>melAt()&&MEL_TABS.includes(ui.tab);
@@ -18555,7 +18555,7 @@ function viewMelDesp(n){if(!TM.ok){if(!TM.bus)tmCarregar();return '<h2>Despacho<
   const stCh=c=>{const x=melPrj(c),e=x&&tmEtapas(x).find(y=>y.id===c.txMel.etapa);const s=e?tmEtSt(e):null;return s&&s.ch===c?`<span class="chip ${s.c}">${esc(s.t)}</span>`:`<span class="chip">${esc(c.status)}</span>`};
   return `<div class="toolbar"><div><h2>${esc(MEL_NAT[n][1])} · Despacho</h2><p class="muted">Etapas de campo dos projetos. "Despachar" abre o agendamento: técnico ou empresa, data, horário e orientações (com anexos). O KMZ do projeto vai junto com a atividade.</p></div></div>
    <section class="panel"><div class="secth"><h3>Para despachar <small class="muted">${pend.length}</small></h3></div>
-    ${pend.length?`<div class="tablewrap"><table class="meltb"><thead><tr><th>Projeto</th><th>Etapa de campo</th><th>POP</th><th>Previsto</th><th>Situação</th><th></th></tr></thead><tbody>${pend.map(({x,e,s})=>`<tr><td><button class="linkbtn" data-act="melAbre" data-id="${x.id}"><b>${esc(x.codigo||'')}</b></button><br><small class="muted">${esc(x.motivo||'')}</small></td><td>${esc(e.nome)}</td><td>${esc(melPopNm(x)||'—')}</td><td>${e.iniP?dBR(e.iniP).slice(0,5)+(e.fimP&&e.fimP!==e.iniP?' a '+dBR(e.fimP).slice(0,5):''):'—'}</td><td><span class="chip ${s.canc?'bad':'warn'}">${s.canc?'Despacho cancelado':'Aguardando despacho'}</span></td><td class="r">${dp?`<button class="btn sm primary" data-act="melDesp" data-id="${x.id}" data-e="${e.id}">Despachar</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nenhuma etapa de campo esperando despacho.</p>'}</section>
+    ${pend.length?`<div class="tablewrap"><table class="meltb"><thead><tr><th>Projeto</th><th>Etapa de campo</th><th>POP</th><th>Previsto</th><th>Situação</th><th></th></tr></thead><tbody>${pend.map(({x,e,s})=>`<tr><td><button class="linkbtn" data-act="melAbre" data-id="${x.id}"><b>${esc(x.codigo||'')}</b></button><br><small class="muted">${esc(x.motivo||'')}</small></td><td>${esc(e.nome)}</td><td>${esc(melPopNm(x)||'—')}</td><td>${e.iniP?dBR(e.iniP).slice(0,5)+(e.fimP&&e.fimP!==e.iniP?' a '+dBR(e.fimP).slice(0,5):''):'—'}</td><td><span class="chip ${s.parc?'warn':s.canc?'bad':'warn'}">${s.parc?esc(s.t):s.canc?'Despacho cancelado':'Aguardando despacho'}</span></td><td class="r">${dp?`<button class="btn sm primary" data-act="melDesp" data-id="${x.id}" data-e="${e.id}">Despachar</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nenhuma etapa de campo esperando despacho.</p>'}</section>
    <section class="panel melsec"><div class="secth"><h3>Despachadas</h3><div class="views">${[['and','Em andamento'],['enc','Encerradas']].map(([k,t])=>`<button data-act="melDf" data-v="${k}" aria-current="${f===k}">${t} (${D.filter(c=>k==='enc'?fim(c):!fim(c)).length})</button>`).join('')}</div></div>
     ${DL.length?`<div class="tablewrap"><table class="meltb"><thead><tr><th>Projeto</th><th>Etapa</th><th>Técnico</th><th>Quando</th><th>Situação</th><th></th></tr></thead><tbody>${DL.map(c=>{const x=melPrj(c);return `<tr><td><b>${esc((x&&x.codigo)||c.txMel.cod||'')}</b></td><td>${esc(c.txMel.nome||'')}</td><td>${esc(gTecN(c.tec)||'—')}${c.tec&&!tmEqMel(c.tec)?' <small class="melwarn">(fora da equipe da melhoria)</small>':''}</td><td>${c.agendaEm?gQuando(c.agendaEm):'—'}</td><td>${stCh(c)}</td><td class="r"><button class="btn sm" data-act="melCh" data-id="${c.id}">Abrir</button></td></tr>`}).join('')}</tbody></table></div>`:`<p class="muted">${f==='enc'?'Nenhuma etapa encerrada.':'Nenhuma etapa em campo agora.'}</p>`}</section>`}
 Object.assign(ACT,{melDf:el=>{ui.melDf=el.dataset.v;render()},
@@ -18673,6 +18673,136 @@ ACT.melAnxOk=async el=>{const S=[...document.querySelectorAll('.melAx:checked')]
 {const _v=viewTxNovo;viewTxNovo=function(){const h=_v.apply(this,arguments);if(!ui.tmCtx||!ui.tmCtx.D)return h;
   return h.replace(/(<div class="tools dntl"><label class="btn sm">Anexar foto ou arquivo<input type="file" multiple accept="[^"]*" hidden data-ch="dnArq" data-k="([^"]+)" data-id="([^"]+)"><\/label>)/,
     (m,a,k,id)=>`${a}<button type="button" class="btn sm" data-act="melAnxPrj" data-k="${k}" data-id="${id}">Anexos do projeto</button>`)}}
+
+/* ---------- 11/11: despacho da melhoria por trecho/caixa e visão do técnico com a localização das caixas ----------
+   * No despacho de Lançamento (ou CFO) com mais de um trecho (ou caixa), a gestão marca o que vai para o técnico
+     (ou todos). O que já está com outro técnico aparece com a situação e não pode ser marcado de novo.
+     A etapa guarda cada despacho em e.desp [{ch, sel:[chaves]}] e e.selTot; só conclui quando todos os itens
+     forem despachados e concluídos em campo.
+   * O texto "O que fazer" e o KMZ saem só com o que foi marcado; cada caixa leva endereço (pela coordenada,
+     agenda-rota/reverse) e coordenada.
+   * No celular: título "caixa de origem → caixa final" (ou "CFO em N caixas"), trechos com as duas pontas
+     (Navegar e Copiar coordenada), caixas do CFO com os serviços, e "Localização das caixas" no lugar de
+     "Endereço e localização do POP". */
+const melFm=n=>(+n||0).toLocaleString('pt-BR');
+const melCo=ll=>ll&&ll.length===2&&ll[0]!=null?`${(+ll[0]).toFixed(5)}, ${(+ll[1]).toFixed(5)}`:'';
+const MEL_GEO={};
+const MEL_GEOP={};function melGeo(ll){const k=melCo(ll);if(!k)return '';if(MEL_GEO[k])return MEL_GEO[k];if(MEL_GEOP[k]&&Date.now()-MEL_GEOP[k]<60000)return '';MEL_GEOP[k]=Date.now();
+  try{if(typeof invRota==='function')invRota('reverse',{lat:+ll[0],lon:+ll[1]}).then(r=>{const t=(r&&(r.label||(r.data&&r.data.label)))||'';if(t)MEL_GEO[k]=t;if(t&&ui.tab==='gNovo'&&ui.tmCtx){melTxtAtualiza();render()}}).catch(()=>{})}catch(e){}return ''}
+function melRicos(D,E){const g={lanc:'Lançamento',vist:'Lançamento',cfo:'CFO'}[E&&E.k];const R=[];
+  if((!g||g==='Lançamento')&&tmTemL(D))(D.trechos||[]).forEach((t,i)=>{const P=t.oTipo==='pop'&&tmPopL().find(p=>String(p.id)===String(t.oPop));
+    const o=t.oTipo==='pop'?{nm:P?tmPopN(P):'POP',ll:P&&P.lat!=null?[+P.lat,+P.lng]:null,pop:true,ad:P?[P.endereco,P.cidade].filter(Boolean).join(' · '):''}:{nm:t.oNome||'caixa de origem',ll:tmLL(t.oCoord)};
+    const d={nm:t.dNome||'caixa de destino',ll:tmLL(t.dCoord)};
+    R.push({k:'tr:'+t.id,g:'Lançamento',n:i+1,o,dd:d,cabo:KA_CABO_N[t.cabo]||'',m:t.des?tmCab(t.des):0,p:t.des?+t.des.postes||0:0})});
+  if((!g||g==='CFO')&&tmTemC(D)&&D.cfo)Object.entries(D.cfo.sel||{}).forEach(([id,s])=>{const p=(D.cfo.pts||[]).find(x=>x.id===id)||{};
+    const sv=[[s.acao==='troca'?'Troca de splitter':s.acao==='add'?'Novo splitter':s.acao==='rem'?'Retirar splitter':'Melhoria',s.acao==='troca'?`${s.de||'?'} por ${s.para||'?'}`:(s.spl||'')+(+s.qtd>1?` (${s.qtd}×)`:'')]];
+    if(s.ext)sv.push(['Extensão de fibra',`${s.extM||'?'} m`]);if(s.obs)sv.push(['Observação',s.obs]);
+    R.push({k:'cx:'+id,g:'CFO',nm:p.nome||'Caixa',ll:p.lat!=null?[+p.lat,+p.lon]:null,sv})});
+  return R}
+const melRicoT=r=>r.g==='CFO'?`${r.nm}: ${r.sv.map(s=>s[0].toLowerCase()+' '+s[1]).join(' · ')}`:`Trecho ${r.n}: ${r.o.nm} → ${r.dd.nm}`;
+const melRicoD=r=>r.g==='CFO'?'':[r.cabo,r.m?melFm(r.m)+' m':'',r.p?r.p+' postes':''].filter(Boolean).join(' · ');
+const melPto=x=>{const ad=x.ad||melGeo(x.ll),co=melCo(x.ll);return `${x.nm}${ad?' · '+ad:''}${co?' ('+co+')':''}`};
+function melTexto(ctx,S){const L=S||melSelR(ctx);if(!L.length)return '';
+  if(L[0].g==='CFO')return `${ctx.nome} da melhoria ${ctx.cod}\n`+L.map(r=>`${melPto(r)}\n`+r.sv.map(s=>`  • ${s[0]}: ${s[1]}`).join('\n')).join('\n\n');
+  return `${ctx.nome} da melhoria ${ctx.cod}\n`+L.map(r=>`Trecho ${r.n} · ${melRicoD(r)}\n  De: ${melPto(r.o)}\n  Até: ${melPto(r.dd)}`).join('\n\n')}
+const melSelR=ctx=>(ctx.rich||[]).filter(r=>ctx.sel.includes(r.k));
+function melTxtAtualiza(){const c=ui.tmCtx;if(!c||!c.rich)return;ui.dnT=ui.dnT||{};const cur=ui.dnT.probnovo;const nv=melTexto(c);if(cur==null||cur===c.txtGer||!String(cur).trim()){ui.dnT.probnovo=nv;const t=document.getElementById('dn_prob_novo');if(t)t.value=nv}c.txtGer=nv}
+/* quem já está com outro técnico (despacho anterior não cancelado) */
+function melCoberto(E){const S=new Set();(E.desp||[]).forEach(d=>{const c=(G.ch||[]).find(x=>x.id===d.ch);if(c&&c.status!=='cancelado')(d.sel||[]).forEach(k=>S.add(k))});return S}
+function melCobertoPor(E,k){const d=(E.desp||[]).slice().reverse().find(d=>(d.sel||[]).includes(k)&&((G.ch||[]).find(x=>x.id===d.ch)||{}).status!=='cancelado');return d?(G.ch||[]).find(x=>x.id===d.ch):null}
+{const _d=ACT.tmEtDesp;ACT.tmEtDesp=async function(el){const D=tmD(),E=D&&tmEtapas(D).find(e=>e.id===(el&&el.dataset&&el.dataset.e));const r=await _d.apply(this,arguments);const c=ui.tmCtx;
+  if(!c||!E||c.etapa!==E.id||!['lanc','vist','cfo'].includes(E.k))return r;const R=melRicos(c.D,E);if(!R.length)return r;
+  const cob=melCoberto(E),livre=R.filter(x=>!cob.has(x.k)).map(x=>x.k);if(!livre.length){toast('Todos os itens desta etapa já foram despachados.','bad');ACT.tmCtxSai();return r}
+  c.rich=R;c.sel=livre.slice();c.cob=[...cob];R.forEach(x=>{if(x.g==='CFO')melGeo(x.ll);else{if(!x.o.pop)melGeo(x.o.ll);melGeo(x.dd.ll)}});ui.dnT=ui.dnT||{};ui.dnT.probnovo=null;melTxtAtualiza();render();return r}}
+Object.assign(CH,{melSelT:el=>{const c=ui.tmCtx;if(!c)return;const k=el.dataset.k;c.sel=el.checked?[...new Set(c.sel.concat([k]))]:c.sel.filter(x=>x!==k);melTxtAtualiza();render()}});
+ACT.melSelTodos=()=>{const c=ui.tmCtx;if(!c)return;const L=c.rich.filter(r=>!c.cob.includes(r.k)).map(r=>r.k),todos=L.every(k=>c.sel.includes(k));c.sel=todos?[]:L;melTxtAtualiza();render()};
+{const _v=viewTxNovo;viewTxNovo=function(){const h=_v.apply(this,arguments),c=ui.tmCtx;if(!c||!c.rich)return h;const E=tmEtapas(c.D).find(e=>e.id===c.etapa)||{};
+  const S=melSelR(c),livres=c.rich.filter(r=>!c.cob.includes(r.k)),todos=livres.every(r=>c.sel.includes(r.k)),cfo=c.rich[0].g==='CFO',nm=cfo?'caixas':'trechos';
+  const res=cfo?`${S.length} de ${livres.length} caixas · ${S.reduce((s,r)=>s+r.sv.length,0)} serviços`:`${S.length} de ${livres.length} trechos · ${melFm(S.reduce((s,r)=>s+r.m,0))} m · ${S.reduce((s,r)=>s+r.p,0)} postes`;
+  const li=c.rich.map(r=>{const off=c.cob.includes(r.k),ch=off?melCobertoPor(E,r.k):null,ck=!off&&c.sel.includes(r.k),id='msel_'+r.k.replace(/\W/g,'_');
+    return `<label class="melopt${off?' off':''}" for="${id}"><input type="checkbox" id="${id}" data-ch="melSelT" data-k="${esc(r.k)}" ${ck?'checked':''} ${off?'disabled':''}><span><b>${esc(melRicoT(r))}</b>${melRicoD(r)?`<small>${esc(melRicoD(r))}</small>`:''}</span>${off?`<em>${esc(ch?('Com '+(gTecN(ch.tec)||'técnico')+(ch.agendaEm?' · '+gQuando(ch.agendaEm):'')):'Já despachado')}</em>`:''}</label>`}).join('');
+  const box=c.rich.length>1||c.cob.length?`<div class="melsel"><div class="melselh"><b>${cfo?'Caixas':'Trechos'} desta etapa</b>${livres.length>1?`<button type="button" class="linkbtn" data-act="melSelTodos">${todos?'Desmarcar todos':'Marcar todos'}</button>`:''}</div><p class="muted" style="margin:0 0 6px;font-size:13px">Marque os ${nm} que vão para este técnico.</p>${li}<div class="melselt"><span>Vai para o técnico</span><b>${res}</b></div></div>`
+    :`<ul>${c.rich.map(r=>`<li>${esc(melRicoT(r))}${melRicoD(r)?` <small class="muted">${esc(melRicoD(r))}</small>`:''}</li>`).join('')}</ul>`;
+  let o=h.replace(/(<div class="rpbox info tmctx"><div><b>[\s\S]*?<\/span>)<ul>[\s\S]*?<\/ul>/,'$1'+box);if(o===h)o=h.replace(/(<div class="rpbox info tmctx"><div><b>[\s\S]*?<\/span>)/,'$1'+box);
+  if(!S.length)o=o.replace(/(<button[^>]*data-act="txCriar")/,'<p class="melwarn" style="margin:0 0 8px">Marque pelo menos um item para despachar.</p>$1');return o}}
+{const _c=ACT.txCriar;ACT.txCriar=async function(){const c=ui.tmCtx;if(!c||!c.rich)return _c.apply(this,arguments);const S=melSelR(c);if(!S.length){toast('Marque pelo menos um item para despachar.','bad');return}
+  const parcial=S.length<c.rich.length;
+  c.itens=S.map(r=>r.g==='CFO'?{k:r.k,g:'CFO',t:melRicoT(r),d:'',ll:r.ll,nm:r.nm,ad:melGeo(r.ll),sv:r.sv}
+    :{k:r.k,g:'Lançamento',n:r.n,t:melRicoT(r),d:melRicoD(r),ll:r.o.ll||r.dd.ll,cabo:r.cabo,m:r.m,p:r.p,o:Object.assign({},r.o,{ad:r.o.ad||melGeo(r.o.ll)}),dd:Object.assign({},r.dd,{ad:melGeo(r.dd.ll)})});
+  c.selK=S.map(r=>r.k);
+  if(parcial&&c.kmz){try{const F=JSON.parse(JSON.stringify(c.D)),ks=new Set(c.selK);F.trechos=(F.trechos||[]).filter(t=>ks.has('tr:'+t.id));if(F.cfo&&F.cfo.sel)F.cfo.sel=Object.fromEntries(Object.entries(F.cfo.sel).filter(([id])=>ks.has('cx:'+id)));
+    if(c.rich[0].g==='CFO')F.trechos=[];else if(F.cfo)F.cfo.sel={};const b=await kaKmz(await tmKml(F)),p=`txmel/${c.id}/campo_${c.etapa}_${Date.now()}.kmz`,u=await sb.storage.from('agenda').upload(p,b,{upsert:true,contentType:'application/vnd.google-earth.kmz'});if(!u.error)c.kmz=p}catch(e){console.warn('kmz parcial',e)}}
+  const R=c.rich,cob=c.cob,id=c.id,et=c.etapa,antes=c.antes.slice(),selK=c.selK.slice();delete c.rich;delete c.cob;delete c.sel;delete c.txtGer;
+  let r;try{r=await _c.apply(this,arguments)}finally{if(ui.tmCtx===c){c.rich=R;c.cob=cob;c.sel=selK}}
+  const nv=(G.ch||[]).find(x=>x.txMel&&x.txMel.id===id&&x.txMel.etapa===et&&!antes.includes(x.id));
+  if(nv){await tmPatch(id,d=>{const e=(d.etapas||[]).find(y=>y.id===et);if(e){e.desp=(e.desp||[]).concat([{ch:nv.id,sel:selK}]);e.selTot=R.length}});
+    if(R.length-cob.length-selK.length>0)toast(`Despachado ${selK.length} de ${R.length-cob.length}. Os outros continuam em "Para despachar".`)}
+  return r}}
+/* situação da etapa com despacho em partes */
+{const _s=tmEtSt;tmEtSt=function(E){if(!E||!E.campo||!Array.isArray(E.desp)||!E.desp.length||!E.selTot)return _s.apply(this,arguments);
+  const at=E.desp.map(d=>({d,c:(G.ch||[]).find(x=>x.id===d.ch)})).filter(x=>!x.c||x.c.status!=='cancelado'),cob=new Set();at.forEach(x=>(x.d.sel||[]).forEach(k=>cob.add(k)));
+  const st=at.map(x=>_s(Object.assign({},E,{ch:x.d.ch}))),ult=at.length?at[at.length-1].c:null;
+  if(cob.size<E.selTot)return{k:at.length?'and':'pend',t:`Despachado ${cob.size} de ${E.selTot}`,c:'warn',ch:ult,canc:true,parc:true};
+  if(st.every(s=>s.k==='concl'))return Object.assign({},st[st.length-1],{t:at.length>1?'Concluída em campo (todos)':st[st.length-1].t});
+  const a=st.find(s=>s.k!=='concl')||st[0];return Object.assign({},a,{t:at.length>1?`${a.t} · ${st.filter(s=>s.k==='concl').length} de ${st.length} concluídos`:a.t})}}
+{const _h=tmEtapasHtml;tmEtapasHtml=function(D){let h=_h.apply(this,arguments);tmEtapas(D).forEach(e=>{const s=tmEtSt(e);if(s.parc)h=h.replace(new RegExp(`(data-act="tmEtDesp" data-e="${e.id}">)Despachar de novo`),'$1Despachar o restante')});return h}}
+document.head.insertAdjacentHTML('beforeend',`<style>.melsel{margin:8px 0 6px;display:flex;flex-direction:column;gap:6px}.melselh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.melopt{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:8px;align-items:start;border:1px solid var(--line,#dfe3da);border-radius:10px;padding:8px 10px;background:var(--card,#fff);cursor:pointer;color:var(--ink,#1c2419)}
+.melopt input{margin-top:3px;width:17px;height:17px}.melopt small{display:block;color:var(--muted,#5e6a58);font-size:12.5px}.melopt em{font-style:normal;font-size:12px;font-weight:600;color:var(--brand-ink,#3f6b12);white-space:nowrap}
+.melopt.off{opacity:.6;cursor:not-allowed}.melselt{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line,#dfe3da);padding-top:6px;font-size:13.5px}
+.mtrs{display:flex;flex-direction:column;gap:8px;margin:8px 0}.mtr{border:1px solid var(--line,#dfe3da);border-radius:12px;padding:9px 10px}.mtrn{display:flex;justify-content:space-between;gap:8px}.mtrn b{font-size:14.5px}.mtrn small{white-space:nowrap;color:var(--muted,#5e6a58)}
+.mtrc{font-size:12.5px;color:var(--muted,#5e6a58);margin:2px 0 4px}.mpt{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;padding:6px 0}.mpt+.mpt{border-top:1px dashed var(--line,#dfe3da)}
+.mdot{width:12px;height:12px;border-radius:50%;margin-top:4px;border:3px solid #7DB83A;background:transparent}.mdot.d{background:#7DB83A}.mdot.c{border-radius:3px;border-color:#1F4E6B;background:#1F4E6B}
+.mpt .nm{font-weight:700;font-size:13.5px}.mpt .nm i{font-style:normal;font-weight:500;font-size:12px;color:var(--muted,#5e6a58)}.mpt .ad{font-size:13px}.mpt .co{font:500 12px ui-monospace,Menlo,monospace;color:var(--muted,#5e6a58)}
+.msv{display:flex;flex-direction:column;gap:4px;margin:6px 0 2px}.msv span{font-weight:600;font-size:12.5px;border:1px solid var(--line,#dfe3da);border-radius:8px;padding:5px 8px}.msv em{font-style:normal;font-weight:500;color:var(--muted,#5e6a58)}
+.macts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.tvsub{color:var(--muted,#5e6a58);font-size:13px;margin-top:2px}.mloc{padding:12px 14px}.mloc h3{margin:0 0 6px;font-size:15px}</style>`);
+/* ---------- celular do técnico ---------- */
+const melNav=ll=>ll?`https://www.google.com/maps/dir/?api=1&destination=${ll[0]},${ll[1]}`:'';
+function melPtoH(x,tipo,cls,sv){const co=melCo(x.ll);return `<div class="mpt"><span class="mdot ${cls||''}" aria-hidden="true"></span><div style="min-width:0"><div class="nm">${esc(x.nm)}${tipo?` <i>${tipo}</i>`:''}</div>${x.ad?`<div class="ad">${esc(x.ad)}</div>`:''}${co?`<div class="co">${co}</div>`:''}
+  ${sv&&sv.length?`<div class="msv">${sv.map(s=>`<span>${esc(s[0])} <em>· ${esc(s[1])}</em></span>`).join('')}</div>`:''}
+  ${co?`<div class="macts"><a class="btn sm primary" href="${melNav(x.ll)}" target="_blank" rel="noopener">Navegar</a><button type="button" class="btn sm" data-act="melCopia" data-co="${co}">Copiar coordenada</button></div>`:''}</div></div>`}
+ACT.melCopia=el=>{const t=el.dataset.co;try{navigator.clipboard.writeText(t).then(()=>toast('Coordenada copiada.'),()=>toast(t))}catch(e){toast(t)}};
+const melRico=m=>m&&Array.isArray(m.itens)&&m.itens.length&&m.itens.every(i=>i.o||i.sv);
+{const _t=gTecView;gTecView=function(c){let h=_t.apply(this,arguments);const m=c&&c.txMel;if(!melRico(m)||ui.lpuTela)return h;try{
+  const I=m.itens,cfo=I[0].g==='CFO';let corpo,tit,sub,loc='';
+  if(cfo){const ns=I.reduce((s,i)=>s+i.sv.length,0),cont={};I.forEach(i=>i.sv.forEach(s=>{cont[s[0]]=(cont[s[0]]||0)+1}));tit=`CFO em ${I.length} ${I.length>1?'caixas':'caixa'}`;sub=`${m.cod||''} · ${ns} ${ns>1?'serviços':'serviço'}`;
+    corpo=`<h3 style="margin:8px 0 0;font-size:15px">Caixas do CFO <small class="muted">${Object.entries(cont).map(([k,q])=>q+' '+k.toLowerCase()).join(' · ')}</small></h3><div class="mtrs">${I.map(i=>`<div class="mtr">${melPtoH(i,'','c',i.sv)}</div>`).join('')}</div>`}
+  else{const tot=I.reduce((s,i)=>s+(+i.m||0),0);tit=`${I[0].o.nm} → ${I[I.length-1].dd.nm}`;sub=`${m.cod||''} · ${I.length} ${I.length>1?'trechos':'trecho'}${tot?' · '+melFm(tot)+' m':''}`;
+    corpo=`<h3 style="margin:8px 0 0;font-size:15px">Trechos <small class="muted">${I.length}${tot?' · '+melFm(tot)+' m':''}</small></h3><div class="mtrs">${I.map(i=>`<div class="mtr"><div class="mtrn"><b>Trecho ${i.n}: ${esc(i.o.nm)} → ${esc(i.dd.nm)}</b>${i.m?`<small>${melFm(i.m)} m</small>`:''}</div>${i.d?`<div class="mtrc">${esc(i.d)}</div>`:''}${melPtoH(i.o,i.o.pop?'origem (POP)':'origem')}${melPtoH(i.dd,'destino','d')}</div>`).join('')}</div>`;
+    const v=[],s=new Set();I.forEach(i=>[i.o,i.dd].forEach(x=>{if(!s.has(x.nm)){s.add(x.nm);v.push(x)}}));
+    loc=`<section class="tbox mloc"><h3>Localização das caixas <small class="muted">na ordem do lançamento</small></h3>${v.map((x,j)=>melPtoH(x,x.pop?'POP':j===0?'início':j===v.length-1?'fim':'passagem',j===v.length-1?'d':'')).join('')}</section>`}
+  const box=`<section class="tbox tmtec"><b>Melhoria de rede · ${esc(m.cod||'')}</b><span>${esc(m.nome||'')}</span>${corpo}${m.kmz?`<button class="btn" data-act="tmKmzCh" data-p="${esc(m.kmz)}" data-n="${esc((m.cod||'melhoria')+'_'+(m.nome||''))}">Baixar o KMZ ${cfo?'das caixas':'dos trechos'}</button>`:''}</section>`;
+  h=h.replace(/<section class="tbox tmtec">[\s\S]*?<\/section>/,box).replace(/<h2 class="tvnome">[\s\S]*?<\/h2>/,`<h2 class="tvnome">${esc(tit)}</h2><div class="tvsub">${esc(sub)}</div>`);
+  if(loc)h=h.replace(/<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="g:end"[\s\S]*?<\/section>/,loc);
+  else h=h.replace(/<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="g:end"[\s\S]*?<\/section>/,'');
+  return h}catch(e){console.warn('melTec',e);return h}}}
+/* card na lista do técnico: título pelo lançamento */
+{const _c=tvCardG;tvCardG=function(c){const h=_c.apply(this,arguments),m=c&&c.txMel;if(!melRico(m))return h;try{const I=m.itens,t=I[0].g==='CFO'?`CFO em ${I.length} ${I.length>1?'caixas':'caixa'}`:`${I[0].o.nm} → ${I[I.length-1].dd.nm}`;
+  const p0=I[0].g==='CFO'?I[0]:I[0].o,ond=`${I[0].g==='CFO'?'1ª caixa':'Início'}: ${p0.nm}${p0.ad?' · '+p0.ad:''}`;
+  return h.replace(/(<button class="tvnm"[^>]*><b>)[\s\S]*?(<\/b>)/,`$1${esc(t)}$2`).replace(/(<path d="M12 21s-7-6\.3[^"]*"\/><circle[^>]*><\/svg>)([^<]*)/,(m,a)=>a+esc(ond))}catch(e){return h}}}
+
+/* ---------- 11/11: grupo Estoque (materiais) em todas as áreas de manutenção ----------
+   GTD, Transmissão, RE Corretiva, RE Preventiva e Melhoria de rede ganham no menu o grupo "Estoque"
+   (Estoque dos técnicos, Atualizar estoque, Movimentações), as mesmas telas da Implantação.
+   Permissões por área em Usuários e acessos: <p>_estoque, <p>_estAtual (com <p>_a_bolsao, <p>_a_elleven, <p>_a_base)
+   e <p>_estHist, com <p> = g (GTD), tx, re, rp (RE Preventiva) e mel. Dentro da área elas valem como as da Implantação. */
+const EST_T=['gEst','gEstAt','gEstHist'];
+const EST_K=['estoque','estAtual','a_bolsao','a_elleven','a_base','estHist'];
+const estNos=p=>[[`${p}_estoque`,'Estoque: estoque dos técnicos','t'],[`${p}_estAtual`,'Estoque: atualizar estoque','t',[[`${p}_a_bolsao`,'Publicar planilha do bolsão (SAP)','a'],[`${p}_a_elleven`,'Importar movimentações do Elleven e do patrimônio','a'],[`${p}_a_base`,'Saldo atual do Elleven (V-Task), data-base e patrimônio atual dos técnicos','a']]],[`${p}_estHist`,'Estoque: movimentações','t']];
+{const G0=PERM_T.find(g=>g[0]==='GTD Manutenção');const A=[[G0,'g',[PX_GK,PX_GTEL]],[PX_TX,'tx',[PX_TK]],[typeof PR_RE!=='undefined'&&PR_ON?PR_RE:null,'re',[PR_RK]],[typeof PR_RP!=='undefined'&&PR_ON?PR_RP:null,'rp',[RPK]],[PX_MEL,'mel',[]]];
+  A.forEach(([g,p,arr])=>{if(!g)return;const N=estNos(p);g[1].push(...N);const K=pxKeys(['',N]);K.forEach(k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k);arr.forEach(a=>{if(a!==PX_GTEL||/_(estoque|estAtual|estHist)$/.test(k))if(!a.includes(k))a.push(k)})})})}
+EST_T.forEach(t=>{if(!GTD_T.includes(t))GTD_T.push(t)});
+Object.assign(RP_TL,{gEst:'Estoque dos técnicos',gEstAt:'Atualizar estoque',gEstHist:'Movimentações'});
+try{Object.assign(NAV_TC,{gEst:'Estoque',gEstAt:'Atualizar',gEstHist:'Movim.'})}catch(e){}
+try{Object.assign(ICT,{gEst:ICT.estoque||ICT.estAtual,gEstAt:ICT.estAtual,gEstHist:ICT.estHist})}catch(e){}
+Object.assign(RP_VIEWS,{gEst:()=>viewEstoque(),gEstAt:()=>viewEstAtual(),gEstHist:()=>viewMov(false)});
+const estP=()=>{if(typeof melAt==='function'&&melAt())return 'mel';if(ui.gArea==='re')return ui.reLado==='prev'?'rp':'re';return ui.gArea==='tx'?'tx':'g'};
+const estB=()=>{try{return pxNorm(permDe(ME.papel,'pBase' in ME?ME.pBase:ME.perm),ME.papel)}catch(e){return []}};
+const estTem=(p,k)=>ui.perfil==='coord'||estB().includes(`${p}_${k}`);
+{const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments);if(!ME||gTecPerfil()||ui.cat!=='gtd')return T.filter(t=>!EST_T.includes(t));const p=estP(),o=T.filter(t=>!EST_T.includes(t));
+  if(estTem(p,'estoque'))o.push('gEst');if(estTem(p,'estAtual'))o.push('gEstAt');if(estTem(p,'estHist'))o.push('gEstHist');return o}}
+{const _p=permEff;permEff=function(){_p.apply(this,arguments);if(!ME||gTecPerfil()||ui.perfil==='coord'||ui.cat!=='gtd'||!Array.isArray(ME.perm))return;const p=estP(),b=estB();
+  EST_K.forEach(k=>{if(b.includes(`${p}_${k}`)&&!ME.perm.includes(k))ME.perm.push(k)})}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
