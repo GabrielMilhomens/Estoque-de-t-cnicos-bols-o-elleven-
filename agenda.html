@@ -18366,7 +18366,7 @@ ACT.dnSoOrient=async el=>{if(!gPodeDesp())return semPerm();const id=el.dataset.i
    Opex · Melhoria de rede (reparo programado) (Projetos, Cronograma, Despacho), Financeiro (Aprovação de LPU,
    Budget e consumo, Detalhamento, Totais por prestador) e Administração (Equipe técnica).
    Natureza do projeto: dados.nat ('cx' | 'ox'); sem nat, Clean Up = Opex e o resto = Capex.
-   Código: Natureza-POP-Motivo-Ano-Sequencial (CX-VLH01-AR-26-014). Sem POP, sigla da cidade. Sem título.
+   Código: Natureza-POP-Motivo-Ano-Sequencial (CX-ARB-AR-26-014; do POP SP-CAS-ARB só a última parte). Sem POP, sigla da cidade. Sem título.
    Permissões (Usuários e acessos › Melhoria de rede): mel_cx*, mel_ox*, mel_eq*, mel_fin, mel_a_budget.
    Por dentro a área roda como a Transmissão (ui.gArea 'tx') com ui.melAt ligado. */
 const MEL_NAT={cx:['Capex','Capex · Instalação de rede','CX',['Alívio de Rede','Infraestrutura']],ox:['Opex','Opex · Melhoria de rede (reparo programado)','OX',['Clean Up']]};
@@ -18465,7 +18465,7 @@ const melSemAc=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').
 function melSiglaCid(c){const W=melSemAc(c).replace(/[^A-Z ]/g,' ').split(/\s+/).filter(w=>w&&!['DE','DO','DA','DOS','DAS','D','E'].includes(w));if(!W.length)return 'XXX';
   const sg=w=>w[0]+w.slice(1).replace(/[AEIOU]/g,''),pad=(s,w)=>(s+w.slice(1)+'XXX').slice(0,3);
   if(W.length>=3)return W.slice(0,3).map(w=>w[0]).join('');if(W.length===2)return pad(W[0][0]+sg(W[1]).slice(0,2),W[1]);if(W[0].length<=3)return (W[0]+'XXX').slice(0,3);return pad(sg(W[0]).slice(0,3),W[0])}
-function melPopSig(D){const P=tmPopL().find(p=>String(p.id)===String(D.popId));const s=P&&String(P.sigla||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return s||melSiglaCid(D.cidade||(P&&P.cidade)||'')}
+function melPopSig(D){const P=tmPopL().find(p=>String(p.id)===String(D.popId));const s=P&&String(P.sigla||'').toUpperCase().trim().split(/[-\s]+/).filter(Boolean).pop().replace(/[^A-Z0-9]/g,'');return s||melSiglaCid(D.cidade||(P&&P.cidade)||'')}
 function melCodigo(D){const n=melNat(D),pre=MEL_NAT[n][2],yy=hoje().slice(2,4),mot=MEL_MOT[D.motivo]||(n==='ox'?'CL':'AR'),re=new RegExp('^'+pre+'-.+-'+yy+'-(\\d+)$');
   const seq=TM.L.reduce((m,x)=>{const k=String(x.codigo||'').match(re);return k?Math.max(m,+k[1]):m},0)+1;return `${pre}-${melPopSig(D)}-${mot}-${yy}-${String(seq).padStart(3,'0')}`}
 function melValida(D){const n=melNat(D);if(!D.id&&!D.nat)D.nat=n;
