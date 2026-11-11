@@ -18804,6 +18804,36 @@ const estTem=(p,k)=>ui.perfil==='coord'||estB().includes(`${p}_${k}`);
 {const _p=permEff;permEff=function(){_p.apply(this,arguments);if(!ME||gTecPerfil()||ui.perfil==='coord'||ui.cat!=='gtd'||!Array.isArray(ME.perm))return;const p=estP(),b=estB();
   EST_K.forEach(k=>{if(b.includes(`${p}_${k}`)&&!ME.perm.includes(k))ME.perm.push(k)})}}
 
+/* ---------- 11/11: projetos (Base de previsão) sem sobrescrever o trabalho de outra pessoa ----------
+   * Antes de gravar um projeto alterado, confere a versão do banco. Se outra pessoa mudou o projeto depois que
+     esta tela carregou, não grava por cima: traz a versão atual e avisa.
+   * Depois de gravar, a cópia local passa a ser a do banco (o banco acrescenta histórico e trava na validação).
+   * Ao abrir o cadastro (Corrigir/editar) e nas ações da validação (reenviar, aprovar, reprovar), o projeto é
+     relido do banco antes, para ninguém trabalhar em cima de uma versão velha.
+   * Projetista: "Meus projetos" e as outras abas da Validação mostram só os projetos que ele incluiu. */
+const pvCanon=v=>{if(Array.isArray(v))return '['+v.map(pvCanon).join(',')+']';if(v&&typeof v==='object')return '{'+Object.keys(v).filter(k=>v[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+pvCanon(v[k])).join(',')+'}';return JSON.stringify(v===undefined?null:v)};
+const pvRowCanon=r=>pvCanon({id:r.id,etiqueta:r.etiqueta,dados:r.dados});
+function pvTroca(p,db){Object.keys(p).forEach(k=>{if(k!=='id')delete p[k]});Object.assign(p,{etiqueta:db.etiqueta},db.dados||{});SNAP.p.set(p.id,JSON.stringify(rowP(p)))}
+async function pvRelePrj(ids){ids=(ids||[]).filter(Boolean);if(!ids.length||S.semValor)return [];const r=await sb.from('ag_projetos').select('id,etiqueta,dados').in('id',ids);if(r.error)throw r.error;return r.data||[]}
+/* lê de novo um projeto; devolve true se mudou desde que a tela carregou */
+async function pvAtualiza(id){try{const p=S.previsao.find(x=>x.id===id);if(!p)return false;const [db]=await pvRelePrj([id]);if(!db)return false;
+  const base=SNAP.p.get(id),loc=JSON.stringify(rowP(p));if(base&&pvRowCanon(JSON.parse(base))===pvRowCanon(db))return false;
+  if(loc!==base){/* tem alteração local ainda não gravada: mantém a local, o salvamento decide */return false}pvTroca(p,db);return true}catch(e){console.warn('pvAtualiza',e);return false}}
+{const _s=syncAgora;syncAgora=async function(){let ids=[];try{if(!S.semValor){const r=curRows();const ch=r.p.filter(x=>SNAP.p.has(x.id)&&SNAP.p.get(x.id)!==JSON.stringify(x));ids=ch.map(x=>x.id);
+    if(ids.length){const DB=await pvRelePrj(ids),conf=[];DB.forEach(db=>{const base=SNAP.p.get(db.id);if(base&&pvRowCanon(JSON.parse(base))!==pvRowCanon(db)){const p=S.previsao.concat(S.prevCanc||[]).find(x=>x.id===db.id);if(p){pvTroca(p,db);conf.push(db.etiqueta||'projeto')}}});
+      if(conf.length){ids=ids.filter(id=>!DB.some(d=>d.id===id&&conf.includes(d.etiqueta||'projeto')));setTimeout(()=>{render();toast(`${conf.join(', ')}: o projeto foi alterado por outra pessoa enquanto você editava. Carreguei a versão atual; refaça a sua alteração.`,'bad')},0)}}}}
+  catch(e){console.warn('pvsync conferência',e)}
+  const o=await _s.apply(this,arguments);
+  try{if(ids.length){const DB=await pvRelePrj(ids);let mud=false;DB.forEach(db=>{const p=S.previsao.concat(S.prevCanc||[]).find(x=>x.id===db.id);if(!p)return;if(JSON.stringify(rowP(p))!==SNAP.p.get(p.id))return;if(pvRowCanon(rowP(p))!==pvRowCanon(db)){pvTroca(p,db);mud=true}});if(mud&&!ui.wiz)render()}}catch(e){console.warn('pvsync releitura',e)}
+  return o}}
+/* abrir o cadastro e as ações da validação com o projeto atualizado */
+{const _w=ACT.wiz;ACT.wiz=async function(el){const id=el&&el.dataset&&el.dataset.id,a=arguments;if(id&&!S.semValor){await flushSync();if(await pvAtualiza(id))toast('O projeto foi atualizado com a versão mais recente.')}return _w.apply(this,a)}}
+['pvReenv','pvReprov','pvAprov'].forEach(k=>{const f=ACT[k];if(!f)return;ACT[k]=async function(el){const id=el&&el.dataset&&el.dataset.id,a=arguments;if(id&&!S.semValor){await flushSync();if(await pvAtualiza(id)){render();toast('Este projeto mudou desde que a tela abriu. Confira a situação atual e repita a ação.','bad');return}}return f.apply(this,a)}});
+/* projetista: só os próprios projetos na Validação */
+const pvAutor=p=>{const v=p&&p.val;if(!v)return null;const h=(v.hist||[]).find(x=>x.t==='envio');return (h&&h.por)||v.por||null};
+{const _v=viewBaseVal;viewBaseVal=function(){if(!pvProj()||!ME)return _v.apply(this,arguments);const all=S.previsao,meus=all.filter(p=>pvAutor(p)===ME.id);S.previsao=meus;
+  try{return _v.apply(this,arguments)}finally{if(S.previsao===meus)S.previsao=all}}}
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>

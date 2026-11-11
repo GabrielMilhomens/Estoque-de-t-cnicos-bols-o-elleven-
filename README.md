@@ -260,6 +260,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 69. `agenda_ajuste_68_corrige_leitura_melhoria.sql` — **correção do ajuste 67:** a regra de leitura de `ag_tx_mel` chamava `ag_pode_exato` direto (função fechada para o app) e dava "permission denied for function ag_pode_exato", sem listar nenhum projeto. Agora usa `ag_mel_fin()` (security definer). O ajuste 67 também já vem corrigido.
 70. `agenda_ajuste_69_codigo_melhoria_sigla_pop.sql` — o código dos projetos da Melhoria de rede usa só a abreviação do POP (última parte da sigla Estado-Cidade-POP): `CX-SPCASARB-AR-26-001` vira `CX-ARB-AR-26-001`. Natureza, motivo, ano e sequencial não mudam; o código anterior vai para o histórico do projeto e o código é atualizado nos chamados das etapas.
 71. `agenda_ajuste_70_estoque_nas_areas.sql` — Estoque (materiais) nas áreas de manutenção: `ag_pode_de` passa a aceitar `<área>_estoque`, `<área>_estAtual`, `<área>_a_bolsao`, `<área>_a_elleven`, `<área>_a_base` e `<área>_estHist` (área = `g`, `tx`, `re`, `rp`, `mel`) como as chaves da Implantação, para quem tem a permissão numa área publicar o bolsão, importar o Elleven e atualizar a data-base. As regras das tabelas do estoque não mudam.
+72. `agenda_ajuste_71_projeto_so_quem_incluiu.sql` — validação dos projetos: projeto reprovado pelo O&M só é corrigido e reenviado pelo projetista que incluiu (`dados.val.por`); outro projetista recebe "Só quem incluiu o projeto pode corrigir e reenviar". Recria `ag_proj_guard` (o resto da trava do ajuste 47 não muda).
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -899,6 +900,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Estoque (materiais) em todas as áreas de manutenção (11/11/2026, `mod/estarea.js`):** GTD, Transmissão, RE Corretiva, RE Preventiva e Melhoria de rede ganham no menu o grupo **Estoque** com as mesmas telas da Implantação (Estoque dos técnicos, Atualizar estoque, Movimentações). Em Usuários e acessos, cada aba de área tem os itens "Estoque: estoque dos técnicos", "Estoque: atualizar estoque" (com publicar o bolsão, importar o Elleven e a data-base) e "Estoque: movimentações", com as chaves `<área>_estoque`, `<área>_estAtual`, `<área>_a_bolsao`, `<área>_a_elleven`, `<área>_a_base`, `<área>_estHist` (`g`, `tx`, `re`, `rp`, `mel`). Dentro da área elas valem como `estoque`, `estAtual`, `a_bolsao` etc.; os dados são os mesmos da Implantação. Precisa do ajuste 70.
 
+- **Projetos sem gravar por cima e projetista só com os próprios (11/11/2026, `mod/pvsync.js`):** antes de gravar um projeto alterado, a ferramenta confere a versão do banco; se outra pessoa mudou o projeto depois que a tela carregou, não grava por cima, traz a versão atual e avisa para refazer. Depois de gravar, a cópia local passa a ser a do banco. Abrir o cadastro (Corrigir/editar) e as ações da validação (reenviar, aprovar, reprovar) releem o projeto antes. Na Validação, o projetista vê em todas as abas só os projetos que ele incluiu (autor = quem fez o primeiro envio). Com o ajuste 71, só quem incluiu corrige e reenvia o projeto reprovado.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -963,6 +966,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 11/11/2026 | Validação de projetos: não grava por cima de alteração de outra pessoa (relê o projeto antes de corrigir, reenviar, aprovar ou reprovar), projetista vê só os próprios projetos e só quem incluiu corrige o reprovado | `agenda.html`. **Rodar `agenda_ajuste_71_projeto_so_quem_incluiu.sql` no Supabase** (não subir no GitHub) |
 | 11/11/2026 | Grupo Estoque (estoque dos técnicos, atualizar estoque e movimentações) em GTD, Transmissão, RE Corretiva, RE Preventiva e Melhoria de rede, com permissões por área | `agenda.html`. **Rodar `agenda_ajuste_70_estoque_nas_areas.sql` no Supabase antes** (não subir no GitHub) |
 | 11/11/2026 | Melhoria de rede: despacho escolhendo trechos ou caixas (ou todos), etapa com despacho em partes, endereço e coordenada de cada caixa no "O que fazer" e celular do técnico com trechos, caixas do CFO e "Localização das caixas" | `agenda.html` |
 | 11/11/2026 | Melhoria de rede · Despacho: botão "Anexos do projeto" para levar KMZ (projeto, trechos, CFO/extensão) e anexos do projeto para a atividade sem baixar e subir | `agenda.html` |
