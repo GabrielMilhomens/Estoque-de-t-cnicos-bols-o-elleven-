@@ -2757,7 +2757,7 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<div class="whc"><span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span></div><div class="wbar">${['supply','visu'].includes(ui.perfil)?'':'<button class="wic wbb sino" data-act="avisos" data-l="Avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic wbb" data-act="conta" data-l="Conta" aria-label="Minha conta: senha e notificações" title="Minha conta: senha e notificações">${WHO_CONTA}</button><button class="wic wbb" data-act="logout" data-l="Sair" aria-label="Sair" title="Sair">${ICN.sair}</button></div>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu'],GRP={txMel:'Operação',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu','melKpi','melMin','cxProj','cxCrono','cxDesp','oxProj','oxCrono','oxDesp','melAprov','melBud','melDet','melPrest','melEq'],GRP={txMel:'Operação',melKpi:'Acompanhamento',melMin:'Acompanhamento',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando'&&!lpuTx(l)).length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -13518,7 +13518,7 @@ const PR_RK=PR_ON?pxKeys(PR_RE):[],PX_TK=pxKeys(PX_TX),PX_GK=pxKeys(PERM_T.find(
 {AREA_PERM[1]=AREA_PERM[1].filter(n=>n[0]!=='m_gtd'&&n[0]!=='m_tx'&&n[0]!=='m_re');const ia=PERM_T.indexOf(AREA_PERM);if(!AREA_PERM[1].length&&ia>=0)PERM_T.splice(ia,1);
   const ig=PERM_T.findIndex(g=>g[0]==='GTD Manutenção');PERM_T.splice(ig>=0?ig+1:PERM_T.length,0,PX_TX);if(PR_ON)PERM_T.splice(PERM_T.indexOf(PX_TX)+1,0,PR_RE,PR_RP);
   const add=k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)},w=L=>L.forEach(n=>{add(n[0]);if(n[3])w(n[3])});PERM_T.forEach(g=>w(g[1]));add('m_gtd');add('m_tx');if(PR_ON)add('m_re')}
-const PX_AREA=gn=>gn==='GTD Manutenção'||gn==='Áreas de manutenção'?'gtd':gn==='Transmissão'?'tx':gn==='Rede Externa'||gn==='Rede Externa Corretiva'?'re':gn==='Rede Externa Preventiva'?'rep':gn==='Financeiro (todas as áreas)'||gn==='Visão gerencial'?'fin':'impl';
+const PX_AREA=gn=>gn==='GTD Manutenção'||gn==='Áreas de manutenção'?'gtd':gn==='Transmissão'?'tx':gn==='Rede Externa'||gn==='Rede Externa Corretiva'?'re':gn==='Rede Externa Preventiva'?'rep':gn==='Melhoria de rede'?'mel':gn==='Financeiro (todas as áreas)'||gn==='Visão gerencial'?'fin':'impl';
 const pxPapelTx=p=>p==='supervisor'||p==='encarregado'||p==='noc'||p==='visualizacao';
 /* 27/10: NOC com a aba Transmissão nas permissões. Padrão do NOC: Chamados, Agenda, Criar chamado, Histórico e validar,
    nas duas áreas. Lista do NOC gravada antes (sem nenhuma chave da Transmissão e sem a marca tx_v27) continua vendo a
@@ -13546,8 +13546,8 @@ function permEff(){if(!ME||!['sup','enc','noc'].includes(ui.perfil))return;if(!(
 {const _v=viewPermissoes;viewPermissoes=function(){const id=ui.permSel,pp=USR&&USR.pp.find(x=>x.user_id===id);if(!pp)return _v.apply(this,arguments);
   if(!(ui.permEd&&ui.permEd.id===id))ui.permEd={id,set:pxNorm(permDe(pp.papel,pp.permissoes),pp.papel)};
   const tira=!pxPapelTx(pp.papel),ir=PR_ON?PERM_T.indexOf(PR_RE):-1,ip=PR_ON?PERM_T.indexOf(PR_RP):-1;if(tira&&ip>=0)PERM_T.splice(ip,1);if(tira&&ir>=0)PERM_T.splice(PERM_T.indexOf(PR_RE),1);const it=PERM_T.indexOf(PX_TX),nn=PX_TX[1].find(n=>n[0]==='tx_novo'),fil=nn&&nn[3],soNoc=pp.papel!=='noc'&&fil;if(tira&&it>=0)PERM_T.splice(it,1);if(soNoc)nn.length=3;let h;try{h=_v.apply(this,arguments)}finally{if(tira&&it>=0)PERM_T.splice(it,0,PX_TX);if(tira&&ir>=0)PERM_T.splice(PERM_T.indexOf(PX_TX)+1,0,PR_RE);if(tira&&ip>=0)PERM_T.splice(PERM_T.indexOf(PR_RE)+1,0,PR_RP);if(soNoc)nn[3]=fil}
-  const P=new Set(ui.permEd.set),PT=PERM_T.filter(g=>!(tira&&(g===PX_TX||g===PR_RE||g===PR_RP))&&!(pp.papel==='delivery'&&g[0]==='GTD Manutenção'));
-  const AB=[['impl','Implantação'],['gtd','GTD Manutenção'],['tx','Transmissão'],['re','RE Corretiva'],['rep','RE Preventiva'],['fin','Financeiro e gerencial']].filter(([k])=>PT.some(g=>PX_AREA(g[0])===k));
+  const P=new Set(ui.permEd.set),PT=PERM_T.filter(g=>!(tira&&(g===PX_TX||g===PR_RE||g===PR_RP||(typeof PX_MEL!=='undefined'&&g===PX_MEL)))&&!(pp.papel==='delivery'&&g[0]==='GTD Manutenção'));
+  const AB=[['impl','Implantação'],['gtd','GTD Manutenção'],['tx','Transmissão'],['re','RE Corretiva'],['rep','RE Preventiva'],['mel','Melhoria de rede'],['fin','Financeiro e gerencial']].filter(([k])=>PT.some(g=>PX_AREA(g[0])===k));
   if(AB.length<2)return h;if(!AB.some(a=>a[0]===ui.permAba))ui.permAba=AB[0][0];
   const telas=k=>{let n=0,t=0;PT.filter(g=>PX_AREA(g[0])===k).forEach(g=>{const w=(L,ok)=>L.forEach(x=>{if(x[2]==='t'){t++;if(ok&&P.has(x[0]))n++}if(x[3])w(x[3],ok&&P.has(x[0]))});w(g[1],true)});return [n,t]};
   const bar=`<div class="pxtabs" role="tablist" aria-label="Área">${AB.map(([k,n])=>{const[q,t]=telas(k);return `<button role="tab" data-act="pxAba" data-v="${k}" aria-selected="${ui.permAba===k}"><b>${n}</b><small class="${q?'on':''}">${q?q+' de '+t+' telas':'sem acesso'}</small></button>`}).join('')}</div>`;
@@ -17041,9 +17041,10 @@ ICT.txMel='M3 17l6-6 4 4 8-8M14 7h7v7';
 const tmDe=r=>Object.assign({trechos:[],cfo:null,hist:[]},r.dados||{},{id:r.id,codigo:r.codigo,status:r.status||'proj',criado_em:r.criado_em});
 const tmLimpa=o=>JSON.parse(JSON.stringify(o,(k,v)=>k[0]==='_'?undefined:v));
 async function tmCarregar(){if(TM.bus)return;TM.bus=true;try{const r=await sb.from('ag_tx_mel').select('*').order('criado_em',{ascending:false});if(r.error)throw r.error;TM.L=(r.data||[]).map(tmDe);TM.ok=true;TM.err=''}
-  catch(e){TM.err=/relation|does not exist|schema cache/i.test(e.message||'')?'A tabela das melhorias ainda não existe no banco: falta rodar o ajuste 60.':(e.message||String(e));TM.ok=true}finally{TM.bus=false;if(ui.tab==='txMel')render()}}
+  catch(e){TM.err=/relation|does not exist|schema cache/i.test(e.message||'')?'A tabela das melhorias ainda não existe no banco: falta rodar o ajuste 60.':(e.message||String(e));TM.ok=true}finally{TM.bus=false;if(tmNaTela())render()}}
 const tmGet=id=>TM.L.find(x=>x.id===id);
 const tmD=()=>ui.tmD;
+function tmNaTela(){return ui.tab==='txMel'||(typeof melTmTab==='function'&&melTmTab())}
 const tmLL=s=>{const m=String(s||'').match(/(-?\d+(?:[.,]\d+)?)\s*[,; ]\s*(-?\d+(?:[.,]\d+)?)/);if(!m)return null;const a=+m[1].replace(',','.'),b=+m[2].replace(',','.');return isFinite(a)&&isFinite(b)&&Math.abs(a)<=90&&Math.abs(b)<=180?[a,b]:null};
 const tmPopL=()=>((typeof TXP!=='undefined'&&TXP.L)||[]).filter(p=>p.ativo!==false);
 const tmPopN=p=>p?(typeof txPopN==='function'?txPopN(p):(p.sigla?p.sigla+' · ':'')+p.nome):'';
@@ -17056,11 +17057,11 @@ function tmResumo(D){const T=D.trechos||[],sel=Object.entries((D.cfo&&D.cfo.sel)
     nCx:sel.length,ac:Object.fromEntries(TM_AC.map(([k])=>[k,sel.filter(([,v])=>v.acao===k).length])),nExt:sel.filter(([,v])=>v.ext).length,mExt:sel.reduce((s,[,v])=>s+(v.ext?+v.extM||0:0),0),
     vSpl:sel.reduce((s,[,v])=>{const t=v.acao==='troca'?v.para:v.acao==='add'?v.spl:'';if(!t)return s;const pr=typeof krPr==='function'&&krPr(klSplCod(t));return s+(pr?pr.v*(+v.qtd||1):0)},0)}}
 /* ---------- tela ---------- */
-function viewTxMel(){if(!TM.ok&&!TM.bus){tmCarregar();if(typeof txPopsCarregar==='function'&&typeof TXP!=='undefined'&&!(TXP.L||[]).length)txPopsCarregar().then(()=>{if(ui.tab==='txMel')render()}).catch(()=>{})}
+function viewTxMel(){if(!TM.ok&&!TM.bus){tmCarregar();if(typeof txPopsCarregar==='function'&&typeof TXP!=='undefined'&&!(TXP.L||[]).length)txPopsCarregar().then(()=>{if(tmNaTela())render()}).catch(()=>{})}
   if(ui.tmD)return tmEditor();if(ui.tmV==='painel')return tmPainel();const f=ui.tmF||'',L=TM.L.filter(x=>!f||x.status===f);
   const card=x=>{const R=tmResumo(x),st=TM_ST[x.status]||[x.status,''],tp=x.tipo==='infra'?'Infraestrutura do POP':(TM_TIPO.find(t=>t[0]===x.tipo)||[0,''])[1],C$=tmCustos(x);
     return `<article class="tmcard"><div class="tmch"><div><b>${esc(x.codigo||'')}</b> <span class="chip ${st[1]}">${st[0]}</span></div><span class="chip">${tp}</span></div>
-     <h3>${esc(x.titulo||'Sem título')}</h3><small class="muted">${esc([x.cidade,x.popNome,x.motivo].filter(Boolean).join(' · '))}</small>
+     <small class="muted">${esc([x.cidade,x.popNome,x.motivo].filter(Boolean).join(' · '))}</small>
      <ul class="tmres">${tmTemL(x)?`<li>Lançamento: <b>${R.nT} trecho${R.nT===1?'':'s'}</b>${R.m?` · ${tmM(R.m)} · ${R.postes} postes`:''}</li>`:''}${tmTemC(x)?`<li>CFO: <b>${R.nCx} caixa${R.nCx===1?'':'s'}</b>${R.nCx?' ('+TM_AC.filter(([k])=>R.ac[k]).map(([k,n])=>R.ac[k]+' '+n.split(' ')[0].toLowerCase()).join(', ')+')':''}${R.nExt?` · ${R.nExt} com extensão de fibra`:''}</li>`:''}
       ${x.tipo==='infra'&&x.infraDesc?`<li>${esc(String(x.infraDesc).slice(0,90))}</li>`:''}${C$.tot?`<li>Custo previsto: <b>${brl(C$.tot)}</b> <small class="muted">(materiais ${brl(C$.vMat)} · mão de obra ${brl(C$.vMo)})</small></li>`:''}${x.desp?`<li>Responsável: ${esc(x.desp.tecN||'')} · ${dBR(x.desp.data)}</li>`:''}${(()=>{const Rr=tmReal(x),d=tmDatas(x);return (Rr.tot?`<li>Realizado: <b>${brl(Rr.tot)}</b></li>`:'')+(d.ini?`<li>${d.iniR?'Início':'Início previsto'}: ${dBR(d.ini)}${d.fim?` · ${d.fimR?'Término':'Término previsto'}: ${dBR(d.fim)}`:''}</li>`:'')})()}</ul>
      <div class="actions"><button class="btn sm primary" data-act="tmAbrir" data-id="${x.id}">Abrir</button>${x.tipo==='infra'?'':`<button class="btn sm" data-act="tmKmz" data-id="${x.id}">Baixar KMZ</button>`}</div></article>`};
@@ -17092,9 +17093,9 @@ function tmEditor(){const D=tmD(),ro=!tmPode()||D.status==='concl'||D.status==='
        <fieldset class="f tmext tmw"><legend>Extensão de fibra?</legend><label class="chk"><input type="radio" name="tmext-${p.id}" data-ch="tmCxExt" data-id="${p.id}" value="1" ${s.ext?'checked':''} ${dis}> Sim</label><label class="chk"><input type="radio" name="tmext-${p.id}" data-ch="tmCxExt" data-id="${p.id}" value="0" ${!s.ext?'checked':''} ${dis}> Não</label>
         ${s.ext?`<label class="f inline"><span>Metros</span><input class="inp" type="number" min="1" data-ch="tmCx" data-id="${p.id}" data-k="extM" value="${esc(s.extM||'')}" placeholder="ex.: 80" ${dis}></label>`:''}</fieldset>
        <label class="f tmw"><span>Observação</span><input class="inp" data-ch="tmCx" data-id="${p.id}" data-k="obs" value="${esc(s.obs||'')}" placeholder="Opcional" ${dis}></label></div>`:''}</div>`};
-  return `<div class="toolbar"><div><button class="btn sm ghost" data-act="tmVolta">‹ Melhorias</button><h2>${D.codigo?esc(D.codigo)+' · ':''}${esc(D.titulo||'Nova melhoria de rede')}</h2><p class="muted">${D.id?`<span class="chip ${(TM_ST[D.status]||['',''])[1]}">${(TM_ST[D.status]||[D.status])[0]}</span>`:'Ainda não salva'}${D.desp?` · Responsável: ${esc(D.desp.tecN||'')} em ${dBR(D.desp.data)}`:''}</p></div>
+  return `<div class="toolbar"><div><button class="btn sm ghost" data-act="tmVolta">‹ Melhorias</button><h2>${esc(D.codigo||'Nova melhoria de rede')}</h2><p class="muted">${D.id?`<span class="chip ${(TM_ST[D.status]||['',''])[1]}">${(TM_ST[D.status]||[D.status])[0]}</span>`:'Ainda não salva'}${D.desp?` · Responsável: ${esc(D.desp.tecN||'')} em ${dBR(D.desp.data)}`:''}</p></div>
     <div class="tools">${ro?'':'<button class="btn primary" data-act="tmSalvar">Salvar</button>'}${D.tipo==='infra'?'':'<button class="btn" data-act="tmKmz">Baixar KMZ</button>'}${!ro&&D.id&&D.status==='proj'?'<button class="btn" data-act="tmDesp">Despachar</button>':''}${tmPode()&&D.id?'<button class="btn" data-act="tmSt">Atualizar status</button>':''}</div></div>
-   <section class="panel"><div class="secth"><h3>1. Dados da melhoria</h3></div><div class="tmform">${inp('titulo','Título *',{ph:'Ex.: Alívio CEO-1262 · Jardim Europa'})}${inp('cidade','Cidade',{ph:'Ex.: Valinhos'})}
+   <section class="panel"><div class="secth"><h3>1. Dados da melhoria</h3></div><div class="tmform">${inp('cidade','Cidade',{ph:'Ex.: Valinhos'})}
      <label class="f"><span>POP de referência</span>${popSel(D.popId,'tmPop')}</label><label class="f"><span>Motivo</span><select class="inp" data-ch="tmCampo" data-k="motivo" ${dis}><option value="">Escolha</option>${TM_MOT.map(m=>`<option ${D.motivo===m?'selected':''}>${m}</option>`).join('')}</select></label>
      ${inp('obs','Observações',{ta:1,w:1})}</div><label class="chk"><input type="checkbox" data-ch="tmCrit" ${D.crit?'checked':''} ${dis}> Região crítica (valor crítico da LPU)</label>
      <div class="tmform" style="margin-top:6px"><label class="f"><span>Início previsto</span><input class="inp" type="date" data-ch="tmData" data-k="iniP" value="${esc(D.iniP||'')}" ${dis}></label><label class="f"><span>Término previsto</span><input class="inp" type="date" data-ch="tmData" data-k="fimP" value="${esc(D.fimP||'')}" ${dis}></label></div></section>
@@ -17121,7 +17122,7 @@ async function tmMapa(){const D=tmD(),box=document.getElementById('tmMap');if(!D
     m.bindTooltip(esc(p.nome)+(on?' · '+(TM_AC.find(a=>a[0]===sel[p.id].acao)||['',''])[1]:''),{direction:'top'});
     m.on('click',()=>{if(!tmPode()||['concl','canc'].includes(D.status))return;tmCxToggle(p.id);render();setTimeout(()=>{const e=document.getElementById('tmcx-'+p.id);if(e)e.scrollIntoView({block:'nearest'})},60)})});
   if(!TMM.fit&&pts.length){TMM.map.fitBounds(LL.latLngBounds(pts.map(p=>[p.lat,p.lon])),{padding:[24,24],maxZoom:18});TMM.fit=true}setTimeout(()=>{try{TMM.map.invalidateSize()}catch(e){}},50)}
-{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(ui.tab==='txMel'&&ui.tmD&&ui.tmD.cfo)tmMapa();else if(TMM&&!document.getElementById('tmMap')){try{TMM.map.remove()}catch(e){}TMM=null}}catch(e){console.warn('tmMapa',e)}return o}}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(tmNaTela()&&ui.tmD&&ui.tmD.cfo)tmMapa();else if(TMM&&!document.getElementById('tmMap')){try{TMM.map.remove()}catch(e){}TMM=null}}catch(e){console.warn('tmMapa',e)}return o}}
 function tmCxToggle(id){const C=tmD().cfo,s=C.sel=C.sel||{};if(s[id])delete s[id];else s[id]={acao:'troca',qtd:1,ext:false}}
 /* KMZ da melhoria: trechos + caixas do CFO */
 const TM_IC={cx:'pushpin/ylw-pushpin',spl:'shapes/triangle',info:'shapes/info-i'};
@@ -17134,7 +17135,7 @@ async function tmKml(D){const x=s=>String(s==null?'':s).replace(/&/g,'&amp;').re
       const desc=[ac+(det?': '+det:'')+q,s.ext?`Extensão de fibra: sim${s.extM?' ('+s.extM+' m)':''}`:'Extensão de fibra: não',s.obs].filter(Boolean).join(' · ');
       return pm(p.nome+' · '+ac,[p.lat,p.lon],'cx',desc)+(s.acao==='rem'?pm('REMOVER SPLITTER '+(s.spl||'').toUpperCase()+' ('+p.nome+')',[p.lat,p.lon],'info',desc):pm('SPLITTER '+String(s.acao==='troca'?s.para:s.spl||'').toUpperCase()+' ('+p.nome+')',[p.lat,p.lon],'spl',desc))+(s.ext?pm('EXTENSÃO DE FIBRA'+(s.extM?' '+s.extM+' m':'')+' ('+p.nome+')',[p.lat,p.lon],'info',desc):'')}).join('')}</Folder>`}
   const sty=Object.entries(TM_IC).map(([k,h])=>`<Style id="${k}"><IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/${h}.png</href></Icon></IconStyle></Style>`).join('');
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${x((D.codigo||'MELHORIA')+' - '+(D.titulo||''))}</name><description>Melhoria de rede da Transmissão (Ferramenta de Gestão O&amp;M). Padrão construtivo IOP.2.5.1.001.</description>${sty}\n${tr}${cf}</Document></kml>`}
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${x(D.codigo||'MELHORIA')}</name><description>Melhoria de rede (Ferramenta de Gestão O&amp;M). Padrão construtivo IOP.2.5.1.001.</description>${sty}\n${tr}${cf}</Document></kml>`}
 const tmArq=s=>String(s||'melhoria').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w\-]+/g,'_').slice(0,60);
 const tmSalvaArq=(b,n)=>(typeof baixaArq==='function'?baixaArq:rpBaixa)(b,n);
 const tmTrOrig=t=>{if(t.oTipo==='pop'){const P=tmPopL().find(p=>String(p.id)===String(t.oPop));return{nome:P?(P.sigla||P.nome):'POP',ll:P&&P.lat!=null?[+P.lat,+P.lng]:null}}return{nome:t.oNome||'CAIXA ORIGEM',ll:tmLL(t.oCoord)}};
@@ -17152,7 +17153,7 @@ function tmAbreLab(i){const D=tmD(),t=D.trechos[i],o=tmTrOrig(t),d=tmLL(t.dCoord
   t.des.m=tmCab(t.des);t._kml=KLB.kml;t._kmz=KLB.kmz;KLB.txMel=null;ACT.klabFecha();KLB.wiz=false;KLB.melWiz=false;render();toast('Traçado usado no trecho. Salve a melhoria.')}}
 {const _f=ACT.klabFecha;ACT.klabFecha=function(){const r=_f.apply(this,arguments);if(KLB.txMel){KLB.txMel=null;KLB.wiz=false;KLB.melWiz=false}return r}}
 /* ações */
-const tmNovo=()=>({titulo:'',cidade:'',popId:'',motivo:'',obs:'',crit:false,tipo:'lc',trechos:[],cfo:null,status:'proj',hist:[]});
+const tmNovo=()=>({cidade:'',popId:'',motivo:'',obs:'',crit:false,tipo:'lc',trechos:[],cfo:null,status:'proj',hist:[]});
 Object.assign(ACT,{
   tmNova:()=>{if(!tmPode())return semPerm();ui.tmD=tmNovo();if(TMM){try{TMM.map.remove()}catch(e){}TMM=null}render();window.scrollTo(0,0)},
   tmAbrir:el=>{const x=tmGet(el.dataset.id);if(!x)return;ui.tmD=JSON.parse(JSON.stringify(x));if(TMM){try{TMM.map.remove()}catch(e){}TMM=null}render();window.scrollTo(0,0)},
@@ -17163,11 +17164,11 @@ Object.assign(ACT,{
   tmDes:el=>tmAbreLab(+el.dataset.i),
   tmTrKmz:async el=>{const D=tmD(),t=D.trechos[+el.dataset.i];try{const b=t._kmz||await kaKmz(await tmTrKml(t));tmSalvaArq(b,tmArq((D.codigo||'melhoria')+'_trecho_'+(+el.dataset.i+1))+'.kmz')}catch(e){toast('Não foi possível baixar o KMZ: '+(e.message||e),'bad')}},
   tmKmz:async el=>{const D=el&&el.dataset&&el.dataset.id?tmGet(el.dataset.id):tmD();if(!D)return;const R=tmResumo(D);if(!R.nDes&&!R.nCx){toast('Ainda não há traçado nem caixa de CFO para o KMZ.','bad');return}
-    try{toast('Montando o KMZ da melhoria…');const k=await tmKml(D);tmSalvaArq(await kaKmz(k),tmArq((D.codigo||'melhoria')+'_'+(D.titulo||''))+'.kmz')}catch(e){toast('Não foi possível montar o KMZ: '+(e.message||e),'bad')}},
-  tmSalvar:async el=>{if(!tmPode())return semPerm();const D=tmD();if(!String(D.titulo||'').trim()){toast('Informe o título da melhoria.','bad');return}
+    try{toast('Montando o KMZ da melhoria…');const k=await tmKml(D);tmSalvaArq(await kaKmz(k),tmArq(D.codigo||'melhoria')+'.kmz')}catch(e){toast('Não foi possível montar o KMZ: '+(e.message||e),'bad')}},
+  tmSalvar:async el=>{if(!tmPode())return semPerm();const D=tmD();if(typeof melValida==='function'?!melValida(D):!String(D.titulo||D.motivo||'').trim()){if(typeof melValida!=='function')toast('Informe o motivo da melhoria.','bad');return}
     if(D.tipo==='infra'&&(!D.popId||!String(D.infraDesc||'').trim())){toast('Na infraestrutura, escolha o POP e descreva o que será feito.','bad');return}
     if(tmTemL(D)&&!(D.trechos||[]).length&&!tmTemC(D)){toast('Inclua um trecho de lançamento.','bad');return}if(el)el.disabled=true;
-    try{const novo=!D.id;if(novo){D.id=(crypto.randomUUID?crypto.randomUUID():'tm'+Date.now());const ano=hoje().slice(0,4),n=TM.L.reduce((m,x)=>{const k=String(x.codigo||'').match(new RegExp('-'+ano+'-(\\d+)$'));return k?Math.max(m,+k[1]):m},0)+1;D.codigo=`MEL-TX-${ano}-${String(n).padStart(3,'0')}`;D.hist=[{acao:'Criada',por:meNome(),em:Date.now()}]}
+    try{const novo=!D.id;if(novo){D.id=(crypto.randomUUID?crypto.randomUUID():'tm'+Date.now());const ano=hoje().slice(0,4),n=TM.L.reduce((m,x)=>{const k=String(x.codigo||'').match(new RegExp('-'+ano+'-(\\d+)$'));return k?Math.max(m,+k[1]):m},0)+1;D.codigo=typeof melCodigo==='function'?melCodigo(D):`MEL-TX-${ano}-${String(n).padStart(3,'0')}`;D.hist=[{acao:'Criada',por:meNome(),em:Date.now()}]}
       for(const t of D.trechos||[]){if(t._kmz){const p=`txmel/${D.id}/trecho-${t.id}-${Date.now()}.kmz`,u=await sb.storage.from('agenda').upload(p,t._kmz,{contentType:'application/vnd.google-earth.kmz',upsert:true});if(u.error)throw u.error;t.des.kmzPath=p;t.des.novo=false;delete t._kmz}}
       if(D.cfo&&D.cfo._file){const p=`txmel/${D.id}/cfo-${Date.now()}.kmz`,u=await sb.storage.from('agenda').upload(p,D.cfo._file,{upsert:true});if(!u.error)D.cfo.kmzPath=p;delete D.cfo._file}
       const P=tmPopL().find(p=>String(p.id)===String(D.popId));D.popNome=P?tmPopN(P):'';if(!novo)D.hist=(D.hist||[]).concat([{acao:'Editada',por:meNome(),em:Date.now()}]);
@@ -17353,10 +17354,10 @@ function tmPainel(){const{ini,fim,L}=tmPainelDados(),sm=(A,f)=>A.reduce((s,r)=>s
     <div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="tmPi" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="tmPf" value="${fim}"></label><button class="btn" data-act="tmXlsx">Baixar planilha</button></div></div>${tmViews()}
    <div class="kpis">${kp(brl(tot),'Total investido','ok')}${kp(brl(prev),'Previsto')}${kp(prev?Math.round(tot/prev*100)+'%':'—','Realizado do previsto')}${kp(L.length,'Melhorias')}${kp(conc.length,'Concluídas','ok')}${kp(andam.length,'Em andamento')}${kp(atr.length,'Atrasadas',atr.length?'bad':'')}${kp(dm!=null?dm+' dias':'—','Duração média (concluídas)')}</div>
    ${tabG('Custos por motivo',grp(x=>x.motivo),'Motivo')}${tabG('Custos por POP',grp(tmPopNome),'POP')}
-   <section class="panel" style="margin-top:14px"><div class="secth"><h3>Melhorias no período</h3></div><div class="tablewrap"><table class="tmct"><thead><tr><th>Código</th><th>Melhoria</th><th>POP</th><th>Motivo</th><th>Status</th><th>Início</th><th>Término</th><th class="r">Previsto</th><th class="r">Investido</th></tr></thead><tbody>
-    ${L.map(r=>{const st=TM_ST[r.x.status]||[r.x.status,''];return `<tr><td><button class="linkbtn" data-act="tmAbrir" data-id="${r.x.id}">${esc(r.x.codigo||'')}</button></td><td>${esc(r.x.titulo||'')}</td><td>${esc(tmPopNome(r.x))}</td><td>${esc(r.x.motivo||'—')}</td><td><span class="chip ${st[1]}">${st[0]}</span></td><td>${r.d.ini?dBR(r.d.ini)+(r.d.iniR?'':' <small class="muted">prev.</small>'):'—'}</td><td>${r.d.fim?dBR(r.d.fim)+(r.d.fimR?'':' <small class="muted">prev.</small>'):'—'}</td><td class="r">${brl(r.C.tot)}</td><td class="r"><b>${brl(r.Rr.tot)}</b></td></tr>`}).join('')||'<tr><td colspan="9" class="muted">Nenhuma melhoria no período.</td></tr>'}</tbody></table></div></section>`}
+   <section class="panel" style="margin-top:14px"><div class="secth"><h3>Melhorias no período</h3></div><div class="tablewrap"><table class="tmct"><thead><tr><th>Código</th><th>POP</th><th>Motivo</th><th>Status</th><th>Início</th><th>Término</th><th class="r">Previsto</th><th class="r">Investido</th></tr></thead><tbody>
+    ${L.map(r=>{const st=TM_ST[r.x.status]||[r.x.status,''];return `<tr><td><button class="linkbtn" data-act="tmAbrir" data-id="${r.x.id}">${esc(r.x.codigo||'')}</button></td><td>${esc(tmPopNome(r.x))}</td><td>${esc(r.x.motivo||'—')}</td><td><span class="chip ${st[1]}">${st[0]}</span></td><td>${r.d.ini?dBR(r.d.ini)+(r.d.iniR?'':' <small class="muted">prev.</small>'):'—'}</td><td>${r.d.fim?dBR(r.d.fim)+(r.d.fimR?'':' <small class="muted">prev.</small>'):'—'}</td><td class="r">${brl(r.C.tot)}</td><td class="r"><b>${brl(r.Rr.tot)}</b></td></tr>`}).join('')||'<tr><td colspan="9" class="muted">Nenhuma melhoria no período.</td></tr>'}</tbody></table></div></section>`}
 Object.assign(CH,{tmPi:el=>{ui.tmPi=el.value;render()},tmPf:el=>{ui.tmPf=el.value;render()}});
-ACT.tmXlsx=()=>{const{ini,fim,L}=tmPainelDados();xlsxBaixar(`melhorias_de_rede_${ini}_${fim}.xlsx`,[['Melhorias',L.map(r=>({Código:r.x.codigo,Melhoria:r.x.titulo,POP:tmPopNome(r.x),Motivo:r.x.motivo||'',Tipo:r.x.tipo==='infra'?'Infraestrutura':(TM_TIPO.find(t=>t[0]===r.x.tipo)||[0,''])[1],Status:(TM_ST[r.x.status]||[r.x.status])[0],
+ACT.tmXlsx=()=>{const{ini,fim,L}=tmPainelDados();xlsxBaixar(`melhorias_de_rede_${ini}_${fim}.xlsx`,[['Melhorias',L.map(r=>({Código:r.x.codigo,POP:tmPopNome(r.x),Motivo:r.x.motivo||'',Tipo:r.x.tipo==='infra'?'Infraestrutura':(TM_TIPO.find(t=>t[0]===r.x.tipo)||[0,''])[1],Status:(TM_ST[r.x.status]||[r.x.status])[0],
   'Início previsto':r.x.iniP?dBR(r.x.iniP):'','Término previsto':r.x.fimP?dBR(r.x.fimP):'','Início':r.x.iniR?dBR(r.x.iniR):'','Término':r.x.fimR?dBR(r.x.fimR):'',Previsto:r.C.tot,'Mão de obra (LPU)':r.Rr.mo,'Materiais (Grafana)':r.Rr.mat,Investido:r.Rr.tot}))],
   ['Filtros',xFiltros({'Tela':'Transmissão › Melhoria de rede › Painel','Período (início)':dBR(ini)+' a '+dBR(fim),'Melhorias':L.length})]],'Planilha das melhorias baixada.')};
 document.head.insertAdjacentHTML('beforeend','<style>.tmtl{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto}.tmtl li{border-left:3px solid var(--line);padding:2px 0 2px 10px}.tmtl p{margin:4px 0 0}</style>');
@@ -17513,10 +17514,10 @@ if(typeof TX_TIPOS!=='undefined'&&!TX_TIPOS.some(t=>t[0]==='mel'))TX_TIPOS.push(
   if(!ctx){const i=TX_TIPOS.findIndex(t=>t[0]==='mel'),x=i>=0?TX_TIPOS.splice(i,1)[0]:null;try{return _v.apply(this,arguments)}finally{if(x)TX_TIPOS.splice(i,0,x)}}
   const sv=TX_TIPOS.splice(0,TX_TIPOS.length,['mel','Melhoria de rede']);let h;try{txFNovo().tipo='mel';h=_v.apply(this,arguments)}finally{TX_TIPOS.splice(0,TX_TIPOS.length,...sv)}
   h=h.replace('<small>undefined</small>','<small>Etapa de campo da melhoria</small>');
-  const{L}=tmTecs(),tec=txFNovo().tec;h=h.replace(/(<select class="inp" data-ch="txF" data-k="tec"><option value="">[^<]*<\/option>)[\s\S]*?(<\/select>)/,(m,a,b)=>a+L.map(t=>`<option value="${t.id}" ${t.id===tec?'selected':''}>${esc(t.nome)}${t.vinculo==='terceiro'||t.tipo==='TERC'?' (terceiro)':''}</option>`).join('')+b);
+  const TT=tmTecsTodos(),M=TT.filter(t=>tmEqMel(t.id)),O=TT.filter(t=>!tmEqMel(t.id)),tec=txFNovo().tec,op=t=>`<option value="${t.id}" ${t.id===tec?'selected':''}>${esc(t.nome)}${t.vinculo==='terceiro'||t.tipo==='TERC'?' (terceiro)':''}</option>`;h=h.replace(/(<select class="inp" data-ch="txF" data-k="tec"><option value="">[^<]*<\/option>)[\s\S]*?(<\/select>)/,(m,a,b)=>a+(M.length?`<optgroup label="Atuam na melhoria de rede">${M.map(op).join('')}</optgroup><optgroup label="Outros técnicos e empresas (não marcados na Equipe técnica)">${O.map(op).join('')}</optgroup>`:TT.map(op).join(''))+b+(tec&&M.length&&!tmEqMel(tec)?'<small class="melwarn" style="display:block;margin-top:4px">Este técnico não está marcado na coluna Melhoria de rede da Equipe técnica.</small>':''));
   const ban=`<div class="rpbox info tmctx"><div><b>Despacho da etapa "${esc(ctx.nome)}" · ${esc(ctx.cod)}</b><span>${esc(ctx.tit||'')}</span>${(ctx.itens||[]).length?`<ul>${ctx.itens.map(i=>`<li>${esc(i.t)}${i.d?` <small class="muted">${esc(i.d)}</small>`:''}</li>`).join('')}</ul>`:''}<small class="muted">O chamado entra na Agenda da Transmissão com os itens da etapa${ctx.kmz?' e o KMZ':''}. Ao agendar, a etapa volta para a melhoria como despachada.</small></div><button class="btn sm" data-act="tmCtxSai">Voltar à melhoria</button></div>`;
   return ban+h}}
-const tmDespPode=()=>ui.perfil==='coord'||pode('a_gMelDesp'),tmAcPode=()=>tmPode()||tmDespPode();
+const tmDespPode=()=>ui.perfil==='coord'||pode('a_gMelDesp'),tmAcPode=()=>tmPode()||tmDespPode()||(typeof melDlgPode==='function'&&melDlgPode());
 const tmIni=n=>String(n||'?').trim().split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase();
 const tmDia=s=>s?new Date(s+'T12:00:00'):null;
 const tmDd=(a,b)=>Math.round((tmDia(b)-tmDia(a))/864e5);
@@ -17526,12 +17527,12 @@ function tmTecsTodos(){return((typeof G!=='undefined'&&G.tecs&&G.tecs.length)?G.
 function tmTecs(){const L=tmTecsTodos(),m=L.filter(t=>tmEqMel(t.id));return{L:m.length?m:L,conf:m.length>0}}
 const tmTecN=id=>{const t=tmTecsTodos().find(x=>x.id===id);return t?t.nome:(typeof gTecN==='function'?gTecN(id):'')||'Técnico'};
 {const _v=viewEqTec;viewEqTec=function(){let h=_v.apply(this,arguments);try{const ed=eqEdita();
-  const bt=id=>{const on=tmEqMel(id);return `<button class="eqb area g ${on?'on':''}" data-act="eqT" data-id="${id}" data-k="txmel" aria-pressed="${on}" aria-label="Atua em melhoria de rede da Transmissão" ${ed?'':'disabled'}>${on?'Sim':'Não'}</button>`};
-  h=h.replace('<th class="gg">REDE EXTERNA</th></tr>','<th class="gg">REDE EXTERNA</th><th class="sp"></th><th class="gg">MELHORIA TX</th></tr>');
+  const bt=id=>{const on=tmEqMel(id);return `<button class="eqb area g ${on?'on':''}" data-act="eqT" data-id="${id}" data-k="txmel" aria-pressed="${on}" aria-label="Atua em melhoria de rede" ${ed?'':'disabled'}>${on?'Sim':'Não'}</button>`};
+  h=h.replace('<th class="gg">REDE EXTERNA</th></tr>','<th class="gg">REDE EXTERNA</th><th class="sp"></th><th class="gg">MELHORIA DE REDE</th></tr>');
   h=h.replace(/(<tr>(?:<th[^>]*>[^<]*<\/th>)*?<th class="gg2">Atua<\/th>)<\/tr>/,(m,a)=>a.split('<th class="gg2">Atua</th>').length>=4?`${a}<th class="sp"></th><th class="gg2">Atua</th></tr>`:m);
   h=h.replace(/(data-act="eqT" data-id="([^"]+)" data-k="re"[^>]*>[^<]*<\/button><\/td>)<\/tr>/g,(m,a,id)=>`${a}<td class="sp"></td><td class="gg2">${bt(id)}</td></tr>`);
   h=h.replace(/(<td class="gg2"><b class="g">\d+<\/b><\/td>)<\/tr><\/tfoot>/,`$1<td class="sp"></td><td class="gg2"><b class="g">${(typeof TEC!=='undefined'?TEC:[]).filter(t=>tmEqMel(t.id)).length}</b></td></tr></tfoot>`).replace('colspan="13"','colspan="15"');
-  return h.replace(/(A Rede Externa usa a coluna própria \(não a do GTD\)\.)/,'$1 "Melhoria TX" marca quem recebe as melhorias de rede da Transmissão.')}catch(e){return h}}}
+  return h.replace(/(A Rede Externa usa a coluna própria \(não a do GTD\)\.)/,'$1 "Melhoria de rede" marca quem recebe as etapas de campo da área Melhoria de rede (Capex e Opex).')}catch(e){return h}}}
 {const _t=ACT.eqT;ACT.eqT=async el=>{if(el.dataset.k!=='txmel')return _t(el);if(!eqEdita())return semPerm();const id=el.dataset.id,a=eqDe(id),ant=EQP.rows[id];
   const n={tecnico:id,impl:!!a.impl,servicos:(a.servicos||[]).slice(),gtd:!!a.gtd,tx:!!a.tx,re:!!a.re,txmel:!a.txmel};EQP.rows[id]=Object.assign({},a,n);render();
   const r=await sb.from('ag_equipe').upsert({tecnico:id,impl:n.impl,servicos:n.servicos,gtd:n.gtd,tx:n.tx,re:n.re,txmel:n.txmel,atualizado_por_nome:meNome()},{onConflict:'tecnico'});
@@ -17601,13 +17602,13 @@ function tmEtapasHtml(D){const E=tmEtapas(D),ativo=!['concl','canc'].includes(D.
       ${!e.campo&&e.st!=='pend'&&e.por?`<small class="muted">${esc(e.por)} · ${tmQuando(e.em)}</small>`:''}</div><div class="tmeta">${ac}</div></li>`}).join('')}</ol>`}
 /* ---------- delegar etapa: pessoa, prazo e o que fazer (texto, prints e anexos) ---------- */
 const TMP={L:null,bus:false};
-async function tmPessoas(){if(TMP.L)return TMP.L;const r=await sb.rpc('ag_tx_mel_pessoas');if(r.error){TMP.err=/function|schema cache|does not exist/i.test(r.error.message||'')?'Falta rodar o ajuste 61 no banco.':r.error.message;return []}TMP.L=(r.data||[]).map(x=>({id:x.id,nome:x.nome||'',papel:x.papel||''}));return TMP.L}
+async function tmPessoas(){const nat=typeof melAt==='function'&&melAt()?melNatCur():'',k='_'+nat;if(TMP[k]){TMP.L=TMP[k];return TMP.L}let r=await sb.rpc('ag_tx_mel_pessoas',nat?{p_nat:nat}:{});if(r.error&&nat&&/function|schema cache|does not exist|argument/i.test(r.error.message||''))r=await sb.rpc('ag_tx_mel_pessoas');if(r.error){TMP.err=/function|schema cache|does not exist/i.test(r.error.message||'')?'Falta rodar o ajuste 61 no banco.':r.error.message;return []}TMP.L=TMP[k]=(r.data||[]).map(x=>({id:x.id,nome:x.nome||'',papel:x.papel||''}));return TMP.L}
 const TM_PAP={coordenador:'Coordenação',supervisor:'Supervisão',encarregado:'Encarregado',noc:'NOC',delivery:'Delivery',supply:'Supply',tecnico:'Técnico'};
 DN.tmdl=DN.tmdl||{};DN.tmrs=DN.tmrs||{};
 ACT.tmDlg=async el=>{if(!tmAcPode())return semPerm();const D=tmD(),e=tmEtapas(D).find(x=>x.id===el.dataset.e);if(!e)return;const L=await tmPessoas();
-  if(!L.length){toast(TMP.err||'Nenhuma pessoa com acesso à Melhoria de rede.','bad');return}
+  if(!L.length){toast(TMP.err||'Nenhuma pessoa com acesso a este grupo da Melhoria de rede.','bad');return}
   (ui.dnT=ui.dnT||{})['tmdl'+e.id]=(ui.dnT['tmdl'+e.id])||(e.dir&&e.dir.txt)||'';
-  openModal(`<h3>Delegar · ${esc(e.nome)}</h3><p class="muted">${esc(D.codigo)} · ${esc(D.titulo||'')}. A pessoa recebe o aviso no sino e vê a etapa na melhoria.</p>
+  openModal(`<h3>Delegar · ${esc(e.nome)}</h3><p class="muted">${esc(D.codigo)}. A pessoa recebe o aviso no sino e vê a etapa na melhoria.</p>
     <div class="tmform"><label class="f"><span>Responsável *</span><select class="inp" id="tmdlP"><option value="">Escolha</option>${L.map(p=>`<option value="${p.id}" ${p.id===e.resp?'selected':''}>${esc(p.nome)}${TM_PAP[p.papel]?' · '+TM_PAP[p.papel]:''}</option>`).join('')}</select></label>
      <label class="f"><span>Prazo *</span><input class="inp" type="date" id="tmdlD" value="${esc(e.prazo||e.fimP||'')}"></label></div>
     <div class="f"><span>O que precisa ser feito *</span>${dnCampos('tmdl',e.id,'Direcionamento e observações. Cole prints aqui (Ctrl+V) ou anexe fotos e arquivos.')}</div>
@@ -17622,7 +17623,7 @@ ACT.tmDlgOk=async el=>{const D=tmD(),id=el.dataset.e,e0=tmEtapas(D).find(x=>x.id
   catch(x){toast('Não foi possível delegar: '+(x.message||x),'bad')}finally{el.disabled=false}};
 /* responder (responsável ou gestão): texto, prints e anexos, com a situação da etapa */
 ACT.tmResp=el=>{const D=tmD(),e=tmEtapas(D).find(x=>x.id===el.dataset.e);if(!e)return;
-  openModal(`<h3>Responder · ${esc(e.nome)}</h3><p class="muted">${esc(D.codigo)} · ${esc(D.titulo||'')}${e.prazo?' · prazo '+dBR(e.prazo):''}</p>
+  openModal(`<h3>Responder · ${esc(e.nome)}</h3><p class="muted">${esc(D.codigo)}${e.prazo?' · prazo '+dBR(e.prazo):''}</p>
     <label class="f"><span>Situação da etapa</span><select class="inp" id="tmrsS">${[['pend','Pendente'],['and','Em andamento'],['concl','Concluída']].map(([k,n])=>`<option value="${k}" ${(e.st||'pend')===k?'selected':''}>${n}</option>`).join('')}</select></label>
     <div class="f"><span>Atualização</span>${dnCampos('tmrs',e.id,'O que foi feito, o que falta. Cole prints aqui (Ctrl+V) ou anexe fotos e arquivos.')}</div>
     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="tmRespOk" data-e="${e.id}">Enviar</button></div>`)};
@@ -17637,13 +17638,13 @@ async function tmEtResp(mid,eid,st,txt,anx){const r=await sb.rpc('ag_tx_mel_etap
 /* etapas delegadas para mim (topo da Melhoria de rede) */
 function tmMinhasEt(){const eu=ME&&ME.id;if(!eu)return [];const L=[];TM.L.forEach(x=>{if(['concl','canc'].includes(x.status))return;tmEtapas(x).forEach(e=>{if(e.resp===eu&&!e.campo&&tmEtSt(e).k!=='concl')L.push({x,e})})});return L.sort((a,b)=>String(a.e.prazo||'9').localeCompare(String(b.e.prazo||'9')))}
 function tmMinhasHtml(){const L=tmMinhasEt();if(!L.length)return '';return `<section class="panel tmmin"><div class="secth"><h3>Etapas com você <small class="muted">${L.length}</small></h3></div><div class="tmminl">${L.map(({x,e})=>{const d=e.prazo?tmDd(hoje(),e.prazo):null,s=tmEtSt(e);
-  return `<button type="button" class="tmq" data-act="tmAbrir" data-id="${x.id}"><span class="tmqh"><b>${esc(e.nome)}</b><span class="chip ${s.c}">${esc(s.t)}</span></span><span>${esc(x.codigo)} · ${esc(x.titulo||'')}</span>${e.prazo?`<small class="${d<0?'bad':d<=1?'warn':'muted'}">${d<0?`Atrasada ${-d} dia${d===-1?'':'s'} · `:''}prazo ${dBR(e.prazo)}</small>`:''}<small class="muted">Delegada por ${esc((e.dir&&e.dir.por)||'')}</small></button>`}).join('')}</div></section>`}
+  return `<button type="button" class="tmq" data-act="tmAbrir" data-id="${x.id}"><span class="tmqh"><b>${esc(e.nome)}</b><span class="chip ${s.c}">${esc(s.t)}</span></span><span>${esc(x.codigo)}${x.motivo?' · '+esc(x.motivo):''}</span>${e.prazo?`<small class="${d<0?'bad':d<=1?'warn':'muted'}">${d<0?`Atrasada ${-d} dia${d===-1?'':'s'} · `:''}prazo ${dBR(e.prazo)}</small>`:''}<small class="muted">Delegada por ${esc((e.dir&&e.dir.por)||'')}</small></button>`}).join('')}</div></section>`}
 /* aviso do sino: ?mel=<id> abre a melhoria */
 async function tmIr(id){ui.chat=null;try{if(areaAt()!=='tx'){const r=ACT.gCat({dataset:{v:'tx'}});if(r&&r.then)await r;await new Promise(x=>setTimeout(x,50))}}catch(e){}ui.tab='txMel';ui.tmD=null;ui.tmLink=id;render();window.scrollTo(0,0)}
 {const _g=gIr;gIr=function(url){let q;try{q=new URL(url||'',location.href).searchParams}catch(e){return _g.apply(this,arguments)}const m=q.get('mel');if(m)return tmIr(m);return _g.apply(this,arguments)}}
 {const q=new URLSearchParams(location.search).get('mel');if(q){try{history.replaceState(null,'',location.pathname)}catch(e){}window.__tmLink=q}}
 {const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(window.__tmLink&&ME&&document.body.classList.contains('app-on')){const id=window.__tmLink;window.__tmLink=null;setTimeout(()=>tmIr(id),0)}
-  if(ui.tmLink&&ui.tab==='txMel'&&TM.ok){const id=ui.tmLink,x=tmGet(id);ui.tmLink=null;if(x)setTimeout(()=>ACT.tmAbrir({dataset:{id}}),0)}}catch(e){}return o}}
+  if(ui.tmLink&&tmNaTela()&&TM.ok){const id=ui.tmLink,x=tmGet(id);ui.tmLink=null;if(x)setTimeout(()=>ACT.tmAbrir({dataset:{id}}),0)}}catch(e){}return o}}
 function tmGeralHtml(D){const{ok,n,pct}=tmProg(D),pz=tmPrazo(D),C=tmCustos(D),Rr=tmReal(D),pode=tmAcPode(),a=tmEtAtual(D),sa=a&&tmEtSt(a);
   const kp=(t,v,s)=>`<div class="tmk"><small>${t}</small><b>${v}</b>${s||''}</div>`,usoC=C.tot?Math.round(Rr.tot*100/C.tot):0,tudo=n&&ok===n&&!['concl','canc'].includes(D.status);
   return `${tmFasesHtml(D)}
@@ -17692,7 +17693,7 @@ ACT.tmEtDesp=async el=>{if(!tmDespPode())return semPerm();const D=tmD(),E=tmEtap
   if(E.k!=='pop'){const R=tmResumo(D);if(R.nDes||R.nCx){try{toast('Preparando o KMZ da etapa…');const b=await kaKmz(await tmKml(D)),p=`txmel/${D.id}/campo_${E.id}.kmz`;const u=await sb.storage.from('agenda').upload(p,b,{upsert:true,contentType:'application/vnd.google-earth.kmz'});if(!u.error)kmz=p}catch(e){console.warn('kmz campo',e)}}}
   ui.tmCtx={id:D.id,cod:D.codigo,tit:D.titulo||'',etapa:E.id,nome:E.nome,k:E.k,itens:I.map(i=>({t:i.t,d:i.d||'',ll:i.ll||null})),kmz,antes:(G.ch||[]).filter(c=>c.txMel&&c.txMel.etapa===E.id).map(c=>c.id),D};
   ui.txF=null;const F=txFNovo('mel');Object.assign(F,{tipo:'mel',pop:P.id,data:E.iniP||hoje(),hora:E.k==='gmud'?'00:00':'08:00',tec:E.tec||''});
-  DN.prob=DN.prob||{};DN.prob.novo=[];(ui.dnT=ui.dnT||{}).probnovo=`${E.nome} da melhoria ${D.codigo} · ${D.titulo||''}\n`+I.map(i=>'• '+i.t+(i.d?' ('+i.d+')':'')).join('\n');
+  DN.prob=DN.prob||{};DN.prob.novo=[];(ui.dnT=ui.dnT||{}).probnovo=`${E.nome} da melhoria ${D.codigo}\n`+I.map(i=>'• '+i.t+(i.d?' ('+i.d+')':'')).join('\n');
   ui.tab='gNovo';ui.gSel=null;render();window.scrollTo(0,0)};
 ACT.tmCtxSai=()=>{const c=ui.tmCtx;ui.tmCtx=null;ui.txF=null;if(ui.dnT)delete ui.dnT.probnovo;ui.tab='txMel';if(c)ui.tmD=c.D;render();window.scrollTo(0,0)};
 {const _p=gParaRow;gParaRow=function(c){const x=ui.tmCtx;if(x&&c&&c.area==='tx'&&c.txTipo==='mel'&&!c.txMel){const{D,antes,...m}=x;c.txMel=Object.assign({},m,{id:x.id});c.categoria='Melhoria de rede · '+x.nome;
@@ -17700,8 +17701,8 @@ ACT.tmCtxSai=()=>{const c=ui.tmCtx;ui.tmCtx=null;ui.txF=null;if(ui.dnT)delete ui
 {const _c=ACT.txCriar;ACT.txCriar=async function(){const x=ui.tmCtx,r=await _c.apply(this,arguments);if(!x)return r;
   const nv=(G.ch||[]).find(c=>c.txMel&&c.txMel.id===x.id&&c.txMel.etapa===x.etapa&&!x.antes.includes(c.id));if(!nv)return r;
   ui.tmCtx=null;ui.txF=null;ui.tab='txMel';ui.tmD=x.D;ui.tmPT='geral';const dt=nv.agendaEm?isoD(new Date(nv.agendaEm)):'',st=x.D.status==='proj'?'exec':null;
-  const ev=tmEv(`${x.nome}: despachada para ${gTecN(nv.tec)||'a Transmissão'}${nv.agendaEm?' em '+gQuando(nv.agendaEm):''} (chamado na Agenda da Transmissão).`);
-  await tmPatch(x.id,d=>{const e=(d.etapas||[]).find(y=>y.id===x.etapa);if(e){e.ch=nv.id;e.tec=nv.tec||'';if(dt)e.iniP=e.iniP||dt}d.acomp=(d.acomp||[]).concat([ev]);if(st&&!d.iniR)d.iniR=hoje()},st);window.scrollTo(0,0);toast(`Etapa "${x.nome}" despachada. O chamado está na Agenda da Transmissão.`);return r}}
+  const ev=tmEv(`${x.nome}: despachada para ${gTecN(nv.tec)||'a Transmissão'}${nv.agendaEm?' em '+gQuando(nv.agendaEm):''} (atividade de Melhoria de rede).`);
+  await tmPatch(x.id,d=>{const e=(d.etapas||[]).find(y=>y.id===x.etapa);if(e){e.ch=nv.id;e.tec=nv.tec||'';if(dt)e.iniP=e.iniP||dt}d.acomp=(d.acomp||[]).concat([ev]);if(st&&!d.iniR)d.iniR=hoje()},st);window.scrollTo(0,0);toast(`Etapa "${x.nome}" despachada para ${gTecN(nv.tec)||'o técnico'}.`);return r}}
 /* técnico: itens da melhoria, navegar e KMZ dentro do chamado */
 {const _t=gTecView;gTecView=function(c){let h=_t.apply(this,arguments);const m=c&&c.txMel;if(!m||ui.lpuTela)return h;try{
   const box=`<section class="tbox tmtec"><b>Melhoria de rede · ${esc(m.cod||'')}</b><span>${esc(m.nome||'')}${m.tit?' · '+esc(m.tit):''}</span>
@@ -17720,7 +17721,7 @@ function tmPronto(D){if(!D||!D.id||!tmEtapas(D).length)return false;if(D.tipo===
 function tmVerHtml(D){const R=tmResumo(D),C=tmCustos(D),tp=D.tipo==='infra'?'Infraestrutura do POP':(TM_TIPO.find(t=>t[0]===D.tipo)||[0,''])[1],kv=(l,v)=>v?`<div class="tmkv"><small>${l}</small><span>${v}</span></div>`:'';
   const sel=Object.entries((D.cfo&&D.cfo.sel)||{});
   return `<div class="tmver">${tmPode()&&!['concl','canc'].includes(D.status)?`<div class="tmverbar"><span class="muted">Visualização do projeto. Para mudar o desenho, as etapas ou os custos, edite.</span><button class="btn primary" data-act="tmEditar">Editar o projeto</button></div>`:''}
-   <section class="panel"><div class="secth"><h3>Dados da melhoria</h3><span class="chip">${esc(tp)}</span></div><div class="tmkvs">${kv('Título',esc(D.titulo||''))}${kv('Motivo',esc(D.motivo||''))}${kv('POP de referência',esc(D.popNome||''))}${kv('Cidade',esc(D.cidade||''))}
+   <section class="panel"><div class="secth"><h3>Dados da melhoria</h3><span class="chip">${esc(tp)}</span></div><div class="tmkvs">${kv('Motivo',esc(D.motivo||''))}${kv('Código anterior',esc([D.codAnt,D.tituloAnt].filter(Boolean).join(' · ')))}${kv('POP de referência',esc(D.popNome||''))}${kv('Cidade',esc(D.cidade||''))}
      ${kv('Previsto',(D.iniP?dBR(D.iniP):'—')+' a '+(D.fimP?dBR(D.fimP):'—'))}${kv('Região crítica',D.crit?'Sim':'')}</div>${D.obs?`<p class="tmobs">${esc(D.obs)}</p>`:''}</section>
    ${D.tipo!=='infra'?`<section class="panel"><div class="secth"><h3>Mapa do projeto</h3><button class="btn sm" data-act="tmKmz">Baixar o KMZ</button></div><div id="tmVerMap" class="tmmap tmvermap" role="region" aria-label="Mapa do projeto"></div>
      <p class="kaleg">${tmTemL(D)?'<span><i class="tmlg x"></i>lançamento</span>':''}${tmTemC(D)?'<span><i class="tmlg cx"></i>caixas com melhoria</span>':''}</p></section>`:''}
@@ -17743,7 +17744,7 @@ async function tmVerMapa(){const D=tmD(),box=document.getElementById('tmVerMap')
         else LL.circleMarker(c,{radius:cx?7:5,color:'#fff',weight:2,fillColor:cx?'#dc2626':'#7c3aed',fillOpacity:1}).addTo(m).bindTooltip(nm);b.push(c)}})}catch(e){console.warn('mapa do projeto',e)}
   if(tmTemL(D)&&!m._tmLn){(D.trechos||[]).forEach((t,i)=>{const P=t.oTipo==='pop'&&tmPopL().find(p=>String(p.id)===String(t.oPop)),a=t.oTipo==='pop'?(P&&P.lat!=null?[P.lat,P.lng]:null):tmLL(t.oCoord),z=tmLL(t.dCoord);if(a&&z){LL.polyline([a,z],{color:'#2563eb',weight:3,dashArray:'6 6'}).addTo(m).bindTooltip(`Trecho ${i+1} (sem o traçado salvo: linha reta)`);b.push(a,z)}})}
   if(b.length)m.fitBounds(LL.latLngBounds(b),{padding:[24,24],maxZoom:18});else{const P=tmPopL().find(p=>String(p.id)===String(D.popId));m.setView(P&&P.lat!=null?[P.lat,P.lng]:[-22.97,-47.0],14)}setTimeout(()=>{try{m.invalidateSize()}catch(e){}},60)}
-{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(ui.tab==='txMel'&&document.getElementById('tmVerMap'))setTimeout(tmVerMapa,0);else if(TMV&&!document.getElementById('tmVerMap')){try{TMV.remove()}catch(e){}TMV=null}}catch(e){}return o}}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(tmNaTela()&&document.getElementById('tmVerMap'))setTimeout(tmVerMapa,0);else if(TMV&&!document.getElementById('tmVerMap')){try{TMV.remove()}catch(e){}TMV=null}}catch(e){}return o}}
 Object.assign(ACT,{tmEditar:()=>{ui.tmEd=true;render();window.scrollTo(0,0)},tmVer:()=>{ui.tmEd=false;render();window.scrollTo(0,0)},
   tmEdEtapas:()=>{ui.tmPT='proj';ui.tmEd=true;render();setTimeout(()=>{const x=document.querySelector('.tmeted');if(x)x.scrollIntoView({block:'start'})},200)}});
 /* ---------- abas da melhoria ---------- */
@@ -17765,11 +17766,11 @@ Object.assign(ACT,{
 /* ---------- visões: Quadro, Lista, Cronograma, Painel ---------- */
 tmViews=function(){const v=ui.tmV||'quadro';return `<div class="views" style="margin-bottom:10px" role="tablist">${[['quadro','Quadro'],['lista','Lista'],['crono','Cronograma'],['painel','Painel']].map(([k,n])=>`<button data-act="tmView" data-v="${k}" aria-current="${v===k}">${n}</button>`).join('')}</div>`};
 if(!ACT.tmView)ACT.tmView=el=>{ui.tmV=el.dataset.v;render()};
-function tmFiltrados(){const q=normK(ui.tmQ||''),f=ui.tmF2||'and';return TM.L.filter(x=>(f==='todas'||(f==='and'?!['concl','canc'].includes(x.status):['concl','canc'].includes(x.status)))&&(!q||normK([x.codigo,x.titulo,x.cidade,x.popNome,x.motivo,tmEtapas(x).map(e=>e.nome+' '+(e.tec?tmTecN(e.tec):'')).join(' ')].join(' ')).includes(q)))}
+function tmFiltrados(){const q=normK(ui.tmQ||''),f=ui.tmF2||'and';return TM.L.filter(x=>(f==='todas'||(f==='and'?!['concl','canc'].includes(x.status):['concl','canc'].includes(x.status)))&&(!q||normK([x.codigo,x.codAnt,x.tituloAnt,x.titulo,x.cidade,x.popNome,x.motivo,tmEtapas(x).map(e=>e.nome+' '+(e.tec?tmTecN(e.tec):'')).join(' ')].join(' ')).includes(q)))}
 function tmColDe(x){if(x.status==='canc')return null;if(x.status==='concl')return '__concl';const E=tmEtapas(x);if(x.status==='proj'&&!E.some(e=>e.ch||(e.st&&e.st!=='pend')))return '__proj';const a=tmEtAtual(x);return a?a.nome:E.length?'__fim':'__exec'}
 const TM_COLN={__proj:'Em projeto',__exec:'Em andamento',__fim:'Etapas concluídas',__concl:'Concluída'};
 function tmCardQ(x){const{pct,n}=tmProg(x),pz=tmPrazo(x),C=tmCustos(x),a=tmEtAtual(x),sa=a&&tmEtSt(a),c=sa&&sa.ch;
-  return `<button type="button" class="tmq" data-act="tmAbrir" data-id="${x.id}"><span class="tmqh"><b>${esc(x.codigo||'')}</b>${x.motivo?`<span class="chip">${esc(x.motivo)}</span>`:''}</span><span class="tmqt">${esc(x.titulo||'Sem título')}</span>
+  return `<button type="button" class="tmq" data-act="tmAbrir" data-id="${x.id}"><span class="tmqh"><b>${esc(x.codigo||'')}</b>${x.motivo?`<span class="chip">${esc(x.motivo)}</span>`:''}</span>
     <small class="muted">${esc([x.popNome,x.cidade].filter(Boolean).join(' · '))}</small>${x.status==='pausa'?'<span class="chip bad">Pausada</span>':''}${sa&&x.status!=='proj'?`<span class="tmqe"><span class="chip ${sa.c}">${esc(sa.t)}</span>${c?`<small>${esc(gTecN(c.tec)||'')}</small>`:''}</span>`:''}
     ${n?`<span class="tmqp">${tmBar(pct,pct===100?'ok':'')}<small>${tmProg(x).ok}/${n} etapas</small></span>`:''}
     <span class="tmqf">${x.fimP?`<small class="${pz.atr?'bad':'muted'}">${pz.atr?'⚠ ':''}término ${dBR(x.fimP).slice(0,5)}</small>`:''}${C.tot?`<small class="muted">${brl(C.tot)}</small>`:''}</span></button>`}
@@ -17779,7 +17780,7 @@ function tmQuadro(L){const G0={};L.forEach(x=>{const k=tmColDe(x);if(k)(G0[k]=G0
   return `<div class="tmboard">${cols.map(k=>{const C=G0[k]||[];return `<section class="tmcol ${k==='__proj'?'tmc-proj':k==='__concl'?'tmc-concl':k==='__fim'?'tmc-valid':'tmc-exec'}"><h3><span>${esc(TM_COLN[k]||k)}</span><b>${C.length}</b></h3>${C.map(tmCardQ).join('')||'<p class="muted tmvz">Nada aqui</p>'}</section>`}).join('')}</div>`}
 function tmLista(L){return `<div class="tblwrap"><table class="tbl tmtbl"><thead><tr><th>Melhoria</th><th>Situação</th><th>Progresso</th><th>Previsto</th><th>Prazo</th><th>Etapa atual</th><th class="num">Previsto R$</th><th class="num">Realizado R$</th></tr></thead><tbody>
   ${L.map(x=>{const{pct,n}=tmProg(x),pz=tmPrazo(x),C=tmCustos(x),R=tmReal(x),st=TM_ST[x.status]||[x.status,''];
-    return `<tr data-act="tmAbrir" data-id="${x.id}" tabindex="0"><td><b>${esc(x.codigo||'')}</b><br><span>${esc(x.titulo||'')}</span><br><small class="muted">${esc([x.motivo,x.popNome].filter(Boolean).join(' · '))}</small></td><td><span class="chip ${st[1]}">${st[0]}</span></td>
+    return `<tr data-act="tmAbrir" data-id="${x.id}" tabindex="0"><td><b>${esc(x.codigo||'')}</b><br><small class="muted">${esc([x.motivo,x.popNome].filter(Boolean).join(' · '))}</small></td><td><span class="chip ${st[1]}">${st[0]}</span></td>
       <td>${n?tmBar(pct)+`<small>${pct}%</small>`:'<small class="muted">—</small>'}</td><td><small>${x.iniP?dBR(x.iniP):'—'}<br>${x.fimP?dBR(x.fimP):'—'}</small></td><td><small class="${pz.cls}">${pz.txt}</small></td><td>${(()=>{const a=tmEtAtual(x),s=a&&tmEtSt(a);return a?`<small>${esc(a.nome)}</small><br><span class="chip ${s.c}">${esc(s.t)}</span>`:'<small class="muted">—</small>'})()}</td><td class="num">${C.tot?brl(C.tot):'—'}</td><td class="num">${R.tot?brl(R.tot):'—'}</td></tr>`}).join('')}</tbody></table></div>`}
 function tmCrono(L){const LL=L.filter(x=>x.iniP||x.fimP||x.iniR);if(!LL.length)return '<div class="empty"><p>Nenhuma melhoria com datas previstas. Informe início e término no despacho.</p></div>';
   const ds=[];LL.forEach(x=>[x.iniP,x.fimP,x.iniR,x.fimR].forEach(d=>d&&ds.push(d)));ds.push(hoje());ds.sort();let a=tmDia(ds[0]),b=tmDia(ds[ds.length-1]);a=new Date(a-3*864e5);b=new Date(+b+3*864e5);if((b-a)/864e5<21)b=new Date(+a+21*864e5);
@@ -17787,7 +17788,7 @@ function tmCrono(L){const LL=L.filter(x=>x.iniP||x.fimP||x.iniR);if(!LL.length)r
   const iso=d=>d.toISOString().slice(0,10);
   return `<div class="tmgantt"><div class="tmgi"><div class="tmgr tmghd"><div class="tmgn"></div><div class="tmgb">${sem.map(d=>`<span style="left:${pos(iso(d))}%">${d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</span>`).join('')}</div></div>
    ${LL.map(x=>{const st=TM_ST[x.status]||[x.status,''],pz=tmPrazo(x),i0=x.iniP||x.fimP,i1=x.fimP||x.iniP,r1=x.fimR||(['exec','pausa','valid'].includes(x.status)?hoje():null),{pct}=tmProg(x);
-     return `<div class="tmgr" data-act="tmAbrir" data-id="${x.id}" role="button" tabindex="0"><div class="tmgn"><b>${esc(x.codigo||'')}</b><small>${esc(x.titulo||'')}</small><span class="chip ${st[1]}">${st[0]}</span></div>
+     return `<div class="tmgr" data-act="tmAbrir" data-id="${x.id}" role="button" tabindex="0"><div class="tmgn"><b>${esc(x.codigo||'')}</b><small>${esc(x.motivo||'')}</small><span class="chip ${st[1]}">${st[0]}</span></div>
       <div class="tmgb">${sem.map(d=>`<i class="tmgl" style="left:${pos(iso(d))}%"></i>`).join('')}<i class="tmghj" style="left:${hj}%"></i>
        ${i0?`<span class="tmgp${pz.atr?' atr':''}" style="left:${pos(i0)}%;width:${Math.max(.8,pos(i1)-pos(i0)+100/tot)}%" title="Previsto: ${dBR(i0)} a ${dBR(i1)}"></span>`:''}
        ${x.iniR&&r1?`<span class="tmgx" style="left:${pos(x.iniR)}%;width:${Math.max(.8,pos(r1)-pos(x.iniR)+100/tot)}%" title="Realizado: ${dBR(x.iniR)} a ${x.fimR?dBR(x.fimR):'hoje'} · ${pct}%"></span>`:''}</div></div>`}).join('')}</div>
@@ -17795,7 +17796,7 @@ function tmCrono(L){const LL=L.filter(x=>x.iniP||x.fimP||x.iniR);if(!LL.length)r
 {const _v=viewTxMel;viewTxMel=function(){if(ui.tmCtx){const c=ui.tmCtx;ui.tmCtx=null;ui.txF=null;if(!ui.tmD)ui.tmD=c.D}if(ui.tmD||ui.tmV==='painel')return _v.apply(this,arguments);const h0=_v.apply(this,arguments),v=ui.tmV||'quadro';
   const top=h0.slice(0,h0.indexOf('<div class="views"')),L=tmFiltrados(),f=ui.tmF2||'and';
   const fil=`<div class="tmfil"><div class="seg" role="group" aria-label="Situação">${[['and','Em andamento'],['concl','Concluídas e canceladas'],['todas','Todas']].map(([k,n])=>`<button class="btn sm${f===k?' primary':''}" data-act="tmF2" data-v="${k}" aria-pressed="${f===k}">${n}</button>`).join('')}</div>
-    <input class="inp" type="search" placeholder="Buscar código, título, POP ou técnico" value="${esc(ui.tmQ||'')}" data-ch="tmQ" aria-label="Buscar melhoria"></div>`;
+    <input class="inp" type="search" placeholder="Buscar código, POP, cidade ou técnico" value="${esc(ui.tmQ||'')}" data-ch="tmQ" aria-label="Buscar melhoria"></div>`;
   const atr=TM.L.filter(x=>tmPrazo(x).atr).length,val=TM.L.filter(x=>{const P=tmProg(x);return P.n&&P.ok===P.n&&!['concl','canc'].includes(x.status)}).length,exe=TM.L.filter(x=>x.status==='exec').length;
   const res=`<div class="tmsum"><span><b>${TM.L.filter(x=>!['concl','canc'].includes(x.status)).length}</b> em andamento</span><span><b>${exe}</b> em execução</span>${val?`<span class="warn"><b>${val}</b> com todas as etapas concluídas</span>`:''}${atr?`<span class="bad"><b>${atr}</b> atrasada${atr>1?'s':''}</span>`:''}</div>`;
   return top+tmMinhasHtml()+tmViews()+(TM.bus&&!TM.L.length?'<p class="muted">Carregando…</p>':res+fil+(v==='lista'?(L.length?tmLista(L):'<div class="empty"><p>Nenhuma melhoria.</p></div>'):v==='crono'?tmCrono(L):tmQuadro(L)))}}
@@ -17926,17 +17927,17 @@ const klEhPoste=(D,q)=>(D.P||[]).some(p=>klPerto(p.ll,q,1))||(D.esq||[]).some(e=
 {const _h=klHint;klHint=function(){if(KLB.modo!=='aj')return _h.apply(this,arguments);return '<b>Ajustar cabo:</b> arraste o <b>+</b> no meio de um trecho para dobrar o cabo ali; arraste o quadrado branco para mover a dobra; toque nele para tirar. Para mudar um poste, arraste o próprio poste. Para a cordoalha em cruz, arraste o centro da esquina (círculo branco). Clique de novo em "Ajustar cabo" para terminar.'}}
 /* ---- melhoria: salvar o traçado na hora e mostrar se está salvo ---- */
 const tmChave=D=>{try{const x=tmLimpa(D);delete x.etapasAuto;delete x.etapasTipo;return JSON.stringify(x)}catch(e){return ''}};
-function tmSujo(){const D=typeof tmD==='function'&&tmD();if(!D)return false;if(!D.id)return !!(String(D.titulo||'').trim()||(D.trechos||[]).some(t=>t.des)||(D.cfo&&Object.keys(D.cfo.sel||{}).length));
+function tmSujo(){const D=typeof tmD==='function'&&tmD();if(!D)return false;if(!D.id)return !!(String(D.titulo||D.motivo||D.popId||'').trim()||(D.trechos||[]).some(t=>t.des)||(D.cfo&&Object.keys(D.cfo.sel||{}).length));
   const s=tmGet(D.id);if(!s)return false;return tmChave(D)!==tmChave(s)||(D.trechos||[]).some(t=>t.des&&t.des.novo)}
 {const _u=ACT.klabUsar;ACT.klabUsar=async function(el){const mel=!!KLB.txMel;const r=await _u.apply(this,arguments);if(!mel)return r;const D=tmD();if(!D)return r;
-  if(!String(D.titulo||'').trim()){toast('Traçado usado no trecho. Dê um título à melhoria e clique em Salvar para não perder o desenho.','warn');return r}
+  if(!D.id&&!(D.motivo&&(D.popId||String(D.cidade||'').trim()))){toast('Traçado usado no trecho. Escolha o motivo e o POP (ou a cidade) e clique em Salvar para não perder o desenho.','warn');return r}
   await ACT.tmSalvar();const ok=!tmSujo();if(ok)toast('Traçado salvo na melhoria '+(D.codigo||'')+'.');return r}}
 {const _e=tmEditor;tmEditor=function(){const h=_e.apply(this,arguments);const D=tmD();if(!D||!tmPode())return h;try{const sj=tmSujo(),s=D.id&&tmGet(D.id),sv=s&&(s.atualizado_em||(ui.tmSvEm||{})[D.id]),q=sv?new Date(sv):null;
   const st=sj?`<span class="tmsv bad" role="status">● Alterações não salvas · clique em Salvar</span>`:s&&!q?`<span class="tmsv ok" role="status">✓ Salvo</span>`:q?`<span class="tmsv ok" role="status">✓ Salvo às ${q.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}${q.toDateString()!==new Date().toDateString()?' de '+q.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):''}</span>`:'';
   return h.replace(/(<button class="btn primary" data-act="tmSalvar"[^>]*>)/,st+'$1')}catch(e){return h}}}
 {const _s=ACT.tmSalvar;ACT.tmSalvar=async function(){const r=await _s.apply(this,arguments);try{const D=tmD();if(D&&D.id&&!tmSujo())(ui.tmSvEm=ui.tmSvEm||{})[D.id]=Date.now()}catch(e){}render();return r}}
 window.addEventListener('beforeunload',e=>{try{const lab=KLB&&KLB.txMel&&KLB.D;if(tmSujo()||lab){e.preventDefault();e.returnValue='';return ''}}catch(x){}});
-{const _r=render;render=function(){const o=_r.apply(this,arguments);try{const s=$('syncSt');if(s)s.style.visibility=ui.tab==='txMel'?'hidden':''}catch(e){}return o}}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{const s=$('syncSt');if(s)s.style.visibility=tmNaTela()?'hidden':''}catch(e){}return o}}
 document.head.insertAdjacentHTML('beforeend',`<style>.klesqh i{display:block;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #111;box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:grab}
 .klajv i{display:block;width:16px;height:16px;background:#fff;border:2px solid #2563eb;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:grab}
 .klajm i{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#2563eb;color:#fff;font:700 15px/1 system-ui,sans-serif;font-style:normal;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:grab;opacity:.9}
@@ -18330,7 +18331,7 @@ ACT.tmTrPdf=el=>{const D=tmD()||{},t=(D.trechos||[])[+el.dataset.i],d=t&&t.des;i
   const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true}),m=14,W=210,n=+el.dataset.i+1,o=tmTrOrig(t),bR=v=>'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}),q=v=>(+v||0).toLocaleString('pt-BR',{maximumFractionDigits:2});
   doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(40,40,40);doc.text('Materiais e mão de obra · Trecho '+n,m,18);doc.setDrawColor(140,191,63);doc.setLineWidth(.8);doc.line(m,22,W-m,22);
   doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(80,80,80);
-  [`Melhoria de rede: ${D.codigo||'(sem código)'}${D.titulo?' · '+D.titulo:''}`,`Trecho ${n}: ${o.nome||'origem'} > ${t.dNome||'destino'} · ${KA_CABO_N[t.cabo]||t.cabo||''} · vão ${t.vao||35} m${t.esp?' · espinado na rede existente':''}`,
+  [`Melhoria de rede: ${D.codigo||'(sem código)'}`,`Trecho ${n}: ${o.nome||'origem'} > ${t.dNome||'destino'} · ${KA_CABO_N[t.cabo]||t.cabo||''} · vão ${t.vao||35} m${t.esp?' · espinado na rede existente':''}`,
    `Cabo (materiais): ${kmN0(tmCab(d))} m · desenho: ${kmN0(d.mDes||d.m||0)} m · ${d.postes||0} postes${D.cidade?' · '+D.cidade:''}${D.crit?' · região crítica':''}`,`Gerado em ${dtBR(Date.now())} por ${meNome()}`].forEach((l,i)=>doc.text(doc.splitTextToSize(l,W-2*m),m,28+i*5));
   const st={theme:'grid',styles:{fontSize:8,cellPadding:1.8,lineColor:[212,221,216],lineWidth:.2},headStyles:{fillColor:[244,249,236],textColor:[60,60,60],fontStyle:'bold'},margin:{left:m,right:m}};
   doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(40,40,40);doc.text('Materiais',m,52);
@@ -18356,6 +18357,292 @@ ACT.dnSoOrient=async el=>{if(!gPodeDesp())return semPerm();const id=el.dataset.i
   el.disabled=true;let anx=[];try{if(F.length){toast('Enviando os anexos…');anx=await dnSobe(id,'orient',F)}}catch(e){el.disabled=false;toast('Não foi possível enviar os anexos: '+(e.message||e),'bad');return}
   let tec=null;const ok=await gAcao(id,c=>{if(!GTD_ABERTOS.includes(c.status)){toast('Este chamado já foi encerrado.','bad');return false}tec=c.tec;c.orient=(c.orient||[]).concat([{txt,anx,por:meNome(),em:Date.now()}]);gHist(c,'Orientação da gestão registrada',{obs:txt,anexos:anx.length})},'Orientação registrada no chamado.');
   el.disabled=false;if(ok!==false){dnLimpa('desp',id);if(tec)sb.from('ag_mensagens').insert({chamado:id,texto:'Nova orientação da gestão'+(txt?': '+txt.slice(0,300):'')+(anx.length?` (${anx.length} anexo${anx.length>1?'s':''} na tela do chamado)`:'')}).then(()=>{},()=>{});render()}};
+
+/* ---------- 10/11: área Melhoria de rede (Capex e Opex) ----------
+   A Melhoria de rede sai da Transmissão (e o reparo programado sai da RE Preventiva) e vira uma área no trilho.
+   Por dentro é a mesma ferramenta de projeto (ag_tx_mel): projetos, etapas, delegação, desenho do trecho, KMZ,
+   frentes, anexos e PDF. Os chamados das etapas de campo continuam sendo chamados da Transmissão (txTipo 'mel').
+   Menu: Acompanhamento (KPIs, Minhas etapas), Capex · Instalação de rede (Projetos, Cronograma, Despacho),
+   Opex · Melhoria de rede (reparo programado) (Projetos, Cronograma, Despacho), Financeiro (Aprovação de LPU,
+   Budget e consumo, Detalhamento, Totais por prestador) e Administração (Equipe técnica).
+   Natureza do projeto: dados.nat ('cx' | 'ox'); sem nat, Clean Up = Opex e o resto = Capex.
+   Código: Natureza-POP-Motivo-Ano-Sequencial (CX-VLH01-AR-26-014). Sem POP, sigla da cidade. Sem título.
+   Permissões (Usuários e acessos › Melhoria de rede): mel_cx*, mel_ox*, mel_eq*, mel_fin, mel_a_budget.
+   Por dentro a área roda como a Transmissão (ui.gArea 'tx') com ui.melAt ligado. */
+const MEL_NAT={cx:['Capex','Capex · Instalação de rede','CX',['Alívio de Rede','Infraestrutura']],ox:['Opex','Opex · Melhoria de rede (reparo programado)','OX',['Clean Up']]};
+const MEL_MOT={'Alívio de Rede':'AR','Infraestrutura':'IF','Clean Up':'CL'};
+const MEL_CONTA={ox:(typeof LPU_CONTAS!=='undefined'&&LPU_CONTAS.find(c=>/^3\.1\.1\.2\.05\.0103/.test(c)))||'3.1.1.2.05.0103 - Serviços de Melhoria REDE - REPARO PROGRAMADO DE REDE',
+  cx:(typeof LPU_CONTAS!=='undefined'&&LPU_CONTAS.find(c=>/^3\.1\.1\.2\.05\.0007/.test(c)))||'3.1.1.2.05.0007 - Serviços de Instalação REDE - CONSTRUÇÃO DE REDE'};
+const MEL_TABS=['melKpi','melMin','cxProj','cxCrono','cxDesp','oxProj','oxCrono','oxDesp','melAprov','melBud','melDet','melPrest','melEq'];
+const melNat=x=>x&&(x.nat==='ox'||x.nat==='cx')?x.nat:(x&&x.motivo==='Clean Up'?'ox':'cx');
+const melNatN=n=>(MEL_NAT[n]||MEL_NAT.cx)[0];
+/* ---------- permissões ---------- */
+const PX_MEL=['Melhoria de rede',[
+  ['mel_cx','Capex · Instalação de rede: ver os projetos e os KPIs','t',[['mel_cx_ed','Capex: criar e editar os projetos','a'],['mel_cx_dlg','Capex: delegar etapas ao time','a'],['mel_cx_desp','Capex: despachar as etapas de campo (e validar os chamados)','a'],['mel_cx_lpu','Capex: aprovar, reprovar e devolver LPUs','a']]],
+  ['mel_ox','Opex · Melhoria de rede (reparo programado): ver os projetos e os KPIs','t',[['mel_ox_ed','Opex: criar e editar os projetos','a'],['mel_ox_dlg','Opex: delegar etapas ao time','a'],['mel_ox_desp','Opex: despachar as etapas de campo (e validar os chamados)','a'],['mel_ox_lpu','Opex: aprovar, reprovar e devolver LPUs','a']]],
+  ['mel_eq','Equipe técnica (quem atua na melhoria de rede)','t',[['mel_eq_ed','Marcar quem atua na melhoria de rede','a']]],
+  ['mel_fin','Financeiro da melhoria: budget e consumo, detalhamento das LPUs e totais por prestador','t',[['mel_a_budget','Definir o budget do Opex (3.1.1.2.05.0103)','a']]]]];
+const MEL_K=pxKeys(PX_MEL);
+{const ip=PERM_T.indexOf(typeof PR_RP!=='undefined'&&PERM_T.includes(PR_RP)?PR_RP:PX_TX);PERM_T.splice(ip>=0?ip+1:PERM_T.length,0,PX_MEL);MEL_K.forEach(k=>{if(!PERM_ALL.includes(k))PERM_ALL.push(k)})}
+/* Transmissão: o item "Melhoria de rede" sai das permissões (as chaves antigas viram Capex) */
+{const i=PX_TX[1].findIndex(n=>n[0]==='tx_mel');if(i>=0)PX_TX[1].splice(i,1)}
+/* listas gravadas antes (marca mel_v67): Melhoria da Transmissão → Capex; reparo programado da RE Preventiva → Opex */
+function melMig(s){if(!Array.isArray(s)||s.includes('mel_v67'))return s;s=s.slice();const has=k=>s.includes(k),add=(...L)=>L.forEach(k=>{if(!s.includes(k))s.push(k)});
+  if(has('tx_mel')||has('tx_a_mel')||has('tx_a_mel_desp')){add('mel_cx');if(has('tx_a_mel'))add('mel_cx_ed','mel_cx_dlg');if(has('tx_a_mel_desp'))add('mel_cx_desp','mel_cx_dlg');if(has('tx_a_aprovar'))add('mel_cx_lpu');
+    if(has('tx_fin'))add('mel_fin');if(has('a_eqTec')||has('tx_a_mel'))add('mel_eq');if(has('a_eqTec')||has('tx_a_mel'))add('mel_eq_ed')}
+  if(has('rp_t_mel')){add('mel_ox');if(has('rp_plan')||has('rp_aprov'))add('mel_ox_ed','mel_ox_dlg','mel_ox_desp');if(has('rp_a_aprovar'))add('mel_ox_lpu');if(has('rp_fin'))add('mel_fin');if(has('rp_a_budget'))add('mel_a_budget');
+    if(has('rp_eqTec')||has('rp_a_eqTec')||has('a_eqTec'))add('mel_eq');if(has('rp_a_eqTec')||has('a_eqTec'))add('mel_eq_ed')}
+  s=s.filter(k=>!['tx_mel','tx_a_mel','tx_a_mel_desp'].includes(k));s.push('mel_v67');return s}
+{const _n=pxNorm;pxNorm=function(set,papel){return melMig(_n.apply(this,arguments))}}
+const melB=()=>!ME?[]:pxNorm(permDe(ME.papel,'pBase' in ME?ME.pBase:ME.perm),ME.papel);
+const melTem=k=>!!ME&&(ui.perfil==='coord'||melB().includes(k));
+const melVeNat=n=>melTem('mel_'+n)||['ed','dlg','desp','lpu'].some(a=>melTem(`mel_${n}_${a}`));
+const melNats=()=>['cx','ox'].filter(melVeNat);
+const melMinhasN=()=>{try{return TM.ok?tmMinhasEt().length:0}catch(e){return 0}};
+const melVe=()=>!!ME&&!gTecPerfil()&&(ui.perfil==='coord'||melNats().length>0||['mel_eq','mel_eq_ed','mel_fin'].some(melTem)||melMinhasN()>0);
+const melAt=()=>!!ME&&!gTecPerfil()&&ui.cat==='gtd'&&ui.gArea==='tx'&&!!ui.melAt;
+function melNatCur(){if(ui.tmD)return melNat(ui.tmD);if(/^(cx|ox)/.test(ui.tab||''))return ui.tab.slice(0,2);return ui.melNat||melNats()[0]||'cx'}
+const melTmTab=()=>melAt()&&MEL_TABS.includes(ui.tab);
+const melDlgPode=()=>melAt()&&pode('a_gMelDlg');
+/* a Transmissão "existe" por dentro enquanto a área Melhoria está aberta (quem não tem Transmissão também entra) */
+const MEL_TXVE=(areaCfg('tx')||{}).ve||(()=>false);
+{const A=areaCfg('tx');if(A)A.ve=()=>{try{if(MEL_TXVE())return true}catch(e){}return !!ui.melAt&&melVe()}}
+const melTxVe0=()=>{try{return !!MEL_TXVE()}catch(e){return false}};
+/* permissões efetivas dentro da área: gMel/a_gMel/a_gMelDesp/a_gMelDlg pela natureza aberta; aprovação e financeiro da melhoria */
+{const _p=permEff;permEff=function(){_p.apply(this,arguments);if(!ME||gTecPerfil()||ui.perfil==='coord')return;
+  const sup=['sup','enc','noc'].includes(ui.perfil);if(!sup){if(!('pBase' in ME))ME.pBase=ME.perm;if(!melAt()){ME.perm=ME.pBase;return}ME.perm=permDe(ME.papel,ME.pBase).slice()}
+  if(!melAt())return;const n=melNatCur(),b=melB(),t=k=>b.includes(k);
+  const tira=new Set(['gMel','a_gMel','a_gMelDesp','a_gMelDlg','gAprov','a_gAprovar','a_budget','g_fin','gf_budget','gf_prest','gf_det','gNovo','a_gDespachar','gCham','a_gValidar','a_gEditar','gPainel','gAgenda','gRel']);
+  const P=(ME.perm||[]).filter(k=>!tira.has(k)),add=(...L)=>L.forEach(k=>{if(!P.includes(k))P.push(k)});
+  if(melVeNat(n))add('gMel');if(t(`mel_${n}_ed`))add('a_gMel');if(t(`mel_${n}_dlg`))add('a_gMelDlg');if(t(`mel_${n}_desp`))add('a_gMelDesp','gNovo','a_gDespachar','a_gValidar','a_gEditar');
+  if(melNats().length)add('gCham');if(['cx','ox'].some(x=>t(`mel_${x}_lpu`)))add('gAprov','a_gAprovar');if(t('mel_fin'))add('g_fin','gf_budget','gf_prest','gf_det');if(t('mel_a_budget'))add('a_budget');
+  if(!P.includes('_v25'))P.push('_v25');ME.perm=P}}
+/* ---------- menu ---------- */
+MEL_TABS.forEach(t=>{if(!GTD_T.includes(t))GTD_T.push(t)});
+Object.assign(RP_TL,{melKpi:'KPIs',melMin:'Minhas etapas',cxProj:'Projetos',cxCrono:'Cronograma',cxDesp:'Despacho',oxProj:'Projetos',oxCrono:'Cronograma',oxDesp:'Despacho',
+  melAprov:'Aprovação de LPU',melBud:'Budget e consumo',melDet:'Detalhamento das LPUs',melPrest:'Totais por prestador',melEq:'Equipe técnica'});
+try{Object.assign(NAV_TC,{melKpi:'KPIs',melMin:'Etapas',cxProj:'Capex',cxCrono:'Crono',cxDesp:'Despacho',oxProj:'Opex',oxCrono:'Crono',oxDesp:'Despacho',melAprov:'LPU',melBud:'Budget',melDet:'Detalhe',melPrest:'Prestador',melEq:'Equipe'})}catch(e){}
+try{const I=ICT,pr=I.txMel||'M3 17l6-6 4 4 8-8M14 7h7v7';Object.assign(I,{melKpi:I.gPainel||pr,melMin:'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9',cxProj:pr,oxProj:pr,
+  cxCrono:'M3 6h18M3 12h12M3 18h7M8 3v6M16 3v6',oxCrono:'M3 6h18M3 12h12M3 18h7M8 3v6M16 3v6',cxDesp:'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',oxDesp:'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
+  melAprov:I.gAprov||I.aprov||pr,melBud:I.finVis||I.gPainel||pr,melDet:I.finDet||pr,melPrest:I.finPrest||pr,melEq:I.eqTec||pr})}catch(e){}
+{const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments);if(!ME||gTecPerfil())return T;
+  if(!melAt()){let L=T.filter(t=>!MEL_TABS.includes(t)&&t!=='txMel');
+    /* RE Preventiva: a aba antiga de melhoria só fica enquanto houver programadas antigas (histórico) */
+    if(L.includes('rpMel')&&typeof RP!=='undefined'&&RP.ok&&!(RP.rows||[]).some(x=>x.tipo==='mel'||x.tipo==='prj'))L=L.filter(t=>t!=='rpMel');return L}
+  const o=T.filter(t=>gCatDe(t)!=='gtd'),n=melNats(),has=melTem;if(n.length)o.push('melKpi');o.push('melMin');
+  ['cx','ox'].forEach(x=>{if(!n.includes(x))return;o.push(x+'Proj',x+'Crono');if(has(`mel_${x}_desp`))o.push(x+'Desp')});
+  if(n.some(x=>has(`mel_${x}_lpu`))||has('mel_fin'))o.push('melAprov');if(has('mel_fin'))o.push('melBud','melDet','melPrest');if(has('mel_eq')||has('mel_eq_ed'))o.push('melEq');
+  if(ui.tmCtx)o.push('gNovo');if(ui.tab==='gCham'&&ui.gSel&&melCh(ui.gSel))o.push('gCham');return o}}
+try{RP_TL.rpMel='Melhoria de rede (antigas)'}catch(e){}
+/* ---------- trilho e "Trocar de área" ---------- */
+Object.assign(AR_IC,{mel:'M3 17l6-6 4 4 8-8M14 7h7v7M3 21h18'});
+Object.assign(AR_D,{mel:['Melhoria de rede','Capex e Opex: projetos, etapas e despacho']});
+{const _a=arCats;arCats=function(){let L=_a.apply(this,arguments);const at=melAt(),t0=melTxVe0();
+  L=L.filter(a=>a.k!=='tx'||t0).map(a=>a.k==='tx'&&at?Object.assign({},a,{on:false}):a);
+  if(melVe()){let i=L.findIndex(a=>a.k==='rep');if(i<0)i=L.findIndex(a=>a.k==='re');if(i<0){const j=L.findIndex(a=>a.k==='tx');i=j>=0?j-1:L.length-1}L.splice(i+1,0,{k:'mel',n:'Melhoria de rede',on:at})}return L}}
+{const _g=ACT.gCat;ACT.gCat=function(el){const v=el&&el.dataset&&el.dataset.v;
+  if(v!=='mel'){if(ui.melAt){ui.melAt=false;ui.tmD=null;ui.tmCtx=null;ui.melVolta=null}return _g.apply(this,arguments)}
+  const ant=melAt();ui.melAt=true;if(!ant){ui.tmD=null;ui.gSel=null;ui.tmCtx=null}
+  const fix=()=>{try{permEff();const T=tabsDe();if(T.length&&!T.includes(ui.tab)){ui.tab=T[0];render()}}catch(e){console.warn('melArea',e)}};
+  if(!TM.ok&&!TM.bus)tmCarregar();const r=_g.call(this,{dataset:{v:'tx'}});if(r&&typeof r.then==='function')return r.then(x=>{fix();return x});fix();return r}}
+/* textos "GTD" das telas reaproveitadas viram "Melhoria de rede" (não "Transmissão") */
+{const _a=areaTexto;areaTexto=function(root,A){if(!melAt()||!A||A.k!=='tx')return _a.apply(this,arguments);A=Object.assign({},A,{n:'Melhoria de rede',art:'da'});
+  const e=ui.tab==='melEq'&&root&&root.querySelector&&root.querySelector('.eqp');if(!e)return _a.call(this,root,A);const ph=document.createComment('eqp');e.replaceWith(ph);try{return _a.call(this,root,A)}finally{ph.replaceWith(e)}}}
+document.head.insertAdjacentHTML('beforeend',`<style>.a-mel.ario,.a-mel .ario,.arb.a-mel[aria-current="true"] .ario{background:#E3EED3;color:#3F6B12}
+.melk{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px;margin:0 0 14px}@media(max-width:700px){.melk{grid-template-columns:repeat(2,minmax(0,1fr))!important}}.melfil{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin:0 0 12px}.melfil .f{margin:0}.melfil select,.melfil input{min-width:150px}
+.melet{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}.melet span{border:1px solid var(--line,#e5e7eb);border-radius:99px;padding:4px 12px;font-size:13px;background:var(--card,#fff)}.melet b{margin-left:4px}
+.meltb{min-width:760px}.meltb td,.meltb th{vertical-align:top}.meltb td:first-child b{white-space:nowrap}.meltb tbody tr.cl{cursor:pointer}.meltb tbody tr.cl:hover{background:rgba(106,143,47,.06)}.melnat{font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;background:#E3EED3;color:#3F6B12}.melnat.ox{background:#DDE6F7;color:#26468A}
+.melsec{margin-top:16px}.melsec h3{margin:0 0 8px}.melwarn{font-size:12.5px;color:#92400e}</style>`);
+/* ---------- dados auxiliares ---------- */
+const melCh=id=>{const c=(G.ch||[]).find(x=>x.id===id);return c&&c.txMel?c:null};
+const melPrj=c=>c&&c.txMel?tmGet(c.txMel.id):null;
+const melChNat=c=>{const x=melPrj(c);return x?melNat(x):(c&&c.txMel&&c.txMel.nat)||'cx'};
+function melLpuNat(l){if(!l)return null;if(l.chamado){const c=(G.ch||[]).find(x=>x.id===l.chamado);if(c&&c.txMel)return melChNat(c)}return null}
+const melLpuIds=()=>new Set((G.lpus||[]).filter(l=>melLpuNat(l)).map(l=>l.id));
+const melLpus=nats=>(G.lpus||[]).filter(l=>{const n=melLpuNat(l);return n&&nats.includes(n)});
+/* ---------- código do projeto ---------- */
+const melSemAc=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+function melSiglaCid(c){const W=melSemAc(c).replace(/[^A-Z ]/g,' ').split(/\s+/).filter(w=>w&&!['DE','DO','DA','DOS','DAS','D','E'].includes(w));if(!W.length)return 'XXX';
+  const sg=w=>w[0]+w.slice(1).replace(/[AEIOU]/g,''),pad=(s,w)=>(s+w.slice(1)+'XXX').slice(0,3);
+  if(W.length>=3)return W.slice(0,3).map(w=>w[0]).join('');if(W.length===2)return pad(W[0][0]+sg(W[1]).slice(0,2),W[1]);if(W[0].length<=3)return (W[0]+'XXX').slice(0,3);return pad(sg(W[0]).slice(0,3),W[0])}
+function melPopSig(D){const P=tmPopL().find(p=>String(p.id)===String(D.popId));const s=P&&String(P.sigla||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return s||melSiglaCid(D.cidade||(P&&P.cidade)||'')}
+function melCodigo(D){const n=melNat(D),pre=MEL_NAT[n][2],yy=hoje().slice(2,4),mot=MEL_MOT[D.motivo]||(n==='ox'?'CL':'AR'),re=new RegExp('^'+pre+'-.+-'+yy+'-(\\d+)$');
+  const seq=TM.L.reduce((m,x)=>{const k=String(x.codigo||'').match(re);return k?Math.max(m,+k[1]):m},0)+1;return `${pre}-${melPopSig(D)}-${mot}-${yy}-${String(seq).padStart(3,'0')}`}
+function melValida(D){const n=melNat(D);if(!D.id&&!D.nat)D.nat=n;
+  if(!D.motivo||!MEL_NAT[n][3].includes(D.motivo)){toast(`Escolha o motivo (${MEL_NAT[n][3].join(' ou ')}).`,'bad');return false}
+  if(!D.id&&!D.popId&&!String(D.cidade||'').trim()){toast('Escolha o POP de referência ou informe a cidade: o código do projeto usa a sigla.','bad');return false}return true}
+/* ---------- projetos (Projetos e Cronograma de cada natureza) ---------- */
+function melComNat(n,fn){const all=TM.L,F=all.filter(x=>melNat(x)===n),m0=TM_MOT.slice();ui.melNat=n;TM.L=F;TM_MOT.splice(0,TM_MOT.length,...MEL_NAT[n][3]);
+  try{return fn()}finally{if(TM.L===F)TM.L=all;TM_MOT.splice(0,TM_MOT.length,...m0)}}
+function melProjView(n,modo){if(!TM.ok&&!TM.bus)tmCarregar();const D=ui.tmD;if(D)n=melNat(D);
+  if(!D)ui.tmV=modo==='crono'?'crono':(ui.melV==='lista'?'lista':'quadro');
+  let h=melComNat(n,()=>viewTxMel());
+  h=h.replace(/<h2>Melhoria de rede<\/h2><p class="muted">[^<]*<\/p>/,`<h2>${esc(MEL_NAT[n][1])} · ${modo==='crono'?'Cronograma':'Projetos'}</h2><p class="muted">${n==='ox'?'Reparo programado: Clean Up de caixas e da rede.':'Instalação de rede: alívio de rede e infraestrutura.'} Lançamento, CFO nas caixas e serviço no POP, com etapas, delegação e despacho.</p>`)
+   .replace(/>Nova melhoria</g,'>Novo projeto<').replace(/‹ Melhorias/g,'‹ Projetos').replace(/Nova melhoria de rede</g,'Novo projeto<').replace(/Nenhuma melhoria de rede ainda\./g,'Nenhum projeto ainda.');
+  if(!pode('a_gMelDlg')&&ui.perfil!=='coord')h=h.replace(/<button class="btn sm" data-act="tmDlg"[^>]*>[^<]*<\/button>/g,'');
+  return h}
+/* troca de visualização: Quadro e Lista no Projetos; o Cronograma tem item próprio; o Painel virou KPIs */
+{const _v=tmViews;tmViews=function(){if(!melAt())return _v.apply(this,arguments);if(ui.tab&&/Crono$/.test(ui.tab))return '';const v=ui.tmV==='lista'?'lista':'quadro';
+  return `<div class="views" style="margin-bottom:10px"><button data-act="tmView" data-v="quadro" aria-current="${v==='quadro'}">Quadro</button><button data-act="tmView" data-v="lista" aria-current="${v==='lista'}">Lista</button></div>`}}
+{const _a=ACT.tmView;ACT.tmView=function(el){if(melAt()&&el&&el.dataset&&['quadro','lista'].includes(el.dataset.v))ui.melV=el.dataset.v;return _a.apply(this,arguments)}}
+/* novo projeto já nasce na natureza do grupo; motivos do grupo */
+{const _n=ACT.tmNova;ACT.tmNova=function(){const r=_n.apply(this,arguments);if(melAt()&&ui.tmD&&!ui.tmD.id){const n=/^(cx|ox)/.test(ui.tab)?ui.tab.slice(0,2):(ui.melNat||'cx');ui.tmD.nat=n;ui.tmD.motivo=n==='ox'?'Clean Up':'';render()}return r}}
+{const _e=tmEditor;tmEditor=function(){const D=tmD();if(!D)return _e.apply(this,arguments);const n=melNat(D),m0=TM_MOT.slice();TM_MOT.splice(0,TM_MOT.length,...MEL_NAT[n][3]);
+  let h;try{h=_e.apply(this,arguments)}finally{TM_MOT.splice(0,TM_MOT.length,...m0)}
+  const chip=`<span class="melnat ${n}">${esc(MEL_NAT[n][0])}</span> `;return h.replace(/(<button class="btn sm ghost" data-act="tmVolta">[^<]*<\/button><h2>)/,'$1'+chip)}}
+/* despacho a partir da etapa guarda a natureza no chamado */
+{const _d=ACT.tmEtDesp;ACT.tmEtDesp=async function(){const r=await _d.apply(this,arguments);if(ui.tmCtx&&ui.tmCtx.D&&!ui.tmCtx.nat)ui.tmCtx.nat=melNat(ui.tmCtx.D);return r}}
+/* delegar exige a permissão de delegar do grupo */
+{const _d=ACT.tmDlg;ACT.tmDlg=function(){if(melAt()&&ui.perfil!=='coord'&&!pode('a_gMelDlg'))return semPerm();return _d.apply(this,arguments)}}
+/* links e avisos antigos (?mel=) abrem na área nova */
+{const _i=tmIr;tmIr=async function(id){if(!ME||gTecPerfil()||!melVe())return _i.apply(this,arguments);ui.chat=null;try{const r=ACT.gCat({dataset:{v:'mel'}});if(r&&r.then)await r}catch(e){}
+  ui.tmD=null;ui.tmLink=id;render();window.scrollTo(0,0)}}
+/* ---------- render: abas temporárias (Criar para despachar, chamado aberto), voltar e link ---------- */
+{const _r=render;render=function(){let sw=null;try{if(melAt()){
+    if(ui.tab==='txMel'){const t=ui.melVolta||(melNatCur()+'Proj');ui.melVolta=null;ui.tab=t;if(/Desp$/.test(t))ui.tmD=null}
+    if(ui.tab==='gNovo'&&!ui.tmCtx){ui.tab=ui.melVolta||melNatCur()+'Desp';ui.melVolta=null}
+    if(ui.tab==='gCham'){if(!(ui.gSel&&melCh(ui.gSel))){ui.tab=ui.melVolta||(melNatCur()+'Desp');ui.melVolta=null;ui.gSel=null}
+      else{const all=G.ch,ns=melNats(),F=all.filter(c=>c.txMel&&ns.includes(melChNat(c)));G.ch=F;sw=[all,F]}}
+    if(!TM.ok&&!TM.bus)tmCarregar();if(typeof EQP!=='undefined'&&!EQP.ok&&!EQP.bus&&typeof eqCarregar==='function')eqCarregar();
+    if(ui.tmLink&&TM.ok){const x=tmGet(ui.tmLink);ui.tmLink=null;if(x){const n=melNat(x);ui.tab=melNats().includes(n)?n+'Proj':'melMin';ui.tmD=JSON.parse(JSON.stringify(x));ui.tmPT='geral';ui.tmEd=false}else if(melNats().length)ui.tab=melNats()[0]+'Proj'}}}
+  catch(e){console.warn('melRender',e)}
+  try{return _r.apply(this,arguments)}finally{if(sw&&G.ch===sw[1])G.ch=sw[0];try{if(melAt()&&ui.tab==='gCham')document.querySelectorAll('#app button').forEach(b=>{if(/^\s*‹\s*Chamados\s*$/.test(b.textContent))b.textContent='‹ Despacho'})}catch(e){}}}}
+/* ---------- telas ---------- */
+const melVazio=t=>`<div class="empty"><p>${t}</p></div>`;
+function melSeg(nats,k){if(nats.length<2)return '';const v=ui[k]||'all';return `<div class="views" style="margin-bottom:12px" role="group" aria-label="Natureza">${[['all','Total'],['cx','Capex'],['ox','Opex']].map(([x,n])=>`<button data-act="melSeg" data-k="${k}" data-v="${x}" aria-current="${v===x}">${n}</button>`).join('')}</div>`}
+const melSel=(nats,k)=>{const v=ui[k]||'all';return v==='all'||!nats.includes(v)?nats:[v]};
+ACT.melSeg=el=>{ui[el.dataset.k]=el.dataset.v;render()};
+/* KPIs */
+const melPop=x=>tmPopL().find(p=>String(p.id)===String(x.popId))||null;
+const melReg=x=>{const p=melPop(x);return p?String(p.regiao||p.regional||'').trim():''};
+const melPopNm=x=>{const p=melPop(x);return p?(p.sigla||p.nome||''):(x.popNome||'').split(' · ')[0]};
+const melCid=x=>String(x.cidade||(melPop(x)||{}).cidade||'').trim().toUpperCase();
+function melKpiDados(nats){const F=ui.melF||{},ini=ui.melPi||hoje().slice(0,4)+'-01-01',fim=ui.melPf||hoje().slice(0,4)+'-12-31';
+  const base=TM.L.filter(x=>nats.includes(melNat(x))&&x.status!=='canc').filter(x=>{const d=tmDatas(x).ini||String(x.criado_em||'').slice(0,10);return d>=ini&&d<=fim});
+  const L=base.filter(x=>(!F.reg||melReg(x)===F.reg)&&(!F.pop||melPopNm(x)===F.pop)&&(!F.cid||melCid(x)===F.cid)).map(x=>{const R=tmResumo(x),a=tmEtAtual(x);return{x,n:melNat(x),km:(R.m||0)/1000,C:tmCustos(x),Rr:tmReal(x),pz:tmPrazo(x),et:x.status==='concl'?'Concluída':a?a.nome:'Sem etapas'}});
+  return{ini,fim,base,L,F}}
+function melKpiCards(L){const sm=f=>L.reduce((s,r)=>s+f(r),0),and=L.filter(r=>!['concl','canc'].includes(r.x.status)).length,conc=L.filter(r=>r.x.status==='concl').length,atr=L.filter(r=>r.pz.atr).length,prj=sm(r=>r.C.tot),rea=sm(r=>r.Rr.tot);
+  return `<div class="kpis melk">${kp(L.length,'Projetos')}${kp(and,'Em andamento')}${kp(conc,'Concluídos','ok')}${kp(atr,'Atrasados',atr?'bad':'')}${kp(sm(r=>r.km).toLocaleString('pt-BR',{maximumFractionDigits:1})+' km','Km de lançamento')}${kp(brl(prj),'Projetado')}${kp(brl(rea),'Realizado','ok')}${kp(prj?Math.round(rea/prj*100)+'%':'—','Realizado / projetado')}</div>`}
+function viewMelKpi(){if(!TM.ok){if(!TM.bus)tmCarregar();return '<h2>KPIs · Melhoria de rede</h2><p class="muted">Carregando…</p>'}
+  if(typeof txPopsCarregar==='function'&&typeof TXP!=='undefined'&&!(TXP.L||[]).length&&!TXP.err&&!ui.melPopReq){ui.melPopReq=1;txPopsCarregar().then(()=>render()).catch(()=>{})}
+  const nats=melNats(),sel=melSel(nats,'melKN'),{ini,fim,base,L,F}=melKpiDados(sel),U=f=>[...new Set(base.map(f).filter(Boolean))].sort();
+  const opt=(k,lab,todos,V)=>`<label class="f"><span>${lab}</span><select class="inp" data-ch="melF" data-k="${k}"><option value="">${todos}</option>${V.map(v=>`<option ${F[k]===v?'selected':''}>${esc(v)}</option>`).join('')}</select></label>`;
+  const regs=U(melReg),et={};L.forEach(r=>{et[r.et]=(et[r.et]||0)+1});const etL=Object.entries(et).sort((a,b)=>b[1]-a[1]);
+  const tb=`<div class="tablewrap"><table class="meltb"><thead><tr><th>Projeto</th>${sel.length>1?'<th>Natureza</th>':''}<th>Motivo</th><th>POP</th><th>Cidade</th><th>Situação</th><th>Etapa atual</th><th class="r">Km</th><th class="r">Projetado</th><th class="r">Realizado</th></tr></thead><tbody>
+    ${L.map(r=>{const st=TM_ST[r.x.status]||[r.x.status,''];return `<tr class="cl" data-act="melAbre" data-id="${r.x.id}" tabindex="0"><td><b>${esc(r.x.codigo||'')}</b>${r.pz.atr?' <span class="chip bad">Atrasado</span>':''}</td>${sel.length>1?`<td><span class="melnat ${r.n}">${melNatN(r.n)}</span></td>`:''}<td>${esc(r.x.motivo||'—')}</td><td>${esc(melPopNm(r.x)||'—')}</td><td>${esc(melCid(r.x)||'—')}</td><td><span class="chip ${st[1]}">${st[0]}</span></td><td>${esc(r.et)}</td><td class="r">${r.km?r.km.toLocaleString('pt-BR',{maximumFractionDigits:2}):'—'}</td><td class="r">${brl(r.C.tot)}</td><td class="r">${brl(r.Rr.tot)}</td></tr>`}).join('')||`<tr><td colspan="10" class="muted">Nenhum projeto com esses filtros.</td></tr>`}</tbody></table></div>`;
+  return `<div class="toolbar"><div><h2>KPIs · Melhoria de rede</h2><p class="muted">Projetos com início (previsto ou real) no período. Projetado: materiais e mão de obra do projeto. Realizado: LPUs aprovadas e materiais lançados.</p></div><div class="tools"><button class="btn" data-act="melXlsx">Baixar planilha</button></div></div>
+   ${melSeg(nats,'melKN')}<div class="melfil"><label class="f"><span>De</span><input type="date" class="inp" data-ch="melP" data-k="melPi" value="${ini}"></label><label class="f"><span>Até</span><input type="date" class="inp" data-ch="melP" data-k="melPf" value="${fim}"></label>
+    ${regs.length?opt('reg','Região','Todas as regiões',regs):''}${opt('pop','POP','Todos os POPs',U(melPopNm))}${opt('cid','Cidade','Todas as cidades',U(melCid))}${F.reg||F.pop||F.cid?'<button class="btn sm ghost" data-act="melFLimpa">Limpar filtros</button>':''}</div>
+   ${melKpiCards(L)}<h3 style="margin:0 0 6px">Projetos por etapa atual</h3><div class="melet">${etL.map(([n,q])=>`<span>${esc(n)}<b>${q}</b></span>`).join('')||'<span class="muted">Nenhum projeto.</span>'}</div>
+   <h3 style="margin:0 0 6px">Projetos</h3>${tb}`}
+CH.melF=el=>{ui.melF=Object.assign({},ui.melF||{},{[el.dataset.k]:el.value});render()};
+CH.melP=el=>{ui[el.dataset.k]=el.value;render()};
+ACT.melFLimpa=()=>{ui.melF={};render()};
+ACT.melAbre=el=>{const x=tmGet(el.dataset.id);if(!x)return;const n=melNat(x);if(melNats().includes(n))ui.tab=n+'Proj';ACT.tmAbrir({dataset:{id:x.id}})};
+ACT.melXlsx=()=>{const nats=melSel(melNats(),'melKN'),{ini,fim,L}=melKpiDados(nats);xlsxBaixar(`melhoria_de_rede_${ini}_${fim}.xlsx`,[['Projetos',L.map(r=>({Projeto:r.x.codigo,Natureza:melNatN(r.n),Motivo:r.x.motivo||'',Região:melReg(r.x),POP:melPopNm(r.x),Cidade:melCid(r.x),
+  Situação:(TM_STN(r.x.status)),'Etapa atual':r.et,Km:+r.km.toFixed(3),Projetado:+r.C.tot.toFixed(2),Realizado:+r.Rr.tot.toFixed(2),'Início previsto':r.x.iniP||'','Término previsto':r.x.fimP||''}))]])};
+const TM_STN=s=>(TM_ST[s]||[s])[0];
+/* Minhas etapas */
+function viewMelMin(){if(!TM.ok){if(!TM.bus)tmCarregar();return '<h2>Minhas etapas</h2><p class="muted">Carregando…</p>'}if(ui.tmD)return melProjView(melNat(ui.tmD));
+  const h=tmMinhasHtml();return `<div class="toolbar"><div><h2>Minhas etapas</h2><p class="muted">Etapas de projetos de Capex e de Opex delegadas para você. Abra o projeto para responder e mudar a situação.</p></div></div>${h||melVazio('Nenhuma etapa delegada para você em aberto.')}`}
+/* Despacho */
+function melDespDados(n){const P=TM.L.filter(x=>melNat(x)===n&&!['concl','canc'].includes(x.status)),pend=[];
+  P.forEach(x=>tmEtapas(x).forEach(e=>{if(!e.campo||e.fixo)return;const s=tmEtSt(e);if(e.ch&&!s.canc)return;pend.push({x,e,s})}));
+  pend.sort((a,b)=>String(a.e.iniP||'9').localeCompare(String(b.e.iniP||'9')));
+  const ids=new Set(TM.L.filter(x=>melNat(x)===n).map(x=>x.id)),D=(G.ch||[]).filter(c=>c.txMel&&(ids.has(c.txMel.id)||(!tmGet(c.txMel.id)&&melChNat(c)===n))).sort((a,b)=>(b.agendaEm||0)-(a.agendaEm||0));return{pend,D}}
+function viewMelDesp(n){if(!TM.ok){if(!TM.bus)tmCarregar();return '<h2>Despacho</h2><p class="muted">Carregando…</p>'}if(ui.tmD)return melProjView(n);
+  const{pend,D}=melDespDados(n),f=ui.melDf==='enc'?'enc':'and',fim=c=>['validado','lpu','concluido','cancelado','fechado'].includes(c.status)||!!c.validadoEm,DL=D.filter(c=>f==='enc'?fim(c):!fim(c)),dp=pode('a_gMelDesp');
+  const stCh=c=>{const x=melPrj(c),e=x&&tmEtapas(x).find(y=>y.id===c.txMel.etapa);const s=e?tmEtSt(e):null;return s&&s.ch===c?`<span class="chip ${s.c}">${esc(s.t)}</span>`:`<span class="chip">${esc(c.status)}</span>`};
+  return `<div class="toolbar"><div><h2>${esc(MEL_NAT[n][1])} · Despacho</h2><p class="muted">Etapas de campo dos projetos. "Despachar" abre o agendamento: técnico ou empresa, data, horário e orientações (com anexos). O KMZ do projeto vai junto com a atividade.</p></div></div>
+   <section class="panel"><div class="secth"><h3>Para despachar <small class="muted">${pend.length}</small></h3></div>
+    ${pend.length?`<div class="tablewrap"><table class="meltb"><thead><tr><th>Projeto</th><th>Etapa de campo</th><th>POP</th><th>Previsto</th><th>Situação</th><th></th></tr></thead><tbody>${pend.map(({x,e,s})=>`<tr><td><button class="linkbtn" data-act="melAbre" data-id="${x.id}"><b>${esc(x.codigo||'')}</b></button><br><small class="muted">${esc(x.motivo||'')}</small></td><td>${esc(e.nome)}</td><td>${esc(melPopNm(x)||'—')}</td><td>${e.iniP?dBR(e.iniP).slice(0,5)+(e.fimP&&e.fimP!==e.iniP?' a '+dBR(e.fimP).slice(0,5):''):'—'}</td><td><span class="chip ${s.canc?'bad':'warn'}">${s.canc?'Despacho cancelado':'Aguardando despacho'}</span></td><td class="r">${dp?`<button class="btn sm primary" data-act="melDesp" data-id="${x.id}" data-e="${e.id}">Despachar</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nenhuma etapa de campo esperando despacho.</p>'}</section>
+   <section class="panel melsec"><div class="secth"><h3>Despachadas</h3><div class="views">${[['and','Em andamento'],['enc','Encerradas']].map(([k,t])=>`<button data-act="melDf" data-v="${k}" aria-current="${f===k}">${t} (${D.filter(c=>k==='enc'?fim(c):!fim(c)).length})</button>`).join('')}</div></div>
+    ${DL.length?`<div class="tablewrap"><table class="meltb"><thead><tr><th>Projeto</th><th>Etapa</th><th>Técnico</th><th>Quando</th><th>Situação</th><th></th></tr></thead><tbody>${DL.map(c=>{const x=melPrj(c);return `<tr><td><b>${esc((x&&x.codigo)||c.txMel.cod||'')}</b></td><td>${esc(c.txMel.nome||'')}</td><td>${esc(gTecN(c.tec)||'—')}${c.tec&&!tmEqMel(c.tec)?' <small class="melwarn">(fora da equipe da melhoria)</small>':''}</td><td>${c.agendaEm?gQuando(c.agendaEm):'—'}</td><td>${stCh(c)}</td><td class="r"><button class="btn sm" data-act="melCh" data-id="${c.id}">Abrir</button></td></tr>`}).join('')}</tbody></table></div>`:`<p class="muted">${f==='enc'?'Nenhuma etapa encerrada.':'Nenhuma etapa em campo agora.'}</p>`}</section>`}
+Object.assign(ACT,{melDf:el=>{ui.melDf=el.dataset.v;render()},
+  melDesp:async el=>{const x=tmGet(el.dataset.id);if(!x)return;ui.tmD=JSON.parse(JSON.stringify(x));ui.melVolta=ui.tab;permEff();await ACT.tmEtDesp({dataset:{e:el.dataset.e}});if(ui.tab!=='gNovo'){ui.tmD=null;ui.melVolta=null;render()}},
+  melCh:el=>{ui.melVolta=ui.tab;ui.gSel=el.dataset.id;ui.tab='gCham';render();window.scrollTo(0,0)}});
+/* o técnico do despacho: quem atua na melhoria primeiro; os outros abaixo, com aviso */
+document.addEventListener('change',e=>{try{const s=e.target;if(!melAt()||!ui.tmCtx||!s||s.dataset.ch!=='txF'||s.dataset.k!=='tec')return;setTimeout(()=>render(),0)}catch(x){}},true);
+/* Equipe técnica: só a coluna da melhoria pode ser marcada */
+function viewMelEq(){const ed=melTem('mel_eq_ed'),_n=nteAdmin;let h='';nteAdmin=()=>'';try{h=viewEqTec()}finally{nteAdmin=_n}
+  h=h.replace(/<button class="eqb([^"]*)" data-act="eqT" data-id="([^"]+)" data-k="([^"]+)"([^>]*)>/g,(m,c,id,k,r)=>{r=r.replace(/\s*disabled/g,'');const on=k==='txmel'&&ed;return `<button class="eqb${c}${k==='txmel'?'':' eqro'}" data-act="eqT" data-id="${id}" data-k="${k}"${r}${on?'':' disabled'}>`});
+  h=h.replace(/(<h2>Equipe técnica<\/h2><p class="muted">)[^<]*/,`$1Aqui você marca quem atua na <b>Melhoria de rede</b> (Capex e Opex usam a mesma coluna). As outras colunas são das outras áreas e aparecem só para consulta. No despacho das etapas de campo, quem atua na melhoria aparece primeiro; os outros ficam abaixo, com aviso.`);
+  return (ed?'':'<div class="result info" style="margin-bottom:10px">Você vê a equipe técnica, mas não tem permissão para marcar quem atua na melhoria de rede.</div>')+h}
+{const _t=ACT.eqT;ACT.eqT=async function(el){if(ui.tab!=='melEq')return _t.apply(this,arguments);if(el.dataset.k!=='txmel')return;if(!melTem('mel_eq_ed'))return semPerm();
+  if(!Array.isArray(ME.perm)||ME.perm.includes('a_eqTec'))return _t.apply(this,arguments);ME.perm.push('a_eqTec');try{return await _t.apply(this,arguments)}finally{if(Array.isArray(ME.perm))ME.perm=ME.perm.filter(k=>k!=='a_eqTec')}}}
+/* ---------- Financeiro da melhoria ---------- */
+let MEL_FIN=0;function melFin(nats,fn){const all=G.lpus,F=melLpus(nats),a0=ui.gArea,ct=GTD_CONTA;G.lpus=F;ui.gArea='gtd';MEL_FIN++;try{return fn()}finally{MEL_FIN--;if(G.lpus===F)G.lpus=all;ui.gArea=a0;GTD_CONTA=ct}}
+const melFinNats=()=>melNats().filter(n=>melTem('mel_fin')||melTem(`mel_${n}_lpu`));
+const melPer=()=>`<div class="tools"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ui.gpIni||hoje().slice(0,8)+'01'}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${ui.gpFim||hoje()}"></label></div>`;
+const melFinTit=(t,sub,tools)=>`<div class="toolbar"><div><h2>${t} · Melhoria de rede</h2><p class="muted">${sub}</p></div>${tools||''}</div>`;
+function viewMelAprov(){const nats=melFinNats(),sel=melSel(nats,'melFN'),ap=['cx','ox'].filter(n=>melTem(`mel_${n}_lpu`));
+  let h=melFin(sel,()=>viewGAprov(true));const l=(G.lpus||[]).find(x=>x.id===ui.gaOpen);
+  h=h.replace(/Aprovação de LPU · [^<]*/,'Aprovação de LPU · Melhoria de rede').replace(/<b>Conta contábil \(fixa no GTD\):<\/b> [^<]*/,`<b>Conta contábil:</b> ${esc((l&&l.conta)||'')}`);
+  const sub=`LPUs das etapas de campo dos projetos${sel.length>1?' de Capex e de Opex':' de '+melNatN(sel[0])}. Opex na conta 3.1.1.2.05.0103 (Melhoria de rede, reparo programado); Capex na conta 3.1.1.2.05.0007 (Instalação de rede). ${ap.length===2||ui.perfil==='coord'?'':ap.length?'Você aprova só as do '+melNatN(ap[0])+'.':'Você só consulta.'}`;
+  return melFinTit('Aprovação de LPU',sub)+melSeg(nats,'melFN')+h}
+{['gAprovar','gDecidir'].forEach(k=>{const f=ACT[k];if(!f)return;ACT[k]=function(el){if(!melAt()||ui.perfil==='coord')return f.apply(this,arguments);const l=(G.lpus||[]).find(x=>x.id===(el&&el.dataset&&el.dataset.id)),n=melLpuNat(l);
+  if(n&&!melTem(`mel_${n}_lpu`))return semPerm();return f.apply(this,arguments)}})}
+function melBudNat(n,mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes,L=melLpus([n]).filter(l=>!gLpuClt(l)),soma=A=>A.reduce((s,l)=>s+(+l.total||0),0);
+  const A=L.filter(doMes),P=L.filter(l=>['aguardando','ajuste'].includes(l.status)),clt=melLpus([n]).filter(l=>gLpuClt(l)&&l.status!=='reprovada'&&String(l.data||'').slice(0,7)===mes);return{A,P,clt,uso:soma(A),comp:soma(P),vClt:soma(clt)}}
+function viewMelBud(){const nats=melNats(),sel=melSel(nats,'melFN'),mes=ui.bMes||hoje().slice(0,7);ui.bMes=mes;const M=finMeses(),nL=n=>n+(n===1?' LPU':' LPUs');
+  const card=n=>{const R=melBudNat(n,mes),ox=n==='ox',orc=ox?(+((S.budget||{})[mes]||{})[MEL_CONTA.ox]||0):0,ed=ox&&ui.melBEd&&pode('a_budget'),disp=orc-R.uso,p=orc?Math.round(R.uso/orc*100):0,tot=Math.max(orc,R.uso+R.comp)||1,cor=p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)';
+    return `<section class="panel melsec"><div class="secth"><div><h3>${esc(MEL_NAT[n][1])}</h3><span class="muted">${ox?esc(MEL_CONTA.ox):'Conta do budget do Capex ainda não definida: aqui aparece só o consumo.'}</span></div>
+      ${ox&&pode('a_budget')?`<div class="tools">${ed?'<button class="btn primary" data-act="melBSalvar">Salvar budget</button><button class="btn" data-act="melBEd">Cancelar</button>':'<button class="btn" data-act="melBEd">Definir budget do Opex</button>'}</div>`:''}</div>
+     ${ed?`<label class="f inline" style="margin:8px 0"><span>Budget de ${mesNome(mes)} (R$)</span><input class="inp r" type="number" min="0" step="100" id="melBud" value="${orc||''}" placeholder="0"></label>`:''}
+     <div class="kpis" style="margin:10px 0">${ox?kp(brl(orc),'Budget do mês'):''}${kp(brl(R.uso),`Consumido${ox&&orc?': '+p+'%':''} (${nL(R.A.length)})`,'ok')}${ox?kp(brl(disp),'Disponível',disp<0?'bad':''):''}${kp(brl(R.comp),`Aguardando aprovação (${nL(R.P.length)})`,'warn')}</div>
+     ${ox?`<div class="bbar"><i style="width:${R.uso/tot*100}%"></i><b style="width:${R.comp/tot*100}%"></b></div><small style="color:${cor};font-weight:600">${orc?p+'% consumido':'sem budget definido'}${orc&&R.uso+R.comp>orc?' · passa do budget se aprovar tudo':''}</small>`:''}
+     <p class="muted" style="font-size:13px;margin:8px 0 0">Consome no mês da aprovação da LPU. Equipe própria (CLT): ${nL(R.clt.length)} no mês (${brl(R.vClt)} de referência), não consomem o budget.</p></section>`};
+  return melFinTit('Budget e consumo','Mão de obra terceirizada das etapas de campo, por natureza.',`<div class="tools"><label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${M.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label></div>`)+melSeg(nats,'melFN')+sel.map(card).join('')}
+Object.assign(ACT,{melBEd:()=>{ui.melBEd=!ui.melBEd;render()},
+  melBSalvar:async()=>{if(!pode('a_budget'))return semPerm();const mes=ui.bMes||hoje().slice(0,7),valor=parseFloat((($('melBud')||{}).value||'0').replace(',','.'))||0;
+    const r=await sb.from('ag_budget').upsert([{mes,conta:MEL_CONTA.ox,valor}],{onConflict:'mes,conta'});if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return}
+    S.budget=S.budget||{};S.budget[mes]=S.budget[mes]||{};S.budget[mes][MEL_CONTA.ox]=valor;ui.melBEd=false;render();toast('Budget do Opex salvo.')}});
+function viewMelDet(){const nats=melNats(),sel=melSel(nats,'melFN');let h=melFin(sel,()=>gFinDet());return melFinTit('Detalhamento das LPUs','Itens mais usados e valor das LPUs da melhoria no período.',melPer())+melSeg(nats,'melFN')+h}
+function viewMelPrest(){const nats=melNats(),sel=melSel(nats,'melFN'),ini=ui.gpIni||hoje().slice(0,8)+'01',fim=ui.gpFim||hoje();let h=melFin(sel,()=>pPrest('GTD',ini,fim));return melFinTit('Totais por prestador','Quanto cada prestador lançou em LPU da melhoria no período.',melPer())+melSeg(nats,'melFN')+h}
+/* as LPUs da melhoria saem das filas e do financeiro das outras áreas (Transmissão, GTD e Rede Externa) */
+['viewGAprov','gFinBudget','gFinDet'].forEach(nm=>{const f=window[nm];if(typeof f!=='function')return;const w=function(){if(MEL_FIN||melAt())return f.apply(this,arguments);const ids=melLpuIds();if(!ids.size)return f.apply(this,arguments);
+  const all=G.lpus,F=all.filter(l=>!ids.has(l.id));G.lpus=F;try{return f.apply(this,arguments)}finally{if(G.lpus===F)G.lpus=all}};
+  if(nm==='viewGAprov')viewGAprov=w;else if(nm==='gFinBudget')gFinBudget=w;else gFinDet=w});
+{const _p=pPrest;pPrest=function(){if(MEL_FIN||melAt())return _p.apply(this,arguments);const ids=melLpuIds();if(!ids.size)return _p.apply(this,arguments);const all=G.lpus,F=(all||[]).filter(l=>!ids.has(l.id));G.lpus=F;try{return _p.apply(this,arguments)}finally{if(G.lpus===F)G.lpus=all}}}
+/* Financeiro geral e Visão gerencial: Melhoria separada em Capex e Opex */
+FIN_AR.push(['mcx','Melhoria · Capex','cx'],['mox','Melhoria · Opex','0103']);
+{const _f=finAreaL;finAreaL=function(l){const n=melLpuNat(l);if(n)return n==='ox'?'mox':'mcx';return _f.apply(this,arguments)}}
+{const _t=finTabela;finTabela=function(){return _t.apply(this,arguments).replace(/<small>3\.1\.1\.2\.05\.cx<\/small>/g,'<small>conta a definir</small>')}}
+GER_AR.push(['mel','Melhoria de rede','Capex e Opex: projetos, km e custos']);
+{const _g=gerHtml;gerHtml=function(k){if(k!=='mel')return _g.apply(this,arguments);if(!melVe()||!melNats().length)return null;if(!TM.ok){if(!TM.bus)tmCarregar().then(()=>{if(ui.tab==='gerKpi')render()}).catch(()=>{});return ''}
+  const{L}=melKpiDados(melNats());return melKpiCards(L)}}
+{const _a=ACT.gerAbrir;ACT.gerAbrir=function(el){if(el&&el.dataset&&el.dataset.k==='mel')return gerVai('mel','melKpi');return _a.apply(this,arguments)}}
+GER_REL.splice(GER_REL.findIndex(g=>g[0]==='fin'),0,['mel','Melhoria de rede',[['melKpi','KPIs da melhoria','Projetos, km, projetado e realizado por Capex e Opex, com planilha']]]);
+Object.assign(RP_VIEWS,{melKpi:viewMelKpi,melMin:viewMelMin,cxProj:()=>melProjView('cx'),oxProj:()=>melProjView('ox'),cxCrono:()=>melProjView('cx','crono'),oxCrono:()=>melProjView('ox','crono'),
+  cxDesp:()=>viewMelDesp('cx'),oxDesp:()=>viewMelDesp('ox'),melAprov:viewMelAprov,melBud:viewMelBud,melDet:viewMelDet,melPrest:viewMelPrest,melEq:viewMelEq});
+/* ---------- LPU do chamado de melhoria: conta da natureza (Opex 0103, Capex 0007) ---------- */
+function melLpuCh(){const s=ui.sign||{},k=String(ui.lpuTela||s.key||'');let c=null;
+  if(/^G:/.test(k))c=(G.ch||[]).find(x=>x.id===k.slice(2));else if(/^GL:/.test(k)){const l=(G.lpus||[]).find(x=>x.id===k.slice(3));c=l&&(G.ch||[]).find(x=>x.id===l.chamado)}
+  else if(/^g/.test(s.tipo||'')){const l=(G.lpus||[]).find(x=>x.id===s.id);c=(G.ch||[]).find(x=>x.id===s.id)||(l&&(G.ch||[]).find(x=>x.id===l.chamado))}return c&&c.txMel?c:null}
+function melContaModo(c,fn){if(!c||!c.txMel)return fn();const ct=GTD_CONTA;GTD_CONTA=MEL_CONTA[melChNat(c)];let r;try{r=fn()}catch(e){GTD_CONTA=ct;throw e}if(r&&typeof r.then==='function')return r.finally(()=>{GTD_CONTA=ct});GTD_CONTA=ct;return r}
+['gLpuRevisar','gLpuPasso','gReenviar','gLpuCorrigir','sgOk','confOk','sgVoltar','confVoltar'].forEach(k=>{const f=ACT[k];if(!f)return;ACT[k]=function(){return melContaModo(melLpuCh(),()=>f.apply(this,arguments))}});
+{const _v=gLpuView;gLpuView=function(c){const x=arguments;if(!c||!c.txMel)return _v.apply(this,x);return melContaModo(c,()=>_v.apply(this,x)).replace(/fixa no GTD Manutenção/g,'fixa na Melhoria de rede').replace(/fixa na Transmissão/g,'fixa na Melhoria de rede')}}
+/* ---------- celular do técnico: "Melhoria de rede" no lugar da área e filtro próprio ---------- */
+const melTxt=h=>String(h).replace(/Transmissão · Melhoria de rede(?: · O&amp;M [^<]*)?/g,'Melhoria de rede');
+{const _c=tvCardG;tvCardG=function(c){const h=_c.apply(this,arguments);return c&&c.txMel?melTxt(h):h}}
+{const _t=gTecView;gTecView=function(c){const h=_t.apply(this,arguments);return c&&c.txMel?melTxt(h):h}}
+const melCods=()=>(G.ch||[]).filter(c=>c.txMel&&c.pom).map(c=>c.pom);
+const melTiraCod=s=>{const L=melCods();if(!L.length||typeof s!=='string')return s;L.forEach(p=>{const q=p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');s=s.replace(new RegExp('(?:Protocolo )?O&(?:amp;)?M '+q+'\\b','g'),'Melhoria de rede')});return s};
+{const _s=txSemCod;txSemCod=function(root){try{const L=melCods();if(root&&L.length){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),N=[];while(w.nextNode()){const n=w.currentNode;if(n.nodeValue.indexOf('TX')>=0&&L.some(p=>n.nodeValue.indexOf(p)>=0))N.push(n)}N.forEach(n=>{n.nodeValue=melTiraCod(n.nodeValue)})}}catch(e){}return _s.apply(this,arguments)}}
+{const _m=openModal;openModal=function(h,...x){return _m.call(this,melTiraCod(h),...x)}}
+{const _t=window.toast;window.toast=function(m,...x){return _t.call(this,melTiraCod(m),...x)}}
+{const _v=viewCampo;viewCampo=function(){const tec=ui.tec,mine=(G.ch||[]).filter(c=>c.tec===tec&&c.txMel&&c.status!=='cancelado');
+  if(!tec||(ui.campoSel||(typeof gTecSel==='function'&&gTecSel()))||!mine.length){if(ui.cTipo==='mel'&&!mine.length)ui.cTipo='tudo';return _v.apply(this,arguments)}
+  const tp=ui.cTipo,all=G.ch,ra=typeof RP!=='undefined'?RP.rows:null,ags=S.ags;let h;
+  if(tp==='mel'){G.ch=all.filter(c=>c.tec!==tec||c.txMel);S.ags=ags.filter(a=>a.tec!==tec);if(ra)RP.rows=ra.filter(x=>x.tec!==tec);ui.cTipo='gtd'}
+  else if(tp==='gtd')G.ch=all.filter(c=>!(c.tec===tec&&c.txMel));
+  try{h=_v.apply(this,arguments)}finally{G.ch=all;S.ags=ags;if(ra)RP.rows=ra;ui.cTipo=tp}
+  const on=tp==='mel';if(on)h=h.replace(/(<div class="tvflt"[^>]*>)([\s\S]*?)(<\/div>)/,(m,a,b,c)=>a+b.replace(/aria-pressed="true"/g,'aria-pressed="false"')+c);
+  return h.replace(/(<div class="tvflt"[^>]*>[\s\S]*?)(<\/div>)/,`$1<button data-act="cTipo" data-v="mel" aria-pressed="${on}">Melhoria de rede</button>$2`)}}
+/* tela de agendamento da etapa (Criar · Transmissão) com os textos da área */
+{const _v=viewTxNovo;viewTxNovo=function(){const h=_v.apply(this,arguments);if(!melAt()||!ui.tmCtx)return h;
+  return h.replace(/<h2>Criar · Transmissão<\/h2><p class="muted">[^<]*<\/p>/,'<h2>Despachar etapa · Melhoria de rede</h2><p class="muted">Escolha o técnico ou a empresa, a data, o horário e as orientações. A atividade chega no celular do técnico como Melhoria de rede.</p>')
+   .replace(/O chamado entra na Agenda da Transmissão[^<]*/,'A atividade vai para o técnico com os itens da etapa e o KMZ. Ao agendar, a etapa volta para o projeto como despachada.').replace(/Voltar à melhoria/g,'Voltar')}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
