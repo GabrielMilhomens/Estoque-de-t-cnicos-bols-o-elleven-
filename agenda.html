@@ -18643,6 +18643,36 @@ const melTiraCod=s=>{const L=melCods();if(!L.length||typeof s!=='string')return 
 {const _v=viewTxNovo;viewTxNovo=function(){const h=_v.apply(this,arguments);if(!melAt()||!ui.tmCtx)return h;
   return h.replace(/<h2>Criar · Transmissão<\/h2><p class="muted">[^<]*<\/p>/,'<h2>Despachar etapa · Melhoria de rede</h2><p class="muted">Escolha o técnico ou a empresa, a data, o horário e as orientações. A atividade chega no celular do técnico como Melhoria de rede.</p>')
    .replace(/O chamado entra na Agenda da Transmissão[^<]*/,'A atividade vai para o técnico com os itens da etapa e o KMZ. Ao agendar, a etapa volta para o projeto como despachada.').replace(/Voltar à melhoria/g,'Voltar')}}
+/* ---------- despacho: puxar anexos e KMZ do projeto para a atividade (sem baixar e subir) ----------
+   Lista KMZ do projeto inteiro (gerado na hora), KMZ de cada trecho de lançamento, KMZ do CFO/extensão e
+   todos os anexos já guardados no projeto (etapas, delegações e linha do tempo). Os escolhidos entram nos
+   anexos da atividade como se tivessem sido anexados do computador. */
+function melAnxDoPrj(D){const L=[],vis=new Set(),add=(path,nome,grupo,tipo)=>{if(!path||vis.has(path))return;vis.add(path);L.push({path,nome:nome||String(path).split('/').pop().replace(/^\d+-\d+-/,''),grupo,tipo:tipo||''})};
+  (D.trechos||[]).forEach((t,i)=>{const p=t.des&&t.des.kmzPath;if(p)add(p,`Trecho ${i+1}${t.oNome||t.dNome?' - '+[t.oNome,t.dNome].filter(Boolean).join(' a '):''}.kmz`,'KMZ de lançamento')});
+  if(D.cfo&&D.cfo.kmzPath)add(D.cfo.kmzPath,'CFO e extensão de fibra.kmz','KMZ do CFO e extensão');
+  const anda=(o,g)=>{if(!o||typeof o!=='object')return;if(Array.isArray(o)){o.forEach(x=>anda(x,g));return}
+    if(typeof o.path==='string'&&/^(txmel|chat|ag|agenda|lpu|rel)\//.test(o.path)&&!/kmz$/i.test(o.path)||typeof o.path==='string'&&o.nome)add(o.path,o.nome,g,o.tipo);
+    Object.keys(o).forEach(k=>{if(k!=='des'&&k!=='cfo'&&o[k]&&typeof o[k]==='object')anda(o[k],g)})};
+  (tmEtapas(D)||[]).forEach(e=>anda(e,'Anexos da etapa "'+(e.nome||'')+'"'));anda(D.acomp,'Linha do tempo do projeto');anda(D.anexos,'Anexos do projeto');anda(D.hist,'Histórico');return L}
+const melAnxCtx={};
+ACT.melAnxPrj=el=>{const D=ui.tmCtx&&ui.tmCtx.D;if(!D)return;const L=melAnxDoPrj(D),R=tmResumo(D),tem=R.nDes||R.nCx;melAnxCtx.k=el.dataset.k;melAnxCtx.id=el.dataset.id;melAnxCtx.L=L;melAnxCtx.D=D;
+  const G={};L.forEach((a,i)=>{(G[a.grupo]=G[a.grupo]||[]).push([a,i])});
+  openModal(`<h3>Anexos do projeto ${esc(D.codigo||'')}</h3><p class="muted">Marque o que vai junto com a atividade. Os arquivos saem direto do projeto: não precisa baixar e subir.</p>
+   <div style="max-height:55vh;overflow:auto">${tem?`<label class="chk" style="display:flex;gap:8px;margin:6px 0"><input type="checkbox" class="melAx" value="kmzAll"> <span><b>KMZ completo do projeto</b><br><small class="muted">Todos os trechos e as caixas do CFO num arquivo só (gerado agora)</small></span></label>`:''}
+   ${Object.entries(G).map(([g,A])=>`<h4 style="margin:12px 0 4px">${esc(g)}</h4>${A.map(([a,i])=>`<label class="chk" style="display:flex;gap:8px;margin:4px 0"><input type="checkbox" class="melAx" value="${i}"> <span>${esc(a.nome)}</span></label>`).join('')}`).join('')}
+   ${!tem&&!L.length?'<p class="muted">Este projeto ainda não tem KMZ nem anexos guardados.</p>':''}</div>
+   <div class="tools" style="margin-top:12px"><button class="btn primary" data-act="melAnxOk">Incluir na atividade</button><button class="btn" data-act="closeModal">Cancelar</button></div>`)};
+ACT.melAnxOk=async el=>{const S=[...document.querySelectorAll('.melAx:checked')].map(x=>x.value);if(!S.length){toast('Marque pelo menos um arquivo.','bad');return}
+  if(el)el.disabled=true;const F=[],falha=[];
+  for(const v of S){try{if(v==='kmzAll'){const sv=ui.tmD,b0=window.baixaArq;let B=null;ui.tmD=melAnxCtx.D;window.baixaArq=(b,n)=>{B=[b,n]};try{await ACT.tmKmz()}finally{window.baixaArq=b0;ui.tmD=sv}
+        if(B)F.push(new File([B[0]],B[1]||((melAnxCtx.D.codigo||'melhoria')+'.kmz'),{type:'application/vnd.google-earth.kmz'}));else falha.push('KMZ completo');continue}
+      const a=melAnxCtx.L[+v];const r=await sb.storage.from('agenda').download(a.path);if(r.error||!r.data)throw r.error||new Error('sem arquivo');
+      F.push(new File([r.data],a.nome,{type:a.tipo||r.data.type||(/\.kmz$/i.test(a.nome)?'application/vnd.google-earth.kmz':'application/octet-stream')}))}
+    catch(e){const a=melAnxCtx.L[+v];falha.push(a?a.nome:v)}}
+  closeModal();if(F.length)dnPoe(melAnxCtx.k,melAnxCtx.id,F);if(falha.length)toast('Não foi possível trazer: '+falha.join(', '),'bad')};
+{const _v=viewTxNovo;viewTxNovo=function(){const h=_v.apply(this,arguments);if(!ui.tmCtx||!ui.tmCtx.D)return h;
+  return h.replace(/(<div class="tools dntl"><label class="btn sm">Anexar foto ou arquivo<input type="file" multiple accept="[^"]*" hidden data-ch="dnArq" data-k="([^"]+)" data-id="([^"]+)"><\/label>)/,
+    (m,a,k,id)=>`${a}<button type="button" class="btn sm" data-act="melAnxPrj" data-k="${k}" data-id="${id}">Anexos do projeto</button>`)}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
