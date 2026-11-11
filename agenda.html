@@ -18875,6 +18875,54 @@ function rpChatIr(id,chat){if(!id)return;if(gTecPerfil()){ui.tab='campo';ui.camp
 {let rpQ=null;try{const q=new URLSearchParams(location.search);if(q.get('rp'))rpQ={id:q.get('rp'),chat:q.get('chat')==='1'}}catch(e){}
   if(rpQ){const _r=render;render=function(){if(rpQ&&ME&&document.body.classList.contains('app-on')){const o=rpQ;rpQ=null;try{history.replaceState(null,'',location.pathname)}catch(e){}return rpChatIr(o.id,o.chat)}return _r.apply(this,arguments)}}}
 
+/* ---------- 11/11: Companhia elétrica (programadas) na visão do técnico ----------
+   1. Resultado "Preventiva": abre o campo "Material usado" (texto livre, obrigatório). Não é apontamento de material,
+      só fica escrito no apontamento e aparece na revisão.
+   2. LPU pelo técnico: depois que a gestão aprova o resultado na Revisão de campo (Preventiva, Acompanhamento ou
+      Improdutiva), a atividade volta para "Hoje" com "Preencher a LPU". O serviço vem sugerido (SEV0085 preventiva e
+      acompanhamento, SEV0076 improdutiva); o técnico confere e segura para enviar. Vai para a Aprovação de LPU como o
+      envio que antes só a gestão fazia (x.lpu.env, com tec:true). A gestão ainda pode enviar pelo detalhe, se precisar.
+   3. Encerradas: as programadas concluídas pelo técnico (em revisão, LPU enviada ou concluída) aparecem na aba
+      Encerradas de Minhas atividades, com a contagem. */
+const rpLpuTec=x=>!!x&&x.tipo==='cia'&&rpLpuPronta(x)&&!(x.lpu&&x.lpu.env);
+const rpEncTec=x=>x.status==='concl'&&!rpRejN(x)&&!rpLpuTec(x);
+const rpUltEm=x=>{const h=(x.hist||[]).slice(-1)[0];return (h&&h.em)||Date.parse(x.data||0)||0};
+/* 1. material usado na Preventiva */
+{const _f=rpTecForm;rpTecForm=function(x){const h=_f.apply(this,arguments);if(!x||x.tipo!=='cia')return h;const d=rpDr(x),k=rpDk(x);if(d.v.res!=='prev')return h;
+  const obs=rpTxtT(k,'obs','Observação',d),mat=rpTxtT(k,'mat','Material usado *',d,'Ex.: 30 m de cabo 12FO, 2 alças, 1 CEO');
+  return h.includes(obs)?h.replace(obs,mat+obs):h}}
+{const _a=rpFaltaAp;rpFaltaAp=function(x,d){const F=_a.apply(this,arguments);if(x&&x.tipo==='cia'&&d&&d.v&&d.v.res==='prev'&&!String(d.v.mat||'').trim())F.push('material usado');return F}}
+{const _r=rpApResumo;rpApResumo=function(x,a){const t=_r.apply(this,arguments);const m=x&&x.tipo==='cia'&&a&&a.v&&String(a.v.mat||'').trim();return m?t+' · Material: '+m:t}}
+/* 2. LPU pelo técnico */
+function rpLpuTecHtml(x){const L=rpLpuSug(x);
+  return `<div class="rplpu">${L.map(i=>{const it=rpLpuIt(i.cod);return `<div class="rpit"><span><b>${esc(i.cod)}</b> ${esc(it.desc||'')}</span><b>${rpFmt(i.qtd,1)} ${esc(String(it.medida||'').toLowerCase())}</b></div>`}).join('')}
+   <p class="muted" style="margin:8px 0 0">Resultado aprovado na revisão: ${esc(rpAnd(x))}. Confira o serviço e envie para a Aprovação de LPU.</p></div>`}
+{const _t=rpTecTela;rpTecTela=function(x){let h=_t.apply(this,arguments);if(!x||x.tipo!=='cia')return h;
+  if(rpLpuTec(x)){h=h.replace('<div class="result ok" style="margin:0">Atividade concluída e revisada.</div>','<div class="result warn" style="margin:0"><b>Resultado aprovado.</b> Agora preencha a LPU.</div>');
+    const sec=tvAcc('rp:lpu:'+x.id,true,IC.doc,'LPU','Serviço sugerido pelo resultado',rpLpuTecHtml(x)),ft=tvFoot(`<button class="bigbtn" data-act="rpTLpu" data-id="${x.id}" data-hold="2000">Segure para enviar a LPU</button><small class="tvnota">Vai para a Aprovação de LPU da Rede Externa Preventiva.</small>`);
+    const i=h.lastIndexOf('<div class="tvft">');return i>=0?h.slice(0,i)+sec+ft:h+sec+ft}
+  const e=x.lpu&&x.lpu.env;if(e&&x.status==='concl')h=h.replace('<div class="result ok" style="margin:0">Atividade concluída e revisada.</div>',`<div class="result ok" style="margin:0">Atividade concluída. LPU enviada${e.tec?'':' pela gestão'} em ${rpDH(e.em)}.</div>`);
+  return h}}
+Object.assign(ACT,{rpTLpu:async el=>{const x=rpGet(el.dataset.id);if(!rpLpuTec(x)){toast('A LPU desta atividade já foi enviada ou ainda não foi liberada.','bad');render();return}
+  const L=rpLpuSug(x);if(!L.length){toast('Sem serviço para lançar.','bad');return}const ant=x.lpu;x.lpu={itens:L,env:{por:meNome(),em:Date.now(),tec:true}};rpH(x,'LPU enviada pelo técnico');
+  if(await rpSalvar(x,'LPU enviada para a Aprovação de LPU.')){ui.rpT=null;ui.cF='enc'}else x.lpu=ant;render();window.scrollTo(0,0)}});
+/* gestão: na companhia elétrica, quem preenche é o técnico (a gestão pode enviar se precisar) */
+{const _l=rpLpuHtml;rpLpuHtml=function(x){const h=_l.apply(this,arguments);if(!x||x.tipo!=='cia'||!rpLpuTec(x))return h;
+  return h.replace(/<div class="actions"><button class="btn primary" data-act="rpLpuEnv" data-id="([^"]+)">Enviar para Aprovação de LPU<\/button><\/div>/,(m,id)=>`<p class="muted">Aguardando o técnico preencher a LPU no app.</p><div class="actions"><button class="btn" data-act="rpLpuEnv" data-id="${id}">Enviar pela gestão</button></div>`)}}
+/* card: concluída, em revisão, LPU liberada ou enviada */
+{const _c=rpTvCard;rpTvCard=function(x){const h=_c.apply(this,arguments);if(!x||x.status!=='concl'||rpRejN(x))return h;
+  const st=rpLpuTec(x)?['LPU liberada','warn']:rpPendRev(x)?['Em revisão','info']:x.lpu&&x.lpu.env?['LPU enviada','ok']:['Concluída','ok'];
+  return h.replace(/<span class="chip [^"]*">Concluída<\/span>/,`<span class="chip ${st[1]}">${st[0]}</span>`)
+    .replace(/(<button class="tvpri" data-act="rpTAbrir" data-id="[^"]+">)[^<]*(<\/button>)/,(m,a,b)=>a+(rpLpuTec(x)?'Preencher a LPU':'Ver atividade')+b)}}
+/* 3. lista: LPU liberada em Hoje; concluídas em Encerradas */
+{const _v=viewCampo;viewCampo=function(){const h=_v.apply(this,arguments);try{if(ui.rpT||ui.campoSel||(typeof gTecSel==='function'&&gTecSel())||!RP.ok||!h.includes('<div class="tvtabs"'))return h;
+  const tp=ui.cTipo||'tudo';if(tp==='impl')return h;const M=rpProgs().filter(x=>x.tec&&x.tec===ui.tec);
+  const H=M.filter(x=>rpLpuTec(x)&&!rpRejN(x)),lim=Date.now()-60*864e5,E=M.filter(x=>rpEncTec(x)&&rpUltEm(x)>=lim).sort((a,b)=>rpUltEm(b)-rpUltEm(a));
+  if(!H.length&&!E.length)return h;const cf=['hoje','prox','enc'].includes(ui.cF)?ui.cF:'hoje';
+  let o=h.replace(/(data-t="hoje" aria-selected="(?:true|false)">Hoje · )(\d+)/,(m,a,n)=>a+(+n+H.length)).replace(/(data-t="enc" aria-selected="(?:true|false)">Encerradas · )(\d+)/,(m,a,n)=>a+(+n+E.length));
+  const V=cf==='hoje'?H:cf==='enc'?E:[];if(!V.length)return o;
+  o=o.replace(/<div class="tvlista">\s*<p class="muted pad">[^<]*<\/p>/,'<div class="tvlista">');return o.replace('<div class="tvlista">','<div class="tvlista">'+V.map(rpTvCard).join(''))}catch(e){console.warn('rpcia lista',e);return h}}}
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
