@@ -18923,6 +18923,26 @@ Object.assign(ACT,{rpTLpu:async el=>{const x=rpGet(el.dataset.id);if(!rpLpuTec(x
   const V=cf==='hoje'?H:cf==='enc'?E:[];if(!V.length)return o;
   o=o.replace(/<div class="tvlista">\s*<p class="muted pad">[^<]*<\/p>/,'<div class="tvlista">');return o.replace('<div class="tvlista">','<div class="tvlista">'+V.map(rpTvCard).join(''))}catch(e){console.warn('rpcia lista',e);return h}}}
 
+/* ---------- 11/11: concluir atividade (Implantação) com as fases desmarcadas e confirmação ----------
+   * A lista "Concluir atividade" abre com todas as fases desmarcadas: o técnico marca só o que concluiu.
+   * "Continuar" troca a lista por uma pergunta, no mesmo modal (as marcações e o "trabalhamos juntos" continuam lá):
+       - com fases marcadas: "Você concluiu <fase + fase>?"
+       - sem nada marcado: "Você não selecionou nenhuma fase como concluída, deseja continuar?"
+     Sim = segurar 2 segundos (segue o fluxo de sempre: concluirOk). "Não, voltar" volta para a lista.
+   * Os outros caminhos (Finalizar mesmo assim, reforço) já chegam com as fases decididas (data-ff) e não perguntam de novo. */
+{const _f=fzFinHtml;fzFinHtml=function(){return _f.apply(this,arguments).replace(/(<input type="checkbox" class="fzFin" value="[^"]+") checked>/g,'$1>')}}
+{const _o=openModal;openModal=function(){const r=_o.apply(this,arguments);try{const sh=$('modal').querySelector('.sheetm'),b=sh&&sh.querySelector('button[data-act="concluirOk"]:not([data-ff])');
+  if(b&&sh.querySelector('.fzFin')){b.textContent='Continuar';const p=sh.querySelector('p.muted');if(p&&/Marque as fases/.test(p.textContent))p.innerHTML='Marque <b>somente</b> as fases que você concluiu nesta atividade. O que continua em outro dia, deixe desmarcado.'}}catch(e){}return r}}
+{const _c=ACT.concluirOk;ACT.concluirOk=function(el){const d=el&&el.dataset||{};
+  if(d.ff!==undefined||d.fzok)return _c.apply(this,arguments);
+  const sh=$('modal').querySelector('.sheetm'),cks=[...sh.querySelectorAll('.fzFin')];if(!cks.some(x=>!x.disabled))return _c.apply(this,arguments);
+  const a=getAg(d.id);if(!a)return;const ordem=fasesOf(a),L=cks.filter(x=>x.checked).map(x=>x.value).sort((x,y)=>ordem.indexOf(x)-ordem.indexOf(y));
+  [...sh.children].forEach(x=>{if(!x.classList.contains('fzconf'))x.hidden=true});const o=sh.querySelector('.fzconf');if(o)o.remove();
+  sh.insertAdjacentHTML('beforeend',`<div class="fzconf"><h3>Confirme</h3>${L.length?`<div class="result info" style="font-size:16px"><span>Você concluiu <strong style="display:inline">${esc(L.map(faseN).join(' + '))}</strong>?</span></div>`:`<div class="result warn" style="font-size:16px"><span>Você <strong style="display:inline">não selecionou nenhuma fase</strong> como concluída, deseja continuar?<br><small>Todas as fases continuam pendentes.</small></span></div>`}
+    <button class="bigbtn" data-act="concluirOk" data-id="${a.id}" data-fzok="1" data-hold="2000" style="margin-top:12px">${L.length?'Segure: sim, concluí':'Segure: sim, continuar'}</button>
+    <button class="btn wide" data-act="fzVolta" style="margin-top:8px">Não, voltar</button></div>`)}}
+ACT.fzVolta=()=>{const sh=$('modal').querySelector('.sheetm');if(!sh)return;const o=sh.querySelector('.fzconf');if(o)o.remove();[...sh.children].forEach(x=>{x.hidden=false})};
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
