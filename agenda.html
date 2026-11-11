@@ -18345,13 +18345,11 @@ ACT.tmTrPdf=el=>{const D=tmD()||{},t=(D.trechos||[])[+el.dataset.i],d=t&&t.des;i
 document.head.insertAdjacentHTML('beforeend','<style>.kldq{display:block;font-size:11px;color:var(--warn,#b45309);text-align:right;margin-top:2px}</style>');
 
 /* ---------- 10/11: enviar só a orientação da gestão, sem trocar o técnico nem editar o chamado ----------
-   No quadro de despacho/troca: botão "Enviar só a orientação" logo abaixo do campo (usa o texto e os anexos
-   do campo "Orientações para o técnico"). No rodapé do chamado: "Registrar orientação" (abre a janela de orientação).
+   No rodapé do chamado: "Registrar orientação" (abre a janela de orientação). O campo de orientação do quadro de
+   despacho/troca continua: ele vai junto com o despacho ou a troca, para o técnico que vai receber a atividade.
    Fica em c.orient e no histórico; com técnico no chamado, ele vê na tela e recebe aviso no chat. Vale para Transmissão,
    GTD e Rede Externa (qualquer chamado em aberto). */
 {const _d=gDetalhe;gDetalhe=function(c){let h=_d.apply(this,arguments);try{if(!c||!dnPodeOrient(c))return h;
-  const bt=`<button class="btn" data-act="dnSoOrient" data-id="${c.id}" title="Registra a orientação no chamado sem trocar o técnico">Enviar só a orientação</button>`;
-  const i=h.indexOf('<div class="dndesp">'),j=i>=0?h.indexOf('</section>',i):-1;if(j>=0)h=h.slice(0,j)+`<div class="tools dnsob" style="margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap">${bt}<small class="muted">Registra no chamado sem trocar o técnico${c.tec?'; ele recebe o aviso':''}.</small></div>`+h.slice(j);
   const ed=`<button class="btn sm" data-act="gEditar" data-id="${c.id}">Editar dados</button>`;if(h.includes(ed))h=h.replace(ed,`<button class="btn sm" data-act="dnAddAbre" data-id="${c.id}">Registrar orientação</button>`+ed)}catch(e){console.warn('orient',e)}return h}}
 {const _a=ACT.dnAddAbre;ACT.dnAddAbre=function(el){const r=_a.apply(this,arguments);try{const c=G.ch.find(x=>x.id===el.dataset.id);if(c&&!c.tec){const p=document.querySelector('#modal.open p.muted');if(p)p.textContent=`O&M ${c.pom||'—'} · ${c.cliente||''}. Fica registrada no chamado e aparece para o técnico quando ele for despachado.`;const h=document.querySelector('#modal.open h3');if(h)h.textContent='Registrar orientação no chamado'}}catch(e){}return r}}
 ACT.dnSoOrient=async el=>{if(!gPodeDesp())return semPerm();const id=el.dataset.id,txt=dnTxt('desp',id),F=DN.desp[id]||[];if(!txt&&!F.length){toast('Escreva a orientação ou anexe algo no campo "Orientações para o técnico".','bad');return}
