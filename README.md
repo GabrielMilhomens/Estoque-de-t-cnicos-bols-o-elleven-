@@ -261,6 +261,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 70. `agenda_ajuste_69_codigo_melhoria_sigla_pop.sql` — o código dos projetos da Melhoria de rede usa só a abreviação do POP (última parte da sigla Estado-Cidade-POP): `CX-SPCASARB-AR-26-001` vira `CX-ARB-AR-26-001`. Natureza, motivo, ano e sequencial não mudam; o código anterior vai para o histórico do projeto e o código é atualizado nos chamados das etapas.
 71. `agenda_ajuste_70_estoque_nas_areas.sql` — Estoque (materiais) nas áreas de manutenção: `ag_pode_de` passa a aceitar `<área>_estoque`, `<área>_estAtual`, `<área>_a_bolsao`, `<área>_a_elleven`, `<área>_a_base` e `<área>_estHist` (área = `g`, `tx`, `re`, `rp`, `mel`) como as chaves da Implantação, para quem tem a permissão numa área publicar o bolsão, importar o Elleven e atualizar a data-base. As regras das tabelas do estoque não mudam.
 72. `agenda_ajuste_71_projeto_so_quem_incluiu.sql` — validação dos projetos: projeto reprovado pelo O&M só é corrigido e reenviado pelo projetista que incluiu (`dados.val.por`); outro projetista recebe "Só quem incluiu o projeto pode corrigir e reenviar". Recria `ag_proj_guard` (o resto da trava do ajuste 47 não muda).
+73. `agenda_ajuste_72_chat_re_preventiva.sql` — chat nas atividades da RE Preventiva (programadas: preventiva, melhoria, retirada e companhia elétrica): coluna `ag_mensagens.re_prog` (FK para `ag_re_prog`), `ag_ve_conversa_rp` (técnico da atividade ou gestão da RE Preventiva), políticas `agmsg_select/insert/update` recriadas mantendo as regras anteriores, `ag_msg_edita` fixa também `re_prog`, `ag_mensagem_avisos` avisa o técnico, o coordenador e quem tem `rp_t_<tipo>` ou `rp_campo` (respeita a escolha de avisos "Rede Externa"), `ag_marcar_vistas_rp` e fotos/anexos em `chat/r/<atividade>/` no bucket agenda.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -904,6 +905,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **RE Preventiva · gravação pelo técnico (11/11/2026, `mod/rpsave.js`):** o aceite, a saída, a chegada e o apontamento das programadas (prev, companhia elétrica, melhoria antiga) não ficavam gravados quando feitos pelo técnico: a gravação usava "upsert", que no banco exige também permissão de inserir, e o técnico só tem a de alterar a programada dele (`agrp_update`). A tela seguia como se tivesse salvo e, ao recarregar, voltava para "Aguardando aceite". Agora `rpSalvar` grava com `update` (insert só para a gestão, em programada nova); se o banco recusar, a tela volta para o que está gravado e avisa. O rascunho do apontamento (campos e fotos já enviadas) fica guardado no aparelho (`localStorage`, chave `rpD:<usuário>`) até ser enviado.
 
+- **RE Preventiva · chat do técnico (11/11/2026, `mod/rpchat.js`):** as programadas da RE Preventiva (preventiva, melhoria, retirada e companhia elétrica) passam a ter o mesmo chat da Implantação e do GTD (texto, fotos, anexos, localização e edição). O técnico tem o ícone de mensagens no card e o botão "Mensagens" no topo da atividade; a gestão tem o botão "Mensagens" no detalhe da atividade e o selo de mensagem nova do técnico no card. O aviso no sino/celular abre direto a conversa (`agenda.html?rp=<id>&chat=1`). No código, o tipo de conversa `r` grava em `ag_mensagens.re_prog` (`gChatCol`). Precisa do ajuste 72.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -968,6 +971,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 11/11/2026 | RE Preventiva: chat entre o técnico e a gestão nas programadas (preventiva, melhoria, retirada e companhia elétrica), igual ao da Implantação e do GTD, com aviso no sino/celular | `agenda.html`. **Rodar `agenda_ajuste_72_chat_re_preventiva.sql` no Supabase** (não subir no GitHub) |
 | 11/11/2026 | **Correção:** RE Preventiva (companhia elétrica e demais programadas): aceite, deslocamento, chegada e apontamento do técnico não ficavam gravados; agora gravam, avisam se o banco recusar e o rascunho fica no aparelho | `agenda.html` |
 | 11/11/2026 | Validação de projetos: não grava por cima de alteração de outra pessoa (relê o projeto antes de corrigir, reenviar, aprovar ou reprovar), projetista vê só os próprios projetos e só quem incluiu corrige o reprovado | `agenda.html`. **Rodar `agenda_ajuste_71_projeto_so_quem_incluiu.sql` no Supabase** (não subir no GitHub) |
 | 11/11/2026 | Grupo Estoque (estoque dos técnicos, atualizar estoque e movimentações) em GTD, Transmissão, RE Corretiva, RE Preventiva e Melhoria de rede, com permissões por área | `agenda.html`. **Rodar `agenda_ajuste_70_estoque_nas_areas.sql` no Supabase antes** (não subir no GitHub) |

@@ -4828,9 +4828,9 @@ async function gCarregar(){
     catch(e){console.warn('GTD',e);G.ch=[];G.lpus=[];G.erro=/ag_chamados|chamado|does not exist|schema cache|relation/i.test(String(e.message||e))?'Rode o script agenda_ajuste_14_gtd_manutencao.sql no Supabase para ativar os chamados do GTD.':'Não foi possível carregar os chamados: '+(e.message||e)}}
   else{G.ch=[];G.lpus=[]}
   try{const desde=new Date(Date.now()-120*GTD_DIA).toISOString(),q=cols=>sb.from('ag_mensagens').select(cols).gte('em',desde).limit(10000);
-    let[ms,av]=await Promise.all([q(G.vista?'id,chamado,agendamento,papel,vista_em':'id,chamado,agendamento'),sb.from('ag_avisos').select('*').order('em',{ascending:false}).limit(100)]);
-    if(ms.error&&G.vista){G.vista=false;ms=await q('id,chamado,agendamento')}   /* sem o ajuste 15 ainda: só o total */
-    if(!ms.error){G.nMsg={};G.nNova={};(ms.data||[]).forEach(m=>{const k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;G.nMsg[k]=(G.nMsg[k]||0)+1;if(G.vista&&m.papel==='Técnico'&&!m.vista_em)G.nNova[k]=(G.nNova[k]||0)+1})}if(!av.error)G.avisos=(av.data||[]).filter(a=>ui.perfil!=='func'||!/^LPU/i.test(a.titulo||''))}catch(e){}
+    let[ms,av]=await Promise.all([q(G.vista?'id,chamado,agendamento,re_prog,papel,vista_em':'id,chamado,agendamento'),sb.from('ag_avisos').select('*').order('em',{ascending:false}).limit(100)]);
+    if(ms.error&&G.vista){ms=await q('id,chamado,agendamento,papel,vista_em');if(ms.error){G.vista=false;ms=await q('id,chamado,agendamento')}}   /* sem o ajuste 15 ainda: só o total */
+    if(!ms.error){G.nMsg={};G.nNova={};(ms.data||[]).forEach(m=>{const k=m.chamado?'g:'+m.chamado:m.re_prog?'r:'+m.re_prog:'a:'+m.agendamento;G.nMsg[k]=(G.nMsg[k]||0)+1;if(G.vista&&m.papel==='Técnico'&&!m.vista_em)G.nNova[k]=(G.nNova[k]||0)+1})}if(!av.error)G.avisos=(av.data||[]).filter(a=>ui.perfil!=='func'||!/^LPU/i.test(a.titulo||''))}catch(e){}
   if(gVeGtd())await gSalaContar();
   G.ok=true}
 async function gAcao(id,fn,msg){let c;
@@ -5177,7 +5177,7 @@ function gOpenAjuste(lid){const l=G.lpus.find(x=>x.id===lid),k='GL:'+lid;if(!l)r
 /* ---------- MENSAGENS (tela cheia) ---------- */
 const gChatK=()=>ui.chat?ui.chat.t+':'+ui.chat.id:'';
 async function gChatCarregar(quieto){const k=gChatK(),ch=ui.chat;if(ch&&ch.t==='s')return gSalaCarregar(quieto);if(!ch||G.msgBus[k])return;G.msgBus[k]=true;const antes=(G.msgs[k]||[]).length;
-  try{const r=await sb.from('ag_mensagens').select('*').eq(ch.t==='g'?'chamado':'agendamento',ch.id).order('em');if(r.error)throw r.error;G.msgs[k]=r.data||[];G.nMsg[k]=G.msgs[k].length;
+  try{const r=await sb.from('ag_mensagens').select('*').eq(gChatCol(ch.t),ch.id).order('em');if(r.error)throw r.error;G.msgs[k]=r.data||[];G.nMsg[k]=G.msgs[k].length;
     await Promise.all(G.msgs[k].filter(m=>m.foto&&!G.fotos[m.foto]).map(async m=>{const s=await sb.storage.from('agenda').createSignedUrl(m.foto,3600);if(!s.error)G.fotos[m.foto]=s.data.signedUrl}))}
   catch(e){G.msgs[k]=G.msgs[k]||[];if(!quieto)toast('Não foi possível carregar as mensagens: '+(e.message||e),'bad')}
   G.msgBus[k]=false;if(gChatK()===k){if($('chatList')){if(!quieto||(G.msgs[k]||[]).length!==antes)gChatPintar()}else render();gChatVistas()}}
@@ -5185,14 +5185,14 @@ async function gChatCarregar(quieto){const k=gChatK(),ch=ui.chat;if(ch&&ch.t==='
 async function gChatVistas(){const ch=ui.chat;if(!ch)return;if(ch.t==='s')return gSalaVistas();const k=gChatK();
   const ids=G.avisos.filter(a=>!a.lida&&a.ref===ch.id&&/^Mensagem/.test(a.titulo)).map(a=>a.id);if(ids.length){G.avisos.forEach(a=>{if(ids.includes(a.id))a.lida=true});gSinoAtualizar();sb.from('ag_avisos').update({lida:true}).in('id',ids).then(()=>{})}
   if(!G.vista||!(G.msgs[k]||[]).some(m=>ME&&m.autor!==ME.id&&!m.vista_em))return;G.nNova[k]=0;
-  try{const r=await sb.rpc('ag_marcar_vistas',{p_chamado:ch.t==='g'?ch.id:null,p_ag:ch.t==='a'?ch.id:null});if(!r.error)(G.msgs[k]||[]).forEach(m=>{if(ME&&m.autor!==ME.id&&!m.vista_em)m.vista_em=new Date().toISOString()})}catch(e){}}
+  try{const r=await (ch.t==='r'?sb.rpc('ag_marcar_vistas_rp',{p_rp:ch.id}):sb.rpc('ag_marcar_vistas',{p_chamado:ch.t==='g'?ch.id:null,p_ag:ch.t==='a'?ch.id:null}));if(!r.error)(G.msgs[k]||[]).forEach(m=>{if(ME&&m.autor!==ME.id&&!m.vista_em)m.vista_em=new Date().toISOString()})}catch(e){}}
 /* com a conversa aberta, confere novas mensagens a cada 5 s (além do tempo real) */
 setInterval(()=>{if(ME&&ui.chat&&document.visibilityState==='visible')gChatCarregar(true)},5000);
 function gChatLista(){if(ui.chat&&ui.chat.t==='s')return gSalaLista();const k=gChatK(),L=G.msgs[k];if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
   return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}${m.editado_em?msgEdTag(m,'a'):''}${eu&&msgPodeEd(m)&&ui.msgEd!==m.id?msgEdBtn(m):''}</small>${ui.msgEd===m.id?msgEdBox(m):chxMsgTxt(m)}${chxAnexo(m)}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
 function gChatPintar(){const el=$('chatList');if(!el)return;const fim=el.scrollHeight-el.scrollTop-el.clientHeight<80;el.innerHTML=gChatLista();if(fim)el.scrollTop=el.scrollHeight;chxArqsAtual()}
 function viewChat(){if(ui.chat&&ui.chat.t==='s')return viewSala();const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);
-  let tit='',sub='',quem='';if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};tit='O&M '+(c.pom||'');sub=c.cliente||'';quem='Técnico, NOC e O&M'}else{const a=getAg(ch.id)||((typeof PD!=='undefined'&&PD.rows)||[]).find(r=>r.id===ch.id)||{};tit=a.etiqueta||'Atividade';sub=(cliN(a.etiqueta||'')||a.cliente||'')+(a.fases?' · '+fasesN(a):'');quem='Técnico, Delivery e O&M'}
+  let tit='',sub='',quem='';if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};tit='O&M '+(c.pom||'');sub=c.cliente||'';quem='Técnico, NOC e O&M'}else if(ch.t==='r'){let x={};try{x=rpGet(ch.id)||{}}catch(e){}tit=x.cod||'Atividade';sub=[x.cidade,x.end].filter(Boolean).join(' · ');quem='Técnico e RE Preventiva'}else{const a=getAg(ch.id)||((typeof PD!=='undefined'&&PD.rows)||[]).find(r=>r.id===ch.id)||{};tit=a.etiqueta||'Atividade';sub=(cliN(a.etiqueta||'')||a.cliente||'')+(a.fases?' · '+fasesN(a):'');quem='Técnico, Delivery e O&M'}
   setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
   return `<div class="chatv"><div class="chath"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><div><b>${ch.t==='g'&&gVeGtd()?'Chat com técnico':'Mensagens'} · ${esc(tit)}</b><small class="muted">${esc(sub)} · ${quem}</small></div>${chxArqsBtn()}</div>
    <div class="chatl" id="chatList" aria-live="polite">${gChatLista()}</div>
@@ -5202,7 +5202,7 @@ function viewChat(){if(ui.chat&&ui.chat.t==='s')return viewSala();const ch=ui.ch
 /* no computador, Enter envia e Shift + Enter pula linha (como no WhatsApp Web); no celular, o Enter do teclado pula linha */
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatTxt'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&matchMedia('(pointer:fine)').matches){e.preventDefault();const b=document.querySelector('[data-act="chatEnviar"]');if(b&&!b.disabled)ACT.chatEnviar(b)}});
 function gReduz(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(fr.error);fr.onload=()=>{const img=new Image();img.onerror=()=>rej(new Error('arquivo de imagem inválido'));img.onload=()=>{const M=1280,r=Math.min(1,M/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=Math.round(img.width*r);cv.height=Math.round(img.height*r);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);cv.toBlob(b=>b?res(b):rej(new Error('falha ao reduzir a foto')),'image/jpeg',.6)};img.src=fr.result};fr.readAsDataURL(file)})}
-async function gChatEnviar(texto,foto){const ch=ui.chat;if(!ch)return false;if(ch.t==='s')return gSalaEnviar(texto,foto);const row={texto:texto||null};row[ch.t==='g'?'chamado':'agendamento']=ch.id;
+async function gChatEnviar(texto,foto){const ch=ui.chat;if(!ch)return false;if(ch.t==='s')return gSalaEnviar(texto,foto);const row={texto:texto||null};row[gChatCol(ch.t)]=ch.id;
   if(foto){try{const b=await gReduz(foto),path=`chat/${ch.t}/${ch.id}/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(up.error)throw up.error;row.foto=path}catch(e){toast('Não foi possível enviar a foto: '+(e.message||e),'bad');return false}}
   const r=await sb.from('ag_mensagens').insert(row).select().maybeSingle();if(r.error){toast('Não foi possível enviar: '+r.error.message,'bad');return false}
   const k=gChatK();if(r.data){G.msgs[k]=(G.msgs[k]||[]).concat([r.data]);G.nMsg[k]=G.msgs[k].length;if(r.data.foto){const s=await sb.storage.from('agenda').createSignedUrl(r.data.foto,3600);if(!s.error)G.fotos[r.data.foto]=s.data.signedUrl}}gChatPintar();return true}
@@ -6397,7 +6397,7 @@ const chxArqsBtn=()=>`<span id="chxArqsW" class="chxarqw">${chxArqsIn()}</span>`
 /* chamado ao repintar a lista: atualiza o contador do cabeçalho quando as mensagens chegam */
 function chxArqsAtual(){const w=$('chxArqsW');if(w){const h=chxArqsIn();if(w.innerHTML!==h)w.innerHTML=h}}
 async function chxEnviar(texto,anexo){const ch=ui.chat;if(!ch)return false;const sala=ch.t==='s',row={texto,anexo};
-  if(sala)row.chamado=ui.salaCh||null;else row[ch.t==='g'?'chamado':'agendamento']=ch.id;
+  if(sala)row.chamado=ui.salaCh||null;else row[gChatCol(ch.t)]=ch.id;
   const r=await sb.from(sala?'ag_sala':'ag_mensagens').insert(row).select().maybeSingle();
   if(r.error){toast(/anexo/i.test(r.error.message||'')?CHX_AJ:'Não foi possível enviar: '+r.error.message,'bad');return false}
   const k=gChatK();if(r.data&&!(G.msgs[k]||[]).some(m=>m.id===r.data.id)){G.msgs[k]=(G.msgs[k]||[]).concat([r.data]);if(!sala)G.nMsg[k]=G.msgs[k].length}
@@ -13240,7 +13240,7 @@ function ioCh(p){const n=p&&p.new,o=p&&p.old;try{if(p.eventType==='DELETE'){cons
 function ioAv(p){const n=p&&p.new;if(p&&p.eventType==='INSERT'&&n&&n.id){if(!(ui.perfil==='func'&&/^LPU/i.test(n.titulo||''))){G.avisos=[n].concat((G.avisos||[]).filter(a=>a.id!==n.id)).slice(0,100)}}
   else if(p&&p.eventType==='UPDATE'&&n&&n.id){G.avisos=(G.avisos||[]).map(a=>a.id===n.id?n:a)}else if(p&&p.eventType==='DELETE'){const id=p.old&&p.old.id;G.avisos=(G.avisos||[]).filter(a=>a.id!==id)}
   gSinoAtualizar()}
-function ioMsg(p){const m=p&&p.new;if(!(m&&m.id&&p.eventType==='INSERT'))return;const k=m.chamado?'g:'+m.chamado:'a:'+m.agendamento;if(gChatK()===k)return gRec('msg',p);
+function ioMsg(p){const m=p&&p.new;if(!(m&&m.id&&p.eventType==='INSERT'))return;const k=m.chamado?'g:'+m.chamado:m.re_prog?'r:'+m.re_prog:'a:'+m.agendamento;if(gChatK()===k)return gRec('msg',p);
   G.nMsg=G.nMsg||{};G.nNova=G.nNova||{};G.nMsg[k]=(G.nMsg[k]||0)+1;if(G.vista&&m.papel==='Técnico'&&!m.vista_em)G.nNova[k]=(G.nNova[k]||0)+1;gSinoAtualizar();clearTimeout(IO.tc);IO.tc=setTimeout(ioRender,600)}
 gLigarTempoReal=function(){if(RTG){sb.removeChannel(RTG);RTG=null}if(G.erro||!ME)return;
   RTG=sb.channel('gtd').on('postgres_changes',{event:'*',schema:'public',table:'ag_chamados'},ioCh).on('postgres_changes',{event:'*',schema:'public',table:'ag_mensagens'},ioMsg).on('postgres_changes',{event:'*',schema:'public',table:'ag_avisos'},ioAv).on('postgres_changes',{event:'INSERT',schema:'public',table:'ag_sala'},p=>gRec('sala',p)).subscribe()};
@@ -13428,7 +13428,7 @@ async function gSalaEnviar(texto,foto){const row={texto:texto||null,chamado:ui.s
   if(ui.salaCh){ui.salaCh=null;ui.chatTxt='';render()}else gChatPintar();
   const el=$('chatList');if(el)el.scrollTop=el.scrollHeight;return true}
 async function chxEnviar(texto,anexo){const ch=ui.chat;if(!ch)return false;const sala=ch.t==='s',row={texto,anexo};
-  if(sala){row.chamado=ui.salaCh||null;row.area=salaA()}else row[ch.t==='g'?'chamado':'agendamento']=ch.id;
+  if(sala){row.chamado=ui.salaCh||null;row.area=salaA()}else row[gChatCol(ch.t)]=ch.id;
   const r=await sb.from(sala?'ag_sala':'ag_mensagens').insert(row).select().maybeSingle();
   if(r.error){toast(sala&&/ag_sala_area_ck/i.test(r.error.message||'')?SALA_AJ51:sala&&/area/i.test(r.error.message||'')?SALA_AJ46:/anexo/i.test(r.error.message||'')?CHX_AJ:'Não foi possível enviar: '+r.error.message,'bad');return false}
   const k=gChatK();if(r.data&&!(G.msgs[k]||[]).some(m=>m.id===r.data.id)){G.msgs[k]=(G.msgs[k]||[]).concat([r.data]);if(!sala)G.nMsg[k]=G.msgs[k].length}
@@ -18850,6 +18850,30 @@ const RPD_K=()=>ME&&ME.id?'rpD:'+ME.id:null;let RPD_T=0,RPD_OK=null;
 function rpDGuarda(){try{const k=RPD_K();if(!k)return;const D={};Object.entries(ui.rpD||{}).forEach(([id,d])=>{if(d&&typeof d==='object')D[id]=Object.assign({},d,{fotos:(d.fotos||[]).filter(f=>f&&f.p).map(f=>({t:f.t,p:f.p,o:f.o,em:f.em,leg:f.leg}))});else D[id]=d});localStorage.setItem(k,JSON.stringify(D))}catch(e){}}
 function rpDRestaura(){try{const k=RPD_K();if(!k||RPD_OK===k)return;RPD_OK=k;const D=JSON.parse(localStorage.getItem(k)||'{}');ui.rpD=Object.assign(D,ui.rpD||{})}catch(e){}}
 {const _r=render;render=function(){try{if(ME&&gTecPerfil()){rpDRestaura();clearTimeout(RPD_T);RPD_T=setTimeout(rpDGuarda,400)}}catch(e){}return _r.apply(this,arguments)}}
+
+/* ---------- 11/11: chat nas atividades da RE Preventiva (Programadas: preventiva, melhoria, retirada, companhia) ----------
+   * Mesmo chat da Implantação e do GTD (texto, fotos, anexos, localização, editar), tipo 'r' = ag_re_prog.
+   * Técnico: ícone de mensagens no card e botão "Mensagens" no topo da atividade.
+   * Gestão: botão "Mensagens" no detalhe da atividade e selo de mensagem nova do técnico no card.
+   * Aviso no sino/celular abre direto a conversa (agenda.html?rp=<id>&chat=1). Precisa do ajuste 72. */
+function gChatCol(t){return t==='g'?'chamado':t==='r'?'re_prog':'agendamento'}
+/* técnico: card da lista e tela da atividade */
+{const _c=rpTvCard;rpTvCard=function(x){const h=_c.apply(this,arguments);if(!x||!x.id)return h;
+  return h.replace('<div class="tvch">','<div class="tvch">'+tvMsgIco('r',x.id))}}
+{const _t=rpTecTela;rpTecTela=function(x){const h=_t.apply(this,arguments);if(!x||!x.id)return h;
+  return h.replace(/(<div class="tvhd"><button class="tvback" data-act="rpTVolta">[\s\S]*?<\/button>)<\/div>/,(m,a)=>a+tvMsg('r',x.id)+'</div>')}}
+/* gestão: detalhe e card */
+{const _d=rpDetHtml;rpDetHtml=function(x){const h=_d.apply(this,arguments);if(!x||!x.id)return h;const f='<button class="btn" data-act="close">Fechar</button></div>',i=h.lastIndexOf(f);
+  return i<0?h:h.slice(0,i)+gMsgBtn('r',x.id,'')+gSeloMsg('r',x.id)+h.slice(i)}}
+{const _k=rpCard;rpCard=function(x){const h=_k.apply(this,arguments);return x&&x.id&&gNNova('r',x.id)?h.replace('<span class="rpcnt">','<span class="rpcnt">'+gSeloMsg('r',x.id)):h}}
+/* aviso: ?rp=<id>&chat=1 */
+function rpChatIr(id,chat){if(!id)return;if(gTecPerfil()){ui.tab='campo';ui.campoSel=null;ui.gSel=null;ui.rpT=id}
+  ui.chat=chat?{t:'r',id}:null;ui.chatTxt='';if(!chat&&!gTecPerfil()&&typeof rpModal==='function')setTimeout(()=>rpModal(id),0);render();window.scrollTo(0,0);if(chat)gChatCarregar()}
+{const _i=gIr;gIr=function(url){let q=null;try{q=new URL(url||'',location.href).searchParams}catch(e){}const id=q&&q.get('rp');
+  if(id){closeModal&&closeModal();return rpChatIr(id,q.get('chat')==='1')}return _i.apply(this,arguments)}}
+/* aberto pelo link do celular */
+{let rpQ=null;try{const q=new URLSearchParams(location.search);if(q.get('rp'))rpQ={id:q.get('rp'),chat:q.get('chat')==='1'}}catch(e){}
+  if(rpQ){const _r=render;render=function(){if(rpQ&&ME&&document.body.classList.contains('app-on')){const o=rpQ;rpQ=null;try{history.replaceState(null,'',location.pathname)}catch(e){}return rpChatIr(o.id,o.chat)}return _r.apply(this,arguments)}}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
