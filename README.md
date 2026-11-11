@@ -902,6 +902,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Projetos sem gravar por cima e projetista só com os próprios (11/11/2026, `mod/pvsync.js`):** antes de gravar um projeto alterado, a ferramenta confere a versão do banco; se outra pessoa mudou o projeto depois que a tela carregou, não grava por cima, traz a versão atual e avisa para refazer. Depois de gravar, a cópia local passa a ser a do banco. Abrir o cadastro (Corrigir/editar) e as ações da validação (reenviar, aprovar, reprovar) releem o projeto antes. Na Validação, o projetista vê em todas as abas só os projetos que ele incluiu (autor = quem fez o primeiro envio). Com o ajuste 71, só quem incluiu corrige e reenvia o projeto reprovado.
 
+- **RE Preventiva · gravação pelo técnico (11/11/2026, `mod/rpsave.js`):** o aceite, a saída, a chegada e o apontamento das programadas (prev, companhia elétrica, melhoria antiga) não ficavam gravados quando feitos pelo técnico: a gravação usava "upsert", que no banco exige também permissão de inserir, e o técnico só tem a de alterar a programada dele (`agrp_update`). A tela seguia como se tivesse salvo e, ao recarregar, voltava para "Aguardando aceite". Agora `rpSalvar` grava com `update` (insert só para a gestão, em programada nova); se o banco recusar, a tela volta para o que está gravado e avisa. O rascunho do apontamento (campos e fotos já enviadas) fica guardado no aparelho (`localStorage`, chave `rpD:<usuário>`) até ser enviado.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -966,6 +968,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 11/11/2026 | **Correção:** RE Preventiva (companhia elétrica e demais programadas): aceite, deslocamento, chegada e apontamento do técnico não ficavam gravados; agora gravam, avisam se o banco recusar e o rascunho fica no aparelho | `agenda.html` |
 | 11/11/2026 | Validação de projetos: não grava por cima de alteração de outra pessoa (relê o projeto antes de corrigir, reenviar, aprovar ou reprovar), projetista vê só os próprios projetos e só quem incluiu corrige o reprovado | `agenda.html`. **Rodar `agenda_ajuste_71_projeto_so_quem_incluiu.sql` no Supabase** (não subir no GitHub) |
 | 11/11/2026 | Grupo Estoque (estoque dos técnicos, atualizar estoque e movimentações) em GTD, Transmissão, RE Corretiva, RE Preventiva e Melhoria de rede, com permissões por área | `agenda.html`. **Rodar `agenda_ajuste_70_estoque_nas_areas.sql` no Supabase antes** (não subir no GitHub) |
 | 11/11/2026 | Melhoria de rede: despacho escolhendo trechos ou caixas (ou todos), etapa com despacho em partes, endereço e coordenada de cada caixa no "O que fazer" e celular do técnico com trechos, caixas do CFO e "Localização das caixas" | `agenda.html` |

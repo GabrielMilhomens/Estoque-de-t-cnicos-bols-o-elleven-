@@ -18834,6 +18834,23 @@ const pvAutor=p=>{const v=p&&p.val;if(!v)return null;const h=(v.hist||[]).find(x
 {const _v=viewBaseVal;viewBaseVal=function(){if(!pvProj()||!ME)return _v.apply(this,arguments);const all=S.previsao,meus=all.filter(p=>pvAutor(p)===ME.id);S.previsao=meus;
   try{return _v.apply(this,arguments)}finally{if(S.previsao===meus)S.previsao=all}}}
 
+/* ---------- 11/11: Programadas (RE Preventiva) gravadas pelo técnico ----------
+   O técnico só pode ALTERAR a programada dele (regra agrp_update); o "upsert" pedia também permissão de
+   INSERIR e o banco recusava: o aceite, a saída, a chegada e o apontamento ficavam só na tela e sumiam ao
+   recarregar. Agora grava com update (insert só para a gestão, em programada nova). Se o banco recusar,
+   a tela volta para o que está gravado e avisa. O rascunho do apontamento (campos e fotos já enviadas)
+   fica guardado no aparelho até ser enviado. */
+rpSalvar=async function(x,msg){x.atual=Date.now();const i=RP.rows.findIndex(y=>y.id===x.id);if(i>=0)RP.rows[i]=x;else RP.rows.push(x);
+  const row=rpRow(x);let r=await sb.from('ag_re_prog').update(row).eq('id',x.id).select('id');
+  if(!r.error&&!(r.data||[]).length){if(gTecPerfil())r={error:{message:'o banco não aceitou a alteração (atividade de outro técnico ou login expirado)'}};else r=await sb.from('ag_re_prog').insert(row).select('id')}
+  if(r&&r.error){try{const q=await sb.from('ag_re_prog').select('*').eq('id',x.id).maybeSingle();if(q&&q.data){const j=RP.rows.findIndex(y=>y.id===x.id);if(j>=0)RP.rows[j]=rpDe(q.data)}}catch(e){}
+    render();toast('Não foi salvo: '+(r.error.message||r.error)+'. Tente de novo; se continuar, saia e entre de novo na ferramenta.','bad');return false}
+  if(msg)toast(msg);return true};
+const RPD_K=()=>ME&&ME.id?'rpD:'+ME.id:null;let RPD_T=0,RPD_OK=null;
+function rpDGuarda(){try{const k=RPD_K();if(!k)return;const D={};Object.entries(ui.rpD||{}).forEach(([id,d])=>{if(d&&typeof d==='object')D[id]=Object.assign({},d,{fotos:(d.fotos||[]).filter(f=>f&&f.p).map(f=>({t:f.t,p:f.p,o:f.o,em:f.em,leg:f.leg}))});else D[id]=d});localStorage.setItem(k,JSON.stringify(D))}catch(e){}}
+function rpDRestaura(){try{const k=RPD_K();if(!k||RPD_OK===k)return;RPD_OK=k;const D=JSON.parse(localStorage.getItem(k)||'{}');ui.rpD=Object.assign(D,ui.rpD||{})}catch(e){}}
+{const _r=render;render=function(){try{if(ME&&gTecPerfil()){rpDRestaura();clearTimeout(RPD_T);RPD_T=setTimeout(rpDGuarda,400)}}catch(e){}return _r.apply(this,arguments)}}
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
