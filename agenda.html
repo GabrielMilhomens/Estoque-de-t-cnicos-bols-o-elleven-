@@ -4946,7 +4946,7 @@ function viewGAgenda(){if(G.erro)return `<h2>Agenda · GTD Manutenção</h2>${gE
 function gBarras(L,tot){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([n,q,ex])=>`<div class="gbar"><span>${esc(n)}</span><div><i style="width:${Math.round(q/mx*100)}%"></i></div><b>${q}</b>${ex!==undefined?`<small>${ex}</small>`:''}</div>`).join('')||'<p class="muted">Sem dados no período.</p>'}
 const GSEC=[['geral','Visão geral'],['tempos','Tempos de atendimento'],['fin','Financeiro']],GFSUB=[['budget','Budget e consumo','gf_budget'],['prest','Totais por prestador','gf_prest'],['det','Detalhamento das LPUs','gf_det'],['aprov','Aprovação de LPU','gAprov']];
 const gSubsOk=()=>GFSUB.filter(x=>pode(x[2])),gSecsOk=()=>{const L=GSEC.filter(([k])=>k==='geral'||(k==='tempos'&&pode('g_tempos'))||k==='fin'&&(pode('g_fin')&&gSubsOk().length));if(typeof reAt==='function'&&reAt()){if(typeof reLadoP==='function'&&reLadoP())return [['prev','KPIs da preventiva']].concat(L.some(x=>x[0]==='fin')?[['fin','Financeiro']]:[]);L[0]=['geral','Corretiva']}return L};
-const gNAprov=()=>pode('a_gAprovar')?G.lpus.filter(l=>l.status==='aguardando').length:0;
+const gNAprov=()=>pode('a_gAprovar')?G.lpus.filter(l=>l.status==='aguardando').length+(typeof plNPend==='function'?plNPend():0):0;
 /* item "Painel de KPIs" do menu do GTD, com Visão geral e Financeiro (Budget, Detalhamento, Aprovação), como na Implantação */
 function gNavPainel(){const open=ui.tab==='gPainel'&&!ui.gpFech,n=gNAprov(),bAp=n?`<span class="nbadge">${n}</span>`:'',ch=o=>`<span class="nch">${o?ICN.up:ICN.dn}</span>`;
   let h=`<button class="nit ${open?'pai':''}" data-act="tab" data-t="gPainel" aria-current="${ui.tab==='gPainel'&&!open}"><span class="nt">Painel de KPIs</span>${(open?'':bAp)+ch(open)}</button>`;
@@ -18918,7 +18918,7 @@ Object.assign(ACT,{rpTLpu:async el=>{const x=rpGet(el.dataset.id);if(!rpLpuTec(x
 /* 3. lista: LPU liberada em Hoje; concluídas em Encerradas */
 {const _v=viewCampo;viewCampo=function(){const h=_v.apply(this,arguments);try{if(ui.rpT||ui.campoSel||(typeof gTecSel==='function'&&gTecSel())||!RP.ok||!h.includes('<div class="tvtabs"'))return h;
   const tp=ui.cTipo||'tudo';if(tp==='impl')return h;const M=rpProgs().filter(x=>x.tec&&x.tec===ui.tec);
-  const H=M.filter(x=>rpLpuTec(x)&&!rpRejN(x)),lim=Date.now()-60*864e5,E=M.filter(x=>rpEncTec(x)&&rpUltEm(x)>=lim).sort((a,b)=>rpUltEm(b)-rpUltEm(a));
+  const H=M.filter(x=>rpLpuTec(x)&&!rpRejN(x)),lim=0,E=M.filter(x=>rpEncTec(x)&&rpUltEm(x)>=lim).sort((a,b)=>rpUltEm(b)-rpUltEm(a));
   if(!H.length&&!E.length)return h;const cf=['hoje','prox','enc'].includes(ui.cF)?ui.cF:'hoje';
   let o=h.replace(/(data-t="hoje" aria-selected="(?:true|false)">Hoje · )(\d+)/,(m,a,n)=>a+(+n+H.length)).replace(/(data-t="enc" aria-selected="(?:true|false)">Encerradas · )(\d+)/,(m,a,n)=>a+(+n+E.length));
   const V=cf==='hoje'?H:cf==='enc'?E:[];if(!V.length)return o;
@@ -19145,6 +19145,119 @@ function txSemMttr(c){return !!c&&txDe(c)&&txT(c)==='corr'&&TX_SEMM.includes(c.d
   if(el.dataset.p!=='valid'||!c||!txDe(c)||txT(c)!=='corr'||!R||!R.desfecho)return _p.apply(this,arguments);
   const res=R.desfecho,_a=gAcao;gAcao=(i,fn,msg)=>_a(i,x=>{const r=fn(x);if(r!==false)x.txRes=res;return r},msg);
   try{return await _p.apply(this,arguments)}finally{gAcao=_a}}}
+
+/* 12/11: plantão (GTD e RE Corretiva) sem aprovação na tela de Plantões: a baixa vai para a Aprovação de LPU da área.
+   A baixa entra como LPU virtual (id "pl:<id>") na Aprovação de LPU, em Totais por prestador, no Detalhamento, no budget
+   (pendentes como "aguardando") e na Gestão financeira do técnico e do prestador. As LPUs das programadas da RE Preventiva
+   (Preventiva, Melhoria, Retirada e Companhia elétrica) também aparecem na Gestão financeira do técnico; Melhoria (0103) e
+   Retirada (0102) entram no financeiro da gestão. */
+const PL_LST={baixa:'aguardando',ajuste:'ajuste',apr:'aprovada',rep:'reprovada'};
+function plLpus(area,todas){if(typeof PLT==='undefined')return[];if(!PLT.ok&&!PLT.err&&!PLT.bus)plCarregar();
+  return(PLT.rows||[]).filter(x=>(!area||x.area===area)&&x.baixa&&PL_LST[x.status]&&(todas||x.status!=='apr')).map(x=>{const st=PL_LST[x.status],cx=(S.cnpj||{})[x.tec]||{},dv=(x.hist||[]).slice().reverse().find(h=>/Devolvido|Reprovado/.test(h.acao));
+    return{id:'pl:'+x.id,chamado:'pl:'+x.id,_pl:x.area==='re'?'re':'gtd',_plId:x.id,tec:x.tec,prestador:cx.empresa||undefined,status:st,total:+x.baixa.total||0,data:isoD(new Date(st==='aprovada'&&x.apr?x.apr.em:x.baixa.em)),
+      categoria:'Plantão',pom:'',cliente:'Plantão '+plPer(x)+(x.obs?' · '+x.obs:''),etiqueta:'Plantão '+plPer(x),itens:(x.baixa.itens||[]).map(i=>Object.assign({},i,{fator:i.fator==='critico'?'Crítico':'Comum'})),
+      conta:x.area==='re'?(typeof RE_CONTA!=='undefined'?RE_CONTA:''):GTD_CONTA,hist:(x.hist||[]).map(h=>({acao:h.acao,por:h.por,em:h.em,motivo:/Devolvido|Reprovado/.test(h.acao)?h.obs:''})),obs:x.baixa.obs||''}})}
+const plFinArea=()=>{if(typeof MEL_FIN!=='undefined'&&MEL_FIN)return null;if(typeof melAt==='function'&&melAt())return null;const a=typeof areaAt==='function'?areaAt():null;
+  if(a==='gtd')return 'gtd';if(a==='re')return typeof reLado==='function'&&reLado()==='prev'?null:'re';return null};
+const plCom=(todas,fn)=>{const a=plFinArea();if(!a||gTecPerfil())return fn();const P=plLpus(a,todas);if(!P.length)return fn();const all=G.lpus,F=all.concat(P);G.lpus=F;try{return fn()}finally{if(G.lpus===F)G.lpus=all}};
+function plNPend(){try{const a=plFinArea();return a?plLpus(a).filter(l=>l.status==='aguardando').length:0}catch(e){return 0}}
+/* finPlantoes (menu Financeiro): todas as situações */
+finPlantoes=function(){return plLpus(null,true)};
+/* Aprovação de LPU, Totais por prestador e Detalhamento da área */
+{const _a=viewGAprov;viewGAprov=function(){const a=arguments;return plCom(true,()=>_a.apply(this,a)).replace(/<b>O&amp;M <\/b>/g,'<b>Plantão</b>')}}
+{const _p=pPrest;pPrest=function(area){const a=arguments;if(area!=='GTD')return _p.apply(this,a);return plCom(true,()=>_p.apply(this,a))}}
+{const _d=gFinDet;gFinDet=function(){const a=arguments;return plCom(true,()=>_d.apply(this,a))}}
+/* budget da área: os aprovados já entram pelo plantao.js; aqui só os pendentes (aguardando ou em ajuste) */
+{const _b=gFinBudget;gFinBudget=function(){const a=arguments;return plCom(false,()=>_b.apply(this,a))}}
+/* ações da Aprovação de LPU sobre a baixa do plantão */
+{const _ap=ACT.gAprovar;ACT.gAprovar=async function(el){const id=el.dataset.id||'';if(!id.startsWith('pl:'))return _ap.apply(this,arguments);if(!pode('a_gAprovar')&&semPerm())return;
+  const x=plGet(id.slice(3));if(!x||x.status!=='baixa'){toast('Esta baixa não está aguardando aprovação.','bad');return}x.status='apr';x.apr={por:meNome(),em:Date.now()};plH(x,'Aprovado na Aprovação de LPU');await plSalvar(x,'Baixa do plantão aprovada.');render()}}
+{const _dc=ACT.gDecidir;ACT.gDecidir=function(el){const id=el.dataset.id||'';if(!id.startsWith('pl:'))return _dc.apply(this,arguments);if(!pode('a_gAprovar')&&semPerm())return;
+  const x=plGet(id.slice(3)),aj=el.dataset.t==='ajuste';if(!x)return;rpPergunta(aj?'Devolver para ajuste':'Reprovar a baixa do plantão',`${gTecN(x.tec)} · ${plPer(x)}`,'Motivo',async m=>{x.status=aj?'ajuste':'rep';x.dev=m;plH(x,aj?'Devolvido para ajuste':'Reprovado',m);await plSalvar(x,aj?'Devolvido para o técnico.':'Baixa reprovada.');render()},true)}}
+{const _pa=ACT.pdfArq;ACT.pdfArq=function(el){const id=(el&&el.dataset&&el.dataset.id)||'';if(id.startsWith('pl:'))return ACT.plPdf({dataset:{id:id.slice(3)}});return _pa.apply(this,arguments)}}
+/* tela de Plantões: só registro e encaminhamento; a situação no financeiro vem da Aprovação de LPU */
+const PL_FIN={baixa:['Aguardando aprovação','warn'],ajuste:['Devolvido para ajuste','warn'],apr:['LPU aprovada','ok'],rep:['LPU reprovada','bad']};
+function viewGPlant(){const a=plArea();if(!PLT.ok&&!PLT.err)plCarregar();const F=['env','baixa','canc','all'].includes(ui.plF)?ui.plF:(ui.plF='baixa');
+  const top=`<div class="secth rpth"><div><h2>Plantões · ${PL_AREA[a]}</h2><p class="muted">Encaminhe o plantão para o técnico; ele dá a baixa na ferramenta pelo item SEV0077 (Mão de obra disponível): horas no comum (${brl(plUC())}/h) e no crítico (${brl(plUK())}/h). A baixa vai para a Aprovação de LPU da área, junto com as outras LPUs.</p></div>${plEnc()?'<button class="btn primary" data-act="plNovo">Encaminhar plantão</button>':''}</div>`;
+  if(PLT.err)return `<section class="panel">${top}<div class="rpbox bad">${esc(PLT.err)} <button class="btn sm" data-act="plRecarr">Tentar de novo</button></div></section>`;
+  if(!PLT.ok)return `<section class="panel">${top}<p class="muted pad">Carregando…</p></section>`;
+  const grp=x=>['env','ajuste'].includes(x.status)?'env':x.status==='canc'?'canc':'baixa';
+  const L=PLT.rows.filter(x=>x.area===a),cnt=k=>L.filter(x=>k==='all'||grp(x)===k).length,chips=[['env','Aguardando o técnico'],['baixa','Baixa enviada'],['canc','Cancelados'],['all','Todos']];
+  const V=L.filter(x=>F==='all'||grp(x)===F).sort((p,q)=>String(q.ini).localeCompare(String(p.ini)));
+  const sit=x=>x.status==='env'?['Aguardando o técnico','warn']:x.status==='ajuste'?['Devolvido ao técnico','warn']:x.status==='canc'?['Cancelado','']:['Baixa enviada','ok'];
+  return `<section class="panel">${top}<div class="gdf rpchips">${chips.map(([k,n])=>`<button data-act="plF" data-v="${k}" aria-pressed="${F===k}">${n} · ${cnt(k)}</button>`).join('')}</div>
+   <div class="tablewrap"><table class="ciatab"><thead><tr><th>Técnico</th><th>Período</th><th>Situação do plantão</th><th>Situação no financeiro</th><th class="r">Comum (h)</th><th class="r">Crítico (h)</th><th class="r">Valor</th><th></th></tr></thead><tbody>
+   ${V.map(x=>{const b=x.baixa,s=sit(x),f=b&&PL_FIN[x.status];return `<tr><td><b>${esc(gTecN(x.tec))}</b>${x.obs?`<br><small class="muted">${esc(x.obs)}</small>`:''}</td><td class="nw">${plPer(x)}</td><td><span class="chip ${s[1]}">${s[0]}</span></td>
+     <td>${f?`<span class="chip ${f[1]}">${f[0]}</span>${x.apr&&x.status==='apr'?`<br><small class="muted">${esc(x.apr.por)}, ${dBR(isoD(new Date(x.apr.em))).slice(0,5)}</small>`:x.dev&&['ajuste','rep'].includes(x.status)?`<br><small class="muted">${esc(x.dev)}</small>`:''}`:'<small class="muted">—</small>'}</td>
+     <td class="r">${b?rpFmt(b.hc,1):'—'}</td><td class="r">${b?rpFmt(b.hk,1):'—'}</td><td class="r">${b?brl(plTot(b)):'—'}</td>
+     <td><div class="ciaac">${b?`<button class="btn sm" data-act="plVer" data-id="${x.id}">Ver baixa</button><button class="btn sm" data-act="plPdf" data-id="${x.id}">PDF</button>`:''}${['env','ajuste'].includes(x.status)&&plEnc()?`<button class="btn sm" data-act="plCanc" data-id="${x.id}">Cancelar</button>`:''}</div></td></tr>`}).join('')||'<tr><td colspan="8" class="muted">Nada aqui.</td></tr>'}</tbody></table></div></section>`}
+{const _v=ACT.plVer;ACT.plVer=function(){const r=_v.apply(this,arguments);document.querySelectorAll('#modal [data-act="plApr"],#modal [data-act="plDev"]').forEach(b=>b.remove());return r}}
+/* a permissão "aprovar a baixa do plantão" sai da lista de acessos (quem aprova LPU na área aprova o plantão) */
+try{PERM_T.forEach(g=>{const walk=L=>(L||[]).forEach((n,i)=>{if(['a_gPlantApr','rc_a_plantApr'].includes(n[0]))L.splice(i,1);else walk(n[3])});walk(g[1])})}catch(e){}
+
+/* ---- Programadas da RE Preventiva: todos os tipos; Melhoria (0103) e Retirada (0102) com a conta deles ---- */
+const RP_CT={prev:'0101',mel:'0103',ret:'0102',cia:'0101'};
+reLpusProg=function(){if(typeof RP==='undefined'||!RP.rows)return[];return rpProgs().filter(x=>['prev','cia','mel','ret'].includes(x.tipo)&&x.status!=='canc').map(x=>{const env=x.lpu&&x.lpu.env;if(!env&&!rpLpuPronta(x))return null;
+  const it=((env?x.lpu.itens:rpLpuSug(x))||[]).map(i=>{const r0=rpLpuIt(i.cod),r=Object.assign({},(typeof itemOf==='function'&&itemOf(i.cod))||{},r0.desc&&r0.desc!==i.cod?r0:{valor:r0.valor});return{cod:i.cod,desc:r.desc||i.cod,classe:r.classe||'Sem classe',medida:r.medida||'',unit:+r.valor||0,qtd:+i.qtd||0}}).filter(i=>i.qtd);
+  const p=rpProg(x.tipo),org=x.tipo==='cia'?'Companhia elétrica':x.tipo==='mel'?'Melhoria de rede':x.tipo==='ret'?'Retirada de cabo':x.seg==='sub'?'Preventiva subterrânea':'Preventiva aérea',ct=(typeof LPU_CONTAS!=='undefined'&&LPU_CONTAS.find(c=>c.startsWith('3.1.1.2.05.'+RP_CT[x.tipo])))||p[3];
+  return{id:'rp:'+x.id,chamado:'rp:'+x.id,pom:x.cod,cliente:org+' · '+(x.cidade||''),etiqueta:'',tec:x.tec,status:env?'aprovada':'aguardando',total:it.reduce((s,i)=>s+i.unit*i.qtd,0),data:env?isoD(new Date(env.em)):(x.data||hoje()),itens:it,
+    hist:env?[{acao:'Aprovada',por:env.por||'',em:env.em}]:[],categoria:org+' (programadas)',conta:x.tipo==='prev'||x.tipo==='cia'?RE_PREV:ct,_rp:1,_rpT:x.tipo}}).filter(Boolean)};
+FIN_AR.push(['rpr','RE Preventiva · Retirada','0102']);
+{const _f=finAreaL;finAreaL=function(l){if(l&&l._rp&&l._rpT==='mel')return 'mox';if(l&&l._rp&&l._rpT==='ret')return 'rpr';return _f.apply(this,arguments)}}
+
+/* ---- Gestão financeira do técnico e do prestador: plantões e programadas ---- */
+{const _m=viewMinhas;viewMinhas=function(){const a=arguments,me=ui.tec;if(!me)return _m.apply(this,a);
+  const P=plLpus(null,true).map(l=>Object.assign(l,{pom:'§'+(l._pl==='re'?'RE Corretiva':'GTD')+' · Plantão'})),R=(typeof reLpusProg==='function'?reLpusProg():[]).map(l=>Object.assign({},l,{etiqueta:l.pom,pom:'§RE Preventiva · programada'}));
+  const X=P.concat(R).filter(l=>l.tec===me||l.prestador===me);if(!X.length)return _m.apply(this,a);
+  const all=G.lpus,F=all.concat(X);G.lpus=F;let h;try{h=_m.apply(this,a)}finally{if(G.lpus===F)G.lpus=all}
+  return h.replace(/GTD Manutenção, O&amp;M §([^,<]*)/g,'$1')}}
+
+/* 12/11: programadas da RE Preventiva sem revisão (Preventiva, Melhoria, Retirada e Companhia elétrica).
+   O apontamento já chega aprovado (rev.auto); a aba Revisão de campo sai; apontamentos que estavam aguardando revisão
+   passam a valer como aprovados ao carregar. Esteira das programadas no layout do Painel do dia. */
+const RP_AUTO=()=>({por:'Sem revisão (automático)',em:Date.now(),auto:1});
+{const i=RP_TABS.indexOf('rpRev');if(i>=0)RP_TABS.splice(i,1)}
+function rpSemRev(x){let n=0;(x&&x.ap||[]).forEach(a=>{if(a.st==='rev'){a.st='ok';a.rev=RP_AUTO();(a.hist=a.hist||[]).push({acao:'Aprovada sem revisão',por:a.rev.por,em:a.rev.em});n++}});if(n)rpFecha(x);return n}
+{const _c=rpCarregar;rpCarregar=async function(){const r=await _c.apply(this,arguments);try{(RP.rows||[]).forEach(rpSemRev)}catch(e){console.warn('rpSemRev',e)}return r}}
+{const _s=rpSalvar;rpSalvar=function(x,msg){if(x&&Array.isArray(x.ap)){rpSemRev(x);if(msg==='Enviado para revisão.')msg=x.tipo==='cia'&&x.status==='concl'?'Relatório enviado. Agora preencha a LPU.':'Enviado.'}return _s.apply(this,arguments)}}
+/* na tela da atividade, a revisão de campo não aparece mais para a gestão */
+{const _t=tabsDe;tabsDe=function(){return _t.apply(this,arguments).filter(t=>t!=='rpRev')}}
+if(ui.tab==='rpRev')ui.tab='rpEst';
+
+/* ---- Esteira no layout do Painel do dia ---- */
+const RP_COL2=[['plan','Planejadas','ag'],['desp','Despachadas','cam'],['campo','Em campo','loc'],['enc','Encerradas · 7 dias','exec']];
+rpColDe=function(x){const A=rpAps(x);if(x.status==='plan')return 'plan';if(x.status==='desp')return A.length?'campo':'desp';if(x.status==='campo')return 'campo';
+  if(x.status==='concl')return Date.now()-rpUltEm(x)<=7*864e5?'enc':null;return null};
+function viewRpEst(){const e=rpEstado();const F=ui.rpEF||(ui.rpEF={p:'all',q:'',v:'quadro'});F.cid=F.cid||'';F.tec=F.tec||'';
+  const T=hoje(),clk=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const sw=`<div class="views" style="margin:0">${[['quadro','Quadro'],['tempo','Linha do tempo']].map(([k,n])=>`<button data-act="rpEV" data-v="${k}" aria-current="${F.v===k}">${n}</button>`).join('')}</div>`;
+  const top=`<div class="toolbar"><div><span class="pdk">NET TURBO, RE PREVENTIVA</span><h2 style="font-size:32px">Esteira das programadas</h2><p class="muted">${DSEM[new Date(T+'T12:00:00').getDay()]}, ${dBR(T)} · Preventiva, Melhoria, Retirada e Companhia elétrica</p></div><div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">${sw}<div class="pdclk"><b>${clk}</b><small>Atualiza sozinho</small></div></div></div>`;
+  if(e)return top+e;
+  const base=rpProgs().filter(x=>rpColDe(x));
+  const tipoOk=x=>F.p==='all'||x.tipo===F.p,cidOk=x=>!F.cid||x.cidade===F.cid,tecOk=x=>!F.tec||x.tec===F.tec,qOk=x=>rpQ(F.q,x.cod,x.cidade,x.end,x.servico,rpTecN(x.tec),rpDet(x));
+  const L=base.filter(x=>tipoOk(x)&&cidOk(x)&&tecOk(x)&&qOk(x));
+  if(F.v==='tempo')return `${top}${rpEstFil(F,base,L)}<section class="panel" style="margin-top:12px">${rpTempo(rpProgs().filter(x=>tipoOk(x)&&cidOk(x)&&tecOk(x)&&qOk(x)))}</section>`;
+  const K=[['','Programadas',''],['plan','Planejadas',''],['desp','Despachadas',''],['campo','Em campo','warn'],['atr','Atrasadas','bad'],['enc','Encerradas · 7 dias','ok']];
+  const kf=K.some(k=>k[0]===ui.rpKF)?ui.rpKF:'',kOk=k=>x=>k==='atr'?rpAtras(x):rpColDe(x)===k;
+  const peso=x=>(rpRejN(x)?0:rpAtras(x)?1:2),ord=C=>C.sort((a,b)=>peso(a)-peso(b)||String(a.lim||a.data).localeCompare(String(b.lim||b.data)));
+  const kp=`<div class="kpis pdk7" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))" role="group" aria-label="Filtrar as programadas">${K.map(([k,l,c])=>`<button type="button" class="kpi kbtn ${c}" data-act="rpKF" data-v="${k}" aria-pressed="${kf===k}"><b>${k?L.filter(kOk(k)).length:L.length}</b><span>${l}</span></button>`).join('')}</div>`;
+  const corpo=kf?(()=>{const it=ord(L.filter(kOk(kf))),nm=K.find(k=>k[0]===kf)[1];return `<section class="pdcol pdkf ${kf==='campo'||kf==='atr'?'loc':kf==='desp'?'cam':kf==='enc'?'exec':'fim'}"><div class="pdct"><b>${nm}</b><span><b>${it.length}</b> <button type="button" class="btn sm" data-act="rpKF" data-v="">Mostrar todas</button></span></div><div class="pdkg">${it.map(rpCard).join('')||'<span class="muted">Nenhuma atividade.</span>'}</div></section>`})()
+    :`<div class="pdcols" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">${RP_COL2.map(([k,nm,c])=>{const it=ord(L.filter(x=>rpColDe(x)===k));return `<section class="pdcol ${c}"><div class="pdct"><b>${nm}</b><b>${it.length}</b></div>${it.map(rpCard).join('')||'<span class="muted">Nenhuma atividade.</span>'}</section>`}).join('')}</div>`;
+  return `${top}${kp}${rpEstFil(F,base,L)}${corpo}`}
+function rpEstFil(F,base,L){const cids=[...new Set(base.map(x=>x.cidade).filter(Boolean))].sort(),tecs=[...new Set(base.map(x=>x.tec).filter(Boolean))].map(id=>[id,rpTecN(id)]).sort((a,b)=>a[1].localeCompare(b[1]));
+  const n=f=>base.filter(f).length;
+  return `<div class="pdfl" role="search"><label class="pdq">Buscar<input class="inp" type="search" id="rpEQ" data-in="rpEQ" value="${esc(F.q)}" placeholder="Código, cidade, endereço ou técnico" autocomplete="off"></label>
+   <label>Tipo<select class="inp" data-ch="rpETp"><option value="all">Todos os tipos (${base.length})</option>${RP_PROG.map(p=>`<option value="${p[0]}" ${F.p===p[0]?'selected':''}>${p[1]} (${n(x=>x.tipo===p[0])})</option>`).join('')}</select></label>
+   <label>Cidade<select class="inp" data-ch="rpECid"><option value="">Todas as cidades (${cids.length})</option>${cids.map(c=>`<option value="${esc(c)}" ${F.cid===c?'selected':''}>${esc(c)} (${n(x=>x.cidade===c)})</option>`).join('')}</select></label>
+   <label>Técnico<select class="inp" data-ch="rpETec"><option value="">Todos os técnicos (${tecs.length})</option>${tecs.map(([id,nm])=>`<option value="${id}" ${F.tec===id?'selected':''}>${esc(nm)}</option>`).join('')}</select></label>
+   <span class="res">${L.length} ${L.length===1?'atividade':'atividades'}</span>${F.p!=='all'||F.cid||F.tec||F.q?'<button class="link" data-act="rpELimpa">Limpar filtros</button>':''}</div>`}
+RP_VIEWS.rpEst=viewRpEst;
+/* card da esteira: encerradas mostram a situação da LPU */
+{const _c=rpCard;rpCard=function(x){const h=_c.apply(this,arguments);if(!x||x.status!=='concl')return h;const e=x.lpu&&x.lpu.env;
+  const t=`Concluída ${dBR(isoD(new Date(rpUltEm(x)))).slice(0,5)} · ${e?'LPU enviada'+(e.tec?' pelo técnico':''):x.tipo==='cia'?'aguardando a LPU do técnico':'LPU pronta para enviar'}`;
+  return h.replace(/<span class="cas[^"]*">[\s\S]*?<\/span>/,`<span class="cas ${e?'ok':'warn'}">${esc(t)}</span>`)}}
+Object.assign(ACT,{rpKF:el=>{const v=el.dataset.v||'';ui.rpKF=ui.rpKF===v?'':v;render()},rpELimpa:()=>{Object.assign(ui.rpEF,{p:'all',q:'',cid:'',tec:''});ui.rpKF='';render()}});
+Object.assign(CH,{rpETp:el=>{ui.rpEF.p=el.value;render()},rpECid:el=>{ui.rpEF.cid=el.value;render()},rpETec:el=>{ui.rpEF.tec=el.value;render()}});
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
