@@ -19259,6 +19259,67 @@ RP_VIEWS.rpEst=viewRpEst;
 Object.assign(ACT,{rpKF:el=>{const v=el.dataset.v||'';ui.rpKF=ui.rpKF===v?'':v;render()},rpELimpa:()=>{Object.assign(ui.rpEF,{p:'all',q:'',cid:'',tec:''});ui.rpKF='';render()}});
 Object.assign(CH,{rpETp:el=>{ui.rpEF.p=el.value;render()},rpECid:el=>{ui.rpEF.cid=el.value;render()},rpETec:el=>{ui.rpEF.tec=el.value;render()}});
 
+/* 12/11: explodir os números do Painel de KPIs (GTD e RE Corretiva). Cada número abre uma lista lateral com os chamados,
+   o MTTR de cada um em 5 etapas (até o despacho, deslocamento, espera no local, atendimento, aguardando o NOC) sem o
+   tempo do relatório (RFO), o prazo e a folga ou o estouro. Expurgados continuam no MTTR e ganham o selo. */
+const KD={P:[],f:null,sub:'todos',ord:'est',open:null};
+const KD_ET=[['Até o despacho','#7A8A80'],['Deslocamento','var(--info)'],['Espera no local','var(--warn)'],['Atendimento','var(--brand)'],['Aguardando o NOC','var(--tp-noc)']];
+const kdOn=()=>!gTecPerfil()&&ui.cat==='gtd'&&['gtd','re'].includes(ui.gArea||'gtd');
+function kdEt(c){const t=c.ts||{},i=gIni(c),f=c.validadoEm||Date.now(),cl=v=>Math.min(f,Math.max(i,v||0));
+  const b=[i,cl(t.despacho),cl(t.chegada),cl(t.inicio),cl(t.pedido),f];for(let k=1;k<b.length;k++)if(b[k]<b[k-1])b[k]=b[k-1];
+  return [1,2,3,4,5].map(k=>b[k]-b[k-1])}
+const kdT=c=>(c.validadoEm||Date.now())-gIni(c),kdD=c=>g4Lim(c)-kdT(c);
+const kdLAB={all:'Chamados no período',ab:'Em aberto agora',rei:'Reincidências (30 dias)',mttr:'MTTR médio: chamados validados',desp:'Tempo até o despacho',sla:'SLA: chamados validados',imp:'Improdutivos',enc:'Encaminhados para outra equipe'};
+function kdLista(f){const P=KD.P,V=P.filter(c=>c.validadoEm),re=(ui.gArea||'gtd')==='re';
+  if(f==='ok')return[V.filter(c=>kdD(c)>=0),re?'Dentro do prazo: chamados que ganharam':'Até 4 horas: chamados que ganharam','Validados no período dentro do prazo. A folga é quanto sobrou do prazo.'];
+  if(f==='no')return[V.filter(c=>kdD(c)<0),re?'Fora do prazo: chamados que perderam':'Acima de 4 horas: chamados que perderam','Validados no período fora do prazo, do maior estouro para o menor.'];
+  if(f.startsWith('grp:')){const k=f.slice(4);return[V.filter(c=>g4Grp(c)===k),(re?'Prioridade':'Categoria')+' · '+k,'Chamados validados no período.']}
+  const F={all:c=>1,ab:c=>GTD_ABERTOS.includes(c.status),rei:c=>gReinc(c).length,mttr:c=>c.validadoEm,desp:c=>c.ts&&c.ts.despacho,sla:c=>c.validadoEm&&((ui.gArea||'gtd')==='re'||c.categoria==='Indisponibilidade'),imp:c=>c.desfecho==='Improdutivo',enc:c=>c.desfecho==='Encaminhado'}[f]||(c=>1);
+  return[P.filter(F),kdLAB[f]||'Chamados',f==='desp'?'Do maior tempo até o despacho para o menor.':f==='ab'?'Ainda sem validação do NOC: o MTTR está contando.':'Chamados do período, pelo dia de início.']}
+const kdF=v=>{const m=Math.round(Math.abs(v)/60000);return(v<0?'-':'')+(m>=60?Math.floor(m/60)+'h'+String(m%60).padStart(2,'0'):m+' min')};
+function kdHtml(){const[L0,t,s]=kdLista(KD.f);let L=L0.slice();const ab=c=>!c.validadoEm;
+  if(KD.sub==='ok')L=L.filter(c=>!ab(c)&&kdD(c)>=0);if(KD.sub==='no')L=L.filter(c=>!ab(c)&&kdD(c)<0);
+  L.sort(KD.ord==='desp'?(a,b)=>kdEt(b)[0]-kdEt(a)[0]:KD.ord==='mttr'?(a,b)=>kdT(b)-kdT(a):(a,b)=>kdD(a)-kdD(b));
+  const V=L.filter(c=>!ab(c)),med=V.length?V.reduce((q,c)=>q+kdT(c),0)/V.length:null,em=V.length?KD_ET.map((e,i)=>[e[0],V.reduce((q,c)=>q+kdEt(c)[i],0)/V.length]).sort((a,b)=>b[1]-a[1])[0]:null;
+  const mx=Math.max(1,...L.map(c=>Math.max(kdT(c),g4Lim(c)))),ex=c=>((S.expurgosG||{})[c.id]);
+  return `<div class="kdh"><div><h2>${esc(t)}</h2><p class="muted">${esc(s)} ${dBR(ui.gpIni)} a ${dBR(ui.gpFim)}.</p></div><div class="kdac"><button class="btn sm" data-act="kdXlsx">Baixar planilha</button><button class="btn sm" data-act="kdX">Fechar ✕</button></div></div>
+   <div class="kdb"><div class="kdsum"><div><b>${L.length}</b><span>chamados</span></div><div><b>${med==null?'—':kdF(med)}</b><span>MTTR médio da lista</span></div><div><b>${V.filter(c=>kdD(c)>=0).length} / ${V.filter(c=>kdD(c)<0).length}</b><span>no prazo / fora do prazo</span></div><div><b>${em?esc(em[0]):'—'}</b><span>etapa que mais pesa${em?' ('+kdF(em[1])+' em média)':''}</span></div></div>
+   <div class="kdfil">${[['todos','Todos'],['ok','Só no prazo'],['no','Só fora do prazo']].map(([k,n])=>`<button data-act="kdSub" data-v="${k}" aria-pressed="${KD.sub===k}">${n}</button>`).join('')}<span style="flex:1"></span>${[['est','Ordenar por estouro'],['mttr','por MTTR'],['desp','por despacho']].map(([k,n])=>`<button data-act="kdOrd" data-v="${k}" aria-pressed="${KD.ord===k}">${n}</button>`).join('')}</div>
+   <div class="kdleg">${KD_ET.map(e=>`<span><i style="background:${e[1]}"></i>${e[0]}</span>`).join('')}<span><i style="background:var(--ink);width:2px"></i>prazo</span><span>· o tempo do relatório (RFO) não entra</span></div>
+   <div class="tablewrap"><table class="kdt"><thead><tr><th>Chamado</th><th>Categoria · prioridade</th><th>Técnico</th><th style="min-width:200px">MTTR por etapa</th><th class="r">MTTR</th><th class="r">Prazo</th><th class="r">Folga / estouro</th></tr></thead><tbody>
+   ${L.map(c=>{const E=kdEt(c),T=kdT(c),d=kdD(c),o=KD.open===c.id;return `<tr class="kdr" data-act="kdOpen" data-id="${c.id}"><td><b>O&amp;M ${esc(c.pom||'')}</b><small>${esc(c.cliente||'')} · ${esc(c.cidade||'')} · ${dBR(isoD(new Date(gIni(c)))).slice(0,5)}</small>${ex(c)?'<span class="chip">expurgado</span>':''}</td><td>${esc(c.categoria||'—')}<small>${esc(c.prioridade||'')}${(ui.gArea||'gtd')==='re'?' ('+reLimH(c)+'h)':''}</small></td><td>${esc(gTecN(c.tec)||'—')}</td>
+    <td><div class="kdtl">${E.map((v,i)=>`<i style="width:${v/mx*100}%;background:${KD_ET[i][1]}" title="${KD_ET[i][0]}: ${kdF(v)}"></i>`).join('')}<span class="kdlim" style="left:${g4Lim(c)/mx*100}%"></span></div></td>
+    <td class="r"><b>${kdF(T)}</b>${ab(c)?'<small>contando</small>':''}</td><td class="r">${kdF(g4Lim(c))}</td><td class="r">${ab(c)?'<span class="chip">em aberto</span>':`<b class="${d>=0?'kdok':'kdno'}">${d>=0?'+'+kdF(d)+' de folga':kdF(-d)+' acima'}</b>`}</td></tr>
+    ${o?`<tr class="kddet"><td colspan="7"><div class="kdet">${E.map((v,i)=>`<div><span style="color:${KD_ET[i][1]}">●</span> ${KD_ET[i][0]}<b>${kdF(v)}</b></div>`).join('')}</div><div class="kdac" style="margin-top:8px"><button class="btn sm primary" data-act="kdAbrir" data-id="${c.id}">Abrir o chamado</button>${c.ts&&c.validadoEm&&c.ts.rfo-c.validadoEm>=60000?`<small class="muted">Relatório (RFO) feito ${kdF(c.ts.rfo-c.validadoEm)} depois da validação: não conta no MTTR.</small>`:''}</div></td></tr>`:''}`}).join('')||'<tr><td colspan="7" class="muted">Nenhum chamado.</td></tr>'}</tbody></table></div></div>`}
+function kdRender(){let el=$('kdDr');if(!KD.f){if(el)el.remove();const o=$('kdOv');if(o)o.remove();return}
+  if(!el){const ov=document.createElement('div');ov.id='kdOv';ov.dataset.act='kdX';document.body.appendChild(ov);el=document.createElement('aside');el.id='kdDr';el.setAttribute('aria-label','Chamados');document.body.appendChild(el)}
+  const sc=(el.querySelector('.kdb')||{}).scrollTop||0;el.innerHTML=kdHtml();const b=el.querySelector('.kdb');if(b)b.scrollTop=sc}
+Object.assign(ACT,{kdA:el=>{KD.f=el.dataset.f;KD.sub='todos';KD.open=null;KD.ord=KD.f==='desp'?'desp':KD.f==='mttr'||KD.f==='all'?'mttr':'est';kdRender()},
+  kdX:()=>{KD.f=null;kdRender()},kdSub:el=>{KD.sub=el.dataset.v;kdRender()},kdOrd:el=>{KD.ord=el.dataset.v;kdRender()},
+  kdOpen:el=>{KD.open=KD.open===el.dataset.id?null:el.dataset.id;kdRender()},
+  kdAbrir:el=>{const id=el.dataset.id;KD.f=null;kdRender();ACT.gAbrir({dataset:{id}})},
+  kdXlsx:()=>{const[L]=kdLista(KD.f),dt=v=>v?new Date(v).toLocaleString('pt-BR'):'',m=v=>Math.round(v/60000);
+    xlsxBaixar(`chamados_${KD.f.replace(/\W+/g,'_')}_${ui.gpIni}_a_${ui.gpFim}`,[['Chamados',L.map(c=>{const E=kdEt(c),d=kdD(c);return{'O&M':c.pom||'',Cliente:c.cliente||'',Cidade:c.cidade||'',Categoria:c.categoria||'',Prioridade:c.prioridade||'',Técnico:gTecN(c.tec)||'','Início do MTTR':dt(gIni(c)),'Validação do NOC':dt(c.validadoEm),
+      'Até o despacho (min)':m(E[0]),'Deslocamento (min)':m(E[1]),'Espera no local (min)':m(E[2]),'Atendimento (min)':m(E[3]),'Aguardando o NOC (min)':m(E[4]),'MTTR (min)':m(kdT(c)),'Prazo (min)':m(g4Lim(c)),'Folga (+) / estouro (-) (min)':c.validadoEm?m(d):'','Situação':c.validadoEm?(d>=0?'No prazo':'Fora do prazo'):'Em aberto',Expurgado:(S.expurgosG||{})[c.id]?'Sim':''}})]])}});
+/* o painel guarda os chamados do período e vira clicável */
+{const _gp=gPainelGeral;gPainelGeral=function(){const h=_gp.apply(this,arguments);if(!kdOn())return h;try{
+  const ini=ui.gpIni,fim=ui.gpFim;KD.P=G.ch.filter(c=>c.status!=='cancelado'&&gDiaDe(c)>=ini&&gDiaDe(c)<=fim);
+  const fk=l=>/^chamados no período/.test(l)?'all':/^em aberto agora/.test(l)?'ab':/^reincidências/.test(l)?'rei':/^MTTR médio/.test(l)?'mttr':/^tempo médio até o despacho/.test(l)?'desp':/^SLA /.test(l)?'sla':/^improdutivos/.test(l)?'imp':/^encaminhados/.test(l)?'enc':null;
+  let o=h.replace(/<div class="tvkg">[\s\S]*?<div class="tvk2">/,blk=>blk.replace(/<div class="tvkv"><b class="([^"]*)">([^<]*)<\/b><small>([^<]*)<\/small><\/div>/g,(m,c,v,l)=>{const f=fk(l);return f?`<button type="button" class="tvkv kdbtn" data-act="kdA" data-f="${f}"><b class="${c}">${v}</b><small>${l}</small></button>`:m}));
+  o=o.replace(/<div class="g4c (ok|bad)">([\s\S]*?)<\/div>/g,(m,k,in_)=>`<button type="button" class="g4c ${k} kdbtn" data-act="kdA" data-f="${k==='ok'?'ok':'no'}">${in_}<span class="kdgo">${k==='ok'?'ver os que ganharam ›':'ver os que perderam ›'}</span></button>`)
+   .replace(/<div class="g4r"><span class="g4rn">([^<]*)<\/span>/g,(m,n)=>`<div class="g4r kdbtn" role="button" tabindex="0" data-act="kdA" data-f="grp:${n}"><span class="g4rn">${n}</span>`);
+  return o.replace('<h3>SLA','<h3 title="Clique nos cartões e nas linhas para ver os chamados">SLA')}catch(e){console.warn('kdrill',e);return h}}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&KD.f){KD.f=null;kdRender()}if(e.key==='Enter'&&e.target&&e.target.matches&&e.target.matches('.g4r.kdbtn'))ACT.kdA(e.target)});
+(function(){const st=document.createElement('style');st.textContent=`.kdbtn{cursor:pointer;font:inherit;color:inherit;text-align:left}button.tvkv.kdbtn{background:transparent;border:1px solid transparent;border-radius:10px;padding:4px 6px;margin:-4px -6px}button.tvkv.kdbtn:hover,button.tvkv.kdbtn:focus-visible{border-color:var(--brand);background:var(--brand-soft)}
+button.g4c.kdbtn{position:relative;width:100%}button.g4c.kdbtn:hover{box-shadow:0 0 0 2px var(--brand)}.kdgo{position:absolute;right:12px;bottom:10px;font-size:12px;font-weight:700;color:var(--brand-ink)}.g4r.kdbtn{border-radius:6px}.g4r.kdbtn:hover{background:var(--brand-soft)}
+#kdOv{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:80}#kdDr{position:fixed;top:0;right:0;bottom:0;width:min(1000px,100%);background:var(--bg);z-index:81;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(0,0,0,.25);padding-top:env(safe-area-inset-top,0px)}
+.kdh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--surface)}.kdh h2{margin:0;font-size:22px}.kdh p{margin:2px 0 0;font-size:13px}.kdac{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.kdb{overflow:auto;flex:1;padding:14px 18px 30px}.kdsum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}@media(max-width:700px){.kdsum{grid-template-columns:repeat(2,minmax(0,1fr))}}.kdsum div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}.kdsum b{display:block;font-size:20px}.kdsum span{font-size:12px;color:var(--muted)}
+.kdfil{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.kdfil button{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 10px;cursor:pointer}.kdfil button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.kdleg{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted);margin:4px 0 10px}.kdleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.kdt{min-width:820px}.kdt td small{display:block;color:var(--muted);font-size:11.5px}.kdr{cursor:pointer}.kdr:hover td{background:var(--brand-soft)}.kdtl{display:flex;height:12px;border-radius:3px;overflow:hidden;background:var(--line);position:relative}.kdtl i{display:block;height:100%}.kdlim{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
+.kdok{color:var(--brand-ink)}.kdno{color:var(--bad)}.kddet td{background:var(--bg)}.kdet{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;font-size:12.5px}@media(max-width:700px){.kdet{grid-template-columns:repeat(2,minmax(0,1fr))}}.kdet div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px}.kdet b{display:block}`;document.head.appendChild(st)})();
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
