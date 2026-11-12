@@ -2708,7 +2708,7 @@ const itemOf=c=>LPU.find(i=>i.cod===c)||LPU[0];
 let S={previsao:[],comp:{},ags:[],lpus:[],anexos:[],anexosLog:[],estoque:{}};
 function save(){agendarSync()}
 const ui={perfil:'coord',tab:'painel',tec:'c1',campoSel:null,cF:'hoje',agSel:null,fTab:'proj',q:'',agForm:{},agDia:hoje(),agFase:'all',baseQ:'',pIni:addD(hoje(),-14),pFim:addD(hoje(),7),aTab:'aguardando',pGrp:'cidade',pSec:'geral',finSub:'budget',eqF:'all',bMes:hoje().slice(0,7),bEdit:false,dSit:'ap',dConta:'',dPres:'',dClasse:'',agView:'semana',agTec:'all',kQ:'',kCid:'',vQ:'',vCid:'',vOrd:'entrega',sMes:hoje().slice(0,8)+'01',sDia:hoje(),aOpen:null,mTab:'aguardando',mIni:addD(hoje(),-30),mFim:hoje(),draft:{}};
-const getAg=id=>S.ags.find(a=>a.id===id);
+let getAg=id=>S.ags.find(a=>a.id===id);
 // Dias de execução: datas distintas em que uma atividade foi iniciada (ts.inicio).
 // Várias fases ou atividades no mesmo dia contam como 1 dia.
 const diaExec=a=>a.ts&&a.ts.inicio?isoD(new Date(a.ts.inicio)):null;
@@ -2757,7 +2757,7 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<div class="whc"><span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span></div><div class="wbar">${['supply','visu'].includes(ui.perfil)?'':'<button class="wic wbb sino" data-act="avisos" data-l="Avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic wbb" data-act="conta" data-l="Conta" aria-label="Minha conta: senha e notificações" title="Minha conta: senha e notificações">${WHO_CONTA}</button><button class="wic wbb" data-act="logout" data-l="Sair" aria-label="Sair" title="Sair">${ICN.sair}</button></div>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu','melKpi','melMin','cxProj','cxCrono','cxDesp','oxProj','oxCrono','oxDesp','melAprov','melBud','melDet','melPrest','melEq','gEst','gEstAt','gEstHist'],GRP={txMel:'Operação',gEst:'Estoque',gEstAt:'Estoque',gEstHist:'Estoque',melKpi:'Acompanhamento',melMin:'Acompanhamento',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu','melKpi','melMin','cxProj','cxCrono','cxDesp','cxVist','oxProj','oxCrono','oxDesp','oxVist','melAprov','melBud','melDet','melPrest','melEq','gEst','gEstAt','gEstHist'],GRP={txMel:'Operação',gEst:'Estoque',gEstAt:'Estoque',gEstHist:'Estoque',melKpi:'Acompanhamento',melMin:'Acompanhamento',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Capex · Instalação de rede',cxVist:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Opex · Melhoria de rede (reparo programado)',oxVist:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando'&&!lpuTx(l)).length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -7693,7 +7693,7 @@ function vtPdf(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),M=VT.M,
 Object.assign(ACT,{
   vtFechar:()=>{ui.vt=null;vtMapaFim();VT.R=null;VT.M=null;render();window.scrollTo(0,0)},
   vtEnviar:async el=>{const a=getAg(el.dataset.id);if(!a||!VT.R||vtFalta().length)return;toast('Gerando e enviando o relatório da vistoria…');
-    try{const R=VT.R,blob=vtPdf(a),path=`relatorios/${a.id}/vistoria/${Date.now()}-relatorio-vistoria.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
+    try{const R=VT.R,blob=vtPdf(a),path=`${vtDir(a)}/vistoria/${Date.now()}-relatorio-vistoria.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
       const r=vtResul(),dz=VT_PRAZO[r]||0,L=vtPend();
       a.rel=a.rel||{};a.rel.vist={path,em:Date.now(),res:r};
       a.vistoria={res:r,sug:vtSug(),just:R.res&&R.res!==vtSug()?R.just:'',conf:vtConf(),pontos:vtAtivos(),nPend:L.length,prazo:dz?addD(hoje(),dz):null,dias:dz||null,em:Date.now(),por:meNome(),revis:!!R.revis,mMed:+R.mMed||0,mPrev:VT.M.mPrev,kmz:VT.nome,
@@ -11682,7 +11682,7 @@ const txCkLinhas=r=>r.tipo==='prev'&&!txImp(r)?TX_PS.flatMap(s=>TX_PREV[s].it.ma
   if(typeof dnPdfNoc==='function'&&(r.tipo==='corr'||r.tipo==='gmud'))await dnPdfNoc(doc,c);
   const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, Transmissão ${c.pom||''}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
   return doc.output('blob')}}
-{const _g=ACT.gRfoGerar;ACT.gRfoGerar=async el=>{const id=el.dataset.id,R=(ui.gRfo||{})[id],c=G.ch.find(x=>x.id===id);if(!R||R.v!=='tx'||!c)return _g(el);
+{const _g=ACT.gRfoGerar;ACT.gRfoGerar=async el=>{const id=el.dataset.id,R=(ui.gRfo||{})[id],c=G.ch.find(x=>x.id===id);if(!R||R.v!=='tx'||!c)return _g(el);const lpM=typeof melLpuPede==='function'&&melLpuPede(c),fnM=lpM&&melFuncDe(c);
   const F0=txFaltas(c,R);if(F0.length){toast('Falta preencher: '+F0.join(', ')+'.','bad');const b=txBlocos(c,R).find(x=>!x.ok);if(b){R.ab[b.k]=true;r2Re()}return}
   const Fp=(R.fotos||[]).filter(f=>f.path);if((R.fotos||[]).some(f=>!f.path)){toast('Aguarde o envio das fotos terminar.','bad');return}el.disabled=true;
   const{fotos,ab,...rr}=R;rr.solucao=R.itemDef||R.gobs||R.feito||R.iesp||'';rr.causa=R.raiz||R.item||R.desfecho||'';rr.local=c.cliente;
@@ -11690,8 +11690,8 @@ const txCkLinhas=r=>r.tipo==='prev'&&!txImp(r)?TX_PS.flatMap(s=>TX_PREV[s].it.ma
     const blob=await gRfoPdf(c0,ff),path=`chat/g/${id}/rfo/relatorio-tx-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
   catch(e){toast('O relatório será gravado, mas o PDF não foi gerado: '+(e.message||e),'bad')}
   const nv=await gAcao(id,x=>{if(x.status!=='rfo'){toast('O relatório já foi gerado.','bad');return false}x.desfecho=R.desfecho;x.rfo=rr;x.rfoFotos=Fp.map(f=>({path:f.path,leg:txFtN(R,f),tipo:f.tipo||''}));if(pdf)x.rfoPdf=pdf;
-    if(R.tipo==='corr'&&R.pend==='sim')x.txPendAg={txt:R.pendD||'',res:R.desfecho,em:Date.now(),por:meNome()};x.rfoTxt=gRfoTexto(x);x.status='concl';x.ts.rfo=Date.now();x.semLpu=true;gHist(x,'Relatório da Transmissão gerado ('+R.desfecho+')')},'Relatório gerado. Atendimento encerrado.');
-  el.disabled=false;if(nv){delete ui.gRfo[id];IDB.del('gr:'+id).catch(()=>{});ui.gSel=null;render()}}}
+    if(R.tipo==='corr'&&R.pend==='sim')x.txPendAg={txt:R.pendD||'',res:R.desfecho,em:Date.now(),por:meNome()};x.rfoTxt=gRfoTexto(x);if(lpM&&String(R.notaAdm||'').trim())x.notaAdm={texto:String(R.notaAdm).trim(),em:Date.now(),por:ME?ME.nome:''};x.status=lpM?'lpu':'concl';x.ts.rfo=Date.now();if(lpM)delete x.semLpu;else x.semLpu=true;gHist(x,'Relatório da Transmissão gerado ('+R.desfecho+')')},lpM?(fnM?'Relatório gerado. O administrador da sua empresa foi avisado para preencher a LPU.':'Relatório gerado. Agora preencha a LPU.'):'Relatório gerado. Atendimento encerrado.');
+  el.disabled=false;if(nv){delete ui.gRfo[id];IDB.del('gr:'+id).catch(()=>{});ui.gSel=null;render();if(lpM&&!fnM&&ui.perfil!=='func')ACT.gLpuAbrir({dataset:{id}})}}}
 
 /* ---------- painel da Transmissão ---------- */
 /* 24/10: Visão geral só com os indicadores; cada tipo de chamado na sua aba (menu do Painel de KPIs) */
@@ -15705,7 +15705,7 @@ Object.assign(CH,{vpSel:el=>{if(!vpPode())return;const a=getAg(el.dataset.id),v=
   const c=$('vpc'+i);if(c)c.classList.toggle('vpfora',!el.checked);const n=$('vpN');if(n)n.textContent=`${vpNInc(v)} de ${(v.pend||[]).length} no pedido`}});
 /* fotos das pendências: sobem junto com a vistoria */
 async function vtPendFotos(a,L){const out=[];for(const[i,x]of L.entries()){const o={id:x.e.id,item:x.n,g:x.d.g||'',txt:x.d.txt||''};
-  if(x.d.foto&&/^data:image/.test(x.d.foto)){try{const b=await (await fetch(x.d.foto)).blob(),path=`relatorios/${a.id}/vistoria/pendencias/${Date.now()}-${i+1}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)o.foto=path}catch(e){}}
+  if(x.d.foto&&/^data:image/.test(x.d.foto)){try{const b=await (await fetch(x.d.foto)).blob(),path=`${vtDir(a)}/vistoria/pendencias/${Date.now()}-${i+1}.jpg`,up=await sb.storage.from('agenda').upload(path,b,{contentType:'image/jpeg',upsert:false});if(!up.error)o.foto=path}catch(e){}}
   out.push(o)}return out}
 Object.assign(ACT,{
   vpPrazo:el=>{if(!vpPode())return semPerm();const a=getAg(el.dataset.id),v=a&&a.vistoria;if(!v)return;const hj=hoje(),cur=v.prazo||'',q=n=>`<button type="button" class="btn sm" data-act="vpQ" data-n="${n}">${n} dias</button>`;
@@ -18586,7 +18586,7 @@ function melBudNat(n,mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesD
   const A=L.filter(doMes),P=L.filter(l=>['aguardando','ajuste'].includes(l.status)),clt=melLpus([n]).filter(l=>gLpuClt(l)&&l.status!=='reprovada'&&String(l.data||'').slice(0,7)===mes);return{A,P,clt,uso:soma(A),comp:soma(P),vClt:soma(clt)}}
 function viewMelBud(){const nats=melNats(),sel=melSel(nats,'melFN'),mes=ui.bMes||hoje().slice(0,7);ui.bMes=mes;const M=finMeses(),nL=n=>n+(n===1?' LPU':' LPUs');
   const card=n=>{const R=melBudNat(n,mes),ox=n==='ox',orc=ox?(+((S.budget||{})[mes]||{})[MEL_CONTA.ox]||0):0,ed=ox&&ui.melBEd&&pode('a_budget'),disp=orc-R.uso,p=orc?Math.round(R.uso/orc*100):0,tot=Math.max(orc,R.uso+R.comp)||1,cor=p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)';
-    return `<section class="panel melsec"><div class="secth"><div><h3>${esc(MEL_NAT[n][1])}</h3><span class="muted">${ox?esc(MEL_CONTA.ox):'Conta do budget do Capex ainda não definida: aqui aparece só o consumo.'}</span></div>
+    return `<section class="panel melsec"><div class="secth"><div><h3>${esc(MEL_NAT[n][1])}</h3><span class="muted">${ox?esc(MEL_CONTA.ox):esc(MEL_CONTA.cx)+' · aqui aparece o consumo da melhoria; o budget dessa conta é definido no Financeiro da Transmissão.'}</span></div>
       ${ox&&pode('a_budget')?`<div class="tools">${ed?'<button class="btn primary" data-act="melBSalvar">Salvar budget</button><button class="btn" data-act="melBEd">Cancelar</button>':'<button class="btn" data-act="melBEd">Definir budget do Opex</button>'}</div>`:''}</div>
      ${ed?`<label class="f inline" style="margin:8px 0"><span>Budget de ${mesNome(mes)} (R$)</span><input class="inp r" type="number" min="0" step="100" id="melBud" value="${orc||''}" placeholder="0"></label>`:''}
      <div class="kpis" style="margin:10px 0">${ox?kp(brl(orc),'Budget do mês'):''}${kp(brl(R.uso),`Consumido${ox&&orc?': '+p+'%':''} (${nL(R.A.length)})`,'ok')}${ox?kp(brl(disp),'Disponível',disp<0?'bad':''):''}${kp(brl(R.comp),`Aguardando aprovação (${nL(R.P.length)})`,'warn')}</div>
@@ -18942,6 +18942,158 @@ Object.assign(ACT,{rpTLpu:async el=>{const x=rpGet(el.dataset.id);if(!rpLpuTec(x
     <button class="bigbtn" data-act="concluirOk" data-id="${a.id}" data-fzok="1" data-hold="2000" style="margin-top:12px">${L.length?'Segure: sim, concluí':'Segure: sim, continuar'}</button>
     <button class="btn wide" data-act="fzVolta" style="margin-top:8px">Não, voltar</button></div>`)}}
 ACT.fzVolta=()=>{const sh=$('modal').querySelector('.sheetm');if(!sh)return;const o=sh.querySelector('.fzconf');if(o)o.remove();[...sh.children].forEach(x=>{x.hidden=false})};
+
+/* ---------- 12/11: Melhoria de rede despachada para terceiro: relatório e LPU como na Implantação ----------
+   * Técnico CLT: igual a antes (relatório ao concluir e encerra, sem LPU).
+   * Técnico terceiro (administrador da empresa): ao concluir, o relatório é gerado e a atividade vai para a LPU;
+     a tela "Preencher a LPU" já abre (conta da natureza: Capex 3.1.1.2.05.0007, Opex 3.1.1.2.05.0103).
+   * Funcionário de empresa terceira: não faz LPU. No relatório escreve a "Mensagem para o administrador da sua empresa"
+     (o que foi feito, obrigatório); ao concluir, a atividade fica com o administrador, que é avisado e preenche a LPU.
+   * A LPU feita no chamado da melhoria conta sozinha no realizado do projeto (não precisa "Vincular LPU baixada"). */
+const melLpuPede=c=>!!c&&!!c.txMel&&!!c.tec&&gTecV(c.tec)!=='CLT';
+const melFuncDe=c=>melLpuPede(c)&&tecFunc(c.tec);
+/* bloco da mensagem para o administrador (só o funcionário de empresa terceira) */
+{const _b=txBlocos;txBlocos=function(c,R){const B=_b.apply(this,arguments);if(!(melFuncDe(c)&&R&&R.desfecho))return B;
+  const v=String(R.notaAdm||'').trim(),b={k:19,t:'Mensagem para o administrador',r:v?v.slice(0,60):'o que foi feito',ok:!!v},i=B.findIndex(x=>x.k===9);if(i>=0)B.splice(i,0,b);else B.push(b);return B}}
+{const _c=txCorpo;txCorpo=function(c,R,k){if(k===19&&melFuncDe(c))return r2Fld('Mensagem para o administrador da sua empresa',1,r2Txt(c,R,'notaAdm','O que foi feito: cabo lançado, caixas, ancoragens, equipagem de poste…',1),'quem preenche a LPU é ele');return _c.apply(this,arguments)}}
+{const _f=txFaltas;txFaltas=function(c,R){const F=_f.apply(this,arguments);if(melFuncDe(c)&&R&&R.desfecho&&!String(R.notaAdm||'').trim())F.push('mensagem para o administrador');return F}}
+/* texto da tela do relatório: com LPU para terceiro */
+{const _t=txTela;txTela=function(c){const h=_t.apply(this,arguments);if(!melLpuPede(c))return h;
+  return h.replace('depois disso o atendimento encerra (sem LPU).',melFuncDe(c)?'depois disso a atividade vai para o administrador da sua empresa preencher a LPU.':'depois disso você preenche a LPU.')
+    .replace('>Gerar relatório e encerrar<','>Gerar relatório e seguir para a LPU<').replace('Gera o relatório (PDF) e encerra',melFuncDe(c)?'Gera o relatório (PDF) e avisa o administrador':'Gera o relatório (PDF) e abre a LPU')}}
+/* realizado do projeto: LPUs feitas nos chamados da melhoria entram sozinhas */
+{const _r=tmReal;tmReal=function(x){if(!x||!x.id)return _r.apply(this,arguments);const ch=new Set((G.ch||[]).filter(c=>c.txMel&&(c.txMel.id===x.id||c.txMel.tid===x.id)).map(c=>c.id));
+  const extra=(G.lpus||[]).filter(l=>l.chamado&&ch.has(l.chamado)).map(l=>l.id),ids=x.lpus||[];if(!extra.some(i=>!ids.includes(i)))return _r.apply(this,arguments);
+  const ant=x.lpus;x.lpus=[...new Set(ids.concat(extra))];try{return _r.apply(this,arguments)}finally{x.lpus=ant}}}
+{const _v=gTecView;gTecView=function(c){const h=_v.apply(this,arguments);return c&&c.txMel?h.replace('<b>RFO enviado.</b>','<b>Relatório enviado.</b>'):h}}
+
+/* ---------- 12/11: Vistoria de lançamento na Melhoria de rede, igual à da Implantação ----------
+   * Aba "Vistorias" logo abaixo de "Despacho" (Capex e Opex), por trecho: Aguardando vistoria (lançamento do trecho
+     concluído em campo), Agendadas, Com pendência (prazo, pendências "No pedido", Pedido de correção, revistoria),
+     Aprovadas e Dispensadas. Mesmas telas e regras das Vistorias de lançamento da Implantação (vp*, v19*).
+   * Agendar vistoria/revistoria abre o despacho da etapa "Vistoria do lançamento" com o trecho marcado (pode marcar
+     outros). A etapa sai da lista "Para despachar" do Despacho: é agendada só pela aba Vistorias.
+   * O vistoriador faz no celular a mesma vistoria da Implantação (vtView), uma por trecho, com o KMZ do trecho.
+     Cada trecho vira um "agendamento virtual" mv:<chamado>:<trecho>; o resultado fica no chamado (dados.mvV[trecho]).
+     Fotos e PDF vão para chat/g/<chamado>/vistoria/. A atividade só conclui com todos os trechos vistoriados;
+     depois segue o relatório e, se for terceiro, a LPU (mod/mellpu.js).
+   * A etapa "Vistoria do lançamento" do projeto conclui quando todos os trechos estão aprovados ou dispensados. */
+const MV_RE=/^mv:([^:]+):(.+)$/,MV_FIM=['concl','lpu','aprov'],MV_C={};let MV_LAST=null;
+function vtDir(a){return a&&a.mv?`chat/g/${a.mv.ch}`:`relatorios/${a.id}`}
+const mvCh=id=>(G.ch||[]).find(c=>c.id===id);
+const mvEts=(D,k)=>(tmEtapas(D)||[]).filter(e=>e.campo&&e.k===k);
+const mvRec=(c,t)=>(c&&c.mvV&&c.mvV[t.id||t])||null;
+const mvQuando=c=>(c.ts&&c.ts.rfo)||c.validadoEm||c.agendaEm||0;
+function mvLanc(D,t){const k='tr:'+t.id;let b=null;const usa=c=>{if(!c||!MV_FIM.includes(c.status))return;const em=mvQuando(c);if(!b||em>b.em)b={quem:gTecN(c.tec)||'—',em,data:em?isoD(new Date(em)):'',ch:c.id}};
+  mvEts(D,'lanc').forEach(e=>{if(Array.isArray(e.desp)&&e.desp.length)e.desp.forEach(d=>{if((d.sel||[]).includes(k))usa(mvCh(d.ch))});else if(e.ch)usa(mvCh(e.ch));else if(e.st==='concl'&&!b)b={quem:'—',em:0,data:e.fimR||e.fimP||'',ch:null}});return b}
+function mvVists(D,t){const k='tr:'+t.id,o=[];mvEts(D,'vist').forEach(e=>(e.desp||[]).forEach(d=>{if((d.sel||[]).includes(k)){const c=mvCh(d.ch);if(c&&c.status!=='cancelado'&&!o.includes(c))o.push(c)}}));return o.sort((a,b)=>(a.agendaEm||0)-(b.agendaEm||0))}
+function mvLinha(D,t){const ln=mvLanc(D,t),V=mvVists(D,t),F=V.filter(c=>{const r=mvRec(c,t);return r&&r.vistoria&&r.vistoria.em}).sort((a,b)=>mvRec(a,t).vistoria.em-mvRec(b,t).vistoria.em),ult=F[F.length-1]||null,
+  ab=V.filter(c=>!(mvRec(c,t)||{}).vistoria&&!MV_FIM.includes(c.status)).pop()||null,disp=(D.vistDisp||{})[t.id],v=ult?mvRec(ult,t).vistoria:null,base={D,t,ln,ult,ab,disp,v,id:ult?`mv:${ult.id}:${t.id}`:''};
+  if(ab)return Object.assign(base,{st:'agend',revis:!!ult});if(ult&&v.res!=='Aprovado')return Object.assign(base,{st:'pend',dz:vpDz(v)});if(ult)return Object.assign(base,{st:'ok'});
+  if(disp)return Object.assign(base,{st:'disp'});if(ln)return Object.assign(base,{st:'aguarda',esp:ln.data?Math.max(0,Math.round((new Date(hoje()+'T12:00:00')-new Date(ln.data+'T12:00:00'))/864e5)):0});return null}
+const mvTrN=(D,t)=>{const i=(D.trechos||[]).indexOf(t);return `Trecho ${i+1}: ${t.oNome||'origem'} → ${t.dNome||'destino'}`};
+/* agendamento virtual de um trecho (a vistoria da Implantação trabalha em cima de um agendamento) */
+function mvPseudo(id){const m=MV_RE.exec(id||'');if(!m)return null;const c=mvCh(m[1]);if(!c)return null;const tr=m[2],x=MV_C[id];if(x&&x._c===c)return x;
+  const it=((c.txMel||{}).itens||[]).find(i=>i.k==='tr:'+tr)||{},rec=(c.mvV||{})[tr]||{},cod=(c.txMel&&c.txMel.cod)||'Melhoria';
+  const a={id,etiqueta:cod,tec:c.tec,data:c.agendaEm?isoD(new Date(c.agendaEm)):hoje(),status:'mel',fase:'vist',fases:['vist'],ts:{},dias:[],rel:Object.assign({},rec.rel||{}),vistoria:rec.vistoria||null,
+    mv:{ch:c.id,tr,nome:it.t||'Trecho',cod,kmz:(c.mvKmz||{})[tr]||'',mel:(c.txMel||{}).id||''},_c:c};MV_C[id]=a;return a}
+{const _g=getAg;getAg=function(id){if(typeof id==='string'&&id.startsWith('mv:')){const a=mvPseudo(id);if(a)MV_LAST=a;return a}return _g.apply(this,arguments)}}
+async function mvGrava(id,fn){const a=mvPseudo(id);if(!a)return false;const tr=a.mv.tr;
+  return gAcao(a.mv.ch,x=>{x.mvV=Object.assign({},x.mvV||{});const r=Object.assign({},x.mvV[tr]||{});if(fn(r)===false)return false;x.mvV[tr]=r})}
+/* quem lançou o trecho e a vistoria anterior (revistoria) */
+const mvPrjDe=a=>a&&a.mv&&(tmGet(a.mv.mel)||null);
+{const _l=vtLancados;vtLancados=function(a){if(!a||!a.mv)return _l.apply(this,arguments);const D=mvPrjDe(a),t=D&&(D.trechos||[]).find(y=>y.id===a.mv.tr),ln=D&&t?mvLanc(D,t):null;
+  return{quem:ln?ln.quem:'—',data:ln&&ln.data?dBR(ln.data):'—'}}}
+{const _l=v19Lanc;v19Lanc=function(e){const a=MV_LAST;if(a&&a.mv&&e===a.etiqueta){const D=mvPrjDe(a),t=D&&(D.trechos||[]).find(y=>y.id===a.mv.tr),ln=D&&t?mvLanc(D,t):null;return ln?{quem:ln.quem,data:ln.data}:null}return _l.apply(this,arguments)}}
+function mvAnt(a){const c0=mvCh(a.mv.ch);let best=null;(G.ch||[]).forEach(c=>{if(c===c0||!c.mvV)return;const r=c.mvV[a.mv.tr];if(r&&r.vistoria&&r.vistoria.estado&&c.txMel&&c.txMel.id===a.mv.mel&&(!best||r.vistoria.em>best.vistoria.em))best={id:'mvant',etiqueta:a.etiqueta,vistoria:r.vistoria,data:isoD(new Date(r.vistoria.em))}});return best}
+{const _n=vtNovoR;vtNovoR=function(a){if(!a||!a.mv)return _n.apply(this,arguments);const f=mvAnt(a);if(!f)return _n.apply(this,arguments);S.ags.push(f);try{return _n.apply(this,arguments)}finally{const i=S.ags.indexOf(f);if(i>=0)S.ags.splice(i,1)}}}
+/* PDFs: dados do projeto da melhoria no lugar do cliente */
+function mvComPrj(a,fn){if(!a||!a.mv)return fn();const f={id:'mvprj',etiqueta:a.etiqueta,cliente:`Melhoria ${a.mv.cod} · ${a.mv.nome}`,cidade:''};S.previsao.push(f);let r;try{r=fn()}finally{const i=S.previsao.indexOf(f);if(i>=0)S.previsao.splice(i,1)}return r}
+{const _p=vtPdf;vtPdf=function(a){const x=arguments;return mvComPrj(a,()=>_p.apply(this,x))}}
+{const _p=vpPdfGera;vpPdfGera=function(a){const x=arguments;return mvComPrj(a,()=>_p.apply(this,x))}}
+/* abrir a vistoria do trecho com o KMZ do trecho */
+{const _a=vtAbrir;vtAbrir=async function(id){if(!MV_RE.test(id||''))return _a.apply(this,arguments);const a=getAg(id);if(!a)return;ui.vt={ag:id,st:'carregando'};VT.R=null;VT.M=null;render();window.scrollTo(0,0);
+  try{let d=null;try{d=await IDB.get('vt:'+id)}catch(e){}let kml=d&&d.kml,nome=d&&d.nome;
+    if(!kml){if(!a.mv.kmz){ui.vt={ag:id,st:'semkmz'};render();return}const r=await sb.storage.from('agenda').download(a.mv.kmz);if(r.error)throw r.error;kml=await kmzTexto(await r.data.arrayBuffer(),'trecho.kmz');nome=`${a.mv.cod} · ${a.mv.nome}`}
+    await vtCarregar(a,kml,nome,d&&d.R)}catch(e){ui.vt={ag:id,st:'erro',msg:e.message||String(e)};render()}}}
+/* enviar: grava no chamado */
+{const _e=ACT.vtEnviar;ACT.vtEnviar=async function(el){const id=el&&el.dataset&&el.dataset.id;if(!MV_RE.test(id||''))return _e.apply(this,arguments);const a=getAg(id),em0=a&&a.vistoria&&a.vistoria.em;
+  await _e.apply(this,arguments);const b=MV_C[id];if(!b||!b.vistoria||b.vistoria.em===em0)return;
+  const ok=await mvGrava(id,r=>{r.vistoria=b.vistoria;r.rel={vist:b.rel&&b.rel.vist}});
+  if(ok){const c=mvCh(b.mv.ch);if(c)await gAcao(c.id,x=>{gHist(x,`Vistoria enviada · ${b.mv.nome}: ${b.vistoria.res}`)})}else toast('A vistoria foi gerada, mas não foi gravada no chamado. Tente enviar de novo.','bad')}}
+/* gestão: prazo, "No pedido" e pedido de correção gravam no chamado */
+const mvVistGrava=id=>MV_RE.test(id||'')?mvGrava(id,r=>{const a=mvPseudo(id);if(!a||!a.vistoria)return false;r.vistoria=JSON.parse(JSON.stringify(a.vistoria))}):null;
+['vpPrazoOk','vpPdf'].forEach(k=>{const f=ACT[k];if(!f)return;ACT[k]=async function(el){const r=await f.apply(this,arguments);await mvVistGrava(el&&el.dataset&&el.dataset.id);return r}});
+{const f=CH.vpSel;if(f)CH.vpSel=function(el){const r=f.apply(this,arguments);clearTimeout(MV_C._t);const id=el.dataset.id;if(MV_RE.test(id||''))MV_C._t=setTimeout(()=>mvVistGrava(id),400);return r}}
+{const _p=permEff;permEff=function(){_p.apply(this,arguments);if(!ME||gTecPerfil()||!melAt())return;if(['cx','ox'].some(x=>melTem(`mel_${x}_desp`))&&!(ME.perm||[]).includes('vist'))ME.perm=(ME.perm||[]).concat(['vist'])}}
+{const _v=ACT.vPend;ACT.vPend=function(el){const id=el&&el.dataset&&el.dataset.id;const r=_v.apply(this,arguments);if(!MV_RE.test(id||''))return r;const a=getAg(id);
+  try{const m=$('modal'),sh=m&&m.querySelector('.sheetm');if(sh){const p=sh.querySelector('p.muted'),v=a.vistoria;if(p)p.innerHTML=`${esc(a.mv.cod)} · ${esc(a.mv.nome)} · ${esc(v.res)} em ${dBR(isoD(new Date(v.em)))}${v.prazo?' · corrigir até '+dBR(v.prazo):' · <b>prazo a definir</b>'}`;
+    const b=sh.querySelector('[data-act="vAgendar"]');if(b){b.dataset.act='mvAgendar';b.dataset.id=a.mv.mel;b.dataset.t=a.mv.tr;delete b.dataset.e}}}catch(e){}return r}}
+/* ---------- celular do vistoriador ---------- */
+const mvVistCh=c=>!!c&&!!c.txMel&&c.txMel.k==='vist';
+const mvTrsCh=c=>((c.txMel||{}).itens||[]).filter(i=>/^tr:/.test(i.k||'')).map(i=>({tr:i.k.slice(3),nome:i.t||'Trecho',d:i.d||''}));
+function mvTecBox(c){const L=mvTrsCh(c);if(!L.length)return '';const pode=c.status==='atend'&&c.tec===(ME&&ME.id),n=L.filter(x=>((c.mvV||{})[x.tr]||{}).vistoria).length;
+  return `<section class="tvsec mvbox"><div class="mvh"><b>Vistoria dos trechos</b><span>${n} de ${L.length} enviada${L.length>1?'s':''}</span></div>${pode?'':`<p class="muted" style="margin:0 0 6px;font-size:13.5px">${['aberto','desloc','local'].includes(c.status)?'Inicie o atendimento para fazer a vistoria de cada trecho.':''}</p>`}
+   ${L.map(x=>{const v=((c.mvV||{})[x.tr]||{}).vistoria,id=`mv:${c.id}:${x.tr}`;return `<div class="mvtr"><div><b>${esc(x.nome)}</b>${x.d?`<small>${esc(x.d)}</small>`:''}${v?`<span class="chip ${v.res==='Aprovado'?'ok':v.res==='Reprovado'?'bad':'warn'}">${esc(v.res)} · ${v.conf}% conforme</span>`:''}</div>${pode&&!v?`<button class="btn primary sm" data-act="mvAbrir" data-id="${id}">Fazer a vistoria</button>`:''}</div>`}).join('')}</section>`}
+ACT.mvAbrir=el=>vtAbrir(el.dataset.id);
+{const _t=gTecView;gTecView=function(c){if(c&&ui.vt&&String(ui.vt.ag||'').startsWith('mv:'+c.id+':')){const a=getAg(ui.vt.ag);if(a)return vtView(a)}const h=_t.apply(this,arguments);if(!mvVistCh(c))return h;
+  const bx=mvTecBox(c),i=h.lastIndexOf('<div class="tvft">');return i>=0?h.slice(0,i)+bx+h.slice(i):h+bx}}
+{const _f=txFaltas;txFaltas=function(c,R){const F=_f.apply(this,arguments);if(mvVistCh(c)){const n=mvTrsCh(c).filter(x=>!((c.mvV||{})[x.tr]||{}).vistoria).length;if(n)F.unshift(`vistoria de ${n} trecho${n>1?'s':''}`)}return F}}
+/* ---------- despacho da etapa de vistoria ---------- */
+{const _m=melCoberto;melCoberto=function(E){if(!E||E.k!=='vist')return _m.apply(this,arguments);const S2=new Set();(E.desp||[]).forEach(d=>{const c=mvCh(d.ch);if(c&&c.status!=='cancelado'&&!MV_FIM.includes(c.status))(d.sel||[]).forEach(k=>S2.add(k))});return S2}}
+{const _c=ACT.txCriar;ACT.txCriar=async function(){const x=ui.tmCtx,vist=!!(x&&x.k==='vist'&&x.D),D=vist?x.D:null,sel=vist?(x.sel||[]).slice():[],ant=vist?(x.antes||[]).slice():[],et=vist?x.etapa:null,id=vist?x.id:null;
+  const r=await _c.apply(this,arguments);if(!vist)return r;const nv=(G.ch||[]).find(c=>c.txMel&&c.txMel.id===id&&c.txMel.etapa===et&&!ant.includes(c.id));
+  if(nv){const K={};sel.filter(k=>/^tr:/.test(k)).forEach(k=>{const t=(D.trechos||[]).find(y=>'tr:'+y.id===k);K[k.slice(3)]=(t&&t.des&&t.des.kmzPath)||''});await gAcao(nv.id,c=>{c.mvKmz=K})}
+  if(ui.mvVolta){ui.tab=ui.mvVolta;ui.tmD=null;ui.mvVolta=null;render()}return r}}
+{const _d=melDespDados;melDespDados=function(n){const o=_d.apply(this,arguments);o.pend=o.pend.filter(p=>!(p.e&&p.e.k==='vist'));return o}}
+/* situação da etapa no projeto */
+const mvPrjDaEt=E=>[ui.tmD].concat(TM.L||[]).find(x=>x&&(x.etapas||[]).includes(E))||null;
+{const _s=tmEtSt;tmEtSt=function(E){if(!E||E.k!=='vist'||!E.campo)return _s.apply(this,arguments);const D=mvPrjDaEt(E);if(!D||!(D.trechos||[]).length)return _s.apply(this,arguments);
+  const L=D.trechos.map(t=>mvLinha(D,t)),tot=L.length,ok=L.filter(l=>l&&['ok','disp'].includes(l.st)).length,t=`Vistoria ${ok} de ${tot} trecho${tot>1?'s':''}`;
+  if(ok===tot)return{k:'concl',t:'Concluída',c:'ok'};if(L.some(l=>l&&['agend','pend'].includes(l.st)))return{k:'and',t,c:'info'};return{k:'pend',t:L.some(l=>l&&l.st==='aguarda')?t+' · aguardando vistoria':'Aguardando o lançamento',c:''}}}
+{const _h=tmEtapasHtml;tmEtapasHtml=function(D){let h=_h.apply(this,arguments);try{mvEts(D,'vist').forEach(e=>{h=h.replace(new RegExp(`<button([^>]*)data-act="tmEtDesp" data-e="${e.id}"([^>]*)>[^<]*<\\/button>`,'g'),`<button class="btn sm" data-act="mvIr" data-n="${melNat(D)}">Ver em Vistorias</button>`)})}catch(x){}return h}}
+ACT.mvIr=el=>{ui.tmD=null;ui.tab=(el.dataset.n||'cx')+'Vist';render();window.scrollTo(0,0)};
+/* ---------- aba Vistorias ---------- */
+MEL_TABS.push('cxVist','oxVist');['cxVist','oxVist'].forEach(t=>{if(!GTD_T.includes(t))GTD_T.push(t)});
+Object.assign(RP_TL,{cxVist:'Vistorias',oxVist:'Vistorias'});try{Object.assign(NAV_TC,{cxVist:'Vistorias',oxVist:'Vistorias'})}catch(e){}
+try{ICT.cxVist=ICT.oxVist='M9 11l3 3 8-8M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0'}catch(e){}
+RP_VIEWS.cxVist=()=>viewMelVist('cx');RP_VIEWS.oxVist=()=>viewMelVist('ox');
+{const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments);if(!ME||gTecPerfil()||!melAt())return T;['cx','ox'].forEach(x=>{const i=T.indexOf(x+'Desp');if(i>=0&&!T.includes(x+'Vist'))T.splice(i+1,0,x+'Vist')});return T}}
+function mvLinhas(n){const o=[];(TM.L||[]).filter(x=>melNat(x)===n&&x.status!=='canc'&&mvEts(x,'vist').length).forEach(D=>(D.trechos||[]).forEach(t=>{const l=mvLinha(D,t);if(l)o.push(l)}));return o}
+function viewMelVist(n){if(!TM.ok){if(!TM.bus)tmCarregar();return '<h2>Vistorias</h2><p class="muted">Carregando…</p>'}if(ui.tmD)return melProjView(n);
+  const L=mvLinhas(n),f=ui.mvF||'aguarda',cnt=k=>L.filter(x=>x.st===k).length,venc=L.filter(x=>x.st==='pend'&&x.dz!=null&&x.dz<0).length,q=normK(ui.mvQ||''),dp=pode('a_gMelDesp');
+  const R=L.filter(x=>x.st===f&&(!q||normK([x.D.codigo,x.t.oNome,x.t.dNome,melPopNm(x.D)].join(' ')).includes(q))).sort((a,b)=>f==='aguarda'?b.esp-a.esp:f==='pend'?(a.dz==null?-1e9:a.dz)-(b.dz==null?-1e9:b.dz):0);
+  const res=v=>`<span class="chip ${v.res==='Aprovado'?'ok':v.res==='Reprovado'?'bad':'warn'}">${esc(v.res)}</span>${v.conf!=null?`<small>${v.conf}% conforme</small>`:''}`;
+  const prj=x=>`<b>${esc(x.D.codigo||'')} · ${esc(x.t.oNome||'origem')} → ${esc(x.t.dNome||'destino')}</b><small>${esc(melPopNm(x.D)||'')}${x.t.des&&x.t.des.m?' · '+melFm(tmCab(x.t.des))+' m':''}</small>`;
+  const lan=x=>x.ln?`${esc(x.ln.quem)}<small>${x.ln.data?dBR(x.ln.data):''}${x.v&&x.v.mMed?' · '+melFm(x.v.mMed)+' m':''}</small>`:'—';
+  const ag=(x,rv)=>dp?`<button class="btn sm primary" data-act="mvAgendar" data-id="${x.D.id}" data-t="${x.t.id}">${rv?'Agendar revistoria':'Agendar vistoria'}</button>`:'';
+  const head={aguarda:['Projeto · trecho','Lançamento','Esperando','',''],agend:['Projeto · trecho','Lançamento','Vistoria','Vistoriador',''],pend:['Projeto · trecho','Lançamento','Resultado','Prazo',''],ok:['Projeto · trecho','Lançamento','Resultado','Vistoria',''],disp:['Projeto · trecho','Lançamento','Dispensada por','Motivo','']}[f];
+  const row=x=>{let c3='',c4='',ac='';
+    if(f==='aguarda'){c3=`<span class="${x.esp>7?'v19venc':''}">${x.esp} ${x.esp===1?'dia':'dias'}</span>`;ac=`${dp?`<button class="btn sm" data-act="mvDisp" data-id="${x.D.id}" data-t="${x.t.id}">Dispensar</button>`:''}${ag(x)}`}
+    else if(f==='agend'){c3=`${x.ab.agendaEm?gQuando(x.ab.agendaEm):'—'}${x.revis?'<small>revistoria</small>':''}`;c4=esc(gTecN(x.ab.tec)||'—');ac=`<button class="btn sm" data-act="melCh" data-id="${x.ab.id}">Abrir atividade</button>`}
+    else if(f==='pend'){c3=res(x.v)+`<small>${x.v.nPend} ${x.v.nPend===1?'pendência':'pendências'}</small>`;c4=vpPrz(x.v);ac=`<button class="btn sm" data-act="vPend" data-id="${x.id}">Ver pendências</button>${vpBtns(getAg(x.id))}${ag(x,1)}`}
+    else if(f==='ok'){c3=res(x.v);c4=`${dBR(isoD(new Date(x.v.em)))}<small>${esc(x.v.por||gTecN(x.ult.tec)||'')}</small>`;const r=(mvRec(x.ult,x.t)||{}).rel;ac=r&&r.vist&&r.vist.path?`<button class="btn sm" data-act="relVer" data-p="${esc(r.vist.path)}">Abrir PDF</button>`:''}
+    else{c3=`${esc(x.disp.por)}<small>${dtBR(x.disp.em)}</small>`;c4=esc(x.disp.motivo);ac=dp?`<button class="btn sm" data-act="mvDispDesf" data-id="${x.D.id}" data-t="${x.t.id}">Desfazer</button>`:''}
+    return `<tr><td>${prj(x)}</td><td>${lan(x)}</td><td>${c3}</td><td>${c4}</td><td class="r"><div class="v19ac">${ac}</div></td></tr>`};
+  return `<div class="toolbar"><div><h2>${esc(MEL_NAT[n][1])} · Vistorias de lançamento</h2><p class="muted">Trechos com lançamento concluído em campo. Agende a vistoria, acompanhe os prazos de correção ou dispense quando não for necessária.</p></div></div>
+   <div class="v19k">${V19_K.map(([k,l,c])=>`<button class="v19kpi ${c}" data-act="mvF" data-v="${k}" aria-pressed="${f===k}"><b>${cnt(k)}</b><span>${l}${k==='pend'&&venc?` · ${venc} ${venc===1?'vencida':'vencidas'}`:''}</span></button>`).join('')}</div>
+   <div class="tools" style="margin:12px 0"><input class="inp" type="search" id="mvQ" placeholder="Buscar projeto, caixa ou POP" data-in="mvQ" value="${esc(ui.mvQ||'')}"></div>
+   <div class="tablewrap"><table class="v19t"><thead><tr>${head.map((h,i)=>`<th class="${i===4?'r':''}">${h}</th>`).join('')}</tr></thead><tbody>${R.map(row).join('')||`<tr><td colspan="5" class="muted">Nada nesta situação.</td></tr>`}</tbody></table></div>`}
+Object.assign(IN,{mvQ:el=>{ui.mvQ=el.value;clearTimeout(window._mvq);window._mvq=setTimeout(()=>{render();const i=$('mvQ');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)}});
+Object.assign(ACT,{mvF:el=>{ui.mvF=el.dataset.v;render()},
+  mvAgendar:async el=>{if(!pode('a_gMelDesp'))return semPerm();closeModal();const D=tmGet(el.dataset.id),E=D&&mvEts(D,'vist')[0];if(!E){toast('Este projeto não tem a etapa Vistoria do lançamento.','bad');return}
+    const volta=ui.tab;await ACT.melDesp({dataset:{id:D.id,e:E.id}});const c=ui.tmCtx;if(!c||!c.rich)return;ui.mvVolta=volta;const k='tr:'+el.dataset.t;
+    if(!c.cob.includes(k)){c.sel=[k];melTxtAtualiza();render()}toast('Escolha o vistoriador e a data. O trecho já está marcado; marque outros se for fazer junto.')},
+  mvDisp:el=>{if(!pode('a_gMelDesp'))return semPerm();const D=tmGet(el.dataset.id),t=D&&(D.trechos||[]).find(y=>y.id===el.dataset.t);if(!t)return;
+    openModal(`<h3>Dispensar vistoria</h3><p class="muted">${esc(D.codigo||'')} · ${esc(mvTrN(D,t))}. O trecho sai de Aguardando vistoria e vai para Dispensadas, com seu nome, a data e o motivo.</p>
+     <label class="f" style="margin-top:10px"><span>Motivo *</span><textarea class="inp" id="mvdMot" rows="3" placeholder="Ex.: trecho curto, vistoriado junto com o lançamento"></textarea></label>
+     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="mvDispOk" data-id="${D.id}" data-t="${t.id}">Dispensar</button></div>`)},
+  mvDispOk:async el=>{const m=(($('mvdMot')||{}).value||'').trim();if(!m){toast('Informe o motivo.','bad');return}const t=el.dataset.t;closeModal();
+    await tmPatch(el.dataset.id,d=>{d.vistDisp=Object.assign({},d.vistDisp||{},{[t]:{por:meNome(),em:Date.now(),motivo:m}})});toast('Vistoria do trecho dispensada.')},
+  mvDispDesf:async el=>{const t=el.dataset.t;await tmPatch(el.dataset.id,d=>{const o=Object.assign({},d.vistDisp||{});delete o[t];d.vistDisp=o});toast('Dispensa desfeita: o trecho voltou para Aguardando vistoria.')}});
+document.head.insertAdjacentHTML('beforeend',`<style>.mvbox{display:flex;flex-direction:column;gap:8px}.mvh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.mvh span{color:var(--muted,#5e6a58);font-size:13px}
+.mvtr{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid var(--line,#dfe3da);border-radius:12px;padding:9px 10px}.mvtr small{display:block;color:var(--muted,#5e6a58);font-size:12.5px}.mvtr .chip{margin-top:4px}</style>`);
+{const _v=vtView;vtView=function(a){const h=_v.apply(this,arguments);return a&&a.mv?h.replace(`<span class="tccli">${esc(a.etiqueta)}</span>`,`<span class="tccli">${esc(a.mv.nome)}</span>`):h}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
