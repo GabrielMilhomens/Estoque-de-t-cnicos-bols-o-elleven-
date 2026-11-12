@@ -5249,7 +5249,7 @@ Object.assign(ACT,{
         'Técnico':c.tec?gTecN(c.tec):'Não despachado','Vínculo':c.tec?gTecV(c.tec):'','Situação':(GST[gStK(c)]||[c.status])[0],'Desfecho':c.status==='cancelado'?'Cancelado':c.desfecho||'','Encaminhado para':c.encEquipe||'','Motivo do cancelamento':c.status==='cancelado'?c.motivoCancel||'':'',
         'Reincidente':re.length?'Sim':'Não','Chamado anterior':re.length?re.map(x=>'O&M '+(x.pom||'')).join(', '):'',
         'Aberto em':hr(c.criadoEm),'Agendado para':hr(c.agendaEm),'Despacho':hr(t.despacho),'Saída':hr(t.desloc),'Chegada':hr(t.chegada),'Início do atendimento':hr(t.inicio),'Validação pedida':hr(t.pedido),'Validado em':hr(c.validadoEm),'RFO em':hr(t.rfo),
-        'MTTR (h)':c.validadoEm?+((c.validadoEm-gIni(c))/36e5).toFixed(2):'','MTTR':c.validadoEm?gDur(c.validadoEm-gIni(c)):'',
+        'MTTR (h)':c.validadoEm&&!(typeof txSemMttr==='function'&&txSemMttr(c))?+((c.validadoEm-gIni(c))/36e5).toFixed(2):'','MTTR':c.validadoEm&&!(typeof txSemMttr==='function'&&txSemMttr(c))?gDur(c.validadoEm-gIni(c)):(c.validadoEm?'fora do MTTR':''),
         'Local da falha':r.local||'','Causa':r.causa||'','Detalhes':r.detalhes||'','Solução':r.solucao||'','Materiais':r.materiais||'','Serial retirado':r.serialRet||'','Serial instalado':r.serialInst||'','Patrimônio':r.patrimonio||'','Melhoria de rede':r.melhoria||'','Responsabilidade':r.v===2?(r.resp==='Sem falha'?'Sem falha identificada':r.resp||''):'','Sinal na chegada (dBm)':r.sa||'','Sinal no fim (dBm)':r.sd||'','Download (Mbps)':r.vel||'','Upload (Mbps)':r.up||'','Latência (ms)':r.lat||'','Perda (%)':r.perda||'','Resultado do teste':r.resul||'','Gerência com o NOC':r.v===2&&r.desfecho==='Resolvido'?(r.ger?'Sim':'Não'):'','Cliente confirmou':r.v===2&&r.desfecho==='Resolvido'?(r.conf?'Sim':'Não'):'','Quem acompanhou':r.quem||'','Recomendação':(r.rec||[]).join('; '),
         'LPU':l?(GLST[l.status]||[l.status])[0].replace(/^LPU /,''):''};
       if(vv)o['Valor da LPU (R$)']=l&&l.status!=='registrada'?+(+l.total||0).toFixed(2):'';return o});
@@ -5513,7 +5513,7 @@ Object.assign(ACT,{
     const R=L.map(l=>{const c=G.ch.find(x=>x.id===l.chamado)||{ts:{}},t=c.ts||{},d=lpuDecisao(l);
       return {'Data':dBR(l.data),'O&M':l.pom||c.pom||'','Protocolo NOC':c.pnoc||'','Cliente':l.cliente||c.cliente||'','Etiqueta':c.etiqueta||'','Cidade':l.cidade||c.cidade||'','Categoria':l.categoria||c.categoria||'','Desfecho':c.desfecho||l.desfecho||'',
         'Prestador':gTecN(l.tec),'Vínculo':gTecV(l.tec)||'Terceiro','Executada por':l.tecNome||gTecN(l.tec),'Conta contábil':l.conta||GTD_CONTA,'Situação':(GLST[l.status]||LST[l.status]||[l.status])[0],'Valor (R$)':xR(l.total),'Serviços':(l.itens||[]).length,
-        'MTTR (h)':c.validadoEm?+((c.validadoEm-gIni(c))/36e5).toFixed(2):'','Enviada em':xHr(((l.hist||[])[0]||{}).em),'Decisão':d?d.acao:'','Decidida por':d?d.por||'':'','Decidida em':d?xHr(d.em):'','Motivo':d&&d.motivo?d.motivo:'','Observação do técnico':l.obs||'','Histórico':xHist(l)}});
+        'MTTR (h)':c.validadoEm&&!(typeof txSemMttr==='function'&&txSemMttr(c))?+((c.validadoEm-gIni(c))/36e5).toFixed(2):'','Enviada em':xHr(((l.hist||[])[0]||{}).em),'Decisão':d?d.acao:'','Decidida por':d?d.por||'':'','Decidida em':d?xHr(d.em):'','Motivo':d&&d.motivo?d.motivo:'','Observação do técnico':l.obs||'','Histórico':xHist(l)}});
     xlsxBaixar(`aprovacao_lpu_gtd_${tab}_${(ui.gaIni||'inicio')}_a_${(ui.gaFim||'hoje')}`,[['LPUs',R],['Itens',xLpuItens(L,ref)],['Filtros',xFiltros({'Tela':'Aprovação de LPU · GTD Manutenção','Situação':xTabN[tab]||tab,'Período':xPerTxt('ga'),'LPUs exportadas':R.length,'Valor total (R$)':xR(L.reduce((s,l)=>s+(+l.total||0),0))})]],R.length+(R.length===1?' LPU exportada.':' LPUs exportadas.'))},
   /* Painel de KPIs · Visão geral (Implantação) */
   pgXlsx:()=>{const b=pBase(),vv=verValor()&&!S.semValor;
@@ -11704,7 +11704,7 @@ function txPrevPop(p,L){const fe=L.filter(c=>txT(c)==='prev'&&c.pop===p.id&&txCo
   if(!fe)return{ult:null,prox:null,d:null,st:'sem',ag};const ult=txDiaFim(fe),prox=addD(ult,TX_CICLO),d=Math.round((new Date(prox+'T12:00:00')-new Date(hoje()+'T12:00:00'))/864e5);
   return{ult,prox,d,st:d<0?'venc':d<=10?'breve':'ok',ag,c:fe}}
 function viewTxPainel(){const K=TXK_N[ui.txK]?ui.txK:'geral',ini=ui.txIni||addD(hoje(),-30),fim=ui.txFim||hoje(),L=G.ch.filter(txDe),inP=c=>{const d=isoD(new Date(c.agendaEm||gIni(c)));return d>=ini&&d<=fim};
-  const P=L.filter(inP),cor=P.filter(c=>txT(c)==='corr'&&c.status!=='cancelado'),val=cor.filter(c=>c.validadoEm),mt=val.length?val.reduce((s,c)=>s+(c.validadoEm-gIni(c)),0)/val.length:null;
+  const P=L.filter(inP),cor=P.filter(c=>txT(c)==='corr'&&c.status!=='cancelado'),val=cor.filter(c=>c.validadoEm),vM=val.filter(c=>!txSemMttr(c)),mt=vM.length?vM.reduce((s,c)=>s+(c.validadoEm-gIni(c)),0)/vM.length:null;
   const conc=t=>P.filter(c=>txT(c)===t&&txConcl(c)).length,pops=TXP.L.filter(p=>p.ativo!==false),PV=pops.map(p=>({p,x:txPrevPop(p,L)}));
   const nOk=PV.filter(z=>z.x.st==='ok'||z.x.st==='breve').length,nV=PV.filter(z=>z.x.st==='venc').length,nS=PV.filter(z=>z.x.st==='sem').length;
   const chip={ok:['Em dia','ok'],breve:['Vence em breve','warn'],venc:['Vencida','bad'],sem:['Sem registro','']};
@@ -11718,7 +11718,7 @@ function viewTxPainel(){const K=TXK_N[ui.txK]?ui.txK:'geral',ini=ui.txIni||addD(
   const pvOk={'':()=>true,real:z=>realPop.has(z.p.id),ok:z=>z.x.st==='ok'||z.x.st==='breve',venc:z=>z.x.st==='venc',sem:z=>z.x.st==='sem'}[K==='prev'?F:'']||(()=>true);
   const prevRows=PV.filter(pvOk).sort((a,b)=>({venc:0,sem:1,breve:2,ok:3}[a.x.st]-{venc:0,sem:1,breve:2,ok:3}[b.x.st])||((a.x.d??-1e9)-(b.x.d??-1e9))).map(({p,x})=>`<tr><td><b>${esc(txPopN(p))}</b><br><small class="muted">${esc(p.cidade||'')}</small></td><td>${x.ult?dBR(x.ult):'—'}</td><td>${x.prox?dBR(x.prox):'—'}</td><td><span class="chip ${chip[x.st][1]}">${chip[x.st][0]}${x.d!=null?x.d<0?` há ${-x.d} d`:` · ${x.d} d`:''}</span></td><td>${x.ag?`<span class="chip info">Agendada ${gQuando(x.ag.agendaEm)}</span>`:txPodeAg()?`<button class="btn sm" data-act="txAgPrev" data-id="${p.id}">Agendar</button>`:'—'}</td></tr>`).join('');
   const corSet=K==='corr'&&F==='aberto'?corAb:K==='corr'&&F==='val'?val:cor,porPop={};corSet.forEach(c=>{const k=c.cliente||'—';(porPop[k]=porPop[k]||[]).push(c)});
-  const corRows=Object.entries(porPop).sort((a,b)=>b[1].length-a[1].length).map(([k,X])=>{const cs={};X.forEach(c=>{cs[c.categoria]=(cs[c.categoria]||0)+1});return `<tr><td><b>${esc(k)}</b></td><td class="r">${X.length}</td><td>${Object.entries(cs).sort((a,b)=>b[1]-a[1]).map(([n,q])=>esc(n)+(q>1?' ('+q+')':'')).join(', ')}</td><td class="r">${(()=>{const v=X.filter(c=>c.validadoEm);return v.length?gDur(v.reduce((s,c)=>s+(c.validadoEm-gIni(c)),0)/v.length):'—'})()}</td></tr>`}).join('');
+  const corRows=Object.entries(porPop).sort((a,b)=>b[1].length-a[1].length).map(([k,X])=>{const cs={};X.forEach(c=>{cs[c.categoria]=(cs[c.categoria]||0)+1});return `<tr><td><b>${esc(k)}</b></td><td class="r">${X.length}</td><td>${Object.entries(cs).sort((a,b)=>b[1]-a[1]).map(([n,q])=>esc(n)+(q>1?' ('+q+')':'')).join(', ')}</td><td class="r">${(()=>{const v=X.filter(c=>c.validadoEm&&!txSemMttr(c));return v.length?gDur(v.reduce((s,c)=>s+(c.validadoEm-gIni(c)),0)/v.length):'—'})()}</td></tr>`}).join('');
   const trc=P.filter(c=>txT(c)==='expT'&&txConcl(c)&&c.rfo),inf=P.filter(c=>txT(c)==='expI'&&txConcl(c)&&c.rfo),out=P.filter(c=>txT(c)==='outra'&&c.status!=='cancelado'),crs=P.filter(c=>txT(c)==='cross'&&txConcl(c)&&c.rfo),gm=P.filter(c=>txT(c)==='gmud'&&c.status!=='cancelado');
   const mostra=t=>F!=='aberto'?true:false,mostraAb=t=>F!=='real'&&(F==='aberto'||ab(t).length);
   const gmF=F==='concl'?gm.filter(c=>c.status==='concl'):F==='aberto'?gm.filter(c=>GTD_ABERTOS.includes(c.status)):gm;
@@ -19095,6 +19095,56 @@ Object.assign(ACT,{mvF:el=>{ui.mvF=el.dataset.v;render()},
 document.head.insertAdjacentHTML('beforeend',`<style>.mvbox{display:flex;flex-direction:column;gap:8px}.mvh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.mvh span{color:var(--muted,#5e6a58);font-size:13px}
 .mvtr{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid var(--line,#dfe3da);border-radius:12px;padding:9px 10px}.mvtr small{display:block;color:var(--muted,#5e6a58);font-size:12.5px}.mvtr .chip{margin-top:4px}</style>`);
 {const _v=vtView;vtView=function(a){const h=_v.apply(this,arguments);return a&&a.mv?h.replace(`<span class="tccli">${esc(a.etiqueta)}</span>`,`<span class="tccli">${esc(a.mv.nome)}</span>`):h}}
+
+/* 12/11: checklist de qualidade na expansão em POP · transceiver (bloco 4, todos os tipos).
+   Fotos com câmera ou galeria (uma ou mais por item); campos opcionais: distância do fim de fibra e perda (OTDR), Tx e nº de série. */
+const TXCK=[['kotdr','Medição OTDR da posição do DIO','Print ou foto da tela do OTDR com o traço da posição usada.',[['ckDist','Distância do fim de fibra (m)','Ex.: 1250'],['ckPerda','Perda total (dB)','Ex.: 0,8']]],
+  ['ksinal','Nível de sinal do transceiver','Foto da leitura no equipamento depois da inserção.',[['ckTx','Tx (dBm)','Ex.: -2,1']]],
+  ['kserial','Foto do serial do transceiver','Etiqueta do módulo legível, com o número de série.',[['ckSn','Nº de série','Ex.: FNS21430XYZ']]],
+  ['kacom','Foto da acomodação do cordão no POP','Caminho do cordão no rack e na calha, sem dobra.',[]],
+  ['kident','Foto das identificações no cordão','Etiquetas nas duas pontas do cordão.',[]]];
+TXCK.forEach(([k,n])=>{TX_FTN[k]=n.replace(/^Foto d[aoe]s? /,'').replace(/^./,x=>x.toUpperCase())});
+const txCkFal=R=>TXCK.filter(([k])=>!txFt(R,k).length).map(([k,n])=>'checklist: '+n.charAt(0).toLowerCase()+n.slice(1));
+{const _f=txFaltas;txFaltas=function(c,R){const F=_f.apply(this,arguments);if(R&&R.tipo==='expT'&&!ui._txNoCk&&!txImp(R)&&R.desfecho)F.push(...txCkFal(R));return F}}
+{const _b=txBlocos;txBlocos=function(c,R){if(!R||R.tipo!=='expT')return _b.apply(this,arguments);ui._txNoCk=1;let B;try{B=_b.apply(this,arguments)}finally{ui._txNoCk=0}
+  if(!R.desfecho||txImp(R))return B;const f=txCkFal(R).length,i=B.findIndex(b=>b.k===9);
+  B.splice(i<0?B.length:i,0,{k:4,t:'Checklist de qualidade',r:`${TXCK.length-f} de ${TXCK.length}`,ok:!f});return B}}
+{const _c=txCorpo;txCorpo=function(c,R,k){if(!(R&&R.tipo==='expT'&&k===4))return _c.apply(this,arguments);
+  return TXCK.map(([t,n,d,C])=>`<div class="txck"><b class="txckn">${txFt(R,t).length?'✓ ':''}${n} <em>*</em></b><small class="muted">${d}</small>`+
+    (C.length?`<div class="r2two">${C.map(([f,l,ph])=>r2Fld(l,0,r2Txt(c,R,f,ph,0,f==='ckSn'?'text':'decimal'))).join('')}</div>`:'')+txFotos(c,R,t,'Fotos (câmera ou galeria)',1)+'</div>').join('')}}
+{const _l=txLinhas;txLinhas=function(c,r){const L=_l.apply(this,arguments);if(!r||r.tipo!=='expT'||txImp(r))return L;
+  TXCK.forEach(([k,n])=>{const q=txFt(r,k).length;L.push([n,q?'OK ('+q+' foto'+(q>1?'s':'')+')':'pendente'])});
+  L.push(['OTDR · distância do fim de fibra',r.ckDist?r.ckDist+' m':'—'],['OTDR · perda total',r.ckPerda?r.ckPerda+' dB':'—'],['Nível de sinal · Tx',r.ckTx?r.ckTx+' dBm':'—'],['Nº de série do transceiver',r.ckSn||'—']);return L}}
+(function(){const st=document.createElement('style');st.textContent='.txck{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line)}.txck:first-child{border-top:0;padding-top:0}.txckn{font-size:14px}.txckn em{color:var(--bad,#b3261e);font-style:normal}';document.head.appendChild(st)})();
+
+/* 12/11: resultado "Encaminhado para NOC" nas corretivas da Transmissão (Indisponibilidade e Verificação).
+   Pede motivo e o que foi verificado no POP; foto opcional. Improdutiva e Encaminhado para NOC não entram no MTTR
+   nem no SLA; os horários continuam registrados. O resultado vai para o chamado (txRes) quando o técnico pede a validação. */
+const TX_ENC='Encaminhado para NOC',TX_SEMM=['Improdutiva',TX_ENC];
+const TX_ENCM=['Falha lógica ou de configuração','Precisa de acesso remoto ou gerência','Falha fora do POP (rede, backbone)','Sem falha física identificada','Outro'];
+['Indisponibilidade','Verificação'].forEach(k=>{const A=TX_RES[k];if(A&&!A.includes(TX_ENC))A.splice(Math.max(0,A.indexOf('Improdutiva')),0,TX_ENC)});
+TX_FTN.enc='Encaminhamento ao NOC';
+const txEnc=R=>!!R&&R.desfecho===TX_ENC;
+function txSemMttr(c){return !!c&&txDe(c)&&txT(c)==='corr'&&TX_SEMM.includes(c.desfecho||c.txRes||'')}
+{const _f=txFaltas;txFaltas=function(c,R){if(!(R&&R.tipo==='corr'&&txEnc(R)))return _f.apply(this,arguments);const F=[];
+  if(!R.encM)F.push('motivo do encaminhamento');if(txVz(R.encV))F.push('o que foi verificado no POP');
+  if(!R.pend)F.push('nova visita');else if(R.pend==='sim'&&txVz(R.pendD))F.push('o que fazer na nova visita');return F}}
+{const _b=txBlocos;txBlocos=function(c,R){const B=_b.apply(this,arguments);if(!(R&&R.tipo==='corr'&&txEnc(R)))return B;
+  const F=txFaltas(c,R),b=B.find(x=>x.k===2);if(b)Object.assign(b,{t:'Encaminhamento ao NOC',r:R.encM||'motivo e o que foi verificado',ok:!F.some(x=>/encaminhamento|verificado/.test(x))});
+  const h=B.find(x=>x.k===4);if(h)h.r='fora do MTTR · horários registrados';return B}}
+{const _c=txCorpo;txCorpo=function(c,R,k){const h=_c.apply(this,arguments);if(!(R&&R.tipo==='corr'))return h;
+  if(k===2&&txEnc(R))return r2Fld('Motivo do encaminhamento',1,r2Sel(c,R,'encM',TX_ENCM,'Selecione o motivo…'))+r2Fld('O que foi verificado no POP',1,r2Txt(c,R,'encV','Ex.: equipamento ligado, sem alarme físico, porta com link',1))+txFotos(c,R,'enc','Foto ou print (opcional)',0)+'<p class="r2h">Este resultado não conta no MTTR. Os horários continuam registrados.</p>';
+  if(k===4&&TX_SEMM.includes(R.desfecho))return h+`<p class="r2h">Resultado "${esc(R.desfecho)}": este chamado não entra no MTTR nem no SLA. Os horários acima ficam registrados.</p>`;return h}}
+{const _l=txLinhas;txLinhas=function(c,r){const L=_l.apply(this,arguments);if(!(r&&r.tipo==='corr'))return L;
+  if(txEnc(r)){const i=L.findIndex(x=>x[0]==='Ação realizada');if(i>=0)L.splice(i,2,['Motivo do encaminhamento',r.encM||'—'],['Verificado no POP',r.encV||'—'])}
+  if(TX_SEMM.includes(r.desfecho)){const j=L.findIndex(x=>/^Duração \(abertura/.test(x[0]));const row=['MTTR','Não conta (resultado: '+r.desfecho+')'];if(j>=0)L.splice(j,1,['Duração (abertura até a validação)',L[j][1]],row);else L.push(row)}return L}}
+{const _m=gMttr;gMttr=function(c){const o=_m.apply(this,arguments);if(!txSemMttr(c)||c.status==='cancelado')return o;return Object.assign({},o,{l:c.validadoEm?'Tempo (fora do MTTR)':'Tempo contando (fora do MTTR)'})}}
+{const _s=gSla;gSla=function(c){if(txSemMttr(c))return null;return _s.apply(this,arguments)}}
+/* guarda o resultado escolhido no chamado quando o técnico pede a validação */
+{const _p=ACT.gTecPasso;ACT.gTecPasso=async function(el){const id=el.dataset.id,c=G.ch.find(x=>x.id===id),R=(ui.gRfo||{})[id];
+  if(el.dataset.p!=='valid'||!c||!txDe(c)||txT(c)!=='corr'||!R||!R.desfecho)return _p.apply(this,arguments);
+  const res=R.desfecho,_a=gAcao;gAcao=(i,fn,msg)=>_a(i,x=>{const r=fn(x);if(r!==false)x.txRes=res;return r},msg);
+  try{return await _p.apply(this,arguments)}finally{gAcao=_a}}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
