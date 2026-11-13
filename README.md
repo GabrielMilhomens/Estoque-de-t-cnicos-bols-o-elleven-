@@ -265,6 +265,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 74. `agenda_ajuste_73_tecnico_le_kmz_melhoria.sql` — Storage: o técnico lê `txmel/<melhoria>/` quando tem chamado da melhoria despachado para ele (política `agenda_st_txmel_tec`, só leitura). Libera "Baixar o KMZ da melhoria" e a Vistoria de lançamento da melhoria no celular.
 75. `agenda_ajuste_74_lpus_leitura_rapida.sql` — leitura de `ag_lpus` mais leve: as políticas `aglp_select` e `aglp_select_eq` passam a calcular `ag_gestao`, `ag_gtd`, `ag_minha_empresa` e `auth.uid()` uma vez por consulta (`(select …)`) e a da equipe usa a lista dos meus agendamentos; índices em `chamado`, `agendamento` e `tecnico`. Mesma regra de acesso. Corrigiu o travamento de 12/11 ("Carregando… verificando o acesso" para todos).
 76. `agenda_ajuste_75_reforco_chamados.sql` — equipe de reforço nos chamados (GTD, Rede Externa e Transmissão): o chamado de reforço (`dados.refDe`) passa de "No local"/"Em atividade" direto para LPU ou concluído, sem validação do NOC (`ag_chamado_guard`); avisos do reforço para o técnico de reforço, o técnico principal e a gestão, sem avisar o NOC (`ag_chamado_avisos`).
+77. `agenda_ajuste_76_nao_concluida_parcial.sql` — volta para "Não concluída" as atividades da Implantação registradas como não concluídas com LPU parcial que terminaram como "Concluída" depois da LPU; as que não foram reagendadas voltam para a fila de reagendamento. Mostra a lista antes de corrigir.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -928,6 +929,10 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Equipe de reforço nos chamados (13/11, `mod/refch.js`)**: no GTD, na RE Corretiva e na Transmissão (todos os tipos), o detalhe do chamado tem o quadro "Equipes neste chamado" (principal, reforços e quem saiu) com Adicionar equipe de reforço, Passar para o reforço e Desfazer reforço. O reforço é um chamado-filho (`dados.refDe`, categoria "Reforço") com técnico, horários e LPU próprios: aceita, sai, chega e conclui o apoio (CLT: concluído; terceiro: LPU), sem relatório nem validação do NOC. O MTTR é do principal. Passar para o reforço: o reforço assume o chamado (relatório e NOC) e quem saiu fica com o registro e a LPU do que fez. Os filhos ficam fora das listas, KPIs e exportações da gestão; a lista mostra o selo "+N reforço", a linha do tempo registra o reforço e a tabela "Por técnico" ganha a coluna "Como reforço" (clique abre os chamados). Precisa do ajuste 75.
 
+- **Cadastros recusados (13/11, patch 25)**: em Usuários e acessos entra a seção recolhida "Cadastros recusados", com o botão Aprovar. Quem foi recusado não consegue criar a conta de novo com o mesmo e-mail (o login já existe), então a reaprovação é feita ali. No "Criar conta", o erro de e-mail já cadastrado passou a explicar o que fazer (entrar com "Já tenho conta" ou "Esqueci minha senha", ou pedir a reaprovação).
+
+- **Não concluída com LPU parcial (13/11, `mod/ncparc.js`)**: na Implantação, quando o técnico registra "Não concluída" marcando "Fiz parte do serviço e quero lançar na LPU", a atividade agora termina como **Não concluída** depois do relatório e da LPU (antes virava "Concluída" e aparecia assim no Painel do dia, na Agenda, na Visão do técnico e nos KPIs). Ela entra na fila de reagendamento já ao registrar a não conclusão. Os registros antigos são corrigidos pelo ajuste 76.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -992,6 +997,8 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 13/11/2026 | Implantação: não concluída com LPU parcial deixa de virar "Concluída" e entra na fila de reagendamento | `agenda.html` (`mod/ncparc.js`) e **`agenda_ajuste_76_nao_concluida_parcial.sql` no Supabase** (não subir no GitHub). |
+| 13/11/2026 | Usuários e acessos: seção "Cadastros recusados" com Aprovar; mensagem clara no Criar conta quando o e-mail já tem cadastro | `agenda.html`. Sem SQL. |
 | 13/11/2026 | Equipe de reforço nos chamados do GTD, da RE Corretiva e da Transmissão: adicionar, passar e desfazer reforço no detalhe; reforço com horários e LPU próprios, sem NOC e fora do MTTR; coluna "Como reforço" nos KPIs | `agenda.html` (`mod/refch.js`) e **`agenda_ajuste_75_reforco_chamados.sql` no Supabase** (não subir no GitHub). Rodar o SQL antes de subir o `agenda.html`. |
 | 12/11/2026 | Painel de KPIs do GTD e da RE Corretiva: números clicáveis com a lista dos chamados, MTTR por etapa (sem o RFO), folga e estouro do prazo | `agenda.html` (`mod/kpidrill.js`). Sem SQL. Subir o `agenda.html` e este README. |
 | 12/11/2026 | Plantão (GTD e RE Corretiva) sem aprovação na tela de Plantões: baixa na Aprovação de LPU, em Totais por prestador, Detalhamento, budget e Gestão financeira do técnico/prestador; programadas da RE Preventiva sem revisão (cia: relatório e LPU na sequência); esteira no layout do Painel do dia; LPU das programadas na gestão financeira do técnico; Melhoria e Retirada no financeiro; encerradas sem limite de 60 dias | `agenda.html` (`mod/plfin.js`, `mod/rpsemrev.js`, `mod/rpcia.js`). Sem SQL. Subir o `agenda.html` e este README. |
