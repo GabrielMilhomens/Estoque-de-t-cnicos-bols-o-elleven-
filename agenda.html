@@ -19320,6 +19320,117 @@ button.g4c.kdbtn{position:relative;width:100%}button.g4c.kdbtn:hover{box-shadow:
 .kdt{min-width:820px}.kdt td small{display:block;color:var(--muted);font-size:11.5px}.kdr{cursor:pointer}.kdr:hover td{background:var(--brand-soft)}.kdtl{display:flex;height:12px;border-radius:3px;overflow:hidden;background:var(--line);position:relative}.kdtl i{display:block;height:100%}.kdlim{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
 .kdok{color:var(--brand-ink)}.kdno{color:var(--bad)}.kddet td{background:var(--bg)}.kdet{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;font-size:12.5px}@media(max-width:700px){.kdet{grid-template-columns:repeat(2,minmax(0,1fr))}}.kdet div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px}.kdet b{display:block}`;document.head.appendChild(st)})();
 
+/* 13/11: EQUIPE DE REFORÇO NOS CHAMADOS (GTD, RE Corretiva e Transmissão, todos os tipos).
+   A gestão adiciona o reforço no detalhe do chamado (quadro "Equipes neste chamado"). O reforço vira um chamado-filho
+   (dados.refDe = chamado principal, categoria "Reforço") com técnico, horários e LPU próprios. Ele aceita, sai, chega e
+   conclui o apoio (CLT: concluído; terceiro: LPU). O relatório e a validação do NOC ficam com o principal; o MTTR é do
+   principal. Passar para o reforço: o reforço assume o chamado principal e quem saiu fica com o registro do que fez.
+   Os filhos não aparecem nas listas, KPIs e exportações da gestão (só no detalhe do principal e na coluna "Como reforço").
+   SQL: agenda_ajuste_75_reforco_chamados.sql (etapas do reforço e avisos). */
+const refChDe=c=>!!(c&&c.refDe);
+const refChTodos=()=>G.__full||G.ch;
+const refChFilhos=c=>c?refChTodos().filter(x=>x.refDe===c.id&&x.status!=='cancelado'):[];
+const refChPai=c=>c&&c.refDe?refChTodos().find(x=>x.id===c.refDe)||null:null;
+const refChPode=()=>typeof gPodeDesp==='function'&&gPodeDesp();
+const REF_FIM=['lpu','aprov','concl'];
+/* gestão: listas, KPIs e exportações sem os filhos; buscas por id continuam achando */
+function refChSem(fn){if(gTecPerfil()||G.__full||!G.ch.some(refChDe))return fn();const full=G.ch,F=full.filter(c=>!refChDe(c));
+  F.find=full.find.bind(full);F.findIndex=full.findIndex.bind(full);G.ch=F;G.__full=full;try{return fn()}finally{if(G.ch===F)G.ch=full;delete G.__full}}
+{const _r=render;render=function(){const a=arguments;return refChSem(()=>_r.apply(this,a))}}
+['tpXlsx','g4Xlsx','rkXlsx','kdXlsx'].forEach(k=>{const f=ACT[k];if(f)ACT[k]=function(){const a=arguments;return refChSem(()=>f.apply(this,a))}});
+/* lista: selo no principal */
+{const _c=gCard;gCard=function(c){const h=_c.apply(this,arguments),n=refChFilhos(c).filter(x=>!x.refSaida).length;if(!n)return h;
+  return h.replace(/(<\/span>)?(\s*)<\/button>\s*$|<\/article>\s*$|<\/div>\s*$/,m=>`<span class="chip info" style="margin-top:4px">+${n} reforço</span>${m}`)}}
+/* linha do tempo do principal */
+{const _t=gTrfEv;gTrfEv=function(c,ev){_t.apply(this,arguments);try{refChTodos().filter(x=>x.refDe===c.id).forEach(x=>{const n=gTecN(x.tec)||'reforço',t=x.ts||{};
+  if(x.refSaida)ev.push([`${n} saiu e passou o chamado para ${x.refSaida.paraNome}`,x.refSaida.em]);
+  else{ev.push(['Reforço adicionado: '+n,t.despacho]);if(t.chegada)ev.push(['Reforço no local: '+n,t.chegada]);if(t.fimApoio)ev.push(['Reforço concluiu o apoio: '+n,t.fimApoio]);if(x.status==='cancelado')ev.push(['Reforço desfeito: '+n,t.cancelado,1])}});
+  if(c.assumiu)ev.push([`${c.assumiu.paraNome} assumiu o chamado de ${c.assumiu.deNome}`,c.assumiu.em])}catch(e){}}}
+/* detalhe (gestão): quadro "Equipes neste chamado" */
+function refChBox(c){const ab=GTD_ABERTOS.includes(c.status)&&c.status!=='valid',F=refChTodos().filter(x=>x.refDe===c.id&&x.status!=='cancelado'),A=F.filter(x=>!x.refSaida),S=F.filter(x=>x.refSaida);
+  if(!c.tec&&!F.length)return '';
+  const st=x=>x.status==='aberto'?(gAceito(x)?'Aceito · aguardando saída':'Aguardando aceite'):x.status==='desloc'?'A caminho':['local','atend'].includes(x.status)?'No local desde '+hm(x.ts&&x.ts.chegada):x.status==='lpu'?'Apoio concluído · LPU pendente':x.status==='concl'||x.status==='aprov'?'Apoio concluído':GST[x.status]?GST[x.status][0]:x.status;
+  const lin=(k,cls,x,sub,chip)=>`<div class="refcl"><span class="chip ${cls}">${k}</span><div><b>${esc(gTecN(x.tec||x)||'—')}</b><small class="muted">${sub}</small></div>${chip?`<span class="chip">${chip}</span>`:''}${k==='Reforço'&&!REF_FIM.includes(x.status)?`<button class="link" data-act="gAbrir" data-id="${x.id}">ver</button>`:''}</div>`;
+  const bts=[];if(refChPode()&&ab&&c.tec)bts.push(`<button class="btn primary sm" data-act="refChAdd" data-id="${c.id}">+ Adicionar equipe de reforço</button>`);
+  if(refChPode()&&ab&&A.some(x=>!REF_FIM.includes(x.status)))bts.push(`<button class="btn sm" data-act="refChPass" data-id="${c.id}">Passar para o reforço</button>`);
+  if(refChPode()&&A.some(x=>!REF_FIM.includes(x.status)))bts.push(`<button class="btn sm" data-act="refChDesf" data-id="${c.id}">Desfazer reforço</button>`);
+  return `<section class="gbox refch"><div class="secth" style="margin-bottom:6px"><h3 style="margin:0">Equipes neste chamado</h3><span class="muted">${A.length?A.length+' reforço'+(A.length>1?'s':''):'sem reforço'}</span></div>
+   ${c.tec?lin('Principal','ok',{tec:c.tec},'relatório e validação do NOC'+(c.assumiu?` · assumiu de ${esc(c.assumiu.deNome)} às ${hm(c.assumiu.em)}`:'')):''}
+   ${A.map(x=>lin('Reforço','info',x,`adicionado${x.refPor?' por '+esc(x.refPor):''} às ${hm(x.ts&&x.ts.despacho)}${x.refObs?' · '+esc(x.refObs):''}`,st(x))).join('')}
+   ${S.map(x=>lin('Saiu','warn',x,`saiu às ${hm(x.refSaida.em)} · passou para ${esc(x.refSaida.paraNome)}${x.refSaida.motivo?' · '+esc(x.refSaida.motivo):''}`,st(x))).join('')}
+   ${bts.length?`<div class="actions" style="justify-content:flex-start;margin-top:10px">${bts.join('')}</div>`:''}</section>`}
+{const _d=gDetalhe;gDetalhe=function(c){let h=_d.apply(this,arguments);if(gTecPerfil())return h;try{
+  if(refChDe(c)){const p=refChPai(c),box=`<section class="gbox refch"><div class="result info" style="margin:0"><b>${c.refSaida?'Registro de quem saiu':'Chamado de reforço'}</b> do ${p?`<button class="link" data-act="gAbrir" data-id="${p.id}">${esc(p.pom?'O&M '+p.pom:p.cliente||'chamado principal')}</button>`:'chamado principal'}${p&&p.tec?` · principal: ${esc(gTecN(p.tec))}`:''}. Não pede validação ao NOC e não conta no MTTR.</div></section>`;const j=h.indexOf('</section>');return j>=0?h.slice(0,j+10)+box+h.slice(j+10):box+h}
+  const box=refChBox(c);if(!box)return h;const j=h.indexOf('</section>');return j>=0?h.slice(0,j+10)+box+h.slice(j+10):box+h}catch(e){console.warn('refch',e);return h}}}
+/* criar o reforço */
+const REF_LIMPA=['id','ts','hist','naoVal','aceite','validadoEm','validadoPor','rfoTxt','rfoPdf','rfo','desfecho','encEquipe','txRes','notaAdm','recusas','refs','criadoEm','status','tec','agendaEm','assumiu','transf','criadoPorNome','criadoPapel','nocEm','pnoc','lpu','obsAnx'];
+async function refChCriar(c,tec,obs){const x=JSON.parse(JSON.stringify(c));REF_LIMPA.forEach(k=>delete x[k]);const T=Date.now();
+  Object.assign(x,{status:'aberto',tec,categoria:'Reforço',prioridade:'Normal',refDe:c.id,refCat:c.categoria||'',refNome:gTecN(c.tec)||'',refObs:obs||'',refPor:meNome(),ts:{despacho:T},hist:[{acao:'Reforço adicionado de '+(gTecN(c.tec)||'principal'),por:meNome(),em:T}],naoVal:[],criadoPorNome:meNome()});
+  if(c.motivo)x.motivo=(obs?'Reforço: '+obs+'\n':'')+c.motivo;else if(obs)x.motivo='Reforço: '+obs;
+  const r=await sb.from('ag_chamados').insert(gParaRow(x)).select().single();if(r.error)throw r.error;const nv=gDeRow(r.data);const A=G.__full||G.ch,i=A.findIndex(y=>y.id===nv.id);if(i>=0)A[i]=nv;else A.unshift(nv);return nv}
+Object.assign(ACT,{
+ refChAdd:el=>{if(!refChPode())return semPerm();const c=G.ch.find(x=>x.id===el.dataset.id);if(!c)return;const ja=refChFilhos(c).map(x=>x.tec).concat([c.tec]);
+  openModal(`<h3>Adicionar equipe de reforço</h3><p class="muted">${esc(c.pom?'O&M '+c.pom:'')} · ${esc(c.cliente||'')} · principal: <b>${esc(gTecN(c.tec))}</b></p>
+   <div class="result info" style="margin:10px 0">O reforço vai para ajudar: tem horários e LPU próprios. O técnico principal continua com o relatório e a validação do NOC, e o MTTR é dele. Os dois são avisados.</div>
+   <label class="f"><span>Técnico de reforço *</span><select class="inp" id="refChTec"><option value="">Escolha o técnico…</option>${gTecOpts('').replace(new RegExp('<option value="('+ja.filter(Boolean).join('|')+')"[^>]*>[^<]*</option>','g'),'')}</select></label>
+   <label class="f"><span>Observação para o reforço</span><textarea class="inp" id="refChObs" rows="2" placeholder="Ex.: levar escada de 7 m e máquina de fusão"></textarea></label>
+   <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="refChAddOk" data-id="${c.id}">Adicionar reforço</button></div>`)},
+ refChAddOk:async el=>{if(el.dataset.bus)return;const c=G.ch.find(x=>x.id===el.dataset.id),tec=($('refChTec')||{}).value,obs=(($('refChObs')||{}).value||'').trim();if(!c)return;if(!tec)return toast('Escolha o técnico de reforço.','bad');
+  el.dataset.bus='1';el.textContent='Enviando…';try{await refChCriar(c,tec,obs);const nome=gTecN(tec);
+   await gAcao(c.id,x=>{x.refs=(x.refs||[]).filter(r=>r.tec!==tec).concat([{tec,nome}]);gHist(x,'Reforço adicionado: '+nome)},null);closeModal();render();toast(`${nome} adicionado como reforço. O técnico principal e o reforço foram avisados.`)}
+  catch(e){delete el.dataset.bus;el.textContent='Adicionar reforço';toast('Não foi possível adicionar o reforço: '+(e.message||e),'bad')}},
+ refChDesf:el=>{if(!refChPode())return semPerm();const c=G.ch.find(x=>x.id===el.dataset.id),A=refChFilhos(c).filter(x=>!x.refSaida&&!REF_FIM.includes(x.status));if(!A.length)return;
+  openModal(`<h3>Desfazer reforço</h3><p class="muted">O reforço é cancelado e o técnico é avisado. Os horários registrados ficam no histórico.</p>
+   <label class="f"><span>Reforço *</span><select class="inp" id="refChQ">${A.map(x=>`<option value="${x.id}">${esc(gTecN(x.tec))}</option>`).join('')}</select></label>
+   <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="refChDesfOk" data-id="${c.id}">Desfazer</button></div>`)},
+ refChDesfOk:async el=>{const c=G.ch.find(x=>x.id===el.dataset.id),q=($('refChQ')||{}).value,x=G.ch.find(y=>y.id===q);if(!c||!x)return;const n=gTecN(x.tec);
+  const r=await gAcao(q,y=>{if(REF_FIM.includes(y.status)){toast('O reforço já concluiu o apoio.','bad');return false}y.status='cancelado';y.motivoCancel='Reforço desfeito pela gestão';y.ts.cancelado=Date.now();gHist(y,'Reforço desfeito')},null);if(r===false)return;
+  await gAcao(c.id,y=>{y.refs=(y.refs||[]).filter(z=>z.tec!==x.tec);gHist(y,'Reforço desfeito: '+n)},null);closeModal();render();toast('Reforço desfeito.')},
+ refChPass:el=>{if(!refChPode())return semPerm();const c=G.ch.find(x=>x.id===el.dataset.id),A=refChFilhos(c).filter(x=>!x.refSaida&&!REF_FIM.includes(x.status));if(!c||!A.length)return;
+  openModal(`<h3>Passar o chamado para o reforço</h3><p class="muted">${esc(gTecN(c.tec))} sai e o reforço escolhido assume: passa a fazer o relatório e a pedir a validação ao NOC. O MTTR não reinicia.</p>
+   <label class="f"><span>Reforço que assume *</span><select class="inp" id="refChPara">${A.map(x=>`<option value="${x.id}">${esc(gTecN(x.tec))} · ${esc((GST[x.status]||[x.status])[0])}</option>`).join('')}</select></label>
+   <label class="f"><span>Motivo da saída *</span><input class="inp" id="refChMot" placeholder="Ex.: chamado de prioridade em outro cliente"></label>
+   <label class="f"><span>O que já foi feito</span><textarea class="inp" id="refChFeito" rows="2"></textarea></label>
+   <label class="f"><span>O que falta</span><textarea class="inp" id="refChFalta" rows="2"></textarea></label>
+   <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="refChPassOk" data-id="${c.id}">Passar o chamado</button></div>`)},
+ refChPassOk:async el=>{if(el.dataset.bus)return;const c=G.ch.find(x=>x.id===el.dataset.id),q=($('refChPara')||{}).value,x=G.ch.find(y=>y.id===q),mot=(($('refChMot')||{}).value||'').trim();if(!c||!x)return;if(!mot)return toast('Informe o motivo da saída.','bad');
+  const feito=(($('refChFeito')||{}).value||'').trim(),falta=(($('refChFalta')||{}).value||'').trim(),T=Date.now(),de=c.tec,deN=gTecN(de),para=x.tec,paraN=gTecN(para),K=['desloc','eta','chegada','inicio'];
+  const tsP=Object.assign({},c.ts||{}),tsF=Object.assign({},x.ts||{}),acP=c.aceite,acF=x.aceite,stF=x.status;el.dataset.bus='1';el.textContent='Enviando…';
+  try{/* quem saiu fica no registro do filho, com os horários dele */
+   const r1=await gAcao(x.id,y=>{y.tec=de;y.aceite=acP;K.forEach(k=>{if(tsP[k]!=null)y.ts[k]=tsP[k];else delete y.ts[k]});y.ts.fimApoio=T;y.refSaida={em:T,por:meNome(),para,paraNome:paraN,motivo:mot,feito,falta};
+     y.status=gTecV(de)==='CLT'?'concl':'lpu';gHist(y,`Saiu e passou o chamado para ${paraN}: ${mot}`)},null);if(r1===false)throw new Error('não foi possível atualizar o reforço');
+   await gAcao(c.id,y=>{y.tec=para;y.aceite=acF;K.forEach(k=>{if(tsF[k]!=null)y.ts[k]=tsF[k];else delete y.ts[k]});if(['aberto','desloc','local','atend'].includes(stF)&&['aberto','desloc','local','atend'].includes(y.status))y.status=stF;
+     y.assumiu={em:T,de,deNome:deN,para,paraNome:paraN,motivo:mot,feito,falta,por:meNome()};y.refs=(y.refs||[]).filter(z=>z.tec!==para);gHist(y,`${paraN} assumiu o chamado de ${deN}: ${mot}`)},null);
+   closeModal();render();toast(`${paraN} assumiu o chamado. ${deN} segue para ${gTecV(de)==='CLT'?'o encerramento':'a LPU'} do que fez.`)}
+  catch(e){delete el.dataset.bus;el.textContent='Passar o chamado';toast('Não foi possível passar o chamado: '+(e.message||e),'bad')}},
+ refChFim:async el=>{const id=el.dataset.id;await gAcao(id,c=>{if(!['local','atend'].includes(c.status)){toast('O chamado já mudou de etapa. Tela atualizada.','bad');return false}c.ts.fimApoio=Date.now();c.ts.inicio=c.ts.inicio||c.ts.chegada;
+   c.status=gTecV(c.tec)==='CLT'?'concl':'lpu';gHist(c,'Apoio concluído')},'Apoio concluído.');window.scrollTo(0,0)}});
+/* app do técnico */
+{const _t=gTecView;gTecView=function(c){let h=_t.apply(this,arguments);if(!c||ui.lpuTela==='G:'+c.id)return h;try{
+  const tf=(inner)=>{const i=h.lastIndexOf('<div class="tvft">');const nv=`<div class="tvft">${inner}</div>`;if(i<0)return h+nv;let d=0,j=i;const re=/<\/?div\b/g;re.lastIndex=i;let m;while((m=re.exec(h))){d+=m[0]==='<div'?1:-1;if(d===0){j=h.indexOf('>',m.index)+1;break}}return h.slice(0,i)+nv+h.slice(j)};
+  const ins=b=>{const k=h.indexOf('</article>');return k>=0?h.slice(0,k+10)+b+h.slice(k+10):b+h};
+  if(refChDe(c)){const pn=c.refNome||'o técnico principal';
+   if(c.refSaida)h=ins(`<div class="result warn" style="margin:0 0 10px"><b>Chamado passado para ${esc(c.refSaida.paraNome)}.</b> Ele assume o relatório e a validação do NOC.${c.status==='lpu'?' Preencha a LPU só do que a sua equipe executou.':''}</div>`);
+   else h=ins(`<div class="result info" style="margin:0 0 10px"><b>Vocês vão como reforço de ${esc(pn)}.</b> Ajudem no serviço. O relatório e a validação do NOC ficam com o principal.${c.refObs?`<br><b>Observação:</b> ${esc(c.refObs)}`:''}</div>`);
+   if(['local','atend'].includes(c.status))h=tf(`<button class="bigbtn" data-act="refChFim" data-id="${c.id}" data-hold="2000">Segure: concluir o apoio</button><small class="tvnota">${gTecV(c.tec)==='CLT'?'Ao concluir, o apoio fica registrado.':'Ao concluir, abre a LPU só do que a sua equipe executou.'}</small>`);
+   else if(c.status==='lpu'&&ui.perfil!=='func')h=tf(`<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU</button><small class="tvnota">Lance só o que a sua equipe executou como reforço.</small>`);
+   h=h.replace(/O RFO já foi gerado\. A LPU tem 3 passos\./,'A LPU tem 3 passos.').replace(/<b>RFO enviado\.<\/b>/,'<b>Apoio concluído.</b>');return h}
+  const R=(c.refs||[]).filter(r=>r.tec!==c.tec);if(R.length&&GTD_ABERTOS.includes(c.status))h=ins(`<div class="result info" style="margin:0 0 10px"><b>${esc(R.map(r=>r.nome).join(', '))} ${R.length>1?'vão':'vai'} como reforço.</b> Vocês continuam como principal: relatório e validação do NOC são com vocês.</div>`);
+  if(c.assumiu&&c.assumiu.para===c.tec&&GTD_ABERTOS.includes(c.status))h=ins(`<div class="result ok" style="margin:0 0 10px"><b>Você assumiu este chamado de ${esc(c.assumiu.deNome)}.</b> Agora o relatório e a validação do NOC são com você. O MTTR continua contando do início.${c.assumiu.falta?`<br><b>O que falta:</b> ${esc(c.assumiu.falta)}`:''}</div>`);
+  return h}catch(e){console.warn('refch tec',e);return h}}}
+/* KPIs: coluna "Como reforço" na tabela Por técnico */
+{const _gp=gPainelGeral;gPainelGeral=function(){let h=_gp.apply(this,arguments);try{const ini=ui.gpIni,fim=ui.gpFim,all=refChTodos(),P=new Set(G.ch.filter(c=>!refChDe(c)).map(c=>c.id));
+  const Fh=all.filter(x=>refChDe(x)&&!x.refSaida&&x.status!=='cancelado'&&P.has(x.refDe)&&(()=>{const p=all.find(y=>y.id===x.refDe);return p&&gDiaDe(p)>=ini&&gDiaDe(p)<=fim})());
+  const M={};Fh.forEach(x=>{const n=gTecN(x.tec);if(!n)return;const m=M[n]||(M[n]={n:0,ms:0,id:x.tec});m.n++;const t=x.ts||{};if(t.chegada)m.ms+=(t.fimApoio||Date.now())-t.chegada});
+  if(!/<table class="gktec">/.test(h))return h;
+  h=h.replace(/(<table class="gktec"><thead><tr><th>Técnico<\/th><th>Vínculo<\/th><th[^>]*>Chamados<\/th>)/,'$1<th class="r">Como reforço</th>');
+  h=h.replace(/(<table class="gktec">[\s\S]*?<\/table>)/,tb=>tb.replace(/<tr><td><b>([^<]*)<\/b><\/td>(<td>[\s\S]*?<\/td>)(<td>[\s\S]*?<\/td>)/g,(m,n,v,ch)=>{const k=M[n.replace(/&amp;/g,'&')];
+    return `<tr><td><b>${n}</b></td>${v}${ch}<td class="r">${k?`<button class="link" data-act="kdA" data-f="ref:${k.id}"><b>${k.n}</b></button><br><small class="muted">${gDur(k.ms)} em apoio</small>`:'—'}</td>`}));
+  return h}catch(e){console.warn('refch kpi',e);return h}}}
+if(typeof kdLista==='function'){const _k=kdLista;kdLista=function(f){if(!String(f).startsWith('ref:'))return _k.apply(this,arguments);const id=f.slice(4),all=refChTodos();
+  const ids=new Set(all.filter(x=>refChDe(x)&&!x.refSaida&&x.tec===id&&x.status!=='cancelado').map(x=>x.refDe));return[KD.P.filter(c=>ids.has(c.id)),'Como reforço · '+(gTecN(id)||''),'Chamados em que o técnico apoiou outro técnico. O MTTR é do principal.']}}
+(function(){const st=document.createElement('style');st.textContent='.refch .refcl{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line);flex-wrap:wrap}.refch .refcl:first-of-type{border-top:0}.refch .refcl>div{flex:1;min-width:160px}.refch .refcl small{display:block}';document.head.appendChild(st)})();
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
