@@ -266,6 +266,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 75. `agenda_ajuste_74_lpus_leitura_rapida.sql` — leitura de `ag_lpus` mais leve: as políticas `aglp_select` e `aglp_select_eq` passam a calcular `ag_gestao`, `ag_gtd`, `ag_minha_empresa` e `auth.uid()` uma vez por consulta (`(select …)`) e a da equipe usa a lista dos meus agendamentos; índices em `chamado`, `agendamento` e `tecnico`. Mesma regra de acesso. Corrigiu o travamento de 12/11 ("Carregando… verificando o acesso" para todos).
 76. `agenda_ajuste_75_reforco_chamados.sql` — equipe de reforço nos chamados (GTD, Rede Externa e Transmissão): o chamado de reforço (`dados.refDe`) passa de "No local"/"Em atividade" direto para LPU ou concluído, sem validação do NOC (`ag_chamado_guard`); avisos do reforço para o técnico de reforço, o técnico principal e a gestão, sem avisar o NOC (`ag_chamado_avisos`).
 77. `agenda_ajuste_76_nao_concluida_parcial.sql` — volta para "Não concluída" as atividades da Implantação registradas como não concluídas com LPU parcial que terminaram como "Concluída" depois da LPU; as que não foram reagendadas voltam para a fila de reagendamento. Mostra a lista antes de corrigir.
+78. `agenda_ajuste_77_lpus_sem_assinatura.sql` — view `ag_lpus_leve` (mesmas LPUs e mesmas regras de acesso, `security_invoker`) sem a imagem da assinatura, e trigger `ag_lpu_mantem_assinatura` que mantém a imagem quando a LPU é gravada sem ela. Corrige o travamento de 13/11 (313 LPUs = 12 MB baixados a cada abertura). Rodar antes do agenda.html.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -933,6 +934,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Não concluída com LPU parcial (13/11, `mod/ncparc.js`)**: na Implantação, quando o técnico registra "Não concluída" marcando "Fiz parte do serviço e quero lançar na LPU", a atividade agora termina como **Não concluída** depois do relatório e da LPU (antes virava "Concluída" e aparecia assim no Painel do dia, na Agenda, na Visão do técnico e nos KPIs). Ela entra na fila de reagendamento já ao registrar a não conclusão. Os registros antigos são corrigidos pelo ajuste 76.
 
+- **LPUs sem a imagem da assinatura na abertura (13/11, `mod/lpuleve.js`)**: a ferramenta carrega as LPUs pela view `ag_lpus_leve` (sem a imagem da assinatura, ~40 kB por LPU). A imagem é buscada só ao ver a LPU, gerar o PDF ou aprovar, e fica num cache fora da LPU. Se a view não existir, a ferramenta volta a ler `ag_lpus` como antes. Precisa do ajuste 77.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -997,6 +1000,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 13/11/2026 | Incidente: a ferramenta travou de novo em "verificando o acesso" (leituras de LPU de ~1 min, CPU no limite). Causa: todas as LPUs (12 MB, por causa da imagem da assinatura) baixadas a cada abertura. Correção: LPUs carregadas sem a imagem | **`agenda_ajuste_77_lpus_sem_assinatura.sql` no Supabase** (não subir no GitHub), depois `agenda.html` (`mod/lpuleve.js`). |
 | 13/11/2026 | Implantação: não concluída com LPU parcial deixa de virar "Concluída" e entra na fila de reagendamento | `agenda.html` (`mod/ncparc.js`) e **`agenda_ajuste_76_nao_concluida_parcial.sql` no Supabase** (não subir no GitHub). |
 | 13/11/2026 | Usuários e acessos: seção "Cadastros recusados" com Aprovar; mensagem clara no Criar conta quando o e-mail já tem cadastro | `agenda.html`. Sem SQL. |
 | 13/11/2026 | Equipe de reforço nos chamados do GTD, da RE Corretiva e da Transmissão: adicionar, passar e desfazer reforço no detalhe; reforço com horários e LPU próprios, sem NOC e fora do MTTR; coluna "Como reforço" nos KPIs | `agenda.html` (`mod/refch.js`) e **`agenda_ajuste_75_reforco_chamados.sql` no Supabase** (não subir no GitHub). Rodar o SQL antes de subir o `agenda.html`. |

@@ -4086,7 +4086,7 @@ const ACT={
     if(l.status==='aprovada'&&!l.pdfAprov||!l.pdf_path){try{abre(URL.createObjectURL(gerarPdfLpu(l)))}catch(e){if(w)w.close();toast('Não foi possível gerar o PDF: '+(e.message||e),'bad')}return}
     const r=await sb.storage.from('agenda').createSignedUrl(l.pdf_path,300);if(r.error){if(w)w.close();toast('Não foi possível abrir o PDF: '+r.error.message,'bad');return}abre(r.data.signedUrl)},
   pdf:el=>{const l=S.lpus.find(x=>x.id===el.dataset.id),p=S.previsao.find(x=>x.etiqueta===l.etiqueta)||{};openModal(`<div class="doc"><div class="dochead"><span class="mark">NT</span><div><b>LPU de serviço executado</b><small>Net Turbo Telecom</small></div></div><dl class="dl"><div><dt>Prestador</dt><dd>${esc(tecN(l.tec))}</dd></div><div><dt>Cliente</dt><dd>${esc(p.cliente||'')}</dd></div><div><dt>Etiqueta</dt><dd>${esc(l.etiqueta)}</dd></div><div><dt>Protocolo</dt><dd>${esc(p.protocolo||'')}</dd></div><div><dt>Fases</dt><dd>${fasesN(l)}</dd></div><div><dt>Data</dt><dd>${dBR(l.data)}</dd></div><div style="grid-column:1/-1"><dt>Descrição contábil</dt><dd>${esc(l.conta||'')}</dd></div></dl><div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd</th><th class="r">Unit.</th><th class="r">Total</th></tr></thead><tbody>${l.itens.map(i=>`<tr><td>${i.cod}</td><td>${esc(i.desc)}</td><td>${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.unit*i.qtd)}</td></tr>`).join('')}</tbody></table></div><div class="ltotal"><span>Total</span><b>${brl(l.total)}</b></div>
-   <div class="grid2 even" style="margin-top:18px;gap:16px"><div style="text-align:center">${l.assinatura?`<img src="${l.assinatura.img}" alt="Assinatura" style="max-height:70px;max-width:100%">`:'<div style="height:70px"></div>'}<div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">${l.assinatura?esc(l.assinatura.nome)+', '+dtBR(l.assinatura.em):'Assinatura prestador'}</div></div><div style="text-align:center"><div style="height:70px;display:flex;align-items:flex-end;justify-content:center;font-size:13px">${l.status==='aprovada'?esc(((l.hist||[]).filter(h=>h.acao==='Aprovada').pop()||{}).por||''):''}</div><div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">Aprovador</div></div></div></div><div class="actions"><button class="btn" data-act="close">Fechar</button><button class="btn primary" data-act="pdfArq" data-id="${l.id}">Abrir PDF assinado</button></div>`)}
+   <div class="grid2 even" style="margin-top:18px;gap:16px"><div style="text-align:center">${l.assinatura?`<img src="${lpuAssSrc(l)}" data-ass="${l.id}" alt="Assinatura" style="max-height:70px;max-width:100%">`:'<div style="height:70px"></div>'}<div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">${l.assinatura?esc(l.assinatura.nome)+', '+dtBR(l.assinatura.em):'Assinatura prestador'}</div></div><div style="text-align:center"><div style="height:70px;display:flex;align-items:flex-end;justify-content:center;font-size:13px">${l.status==='aprovada'?esc(((l.hist||[]).filter(h=>h.acao==='Aprovada').pop()||{}).por||''):''}</div><div style="border-top:1px solid var(--ink);padding-top:4px;font-size:12.5px">Aprovador</div></div></div></div><div class="actions"><button class="btn" data-act="close">Fechar</button><button class="btn primary" data-act="pdfArq" data-id="${l.id}">Abrir PDF assinado</button></div>`)}
 };
 const CH={
   rfRe:()=>{if(ui.rf)render()},
@@ -4262,7 +4262,7 @@ async function carregar(){
     pf.forEach(x=>{if(novos.some(t=>t.id===x.id))return;const pp=pap.find(y=>y.user_id===x.id);novos.push({id:x.id,nome:x.nome,tipo:pp.vinculo==='terceiro'?'TERC':'CLT',doc:x.cnpj||'',empresa:pp.empresa||null})});novos.sort((a,b)=>a.nome.localeCompare(b.nome))}
   else novos.push({id:ME.id,nome:ME.nome,tipo:ME.vinculo==='terceiro'?'TERC':'CLT',doc:ME.cnpj||'',empresa:ME.empresa||null});
   TEC.splice(0,TEC.length,...novos);
-  const [pr,co,ag,lp,an,lg]=await Promise.all([(g?todas(()=>sb.from('ag_projetos').select('*')):sb.rpc('ag_projetos_tecnico').then(r=>{if(r.error)throw r.error;return r.data||[]})),todas(()=>sb.from('ag_complementos').select('*')),todas(()=>sb.from('ag_agendamentos').select('*')),todas(()=>sb.from('ag_lpus').select('*')),todas(()=>sb.from('ag_anexos').select('*')),g?todas(()=>sb.from('ag_anexos_log').select('*')):Promise.resolve([])]);
+  const [pr,co,ag,lp,an,lg]=await Promise.all([(g?todas(()=>sb.from('ag_projetos').select('*')):sb.rpc('ag_projetos_tecnico').then(r=>{if(r.error)throw r.error;return r.data||[]})),todas(()=>sb.from('ag_complementos').select('*')),todas(()=>sb.from('ag_agendamentos').select('*')),lpuTodas(q=>q),todas(()=>sb.from('ag_anexos').select('*')),g?todas(()=>sb.from('ag_anexos_log').select('*')):Promise.resolve([])]);
   S.previsao=pr.slice().sort((a,b)=>String(b.criado_em||'').localeCompare(String(a.criado_em||''))).map(r=>Object.assign({id:r.id,etiqueta:r.etiqueta},r.dados));
   S.semValor=g&&!pode('a_valor');if(S.semValor)S.previsao.forEach(p=>{delete p.valor;if(p.roi&&p.roi.fin)delete p.roi.fin});S.prevCanc=[];if(typeof prSep==='function')prSep();
   S.comp={};co.forEach(r=>S.comp[r.etiqueta]=r.dados||{});
@@ -4824,7 +4824,7 @@ function gLpuRow(l){const{id,chamado,etiqueta,tec,status,total,pdf_path,prestado
 async function gCarregar(){
   if(!ME||(['supply','visu'].includes(ui.perfil)&&!r21TemGtd())){G.ok=true;return}
   const ve=gVeGtd()||r21TemGtd(),tc=gTecPerfil()||ui.perfil==='coord';
-  if(ve||tc){try{const[ch,lp,tcs]=await Promise.all([todas(()=>sb.from('ag_chamados').select('*').order('criado_em',{ascending:false})),todas(()=>sb.from('ag_lpus').select('*').not('chamado','is',null)),ve?sb.rpc('ag_tecnicos_lista').then(r=>r.error?[]:r.data||[]):Promise.resolve([])]);
+  if(ve||tc){try{const[ch,lp,tcs]=await Promise.all([todas(()=>sb.from('ag_chamados').select('*').order('criado_em',{ascending:false})),lpuTodas(q=>q.not('chamado','is',null)),ve?sb.rpc('ag_tecnicos_lista').then(r=>r.error?[]:r.data||[]):Promise.resolve([])]);
       G.ch=ch.map(gDeRow);G.lpus=ui.perfil==='func'?[]:lp.map(gLpuDeRow);G.tecs=tcs;G.erro=''}
     catch(e){console.warn('GTD',e);G.ch=[];G.lpus=[];G.erro=/ag_chamados|chamado|does not exist|schema cache|relation/i.test(String(e.message||e))?'Rode o script agenda_ajuste_14_gtd_manutencao.sql no Supabase para ativar os chamados do GTD.':'Não foi possível carregar os chamados: '+(e.message||e)}}
   else{G.ch=[];G.lpus=[]}
@@ -19440,6 +19440,24 @@ const ncFim=a=>{if(ncParc(a)&&a.status==='concluida'){a.status='nao_concluida';a
 {const _e=encerrar;encerrar=function(a){const t0=a&&a.ts&&a.ts.encerramento;_e.apply(this,arguments);if(ncFim(a)&&t0)a.ts.encerramento=t0}}
 {const _s=semLpuVarre;semLpuVarre=function(){const L=_s.apply(this,arguments);(L||[]).forEach(ncFim);return L}}
 {const _r=ACT.relEnviar;ACT.relEnviar=function(el){const o=_r.apply(this,arguments);const a=getAg(el.dataset.id);if(ncFim(a)){save();render()}return o}}
+
+/* 13/11: LPUs carregadas sem a imagem da assinatura (view ag_lpus_leve, ajuste 77). A imagem tinha ~40 kB por LPU
+   e era baixada por todo mundo a cada abertura, o que travou o banco em 12/11 e 13/11. Agora a imagem é buscada só
+   quando precisa (ver a LPU, gerar ou aprovar o PDF) e fica num cache fora da LPU, para não gerar gravação.
+   Sem o ajuste 77, a ferramenta volta sozinha a ler a tabela ag_lpus como antes. */
+let LPU_LEVE=null;const LPU_IMG={},LPU_IMG_P={};
+async function lpuTodas(f){if(LPU_LEVE!==false){try{const r=await todas(()=>f(sb.from('ag_lpus_leve').select('*')));LPU_LEVE=true;return r}
+  catch(e){if(!/ag_lpus_leve|does not exist|42P01|PGRST20|schema cache|relation/i.test(String(e.message||'')+String(e.code||'')))throw e;LPU_LEVE=false;console.warn('ag_lpus_leve indisponível, lendo ag_lpus',e)}}
+  return todas(()=>f(sb.from('ag_lpus').select('*')))}
+const lpuImg=l=>l&&l.assinatura?(l.assinatura.img||LPU_IMG[l.id]||''):'';
+function lpuAssGarante(l){if(!l||!l.id||!l.assinatura||lpuImg(l))return Promise.resolve();if(LPU_IMG_P[l.id])return LPU_IMG_P[l.id];
+  return LPU_IMG_P[l.id]=sb.from('ag_lpus').select('id,dados->assinatura').eq('id',l.id).maybeSingle().then(r=>{const d=r&&r.data;const a=d&&(d.assinatura||(d.dados&&d.dados.assinatura));if(a&&a.img)LPU_IMG[l.id]=a.img;delete LPU_IMG_P[l.id]}).catch(()=>{delete LPU_IMG_P[l.id]})}
+function lpuAssSrc(l){const s=lpuImg(l);if(s)return s;if(l&&l.assinatura)lpuAssGarante(l).then(()=>{const v=lpuImg(l);if(v)document.querySelectorAll(`img[data-ass="${l.id}"]`).forEach(i=>{i.src=v})});return 'data:image/gif;base64,R0lGODlhAQABAAAAACw='}
+{const _g=gerarPdfLpu;gerarPdfLpu=function(l,o){if(l&&l.assinatura&&!l.assinatura.img&&LPU_IMG[l.id])l=Object.assign({},l,{assinatura:Object.assign({},l.assinatura,{img:LPU_IMG[l.id]})});
+  else if(l&&l.assinatura&&!l.assinatura.img)l=Object.assign({},l,{assinatura:Object.assign({},l.assinatura,{img:undefined})});return _g.call(this,l,o)}}
+const lpuAch=id=>(S.lpus||[]).find(x=>x.id===id)||(G.lpus||[]).find(x=>x.id===id);
+['aprovar','pdfArq','gAprovar'].forEach(k=>{const f=ACT[k];if(!f)return;ACT[k]=async function(el){const a=arguments;try{await lpuAssGarante(lpuAch(el&&el.dataset&&el.dataset.id))}catch(e){}return f.apply(this,a)}});
+if(typeof finLpuBlob==='function'){const _b=finLpuBlob;finLpuBlob=async function(r){try{await lpuAssGarante(r&&r.l)}catch(e){}return _b.apply(this,arguments)}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
