@@ -19604,13 +19604,13 @@ Object.assign(ACT,{
    Contrato por técnico/equipe: franquia de chamados por um valor fixo; cada chamado acima da franquia custa o valor
    do excedente (padrão R$ 380); variáveis com valor, pagas quando atingidas no período.
    Período de 21 de um mês a 20 do seguinte. Conta todo chamado da RE Corretiva do técnico com o deslocamento
-   iniciado no período (reforço incluído). A supervisão marca as variáveis e envia; o coordenador aprova.
+   iniciado no período (reforço incluído). A supervisão (supervisor da RE Corretiva) marca as variáveis e aprova o fechamento.
    Aprovado, entra no budget da RE Corretiva no mês da aprovação e no menu Financeiro (área RE Corretiva). Não é LPU: não tem
    itens, não passa pela Aprovação de LPU e fica fora de Totais por prestador e do Detalhamento das LPUs. Enviado e ainda não aprovado aparece como comprometido.
    Banco: ag_contrato_fixo (agenda_ajuste_80_contrato_fixo.sql). */
 const CF={rows:[],ok:false,bus:false,err:''};
 const CF_EXC=380;
-const CF_ST={aberto:['Em apuração','warn'],env:['Aguardando aprovação','info'],apr:['Aprovado','ok'],dev:['Devolvido','bad']};
+const CF_ST={aberto:['Em apuração','warn'],env:['Aguardando aprovação','info'],apr:['Aprovado','ok'],dev:['Reaberto','bad']};
 const cfDe=r=>Object.assign({},r.dados||{},{id:r.id,area:r.area,tec:r.tecnico,tipo:r.tipo,ref:r.ref||null,status:r.status});
 const cfRow=x=>{const d=Object.assign({},x);['id','area','tec','tipo','ref','status'].forEach(k=>delete d[k]);return{id:x.id,area:x.area,tecnico:x.tec,tipo:x.tipo,ref:x.ref,status:x.status,dados:d,atualizado_em:new Date().toISOString()}};
 async function cfCarregar(f){if(CF.bus||(CF.ok&&!f))return;CF.bus=true;try{const r=await sb.from('ag_contrato_fixo').select('*');if(r.error)throw r.error;CF.rows=(r.data||[]).map(cfDe);CF.ok=true;CF.err=''}
@@ -19664,7 +19664,7 @@ GFSUB.push(['cfix','Contrato fixo','g_fin']);
   try{return _r.apply(this,arguments)}finally{if(tirou)GFSUB.push(tirou)}}}
 {const _v=viewGPainel;viewGPainel=function(){if(ui.gSec==='fin'&&ui.gFinSub==='cfix'&&cfVis()&&gSubsOk().some(x=>x[0]==='cfix'))return viewCfix();return _v.apply(this,arguments)}}
 function viewCfix(){if(!CF.ok&&!CF.err)cfCarregar();const subs=gSubsOk().filter(([k])=>!['det','aprov'].includes(k)),ref=ui.cfRef||(ui.cfRef=cfRefHoje()),a='re';
-  const top=`<div class="toolbar"><div><h2>Financeiro · GTD Manutenção</h2><p class="muted">Equipes marcadas como <b>Sem LPU (fora do contrato)</b> fazem só o relatório, sem LPU. Aqui entra o pagamento delas: valor fixo até a franquia de chamados, R$ ${rpFmt(CF_EXC,0)} por chamado acima dela (ou o valor do contrato) e as variáveis atingidas. Se a equipe fizer menos chamados que a franquia, a diferença (valor fixo ÷ franquia por chamado) aparece como <b>improdutivo</b>. Os chamados com deslocamento iniciado vão acumulando no período (21 a 20); nada é pago chamado a chamado. Fechado o mês, a supervisão marca as variáveis atingidas e envia; o coordenador aprova e o valor entra no budget no mês da aprovação.</p></div>
+  const top=`<div class="toolbar"><div><h2>Financeiro · GTD Manutenção</h2><p class="muted">Equipes marcadas como <b>Sem LPU (fora do contrato)</b> fazem só o relatório, sem LPU. Aqui entra o pagamento delas: valor fixo até a franquia de chamados, R$ ${rpFmt(CF_EXC,0)} por chamado acima dela (ou o valor do contrato) e as variáveis atingidas. Se a equipe fizer menos chamados que a franquia, a diferença (valor fixo ÷ franquia por chamado) aparece como <b>improdutivo</b>. Os chamados com deslocamento iniciado vão acumulando no período (21 a 20); nada é pago chamado a chamado. Fechado o mês (a partir do dia 21), a supervisão marca as variáveis atingidas e aprova o fechamento; o valor entra no budget no mês da aprovação.</p></div>
     <div class="tools"><button class="btn sm" data-act="cfRef" data-k="-1" aria-label="Período anterior">‹</button><b class="cfper">${cfPerTxt(ref)}</b><button class="btn sm" data-act="cfRef" data-k="1" aria-label="Próximo período">›</button>${cfCoord()?'<button class="btn primary" data-act="cfContratos">Contratos</button>':''}</div></div>
     ${subs.length>1?`<div class="views" style="margin-bottom:14px">${subs.map(([k,n])=>`<button data-act="gpSec" data-v="fin" data-s="${k}" aria-current="${k==='cfix'}">${n}${k==='aprov'&&gNAprov()?` (${gNAprov()})`:''}</button>`).join('')}</div>`:''}`;
   if(CF.err)return top+`<div class="result bad">${esc(CF.err)} <button class="btn sm" data-act="cfRecarr">Tentar de novo</button></div>`;
@@ -19675,14 +19675,14 @@ function viewCfix(){if(!CF.ok&&!CF.err)cfCarregar();const subs=gSubsOk().filter(
   const kp=(v,l,c)=>`<div class="kpi ${c||''}"><b>${v}</b><span>${l}</span></div>`;
   const card=([k,A])=>{const ed=['aberto','dev'].includes(A.st)&&cfSup(),s=A.st==='aberto'?(Date.now()<=cfFim(ref)?['Mês em andamento','warn']:['Mês encerrado · enviar','warn']):CF_ST[A.st],F=A.F;
     return `<section class="panel cfcard"><div class="ah"><div><h3>${esc(gTecN(k.tec))}</h3><small class="muted">${esc(String(gTecV(k.tec)||'').replace(/<[^>]*>/g,''))}${((S.cnpj||{})[k.tec]||{}).empresa?' · '+esc(gTecN(S.cnpj[k.tec].empresa)):''}</small></div><span class="chip ${s[1]}">${s[0]}</span></div>
-      ${A.st==='dev'&&F&&F.dev?`<div class="result bad" style="margin:8px 0 0">Devolvido: ${esc(F.dev)}</div>`:''}
+      ${A.st==='dev'&&F&&F.dev?`<div class="result bad" style="margin:8px 0 0">Reaberto: ${esc(F.dev)}</div>`:''}
       <div class="cfnums"><div><small>Chamados no período</small><b>${A.n} <span class="muted">de ${A.qtd}</span></b><button class="linkbtn" data-act="cfChs" data-tec="${k.tec}" data-ref="${ref}">ver chamados</button></div>
         <div><small>Valor fixo</small><b>${brl(A.fixo)}</b></div>${A.ni&&!A.ne?`<div class="cfimp"><small>Abaixo da franquia · improdutivo</small><b>${A.ni} × ${brl(A.un)}</b><span>${brl(A.vImp)}${A.st==='aberto'&&Date.now()<=cfFim(ref)?' até agora':''}</span></div>`:`<div><small>Acima da franquia</small><b>${A.ne} × ${brl(A.exc)}</b><span class="muted">${brl(A.vExc)}</span></div>`}</div>
       <div class="cfvars"><small>Variáveis${ed?' · marque as atingidas no período':''}</small>${A.vars.length?A.vars.map(v=>`<label class="cfvar ${v.ok?'on':''}"><input type="checkbox" ${v.ok?'checked':''} ${ed?`data-act="cfVar" data-tec="${k.tec}" data-ref="${ref}" data-v="${esc(v.id)}"`:'disabled'}><span>${esc(v.nome)}</span><b>${brl(v.valor)}</b></label>`).join(''):'<p class="muted" style="margin:4px 0">Sem variáveis no contrato.</p>'}</div>
       <div class="cftot"><span>Total do período</span><b>${brl(A.total)}</b></div>
-      <div class="actions" style="justify-content:flex-start">${ed&&Date.now()>cfFim(ref)?`<button class="btn primary" data-act="cfEnviar" data-tec="${k.tec}" data-ref="${ref}">Enviar para aprovação</button>`:ed?`<small class="muted">Mês em andamento: os chamados vão acumulando até ${dBR(isoD(new Date(cfFim(ref))))}. O envio para aprovação fica liberado a partir do dia 21.</small>`:''}
-        ${A.st==='env'&&cfCoord()?`<button class="btn primary" data-act="cfAprovar" data-tec="${k.tec}" data-ref="${ref}">Aprovar</button><button class="btn" data-act="cfDevolver" data-tec="${k.tec}" data-ref="${ref}">Devolver</button>`:''}
-        ${A.st==='apr'&&cfCoord()?`<button class="btn" data-act="cfReabrir" data-tec="${k.tec}" data-ref="${ref}">Reabrir</button>`:''}
+      <div class="actions" style="justify-content:flex-start">${ed&&Date.now()>cfFim(ref)?`<button class="btn primary" data-act="cfEnviar" data-tec="${k.tec}" data-ref="${ref}">Aprovar fechamento</button>`:ed?`<small class="muted">Mês em andamento: os chamados vão acumulando até ${dBR(isoD(new Date(cfFim(ref))))}. A aprovação do fechamento fica liberada a partir do dia 21.</small>`:''}
+        ${A.st==='env'&&cfSup()?`<button class="btn primary" data-act="cfAprovar" data-tec="${k.tec}" data-ref="${ref}">Aprovar</button><button class="btn" data-act="cfDevolver" data-tec="${k.tec}" data-ref="${ref}">Devolver</button>`:''}
+        ${A.st==='apr'&&cfSup()?`<button class="btn" data-act="cfReabrir" data-tec="${k.tec}" data-ref="${ref}">Reabrir</button>`:''}
         ${F&&(F.hist||[]).length?`<button class="btn" data-act="cfVer" data-tec="${k.tec}" data-ref="${ref}">Histórico</button>`:''}</div>
       ${F&&F.env&&A.st!=='aberto'?`<small class="muted">Enviado por ${esc(F.env.por)} em ${dBR(isoD(new Date(F.env.em)))}${F.apr&&A.st==='apr'?` · aprovado por ${esc(F.apr.por)} em ${dBR(isoD(new Date(F.apr.em)))}`:''}</small>`:''}</section>`};
   return top+`<div class="kpis cfk">${kp(K.length,'Equipes com contrato fixo')}${kp(R.reduce((s,[,A])=>s+A.n,0),'Chamados no período')}${kp(brl(tot),'Total do período')}${kp(brl(R.reduce((s,[,A])=>s+A.vImp,0)),'Improdutivo (abaixo da franquia)','bad')}${kp(brl(apr),'Aprovado','ok')}</div><div class="cfgrid">${R.map(card).join('')}</div>`}
@@ -19734,16 +19734,23 @@ Object.assign(ACT,{
   cfVar:async el=>{if(!cfSup())return;const tec=el.dataset.tec,ref=el.dataset.ref,F=await cfFechGarante(tec,ref);if(!['aberto','dev'].includes(F.status)){render();return}
     F.ok=Object.assign({},F.ok||{});F.ok[el.dataset.v]=!!el.checked;await cfSalvar(F)},
   cfEnviar:async el=>{if(!cfSup())return;const tec=el.dataset.tec,ref=el.dataset.ref,F=await cfFechGarante(tec,ref);if(!['aberto','dev'].includes(F.status))return;
-    if(Date.now()<=cfFim(ref)){toast('O mês fecha em '+dBR(isoD(new Date(cfFim(ref))))+'. O envio fica liberado a partir do dia 21.','bad');return}
+    if(Date.now()<=cfFim(ref)){toast('O mês fecha em '+dBR(isoD(new Date(cfFim(ref))))+'. A aprovação fica liberada a partir do dia 21.','bad');return}
     const A=cfApura('re',tec,ref);
-    Object.assign(F,{qtd:A.qtd,fixo:A.fixo,exc:A.exc,vars:A.vars,ids:A.ids,n:A.n,total:A.total,status:'env',env:{por:meNome(),em:Date.now()}});delete F.dev;
-    cfH(F,'Enviado para aprovação',`${A.n} chamado(s) · ${A.vars.filter(v=>v.ok).length} de ${A.vars.length} variável(is) · ${brl(A.total)}`);await cfSalvar(F,'Fechamento enviado para o coordenador.')},
-  cfAprovar:async el=>{if(!cfCoord())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='env'){toast('Este fechamento não está aguardando aprovação.','bad');return}
+    openModal(`<h3>Aprovar o fechamento?</h3><p class="muted">${esc(gTecN(tec))} · ${cfPerTxt(ref)}</p>
+      <div class="tablewrap"><table><tbody><tr><td>${A.n} chamado(s) · franquia de ${A.qtd}</td><td></td></tr><tr><td>Valor fixo</td><td class="r">${brl(A.fixo)}</td></tr>${A.ne?`<tr><td>${A.ne} acima da franquia × ${brl(A.exc)}</td><td class="r">${brl(A.vExc)}</td></tr>`:''}
+      <tr><td>Variáveis atingidas (${A.vars.filter(v=>v.ok).length} de ${A.vars.length})</td><td class="r">${brl(A.vOk)}</td></tr><tr><td><b>Total para pagamento</b></td><td class="r"><b>${brl(A.total)}</b></td></tr>${A.vImp?`<tr><td class="cfimp"><span>Improdutivo: ${A.ni} chamado(s) abaixo da franquia</span></td><td class="r cfimp"><span>${brl(A.vImp)}</span></td></tr>`:''}</tbody></table></div>
+      <p class="muted">Aprovado, entra no budget da RE Corretiva e fica disponível para a empresa como valor para pagamento.</p>
+      <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="cfFecharOk" data-tec="${tec}" data-ref="${ref}">Aprovar fechamento</button></div>`)},
+  cfFecharOk:async el=>{if(!cfSup())return;closeModal();const tec=el.dataset.tec,ref=el.dataset.ref,F=await cfFechGarante(tec,ref);if(!['aberto','dev'].includes(F.status)||Date.now()<=cfFim(ref))return;
+    const A=cfApura('re',tec,ref),T=Date.now();
+    Object.assign(F,{qtd:A.qtd,fixo:A.fixo,exc:A.exc,vars:A.vars,ids:A.ids,n:A.n,total:A.total,status:'apr',env:{por:meNome(),em:T},apr:{por:meNome(),em:T}});delete F.dev;
+    cfH(F,'Fechamento aprovado',`${A.n} chamado(s) · ${A.vars.filter(v=>v.ok).length} de ${A.vars.length} variável(is) · ${brl(A.total)}`);await cfSalvar(F,'Fechamento aprovado. Entrou no budget da RE Corretiva.')},
+  cfAprovar:async el=>{if(!cfSup())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='env'){toast('Este fechamento não está aguardando aprovação.','bad');return}
     F.status='apr';F.apr={por:meNome(),em:Date.now()};cfH(F,'Aprovado',brl(F.total));await cfSalvar(F,'Fechamento aprovado. Entrou no budget da RE Corretiva.')},
-  cfDevolver:el=>{if(!cfCoord())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='env')return;
+  cfDevolver:el=>{if(!cfSup())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='env')return;
     rpPergunta('Devolver o fechamento',`${gTecN(F.tec)} · ${cfPerTxt(F.ref)}`,'Motivo',async m=>{F.status='dev';F.dev=m;cfH(F,'Devolvido para a supervisão',m);await cfSalvar(F,'Fechamento devolvido para a supervisão.')},true)},
-  cfReabrir:el=>{if(!cfCoord())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='apr')return;
-    rpPergunta('Reabrir o fechamento aprovado',`${gTecN(F.tec)} · ${cfPerTxt(F.ref)}. Sai do budget até ser aprovado de novo.`,'Motivo',async m=>{F.status='dev';F.dev=m;delete F.apr;cfH(F,'Reaberto pelo coordenador',m);await cfSalvar(F,'Fechamento reaberto.')},true)},
+  cfReabrir:el=>{if(!cfSup())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='apr')return;
+    rpPergunta('Reabrir o fechamento aprovado',`${gTecN(F.tec)} · ${cfPerTxt(F.ref)}. Sai do budget até ser aprovado de novo.`,'Motivo',async m=>{F.status='dev';F.dev=m;delete F.apr;cfH(F,'Reaberto',m);await cfSalvar(F,'Fechamento reaberto.')},true)},
   cfVer:el=>{const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F)return;const A=cfApura('re',F.tec,F.ref);
     openModal(`<h3>Contrato fixo · ${esc(gTecN(F.tec))}</h3><p class="muted">${cfPerTxt(F.ref)} · <span class="chip ${CF_ST[F.status][1]}">${CF_ST[F.status][0]}</span></p>
       <div class="tablewrap"><table><tbody><tr><td>Valor fixo (até ${A.qtd} chamados)</td><td class="r">${brl(A.fixo)}</td></tr><tr><td>${A.ne} chamado(s) acima da franquia × ${brl(A.exc)}</td><td class="r">${brl(A.vExc)}</td></tr>
