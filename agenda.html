@@ -19531,6 +19531,12 @@ document.head.insertAdjacentHTML('beforeend',`<style>.msgq{display:flex;flex-dir
   const cats=typeof RE_CATS!=='undefined'?RE_CATS:[];if(ui.gcCat&&ui.gcCat!=='all'&&!cats.includes(ui.gcCat))ui.gcCat='all';
   let h=viewGcAgenda();h=h.replace(/Agenda · GTD Manutenção/g,'Agenda · Rede Externa');
   h=h.replace(/(<select class="inp" data-ch="gcCat" aria-label="Categoria"><option value="all">Todas as categorias<\/option>)[\s\S]*?(<\/select>)/,(m,x,y)=>x+cats.map(k=>`<option ${ui.gcCat===k?'selected':''}>${esc(k)}</option>`).join('')+y);return h}}
+/* ---------- 8. Kanban: cards nivelados (títulos e descrições das colunas com a mesma altura) ---------- */
+function kbNivela(){document.querySelectorAll('.kb').forEach(kb=>{const C=[...kb.querySelectorAll(':scope>.gkcol')];if(C.length<2)return;
+  ['.kcolh',':scope>small.muted'].forEach(sel=>{const E=C.map(c=>c.querySelector(sel)).filter(Boolean);E.forEach(e=>e.style.minHeight='');const mx=Math.max(...E.map(e=>e.getBoundingClientRect().height));E.forEach(e=>e.style.minHeight=mx+'px')})})}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{kbNivela()}catch(e){}return o}}
+window.addEventListener('resize',()=>{clearTimeout(window.__kbNv);window.__kbNv=setTimeout(kbNivela,120)});
+document.head.insertAdjacentHTML('beforeend','<style>.gkcol>.kvz{margin-top:8px}.gkcol>.kcolh{align-items:flex-start}</style>');
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
