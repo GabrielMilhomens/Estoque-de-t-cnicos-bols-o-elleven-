@@ -19552,6 +19552,20 @@ function kbNivela(){document.querySelectorAll('.kb').forEach(kb=>{const C=[...kb
 {const _r=render;render=function(){const o=_r.apply(this,arguments);try{kbNivela()}catch(e){}return o}}
 window.addEventListener('resize',()=>{clearTimeout(window.__kbNv);window.__kbNv=setTimeout(kbNivela,120)});
 document.head.insertAdjacentHTML('beforeend','<style>.gkcol>.kvz{margin-top:8px}.gkcol>.kcolh{align-items:flex-start}</style>');
+/* ---------- 9. Prestador "Sem LPU (fora do contrato)" também no GTD, na RE Corretiva e na Transmissão ----------
+   O chamado do técnico (ou da empresa) marcado como sem LPU encerra depois do relatório, sem pedir LPU; e as LPUs que
+   já existiam desse prestador saem da Aprovação de LPU, dos totais por prestador, do detalhamento e do budget. */
+const semLpuEq=id=>!!id&&(semLpuTec(id)||semLpuTec(((S.cnpj||{})[id]||{}).empresa));
+const semLpuL=l=>!!l&&!l._pl&&(semLpuEq(l.tec)||semLpuEq(l.prestador));
+let SLC_BUS=false;
+async function chSemLpuVarre(){if(SLC_BUS||!G||!G.ch)return;const eu=ME&&ME.id,ges=typeof gPodeDesp==='function'&&gPodeDesp();
+  const L=G.ch.filter(c=>c.status==='lpu'&&semLpuEq(c.tec)&&!(G.lpus||[]).some(l=>l.chamado===c.id)&&(ges||c.tec===eu||((S.cnpj||{})[c.tec]||{}).empresa===eu));if(!L.length)return;
+  SLC_BUS=true;try{for(const c of L)await gAcao(c.id,x=>{if(x.status!=='lpu')return false;x.status='concl';x.semLpu=true;x.ts.semLpu=Date.now();gHist(x,'Encerrado sem LPU (prestador fora do contrato de LPU)')},null)}finally{SLC_BUS=false}}
+{const _r=render;render=function(){const a=arguments;
+  if(!gTecPerfil()){const fG=G.lpus,fS=S.lpus,tG=Array.isArray(fG)&&fG.some(semLpuL),tS=Array.isArray(fS)&&fS.some(semLpuL);
+    if(tG||tS){const sub=A=>{const F=A.filter(l=>!semLpuL(l));F.find=A.find.bind(A);F.findIndex=A.findIndex.bind(A);return F};const nG=tG?sub(fG):fG,nS=tS?sub(fS):fS;G.lpus=nG;S.lpus=nS;
+      try{return _r.apply(this,a)}finally{if(G.lpus===nG)G.lpus=fG;if(S.lpus===nS)S.lpus=fS;setTimeout(chSemLpuVarre,0)}}}
+  const o=_r.apply(this,a);setTimeout(chSemLpuVarre,0);return o}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
