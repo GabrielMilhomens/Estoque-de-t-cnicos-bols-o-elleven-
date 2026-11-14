@@ -20056,6 +20056,10 @@ const cfProgPseudo=x=>({id:'rp:'+x.id,_rp:1,tec:x.tec,ts:{desloc:(x.jor||{}).des
 {const _m=cfModalChs;cfModalChs=function(tec,ref){const P=(typeof RP!=='undefined'&&RP.rows||[]).filter(x=>x.tec===tec).map(cfProgPseudo),had=Object.prototype.hasOwnProperty.call(G,'__full'),sv=G.__full;
   G.__full=(sv||G.ch).concat(P);try{const r=_m.apply(this,arguments);const t=document.querySelector('#modal h3');if(t)t.textContent='Chamados e programadas de '+gTecN(tec);return r}finally{if(had)G.__full=sv;else delete G.__full}}}
 {const _o=ACT.cfAbrirCh;ACT.cfAbrirCh=function(el){const id=el.dataset.id||'';if(id.startsWith('rp:')){closeModal();return ACT.rpAbrir({dataset:{id:id.slice(3)}})}return _o.apply(this,arguments)}}
+/* Gestão financeira do técnico e do dono da empresa: só as LPUs de programada já enviadas (ou devolvidas/reprovadas);
+   a programada ainda sem LPU enviada fica em "LPU para preencher", não como "Aguardando aprovação". */
+{const _r=reLpusProg;reLpusProg=function(){const L=_r.apply(this,arguments)||[];if(!(typeof gTecPerfil==='function'&&gTecPerfil()))return L;
+  return L.filter(l=>{const x=rpGet(String(l.id).slice(3));return x&&x.lpu&&(x.lpu.env||x.lpu.dev||x.lpu.rep)})}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
