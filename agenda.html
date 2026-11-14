@@ -19794,7 +19794,12 @@ function cfPrestBloco(me){if(!CF.ok&&!CF.err&&!CF.bus)cfCarregar();const K=CF.ok
       ${anteriores.filter(x=>x.ref!==ult&&x.status==='apr').length?`<details class="cfhist"><summary>Meses anteriores</summary>${anteriores.filter(x=>x.ref!==ult&&x.status==='apr').map(x=>`<div class="cfkrow"><span>${cfPerTxt(x.ref)}</span><b>${brl(cfApura(a,x.tec,x.ref).total)}</b></div>`).join('')}</details>`:''}</section>`};
   return `<div class="cfprest"><h3 style="margin:0 0 8px">Contrato fixo</h3><div class="cfgrid">${K.map(card).join('')}</div></div>`}
 /* Gestão financeira dividida: Contrato fixo | Contrato LPU (menu lateral e abas). Sem LPU e sem nenhuma LPU: só Contrato fixo. */
-const cfPrestSubs=me=>{if(!me||ui.perfil==='func'||!CF.ok||!cfMeus(me).length)return null;const temLpu=!(typeof semLpuEq==='function'&&semLpuEq(me))||S.lpus.concat(G.lpus||[]).some(l=>l.tec===me||l.prestador===me);return temLpu?['cf','lpu']:['cf']};
+/* Contrato fixo e Contrato LPU só para quem tem os dois: alguma equipe no regime de LPU (técnico sem "Sem LPU") ou LPU ainda em aberto.
+   Só fixo: só a tela do contrato fixo, sem abas. Só LPU (sem contrato fixo): a Gestão financeira de sempre. */
+const cfEquipesDe=me=>{const F=Object.entries(S.cnpj||{}).filter(([id,x])=>x&&x.empresa===me).map(([id])=>id);return F.length?F:[me]};
+const cfPrestSubs=me=>{if(!me||ui.perfil==='func'||!CF.ok||!cfMeus(me).length)return null;const E=cfEquipesDe(me),sl=id=>typeof semLpuEq==='function'&&semLpuEq(id);
+  const regime=E.some(id=>!sl(id)),aberta=S.lpus.concat(G.lpus||[]).some(l=>(E.includes(l.tec)||l.tec===me||l.prestador===me)&&['conferencia','aguardando','ajuste'].includes(l.status));
+  return regime||aberta?['cf','lpu']:['cf']};
 {const _m=viewMinhas;viewMinhas=function(emb){const me=ui.tec;if(!CF.ok&&!CF.err&&!CF.bus&&me&&ui.perfil!=='func')cfCarregar();const S2=cfPrestSubs(me);if(!S2)return _m.apply(this,arguments);
   try{const sub=S2.includes(ui.mSub)?ui.mSub:(ui.mSub='cf'),vw=S2.length>1?`<div class="views" style="margin:0 0 14px"><button data-act="cfMSub" data-v="cf" aria-current="${sub==='cf'}">Contrato fixo</button><button data-act="cfMSub" data-v="lpu" aria-current="${sub==='lpu'}">Contrato LPU</button></div>`:'';
     if(sub==='lpu'){const h=_m.apply(this,arguments);const h2=h.replace('<h2>Gestão financeira</h2>','<h2>Gestão financeira · Contrato LPU</h2>'),i=h2.indexOf('<div class="tools">');return i<0?vw+h2:h2.slice(0,i)+vw+h2.slice(i)}
