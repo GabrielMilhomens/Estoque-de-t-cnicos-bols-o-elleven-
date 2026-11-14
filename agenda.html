@@ -16305,8 +16305,10 @@ const reTerc=id=>!id||gTecV(id)!=='CLT';
 function rePrevDados(mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes,CH=G.lpus.filter(l=>rePrevL(l)&&!gLpuClt(l));
   const chAp=CH.filter(doMes),chPe=CH.filter(l=>l.status==='aguardando'||l.status==='ajuste');
   const P=(typeof RP!=='undefined'&&RP.rows?rpProgs():[]).filter(x=>['prev','cia'].includes(x.tipo)&&x.status!=='canc');
-  const env=x=>x.lpu&&x.lpu.env,pAp=P.filter(x=>env(x)&&mesDe(x.lpu.env.em)===mes&&reTerc(x.tec)),pPe=P.filter(x=>!env(x)&&rpLpuPronta(x)&&reTerc(x.tec)),clt=P.filter(x=>env(x)&&mesDe(x.lpu.env.em)===mes&&!reTerc(x.tec));
-  const vP=x=>rpLpuVal(env(x)?x.lpu.itens:rpLpuSug(x)),org=x=>x.tipo==='cia'?'Companhia elétrica (programadas)':x.seg==='sub'?'Preventiva subterrânea':'Preventiva aérea';
+  /* 14/11: LPU enviada passa pela Aprovação de LPU (env.v2); aprovada conta no mês da aprovação; contrato fixo não tem LPU */
+  const env=x=>x.lpu&&x.lpu.env,apOk=x=>env(x)&&(!x.lpu.env.v2||x.lpu.apr)&&!x.lpu.rep,apEm=x=>(x.lpu.apr&&x.lpu.apr.em)||x.lpu.env.em,semL=x=>typeof rpQuem==='function'&&rpQuem(x)==='nenhum';
+  const pAp=P.filter(x=>!semL(x)&&apOk(x)&&mesDe(apEm(x))===mes&&reTerc(x.tec)),pPe=P.filter(x=>!semL(x)&&((!env(x)&&rpLpuPronta(x))||(env(x)&&x.lpu.env.v2&&!x.lpu.apr&&!x.lpu.rep))&&reTerc(x.tec)),clt=P.filter(x=>!semL(x)&&apOk(x)&&mesDe(apEm(x))===mes&&!reTerc(x.tec));
+  const vP=x=>{const I=env(x)?x.lpu.itens:rpLpuSug(x);return (I||[]).some(i=>i.unit!=null)?(I||[]).reduce((s,i)=>s+(+i.unit||0)*(+i.qtd||0),0):rpLpuVal(I)},org=x=>x.tipo==='cia'?'Companhia elétrica (programadas)':x.seg==='sub'?'Preventiva subterrânea':'Preventiva aérea';
   const uso=gSoma(chAp)+pAp.reduce((s,x)=>s+vP(x),0),comp=gSoma(chPe)+pPe.reduce((s,x)=>s+vP(x),0);
   const O={};const add=(k,v,ap)=>{const o=O[k]=O[k]||{n:0,v:0,pn:0,pv:0};if(ap){o.n++;o.v+=v}else{o.pn++;o.pv+=v}};
   const chO=l=>{const c=G.ch.find(x=>x.id===l.chamado);return /preventiva/i.test(normK((c&&c.categoria)||l.categoria||''))?'Chamados de preventiva':'Chamados de companhia elétrica'};chAp.forEach(l=>add(chO(l),+l.total||0,1));chPe.forEach(l=>add(chO(l),+l.total||0,0));pAp.forEach(x=>add(org(x),vP(x),1));pPe.forEach(x=>add(org(x),vP(x),0));
@@ -18888,7 +18890,10 @@ function rpChatIr(id,chat){if(!id)return;if(gTecPerfil()){ui.tab='campo';ui.camp
       envio que antes só a gestão fazia (x.lpu.env, com tec:true). A gestão ainda pode enviar pelo detalhe, se precisar.
    3. Encerradas: as programadas concluídas pelo técnico (em revisão, LPU enviada ou concluída) aparecem na aba
       Encerradas de Minhas atividades, com a contagem. */
-const rpLpuTec=x=>!!x&&x.tipo==='cia'&&rpLpuPronta(x)&&!(x.lpu&&x.lpu.env);
+/* 14/11: em todas as programadas, quem preenche a LPU é o próprio técnico (CLT ou terceiro); funcionário de empresa
+   terceira não vê LPU (vai para o administrador); equipe Sem LPU (contrato fixo) não tem LPU. Ver rpfluxo.js. */
+const rpQuem=x=>{const t=x&&x.tec;if(!t)return 'gest';if(typeof semLpuEq==='function'&&semLpuEq(t))return 'nenhum';if(((S.cnpj||{})[t]||{}).empresa)return 'adm';return 'tec'};
+const rpLpuTec=x=>!!x&&['prev','mel','ret','cia'].includes(x.tipo)&&rpLpuPronta(x)&&!(x.lpu&&x.lpu.env)&&rpQuem(x)==='tec';
 const rpEncTec=x=>x.status==='concl'&&!rpRejN(x)&&!rpLpuTec(x);
 const rpUltEm=x=>{const h=(x.hist||[]).slice(-1)[0];return (h&&h.em)||Date.parse(x.data||0)||0};
 /* 1. material usado na Preventiva */
@@ -18901,9 +18906,9 @@ const rpUltEm=x=>{const h=(x.hist||[]).slice(-1)[0];return (h&&h.em)||Date.parse
 function rpLpuTecHtml(x){const L=rpLpuSug(x);
   return `<div class="rplpu">${L.map(i=>{const it=rpLpuIt(i.cod);return `<div class="rpit"><span><b>${esc(i.cod)}</b> ${esc(it.desc||'')}</span><b>${rpFmt(i.qtd,1)} ${esc(String(it.medida||'').toLowerCase())}</b></div>`}).join('')}
    <p class="muted" style="margin:8px 0 0">Resultado aprovado na revisão: ${esc(rpAnd(x))}. Confira o serviço e envie para a Aprovação de LPU.</p></div>`}
-{const _t=rpTecTela;rpTecTela=function(x){let h=_t.apply(this,arguments);if(!x||x.tipo!=='cia')return h;
+{const _t=rpTecTela;rpTecTela=function(x){let h=_t.apply(this,arguments);if(!x||!['prev','mel','ret','cia'].includes(x.tipo))return h;
   if(rpLpuTec(x)){h=h.replace('<div class="result ok" style="margin:0">Atividade concluída e revisada.</div>','<div class="result warn" style="margin:0"><b>Resultado aprovado.</b> Agora preencha a LPU.</div>');
-    const sec=tvAcc('rp:lpu:'+x.id,true,IC.doc,'LPU','Serviço sugerido pelo resultado',rpLpuTecHtml(x)),ft=tvFoot(`<button class="bigbtn" data-act="rpTLpu" data-id="${x.id}" data-hold="2000">Segure para enviar a LPU</button><small class="tvnota">Vai para a Aprovação de LPU da Rede Externa Preventiva.</small>`);
+    const sec=tvAcc('rp:lpu:'+x.id,true,IC.doc,'LPU','Serviço sugerido pelo resultado',rpLpuTecHtml(x)),ft=tvFoot(`<button class="bigbtn" data-act="rpTLpu" data-id="${x.id}" data-hold="2000">Segure para enviar a LPU</button><small class="tvnota">Vai para o financeiro da Rede Externa Preventiva.</small>`);
     const i=h.lastIndexOf('<div class="tvft">');return i>=0?h.slice(0,i)+sec+ft:h+sec+ft}
   const e=x.lpu&&x.lpu.env;if(e&&x.status==='concl')h=h.replace('<div class="result ok" style="margin:0">Atividade concluída e revisada.</div>',`<div class="result ok" style="margin:0">Atividade concluída. LPU enviada${e.tec?'':' pela gestão'} em ${rpDH(e.em)}.</div>`);
   return h}}
@@ -18911,7 +18916,7 @@ Object.assign(ACT,{rpTLpu:async el=>{const x=rpGet(el.dataset.id);if(!rpLpuTec(x
   const L=rpLpuSug(x);if(!L.length){toast('Sem serviço para lançar.','bad');return}const ant=x.lpu;x.lpu={itens:L,env:{por:meNome(),em:Date.now(),tec:true}};rpH(x,'LPU enviada pelo técnico');
   if(await rpSalvar(x,'LPU enviada para a Aprovação de LPU.')){ui.rpT=null;ui.cF='enc'}else x.lpu=ant;render();window.scrollTo(0,0)}});
 /* gestão: na companhia elétrica, quem preenche é o técnico (a gestão pode enviar se precisar) */
-{const _l=rpLpuHtml;rpLpuHtml=function(x){const h=_l.apply(this,arguments);if(!x||x.tipo!=='cia'||!rpLpuTec(x))return h;
+{const _l=rpLpuHtml;rpLpuHtml=function(x){const h=_l.apply(this,arguments);if(!x||!rpLpuTec(x))return h;
   return h.replace(/<div class="actions"><button class="btn primary" data-act="rpLpuEnv" data-id="([^"]+)">Enviar para Aprovação de LPU<\/button><\/div>/,(m,id)=>`<p class="muted">Aguardando o técnico preencher a LPU no app.</p><div class="actions"><button class="btn" data-act="rpLpuEnv" data-id="${id}">Enviar pela gestão</button></div>`)}}
 /* card: concluída, em revisão, LPU liberada ou enviada */
 {const _c=rpTvCard;rpTvCard=function(x){const h=_c.apply(this,arguments);if(!x||x.status!=='concl'||rpRejN(x))return h;
@@ -19937,6 +19942,120 @@ ACT.eqTecSel=el=>{const v=el.dataset.id||'';ui.eqTec=ui.eqTec===v?'':v;render()}
 document.head.insertAdjacentHTML('beforeend',`<style>.eqtime{margin:0 0 14px}.eqtl{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:8px}
 .eqtp{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--card,#fff);padding:10px 12px;cursor:pointer;font:inherit;color:inherit}
 .eqtp small{color:var(--muted)}.eqtp[aria-pressed="true"]{border-color:#5a8f1c;background:#f3f9ea}.eqtime .linkbtn{margin-top:6px;padding:0}</style>`);
+
+/* 14/11: RE Preventiva (programadas: Preventiva, Melhoria, Retirada e Companhia elétrica) no mesmo fluxo das outras áreas.
+   - Técnico (CLT ou terceiro, não funcionário): faz o apontamento e, concluída, preenche a LPU (montada pelos apontamentos).
+   - Funcionário de empresa terceira: só o apontamento/relatório; a LPU vai para o administrador da empresa conferir e enviar
+     (Minha equipe > Programadas da RE Preventiva). O funcionário vê "Com o administrador".
+   - Equipe Sem LPU (contrato fixo): não tem LPU; só o apontamento. Fica fora do financeiro das programadas.
+   - Programada sem técnico definido: a gestão envia, como antes.
+   Banco: agenda_ajuste_81_preventiva_adm_empresa.sql (o administrador lê e grava as programadas dos funcionários dele;
+   funcionário não envia LPU). */
+const RP_TPN={prev:'Preventiva',mel:'Melhoria',ret:'Retirada de cabo',cia:'Companhia elétrica'};
+const rpLpuAdm=x=>!!x&&['prev','mel','ret','cia'].includes(x.tipo)&&rpLpuPronta(x)&&!(x.lpu&&x.lpu.env)&&rpQuem(x)==='adm';
+/* financeiro: sem LPU para contrato fixo; LPU do funcionário com o prestador (empresa) para a Gestão financeira do dono */
+{const _r=reLpusProg;reLpusProg=function(){const L=_r.apply(this,arguments)||[];return L.filter(l=>{const x=rpGet(String(l.id).slice(3));return !(x&&rpQuem(x)==='nenhum')}).map(l=>{const e=((S.cnpj||{})[l.tec]||{}).empresa;return e&&!l.prestador?Object.assign(l,{prestador:e}):l})}}
+/* técnico: mensagem depois de concluir quando a LPU não é dele */
+{const _t=rpTecTela;rpTecTela=function(x){let h=_t.apply(this,arguments);if(!x||x.status!=='concl'||(x.lpu&&x.lpu.env))return h;const q=rpQuem(x);
+  const m=q==='adm'&&rpLpuPronta(x)?'Atividade concluída. A LPU fica com o administrador da sua empresa.':q==='nenhum'?'Atividade concluída. Contrato fixo: não tem LPU.':'';
+  return m?h.replace('<div class="result ok" style="margin:0">Atividade concluída e revisada.</div>',`<div class="result ok" style="margin:0">${m}</div>`):h}}
+{const _c=rpTvCard;rpTvCard=function(x){const h=_c.apply(this,arguments);if(!x||x.status!=='concl'||(x.lpu&&x.lpu.env)||rpRejN(x))return h;const q=rpQuem(x);
+  if(q==='adm'&&rpLpuPronta(x))return h.replace(/<span class="chip [^"]*">(?:Concluída|LPU liberada)<\/span>/,'<span class="chip">Com o administrador</span>');return h}}
+/* gestão: detalhe e esteira mostram com quem está a LPU */
+{const _l=rpLpuHtml;rpLpuHtml=function(x){const h=_l.apply(this,arguments);if(!x||(x.lpu&&x.lpu.env))return h;const q=rpQuem(x);
+  if(q==='nenhum')return h?`<section class="rpsec"><h3>LPU</h3><p class="muted">Equipe no contrato fixo (Sem LPU): esta programada não tem LPU. Conta só o apontamento.</p></section>`:h;
+  if(q==='adm'&&rpLpuPronta(x)){const adm=((S.cnpj||{})[x.tec]||{}).empresa;return h.replace(/<div class="actions"><button class="btn primary" data-act="rpLpuEnv" data-id="([^"]+)">Enviar para Aprovação de LPU<\/button><\/div>/,(m,id)=>`<p class="muted">Aguardando o administrador da empresa${adm?' ('+esc(gTecN(adm))+')':''} conferir e enviar a LPU.</p><div class="actions"><button class="btn" data-act="rpLpuEnv" data-id="${id}">Enviar pela gestão</button></div>`)}
+  return h}}
+{const _c=rpCard;rpCard=function(x){const h=_c.apply(this,arguments);if(!x||x.status!=='concl'||(x.lpu&&x.lpu.env))return h;const q=rpQuem(x);
+  const t=q==='nenhum'?'contrato fixo, sem LPU':q==='adm'?'aguardando a LPU do administrador da empresa':q==='tec'?'aguardando a LPU do técnico':'';if(!t)return h;
+  return h.replace(/(<span class="cas[^"]*">Concluída [0-9/]+ · )[^<]*(<\/span>)/,(m,a,b)=>a+t+b).replace(/<span class="cas warn">([^<]*contrato fixo, sem LPU)<\/span>/,'<span class="cas ok">$1</span>')}}
+/* ---- Minha equipe (administrador) e Visão da empresa terceira: programadas dos funcionários ---- */
+function eqProgBloco(ids,F,ro){if(typeof RP==='undefined')return '';if(!RP.ok&&!RP.bus&&!RP.err)rpCarregar().catch(()=>{});const ok=t=>ids.has(t)&&(!F||t===F);
+  const L=(RP.rows||[]).filter(x=>x.tec&&ok(x.tec)&&['prev','mel','ret','cia'].includes(x.tipo)&&x.status!=='canc');if(!L.length)return '';
+  const lim=Date.now()-30*864e5,lpu=L.filter(rpLpuAdm),campo=L.filter(x=>x.status==='campo'||(x.status==='desp'&&rpAps(x).length)),desp=L.filter(x=>x.status==='desp'&&!rpAps(x).length),
+    enc=L.filter(x=>x.status==='concl'&&!rpLpuAdm(x)&&rpUltEm(x)>=lim).sort((a,b)=>rpUltEm(b)-rpUltEm(a));
+  const sit=x=>{const e=x.lpu&&x.lpu.env,q=rpQuem(x);if(x.status!=='concl')return x.status==='campo'||rpAps(x).length?['Em campo','info']:['Despachada',''];
+    if(rpLpuAdm(x))return['LPU para preencher','warn'];if(e)return['LPU enviada','ok'];if(q==='nenhum')return['Concluída · contrato fixo','ok'];return['Concluída','ok']};
+  const card=x=>{const s=sit(x),onde=[x.cidade,x.end||x.servico||(x.cia&&x.cia.tipo)].filter(Boolean).join(' · ');
+    return `<article class="eqc"><div class="eqh"><b>${esc(x.cod)}</b><span class="chip ${s[1]}">${s[0]}</span></div><small>RE Preventiva · ${esc(RP_TPN[x.tipo]||x.tipo)}${onde?' · '+esc(onde):''}</small><span class="eqt">${esc(gTecN(x.tec))} · ${x.status==='concl'?'concluída '+dBR(isoD(new Date(rpUltEm(x)))):'planejada '+dBR(x.data||'')}</span>${rpLpuAdm(x)&&!ro?`<button class="bigbtn" data-act="rpAdmLpu" data-id="${x.id}">Preencher a LPU</button>`:''}</article>`};
+  const sec=(t,V,vz)=>`<section class="eqs"><h3 class="lsub">${t} <span class="chip">${V.length}</span></h3>${V.map(card).join('')||`<p class="muted">${vz}</p>`}</section>`;
+  return `<div class="eqprog"><h2 class="eqph">Programadas da RE Preventiva</h2>${sec('LPU para preencher',lpu,'Nenhuma LPU pendente. Quando um funcionário concluir uma programada e enviar o relatório, ela aparece aqui.')}${campo.length?sec('Em campo agora',campo,''):''}${desp.length?sec('Despachadas',desp,''):''}${sec('Concluídas nos últimos 30 dias',enc.slice(0,30),'Nenhuma programada concluída nos últimos 30 dias.')}</div>`}
+{const _v=viewEquipe;viewEquipe=function(){const h=_v.apply(this,arguments);try{if(ui.lpuTela)return h;const ids=eqIds(),ro=['eqVer','gEqVer'].includes(ui.tab),b=eqProgBloco(ids,ui.eqTec||'',ro);if(!b)return h;
+  const n=(RP.rows||[]).filter(x=>ids.has(x.tec)&&(!ui.eqTec||x.tec===ui.eqTec)&&rpLpuAdm(x)).length;
+  let o=h.replace(/(<div class="kpi[^"]*"><b>)(\d+)(<\/b><span>LPUs para preencher<\/span>)/,(m,a,v,c)=>a+(+v+n)+c);
+  const i=o.lastIndexOf('</div>');return i>=0?o.slice(0,i)+b+o.slice(i):o+b}catch(e){console.warn('eqProg',e);return h}}}
+/* ---- funcionário (e equipe Sem LPU): só escreve o que foi feito; não escolhe serviço de LPU ---- */
+const rpSoRel=x=>!!x&&['adm','nenhum'].includes(rpQuem(x));
+{const _f=rpTecForm;rpTecForm=function(x){let h=_f.apply(this,arguments);if(!rpSoRel(x))return h;const k=rpDk(x),d=rpDr(x),txt=rpTxtT(k,'feito','O que foi feito *',d,'Descreva o serviço executado: onde, o que foi trocado ou lançado, quantidades.');
+  if(x.tipo==='mel')h=h.replace(/<section class="rpsec"><h3>Serviços feitos <small class="muted">conta 0103<\/small><\/h3>[\s\S]*?<\/select><\/section>/,txt);
+  else h=h.replace(/(<label class="fld"><span>Data do serviço \*<\/span>[\s\S]*?<\/label>)/,'$1'+txt);return h}}
+{const _a=rpFaltaAp;rpFaltaAp=function(x,d){let F=_a.apply(this,arguments);if(!rpSoRel(x))return F;F=F.filter(m=>m!=='pelo menos 1 serviço com quantidade');if(!String((d.v||{}).feito||'').trim())F.push('o que foi feito');return F}}
+{const _r=rpApResumo;rpApResumo=function(x,a){const t=_r.apply(this,arguments);const f=a&&a.v&&String(a.v.feito||'').trim();return f?t+' · '+f:t}}
+/* ---- administrador monta a LPU (mesmas telas da LPU do chamado: serviços, conferência, assinatura) ---- */
+const RP_CTA=x=>{const c=x.tipo==='mel'?'0103':x.tipo==='ret'?'0102':'0101';return (typeof LPU_CONTAS!=='undefined'&&LPU_CONTAS.find(k=>k.startsWith('3.1.1.2.05.'+c)))||(typeof RE_PREV!=='undefined'?RE_PREV:GTD_CONTA)};
+const rpLpuKey=id=>'G:rp~'+id,rpDeKey=k=>String(k||'').startsWith('G:rp~')?rpGet(String(k).slice(5)):null;
+function rpLpuPseudo(x){return{id:'rp~'+x.id,cliente:(RP_TPN[x.tipo]||x.tipo)+' · '+(x.cidade||''),pom:x.cod,categoria:'RE Preventiva',tec:x.tec,etiqueta:x.cod}}
+function rpLpuTelaView(x){const c=rpLpuPseudo(x),ct=GTD_CONTA;GTD_CONTA=RP_CTA(x);let h;try{h=gLpuView(c)}finally{GTD_CONTA=ct}
+  const A=rpAps(x).filter(a=>a.st!=='rej'),rel=`<section class="tbox"><b class="lpt" style="font-size:17px">O que o funcionário informou</b>${A.map(a=>`<div class="rprel"><small class="muted">${a.data?dBR(a.data):''} · ${a.tipo==='final'?'finalizado':a.tipo==='parcial'?'parcial':'apontamento'}</small><span>${esc(rpApResumo(x,a))}</span>${(a.fotos||[]).length?`<small class="muted">${a.fotos.length} foto(s)</small>`:''}</div>`).join('')||'<p class="muted">Sem apontamento.</p>'}</section>`;
+  h=h.replace('LPU DO CHAMADO','LPU DA PROGRAMADA').replace('‹ Voltar para o chamado','‹ Voltar para Minha equipe').replace('(fixa no GTD Manutenção)','(fixa na RE Preventiva)').replace(/O&amp;M ([^·<]*) · RE Preventiva/,'$1 · '+esc(gTecN(x.tec)))
+   .replace('executados por mim neste chamado','executados pela minha equipe nesta programada').replace('Depois de assinar, só a gestão pode devolver a LPU para ajuste.','Depois de enviar, a LPU vai para o financeiro da RE Preventiva.');
+  const i=h.indexOf('</section>');return i>=0?h.slice(0,i+10)+rel+h.slice(i+10):rel+h}
+{const _v=viewEquipe;viewEquipe=function(){const x=rpDeKey(ui.lpuTela);if(x){if(eqIds().has(x.tec)&&rpLpuAdm(x)&&!['eqVer','gEqVer'].includes(ui.tab))return `<div class="campo">${rpLpuTelaView(x)}</div>`;ui.lpuTela=null}return _v.apply(this,arguments)}}
+{const _p=ACT.gLpuPasso;ACT.gLpuPasso=function(el){const x=rpDeKey(ui.lpuTela);const r=_p.apply(this,arguments);if(x&&+el.dataset.p===3)ui.sign={tipo:'rp',id:x.id,key:ui.lpuTela,tec:x.tec};return r}}
+{const _s=ACT.sgOk;ACT.sgOk=async function(){const g=ui.sign;if(!g||g.tipo!=='rp')return _s.apply(this,arguments);const x=rpGet(g.id),nome=(($('sgNome')||{}).value||'').trim();
+  if(!nome){toast('Informe o nome do responsável.','bad');return}if(!ui.sgDraw){toast('Faça a assinatura no quadro.','bad');return}if($('sgDecl')&&!$('sgDecl').checked){toast('Marque a declaração para enviar.','bad');return}
+  if(!x||!rpLpuAdm(x)){toast('Esta LPU já foi enviada.','bad');ui.lpuTela=null;render();return}
+  const itens=draftItens(g.key),d=lpuDraft(g.key),total=itens.reduce((s,i)=>s+i.unit*i.qtd,0);closeModal();
+  const ant=x.lpu;x.lpu={itens:itens.map(i=>({cod:i.cod,qtd:i.qtd,unit:i.unit,fator:i.fator,desc:i.desc})),total,obs:(d.obs||'').trim()||undefined,conta:RP_CTA(x),env:{por:nome,em:Date.now(),adm:true,admPor:meNome()}};
+  rpH(x,'LPU montada e enviada pelo administrador da empresa');
+  if(await rpSalvar(x,'LPU assinada e enviada para o financeiro da RE Preventiva.')){delete ui.draft[g.key];ui.lpuTela=null;ui.lpuP=1;ui.sign=null}else x.lpu=ant;render();window.scrollTo(0,0)}}
+/* financeiro: a LPU montada pelo administrador usa os serviços e valores dele */
+{const _r=reLpusProg;reLpusProg=function(){return(_r.apply(this,arguments)||[]).map(l=>{const x=rpGet(String(l.id).slice(3)),e=x&&x.lpu&&x.lpu.env;if(!e||!e.adm||!Array.isArray(x.lpu.itens)||!x.lpu.itens.some(i=>i.unit!=null))return l;
+  const it=x.lpu.itens.map(i=>{const r=rpLpuIt(i.cod);return{cod:i.cod,desc:i.desc||r.desc||i.cod,classe:r.classe||'Sem classe',medida:r.medida||'',unit:+i.unit||0,qtd:+i.qtd||0,fator:i.fator}});return Object.assign(l,{itens:it,total:it.reduce((s,i)=>s+i.unit*i.qtd,0),conta:x.lpu.conta||l.conta})})}}
+Object.assign(ACT,{rpAdmLpu:el=>{const x=rpGet(el.dataset.id);if(!x||!rpLpuAdm(x)){toast('Esta LPU já foi enviada.','bad');render();return}
+    if(['eqVer','gEqVer'].includes(ui.tab)){toast('Visão da empresa terceira é só para consulta.','bad');return}
+    const key=rpLpuKey(x.id);if(!ui.draft[key])ui.draft[key]={conta:RP_CTA(x),fixa:true,q:{}};ui.lpuTela=key;ui.lpuP=1;ui.lpuQ='';ui.lpuCls='';ui.tab='equipe';render();window.scrollTo(0,0)}});
+document.head.insertAdjacentHTML('beforeend','<style>.rprel{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line);padding:8px 0}.eqprog{margin-top:22px;border-top:2px solid var(--line);padding-top:14px}.eqph{font-size:20px;margin:0 0 6px}</style>');
+/* ---- 14/11 (2): LPU das programadas passa pela Aprovação de LPU da RE Preventiva (supervisão, ex.: Vinicius) ----
+   Envio novo (técnico, administrador ou gestão) fica com env.v2; aprovar grava lpu.apr; devolver para ajuste volta para
+   quem envia (lpu.dev, sem env); reprovar grava lpu.rep. Envios antigos (antes desta versão) continuam aprovados. */
+const RPV2_T=Date.now()-60000;
+{const _s=rpSalvar;rpSalvar=function(x){try{const L=x&&x.lpu;if(L&&L.env&&!L.env.v2&&!L.apr&&(+L.env.em||0)>=RPV2_T){L.env.v2=1;delete L.dev;delete L.rep}}catch(e){}return _s.apply(this,arguments)}}
+const rpStL=x=>{const L=x&&x.lpu;if(!L)return null;if(L.rep)return 'reprovada';if(L.env){if(!L.env.v2||L.apr)return 'aprovada';return 'aguardando'}if(L.dev)return 'ajuste';return null};
+{const _r=reLpusProg;reLpusProg=function(){return(_r.apply(this,arguments)||[]).map(l=>{const x=rpGet(String(l.id).slice(3));if(!x||!x.lpu)return l;const st=rpStL(x),L=x.lpu;if(!st)return l;
+  const h=[];if(L.env)h.push({acao:'Enviada',por:L.env.por,em:L.env.em});if(L.dev)h.push({acao:'Devolvida para ajuste',por:L.dev.por,em:L.dev.em,motivo:L.dev.motivo});if(L.rep)h.push({acao:'Reprovada',por:L.rep.por,em:L.rep.em,motivo:L.rep.motivo});
+  if(st==='aprovada')h.push({acao:'Aprovada',por:L.apr?L.apr.por:L.env.por,em:L.apr?L.apr.em:L.env.em});
+  return Object.assign(l,{status:st,hist:h,data:isoD(new Date((L.apr&&L.apr.em)||(L.env&&L.env.em)||Date.now())),_rpApr:1})})}}
+/* Aprovação de LPU da RE Preventiva: entram as LPUs de programadas enviadas por esta versão */
+const rpAprV=()=>(reLpusProg()||[]).filter(l=>{const x=rpGet(String(l.id).slice(3));return x&&x.lpu&&((x.lpu.env&&x.lpu.env.v2)||x.lpu.dev||x.lpu.rep)});
+{const _a=viewGAprov;viewGAprov=function(){if(typeof reAt!=='function'||!reAt()||gTecPerfil()||reLado()!=='prev')return _a.apply(this,arguments);
+  const V=rpAprV();if(!V.length)return _a.apply(this,arguments);const all=G.lpus,A=all.concat(V);A.filter=function(fn,t){return Array.prototype.filter.call(this,(l,i,arr)=>l&&l._rpApr?true:fn.call(t,l,i,arr))};
+  G.lpus=A;try{return _a.apply(this,arguments)}finally{if(G.lpus===A)G.lpus=all}}}
+{const _ap=ACT.gAprovar;ACT.gAprovar=async function(el){const id=(el&&el.dataset&&el.dataset.id)||'';if(!id.startsWith('rp:'))return _ap.apply(this,arguments);if(!pode('a_gAprovar')&&semPerm())return;
+  const x=rpGet(id.slice(3));if(!x||rpStL(x)!=='aguardando'){toast('Esta LPU não está aguardando aprovação.','bad');render();return}
+  x.lpu.apr={por:meNome(),em:Date.now()};rpH(x,'LPU aprovada');await rpSalvar(x,'LPU aprovada.');render()}}
+{const _dc=ACT.gDecidir;ACT.gDecidir=function(el){const id=(el&&el.dataset&&el.dataset.id)||'';if(!id.startsWith('rp:'))return _dc.apply(this,arguments);if(!pode('a_gAprovar')&&semPerm())return;
+  const x=rpGet(id.slice(3)),aj=el.dataset.t==='ajuste';if(!x||rpStL(x)!=='aguardando')return;
+  rpPergunta(aj?'Devolver para ajuste':'Reprovar a LPU',`${x.cod} · ${gTecN(x.tec)}`,'Motivo',async m=>{const L=x.lpu,T={motivo:m,por:meNome(),em:Date.now()};
+    if(aj){x.lpu={itens:L.itens,total:L.total,conta:L.conta,dev:T};rpH(x,'LPU devolvida para ajuste',m)}else{L.rep=T;rpH(x,'LPU reprovada',m)}await rpSalvar(x,aj?'LPU devolvida para ajuste.':'LPU reprovada.');render()},true)}}
+{const _pa=ACT.pdfArq;ACT.pdfArq=function(el){const id=(el&&el.dataset&&el.dataset.id)||'';if(id.startsWith('rp:'))return ACT.rpAbrir({dataset:{id:id.slice(3)}});return _pa.apply(this,arguments)}}
+/* devolvida para ajuste: volta para quem envia, com o motivo; o administrador reabre com os serviços que tinha lançado */
+const rpDevTxt=x=>x&&x.lpu&&x.lpu.dev?`<div class="result bad" style="margin:0 0 8px">LPU devolvida para ajuste: ${esc(x.lpu.dev.motivo||'')}</div>`:'';
+{const _a=ACT.rpAdmLpu;ACT.rpAdmLpu=function(el){const x=rpGet(el.dataset.id),key=rpLpuKey(el.dataset.id);if(x&&x.lpu&&x.lpu.dev&&!ui.draft[key]){const q={};(x.lpu.itens||[]).forEach(i=>{q[i.cod]={qtd:i.qtd,fator:i.fator==='Crítico'?'critico':'comum',unit:i.unit,inc:true}});ui.draft[key]={conta:RP_CTA(x),fixa:true,q}}return _a.apply(this,arguments)}}
+{const _t=rpLpuTelaView;rpLpuTelaView=function(x){const h=_t.apply(this,arguments),d=rpDevTxt(x);if(!d)return h;const i=h.indexOf('</section>');return i>=0?h.slice(0,i+10)+d+h.slice(i+10):d+h}}
+{const _t=rpTecTela;rpTecTela=function(x){const h=_t.apply(this,arguments),d=x&&rpLpuTec(x)?rpDevTxt(x):'';return d?h.replace('<div class="result warn" style="margin:0"><b>Resultado aprovado.</b> Agora preencha a LPU.</div>',d+'<div class="result warn" style="margin:0">Corrija e envie a LPU de novo.</div>'):h}}
+/* textos: o envio vai para a Aprovação de LPU */
+{const _r=rpTecTela;rpTecTela=function(){return _r.apply(this,arguments).replace('Vai para o financeiro da Rede Externa Preventiva.','Vai para a Aprovação de LPU da Rede Externa Preventiva.')}}
+{const _v=rpLpuTelaView;rpLpuTelaView=function(){return _v.apply(this,arguments).replace('Depois de enviar, a LPU vai para o financeiro da RE Preventiva.','Depois de enviar, a LPU vai para a Aprovação de LPU da RE Preventiva.')}}
+
+/* ---- contrato fixo: as programadas da RE Preventiva com deslocamento iniciado no período também contam na franquia ---- */
+const cfProgPseudo=x=>({id:'rp:'+x.id,_rp:1,tec:x.tec,ts:{desloc:(x.jor||{}).desloc},cliente:'Programada · '+(RP_TPN[x.tipo]||x.tipo)+(x.cidade?' · '+x.cidade:''),pom:x.cod,categoria:'RE Preventiva',status:x.status==='concl'?'concl':x.status==='campo'?'atend':'desloc'});
+{const _c=cfChamados;cfChamados=function(a,tec,ref){const L=_c.apply(this,arguments);if(a!=='re'||typeof RP==='undefined'||!RP.rows)return L;const i=cfIni(ref),f=cfFim(ref);
+  const P=RP.rows.filter(x=>x.tec===tec&&['prev','mel','ret','cia'].includes(x.tipo)&&x.status!=='canc'&&(x.jor||{}).desloc>=i&&(x.jor||{}).desloc<=f).map(cfProgPseudo);
+  return L.concat(P).sort((p,q)=>p.ts.desloc-q.ts.desloc)}}
+{const _m=cfModalChs;cfModalChs=function(tec,ref){const P=(typeof RP!=='undefined'&&RP.rows||[]).filter(x=>x.tec===tec).map(cfProgPseudo),had=Object.prototype.hasOwnProperty.call(G,'__full'),sv=G.__full;
+  G.__full=(sv||G.ch).concat(P);try{const r=_m.apply(this,arguments);const t=document.querySelector('#modal h3');if(t)t.textContent='Chamados e programadas de '+gTecN(tec);return r}finally{if(had)G.__full=sv;else delete G.__full}}}
+{const _o=ACT.cfAbrirCh;ACT.cfAbrirCh=function(el){const id=el.dataset.id||'';if(id.startsWith('rp:')){closeModal();return ACT.rpAbrir({dataset:{id:id.slice(3)}})}return _o.apply(this,arguments)}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
