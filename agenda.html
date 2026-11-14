@@ -4574,7 +4574,7 @@ function viewEquipe(){const ids=eqIds();
   const T=hoje(),F=ui.eqTec||'',ok=t=>ids.has(t)&&(!F||t===F),hm=v=>v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
   const ags=S.ags.filter(a=>ok(a.tec)&&a.status!=='cancelada'),chs=G.ch.filter(c=>ok(c.tec)&&c.status!=='cancelado');
   const lpuA=ags.filter(a=>(a.status==='lpu'&&!semLpuAg(a))||impPode(a)),lpuG=chs.filter(c=>c.status==='lpu');
-  const campoA=ags.filter(a=>EM_CAMPO.includes(a.status)),campoG=chs.filter(c=>['desloc','local','atend'].includes(c.status));
+  const campoA=ags.filter(a=>EM_CAMPO.includes(a.status)),campoG=chs.filter(c=>['desloc','local','atend','valid'].includes(c.status)&&!c.refDe),docG=chs.filter(c=>c.status==='rfo'&&!c.refDe);
   const proxA=ags.filter(a=>a.status==='agendada').sort((a,b)=>a.data.localeCompare(b.data)),proxG=chs.filter(c=>c.status==='aberto').sort((a,b)=>gIni(a)-gIni(b));
   const docA=ags.filter(a=>a.status==='relatorios');
   const conc=ags.filter(a=>a.status==='concluida'&&a.data>=addD(T,-30)).sort((a,b)=>b.data.localeCompare(a.data));
@@ -4592,7 +4592,7 @@ function viewEquipe(){const ids=eqIds();
    ${eqTimeBox(EQ,ags,chs,F)}
    ${sec('LPU para preencher',lpuA.map(a=>cA(a,lpuBtnA(a))).concat(lpuG.map(c=>cG(c,`<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU do chamado</button>`))),'Nenhuma LPU pendente. Quando um funcionário terminar uma atividade, ela aparece aqui.')}
    ${eqDiasSec(ags)}${sec('Em campo agora',campoA.map(a=>cA(a)).concat(campoG.map(c=>cG(c))),'Nenhum funcionário em campo neste momento.')}
-   ${docA.length?sec('Fazendo os relatórios',docA.map(a=>cA(a)),''):''}
+   ${docA.length||docG.length?sec('Fazendo os relatórios',docA.map(a=>cA(a)).concat(docG.map(c=>cG(c))),''):''}
    ${sec('Agendadas',proxA.map(a=>cA(a)).concat(proxG.map(c=>cG(c))),'Nenhuma atividade agendada.')}
    ${sec('Concluídas nos últimos 30 dias',conc.slice(0,30).map(a=>cA(a)).concat(concG.slice(0,30).map(c=>cG(c))),'Nenhuma atividade ou chamado concluído nos últimos 30 dias.')}
   </div>`}
