@@ -19480,14 +19480,29 @@ function pdfNmCh(c,tipo){c=c||{};return pdfNm(c.cliente,c.etiqueta||(c.pom?'OM_'
 function pdfNmChId(id,tipo){return pdfNmCh((G.ch||[]).find(x=>x.id===id),tipo)}
 function pdfNmL(l,tipo){l=l||{};if(l.chamado&&!/^(pl|rp):/.test(l.chamado)){const c=(G.ch||[]).find(x=>x.id===l.chamado);if(c)return pdfNmCh(c,tipo)}
   const a=l.ag||l.agendamento?getAg(l.ag||l.agendamento):null;if(a)return pdfNmAg(a,tipo);return pdfNm((typeof cliN==='function'&&cliN(l.etiqueta||''))||l.cliente,l.etiqueta,l.data,tipo)}
+const PDF_CP={};
+const lpuIdPath=x=>String(x||'').replace(/\.pdf$/i,'').replace(/-\d{10,}$/,'').replace(/-aprovada$/,'');
 /* nome a partir do caminho no Storage (PDFs antigos) */
 function pdfNmPath(p){p=String(p||'');const s=p.split('/'),tipo=(s[s.length-1]||'').replace(/\.pdf$/i,'').replace(/^\d+-/,'').replace(/^\d+$/,'');try{
   if(s[0]==='relatorios'){const a=getAg(s[1]);if(a)return pdfNmAg(a,s[2]||tipo)}
   if(s[0]==='chat'&&s[1]==='g'){const c=(G.ch||[]).find(x=>x.id===s[2]);if(c)return pdfNmCh(c,s[3]==='rfo'?'relatorio':s[3]||tipo)}
   if(s[0]==='chat'&&s[1]==='r'&&typeof rpGet==='function'){const x=rpGet(s[2]);if(x)return pdfNm(x.cod,x.cidade,x.data,'relatorio')}
-  if(s[0]==='lpus'){const id=(s[2]||'').slice(0,36),l=(S.lpus||[]).find(y=>y.id===id)||(G.lpus||[]).find(y=>y.id===id);if(l)return pdfNmL(l,'LPU')}}catch(e){}return null}
+  if(s[0]==='lpus'){const id=lpuIdPath(s[2]),l=(S.lpus||[]).find(y=>y.id===id)||(G.lpus||[]).find(y=>y.id===id);if(l)return pdfNmL(l,'LPU')}}catch(e){}return null}
 (()=>{try{const st=sb.storage,f0=st.from.bind(st);st.from=b=>{const o=f0(b);if(b!=='agenda'||!o||!o.createSignedUrl||o.__pdfNm)return o;o.__pdfNm=1;const c0=o.createSignedUrl.bind(o);
-  o.createSignedUrl=(p,exp,opt)=>{if(opt&&opt.download&&/\.pdf$/i.test(String(p))&&(opt.download===true||!/\d{2}-\d{2}-\d{4}/.test(String(opt.download)))){const n=pdfNmPath(p);if(n)opt=Object.assign({},opt,{download:n+'.pdf'})}return c0(p,exp,opt)};return o}}catch(e){console.warn('pdfNm',e)}})();
+  o.createSignedUrl=async(p,exp,opt)=>{const ps=String(p||'');if(!/\.pdf$/i.test(ps))return c0(p,exp,opt);
+    if(opt&&opt.download){if(opt.download===true||!/\d{2}-\d{2}-\d{4}/.test(String(opt.download))){const n=pdfNmPath(p);if(n)opt=Object.assign({},opt,{download:n+'.pdf'})}return c0(p,exp,opt)}
+    /* abrir no navegador: PDF antigo ganha uma cópia com o nome novo, para o botão de baixar do leitor sugerir esse nome */
+    const base=ps.split('/').pop();if(/\d{2}-\d{2}-\d{4}/.test(base)||!/^(relatorios|chat\/g|chat\/r|lpus)\//.test(ps))return c0(p,exp,opt);
+    if(PDF_CP[ps]===false)return c0(p,exp,opt);if(PDF_CP[ps])return c0(PDF_CP[ps],exp,opt);
+    const n=pdfNmPath(ps);if(!n||!o.copy)return c0(p,exp,opt);const D=pdfDestinos(ps,n);
+    for(const dest of D){let ok=false;try{const r=await o.copy(ps,dest);ok=!(r&&r.error)||/exist|duplicate|409/i.test(String((r.error&&(r.error.message||r.error.statusCode))||''))}catch(e){}
+      if(!ok)continue;const r2=await c0(dest,exp,opt);if(r2&&!r2.error){PDF_CP[ps]=dest;return r2}}
+    PDF_CP[ps]=false;return c0(p,exp,opt)};return o}}catch(e){console.warn('pdfNm',e)}})();
+/* onde guardar a cópia com o nome novo: na mesma pasta; para LPU, também na pasta do chamado ou da atividade (a gestão grava lá) */
+function pdfDestinos(ps,n){const b=ps.replace(/\.pdf$/i,''),L=[b+'/'+n+'.pdf'],s=ps.split('/');
+  if(s[0]==='lpus'){const id=lpuIdPath(s[2]),l=(S.lpus||[]).find(y=>y.id===id)||(G.lpus||[]).find(y=>y.id===id),k=(s[2]||'').replace(/\.pdf$/i,'');
+    if(l&&l.chamado&&!/^(pl|rp):/.test(l.chamado))L.push(`chat/g/${l.chamado}/lpu/${k}/${n}.pdf`);const ag=l&&(l.ag||l.agendamento);if(ag)L.push(`relatorios/${ag}/lpu/${k}/${n}.pdf`)}
+  return L}
 /* ---------- 3. Reforço com os técnicos da área ---------- */
 if(ACT.refChAdd){const _a=ACT.refChAdd;ACT.refChAdd=function(el){const c=G.ch.find(x=>x.id===el.dataset.id),a=arguments;const r=(typeof eqModoRe==='function'?eqModoRe:(f=>f()))(()=>_a.apply(this,a));
   if(c&&txDe(c)&&typeof txTecOpts==='function'){const s=$('refChTec');if(s){const ja=refChFilhos(c).map(x=>x.tec).concat([c.tec]);s.innerHTML='<option value="">Escolha o técnico…</option>'+txTecOpts('');[...s.options].forEach(o=>{if(o.value&&ja.includes(o.value))o.remove()})}}return r}}
