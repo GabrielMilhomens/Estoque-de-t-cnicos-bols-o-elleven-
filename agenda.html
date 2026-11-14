@@ -20026,7 +20026,7 @@ const rpStL=x=>{const L=x&&x.lpu;if(!L)return null;if(L.rep)return 'reprovada';i
   const h=[];if(L.env)h.push({acao:'Enviada',por:L.env.por,em:L.env.em});if(L.dev)h.push({acao:'Devolvida para ajuste',por:L.dev.por,em:L.dev.em,motivo:L.dev.motivo});if(L.rep)h.push({acao:'Reprovada',por:L.rep.por,em:L.rep.em,motivo:L.rep.motivo});
   if(st==='aprovada')h.push({acao:'Aprovada',por:L.apr?L.apr.por:L.env.por,em:L.apr?L.apr.em:L.env.em});
   return Object.assign(l,{status:st,hist:h,data:isoD(new Date((L.apr&&L.apr.em)||(L.env&&L.env.em)||Date.now())),_rpApr:1})})}}
-/* Aprovação de LPU da RE Preventiva: entram as LPUs de programadas enviadas por esta versão */
+/* Aprovação de LPU da RE Preventiva: só entram as LPUs de programadas enviadas a partir desta versão (as antigas ficam fora) */
 const rpAprV=()=>(reLpusProg()||[]).filter(l=>{const x=rpGet(String(l.id).slice(3));return x&&x.lpu&&((x.lpu.env&&x.lpu.env.v2)||x.lpu.dev||x.lpu.rep)});
 {const _a=viewGAprov;viewGAprov=function(){if(typeof reAt!=='function'||!reAt()||gTecPerfil()||reLado()!=='prev')return _a.apply(this,arguments);
   const V=rpAprV();if(!V.length)return _a.apply(this,arguments);const all=G.lpus,A=all.concat(V);A.filter=function(fn,t){return Array.prototype.filter.call(this,(l,i,arr)=>l&&l._rpApr?true:fn.call(t,l,i,arr))};

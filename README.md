@@ -968,6 +968,7 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - Bloco de LPU no detalhe (gestão), sem "LPU sugerida": antes do envio só diz com quem está a LPU (técnico, administrador da empresa, sem técnico definido ou contrato fixo, e o motivo se foi devolvida); depois do envio mostra a LPU enviada (serviços e valores de quem enviou, quem enviou e a situação na aprovação).
   - Aprovação de LPU da RE Preventiva: ao abrir a LPU de uma programada aparecem a programada (código, tipo, cidade, endereço), a conta, os **relatórios do que foi feito** (cada apontamento com o resumo e o "o que foi feito", as fotos e o relatório fotográfico em PDF) e o botão **Abrir programada**, como o RFO/relatório do chamado na Aprovação do GTD e da RE Corretiva.
   - **Agenda** no grupo Programadas (logo depois da Esteira, com a mesma permissão): Dia, Semana e Mês no layout da agenda do GTD/RE Corretiva/Transmissão; cada programada na data planejada (companhia elétrica com o horário), cards com situação (planejada, despachada, a caminho, em campo, concluída, atrasada); filtros por tipo, cidade, técnico (ou sem técnico), busca e mostrar canceladas; no dia de hoje, as atrasadas de dias anteriores aparecem no topo.
+- **Aprovação de LPU da RE Preventiva — só daqui para frente:** a fila mostra apenas as LPUs de programadas enviadas a partir da nova aprovação. As LPUs antigas continuam valendo como aprovadas no budget e na Gestão financeira, mas não aparecem na tela de Aprovação. Programadas antigas concluídas sem técnico ficam como histórico, sem LPU.
 
 ## 8. Publicação
 
@@ -1033,6 +1034,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 14/11/2026 | RE Preventiva: Aprovação de LPU mostra só as LPUs de programadas enviadas daqui para frente | agenda.html (sem SQL) |
 | 14/11/2026 | RE Preventiva: detalhe da programada em página com linha do tempo; Agenda das programadas | `agenda.html` (`mod/rpdet.js`, patch 36). Sem SQL. |
 | 14/11/2026 | Baixa do plantão de funcionário feita pelo dono da empresa | **`agenda_ajuste_82_plantao_dono_empresa.sql` no Supabase** (não subir no GitHub), depois `agenda.html` (`mod/plfunc.js`). |
 | 14/11/2026 | RE Preventiva no fluxo das outras áreas: funcionário só relata, dono da empresa monta a LPU, técnico não funcionário preenche a própria, contrato fixo sem LPU e contando na franquia; LPU das programadas passa pela Aprovação de LPU da RE Preventiva | **`agenda_ajuste_81_preventiva_adm_empresa.sql` no Supabase** (não subir no GitHub), depois `agenda.html` (`mod/rpfluxo.js`, `mod/rpcia.js`, `mod/reprev.js`). |
