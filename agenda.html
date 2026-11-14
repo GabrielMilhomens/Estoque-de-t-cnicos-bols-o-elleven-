@@ -19580,6 +19580,26 @@ const catOk=(a,cat)=>{const L=catsArea(a);return !L||L.includes(cat)};
 /* trocar de área com o formulário aberto: limpa a categoria que não existe na nova área */
 {const _g=ACT.gCat;ACT.gCat=function(el){const r=_g.apply(this,arguments);try{const F=ui.gF,a=areaAt();if(F&&F.categoria&&!catOk(a,F.categoria)){F.categoria='';render()}}catch(e){}return r}}
 
+/* 14/11: cancelar o despacho (GTD, RE Corretiva e Transmissão) enquanto o técnico não iniciou o deslocamento.
+   O chamado volta para Não despachados, sem técnico; o técnico é avisado (ajuste 79). */
+const despCancPode=c=>!!(c&&c.tec&&c.status==='aberto'&&!c.refDe&&gPodeDesp());
+{const _d=gDetalhe;gDetalhe=function(c){let h=_d.apply(this,arguments);try{if(despCancPode(c)){
+  h=h.replace(/(<button class="btn primary" data-act="gDespachar" data-id="[^"]+">Trocar<\/button>)/,`$1<button class="btn danger" style="margin-left:8px" data-act="gDespCanc" data-id="${c.id}">Cancelar despacho</button>`);
+  h=h.replace('<small class="muted">O técnico recebe o aviso no celular.</small>','<small class="muted">O técnico ainda não saiu: dá para trocar o técnico ou cancelar o despacho. Ele recebe o aviso no celular.</small>')}}catch(e){console.warn('despcanc',e)}return h}}
+Object.assign(ACT,{
+  gDespCanc:el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(!c)return;if(!gPodeDesp()&&semPerm())return;
+    if(!despCancPode(c)){toast('O técnico já iniciou o deslocamento. Use Transferir, se precisar trocar.','bad');return}
+    const ac=c.aceite&&c.aceite.em;
+    openModal(`<h3>Cancelar o despacho?</h3>
+      <p style="margin:8px 0">O chamado sai de <b>${esc(gTecN(c.tec))}</b>${ac?' (já tinha aceitado às '+hm(c.aceite.em)+')':''} e volta para <b>Não despachados</b>. O técnico recebe o aviso no celular. O chamado continua aberto e o MTTR continua contando.</p>
+      <label class="f"><span>Motivo <small class="muted">(opcional, vai para o técnico e para o histórico)</small></span><textarea class="inp" id="gDcMot" rows="2" placeholder="Ex.: cliente pediu para remarcar; outro técnico mais perto"></textarea></label>
+      <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="gDespCancOk" data-id="${c.id}">Cancelar despacho</button></div>`)},
+  gDespCancOk:async el=>{if(!gPodeDesp()&&semPerm())return;const m=(($('gDcMot')||{}).value||'').trim();closeModal();let nome='';
+    await gAcao(el.dataset.id,c=>{if(c.status!=='aberto'||!c.tec){toast(c.tec?'O técnico já iniciou o deslocamento. O despacho não foi cancelado.':'Este chamado já está sem técnico.','bad');return false}
+      nome=gTecN(c.tec);c.despCanc=(c.despCanc||[]).concat([{tec:c.tec,nome,motivo:m,por:meNome(),em:Date.now(),aceito:!!(c.aceite&&c.aceite.em)}]);
+      c.tec=null;c.aceite=null;if(c.ts)delete c.ts.despacho;gHist(c,'Despacho cancelado (era '+nome+')'+(m?': '+m:''))},'Despacho cancelado. O chamado voltou para Não despachados.')}
+});
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>

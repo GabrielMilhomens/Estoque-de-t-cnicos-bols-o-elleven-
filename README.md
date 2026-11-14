@@ -268,6 +268,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 77. `agenda_ajuste_76_nao_concluida_parcial.sql` — volta para "Não concluída" as atividades da Implantação registradas como não concluídas com LPU parcial que terminaram como "Concluída" depois da LPU; as que não foram reagendadas voltam para a fila de reagendamento. Mostra a lista antes de corrigir.
 78. `agenda_ajuste_77_lpus_sem_assinatura.sql` — view `ag_lpus_leve` (mesmas LPUs e mesmas regras de acesso, `security_invoker`) sem a imagem da assinatura, e trigger `ag_lpu_mantem_assinatura` que mantém a imagem quando a LPU é gravada sem ela. Corrige o travamento de 13/11 (313 LPUs = 12 MB baixados a cada abertura). Rodar antes do agenda.html.
 79. `agenda_ajuste_78_responder_mensagens.sql` — coluna `resp` (jsonb) em `ag_mensagens` e `ag_sala`: guarda a mensagem respondida (id, nome e trecho) para a opção Responder nos chats.
+80. `agenda_ajuste_79_cancelar_despacho.sql` — cancelar despacho: o técnico é avisado ("Despacho cancelado") em vez de a gestão receber "recusou"; o técnico anterior é avisado na troca; trava no banco impede tirar o técnico de chamado já em deslocamento (trigger `ag_chamado_desp_canc_guard`).
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -941,6 +942,7 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Sem LPU (fora do contrato) nos chamados (14/11, `mod/aj1411.js` item 9)**: a marca "Sem LPU (fora do contrato)" de Usuários e acessos passa a valer também no GTD, na RE Corretiva e na Transmissão, para o técnico marcado e para os funcionários da empresa dele. O chamado encerra depois do relatório (fica "concluído", sem pedir LPU, com o registro "Encerrado sem LPU" na linha do tempo). As LPUs que esse prestador já tinha lançado saem da Aprovação de LPU, dos Totais por prestador, do Detalhamento e do budget da gestão (não são apagadas do banco).
 - **Categoria sempre da área (14/11, `mod/recat.js`)**: na RE Corretiva só é possível criar chamado com as categorias da RE (Rompimento fibra, Massiva, Rádio, Preventiva, Acompanhamento companhia elétrica). Antes, o texto do NOC colado no Criar chamado preenchia uma categoria do GTD (ex.: "Qualidade / integridade do link") que não aparecia na lista, mas era gravada; o mesmo acontecia com um formulário começado no GTD e terminado na RE. Agora o texto colado usa a sugestão da RE, trocar de área limpa a categoria que não existe nela, e criar com categoria de outra área é recusado com o aviso "Escolha uma categoria da Rede Externa". Chamados já gravados não mudam: ajuste pela edição do chamado.
+- **Cancelar despacho (14/11, `mod/despcanc.js`, ajuste 79)**: no detalhe do chamado do GTD, da RE Corretiva e da Transmissão, botão "Cancelar despacho" ao lado de "Trocar", só enquanto o técnico não iniciou o deslocamento (status aberto com técnico, mesmo já aceito), para quem pode despachar na área. Confirmação com motivo opcional. O chamado volta para Não despachados sem técnico, continua aberto (o MTTR segue), o `ts.despacho` é limpo e o cancelamento fica em `dados.despCanc` e no histórico. O técnico recebe "Despacho cancelado" com o motivo. Na troca de técnico, o anterior recebe "Chamado passado para outro técnico". Depois que o técnico saiu, use Transferir.
 
 ## 8. Publicação
 
@@ -1006,6 +1008,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 14/11/2026 | Cancelar despacho no GTD, RE Corretiva e Transmissão enquanto o técnico não saiu; aviso ao técnico (cancelamento e troca) | **`agenda_ajuste_79_cancelar_despacho.sql` no Supabase** (não subir no GitHub), depois `agenda.html` (`mod/despcanc.js`). |
 | 14/11/2026 | RE Corretiva não aceita mais categoria do GTD (texto do NOC colado, formulário trocado de área) | `agenda.html` (`mod/recat.js`). Sem SQL. |
 | 14/11/2026 | "Sem LPU (fora do contrato)" também nos chamados do GTD, da RE Corretiva e da Transmissão: encerra sem LPU e as LPUs desse prestador saem do financeiro | `agenda.html` (`mod/aj1411.js`). Sem SQL. |
 | 14/11/2026 | Copiar RFO (RE Corretiva); nome dos PDFs com cliente, etiqueta e data; reforço da RE com técnicos da Rede Externa; legenda e responder nos chats; card do GTD no kanban da RE Corretiva e da Transmissão; agenda da RE Corretiva no layout do GTD | **`agenda_ajuste_78_responder_mensagens.sql` no Supabase** (não subir no GitHub), depois `agenda.html` (`mod/aj1411.js`). |
