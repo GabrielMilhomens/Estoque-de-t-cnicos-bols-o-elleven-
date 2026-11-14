@@ -19567,6 +19567,19 @@ async function chSemLpuVarre(){if(SLC_BUS||!G||!G.ch)return;const eu=ME&&ME.id,g
       try{return _r.apply(this,a)}finally{if(G.lpus===nG)G.lpus=fG;if(S.lpus===nS)S.lpus=fS;setTimeout(chSemLpuVarre,0)}}}
   const o=_r.apply(this,a);setTimeout(chSemLpuVarre,0);return o}}
 
+/* categoria do chamado sempre da área (RE Corretiva não aceita categoria do GTD) */
+const catsArea=a=>{const A=a&&a!=='gtd'&&areaCfg(a);return A&&A.cats?A.cats:null};
+const catOk=(a,cat)=>{const L=catsArea(a);return !L||L.includes(cat)};
+/* texto do NOC colado na RE: a categoria lida vem do GTD → troca pela sugestão da RE */
+{const _a=gnAplica;gnAplica=function(){const r=_a.apply(this,arguments);try{const a=gTecPerfil()?null:areaAt(),F=ui.gF;
+  if(F&&F.categoria&&!catOk(a,F.categoria)){const A=areaCfg(a);F.categoria=(A.sug&&A.sug(F.motivo||((ui.dnT||{}).gprobnovo)||'',F.obs))||'';const y=window.scrollY;render();window.scrollTo(0,y)}}catch(e){console.warn('recat',e)}return r}}
+/* criar: bloqueia categoria de outra área (formulário vindo de outra área, texto colado etc.) */
+{const _c=ACT.gCriar;ACT.gCriar=function(el){const a=gTecPerfil()?null:areaAt(),F=ui.gF;
+  if(F&&!catOk(a,F.categoria)){F.categoria='';toast('Escolha uma categoria '+(areaCfg(a).art||'da')+' '+areaCfg(a).n+'.','bad');render();return}
+  return _c.apply(this,arguments)}}
+/* trocar de área com o formulário aberto: limpa a categoria que não existe na nova área */
+{const _g=ACT.gCat;ACT.gCat=function(el){const r=_g.apply(this,arguments);try{const F=ui.gF,a=areaAt();if(F&&F.categoria&&!catOk(a,F.categoria)){F.categoria='';render()}}catch(e){}return r}}
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
