@@ -3918,7 +3918,7 @@ const ACT={
   rfNao:el=>{ui.rf.nao=el.checked;salvarRascunhoFoto();render()},
   rfDel:el=>{const D=ui.rf,L=D.fotos[el.dataset.k]||[];L.splice(+el.dataset.i,1);salvarRascunhoFoto();render()},
   rfEnviar:async el=>{const a=getAg(el.dataset.id);if(fotoStatus(a).falta.length)return;toast('Gerando e enviando o relatório…');
-    try{const blob=pdfFotos(a),path=`relatorios/${a.id}/fotografico/${Date.now()}-${a.parcial?'relatorio-nao-conclusao':'relatorio-fotografico'}.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
+    try{const blob=pdfFotos(a),path=`relatorios/${a.id}/fotografico/${Date.now()}/${pdfNmAg(a,a.parcial?'relatorio-nao-conclusao':'relatorio-fotografico')}.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
       const D=ui.rf,med={};Object.entries(D.campos).forEach(([k,v])=>{if(String(v).trim())med[k]=v});['rua','interno'].forEach(f=>{const x=parseFloat(String(D.campos[f+':lote_ini:m']||'').replace(',','.')),y=parseFloat(String(D.campos[f+':lote_fim:m']||'').replace(',','.'));if(!isNaN(x)&&!isNaN(y))med[f+':metros']=Math.abs(y-x)});
       a.rel=a.rel||{};a.rel[a.parcial?'parcial':'foto']={path,em:Date.now(),fotos:Object.values(D.fotos).reduce((s,l)=>s+l.length,0)};a.medicoes=Object.assign({},a.medicoes||{},med);save();IDB.del('rf:'+a.id).catch(()=>{});ui.rf=null;render();window.scrollTo(0,0);toast(a.parcial?'Relatório enviado. Agora toque em Enviar relatório e preencher LPU.':'Relatório fotográfico enviado.')}
     catch(e){toast('Não foi possível enviar: '+(e.message||e)+'. As fotos continuam salvas neste aparelho; tente de novo.','bad')}},
@@ -4078,7 +4078,7 @@ const ACT={
   aTab:el=>{ui.aTab=el.dataset.t;ui.aOpen=null;render()},
   aOpen:el=>{ui.aOpen=ui.aOpen===el.dataset.id?null:el.dataset.id;render()},
   aprovar:async el=>{if(!pode('a_aprovar')&&semPerm())return;const l=S.lpus.find(x=>x.id===el.dataset.id);l.status='aprovada';l.hist.push({acao:'Aprovada',por:meNome(),em:Date.now()});ui.aOpen=null;save();render();toast(`LPU de ${brl(l.total)} aprovada.`);
-    try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-aprovada-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;l.pdf_envio=l.pdf_envio||l.pdf_path;l.pdf_path=path;l.pdfAprov=true;save()}catch(e){toast('LPU aprovada, mas a versão do PDF com o aprovador não foi salva: '+(e.message||e),'bad')}},
+    try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-aprovada-${Date.now()}/${pdfNmL(l,'LPU-aprovada')}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;l.pdf_envio=l.pdf_envio||l.pdf_path;l.pdf_path=path;l.pdfAprov=true;save()}catch(e){toast('LPU aprovada, mas a versão do PDF com o aprovador não foi salva: '+(e.message||e),'bad')}},
   decidir:el=>{if(!pode('a_aprovar')&&semPerm())return;const t=el.dataset.t;openModal(`<h3>${t==='ajuste'?'Devolver para ajuste':'Reprovar LPU'}</h3><label class="f" style="margin-top:12px"><span>Motivo *</span><textarea id="dMot" class="inp" rows="4" placeholder="${t==='ajuste'?'O que o prestador precisa corrigir':'Por que a LPU foi reprovada'}"></textarea></label><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn ${t==='ajuste'?'primary':'danger'}" data-act="decOk" data-t="${t}" data-id="${el.dataset.id}">${t==='ajuste'?'Devolver para ajuste':'Reprovar'}</button></div>`)},
   decOk:el=>{const m=$('dMot').value.trim();if(!m){toast('Informe o motivo.','bad');return}const l=S.lpus.find(x=>x.id===el.dataset.id),t=el.dataset.t;l.status=t;l.hist.push({acao:t==='ajuste'?'Devolvida para ajuste':'Reprovada',por:meNome(),em:Date.now(),motivo:m});ui.aOpen=null;save();closeModal();render();toast(t==='ajuste'?'LPU devolvida ao prestador.':'LPU reprovada.')},
   pdfArq:async el=>{const l=S.lpus.find(x=>x.id===el.dataset.id)||G.lpus.find(x=>x.id===el.dataset.id);if(!l)return;const w=window.open('','_blank');const abre=u=>{if(w&&!w.closed)w.location.href=u;else location.href=u};
@@ -4285,7 +4285,7 @@ async function carregar(){
   snapAll();setSt('Tudo salvo');
 }
 async function checarRelatorio(a){const r=await sb.storage.from('agenda').list('relatorios/'+a.id);if(r.error){a.__relErr=r.error.message||String(r.error);return false}a.__relErr='';const f=(r.data||[]).filter(x=>/\.pdf$/i.test(x.name)&&!x.name.includes('/'));if(!f.length)return false;a.rel=a.rel||{};a.rel.entrega={path:'relatorios/'+a.id+'/'+f[f.length-1].name,em:Date.now()};save();return true}
-async function subirPdfLpu(l){try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-${Date.now()}.pdf`;const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;l.pdf_path=path}catch(e){console.error(e);toast('A LPU será enviada, mas o PDF não foi gerado: '+(e.message||e),'bad')}}
+async function subirPdfLpu(l){try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-${Date.now()}/${pdfNmL(l,'LPU')}.pdf`;const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;l.pdf_path=path}catch(e){console.error(e);toast('A LPU será enviada, mas o PDF não foi gerado: '+(e.message||e),'bad')}}
 /* LPU da equipe própria (CLT): o PDF guardado e o que o técnico abre não têm valores; a gestão gera a versão com valores na hora */
 const lpuSemValor=l=>!!l&&(l.status==='registrada'||tecT(l.tec)==='CLT'||(ui.perfil==='clt'&&ME&&l.tec===ME.id));
 function gerarPdfLpu(l,o){const sv=!(o&&o.comValor)&&lpuSemValor(l),{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true}),m=15,W=210,H=297,p=l.chamado?{cliente:l.cliente||'',protocolo:'O&M '+(l.pom||''),cidade:l.cidade||''}:pPor(l.etiqueta);
@@ -4894,7 +4894,7 @@ function gDetalhe(c){const sla=gSla(c),mt=gMttr(c),re=gReinc(c),me=gMesmoEnd(c),
    ${ab&&c.tec?(gAceito(c)?`<div class="result ok">Aceito pelo técnico ${gQuando(c.aceite.em)}. Aguardando o início do deslocamento.</div>`:'<div class="result warn">Despachado. Aguardando o técnico aceitar.</div>'):''}
    ${gRecusa(c)?`<div class="result bad"><b>Recusado por ${esc(gRecusa(c).nome||'técnico')}</b> ${gQuando(gRecusa(c).em)}: ${esc(gRecusa(c).motivo||'')}. Escolha outro técnico.</div>`:''}
    ${desp}${gTrfBox(c)}${agBox}${val}${lpuBox}
-   ${c.rfoTxt?`<section class="panel"><div class="ah"><h3>RFO</h3><span class="tools">${r2Ex1Btn(c)}${c.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(c.rfoPdf)}">Relatório do atendimento (PDF${(c.rfoFotos||[]).length?', '+c.rfoFotos.length+' foto'+(c.rfoFotos.length>1?'s':''):''})</button>`:''}<button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></span></div><pre class="rfo">${esc(c.rfoTxt)}</pre></section>`:''}
+   ${c.rfoTxt?`<section class="panel"><div class="ah"><h3>RFO</h3><span class="tools">${r2Ex1Btn(c)}${c.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(c.rfoPdf)}">Relatório do atendimento (PDF${(c.rfoFotos||[]).length?', '+c.rfoFotos.length+' foto'+(c.rfoFotos.length>1?'s':''):''})</button>`:''}${reDe(c)?`<button class="btn sm" data-act="rfoCopiar" data-id="${c.id}">Copiar RFO</button>`:''}<button class="btn sm" data-act="gCopiar" data-id="${c.id}">Copiar para o WhatsApp</button></span></div><pre class="rfo">${esc(c.rfoTxt)}</pre></section>`:''}
    ${acoes}</div>
    <div class="stack"><section class="panel"><h3 class="lsub" style="margin-top:0">Linha do tempo</h3>${gTimeline(c)}</section><section class="panel"><h3 class="lsub" style="margin-top:0">Dados do chamado</h3>${gKv(c)}</section></div></div>`}
 
@@ -5190,14 +5190,14 @@ async function gChatVistas(){const ch=ui.chat;if(!ch)return;if(ch.t==='s')return
 /* com a conversa aberta, confere novas mensagens a cada 5 s (além do tempo real) */
 setInterval(()=>{if(ME&&ui.chat&&document.visibilityState==='visible')gChatCarregar(true)},5000);
 function gChatLista(){if(ui.chat&&ui.chat.t==='s')return gSalaLista();const k=gChatK(),L=G.msgs[k];if(!L)return '<p class="muted pad">Carregando mensagens…</p>';
-  return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}${m.editado_em?msgEdTag(m,'a'):''}${eu&&msgPodeEd(m)&&ui.msgEd!==m.id?msgEdBtn(m):''}</small>${ui.msgEd===m.id?msgEdBox(m):chxMsgTxt(m)}${chxAnexo(m)}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
+  return L.map(m=>{const eu=ME&&m.autor===ME.id;return `<div class="lado ${eu?'eu':''}"><div class="msg ${eu?'eu':''}" data-mid="${m.id}"><small><b>${esc(eu?'Você':m.autor_nome||'')}</b> · ${esc(m.papel||'')} · ${gQuando(new Date(m.em).getTime())}${m.editado_em?msgEdTag(m,'a'):''}${eu&&msgPodeEd(m)&&ui.msgEd!==m.id?msgEdBtn(m):''}${chatRespBtn(m)}</small>${chatRespQ(m)}${ui.msgEd===m.id?msgEdBox(m):chxMsgTxt(m)}${chxAnexo(m)}${m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):''}</div></div>`}).join('')||'<p class="muted pad">Nenhuma mensagem ainda. Comece a conversa.</p>'}
 function gChatPintar(){const el=$('chatList');if(!el)return;const fim=el.scrollHeight-el.scrollTop-el.clientHeight<80;el.innerHTML=gChatLista();if(fim)el.scrollTop=el.scrollHeight;chxArqsAtual()}
 function viewChat(){if(ui.chat&&ui.chat.t==='s')return viewSala();const ch=ui.chat,k=gChatK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);
   let tit='',sub='',quem='';if(ch.t==='g'){const c=G.ch.find(x=>x.id===ch.id)||{};tit='O&M '+(c.pom||'');sub=c.cliente||'';quem='Técnico, NOC e O&M'}else if(ch.t==='r'){let x={};try{x=rpGet(ch.id)||{}}catch(e){}tit=x.cod||'Atividade';sub=[x.cidade,x.end].filter(Boolean).join(' · ');quem='Técnico e RE Preventiva'}else{const a=getAg(ch.id)||((typeof PD!=='undefined'&&PD.rows)||[]).find(r=>r.id===ch.id)||{};tit=a.etiqueta||'Atividade';sub=(cliN(a.etiqueta||'')||a.cliente||'')+(a.fases?' · '+fasesN(a):'');quem='Técnico, Delivery e O&M'}
   setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
   return `<div class="chatv"><div class="chath"><button class="btn sm" data-act="chatFechar">‹ Voltar</button><div><b>${ch.t==='g'&&gVeGtd()?'Chat com técnico':'Mensagens'} · ${esc(tit)}</b><small class="muted">${esc(sub)} · ${quem}</small></div>${chxArqsBtn()}</div>
    <div class="chatl" id="chatList" aria-live="polite">${gChatLista()}</div>
-   <div class="chatc"><textarea class="inp" id="chatTxt" rows="2" data-in="chatTxt" placeholder="Escreva uma mensagem" aria-label="Mensagem">${esc(ui.chatTxt||'')}</textarea>
+   <div class="chatc">${chatRespBar()}<textarea class="inp" id="chatTxt" rows="2" data-in="chatTxt" placeholder="Escreva uma mensagem" aria-label="Mensagem">${esc(ui.chatTxt||'')}</textarea>
     <div class="tools"><label class="btn sm chatfoto">${_sv('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',16)} Câmera<input type="file" accept="image/*" capture="environment" data-ch="chatFoto" hidden></label><label class="btn sm chatfoto">${_sv('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',16)} Galeria<input type="file" accept="image/*" data-ch="chatFoto" hidden></label>${chxBtns()}<button class="btn primary" data-act="chatEnviar">Enviar</button></div>
     <small class="muted chatdica">Enter envia; Shift + Enter pula linha.</small></div></div>`}
 /* no computador, Enter envia e Shift + Enter pula linha (como no WhatsApp Web); no celular, o Enter do teclado pula linha */
@@ -5302,7 +5302,7 @@ Object.assign(ACT,{
   gAprovar:async el=>{if(!pode('a_gAprovar')&&semPerm())return;const l=G.lpus.find(x=>x.id===el.dataset.id);if(!l)return;const hist=(l.hist||[]).concat([{acao:'Aprovada',por:meNome(),em:Date.now()}]);
     const r=await sb.from('ag_lpus').update({status:'aprovada',dados:gLpuRow(Object.assign({},l,{hist})).dados}).eq('id',l.id);if(r.error){toast('Não foi possível aprovar: '+r.error.message,'bad');return}
     l.status='aprovada';l.hist=hist;ui.gaOpen=null;if(l.chamado)await gAcao(l.chamado,c=>{c.status='concl';gHist(c,'LPU aprovada')});render();toast(`LPU de ${brl(l.total)} aprovada.`);
-    try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-aprovada-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;l.pdf_envio=l.pdf_envio||l.pdf_path;l.pdf_path=path;l.pdfAprov=true;await sb.from('ag_lpus').update({pdf_path:path,dados:gLpuRow(l).dados}).eq('id',l.id)}catch(e){toast('LPU aprovada, mas a versão do PDF com o aprovador não foi salva: '+(e.message||e),'bad')}},
+    try{const blob=gerarPdfLpu(l),path=`lpus/${l.tec}/${l.id}-aprovada-${Date.now()}/${pdfNmL(l,'LPU-aprovada')}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;l.pdf_envio=l.pdf_envio||l.pdf_path;l.pdf_path=path;l.pdfAprov=true;await sb.from('ag_lpus').update({pdf_path:path,dados:gLpuRow(l).dados}).eq('id',l.id)}catch(e){toast('LPU aprovada, mas a versão do PDF com o aprovador não foi salva: '+(e.message||e),'bad')}},
   gDecidir:el=>{if(!pode('a_gAprovar')&&semPerm())return;const t=el.dataset.t;openModal(`<h3>${t==='ajuste'?'Devolver para ajuste':'Reprovar LPU'}</h3><label class="f" style="margin-top:12px"><span>Motivo *</span><textarea id="dMot" class="inp" rows="4" placeholder="${t==='ajuste'?'O que o prestador precisa corrigir':'Por que a LPU foi reprovada'}"></textarea></label><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn ${t==='ajuste'?'primary':'danger'}" data-act="gDecOk" data-t="${t}" data-id="${el.dataset.id}">${t==='ajuste'?'Devolver para ajuste':'Reprovar'}</button></div>`)},
   gDecOk:async el=>{const m=$('dMot').value.trim();if(!m){toast('Informe o motivo.','bad');return}const l=G.lpus.find(x=>x.id===el.dataset.id),t=el.dataset.t;if(!l)return;const hist=(l.hist||[]).concat([{acao:t==='ajuste'?'Devolvida para ajuste':'Reprovada',por:meNome(),em:Date.now(),motivo:m}]);
     const r=await sb.from('ag_lpus').update({status:t,dados:gLpuRow(Object.assign({},l,{hist})).dados}).eq('id',l.id);if(r.error){toast('Não foi possível salvar: '+r.error.message,'bad');return}
@@ -5318,7 +5318,7 @@ Object.assign(ACT,{
     const F=(R.fotos||[]).filter(f=>f.path);if((R.fotos||[]).some(f=>!f.path)){toast('Aguarde o envio das fotos terminar.','bad');return}el.disabled=true;
     let pdf=null;try{toast('Gerando o relatório do atendimento…');const c0=Object.assign({},G.ch.find(x=>x.id===id)||{},{desfecho:R.desfecho,encEquipe:R.desfecho==='Encaminhado'?String(R.encEquipe).trim():'',rfo:R});
       const fotos=[];for(const f of F){const d=await gImgData(f);if(d)fotos.push({data:d,leg:f.leg||''})}
-      const blob=await gRfoPdf(c0,fotos),path=`chat/g/${id}/rfo/relatorio-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
+      const blob=await gRfoPdf(c0,fotos),path=`chat/g/${id}/rfo/${Date.now()}/${pdfNmChId(id,'relatorio')}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
     catch(e){toast('O RFO será gravado, mas o PDF do relatório não foi gerado: '+(e.message||e),'bad')}
     const nv=await gAcao(id,c=>{if(c.status!=='rfo'){toast('O RFO já foi gerado.','bad');return false}c.desfecho=R.desfecho;c.encEquipe=R.desfecho==='Encaminhado'?String(R.encEquipe).trim():'';const{fotos,notaAdm,...rr}=R;c.rfo=rr;if(notaAdm&&String(notaAdm).trim())c.notaAdm={texto:String(notaAdm).trim(),em:Date.now(),por:ME?ME.nome:''};c.rfoFotos=F.map(f=>({path:f.path,leg:f.leg||'',tipo:f.tipo||''}));if(pdf)c.rfoPdf=pdf;c.rfoTxt=gRfoTexto(c);c.status='lpu';c.ts.rfo=Date.now();gHist(c,'RFO gerado ('+R.desfecho+')'+(F.length?', '+F.length+' foto(s)':''))},ui.perfil==='func'?'RFO gerado. O administrador da sua empresa foi avisado.':'RFO gerado. Agora preencha a LPU.');
     el.disabled=false;if(nv){delete ui.gRfo[id];IDB.del('gr:'+id).catch(()=>{});if(ui.perfil!=='func')ACT.gLpuAbrir({dataset:{id}})}},
@@ -5442,7 +5442,7 @@ function gSalaLista(){const L=G.msgs[SALA_K];
     const cont=!!(prev&&prev.autor===m.autor&&t-new Date(prev.em)<5*60000);prev=m;
     const hue=salaHue(m.autor),c=m.chamado?G.ch.find(x=>x.id===m.chamado):null;
     const foto=m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):'';
-    h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?gSalaRef(c,m.chamado):''}${chxMsgTxt(m)}${chxAnexo(m)}${foto}<small class="salahr">${salaHora(m.em)}</small></div></div>`;return h}).join('')}
+    h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}" data-mid="${m.id}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?gSalaRef(c,m.chamado):''}${chxMsgTxt(m)}${chxAnexo(m)}${foto}<small class="salahr">${salaHora(m.em)}</small></div></div>`;return h}).join('')}
 function viewSala(){const k=SALA_K;if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
   const ab=G.ch.filter(c=>GTD_ABERTOS.includes(c.status)).sort(gSalaOrd),cit=ui.salaCh&&G.ch.find(x=>x.id===ui.salaCh);
   const nEsc=ab.filter(c=>c.prioridade==='Escalonado').length,nAlta=ab.filter(c=>c.prioridade==='Alta').length,nND=ab.filter(c=>c.status==='aberto'&&!c.tec).length;
@@ -7261,7 +7261,7 @@ function r2Linhas(c,r){const L=[['Motivo do chamado',c.motivo||'—']];
   const{fotos,ab,...rr}=R;rr.solucao=r2Solucao(R);rr.local=R.cat;rr.patrimonio=R.patrimonio||'';rr.serialRet=r2Ex(c,'Serial');
   let pdf=null;try{toast('Gerando o relatório do atendimento…');const c0=Object.assign({},c,{desfecho:R.desfecho,encEquipe:R.desfecho==='Encaminhado'?R.encEquipe:'',rfo:rr});
     const ff=[];for(const f of Fp){const d=await gImgData(f);if(d)ff.push({data:d,leg:f.leg||''})}
-    const blob=await gRfoPdf(c0,ff),path=`chat/g/${id}/rfo/relatorio-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
+    const blob=await gRfoPdf(c0,ff),path=`chat/g/${id}/rfo/${Date.now()}/${pdfNmChId(id,'relatorio')}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
   catch(e){toast('O RFO será gravado, mas o PDF do relatório não foi gerado: '+(e.message||e),'bad')}
   const nv=await gAcao(id,x=>{if(x.status!=='rfo'){toast('O RFO já foi gerado.','bad');return false}x.desfecho=R.desfecho;x.encEquipe=R.desfecho==='Encaminhado'?R.encEquipe:'';x.rfo=rr;
     if(R.cat&&R.cat!==x.categoria){gHist(x,`Categoria corrigida no RFO: ${x.categoria||'—'} → ${R.cat}`);if(['clt','terc','func'].includes(ui.perfil))x.catRfo=R.cat;else{x.categoria=R.cat;delete x.catRfo}}
@@ -7694,7 +7694,7 @@ function vtPdf(a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4'),M=VT.M,
 Object.assign(ACT,{
   vtFechar:()=>{ui.vt=null;vtMapaFim();VT.R=null;VT.M=null;render();window.scrollTo(0,0)},
   vtEnviar:async el=>{const a=getAg(el.dataset.id);if(!a||!VT.R||vtFalta().length)return;toast('Gerando e enviando o relatório da vistoria…');
-    try{const R=VT.R,blob=vtPdf(a),path=`${vtDir(a)}/vistoria/${Date.now()}-relatorio-vistoria.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
+    try{const R=VT.R,blob=vtPdf(a),path=`${vtDir(a)}/vistoria/${Date.now()}/${pdfNmAg(a,'relatorio-vistoria')}.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
       const r=vtResul(),dz=VT_PRAZO[r]||0,L=vtPend();
       a.rel=a.rel||{};a.rel.vist={path,em:Date.now(),res:r};
       a.vistoria={res:r,sug:vtSug(),just:R.res&&R.res!==vtSug()?R.just:'',conf:vtConf(),pontos:vtAtivos(),nPend:L.length,prazo:dz?addD(hoje(),dz):null,dias:dz||null,em:Date.now(),por:meNome(),revis:!!R.revis,mMed:+R.mMed||0,mPrev:VT.M.mPrev,kmz:VT.nome,
@@ -8904,7 +8904,7 @@ Object.assign(ACT,{
   fuFechar:()=>{ui.fu=null;fuMapaFim();FU.R=null;FU.M=null;render();window.scrollTo(0,0)},
   fuEnviar:async el=>{const a=getAg(el.dataset.id);if(!a||!FU.R||fuFalta().length)return;toast('Gerando e enviando o relatório de fusões…');
     try{fuCaixas().forEach(c=>{const d=fuD(c.id);if(d.fus.some(f=>!f.ok)||d.mod){d.fus.forEach(f=>f.ok=true);d.mod=false;d.confEm=Date.now()}});
-      const blob=fuPdf(a),path=`relatorios/${a.id}/fusoes/${Date.now()}-relatorio-fusoes.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
+      const blob=fuPdf(a),path=`relatorios/${a.id}/fusoes/${Date.now()}/${pdfNmAg(a,'relatorio-fusoes')}.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
       const C=fuResumo(false);a.rel=a.rel||{};a.rel.fus={path,em:Date.now()};
       a.fusoes={em:Date.now(),por:meNome(),kmz:FU.nome,n:C.reduce((s,c)=>s+c.fus.length,0),caixas:C,geo:{st:'val'}};delete a.fusoesParc;
       a.fusoesLog=(a.fusoesLog||[]).concat([{em:Date.now(),acao:'Concluiu e enviou o relatório de fusões',por:meNome()}]);
@@ -10929,8 +10929,8 @@ const gcTags=c=>{const sla=gSla(c),rc=gRecusa(c),re=gReinc(c).length,me=gMesmoEn
   return [c.prioridade&&c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:'',sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:'',re?'<span class="chip bad">Reincidente</span>':'',me?'<span class="chip info">Mesmo endereço</span>':'',
     c.naoVal&&c.naoVal.length&&GTD_ABERTOS.includes(c.status)?'<span class="chip bad">Não validado</span>':'',gAceiteChip(c),rc?`<span class="chip bad">Recusado por ${esc(String(rc.nome||'técnico').split(' ')[0])}</span>`:''].filter(Boolean).join('')};
 /* Chamados (kanban) do GTD */
-{const _gc=gCard;gCard=function(c){if(typeof areaDe==='function'&&areaDe(c)!=='gtd')return _gc.apply(this,arguments);const mt=gMttr(c),tg=gcTags(c);
-  return gcCard(c,{cls2:'ev evn gcc gkc',fz:(c.categoria||'Sem categoria')+' · '+gQuando(gIni(c)),badge:gChatBtn(c),
+{const _gc=gCard;gCard=function(c){if(typeof areaDe==='function'&&!['gtd','re','tx'].includes(areaDe(c)))return _gc.apply(this,arguments);const mt=gMttr(c),tg=gcTags(c);
+  return gcCard(c,{cls2:'ev evn gcc gkc',fz:(txDe(c)&&typeof txPartes==='function'?txPartes(c).join(' · '):(c.categoria||'Sem categoria'))+' · '+gQuando(gIni(c)),badge:gChatBtn(c),
     extra:`${tg?`<span class="gckt">${tg}</span>`:''}${/^MTTR começa$/.test(mt.l)?'':cRow('dt',esc(mt.l+': '+mt.v))}`})}}
 /* Agenda do GTD */
 const gcQok=c=>{const q=normK(ui.gcQ||'').trim();if(!q)return true;return bTxt(c.cliente,c.etiqueta,c.pom,c.pnoc,c.cidade,c.tec?gTecN(c.tec):'',c.categoria).includes(q)};
@@ -11211,7 +11211,7 @@ const reCxLinhas=r=>(r.cx||[]).map((x,i)=>[`${i+1}. ${x.nome||'—'}`,x.tipo||'�
   const ord=f=>f.tipo==='def'?0:f.tipo==='area'?1:/^cx:/.test(f.tipo||'')?2:3,Fo=Fp.slice().sort((a,b)=>ord(a)-ord(b));
   let pdf=null;try{toast('Gerando o relatório da rede externa…');const c0=Object.assign({},c,{desfecho:R.desfecho,encEquipe:'',rfo:rr});
     const ff=[];for(const f of Fo){const d=await gImgData(f);if(d)ff.push({data:d,leg:reLeg(R,f),fase:f.fase||'',tipo:f.tipo||''})}
-    const blob=await gRfoPdf(c0,ff),path=`chat/g/${id}/rfo/relatorio-re-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
+    const blob=await gRfoPdf(c0,ff),path=`chat/g/${id}/rfo/${Date.now()}/${pdfNmChId(id,'relatorio-re')}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
   catch(e){toast('O relatório será gravado, mas o PDF não foi gerado: '+(e.message||e),'bad')}
   const nv=await gAcao(id,x=>{if(x.status!=='rfo'){toast('O relatório já foi gerado.','bad');return false}x.desfecho=R.desfecho;x.encEquipe='';x.rfo=rr;if(R.notaAdm)x.notaAdm=R.notaAdm;
     x.rfoFotos=Fo.map(f=>({path:f.path,leg:(f.fase?FF_N[f.fase]+' · ':'')+reLeg(R,f),tipo:f.tipo||'',fase:f.fase||''}));if(pdf)x.rfoPdf=pdf;x.rfoTxt=gRfoTexto(x);x.status='lpu';x.ts.rfo=Date.now();gHist(x,'Relatório da rede externa gerado ('+R.desfecho+')'+(Fo.length?', '+Fo.length+' foto(s)':''))},
@@ -11689,7 +11689,7 @@ const txCkLinhas=r=>r.tipo==='prev'&&!txImp(r)?TX_PS.flatMap(s=>TX_PREV[s].it.ma
   const Fp=(R.fotos||[]).filter(f=>f.path);if((R.fotos||[]).some(f=>!f.path)){toast('Aguarde o envio das fotos terminar.','bad');return}el.disabled=true;
   const{fotos,ab,...rr}=R;rr.solucao=R.itemDef||R.gobs||R.feito||R.iesp||'';rr.causa=R.raiz||R.item||R.desfecho||'';rr.local=c.cliente;
   let pdf=null;try{toast('Gerando o relatório…');const c0=Object.assign({},c,{desfecho:R.desfecho,rfo:rr});const ff=[];for(const f of Fp){const d=await gImgData(f);if(d)ff.push({data:d,leg:txFtN(R,f)})}
-    const blob=await gRfoPdf(c0,ff),path=`chat/g/${id}/rfo/relatorio-tx-${Date.now()}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
+    const blob=await gRfoPdf(c0,ff),path=`chat/g/${id}/rfo/${Date.now()}/${pdfNmChId(id,'relatorio-tx')}.pdf`,up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;pdf=path}
   catch(e){toast('O relatório será gravado, mas o PDF não foi gerado: '+(e.message||e),'bad')}
   const nv=await gAcao(id,x=>{if(x.status!=='rfo'){toast('O relatório já foi gerado.','bad');return false}x.desfecho=R.desfecho;x.rfo=rr;x.rfoFotos=Fp.map(f=>({path:f.path,leg:txFtN(R,f),tipo:f.tipo||''}));if(pdf)x.rfoPdf=pdf;
     if(R.tipo==='corr'&&R.pend==='sim')x.txPendAg={txt:R.pendD||'',res:R.desfecho,em:Date.now(),por:meNome()};x.rfoTxt=gRfoTexto(x);if(lpM&&String(R.notaAdm||'').trim())x.notaAdm={texto:String(R.notaAdm).trim(),em:Date.now(),por:ME?ME.nome:''};x.status=lpM?'lpu':'concl';x.ts.rfo=Date.now();if(lpM)delete x.semLpu;else x.semLpu=true;gHist(x,'Relatório da Transmissão gerado ('+R.desfecho+')')},lpM?(fnM?'Relatório gerado. O administrador da sua empresa foi avisado para preencher a LPU.':'Relatório gerado. Agora preencha a LPU.'):'Relatório gerado. Atendimento encerrado.');
@@ -11936,7 +11936,7 @@ Object.assign(IN,{txaQ:el=>{ui.txaQ=el.value;render();refoca('txaQ')}});
 {const _g=ACT.gAbrir;ACT.gAbrir=function(el){if(document.querySelector('#modal [data-act="txaVer"]'))closeModal();return _g.apply(this,arguments)}}
 {const _v=viewGAgenda;viewGAgenda=function(){return txAt()?viewTxAgenda():_v.apply(this,arguments)}}
 /* Chamados (kanban) da Transmissão: o mesmo card da Agenda, com mensagens, marcações (prioridade, SLA, aceite, recusa) e o tempo */
-{const _gc=gCard;gCard=function(c){if(!txDe(c))return _gc.apply(this,arguments);const sla=gSla(c),mt=gMttr(c),rc=gRecusa(c),re=gReinc(c).length;
+{const _gc=gCard;gCard=function(c){if(!txDe(c)||1)return _gc.apply(this,arguments);const sla=gSla(c),mt=gMttr(c),rc=gRecusa(c),re=gReinc(c).length;
   const tags=[c.prioridade&&c.prioridade!=='Normal'?`<span class="chip ${c.prioridade==='Escalonado'?'bad':'warn'}">${esc(c.prioridade)}</span>`:'',sla?`<span class="chip ${sla.cls}">${sla.t}</span>`:'',re?'<span class="chip bad">Reincidente</span>':'',
     c.naoVal&&c.naoVal.length&&GTD_ABERTOS.includes(c.status)?'<span class="chip bad">Não validado</span>':'',gAceiteChip(c),rc?`<span class="chip bad">Recusado por ${esc(String(rc.nome||'técnico').split(' ')[0])}</span>`:''].filter(Boolean).join('');
   return txaCard(c,'',{cls2:'ev evn txl txkc',fz:txPartes(c).join('\n')+'\n'+gQuando(gIni(c)),badge:gChatBtn(c),
@@ -13365,7 +13365,7 @@ Object.assign(ACT,{
   ppiPrevia:async()=>{const P=ui.ppi,a=P&&getAg(P.ag);if(!a)return;try{const b=await ppiPdf(a),u=URL.createObjectURL(b);const w=window.open(u,'_blank');if(!w){const x=document.createElement('a');x.href=u;x.download=`PPI ${a.etiqueta}.pdf`;document.body.appendChild(x);x.click();x.remove()}setTimeout(()=>URL.revokeObjectURL(u),60000)}catch(e){toast('Não foi possível gerar o PDF: '+(e.message||e),'bad')}},
   ppiEnviar:async el=>{const P=ui.ppi,a=P&&getAg(el.dataset.id);if(!a)return;const L=ppiFalta();if(L.length){toast('Falta: '+L.join(', ')+'.','bad');const x=document.getElementById('ppiSigTec');if(x)x.scrollIntoView({block:'center'});return}
     el.disabled=true;toast('Gerando e enviando o relatório de PPI…');
-    try{const blob=await ppiPdf(a),path=`relatorios/${a.id}/ppi/${Date.now()}-relatorio-ppi.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
+    try{const blob=await ppiPdf(a),path=`relatorios/${a.id}/ppi/${Date.now()}/${pdfNmAg(a,'relatorio-ppi')}.pdf`;await flushSync();const up=await sb.storage.from('agenda').upload(path,blob,{contentType:'application/pdf',upsert:false});if(up.error)throw up.error;
       a.rel=a.rel||{};a.rel.ppi={path,em:Date.now(),fotos:P.fotos.filter(x=>x.u).length};
       const f=P.f;a.ppi={cliente:f.cliente,cidade:f.cidade,end:f.end,resp:f.resp,altura:f.altura,plataforma:f.plat,metragem:f.metragem,acesso:f.acesso,docs:f.docs,obs:f.obs,tecnico:f.tecNome,clienteResp:f.cliNome,fotos:P.fotos.filter(x=>x.u).length,em:Date.now(),por:meNome()};
       let conc=false;if(a.status==='execucao'&&ppiSo(a)){a.fasesFin=fasesOf(a);a.ts.conclusao=Date.now();if(a.dias)a.dias=a.dias.filter(d=>d<=a.data);a.status='relatorios';conc=true}
@@ -13446,7 +13446,7 @@ function gSalaLista(){const L=G.msgs[salaK()];
     const cont=!!(prev&&prev.autor===m.autor&&t-new Date(prev.em)<5*60000);prev=m;
     const hue=salaHue(m.autor),c=m.chamado?G.ch.find(x=>x.id===m.chamado):null;
     const foto=m.foto?(G.fotos[m.foto]?`<a href="${esc(G.fotos[m.foto])}" target="_blank" rel="noopener"><img src="${esc(G.fotos[m.foto])}" alt="Foto enviada por ${esc(m.autor_nome||'')}"></a>`:armFoto(m.foto)):'';
-    h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?salaRefC(c,m.chamado):''}${ui.salaEd===m.id?salaEdBox(m):chxMsgTxt(m)}${chxAnexo(m)}${foto}<small class="salahr">${m.editado_em?msgEdTag(m,'s')+' ':''}${salaHora(m.em)}${eu&&salaPodeEd(m)&&ui.salaEd!==m.id?` <button type="button" class="salaedb" data-act="salaEd" data-id="${m.id}" aria-label="Editar a mensagem" title="Editar">${_sv('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',13)}</button>`:''}</small></div></div>`;return h}).join('')}
+    h+=`<div class="lado sala${eu?' eu':''}${cont?' cont':''}">${eu?'':cont?'<span class="salaav vazio" aria-hidden="true"></span>':`<span class="salaav" style="--h:${hue}" aria-hidden="true">${esc(salaIni(m.autor_nome))}</span>`}<div class="msg${eu?' eu':''}" data-mid="${m.id}">${!cont&&!eu?`<small class="salanome" style="--h:${hue}"><b>${esc(m.autor_nome||'')}</b> · ${esc(m.papel||'')}</small>`:''}${m.chamado?salaRefC(c,m.chamado):''}${chatRespQ(m)}${ui.salaEd===m.id?salaEdBox(m):chxMsgTxt(m)}${chxAnexo(m)}${foto}<small class="salahr">${m.editado_em?msgEdTag(m,'s')+' ':''}${salaHora(m.em)}${chatRespBtn(m)}${eu&&salaPodeEd(m)&&ui.salaEd!==m.id?` <button type="button" class="salaedb" data-act="salaEd" data-id="${m.id}" aria-label="Editar a mensagem" title="Editar">${_sv('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',13)}</button>`:''}</small></div></div>`;return h}).join('')}
 function viewSala(){const k=salaK();if(!G.msgs[k]&&!G.msgBus[k])setTimeout(gChatCarregar,0);setTimeout(()=>{const el=$('chatList');if(el)el.scrollTop=el.scrollHeight},0);
   const ab=G.ch.filter(c=>GTD_ABERTOS.includes(c.status)).sort(gSalaOrd),cit=ui.salaCh&&G.ch.find(x=>x.id===ui.salaCh);
   const nEsc=ab.filter(c=>c.prioridade==='Escalonado').length,nAlta=ab.filter(c=>c.prioridade==='Alta').length,nND=ab.filter(c=>c.status==='aberto'&&!c.tec).length;
@@ -15524,7 +15524,7 @@ async function rpPdfAp(x,a){const{jsPDF}=window.jspdf,doc=new jsPDF('p','mm','a4
   const n=doc.internal.getNumberOfPages();for(let k=1;k<=n;k++){doc.setPage(k);doc.setFontSize(7);doc.setTextColor(160);doc.text(`Net Turbo Telecom, rede externa ${x.cod}`,m,H-7);doc.text(`Página ${k} de ${n}`,W-m,H-7,{align:'right'})}
   return doc.output('blob')}
 Object.assign(ACT,{rpPdfAp:async el=>{const x=rpGet(el.dataset.id),a=x&&rpAps(x).find(b=>b.id===el.dataset.a);if(!a)return;el.disabled=true;toast('Gerando o relatório fotográfico…');
-  try{const b=await rpPdfAp(x,a);rpBaixa(b,`relatorio-${x.cod}-${a.data||hoje()}.pdf`)}catch(e){toast('Não foi possível gerar o PDF: '+((e&&e.message)||e),'bad')}el.disabled=false}});
+  try{const b=await rpPdfAp(x,a);rpBaixa(b,pdfNm(x.cod,x.cidade,a.data||hoje(),'relatorio')+'.pdf')}catch(e){toast('Não foi possível gerar o PDF: '+((e&&e.message)||e),'bad')}el.disabled=false}});
 
 /* ---------- 05/11: Rede Externa · prioridade com prazo ----------
    Na abertura e na edição do chamado de rede externa a prioridade mostra o prazo: Normal (24h), Alta (8h), Escalonado (4h).
@@ -19458,6 +19458,74 @@ function lpuAssSrc(l){const s=lpuImg(l);if(s)return s;if(l&&l.assinatura)lpuAssG
 const lpuAch=id=>(S.lpus||[]).find(x=>x.id===id)||(G.lpus||[]).find(x=>x.id===id);
 ['aprovar','pdfArq','gAprovar'].forEach(k=>{const f=ACT[k];if(!f)return;ACT[k]=async function(el){const a=arguments;try{await lpuAssGarante(lpuAch(el&&el.dataset&&el.dataset.id))}catch(e){}return f.apply(this,a)}});
 if(typeof finLpuBlob==='function'){const _b=finLpuBlob;finLpuBlob=async function(r){try{await lpuAssGarante(r&&r.l)}catch(e){}return _b.apply(this,arguments)}}
+
+/* 14/11: ajustes pedidos pelo Gabriel
+   1. RE Corretiva: botão "Copiar RFO" no detalhe do chamado (texto do RFO para colar).
+   2. PDFs com nome "Cliente_Etiqueta_dd-mm-aaaa_tipo.pdf": novos relatórios e LPUs são guardados com esse nome (o botão
+      de baixar do leitor de PDF já sugere esse nome) e os botões "Baixar" usam esse nome também nos PDFs antigos.
+   3. Reforço na RE Corretiva lista os técnicos da Rede Externa (e na Transmissão, os da Transmissão).
+   4. Chats: toda foto ou arquivo passa pela prévia com o campo "Legenda".
+   5. Chats: responder uma mensagem ou foto citando a original (coluna resp, ajuste 78).
+   6. Kanban da RE Corretiva e da Transmissão com o mesmo card do GTD. */
+/* ---------- 1. Copiar RFO ---------- */
+ACT.rfoCopiar=el=>{const c=G.ch.find(x=>x.id===el.dataset.id);if(!c||!c.rfoTxt)return;const t=c.rfoTxt,ok=()=>toast('RFO copiado.');
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,()=>{rfoCopiaManual(t)});else rfoCopiaManual(t)};
+function rfoCopiaManual(t){const x=document.createElement('textarea');x.value=t;x.style.position='fixed';x.style.opacity='0';document.body.appendChild(x);x.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}x.remove();
+  if(ok)toast('RFO copiado.');else openModal(`<h3>Copiar RFO</h3><p class="muted">Selecione o texto e copie.</p><textarea class="inp" rows="12" readonly onfocus="this.select()">${esc(t)}</textarea><div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)}
+/* ---------- 2. Nome dos PDFs ---------- */
+const pdfS=x=>String(x||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,60);
+function pdfNm(cli,eti,data,tipo){const d=data?dBR(String(data).slice(0,10)).replace(/\//g,'-'):'';const b=[pdfS(cli),pdfS(eti),d].filter(Boolean).join('_')||'documento';return b+(tipo?'_'+pdfS(tipo):'')}
+function pdfNmAg(a,tipo){a=a||{};return pdfNm((typeof cliN==='function'&&cliN(a.etiqueta||''))||a.cliente,a.etiqueta,a.data,tipo)}
+function pdfNmCh(c,tipo){c=c||{};return pdfNm(c.cliente,c.etiqueta||(c.pom?'OM_'+c.pom:''),typeof gDiaDe==='function'?gDiaDe(c):'',tipo)}
+function pdfNmChId(id,tipo){return pdfNmCh((G.ch||[]).find(x=>x.id===id),tipo)}
+function pdfNmL(l,tipo){l=l||{};if(l.chamado&&!/^(pl|rp):/.test(l.chamado)){const c=(G.ch||[]).find(x=>x.id===l.chamado);if(c)return pdfNmCh(c,tipo)}
+  const a=l.ag||l.agendamento?getAg(l.ag||l.agendamento):null;if(a)return pdfNmAg(a,tipo);return pdfNm((typeof cliN==='function'&&cliN(l.etiqueta||''))||l.cliente,l.etiqueta,l.data,tipo)}
+/* nome a partir do caminho no Storage (PDFs antigos) */
+function pdfNmPath(p){p=String(p||'');const s=p.split('/'),tipo=(s[s.length-1]||'').replace(/\.pdf$/i,'').replace(/^\d+-/,'').replace(/^\d+$/,'');try{
+  if(s[0]==='relatorios'){const a=getAg(s[1]);if(a)return pdfNmAg(a,s[2]||tipo)}
+  if(s[0]==='chat'&&s[1]==='g'){const c=(G.ch||[]).find(x=>x.id===s[2]);if(c)return pdfNmCh(c,s[3]==='rfo'?'relatorio':s[3]||tipo)}
+  if(s[0]==='chat'&&s[1]==='r'&&typeof rpGet==='function'){const x=rpGet(s[2]);if(x)return pdfNm(x.cod,x.cidade,x.data,'relatorio')}
+  if(s[0]==='lpus'){const id=(s[2]||'').slice(0,36),l=(S.lpus||[]).find(y=>y.id===id)||(G.lpus||[]).find(y=>y.id===id);if(l)return pdfNmL(l,'LPU')}}catch(e){}return null}
+(()=>{try{const st=sb.storage,f0=st.from.bind(st);st.from=b=>{const o=f0(b);if(b!=='agenda'||!o||!o.createSignedUrl||o.__pdfNm)return o;o.__pdfNm=1;const c0=o.createSignedUrl.bind(o);
+  o.createSignedUrl=(p,exp,opt)=>{if(opt&&opt.download&&/\.pdf$/i.test(String(p))&&(opt.download===true||!/\d{2}-\d{2}-\d{4}/.test(String(opt.download)))){const n=pdfNmPath(p);if(n)opt=Object.assign({},opt,{download:n+'.pdf'})}return c0(p,exp,opt)};return o}}catch(e){console.warn('pdfNm',e)}})();
+/* ---------- 3. Reforço com os técnicos da área ---------- */
+if(ACT.refChAdd){const _a=ACT.refChAdd;ACT.refChAdd=function(el){const c=G.ch.find(x=>x.id===el.dataset.id),a=arguments;const r=(typeof eqModoRe==='function'?eqModoRe:(f=>f()))(()=>_a.apply(this,a));
+  if(c&&txDe(c)&&typeof txTecOpts==='function'){const s=$('refChTec');if(s){const ja=refChFilhos(c).map(x=>x.tec).concat([c.tec]);s.innerHTML='<option value="">Escolha o técnico…</option>'+txTecOpts('');[...s.options].forEach(o=>{if(o.value&&ja.includes(o.value))o.remove()})}}return r}}
+/* ---------- 4. Legenda nas fotos e arquivos ---------- */
+function chatLegCampo(){const t=(($('chatTxt')||{}).value||'').trim();return `<label class="f chatleg"><span>Legenda (opcional)</span><textarea class="inp" id="chatLeg" rows="2" placeholder="Escreva uma legenda para a imagem">${esc(t)}</textarea></label>`}
+const chatLegUsa=()=>{const v=(($('chatLeg')||{}).value||'').trim(),t=$('chatTxt');if(t)t.value=v;ui.chatTxt=v};
+{const _p=chatColarPrevia;chatColarPrevia=function(F){_p.apply(this,arguments);const m=document.querySelector('#modal .chatcolap');if(m&&!$('chatLeg')){m.insertAdjacentHTML('afterend',chatLegCampo());const p=document.querySelector('#modal .chatcolap')?.previousElementSibling;if(p&&p.tagName==='P'&&/Vai junto/.test(p.textContent))p.remove()}
+  setTimeout(()=>{const l=$('chatLeg');if(l)l.focus()},50)}}
+{const _s=ACT.chatColaSim;ACT.chatColaSim=async function(el){chatLegUsa();const F=CHAT_COLA.slice();CHAT_COLA=[];if(el)el.disabled=true;closeModal();for(const f of F)await CH.chatFoto({files:[f],value:'',__int:1})}}
+{const _f=CH.chatFoto;CH.chatFoto=async function(el,e){if(el&&el.__int)return _f.call(this,el,e);const fs=[...((el&&el.files)||[])];if(!fs.length)return;try{el.value=''}catch(x){}chatColarPrevia(fs)}}
+let CHAT_ARQ=null;
+{const _x=CH.chxArq;CH.chxArq=async function(el){if(el&&el.__int)return _x.call(this,el);const f=el.files&&el.files[0];try{el.value=''}catch(x){}if(!f)return;CHAT_ARQ=f;
+  openModal(`<h3>Enviar este arquivo?</h3><p class="chxprev"><b>${esc(f.name||'arquivo')}</b> <small class="muted">${typeof chxTam==='function'?chxTam(f.size):''}</small></p>${chatLegCampo()}
+   <div class="actions"><button class="btn" data-act="chatArqNao">Cancelar</button><button class="btn primary" data-act="chatArqSim">Enviar</button></div>`);setTimeout(()=>{const l=$('chatLeg');if(l)l.focus()},50)}}
+Object.assign(ACT,{chatArqNao:()=>{CHAT_ARQ=null;closeModal()},chatArqSim:async el=>{const f=CHAT_ARQ;CHAT_ARQ=null;if(!f)return;chatLegUsa();closeModal();await CH.chxArq({files:[f],value:'',__int:1});const t=$('chatTxt');if(t&&!ui.chatTxt)t.value=''}});
+/* ---------- 5. Responder mensagem ---------- */
+let CHAT_RESP_OK=null;
+async function chatRespTesta(){if(CHAT_RESP_OK!==null)return CHAT_RESP_OK;const r=await sb.from('ag_mensagens').select('resp').limit(1);CHAT_RESP_OK=!r.error;return CHAT_RESP_OK}
+const chatMsgDe=id=>{for(const k in G.msgs){const m=(G.msgs[k]||[]).find(x=>x.id===id);if(m)return m}return null};
+const chatRespIco=_sv('<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',13);
+const chatRespBtn=m=>m&&m.id&&!(m.anexo&&m.anexo.auto&&!m.autor)?` <button type="button" class="salaedb msgrsp" data-act="chatResp" data-id="${m.id}" aria-label="Responder a mensagem" title="Responder">${chatRespIco}</button>`:'';
+function chatRespResumo(m){const a=m.anexo||{};return m.foto||(a.tipo==='arq'&&/\.(jpe?g|png|gif|webp|heic)$/i.test(a.nome||a.path||''))?'📷 Foto'+(m.texto&&!a.auto?': '+m.texto:''):a.tipo==='arq'?'📎 '+(a.nome||'Arquivo'):a.tipo==='loc'?'📍 Localização':(m.texto||'')}
+const chatRespQ=m=>{const r=m&&m.resp;if(!r||!r.id)return '';return `<button type="button" class="msgq" data-act="chatIrMsg" data-id="${esc(r.id)}"><b>${esc(r.n||'Mensagem')}</b><span>${esc(String(r.t||'').slice(0,120))}</span></button>`};
+function chatRespBar(){const r=ui.chatResp;if(!r)return '';return `<div class="msgqbar"><div><b>Respondendo a ${esc(r.n||'mensagem')}</b><span>${esc(String(r.t||'').slice(0,120))}</span></div><button type="button" class="btn sm" data-act="chatRespX" aria-label="Cancelar a resposta">✕</button></div>`}
+Object.assign(ACT,{
+ chatResp:async el=>{const m=chatMsgDe(el.dataset.id);if(!m)return;if(!(await chatRespTesta())){toast('Para responder mensagens, rode o script agenda_ajuste_78_responder_mensagens.sql no Supabase.','bad');return}
+  ui.chatResp={id:m.id,n:ME&&m.autor===ME.id?'você':(m.autor_nome||'mensagem'),t:chatRespResumo(m).slice(0,160)};const k=ui.chat&&ui.chat.t==='s'?'s':(ui.chat&&ui.chat.id);ui.chatResp.k=k;
+  render();setTimeout(()=>{const t=$('chatTxt');if(t)t.focus()},30)},
+ chatRespX:()=>{ui.chatResp=null;render()},
+ chatIrMsg:el=>{const n=document.querySelector(`[data-mid="${CSS.escape(el.dataset.id)}"]`);if(!n){toast('A mensagem original não está mais nesta conversa.','bad');return}n.scrollIntoView({block:'center',behavior:'smooth'});n.classList.add('msgflash');setTimeout(()=>n.classList.remove('msgflash'),1600)}});
+/* inclui a resposta no envio da mensagem da conversa aberta */
+(()=>{const f0=sb.from.bind(sb);sb.from=t=>{const q=f0(t);if((t!=='ag_mensagens'&&t!=='ag_sala')||!q||!q.insert)return q;const i0=q.insert.bind(q);
+  q.insert=(row,...a)=>{const r=ui.chatResp,ch=ui.chat;if(r&&ch&&row&&!Array.isArray(row)&&CHAT_RESP_OK){const alvo=t==='ag_sala'?(ch.t==='s'):(row.chamado===ch.id||row.agendamento===ch.id||row.re_prog===ch.id);
+    if(alvo&&(r.k===(ch.t==='s'?'s':ch.id))){row=Object.assign({},row,{resp:{id:r.id,n:r.n,t:r.t}});ui.chatResp=null;setTimeout(()=>{const b=document.querySelector('.msgqbar');if(b)b.remove()},0)}}return i0(row,...a)};return q}})();
+{const _c=ACT.chatFechar;if(_c)ACT.chatFechar=function(){ui.chatResp=null;return _c.apply(this,arguments)}}
+document.head.insertAdjacentHTML('beforeend',`<style>.msgq{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;border:0;border-left:3px solid var(--brand);background:rgba(0,0,0,.05);border-radius:6px;padding:5px 8px;margin:4px 0;font:inherit;font-size:12.5px;color:inherit;cursor:pointer}.msgq span{opacity:.8;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.msgqbar{display:flex;gap:8px;align-items:center;border-left:3px solid var(--brand);background:var(--brand-soft);border-radius:8px;padding:6px 8px;margin-bottom:6px;font-size:13px}.msgqbar>div{flex:1;min-width:0;display:flex;flex-direction:column}.msgqbar span{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msgrsp{opacity:.7}.msgflash{animation:msgfl 1.6s}@keyframes msgfl{0%,60%{box-shadow:0 0 0 3px var(--brand)}100%{box-shadow:none}}.chatleg{margin-top:10px}.chxprev{margin:8px 0}</style>`);
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
