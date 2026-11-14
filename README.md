@@ -271,6 +271,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 80. `agenda_ajuste_79_cancelar_despacho.sql` — cancelar despacho: o técnico é avisado ("Despacho cancelado") em vez de a gestão receber "recusou"; o técnico anterior é avisado na troca; trava no banco impede tirar o técnico de chamado já em deslocamento (trigger `ag_chamado_desp_canc_guard`).
 81. `agenda_ajuste_80_contrato_fixo.sql` — tabela `ag_contrato_fixo` (contratos fixos das equipes Sem LPU e fechamentos do período 21 a 20): coordenação e supervisão leem, gravam e cadastram contratos; fechamento aprovado pela supervisão só a partir do dia 21 (trigger `ag_cfix_guard`); o administrador da empresa terceira lê o contrato das equipes dele e os fechamentos já enviados.
 82. `agenda_ajuste_81_preventiva_adm_empresa.sql` — RE Preventiva no fluxo das outras áreas: o administrador da empresa terceira lê e grava as programadas dos funcionários dele (e vê as fotos); funcionário não envia LPU de programada; aprovar/reprovar a LPU da programada só a gestão (trigger `ag_re_prog_guard`).
+83. `agenda_ajuste_82_plantao_dono_empresa.sql` — plantão de funcionário de empresa terceira: o administrador da empresa lê e dá a baixa; o funcionário não dá mais a baixa (trigger `ag_plantao_guard`).
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -961,6 +962,7 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - A LPU enviada (técnico, administrador ou gestão) vai para a **Aprovação de LPU da RE Preventiva** (supervisão com a permissão de aprovar, ex.: Vinicius): aprovar, devolver para ajuste (volta para quem envia, com o motivo; o administrador reabre com os serviços que tinha lançado) ou reprovar. Aprovada entra no budget 0101 no mês da aprovação. Envios feitos antes desta versão continuam aprovados.
   - Gestão financeira do técnico e do dono da empresa: as LPUs de programada aparecem (Aguardando, Aprovadas, Para ajuste, Reprovadas) depois de enviadas; a programada ainda sem LPU enviada não aparece como "Aguardando".
   - Gestão: detalhe e esteira mostram com quem está a LPU (técnico, administrador da empresa ou contrato fixo); "Enviar pela gestão" continua disponível. Visão da empresa terceira (lado Preventiva) mostra as programadas da empresa.
+- **Baixa do plantão pelo dono da empresa (14/11, `mod/plfunc.js`, ajuste 82)**: plantão encaminhado a funcionário de empresa terceira aparece para ele só como aviso ("a baixa é feita pelo administrador da sua empresa"), sem botão. O dono vê em Minha equipe > **Plantões da equipe** > **Dar baixa do plantão** (horas no comum e no crítico, declaração em nome do funcionário) e acompanha as baixas enviadas (aguardando, aprovado, devolvido, reprovado); entra no contador de LPUs para preencher. Técnico terceiro sem funcionários (o próprio dono) e CLT continuam dando a baixa na própria lista. Na tela de Plantões da gestão aparece "baixa pelo administrador: <empresa>".
 
 ## 8. Publicação
 
@@ -1026,6 +1028,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 14/11/2026 | Baixa do plantão de funcionário feita pelo dono da empresa | **`agenda_ajuste_82_plantao_dono_empresa.sql` no Supabase** (não subir no GitHub), depois `agenda.html` (`mod/plfunc.js`). |
 | 14/11/2026 | RE Preventiva no fluxo das outras áreas: funcionário só relata, dono da empresa monta a LPU, técnico não funcionário preenche a própria, contrato fixo sem LPU e contando na franquia; LPU das programadas passa pela Aprovação de LPU da RE Preventiva | **`agenda_ajuste_81_preventiva_adm_empresa.sql` no Supabase** (não subir no GitHub), depois `agenda.html` (`mod/rpfluxo.js`, `mod/rpcia.js`, `mod/reprev.js`). |
 | 14/11/2026 | Minha equipe e Visão da empresa terceira: equipe sempre visível, chamados encerrados (GTD, RE, Transmissão) nas concluídas, aguardando validação e RFO por fazer visíveis | `agenda.html` (`mod/eqtime.js`, patch 33). Sem SQL. |
 | 14/11/2026 | Gestão financeira do prestador: abas Contrato fixo / Contrato LPU só para quem tem os dois | `agenda.html` (`mod/cfix.js`). Sem SQL. |

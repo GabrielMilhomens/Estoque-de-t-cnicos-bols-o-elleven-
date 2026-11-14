@@ -20061,6 +20061,29 @@ const cfProgPseudo=x=>({id:'rp:'+x.id,_rp:1,tec:x.tec,ts:{desloc:(x.jor||{}).des
 {const _r=reLpusProg;reLpusProg=function(){const L=_r.apply(this,arguments)||[];if(!(typeof gTecPerfil==='function'&&gTecPerfil()))return L;
   return L.filter(l=>{const x=rpGet(String(l.id).slice(3));return x&&x.lpu&&(x.lpu.env||x.lpu.dev||x.lpu.rep)})}}
 
+/* 14/11: baixa do plantão de funcionário de empresa terceira é feita pelo dono da empresa (Minha equipe > Plantões da equipe).
+   O funcionário vê o plantão encaminhado, sem o botão de baixa. Técnico terceiro sem empresa (o próprio dono, quando é o único
+   acesso) e CLT continuam dando a baixa na própria lista. Banco: agenda_ajuste_82_plantao_dono_empresa.sql. */
+const plEmpDe=id=>((S.cnpj||{})[id]||{}).empresa||null;
+{const _h=plTecHtml;plTecHtml=function(tid){if(!plEmpDe(tid))return _h.apply(this,arguments);if(!PLT.ok&&!PLT.err){plCarregar();return ''}
+  const L=PLT.rows.filter(x=>x.tec===tid&&['env','ajuste','baixa'].includes(x.status)).sort((a,b)=>String(a.ini).localeCompare(String(b.ini)));if(!L.length)return '';
+  return `<section class="plcards">${L.map(x=>`<div class="plcard ${x.status==='baixa'?'ok':''}"><div><b>Plantão ${esc(PL_AREA[x.area]||'')} · ${plPer(x)}</b><small>${x.status==='baixa'?'Baixa enviada pelo administrador da empresa · aguardando aprovação':`Encaminhado por ${esc(x.por||'')}${x.obs?' · '+esc(x.obs):''}`}</small><small>A baixa do plantão é feita pelo administrador da sua empresa.</small></div></div>`).join('')}</section>`}}
+function eqPlBloco(ids,F,ro){if(typeof PLT==='undefined')return '';if(!PLT.ok&&!PLT.err&&!PLT.bus)plCarregar();
+  const L=(PLT.rows||[]).filter(x=>ids.has(x.tec)&&(!F||x.tec===F)&&['env','ajuste','baixa','apr','rep'].includes(x.status)).sort((a,b)=>String(b.ini).localeCompare(String(a.ini)));if(!L.length)return '';
+  const pend=L.filter(x=>['env','ajuste'].includes(x.status)),out=L.filter(x=>!['env','ajuste'].includes(x.status)).slice(0,10);
+  const st=x=>x.status==='baixa'?['Aguardando aprovação','info']:x.status==='apr'?['Aprovado','ok']:x.status==='rep'?['Reprovado','bad']:x.status==='ajuste'?['Devolvido para ajuste','warn']:['Baixa a fazer','warn'];
+  const card=x=>{const s=st(x);return `<article class="eqc"><div class="eqh"><b>Plantão ${esc(PL_AREA[x.area]||'')} · ${plPer(x)}</b><span class="chip ${s[1]}">${s[0]}</span></div><small>${esc(gTecN(x.tec))}${x.obs?' · '+esc(x.obs):''}</small>${x.status==='ajuste'&&x.dev?`<span class="eqt">Motivo: ${esc(x.dev)}</span>`:''}${x.baixa?`<span class="eqt">${rpFmt(x.baixa.hc,1)} h comum · ${rpFmt(x.baixa.hk,1)} h crítico · ${brl(plTot(x.baixa))}</span>`:''}${['env','ajuste'].includes(x.status)&&!ro?`<button class="bigbtn" data-act="plBaixa" data-id="${x.id}">Dar baixa do plantão</button>`:''}</article>`};
+  const sec=(t,V,vz)=>`<section class="eqs"><h3 class="lsub">${t} <span class="chip">${V.length}</span></h3>${V.map(card).join('')||`<p class="muted">${vz}</p>`}</section>`;
+  return `<div class="eqprog"><h2 class="eqph">Plantões da equipe</h2>${sec('Baixa a fazer',pend,'Nenhum plantão esperando a baixa.')}${out.length?sec('Baixas enviadas',out,''):''}</div>`}
+{const _v=viewEquipe;viewEquipe=function(){const h=_v.apply(this,arguments);try{if(ui.lpuTela)return h;const ids=eqIds(),ro=['eqVer','gEqVer'].includes(ui.tab),b=eqPlBloco(ids,ui.eqTec||'',ro);if(!b)return h;
+  const n=(PLT.rows||[]).filter(x=>ids.has(x.tec)&&(!ui.eqTec||x.tec===ui.eqTec)&&['env','ajuste'].includes(x.status)).length;
+  let o=h.replace(/(<div class="kpi[^"]*"><b>)(\d+)(<\/b><span>LPUs para preencher<\/span>)/,(m,a,v,c)=>a+(+v+n)+c);const i=o.lastIndexOf('</div>');return i>=0?o.slice(0,i)+b+o.slice(i):o+b}catch(e){console.warn('eqPl',e);return h}}}
+/* formulário: quem assina é o administrador */
+{const _f=plForm;plForm=function(x){const h=_f.apply(this,arguments);if(!x||!plEmpDe(x.tec))return h;return h.replace('Declaro que fiquei de plantão no período e que as horas informadas são verdadeiras.','Declaro que '+esc(gTecN(x.tec))+' ficou de plantão no período e que as horas informadas são verdadeiras.')}}
+/* gestão: na tela de Plantões, quem dá a baixa */
+{const _v=viewGPlant;viewGPlant=function(){const h=_v.apply(this,arguments);try{return h.replace(/<tr><td><b>([^<]*)<\/b>/g,(m,n)=>{const t=(PLT.rows||[]).find(x=>gTecN(x.tec)===n.replace(/&amp;/g,'&'));const e=t&&plEmpDe(t.tec);return e?`${m}<br><small class="muted">baixa pelo administrador: ${esc(gTecN(e))}</small>`:m})}catch(e){return h}}}
+if(typeof RP_VIEWS!=='undefined')RP_VIEWS.gPlant=viewGPlant;
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
