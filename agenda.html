@@ -4578,21 +4578,23 @@ function viewEquipe(){const ids=eqIds();
   const proxA=ags.filter(a=>a.status==='agendada').sort((a,b)=>a.data.localeCompare(b.data)),proxG=chs.filter(c=>c.status==='aberto').sort((a,b)=>gIni(a)-gIni(b));
   const docA=ags.filter(a=>a.status==='relatorios');
   const conc=ags.filter(a=>a.status==='concluida'&&a.data>=addD(T,-30)).sort((a,b)=>b.data.localeCompare(a.data));
+  const chFim=c=>{const t=c.ts||{};return Math.max(0,...[t.concl,t.lpu,t.rfo,t.valid,t.pedido,c.validadoEm,t.chegada,t.desloc].filter(x=>Number.isFinite(+x)&&+x>0).map(Number))||c.criadoEm||0},concG=chs.filter(c=>['rfo','lpu','aprov','concl','nao_concluida'].includes(c.status)&&!c.refDe&&chFim(c)>=Date.now()-30*864e5).sort((a,b)=>chFim(b)-chFim(a));
   const sel=ui.eqSel||'';
   const infoA=a=>{const t=a.ts||{};return a.status==='deslocamento'?`Saiu às ${hm(t.desloc)}${etaTxt(t)}`:a.status==='no_local'?`Chegou às ${hm(t.chegada)}`:a.status==='execucao'?`Em execução desde ${hm(t.inicio)}`:a.status==='lpu'?`Terminou às ${hm(t.relatorios||t.conclusao)}`:a.status==='relatorios'?'Fazendo os relatórios':dBR(a.data)};
   const cA=(a,btn)=>`<article class="eqc${sel==='a:'+a.id?' on':''}"><div class="eqh"><b>${esc(cliN(a.etiqueta)||a.etiqueta)}</b>${chip(a.status)}</div><small>${esc(a.etiqueta)} · ${fasesN(a)} · ${dBR(a.data)}</small><span class="eqt">${esc(tecN(a.tec))} · ${esc(infoA(a))}</span>${notaAdmCurta(a.notaAdm)}${btn||''}<button class="btn sm eqver" data-act="eqVer" data-k="a:${a.id}">Ver atividade e relatórios</button></article>`;
-  const cG=(c,btn)=>`<article class="eqc${sel==='g:'+c.id?' on':''}"><div class="eqh"><b>${esc(c.cliente||'Cliente')}</b>${gChip(c)}</div><small>GTD · O&amp;M ${esc(c.pom||'—')} · ${esc(c.categoria||'')}</small><span class="eqt">${esc(gTecN(c.tec))}${c.ts&&c.ts.rfo?' · RFO às '+hm(c.ts.rfo):''}</span>${notaAdmCurta(c.notaAdm)}${btn||''}<button class="btn sm eqver" data-act="eqVer" data-k="g:${c.id}">Ver chamado e RFO</button></article>`;
+  const cG=(c,btn)=>`<article class="eqc${sel==='g:'+c.id?' on':''}"><div class="eqh"><b>${esc(c.cliente||'Cliente')}</b>${gChip(c)}</div><small>${esc(((typeof areaCfg==='function'&&areaCfg(areaDe(c)))||{n:'GTD'}).n)} · O&amp;M ${esc(c.pom||'—')} · ${esc(c.categoria||'')}</small><span class="eqt">${esc(gTecN(c.tec))}${c.ts&&c.ts.rfo?' · RFO às '+hm(c.ts.rfo):''}</span>${notaAdmCurta(c.notaAdm)}${btn||''}<button class="btn sm eqver" data-act="eqVer" data-k="g:${c.id}">Ver chamado e RFO</button></article>`;
   const lpuBtnA=a=>impPode(a)?`<button class="bigbtn" data-act="impLpuAdm" data-id="${a.id}">Preencher a LPU de improdutiva e deslocamento</button>`:S.lpus.some(l=>l.ag===a.id)?`<button class="btn wide" data-act="lpuJaEnviada" data-id="${a.id}">LPU já enviada: encerrar a atividade</button>`:`<button class="bigbtn" data-act="lpuAbrir" data-id="${a.id}">Preencher a LPU</button>`;
   const sec=(t,L,vz)=>`<section class="eqs"><h3 class="lsub">${t} <span class="chip">${L.length}</span></h3>${L.join('')||`<p class="muted">${vz}</p>`}</section>`;
   const EQ=S.equipe||[];
   return `<div class="campo"><div class="toolbar"><div><h2>Minha equipe</h2><p class="muted">O que os seus funcionários estão fazendo e as LPUs que você precisa preencher. Você recebe um aviso sempre que um funcionário termina uma atividade ou chamado.</p></div>
    ${EQ.length>1?`<label class="f inline"><span>Funcionário</span><select class="inp" data-ch="eqTec"><option value="">Todos</option>${EQ.map(e=>`<option value="${e.id}" ${F===e.id?'selected':''}>${esc(e.nome)}</option>`).join('')}</select></label>`:''}</div>
-   <div class="kpis" style="margin-bottom:12px">${kp(lpuA.length+lpuG.length,'LPUs para preencher',lpuA.length+lpuG.length?'warn':'ok')}${kp(eqDiasL(ags).filter(x=>!x.x.lpuAdiada).length,'Dias encerrados sem concluir',eqDiasL(ags).some(x=>!x.x.lpuAdiada)?'warn':'')}${kp(campoA.length+campoG.length,'Em campo agora')}${kp(proxA.length+proxG.length,'Agendadas')}${kp(conc.length,'Concluídas (30 dias)','ok')}</div>
+   <div class="kpis" style="margin-bottom:12px">${kp(lpuA.length+lpuG.length,'LPUs para preencher',lpuA.length+lpuG.length?'warn':'ok')}${kp(eqDiasL(ags).filter(x=>!x.x.lpuAdiada).length,'Dias encerrados sem concluir',eqDiasL(ags).some(x=>!x.x.lpuAdiada)?'warn':'')}${kp(campoA.length+campoG.length,'Em campo agora')}${kp(proxA.length+proxG.length,'Agendadas')}${kp(conc.length+concG.length,'Concluídas (30 dias)','ok')}</div>
+   ${eqTimeBox(EQ,ags,chs,F)}
    ${sec('LPU para preencher',lpuA.map(a=>cA(a,lpuBtnA(a))).concat(lpuG.map(c=>cG(c,`<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU do chamado</button>`))),'Nenhuma LPU pendente. Quando um funcionário terminar uma atividade, ela aparece aqui.')}
    ${eqDiasSec(ags)}${sec('Em campo agora',campoA.map(a=>cA(a)).concat(campoG.map(c=>cG(c))),'Nenhum funcionário em campo neste momento.')}
    ${docA.length?sec('Fazendo os relatórios',docA.map(a=>cA(a)),''):''}
    ${sec('Agendadas',proxA.map(a=>cA(a)).concat(proxG.map(c=>cG(c))),'Nenhuma atividade agendada.')}
-   ${sec('Concluídas nos últimos 30 dias',conc.slice(0,30).map(a=>cA(a)),'Nenhuma atividade concluída nos últimos 30 dias.')}
+   ${sec('Concluídas nos últimos 30 dias',conc.slice(0,30).map(a=>cA(a)).concat(concG.slice(0,30).map(c=>cG(c))),'Nenhuma atividade ou chamado concluído nos últimos 30 dias.')}
   </div>`}
 Object.assign(CH,{eqTec:el=>{ui.eqTec=el.value;render()}});
 
@@ -19922,6 +19924,19 @@ ACT.cfGrp=el=>{const k=el.dataset.g,op=ui.cfGrpOp=ui.cfGrpOp||{},g=cfGrpDe(ui.gF
 {const _g=ACT.gpSec;ACT.gpSec=function(el){if(el&&el.dataset&&el.dataset.s){const op=ui.cfGrpOp=ui.cfGrpOp||{};op[cfGrpDe(el.dataset.s)]=true}return _g.apply(this,arguments)}}
 document.head.insertAdjacentHTML('beforeend',`<style>.cfk3{grid-template-columns:repeat(3,minmax(0,1fr))!important;margin-bottom:14px}@media(max-width:700px){.cfk3{grid-template-columns:1fr!important}}.cfk3 .kpi b{white-space:nowrap}
 .cfvl{display:block;white-space:nowrap}.cfpg td,.cfpg th{white-space:nowrap}.cftotr td{border-top:2px solid var(--line);background:var(--soft,#f6f7f3)}</style>`);
+
+/* 14/11: Minha equipe (administrador da empresa terceira) e Visão da empresa terceira: a equipe aparece sempre,
+   mesmo com um funcionário só, com a situação de cada um; tocar no nome filtra a tela por ele. */
+function eqTimeBox(EQ,ags,chs,F){if(!EQ||!EQ.length)return '';const campoA=['deslocamento','no_local','execucao'],campoG=['desloc','local','atend'];
+  const sit=id=>{const a=ags.find(x=>x.tec===id&&campoA.includes(x.status)),c=chs.find(x=>x.tec===id&&campoG.includes(x.status));if(a||c)return['Em campo','info'];
+    if(ags.some(x=>x.tec===id&&x.status==='agendada')||chs.some(x=>x.tec===id&&x.status==='aberto'))return['Com atividade agendada',''];return['Sem atividade agora','ok']};
+  return `<section class="eqtime"><h3 class="lsub">Sua equipe <span class="chip">${EQ.length}</span></h3><div class="eqtl">${EQ.map(e=>{const s=sit(e.id),fx=typeof semLpuEq==='function'&&semLpuEq(e.id);
+    return `<button class="eqtp" data-act="eqTecSel" data-id="${e.id}" aria-pressed="${F===e.id}"><b>${esc(e.nome)}</b><small>${fx?'Contrato fixo':'LPU'}</small><span class="chip ${s[1]}">${s[0]}</span></button>`}).join('')}</div>
+    ${F?'<button class="linkbtn" data-act="eqTecSel" data-id="">Ver a equipe toda</button>':''}</section>`}
+ACT.eqTecSel=el=>{const v=el.dataset.id||'';ui.eqTec=ui.eqTec===v?'':v;render()};
+document.head.insertAdjacentHTML('beforeend',`<style>.eqtime{margin:0 0 14px}.eqtl{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:8px}
+.eqtp{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--card,#fff);padding:10px 12px;cursor:pointer;font:inherit;color:inherit}
+.eqtp small{color:var(--muted)}.eqtp[aria-pressed="true"]{border-color:#5a8f1c;background:#f3f9ea}.eqtime .linkbtn{margin-top:6px;padding:0}</style>`);
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
