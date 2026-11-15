@@ -11904,16 +11904,16 @@ function txaCard(c,extra,o2){const p=txPop(c.pop),[st,sc]=txaChip(c),[ft,fc]=txa
 const txaQok=c=>{const q=normK(ui.txaQ||'').trim();if(!q)return true;const p=txPop(c.pop);return bTxt(c.cliente,c.pom,c.cidade,c.tec?gTecN(c.tec):'',p&&p.nome,p&&p.sigla,txTipoN(txT(c)),txaDet(c)).includes(q)};
 const txaFilt=c=>gFiltT(c)&&(!ui.txaT||ui.txaT==='all'||txT(c)===ui.txaT)&&txaQok(c);
 const txaFiltC=c=>!(typeof txSugPend==='function'&&txSugPend(c))&&(c.status!=='cancelado'||ui.txaCanc)&&(!ui.gTecF||ui.gTecF==='all'||(ui.gTecF==='sem'?!c.tec:c.tec===ui.gTecF))&&(!ui.txaT||ui.txaT==='all'||txT(c)===ui.txaT)&&txaQok(c);
-const txaDoDia=x=>G.ch.filter(c=>txaFiltC(c)&&gDiaDe(c)===x).sort((a,b)=>gIni(a)-gIni(b));
+let txaDoDia=x=>G.ch.filter(c=>txaFiltC(c)&&gDiaDe(c)===x).sort((a,b)=>gIni(a)-gIni(b));
 const txaGrid=(L,extra)=>L.length?`<div class="caldia">${L.map(c=>txaCard(c,extra&&extra(c))).join('')}</div>`:'';
 function viewTxAgenda(){if(G.erro)return `<h2>Agenda</h2>${gErroBox()}`;
   const T=hoje(),v=ui.gView||'dia',D=ui.gDia||T;ui.gView=v;ui.gDia=D;let titulo='',corpo='',qtd=0;
-  if(v==='dia'){const L=txaDoDia(D),atr=D===T?G.ch.filter(c=>txaFiltC(c)&&c.status==='aberto'&&gDiaDe(c)<T):[];qtd=L.length;const d=new Date(D+'T12:00:00');titulo=`${DSEM[d.getDay()]}, ${dBR(D)}`;
+  if(v==='dia'){const L=txaDoDia(D),atr=D===T?G.ch.filter(c=>txaFiltC(c)&&c.status==='aberto'&&gDiaDe(c)<T&&!(typeof txaCont==='function'&&txaCont(c,T))):[];qtd=L.length;const d=new Date(D+'T12:00:00');titulo=`${DSEM[d.getDay()]}, ${dBR(D)}`;
     corpo=`${atr.length?`<div class="agdh2" style="margin-top:0">Pendentes de dias anteriores <span class="chip warn">${atr.length}</span></div>${txaGrid(atr,c=>'era para '+dBR(gDiaDe(c)).slice(0,5))}<div class="agdh2">${dBR(D)}</div>`:''}${txaGrid(L)||'<p class="muted pad">Nenhuma atividade nesta data.</p>'}`}
   else if(v==='semana'){const ini=semanaIni(D),dias=[...Array(7)].map((_,k)=>addD(ini,k));titulo=`Semana de ${dBR(dias[0]).slice(0,5)} a ${dBR(dias[6])}`;
-    corpo=`<div class="calw">${dias.map(x=>{const L=txaDoDia(x);qtd+=L.length;const d=new Date(x+'T12:00:00');return `<div class="dcol"><button class="dh ${x===T?'today':''}" data-act="txaDia" data-d="${x}">${DSEM[d.getDay()]} ${dBR(x).slice(0,5)}</button><div class="db">${L.map(c=>txaCard(c)).join('')}</div></div>`}).join('')}</div>`}
+    corpo=`<div class="calw">${dias.map(x=>{const L=txaDoDia(x);qtd+=L.filter(c=>!c._cont).length;const d=new Date(x+'T12:00:00');return `<div class="dcol"><button class="dh ${x===T?'today':''}" data-act="txaDia" data-d="${x}">${DSEM[d.getDay()]} ${dBR(x).slice(0,5)}</button><div class="db">${L.map(c=>txaCard(c)).join('')}</div></div>`}).join('')}</div>`}
   else{const d=new Date(D+'T12:00:00'),m1=isoD(new Date(d.getFullYear(),d.getMonth(),1)),ini=semanaIni(m1),mes=m1.slice(0,7);titulo=`${MES[d.getMonth()]} de ${d.getFullYear()}`;
-    corpo=`<div class="calm">${['seg','ter','qua','qui','sex','sáb','dom'].map(w=>`<div class="wd">${w}</div>`).join('')}${[...Array(42)].map((_,k)=>addD(ini,k)).map(x=>{const L=txaDoDia(x);if(x.slice(0,7)===mes)qtd+=L.length;return `<div class="mc ${x.slice(0,7)===mes?'':'out'}"><button class="mn ${x===T?'today':''}" data-act="txaDia" data-d="${x}">${+x.slice(8)}</button>${L.slice(0,3).map(c=>txaCard(c)).join('')}${L.length>3?`<button class="more" data-act="txaDia" data-d="${x}">+${L.length-3} mais</button>`:''}</div>`}).join('')}</div>`}
+    corpo=`<div class="calm">${['seg','ter','qua','qui','sex','sáb','dom'].map(w=>`<div class="wd">${w}</div>`).join('')}${[...Array(42)].map((_,k)=>addD(ini,k)).map(x=>{const L=txaDoDia(x);if(x.slice(0,7)===mes)qtd+=L.filter(c=>!c._cont).length;return `<div class="mc ${x.slice(0,7)===mes?'':'out'}"><button class="mn ${x===T?'today':''}" data-act="txaDia" data-d="${x}">${+x.slice(8)}</button>${L.slice(0,3).map(c=>txaCard(c)).join('')}${L.length>3?`<button class="more" data-act="txaDia" data-d="${x}">+${L.length-3} mais</button>`:''}</div>`}).join('')}</div>`}
   const tx1=id=>typeof EQP!=='undefined'&&EQP.ok?!!(EQP.rows[id]||{}).tx:true,vis=new Set(),tecs=[...(G.tecs||[]),...TEC].filter(t=>t&&!vis.has(t.id)&&vis.add(t.id)&&(tx1(t.id)||G.ch.some(c=>c.tec===t.id))),fil=(ui.txaT&&ui.txaT!=='all')||(ui.gTecF&&ui.gTecF!=='all')||ui.txaQ||ui.txaCanc;
   return `<section class="panel"><div class="secth"><h2>Agenda</h2><div class="tools"><div class="views">${[['dia','Dia'],['semana','Semana'],['mes','Mês']].map(([k,n])=>`<button data-act="gView" data-v="${k}" aria-current="${v===k}">${n}</button>`).join('')}</div>${pode('gNovo')?'<button class="btn primary" data-act="tab" data-t="gNovo">Criar chamado</button>':''}</div></div>
    <div class="dayhead"><button class="btn" data-act="gDiaN" data-n="-1" aria-label="Anterior">‹</button><button class="btn" data-act="gHoje">Hoje</button><button class="btn" data-act="gDiaN" data-n="1" aria-label="Próximo">›</button><input type="date" class="inp" data-ch="gDia" value="${D}" aria-label="Data"><input type="search" class="inp agq" id="txaQ" data-in="txaQ" value="${esc(ui.txaQ||'')}" placeholder="Buscar POP, O&amp;M, técnico ou cidade" aria-label="Buscar" autocomplete="off">
@@ -20952,6 +20952,19 @@ document.head.insertAdjacentHTML('beforeend',`<style>
   if(fixo){const lab=s.closest('label');if(lab)lab.outerHTML=`<div class="f"><span>Categoria</span><div class="inp" style="background:var(--soft,transparent);display:flex;align-items:center">${esc(c.categoria||txTipoN(txT(c)))}</div><small class="muted">Definida pelo tipo da atividade.</small></div>`;return r}
   const L=(tx?TX_CORR:(typeof catsArea==='function'&&catsArea(c.area)))||GTD_CATS,cur=c.categoria||'',ops=cur&&!L.includes(cur)?[cur].concat(L):L;
   s.innerHTML=ops.map(x=>`<option ${x===cur?'selected':''}>${esc(x)}</option>`).join('');if(cur)s.value=cur}catch(e){console.warn('gedcat',e)}return r}}
+
+/* 15/11: GMUD com janela que passa da meia-noite aparece também nos dias seguintes da agenda da Transmissão
+   (dia, semana, mês e lista do dia), com "Continuação" e o horário de fim da janela. No card não repete mais o horário
+   de início, que já está na linha da janela. */
+const txaJanDias=c=>{if(!c||txT(c)!=='gmud'||!c.txJanFim||!c.agendaEm)return[];const a=isoD(new Date(c.agendaEm)),b=isoD(new Date(c.txJanFim-1));const L=[];let d=addD(a,1);while(d<=b&&L.length<14){L.push(d);d=addD(d,1)}return L};
+const txaCont=(c,x)=>txaJanDias(c).includes(x);
+txaDoDia=x=>G.ch.filter(c=>txaFiltC(c)&&(gDiaDe(c)===x||txaCont(c,x))).map(c=>gDiaDe(c)===x?c:Object.assign(Object.create(c),{_cont:x})).sort((a,b)=>(a._cont?0:gIni(a))-(b._cont?0:gIni(b)));
+{const _c=txaCard;txaCard=function(c,extra,o2){if(!c||txT(c)!=='gmud')return _c.apply(this,arguments);
+  const fz=txPartes(c).join('\n'),fim=c.txJanFim?txaHm(c.txJanFim):'';
+  if(c._cont){const ult=txaJanDias(c).slice(-1)[0]===c._cont;
+    return _c.call(this,c,extra,Object.assign({fz:fz+'\nContinuação do dia anterior',foot:ult?'Janela até '+fim:'Janela continua no dia seguinte',fcls:'',cls2:'ev evn txl txcont'},o2||{}))}
+  return _c.call(this,c,extra,Object.assign({fz},o2||{}))}}
+document.head.insertAdjacentHTML('beforeend',`<style>.ca2.txcont{border-style:dashed;opacity:.92}.ca2.txcont .cat b::after{content:" ↩";color:var(--muted);font-weight:600}</style>`);
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
