@@ -20256,7 +20256,7 @@ function fuCaixaHtml(c){const d=fuD(c.id),It=fuItens(c.id),Lb=It.filter(x=>!x.sp
   const s2=fuSec(2,'Registre as fusões',d.fus.length?`${d.fus.length} ${d.fus.length===1?'fusão registrada':'fusões registradas'}`:'Escolha a fibra em A e em B e toque em Adicionar.',
     `${d.fus.length?`<ol class="fulist">${d.fus.map(linha).join('')}</ol>`:''}
      <div class="funova"><div class="fulados">${lado('a')}${lado('b')}</div>
-      <div class="fuprev">${pa&&pb?`${fuDot(pa.cor)} ${esc(cb(P.a.c).nome)} · ${esc(pa.txt)} <b>→</b> ${fuDot(pb.cor)} ${esc(cb(P.b.c).nome)} · ${esc(pb.txt)}`:'<span class="muted">Falta escolher '+(!pa&&!pb?'a fibra em A e em B':!pa?'a fibra em A':'a fibra em B')+'.</span>'}</div>
+      <div class="fuprev">${pa&&pb?`<span class="fupl"><small>A</small>${fuDot(pa.cor)}<span>${esc(cb(P.a.c).nome)} · ${esc(pa.txt)}</span></span><span class="fupl"><small>B</small>${fuDot(pb.cor)}<span>${esc(cb(P.b.c).nome)} · ${esc(pb.txt)}</span></span>`:'<span class="muted">Falta escolher '+(!pa&&!pb?'a fibra em A e em B':!pa?'a fibra em A':'a fibra em B')+'.</span>'}</div>
       <button class="btn primary wide" data-fu="add" ${pa&&pb?'':'disabled'}>Adicionar fusão</button></div>`,false);
   /* 3. fusão do cliente */
   const ci=fuCliI(d);const s3=fuSec(3,'Qual fusão atende o cliente?',d.fus.length>1?'Marque a fusão que leva o sinal até o cliente.':d.fus.length===1?'Com uma fusão só, ela já é a do cliente.':'Registre as fusões primeiro.',
@@ -20321,7 +20321,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .fulh{display:flex;gap:8px;align-items:center;margin:0;font:700 15px 'Barlow Condensed',sans-serif}
 .fulh span{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:var(--bg);border:1px solid var(--line);font-size:13px}
 .fulado{border:1px solid var(--line);border-radius:10px;padding:10px}
-.fuprev{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px;font-weight:600;background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:8px}
+.fupl{display:flex;gap:8px;align-items:center;width:100%}.fupl>small{flex:none;width:20px;height:20px;border-radius:5px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);font-size:11px}.fuprev{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px;font-weight:600;background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:8px}
 .fuli.nc{border-style:dashed}
 .fucli{display:grid;gap:6px}
 .fuclb{display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:600 14px Barlow,sans-serif}
