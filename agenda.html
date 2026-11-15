@@ -16774,8 +16774,9 @@ const RE_PREV_T=['gPainel','gCampo','gEqVer'];
 /* revisão de campo: só quem aprova aprova */
 ['rpRej','rpApr','rpReab'].forEach(k=>{const f=ACT[k];if(f)ACT[k]=function(){if(!rpRv())return semPerm();return f.apply(this,arguments)}});
 /* trilho: RE Corretiva e RE Preventiva */
-Object.assign(AR_IC,{re:'M5 22V4M19 22V4M3 7h4M17 7h4M5 9q7 5 14 0M3 22h4M17 22h4M5 12.5q3 1.5 3.6 4.5q.3 2 1.2 4M19 12.5q-3 1.5-3.6 4.5q-.3 2-1.2 4',
-  rep:'M3 22V5M14 22V5M1.5 8h3M12.5 8h3M3 10q5.5 4 11 0M3 14q5.5 3.5 11 0M1.5 22h3M12.5 22h3M19.3 5.8a3.2 3.2 0 1 0 0.01 0M21.6 11.3L23.4 13.1'});
+/* 14/11: RE Corretiva = caixa de emenda (CEO de domo, com a base e os cabos saindo por baixo); RE Preventiva = postes com os cabos, sem a lupa */
+Object.assign(AR_IC,{re:'M8 2.5h8a2.5 2.5 0 0 1 2.5 2.5v11.5h-13V5A2.5 2.5 0 0 1 8 2.5zM4 16.5h16v3H4zM8 19.5V23M12 19.5V23M16 19.5V23M5.5 7h13',
+  rep:'M5 22V4M19 22V4M3 7h4M17 7h4M5 10q7 5 14 0M5 15q7 4 14 0M3 22h4M17 22h4'});
 Object.assign(AR_D,{re:['RE Corretiva','Rompimentos, massivas e plantões'],rep:['RE Preventiva','Programadas, KPIs e budget de preventiva']});
 {const _a=arCats;arCats=function(){const L=_a.apply(this,arguments),i=L.findIndex(a=>a.k==='re');if(i<0)return L;const on=ui.cat!=='impl'&&(ui.gArea||'gtd')==='re',P=reLado()==='prev',o=[];
   if(reCorVe())o.push({k:'re',n:'Rede Externa Corretiva',on:on&&!P});if(rePrevVe())o.push({k:'rep',n:'Rede Externa Preventiva',on:on&&P});L.splice(i,1,...o);return L}}

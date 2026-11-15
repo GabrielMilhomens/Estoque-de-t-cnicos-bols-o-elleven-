@@ -971,6 +971,7 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 - **Aprovação de LPU da RE Preventiva — só daqui para frente:** a fila mostra apenas as LPUs de programadas enviadas a partir da nova aprovação. As LPUs antigas continuam valendo como aprovadas no budget e na Gestão financeira, mas não aparecem na tela de Aprovação. Programadas antigas concluídas sem técnico ficam como histórico, sem LPU.
 - **Relatório de fusões da extensão em etapas (14/11):** o técnico vê as etapas do relatório no topo (1. Registrar as fusões, 2. Concluir a atividade, 3. Enviar o relatório) e a lista **Caixas do trajeto** na ordem do cabo, com a situação de cada caixa (sem fusões, falta algo, pronta). O mapa fica abaixo da lista e pode ser recolhido; tocar na caixa (lista ou mapa) abre a tela da caixa, dividida em 5 partes numeradas: 1. Confira os cabos, 2. Registre as fusões (A · De, lado do POP e B · Para, lado do cliente, com a fusão escolhida mostrada antes de adicionar, A e B em linhas separadas), 3. Qual fusão atende o cliente (escolha em lista), 4. Foto da caixa aberta, 5. Observação. No fim, "Ainda falta nesta caixa" e **Confirmar caixa e ir para a próxima**, com navegação anterior / Todas as caixas / próxima. Saiu o campo "Em sequência": cada fusão é lançada uma a uma. Regras, dados (`fusoesParc`, `fusoes`), PDF e Cadastro Geogrid não mudam. Código em `fuux.js`. Sem SQL.
 - **Chat com altura fixa (14/11):** ao abrir uma conversa (chat com técnico, mensagens da atividade, sala), o cabeçalho (Voltar, título, Arquivos) fica parado no topo e a caixa de escrever fica parada logo acima da barra de baixo; só a lista de mensagens rola. A altura se ajusta à tela e ao teclado do celular. No celular, Câmera, Galeria, Arquivo e Colar ficam só com o ícone, numa linha com o Enviar, e a dica do Enter some. Código em `chatfix.js`. Sem SQL.
+- **Ícones da RE (14/11):** RE Corretiva passa a usar uma caixa de emenda (CEO de domo com a base e os cabos) e RE Preventiva os postes com os cabos, sem a lupa. Vale no seletor de área, no trilho e no menu. Código em `relado.js`. Sem SQL.
 
 ## 8. Publicação
 
@@ -1036,6 +1037,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 14/11/2026 | Ícones novos: RE Corretiva = caixa de emenda; RE Preventiva = postes sem a lupa | agenda.html (sem SQL) |
 | 14/11/2026 | Chat: cabeçalho e caixa de escrever fixos, só as mensagens rolam; anexos só com ícone no celular | agenda.html (sem SQL) |
 | 14/11/2026 | Relatório de fusões da extensão em etapas: lista de caixas com situação, tela da caixa em 5 partes, confirmar e ir para a próxima; sem "Em sequência" | agenda.html (sem SQL) |
 | 14/11/2026 | RE Preventiva: Aprovação de LPU mostra só as LPUs de programadas enviadas daqui para frente | agenda.html (sem SQL) |
