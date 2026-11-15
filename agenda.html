@@ -4293,7 +4293,7 @@ function gerarPdfLpu(l,o){const sv=!(o&&o.comValor)&&lpuSemValor(l),{jsPDF}=wind
   doc.setDrawColor(140,191,63);doc.setLineWidth(.8);doc.line(m,25,W-m,25);
   const lb=t=>({content:t,styles:{fontStyle:'bold',fillColor:[244,249,236],textColor:[107,117,133],fontSize:7}});
   doc.autoTable({startY:29,theme:'grid',styles:{cellPadding:2.5,lineColor:[212,221,216],lineWidth:.3,fontSize:9},margin:{left:m,right:m},columnStyles:{0:{cellWidth:28},2:{cellWidth:28}},
-    body:[[lb('Prestador'),lpuPrestTxt(l),lb(lpuDocCampo(l)[0]),lpuDocCampo(l)[1]],[lb('Cliente'),p.cliente||'',lb('Etiqueta'),l.etiqueta],[lb('Protocolo'),p.protocolo||'',lb('Cidade'),p.cidade||''],[lb(l.chamado?'Atendimento':'Fases'),l.chamado?'GTD Manutenção, '+(l.categoria||''):fasesN(l),lb('Data'),dBR(l.data)],[lb('Descrição contábil'),{content:l.conta||'',colSpan:3,styles:{fontStyle:'bold',textColor:[110,150,40],fontSize:8}}]]});
+    body:[[lb('Prestador'),lpuPrestTxt(l),lb(lpuDocCampo(l)[0]),lpuDocCampo(l)[1]],[lb('Cliente'),p.cliente||'',lb('Etiqueta'),l.etiqueta],[lb('Protocolo'),p.protocolo||'',lb('Cidade'),p.cidade||''],[lb(l.chamado?'Atendimento':'Fases'),l.chamado?(l.areaPdf||'GTD Manutenção')+', '+(l.categoria||''):fasesN(l),lb('Data'),dBR(l.data)],[lb('Descrição contábil'),{content:l.conta||'',colSpan:3,styles:{fontStyle:'bold',textColor:[110,150,40],fontSize:8}}]]});
   let y=doc.lastAutoTable.finalY+6;const cls=[...new Set(l.itens.map(i=>i.classe))];
   cls.forEach(c=>{const it=l.itens.filter(i=>i.classe===c),sub=it.reduce((s,i)=>s+i.unit*i.qtd,0);
     doc.autoTable({startY:y,theme:'grid',margin:{left:m,right:m},head:[sv?['Cód.','Descrição','Fator','Med.','Qtd']:['Cód.','Descrição','Fator','Med.','V. Unit','Qtd','Total']],body:it.map(i=>sv?[i.cod,i.desc,i.fator||'Comum',i.medida||'',String(i.qtd).replace('.',',')]:[i.cod,i.desc,i.fator||'Comum',i.medida||'',brl(i.unit),String(i.qtd).replace('.',','),brl(i.unit*i.qtd)]),
@@ -21156,6 +21156,147 @@ Object.assign(RP_VIEWS,{melAg:viewMelAg,melCh:viewMelCh});
     else if(ui.melForm&&(!ui.tmCtx||!/(Desp|Vist)$/.test(ui.tab))){if(ui.tmCtx&&!/(Desp|Vist)$/.test(ui.tab)){ui.tmCtx=null;ui.txF=null}ui.melForm=false}}
   else if(ui.melForm){ui.melForm=false}}catch(e){console.warn('melForm',e)}return _r.apply(this,arguments)}}
 ['cxDesp','oxDesp','cxVist','oxVist'].forEach(t=>{const v=RP_VIEWS[t];if(!v)return;RP_VIEWS[t]=function(){if(ui.melForm&&ui.tmCtx)return viewGNovo();return v.apply(this,arguments)}});
+
+/* ---------- 15/11: RE Preventiva · programadas no celular do técnico, no mesmo fluxo do GTD, Transmissão e Corretiva ----------
+   1. Despachada: Recusar (com motivo; volta para a gestão como Planejada) ou Segure para aceitar.
+   2. Previsão de chegada obrigatória para liberar o "Segure para sair para o local".
+   3. Segure: cheguei no local.  4. Segure para iniciar a atividade.
+   5. Ao iniciar, o relatório (apontamento) já abre para ir preenchendo.
+   6. Segure para concluir a atividade, com "Encerrar o dia" (atividade de vários dias: envia o relatório do dia e no
+      dia seguinte recomeça na previsão de chegada) e "Não consegui concluir" (igual à implantação: motivo e observação;
+      se fez parte, envia o relatório e a LPU do que fez; se não fez nada, volta para a gestão reagendar).
+   7. Concluída em campo: termina e envia o relatório, se não enviou durante a atividade.
+   8. LPU: o técnico (CLT ou terceiro) preenche na tela de LPU do GTD, já com os serviços sugeridos pelo relatório,
+      com conferência e assinatura, e envia para a Aprovação de LPU da RE Preventiva. CLT não vê valores e não consome
+      o budget. Funcionário de empresa terceira: a LPU continua com o dono da empresa. Contrato fixo: sem LPU.
+   Dados na programada: jor {aceite, eta, desloc, chegada, inicio, fim}, dias [jornadas encerradas], recusa, naoC, pendReag. */
+const RP2_MOT_REC=['Estou em outra atividade','Fora da minha região','Sem material ou equipamento necessário','Fora do meu horário','Outro'];
+const RP2_MOT_NAO=['Condição climática','Falta de material','Sem acesso ao local','Companhia elétrica / poste da concessionária','Rede ou equipamento com problema','Horário insuficiente','Outro'];
+const rp2Multi=x=>!!x&&x.tipo!=='cia';
+const rp2J=x=>x.jor||(x.jor={});
+const rp2Sub=x=>!!x&&x.tipo==='prev'&&x.seg==='sub';
+function rp2Fase(x){if(!x||x.status==='canc')return 'canc';const j=x.jor||{},A=rpAps(x);
+  if(x.pendReag)return 'reag';
+  if(x.status==='concl'||(!rp2Sub(x)&&A.some(a=>a.tipo==='final'&&a.st!=='rej')))return 'pos';
+  if(rpRejN(x))return 'refaz';
+  if(!j.aceite)return 'aceite';if(!j.desloc)return 'saida';if(!j.chegada)return 'chegada';if(!j.inicio)return 'iniciar';
+  if(!j.fim)return 'exec';return 'rel'}
+const RP2_CHIP={aceite:['Aguardando seu aceite','bad'],saida:['Aceita · informe a previsão','ok'],chegada:['A caminho','info'],iniciar:['No local · inicie a atividade','warn'],
+  exec:['Em execução','warn'],rel:['Concluída em campo · envie o relatório','warn'],reag:['Não concluída · aguardando reagendamento','bad'],refaz:['Refazer apontamento','bad']};
+function rp2Steps(x){const j=x.jor||{},A=rpAps(x),f=rp2Fase(x),ultAp=(A.filter(a=>a.st!=='rej').slice(-1)[0]||{}).env||null,L=x.lpu||{};
+  const P=[['Aceite',j.aceite],['Saída',j.desloc],['Chegada',j.chegada],['Início',j.inicio],['Fim',j.fim||(f==='pos'?ultAp:null)],['Relatório',f==='pos'?ultAp:null],['LPU',L.env?L.env.em:null]];
+  const cur={aceite:0,saida:1,chegada:2,iniciar:3,exec:4,rel:5,refaz:5,reag:0,pos:L.env||rpQuem(x)!=='tec'?7:6}[f];return tvSteps(tvStepsDe(P,cur))}
+/* rodapé de cada fase */
+function rp2Foot(x){const f=rp2Fase(x),j=x.jor||{},id=x.id,multi=rp2Multi(x);
+  if(f==='aceite')return `<div class="tvdois"><button class="btn danger" data-act="rp2Recusa" data-id="${id}">Recusar</button><button class="bigbtn" data-act="rpTAceite" data-id="${id}" data-hold="2000">Segure para aceitar</button></div><small class="tvnota">Se não puder atender, recuse e informe o motivo: a programada volta para a gestão.</small>`;
+  if(f==='saida')return `<label class="tveta"><span>Previsão de chegada *</span><input type="time" id="rpEta" class="inp" required data-in="rp2Eta" value="${j.etaTxt||''}"></label><button class="bigbtn" id="rpGo" data-act="rp2Sai" data-id="${id}" data-hold="2000" ${j.etaTxt?'':'disabled'}>Segure para sair para o local</button><small class="tvnota" id="rpEtaH">${j.etaTxt?'O gestor acompanha a sua previsão de chegada.':'Informe a previsão de chegada para liberar o botão.'}</small>`;
+  if(f==='chegada')return `<button class="bigbtn" data-act="rp2Cheg" data-id="${id}" data-hold="2000">Segure: cheguei no local</button><small class="tvnota">Previsão de chegada ${j.eta?hm(j.eta):'—'}. Segure assim que chegar.</small>`;
+  if(f==='iniciar')return `<button class="bigbtn" data-act="rp2Ini" data-id="${id}" data-hold="2000">Segure para iniciar a atividade</button><small class="tvnota">Ao iniciar, o relatório abre para você ir preenchendo durante o serviço.</small>`;
+  if(f==='exec')return `<button class="bigbtn" data-act="rp2Fim" data-id="${id}" data-hold="2500">Segure para concluir a atividade</button>
+    <div class="rp2alt">${multi?`<button class="btn" data-act="rp2Dia" data-id="${id}">Encerrar o dia</button>`:''}<button class="btn danger" data-act="rp2Nao" data-id="${id}">Não consegui concluir</button></div>
+    <small class="tvnota">${multi?'Encerrar o dia envia o relatório do que foi feito hoje; amanhã você recomeça pela previsão de chegada.':'Depois de concluir, termine e envie o relatório.'}</small>`;
+  if(f==='rel'){const d=rpDr(x),F=typeof rpFaltaAp==='function'?rpFaltaAp(x,Object.assign({},d,{tipo:'final'})):[];
+    return `<button class="bigbtn" data-act="rp2Rel" data-id="${id}" data-hold="2500">Segure para enviar o relatório</button><small class="tvnota">${F.length?'Falta: '+esc(F.slice(0,3).join(' · '))+(F.length>3?' …':''):'Depois do relatório vem a LPU.'}</small>`}
+  if(f==='reag')return '';
+  return null}
+/* tela do técnico */
+{const _t=rpTecTela;rpTecTela=function(x){
+  if(x&&ui.lpuTela===rpLpuKey(x.id)&&typeof rpLpuTec==='function'&&rpLpuTec(x))return rp2LpuTela(x);
+  let h=_t.apply(this,arguments);if(!x||!['prev','mel','ret','cia'].includes(x.tipo))return h;try{
+  const f=rp2Fase(x),j=x.jor||{},ch=RP2_CHIP[f];
+  h=h.replace(/<ol class="tvst" aria-label="Etapas">[\s\S]*?<\/ol>/,()=>rp2Steps(x));
+  if(ch)h=h.replace(/(<div class="tvch">)[\s\S]*?(<\/div>)/,`$1<span class="chip ${ch[1]}">${ch[0]}</span>$2`);
+  /* caixa da direita do topo */
+  const T=Date.now(),b2={aceite:['Situação','Aguardando aceite'],saida:['Aceita às',hm(j.aceite)],chegada:['A caminho há',gDur(T-j.desloc)],iniciar:['No local desde',hm(j.chegada)],exec:['Em execução há',gDur(T-j.inicio)],rel:['Concluída em campo',hm(j.fim)],reag:['Situação','Aguardando reagendamento']}[f];
+  if(b2)h=h.replace(/(<div class="tvbxs">[\s\S]*?<\/div>)(<div class="tvbx">)[\s\S]*?(<\/div><\/div>)/,(m,a,b,c)=>`${a}${b}<small>${b2[0]}</small><b>${esc(b2[1])}</b>${c}`);
+  /* no relatório não tem mais "Parcial / Finalizado": encerrar o dia manda parcial; concluir manda o final */
+  h=h.replace(/<div class="fld"><span>Tipo \*<\/span><div class="views rpsn">[\s\S]*?<\/div><\/div>/,'').replace(/<button[^>]*data-act="rpTConcRota"[^>]*>[^<]*<\/button>/,'');
+  if(['aceite','saida','chegada','iniciar','reag'].includes(f))h=h.replace(/<div class="rptvform">[\s\S]*?(?=<div class="tvft">|$)/,'');
+  if(f==='reag'){const n=x.naoC||{};h=h.replace(/(<div class="tvhd">[\s\S]*?<\/article>)/,`$1<div class="tvpre"><div class="result bad" style="margin:0"><b>Não concluída:</b> ${esc(n.motivo||'')}${n.obs?'. '+esc(String(n.obs).replace(/[.\s]+$/,'')):''}. A gestão vai reagendar e você recebe o aviso.</div></div>`)}
+  if(x.dias&&x.dias.length&&['saida','chegada','iniciar','exec'].includes(f))h=h.replace(/(<div class="tvhd">[\s\S]*?<\/article>)/,`$1<div class="tvpre"><div class="result info" style="margin:0">Dia ${x.dias.length+1} desta atividade. ${x.dias.length===1?'O dia anterior foi encerrado':'Os dias anteriores foram encerrados'} com relatório.</div></div>`);
+  const ft=rp2Foot(x);
+  if(ft!=null){const i=h.lastIndexOf('<div class="tvft">');h=(i>=0?h.slice(0,i):h)+tvFoot(ft)}
+  if(f==='rel'&&x.naoC&&x.naoC.parc)h=h.replace(/(<div class="tvhd">[\s\S]*?<\/article>)/,`$1<div class="tvpre"><div class="result warn" style="margin:0"><b>Não concluída (${esc(x.naoC.motivo)}).</b> Envie o relatório do que foi feito; depois vem a LPU.</div></div>`);
+  /* depois do relatório: LPU na tela do GTD (serviços, conferência e assinatura) */
+  if(f==='pos'&&rpLpuTec(x))h=h.replace(/<button class="bigbtn" data-act="rpTLpu" data-id="([^"]+)"[^>]*>[^<]*<\/button>(<small class="tvnota">)[^<]*(<\/small>)?/,(m,id,s)=>`<button class="bigbtn" data-act="rp2Lpu" data-id="${id}">Preencher a LPU</button>${s}Confira os serviços sugeridos pelo relatório, ajuste as quantidades e assine.</small>`);
+  return h}catch(e){console.warn('rp2Tela',e);return h}}}
+/* card na lista do técnico */
+{const _c=rpTvCard;rpTvCard=function(x){let h=_c.apply(this,arguments);if(!x||!['prev','mel','ret','cia'].includes(x.tipo))return h;try{
+  const f=rp2Fase(x),ch=RP2_CHIP[f],id=x.id;if(ch)h=h.replace(/(<div class="tvch">[\s\S]*?)<span class="chip[^"]*">[^<]*<\/span>/,`$1<span class="chip ${ch[1]}">${ch[0]}</span>`);
+  const chat=((h.match(/<div class="tvac">[\s\S]*$/)||[''])[0].match(/<button[^>]*data-act="chatAbrir"[^>]*>[\s\S]*?<\/button>/)||[''])[0];
+  const lb={saida:'Informar a previsão e sair',chegada:'Cheguei no local',iniciar:'Iniciar a atividade',exec:'Continuar o relatório',rel:'Enviar o relatório',reag:'Ver atividade'}[f];
+  if(f==='aceite')h=h.replace(/<div class="tvac">[\s\S]*?<\/div><\/article>\s*$/,`<div class="tvac tvdois"><button class="btn danger" data-act="rp2Recusa" data-id="${id}">Recusar</button><button class="tvpri bigbtn" data-act="rpTAceite" data-id="${id}" data-hold="2000">Segure: aceitar</button>${chat}</div></article>`);
+  else if(lb)h=h.replace(/<div class="tvac">[\s\S]*?<\/div><\/article>\s*$/,`<div class="tvac"><button class="tvpri" data-act="rpTAbrir" data-id="${id}">${lb}</button>${chat}</div></article>`);
+  if(f==='pos'&&rpLpuTec(x))h=h.replace(/<div class="tvac">[\s\S]*?<\/div><\/article>\s*$/,`<div class="tvac"><button class="tvpri" data-act="rp2Lpu" data-id="${id}">Preencher a LPU</button>${chat}</div></article>`);
+  return h}catch(e){return h}}}
+/* ações */
+const rp2Sv=async(x,msg,hist)=>{if(hist)rpH(x,hist);const ok=await rpSalvar(x,msg);render();return ok};
+IN.rp2Eta=el=>{const b=$('rpGo'),t=$('rpEtaH');if(b)b.disabled=!el.value;if(t)t.textContent=el.value?'O gestor acompanha a sua previsão de chegada.':'Informe a previsão de chegada para liberar o botão.'};
+Object.assign(ACT,{
+  rp2Recusa:el=>{const x=rpGet(el.dataset.id);if(!x)return;openModal(`<h3>Recusar a programada</h3><p class="muted">${esc(x.cod)} · ${esc(rpTvNome(x))}. A programada volta para a gestão despachar de novo.</p>
+    <label class="f" style="margin-top:12px"><span>Motivo *</span><select class="inp" id="rp2RM"><option value="">Escolha…</option>${RP2_MOT_REC.map(m=>`<option>${m}</option>`).join('')}</select></label>
+    <label class="f"><span>Observação</span><textarea class="inp" id="rp2RO" rows="2"></textarea></label><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn danger" data-act="rp2RecusaOk" data-id="${x.id}">Recusar</button></div>`)},
+  rp2RecusaOk:async el=>{const x=rpGet(el.dataset.id),m=($('rp2RM')||{}).value,o=(($('rp2RO')||{}).value||'').trim();if(!m){toast('Escolha o motivo.','bad');return}
+    x.recusa={motivo:m,obs:o,por:meNome(),em:Date.now()};x.status='plan';x.jor={};closeModal();ui.rpT=null;await rp2Sv(x,'Programada recusada. A gestão foi avisada.','Recusada pelo técnico: '+m+(o?' · '+o:''))},
+  rp2Sai:async el=>{const x=rpGet(el.dataset.id),v=($('rpEta')||{}).value;if(!v){toast('Informe a previsão de chegada.','bad');return}const j=rp2J(x),[hh,mm]=v.split(':').map(Number),d=new Date();d.setHours(hh,mm,0,0);if(d.getTime()<Date.now()-5*60e3)d.setDate(d.getDate()+1);
+    j.eta=d.getTime();j.etaTxt=v;j.desloc=Date.now();x.eta=v;await rp2Sv(x,'Deslocamento iniciado.','Saiu para o local · previsão de chegada '+v)},
+  rp2Cheg:async el=>{const x=rpGet(el.dataset.id),j=rp2J(x);j.chegada=Date.now();if(x.status==='desp')x.status='campo';await rp2Sv(x,'Chegada registrada.','Chegou no local')},
+  rp2Ini:async el=>{const x=rpGet(el.dataset.id),j=rp2J(x);j.inicio=Date.now();if(x.status==='desp')x.status='campo';const d=rpDr(x);d.data=hoje();ui.rpT=x.id;await rp2Sv(x,'Atividade iniciada. Vá preenchendo o relatório.','Atividade iniciada');window.scrollTo(0,0)},
+  rp2Fim:async el=>{const x=rpGet(el.dataset.id),j=rp2J(x);
+    if(rp2Sub(x)){const n=rpAps(x).filter(a=>a.st!=='rej').length;if(!n){toast('Envie a vistoria de pelo menos uma caixa antes de concluir.','bad');return}j.fim=Date.now();x.status='concl';await rp2Sv(x,'Atividade concluída.','Rota concluída pelo técnico ('+n+' caixas)');return}j.fim=Date.now();const d=rpDr(x);if(x.tipo!=='cia')d.tipo='final';await rp2Sv(x,'Atividade concluída. Termine e envie o relatório.','Atividade concluída em campo')},
+  rp2Rel:async el=>{const x=rpGet(el.dataset.id),k=rpDk(x),d=rpDr(x);d.tipo='final';if(!d.data)d.data=hoje();
+    if(await rpEnviaAp(x,d)){delete ui.rpD[k];delete ui.rpD[k+'#refaz'];if(x.naoC&&x.naoC.parc)x.naoC.ok=true;render();window.scrollTo(0,0)}},
+  rp2Dia:el=>{const x=rpGet(el.dataset.id);openModal(`<h3>Encerrar o dia</h3><p class="muted">${rp2Sub(x)?'As caixas enviadas hoje ficam registradas.':'O relatório de hoje vai como parcial (o que foi feito hoje).'} A atividade continua: no próximo dia você informa a previsão de chegada e segue.</p>
+    <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="rp2DiaOk" data-id="${x.id}">Enviar o relatório do dia</button></div>`)},
+  rp2DiaOk:async el=>{const x=rpGet(el.dataset.id),k=rpDk(x),d=rpDr(x);d.tipo='parcial';if(!d.data)d.data=hoje();closeModal();
+    const j=Object.assign({},x.jor||{});if(!rp2Sub(x)){if(!(await rpEnviaAp(x,d)))return;delete ui.rpD[k]}
+    x.dias=(x.dias||[]).concat([Object.assign(j,{fimDia:Date.now(),data:hoje()})]);x.jor={aceite:j.aceite};await rp2Sv(x,'Dia encerrado. Amanhã você recomeça pela previsão de chegada.','Dia encerrado (relatório parcial enviado)');window.scrollTo(0,0)},
+  rp2Nao:el=>{const x=rpGet(el.dataset.id);openModal(`<h3>Não consegui concluir</h3><p class="muted">${esc(x.cod)} · ${esc(rpTvNome(x))}</p>
+    <label class="f" style="margin-top:12px"><span>Motivo *</span><select class="inp" id="rp2NM"><option value="">Selecione</option>${RP2_MOT_NAO.map(m=>`<option>${m}</option>`).join('')}</select></label>
+    <label class="f"><span>Observação</span><textarea class="inp" id="rp2NO" rows="3" placeholder="O que ficou faltando e o que já foi feito"></textarea></label>
+    <label class="chk" style="display:flex;gap:8px;align-items:flex-start;margin-top:4px"><input type="checkbox" id="rp2NP"><span>Fiz parte do serviço: vou enviar o relatório e a LPU do que foi feito</span></label>
+    <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn danger" data-act="rp2NaoOk" data-id="${x.id}">Registrar</button></div>`)},
+  rp2NaoOk:async el=>{const x=rpGet(el.dataset.id),m=($('rp2NM')||{}).value,o=(($('rp2NO')||{}).value||'').trim(),parc=!!($('rp2NP')||{}).checked;if(!m){toast('Selecione o motivo.','bad');return}closeModal();
+    x.naoC={motivo:m,obs:o,parc,por:meNome(),em:Date.now()};const j=rp2J(x);
+    if(parc&&rp2Sub(x)){j.fim=Date.now();x.status='concl';await rp2Sv(x,'Não conclusão registrada. As caixas enviadas ficam no relatório; depois vem a LPU.','Não concluída ('+m+'): rota feita em parte');return}
+    if(parc){j.fim=Date.now();const d=rpDr(x);d.tipo='final';await rp2Sv(x,'Não conclusão registrada. Agora envie o relatório do que foi feito e, depois, a LPU.','Não concluída ('+m+'): fez parte do serviço')}
+    else{x.dias=(x.dias||[]).concat([Object.assign({},j,{fimDia:Date.now(),data:hoje(),nao:true})]);x.jor={};x.pendReag=true;x.status='desp';ui.rpT=null;await rp2Sv(x,'Registrado. A gestão vai reagendar a atividade.','Não concluída: '+m+(o?' · '+o:''))}},
+  rp2Lpu:el=>{const x=rpGet(el.dataset.id);if(!x||!rpLpuTec(x)){toast('A LPU desta atividade já foi enviada ou ainda não foi liberada.','bad');render();return}
+    const key=rpLpuKey(x.id);if(!ui.draft[key]){const q={};(rpLpuSug(x)||[]).forEach(i=>{if(+i.qtd>0)q[i.cod]={qtd:+i.qtd,fator:'comum',inc:true}});ui.draft[key]={conta:RP_CTA(x),fixa:true,q}}
+    ui.rpT=x.id;ui.lpuTela=key;ui.lpuP=1;ui.lpuQ='';ui.lpuCls='';render();window.scrollTo(0,0)}});
+/* tela da LPU para o técnico (a mesma do GTD: serviços, conferência e assinatura) */
+function rp2LpuTela(x){return rpLpuTelaView(x).replace('‹ Voltar para Minha equipe','‹ Voltar para a atividade').replace('O que o funcionário informou','O que você informou no relatório')
+  .replace('executados pela minha equipe nesta programada','executados por mim nesta programada')}
+{const _f=ACT.gLpuFechar;ACT.gLpuFechar=function(){const x=rpDeKey(ui.lpuTela);if(x&&gTecPerfil()){ui.lpuTela=null;ui.lpuP=1;render();window.scrollTo(0,0);return}return _f.apply(this,arguments)}}
+{const _s=ACT.sgOk;ACT.sgOk=async function(){const g=ui.sign;const x=g&&g.tipo==='rp'?rpGet(g.id):null;if(!x||!rpLpuTec(x))return _s.apply(this,arguments);
+  const nome=(($('sgNome')||{}).value||'').trim();if(!nome){toast('Informe o nome do responsável.','bad');return}if(!ui.sgDraw){toast('Faça a assinatura no quadro.','bad');return}if($('sgDecl')&&!$('sgDecl').checked){toast('Marque a declaração para enviar.','bad');return}
+  const itens=draftItens(g.key),d=lpuDraft(g.key),total=itens.reduce((s,i)=>s+i.unit*i.qtd,0);let img='';try{img=sigImg()}catch(e){}closeModal();
+  const ant=x.lpu;x.lpu={itens:itens.map(i=>({cod:i.cod,qtd:i.qtd,unit:i.unit,fator:i.fator,desc:i.desc})),total,obs:(d.obs||'').trim()||undefined,conta:RP_CTA(x),assinatura:{img,nome,em:Date.now()},env:{por:nome,em:Date.now(),tec:true,tela:true,assin:{nome,em:Date.now()}}};
+  rpH(x,'LPU preenchida, conferida e assinada pelo técnico');
+  if(await rpSalvar(x,'LPU assinada e enviada para a Aprovação de LPU.')){delete ui.draft[g.key];ui.lpuTela=null;ui.lpuP=1;ui.sign=null;ui.rpT=null;ui.cF='enc'}else x.lpu=ant;render();window.scrollTo(0,0)}}
+/* financeiro: a LPU preenchida pelo técnico usa os serviços dele */
+{const _r=reLpusProg;reLpusProg=function(){return(_r.apply(this,arguments)||[]).map(l=>{const x=rpGet(String(l.id).slice(3)),e=x&&x.lpu&&x.lpu.env;if(!e||!e.tela||!Array.isArray(x.lpu.itens))return l;
+  const it=x.lpu.itens.map(i=>{const r=rpLpuIt(i.cod);return{cod:i.cod,desc:i.desc||r.desc||i.cod,classe:r.classe||'Sem classe',medida:r.medida||'',unit:+i.unit||0,qtd:+i.qtd||0,fator:i.fator}});return Object.assign(l,{itens:it,total:it.reduce((s,i)=>s+i.unit*i.qtd,0),conta:x.lpu.conta||l.conta})})}}
+/* gestão: recusa e não conclusão aparecem na programada; reagendar */
+{const _d=rpDetHtml;rpDetHtml=function(x){let h=_d.apply(this,arguments);if(!x)return h;try{let b='';
+  if(x.pendReag&&x.naoC)b+=`<div class="result bad" style="margin:0 0 10px"><b>Não concluída pelo técnico</b> (${esc(x.naoC.por||'')}, ${x.naoC.em?gQuando(x.naoC.em):''}): ${esc(x.naoC.motivo)}${x.naoC.obs?'. '+esc(x.naoC.obs):''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-top:8px"><label class="f" style="margin:0"><span>Nova data</span><input type="date" class="inp" id="rp2RD" value="${hoje()}"></label><button class="btn primary" data-act="rp2Reag" data-id="${x.id}">Reagendar para o mesmo técnico</button></div></div>`;
+  else if(x.naoC&&x.naoC.parc)b+=`<div class="result warn" style="margin:0 0 10px"><b>Não concluída, feita em parte</b>: ${esc(x.naoC.motivo)}${x.naoC.obs?'. '+esc(x.naoC.obs):''}</div>`;
+  if(x.status==='plan'&&x.recusa)b+=`<div class="result bad" style="margin:0 0 10px"><b>Recusada por ${esc(x.recusa.por)}</b> ${gQuando(x.recusa.em)}: ${esc(x.recusa.motivo)}${x.recusa.obs?'. '+esc(x.recusa.obs):''}. Despache de novo.</div>`;
+  const j=x.jor||{};if(x.status!=='concl'&&(j.desloc||j.inicio))b+=`<p class="muted" style="margin:0 0 10px">${[j.desloc?'Saiu '+hm(j.desloc):'',j.eta?'previsão '+hm(j.eta):'',j.chegada?'chegou '+hm(j.chegada):'',j.inicio?'iniciou '+hm(j.inicio):'',j.fim?'concluiu em campo '+hm(j.fim):''].filter(Boolean).join(' · ')}${(x.dias||[]).length?` · ${x.dias.length} dia(s) anterior(es) encerrado(s)`:''}</p>`;
+  return b?h.replace(/(<h3[^>]*>[\s\S]*?<\/h3>)/,'$1'+b):h}catch(e){return h}}}
+ACT.rp2Reag=async el=>{const x=rpGet(el.dataset.id),d=($('rp2RD')||{}).value;if(!d){toast('Escolha a data.','bad');return}x.data=d;x.pendReag=false;x.jor={};x.status='desp';rpH(x,'Reagendada para '+dBR(d)+' (não conclusão: '+((x.naoC||{}).motivo||'')+')');await rpSalvar(x,'Reagendada. O técnico recebe a programada de novo.');try{rpModalAtual()}catch(e){}render()};
+{const _c=rpCard;rpCard=function(x){let h=_c.apply(this,arguments);if(!x)return h;try{if(x.pendReag)h=h.replace(/(<span class="cas[^"]*">)[^<]*(<\/span>)/,'$1Não concluída · reagendar$2');else if(x.status==='plan'&&x.recusa)h=h.replace(/(<span class="cas[^"]*">)[^<]*(<\/span>)/,'$1Recusada · despachar de novo$2')}catch(e){}return h}}
+document.head.insertAdjacentHTML('beforeend','<style>.rp2alt{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}.rp2alt .btn{min-height:44px}</style>');
+
+/* 15/11 (2): Aprovação de LPU da RE Preventiva com "Ver PDF", como na RE Corretiva, GTD e Implantação
+   (o PDF é gerado na hora com os serviços, valores para a gestão e a assinatura de quem enviou) */
+function rp2LpuObj(x){const l=(reLpusProg()||[]).find(y=>y.id==='rp:'+x.id);if(!l)return null;const L=x.lpu||{},e=L.env||{};
+  return Object.assign({},l,{areaPdf:'Rede Externa Preventiva',id:'rp-'+x.id,tecNome:gTecN(x.tec)||'',cliente:l.cliente,etiqueta:x.cod,pom:x.cod,data:l.data||x.data,assinatura:L.assinatura||(e.por?{nome:e.por,em:e.em}:undefined),obs:L.obs})}
+ACT.rpPdf=el=>{const x=rpGet(el.dataset.id),l=x&&rp2LpuObj(x);if(!l){toast('LPU não encontrada.','bad');return}
+  try{const u=URL.createObjectURL(gerarPdfLpu(l,{comValor:typeof verValor==='function'?verValor():true}));const a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove()}catch(e){toast('Não foi possível gerar o PDF: '+(e.message||e),'bad')}};
+{const _a=viewGAprov;viewGAprov=function(){let h=_a.apply(this,arguments);try{const id=String(ui.gaOpen||'');if(!id.startsWith('rp:'))return h;const x=rpGet(id.slice(3));if(!x||!x.lpu||!x.lpu.env)return h;
+  return h.replace(/(<button class="btn" data-act="rpAbrir" data-id="[^"]+">Abrir programada<\/button>)/,`$1<button class="btn" data-act="rpPdf" data-id="${x.id}">Ver PDF</button>`)}catch(e){return h}}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
