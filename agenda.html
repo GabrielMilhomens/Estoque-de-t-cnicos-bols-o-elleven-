@@ -19359,7 +19359,8 @@ const refChPode=()=>typeof gPodeDesp==='function'&&gPodeDesp();
 const REF_FIM=['lpu','aprov','concl'];
 /* 15/11: reforço sem LPU: CLT (todas as áreas) e Transmissão (como o principal da Transmissão, que encerra no relatório);
    na Transmissão só a etapa de melhoria de rede feita por terceiro pede LPU */
-const refSemLpu=x=>!!x&&(gTecV(x.tec)==='CLT'||((x.area==='tx'||(typeof txDe==='function'&&txDe(x)))&&!(typeof melLpuPede==='function'&&melLpuPede(x))));
+/* 15/11 (3): fora da Transmissão o reforço CLT também preenche a LPU (registrada, sem valores e sem budget, igual ao principal CLT) */
+const refSemLpu=x=>!!x&&(x.area==='tx'||(typeof txDe==='function'&&txDe(x)))&&(gTecV(x.tec)==='CLT'||!(typeof melLpuPede==='function'&&melLpuPede(x)));
 /* 15/11: a visão do técnico (coordenação "Ver como") mostra os chamados de reforço */
 const REF_TEC_TABS=['campo','gCampo','eqVer','gEqVer'];
 /* gestão: listas, KPIs e exportações sem os filhos; buscas por id continuam achando */
@@ -21301,7 +21302,7 @@ ACT.rpPdf=el=>{const x=rpGet(el.dataset.id),l=x&&rp2LpuObj(x);if(!l){toast('LPU 
 /* ---------- 15/11 (2): reforço de chamado (GTD, RE Corretiva, Transmissão) ----------
    1. O reforço não pede validação ao NOC: o "pedir validação" do reforço vira "concluir o apoio" (no card e na tela).
       Quando o NOC valida o principal (ou a atividade agendada conclui em campo), o reforço que ainda está no local,
-      em atendimento ou aguardando validação é encerrado junto: CLT/Transmissão encerra; terceiro vai para a LPU.
+      em atendimento ou aguardando validação é encerrado junto: Transmissão encerra; fora dela vai para a LPU (CLT também, como equipe própria).
       A gestão também acerta sozinha os reforços que ficaram presos (principal já validado).
    2. O reforço não mostra SLA nem conta MTTR no card do técnico.
    3. Minha equipe (administrador da empresa): o funcionário que está como reforço aparece em "Em campo agora";
