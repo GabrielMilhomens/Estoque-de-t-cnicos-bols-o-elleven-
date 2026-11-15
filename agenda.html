@@ -11646,7 +11646,7 @@ function txTela(c){const R=txR(c),B=txBlocos(c,R),F=txFaltas(c,R),ag=txAg(c);
 Object.assign(ACT,{txCk:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;R[el.dataset.k]=el.dataset.v;gRfoSalvar(el.dataset.id);r2Re()}});
 {const _s=CH.r2s;CH.r2s=el=>{const R=(ui.gRfo||{})[el.dataset.id];if(R&&R.v==='tx'){R[el.dataset.k]=el.value;if(R.tipo==='corr'&&el.dataset.k==='desfecho'&&txRfoPendF(R))R.pend='sim';if(el.dataset.k==='desfecho'&&R.desfecho)R.ab={1:false,2:true};gRfoSalvar(el.dataset.id);r2Re();return}return _s(el)}}
 /* texto e PDF */
-const txFtN=(R,f)=>{const m=/^ck_(\w+)_(\d+)$/.exec(f.tipo||'');if(m){const P=TX_PREV[m[1]];return P?P.t.replace('Inspeção ','')+': '+P.it[+m[2]][0]:''}return TX_FTN[f.tipo]||f.leg||''};
+let txFtN=(R,f)=>{const m=/^ck_(\w+)_(\d+)$/.exec(f.tipo||'');if(m){const P=TX_PREV[m[1]];return P?P.t.replace('Inspeção ','')+': '+P.it[+m[2]][0]:''}return TX_FTN[f.tipo]||f.leg||''};
 const txSim=v=>v==='sim'?'Sim':v==='nao'?'Não':'—';
 function txLinhas(c,r){const t=r.tipo,L=[[t==='corr'?'Problema':'O que fazer',(['expT','cross'].includes(t)&&typeof txOq==='function'?[txOq(c),txOqExtra(c)].filter(Boolean).join(' · '):c.motivo)||'—']];if(c.txAfet)L.push([txAfetN,c.txAfet]);
   if(t==='corr'){if(r.desfecho&&!TX_RES[txCatC(c)].includes(r.desfecho)&&!r.acao&&!r.impM){L.push(['Tipo',r.desfecho]);if(r.item)L.push(['Item',[r.item,r.ifEq,r.ifInt,r.ifId,r.itemDef].filter(Boolean).join(' · ')]);if(r.acomp||r.improd||r.agend)L.push(['Detalhe',r.acomp||r.improd||r.agend]);if(r.detalhes)L.push(['Observações',r.detalhes]);return L}
@@ -11666,7 +11666,7 @@ function txLinhas(c,r){const t=r.tipo,L=[[t==='corr'?'Problema':'O que fazer',([
   if(t==='gmud')L.push(['ID da GMUD',r.gid||'—'],['Janela da GMUD',txJanTxt(c)||'—'],['O que foi executado',r.gobs||'—'],['Início da GMUD',txDtlBR(r.hIni)],['Validação da GMUD',txDtlBR(r.hVal)],['Responsável do NOC',r.gnoc||'—']);
   if(t==='outra')L.push(['O que foi feito',r.feito||'—']);
   if(r.detalhes&&t!=='prev')L.push(['Observações',r.detalhes]);return L}
-const txCkLinhas=r=>r.tipo==='prev'&&!txImp(r)?TX_PS.flatMap(s=>TX_PREV[s].it.map(([q],i)=>[TX_PREV[s].t.replace('Inspeção ','')+': '+q,{C:'Conforme',NC:'Não conforme',NA:'N/A'}[r[`p_${s}_${i}`]]||'—',[r[`pv_${s}_${i}`],r[`po_${s}_${i}`]].filter(Boolean).join(' · ')])):[];
+let txCkLinhas=r=>r.tipo==='prev'&&!txImp(r)?TX_PS.flatMap(s=>TX_PREV[s].it.map(([q],i)=>[TX_PREV[s].t.replace('Inspeção ','')+': '+q,{C:'Conforme',NC:'Não conforme',NA:'N/A'}[r[`p_${s}_${i}`]]||'—',[r[`pv_${s}_${i}`],r[`po_${s}_${i}`]].filter(Boolean).join(' · ')])):[];
 {const _t=gRfoTexto;gRfoTexto=function(c){const r=c.rfo||{};if(r.v!=='tx')return _t.apply(this,arguments);
   const L=[`${r.tipo==='corr'?'RFO':'Relatório da Transmissão'} · ${txTipoN(r.tipo)} · ${c.cliente||''}`,r.tipo==='corr'||txPomV(c)?`Protocolo O&M: ${txPomV(c)||'—'}${c.pnoc?' · Protocolo NOC: '+c.pnoc:''}`:''].filter(Boolean);txLinhas(c,r).forEach(([a,b])=>L.push(`${a}: ${b}`));
   const K=txCkLinhas(r).filter(x=>x[1]==='Não conforme');if(K.length){L.push('','Itens não conformes');K.forEach(([a,b,o])=>L.push(`${a}${o?' ('+o+')':''}`))}return L.join('\n')}}
@@ -20398,12 +20398,31 @@ const tkInJ=(c,j)=>{const t=tkDt(c);return t>=j[0]&&t<=j[1]};
 /* ---------- campos dos relatórios ---------- */
 const tkSesN=s=>({el:'Elétrica',eq:'Equipamentos',bk:'Banco de baterias',am:'Ambiente'}[s]||String(TX_PREV[s].t).replace(/^Inspeção (d[aoe]s? )?/i,''));
 const tkCausa=c=>{const r=tkR(c);return r.raiz||''};
-function tkPrevInfo(c){const r=tkR(c),ses={},nc=[];let tot=0,ok=0;(typeof TX_PS!=='undefined'?TX_PS:[]).forEach(s=>{const P=TX_PREV[s];ses[s]=P.it.map(([q],i)=>{const st=r[`p_${s}_${i}`]||'',v=[r[`pv_${s}_${i}`],r[`po_${s}_${i}`]].filter(Boolean).join(' · ');if(st&&st!=='NA'){tot++;if(st==='C')ok++}if(st==='NC')nc.push({s,q,v});return {q,st,v}})});
+function tkPrevInfo(c){const r=tkR(c);if(typeof tx2V==='function'&&tx2V(r))return tkPrevInfo2(c,r);const ses={},nc=[];let tot=0,ok=0;(typeof TX_PS!=='undefined'?TX_PS:[]).forEach(s=>{const P=TX_PREV[s];ses[s]=P.it.map(([q],i)=>{const st=r[`p_${s}_${i}`]||'',v=[r[`pv_${s}_${i}`],r[`po_${s}_${i}`]].filter(Boolean).join(' · ');if(st&&st!=='NA'){tot++;if(st==='C')ok++}if(st==='NC')nc.push({s,q,v});return {q,st,v}})});
   const med={ac:tkNum(r.pv_el_0),bk:tkNum(r.pv_bk_0),teq:tkNum(r.pv_eq_3),tam:tkNum(r.pv_am_0)};
   const ints=(typeof TX_PS!=='undefined'?TX_PS:[]).filter(s=>r['int_'+s]==='sim').map(s=>tkSesN(s)+(r['intd_'+s]?': '+r['intd_'+s]:''));
   const ags=(typeof TX_PS!=='undefined'?TX_PS:[]).filter(s=>r['ag_'+s]==='sim').map(s=>tkSesN(s)+(r['agd_'+s]?': '+r['agd_'+s]:''));if(r.agG==='sim')ags.push('Geral'+(r.agGd?': '+r.agGd:''));
-  return {ses,nc,tot,ok,med,ints,ags}}
-function tkFora(m){const f=[];if(m.ac!=null){const ok=m.ac>150?(m.ac>=198&&m.ac<=242):(m.ac>=99&&m.ac<=121);if(!ok)f.push('ac')}if(m.bk!=null&&(m.bk<49||m.bk>55))f.push('bk');if(m.teq!=null&&m.teq>42)f.push('teq');if(m.tam!=null&&m.tam>27)f.push('tam');return f}
+  return {ses,nc,tot,ok,med,ints,ags,sesK:typeof TX_PS!=='undefined'?TX_PS:[],sesN:Object.fromEntries((typeof TX_PS!=='undefined'?TX_PS:[]).map(s=>[s,tkSesN(s)]))}}
+function tkPrevInfo2(c,r){const ses={},nc=[],sesN={};let tot=0,ok=0;TX2.forEach(S=>{sesN[S.k]=S.t;ses[S.k]=tx2Itens(r,S).map(x=>{const st=tx2St(r,x),q=(x.bn?x.bn+': ':'')+x.it.q,v=[r['qv_'+x.key]&&r['qv_'+x.key]+' '+((x.it.v||{}).u||''),r['qo_'+x.key]].filter(Boolean).join(' · ');if(st&&st!=='NA'){tot++;if(st==='C')ok++}if(st==='NC')nc.push({s:S.k,sn:S.t,q,v});return {q,st,v}})});
+  const b0=tx2Bancos(r).find(([b])=>tx2Bk(r,b,'tec')),med={ac:tkNum(r.qv_ac_0),bk:b0?tkNum(r['qv_dc_'+b0[0]+'_'+TX2_VB]):null,teq:tkNum(r.qv_eq_1),tam:tkNum(r.qv_amb_4)};
+  const ints=TX2.filter(S=>r['int_'+S.k]==='sim').map(S=>S.t+(r['intd_'+S.k]?': '+r['intd_'+S.k]:'')),ags=TX2.filter(S=>r['ag_'+S.k]==='sim').map(S=>S.t+(r['agd_'+S.k]?': '+r['agd_'+S.k]:''));if(r.agG==='sim')ags.push('Geral'+(r.agGd?': '+r.agGd:''));
+  return {ses,nc,tot,ok,med,ints,ags,sesK:TX2.map(S=>S.k),sesN,v2:1}}
+/* autonomia: bancos analisados pela gestão */
+function tkBancos(c){const r=tkR(c),A=c.autAna;if(typeof tx2V!=='function'||!tx2V(r)||!r.bkCfg)return [];return tx2Bancos(r).filter(([b])=>tx2Bk(r,b,'tec')).map(([b,nm])=>{const C=tx2Cap(r,b),f=A&&A.bk&&A.bk[b]?tx2N(A.bk[b].fat):null,Cu=C&&f?C*f/100:null,Id=tx2N(r['qv_dc_'+b+'_'+TX2_AUT]),Ir=tx2N(r['qv_dc_'+b+'_'+TX2_REC]),t=tx2Bk(r,b,'tec');
+  return {b,nm,c,pop:tkPop(c),tipo:t==='lit'?'Lítio'+(tx2Bk(r,b,'bms')==='sim'?' (BMS)':' (sem BMS)'):'Chumbo-ácido',dob:tx2Bk(r,b,'dob')==='sim',C,f,Cu,aut:Cu&&Id?Cu/Id:null,rec:Cu&&Ir?Cu/Ir:null}})}
+function tkAutUlt(){const DF=tkS().d,M={};tkAll().filter(c=>txT(c)==='prev'&&c.autAna&&(!DF.pop||tkPop(c)===DF.pop)).sort((a,b)=>tkDt(b)-tkDt(a)).forEach(c=>tkBancos(c).forEach(k=>{const id=k.pop+'|'+k.nm;if(k.aut!=null&&!M[id])M[id]=k}));return Object.values(M)}
+function tkAutKpis(L){const U=tkAutUlt(),m=U.slice().sort((a,b)=>a.aut-b.aut)[0];return [[U.length,'Bancos com autonomia analisada'],[L.filter(tkAguarda).length,'Aguardando análise de autonomia'],[m?tx2H(m.aut):'—',m?'Menor autonomia · '+m.pop+' · '+m.nm:'Menor autonomia']]}
+function tkBkRel(c){const r=tkR(c),K=tkBancos(c);if(!K.length)return '';if(c.autAna)return `<div><h4>Bancos de baterias</h4><div class="tablewrap"><table class="tktb" style="min-width:520px"><thead><tr><th>Banco</th><th>Tipo</th><th>Capacidade útil</th><th>Fator</th><th>Autonomia</th><th>Recarga</th></tr></thead><tbody>${K.map(k=>`<tr><td>${esc(k.nm)}${k.dob?' <small class="tkmut">dobrado</small>':''}</td><td>${k.tipo}</td><td>${k.Cu?tx2Br(k.Cu)+' Ah':'—'}</td><td>${k.f?k.f+'%':'—'}</td><td><b>${tx2H(k.aut)}</b></td><td>${tx2H(k.rec)}</td></tr>`).join('')}</tbody></table></div><small class="tkmut">Análise de ${esc(c.autAna.por||'')} em ${tkD(c.autAna.em)}</small></div>`;
+ return `<div><h4>Bancos de baterias</h4><span class="chip warn">⚠ Aguardando análise de autonomia</span><p class="tkmut" style="margin:6px 0;font-size:13px">${K.map(k=>esc(k.nm)+': '+k.tipo+', '+(k.C?tx2Br(k.C)+' Ah':'—')).join(' · ')}</p>${c.status==='concl'&&tx2PodeAna()?`<button class="btn sm primary" data-act="gAbrirRel" data-id="${c.id}">Analisar autonomia</button>`:''}</div>`}
+const tkAguarda=c=>txConcl(c)&&c.status==='concl'&&!c.autAna&&tkBancos(c).length>0;
+function tkAutTab(DF){const T=tkS(),A=tkAll().filter(c=>txT(c)==='prev'&&c.autAna&&(!DF.pop||tkPop(c)===DF.pop)).sort((a,b)=>tkDt(b)-tkDt(a)),M={};
+  A.forEach(c=>tkBancos(c).forEach(k=>{if(k.aut==null)return;const id=k.pop+'|'+k.nm;(M[id]||(M[id]=[])).push(k)}));const rows=Object.entries(M).sort((a,b)=>a[1][0].aut-b[1][0].aut);
+  const pend=tkAll().filter(c=>txT(c)==='prev'&&tkAguarda(c)&&(!DF.pop||tkPop(c)===DF.pop)).sort((a,b)=>tkDt(b)-tkDt(a));
+  if(!rows.length&&!pend.length)return '';
+  return `<section class="tkp"><div class="tkph"><h3>Autonomia dos bancos por POP</h3><small>Última análise da gestão · menor autonomia no topo · toque para ver o histórico</small></div><div class="tablewrap"><table class="tktb tkaut"><thead><tr><th>POP</th><th>Banco</th><th>Tipo</th><th>Cap. útil</th><th>Fator</th><th>Autonomia</th><th>Anterior</th><th>Preventiva</th></tr></thead><tbody>
+   ${rows.map(([id,K])=>{const k=K[0],p=K[1],d=p?Math.round((k.aut-p.aut)*60):null,op=T.ab['A|'+id];return `<tr class="tkclk" data-act="tk" data-o="rel" data-v="A|${esc(id)}"><td>${esc(k.pop)}</td><td>${esc(k.nm)}${k.dob?' <small class="tkmut">dobrado</small>':''}</td><td>${k.tipo}</td><td>${tx2Br(k.Cu)} Ah</td><td>${k.f}%</td><td><b>${tx2H(k.aut)}</b>${d?` <small class="${d<0?'tkruim':'tkbom'}">${d<0?'▼':'▲'} ${Math.abs(d)} min</small>`:''}</td><td>${p?tx2H(p.aut):'—'}</td><td>${tkD(tkDt(k.c))}</td></tr>${op?`<tr><td colspan="8" class="tkhrow"><b>Histórico · ${esc(k.pop)} · ${esc(k.nm)}</b><div class="tkrow" style="margin-top:6px;gap:6px">${K.slice(0,8).reverse().map((x,i,a)=>`<span class="chip ${i===a.length-1?'ok':''}">${tkD(tkDt(x.c))} · ${tx2H(x.aut)} · ${x.f}%</span>`).join('')}</div></td></tr>`:''}`}).join('')}
+   ${pend.map(c=>tkBancos(c).map(k=>`<tr class="tkclk" data-act="gAbrirRel" data-id="${c.id}"><td>${esc(k.pop)}</td><td>${esc(k.nm)}</td><td>${k.tipo}</td><td>—</td><td>—</td><td><span class="chip warn">⚠ Aguardando análise</span></td><td></td><td>${tkD(tkDt(c))}</td></tr>`).join('')).join('')}</tbody></table></div></section>`}
+function tkFora(m){const f=[];if(m.ac!=null){const ok=m.ac>165?(m.ac>=198&&m.ac<=242):(m.ac>=110&&m.ac<=130);if(!ok)f.push('ac')}if(m.bk!=null&&(m.bk<49||m.bk>55))f.push('bk');if(m.teq!=null&&m.teq>42)f.push('teq');if(m.tam!=null&&m.tam>27)f.push('tam');return f}
 function tkTxt(c){const r=tkR(c),t=txT(c);const b=[tkCod(c),tkPop(c),tkTec(c),c.motivo,c.categoria,tkSit(c),c.pnoc,c.txAfet,r.detalhes,r.desfecho];
   if(t==='corr')b.push(txCatTxt(c),r.encM,r.encV,r.raiz,r.raizD,r.acao,r.acaoD,r.mRet,r.mIns,r.pendD,r.item,r.ifEq,r.ifInt,r.ifId,r.itemDef,r.impM,r.improd,r.parcFez);
   if(t==='prev'){const p=tkPrevInfo(c);b.push(...p.nc.map(x=>x.q+' '+x.v),...p.ints,...p.ags)}
@@ -20455,7 +20474,7 @@ function tkGeral(){const T=tkS(),F=T.f,q=tkN(T.q),A=tkAll(),j=tkJan(0),jp=tkJan(
     +kp(tkFmtH(m),'MTTR médio das corretivas',tkDelta(m&&Math.round(m/6e4),mP&&Math.round(mP/6e4),true),`<span class="tkbar" title="Meta: até 4h"><i style="width:${m?Math.min(100,TK_META/m*100):0}%"></i></span><span class="tkmut tksm">Meta até 4h00 · ${m==null?'sem dados':m<=TK_META?'<b class="tkbom">dentro</b>':'<b class="tkruim">acima</b>'}</span>`,'corr')
     +kp(s==null?'—':s+'%','Corretivas resolvidas em até 4h',tkDelta(s,sP,false),tkSpark(por('corr',X=>sla(X)||0)),'corr')
     +kp(prevN(L),'Preventivas realizadas',tkDelta(prevN(L),prevN(P),false),tkSpark(por('prev',X=>X.filter(txConcl).length)),'prev')
-    +kp(`${nOk} de ${pops.length}`,`POPs com preventiva em dia (${TX_CICLO} dias)`,pops.length-nOk?`<span class="chip bad">✕ ${pops.length-nOk} vencido${pops.length-nOk===1?'':'s'} ou sem registro</span>`:'<span class="chip ok">✓ todos em dia</span>',`<span class="tkbar"><i style="width:${pops.length?nOk/pops.length*100:0}%"></i></span>`,'prev')
+    +kp(`${nOk} de ${pops.length}`,'POPs com preventiva em dia (ciclo de cada POP)',pops.length-nOk?`<span class="chip bad">✕ ${pops.length-nOk} vencido${pops.length-nOk===1?'':'s'} ou sem registro</span>`:'<span class="chip ok">✓ todos em dia</span>',`<span class="tkbar"><i style="width:${pops.length?nOk/pops.length*100:0}%"></i></span>`,'prev')
     +kp(expN(L),'Expansões e cross connects',tkDelta(expN(L),expN(P),false),tkSpark(MK.map(k=>A12.filter(c=>['expT','expI','cross'].includes(txT(c))&&txConcl(c)&&tkMK(tkDt(c))===k).length)),'expT')
     +kp(gmN(L),'GMUDs',tkDelta(gmN(L),gmN(P),false),tkSpark(por('gmud',X=>X.length)),'gmud');
   const c12=A12.filter(c=>txT(c)==='corr'),pm=MK.map(k=>c12.filter(c=>tkMK(tkDt(c))===k));
@@ -20464,8 +20483,8 @@ function tkGeral(){const T=tkS(),F=T.f,q=tkN(T.q),A=tkAll(),j=tkJan(0),jp=tkJan(
   const hmx=Math.max(1,...hpops.flatMap(p=>MK.map(k=>c12.filter(c=>tkPop(c)===p&&tkMK(tkDt(c))===k).length)));
   const hcell=(p,k)=>{const n=c12.filter(c=>tkPop(c)===p&&tkMK(tkDt(c))===k).length,lv=n?Math.min(5,1+Math.floor(n/hmx*4.99)):0;return `<td class="tkc l${lv}" data-tktip="${esc(p)} · ${tkMN(k)}<br><b>${n}</b> ${n===1?'corretiva':'corretivas'}">${n||''}</td>`};
   const chip={ok:['✓ Em dia','ok'],breve:['⚠ Vence em breve','warn'],venc:['✕ Vencida','bad'],sem:['Sem registro','']};
-  const pvRows=PV.sort((a,b)=>({venc:0,sem:1,breve:2,ok:3}[a.x.st]-{venc:0,sem:1,breve:2,ok:3}[b.x.st])||((a.x.d??-1e9)-(b.x.d??-1e9))).map(({p,x})=>{const pct=x.d==null?0:x.d<0?100:Math.max(0,Math.min(100,(TX_CICLO-x.d)/TX_CICLO*100));const cl=x.st==='venc'?'bad':x.st==='breve'?'warn':x.st==='sem'?'sem':'ok';
-    return `<div class="tkpvr"><span><b>${esc(txPopN(p))}</b><small class="tkmut">${x.ult?'Última: '+dBR(x.ult):'Nenhuma preventiva registrada'}</small></span><span class="tkpvb" data-tktip="${esc(txPopN(p))}<br>${x.ult?'Última '+dBR(x.ult)+'<br>Próxima até '+dBR(x.prox):'Sem registro'}"><i class="${cl}" style="width:${pct}%"></i></span><span class="tkrow" style="gap:6px"><span class="chip ${chip[x.st][1]}">${chip[x.st][0]}${x.d!=null?x.d<0?` há ${-x.d} d`:` · ${x.d} d`:''}</span>${x.ag?`<span class="chip info">Agendada ${gQuando(x.ag.agendaEm)}</span>`:txPodeAg()?`<button class="btn sm" data-act="txAgPrev" data-id="${p.id}">Agendar</button>`:''}</span></div>`}).join('');
+  const pvRows=PV.sort((a,b)=>({venc:0,sem:1,breve:2,ok:3}[a.x.st]-{venc:0,sem:1,breve:2,ok:3}[b.x.st])||((a.x.d??-1e9)-(b.x.d??-1e9))).map(({p,x})=>{const pct=x.d==null?0:x.d<0?100:Math.max(0,Math.min(100,((x.ciclo||TX_CICLO)-x.d)/(x.ciclo||TX_CICLO)*100));const cl=x.st==='venc'?'bad':x.st==='breve'?'warn':x.st==='sem'?'sem':'ok';
+    return `<div class="tkpvr"><span><b>${esc(txPopN(p))}</b><small class="tkmut">Ciclo de ${x.ciclo||TX_CICLO} dias · ${x.ult?'última: '+dBR(x.ult):'nenhuma preventiva registrada'}</small></span><span class="tkpvb" data-tktip="${esc(txPopN(p))}<br>${x.ult?'Última '+dBR(x.ult)+'<br>Próxima até '+dBR(x.prox):'Sem registro'}"><i class="${cl}" style="width:${pct}%"></i></span><span class="tkrow" style="gap:6px"><span class="chip ${chip[x.st][1]}">${chip[x.st][0]}${x.d!=null?x.d<0?` há ${-x.d} d`:` · ${x.d} d`:''}</span>${x.ag?`<span class="chip info">Agendada ${gQuando(x.ag.agendaEm)}</span>`:txPodeAg()?`<button class="btn sm" data-act="txAgPrev" data-id="${p.id}">Agendar</button>`:''}</span></div>`}).join('');
   /* tabela */
   const [sk,sd]=T.vsort,val=(c,k)=>({data:tkDt(c),cod:tkCod(c),pop:tkPop(c),tipo:TXK_N[txT(c)]||'',cat:txT(c)==='corr'?(tkCausa(c)||txCatTxt(c)):(txOq(c)||c.motivo||''),tec:tkTec(c),dur:txT(c)==='corr'?(tkMt(c)??-1):-1,sit:tkSit(c)})[k];
   const TB=L.slice().sort((a,b)=>{const x=val(a,sk),y=val(b,sk);return (x>y?1:x<y?-1:0)*sd}),pg=20,np=Math.max(1,Math.ceil(TB.length/pg));T.pg=Math.min(T.pg,np-1);
@@ -20483,7 +20502,7 @@ function tkGeral(){const T=tkS(),F=T.f,q=tkN(T.q),A=tkAll(),j=tkJan(0),jp=tkJan(
     <section class="tkp"><div class="tkph"><h3>Corretivas por causa raiz</h3><small>No período · toque para filtrar</small></div>${tkHbar(cnt(cor,c=>tkCausa(c)||'Sem causa registrada').slice(0,8),'cat',F.cat,'corretivas')}</section></div>
    <section class="tkp"><div class="tkph"><h3>Corretivas por POP e mês</h3><span class="tkleg">menos <i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i><i class="l5"></i> mais</span></div>
     ${hpops.length?`<div class="tkhm"><table><thead><tr><th>POP</th>${MK.map(k=>`<th>${tkMN(k)}</th>`).join('')}</tr></thead><tbody>${hpops.map(p=>`<tr><th>${esc(p)}</th>${MK.map(k=>hcell(p,k)).join('')}</tr>`).join('')}</tbody></table></div>`:'<p class="muted" style="margin:0">Nenhuma corretiva nos últimos 12 meses.</p>'}</section>
-   <section class="tkp"><div class="tkph"><h3>Preventiva: ciclo de ${TX_CICLO} dias por POP</h3><small>O que vence primeiro no topo</small></div><div class="tkpv">${pvRows||'<p class="muted" style="margin:0">Cadastre os POPs em Histórico › POPs.</p>'}</div></section>
+   <section class="tkp"><div class="tkph"><h3>Preventiva: ciclo por POP</h3><small>O que vence primeiro no topo</small></div><div class="tkpv">${pvRows||'<p class="muted" style="margin:0">Cadastre os POPs em Histórico › POPs.</p>'}</div></section>
    <section class="tkp"><div class="tkph"><h3>Chamados do período</h3><div class="tkrow"><small>${TB.length} chamado${TB.length===1?'':'s'}</small><button class="btn sm" data-act="tk" data-o="csv" data-v="geral">Exportar planilha</button></div></div>
     <div class="tablewrap"><table class="tktb"><thead><tr>${th('data','Data')}${th('cod','Chamado')}${th('pop','POP')}${th('tipo','Tipo')}${th('cat','Causa / o que fazer')}${th('tec','Técnico')}${th('dur','Duração')}${th('sit','Situação')}</tr></thead><tbody>
     ${TB.slice(T.pg*pg,T.pg*pg+pg).map(c=>{const t=txT(c),mt=t==='corr'?tkMt(c):null;return `<tr><td style="white-space:nowrap">${tkD(tkDt(c))}</td><td style="white-space:nowrap"><button class="linkbtn" data-act="gAbrirRel" data-id="${c.id}">${tkHl(tkCod(c))||'abrir'}</button></td><td>${tkHl(tkPop(c))}</td><td>${esc(TXK_N[t]||'')}</td><td><span class="tkcl" title="${esc(val(c,'cat'))}">${tkHl(val(c,'cat'))}</span></td><td>${tkHl(tkTec(c))}</td><td>${t==='corr'?`<span class="${mt>TK_META?'tkruim':''}">${tkFmtH(mt)}</span>`:'—'}</td><td><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span></td></tr>`}).join('')||'<tr><td colspan="8" class="muted">Nada encontrado com esses filtros.</td></tr>'}</tbody></table></div>
@@ -20514,16 +20533,16 @@ const TKD={
     <div><h4>RFO</h4><div class="tkfg">${tkFld('Problema',tkHl(c.motivo))}${tkFld('Tipo',esc(txCatTxt(c)))}${tkFld('Resultado',tkHl(r.desfecho)||'Em andamento')}${tkFld('Causa raiz',tkHl([r.raiz,r.raizD].filter(Boolean).join(': ')))}${tkFld('Ação',tkHl([r.acao,r.acaoD].filter(Boolean).join(': ')))}${tkFld('Item',tkHl([r.item,r.ifEq,r.ifInt,r.ifId,r.itemDef].filter(Boolean).join(' · ')))}${tkFld('Material retirado',tkHl(r.mRet))}${tkFld('Material instalado',tkHl(r.mIns))}${tkFld('Nova visita',r.pend==='sim'?'Sim'+(r.pendD?': '+tkHl(r.pendD):''):r.pend==='nao'?'Não':'')}${tkFld('Motivo do encaminhamento',tkHl(r.encM))}${tkFld('Verificado no POP',tkHl(r.encV))}${typeof txSemMttr==='function'&&txSemMttr(c)?tkFld('MTTR','Não conta (resultado: '+esc(c.desfecho||'')+')'):''}${tkFld('Motivo da improdutiva',tkHl([r.impM,r.improd].filter(Boolean).join(': ')))}${tkFld('Protocolo NOC',tkHl(c.pnoc))}${tkFld('Técnico',tkHl(tkTec(c)))}</div></div>
     ${r.detalhes?`<div><h4>Observações</h4><p style="margin:0">${tkHl(r.detalhes)}</p></div>`:''}${tkFotos(c)}`}},
  prev:{ph:'Buscar POP, técnico, item não conforme, intervenção, agendamento ou observação',fil:[],
-  chk:[['nc','Com não conformidade',c=>tkPrevInfo(c).nc.length>0],['int','Com intervenção',c=>tkPrevInfo(c).ints.length>0],['ag','Precisa agendar',c=>tkPrevInfo(c).ags.length>0],['fora','Medição fora da faixa',c=>tkFora(tkPrevInfo(c).med).length>0]],
-  kpis:L=>{const C=L.filter(txConcl),I=C.map(tkPrevInfo),tot=I.reduce((s,x)=>s+x.tot,0),ok=I.reduce((s,x)=>s+x.ok,0);return [[C.length,'Preventivas concluídas'],[tot?Math.round(ok/tot*100)+'%':'—','Itens conformes'],[I.filter(x=>x.nc.length).length,'Com não conformidade'],[I.filter(x=>x.ints.length).length,'Com intervenção'],[I.filter(x=>x.ags.length).length,'Precisam agendar'],[L.filter(tkAb).length,'Em aberto']]},
-  ins:L=>{const nc={};L.forEach(c=>tkPrevInfo(c).nc.forEach(x=>{const k=tkSesN(x.s)+': '+x.q;nc[k]=(nc[k]||0)+1}));const top=Object.entries(nc).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  chk:[['nc','Com não conformidade',c=>tkPrevInfo(c).nc.length>0],['int','Com intervenção',c=>tkPrevInfo(c).ints.length>0],['ag','Precisa agendar',c=>tkPrevInfo(c).ags.length>0],['fora','Medição fora da faixa',c=>tkFora(tkPrevInfo(c).med).length>0],['aana','Aguardando análise de autonomia',tkAguarda]],
+  kpis:L=>{const C=L.filter(txConcl),I=C.map(tkPrevInfo),tot=I.reduce((s,x)=>s+x.tot,0),ok=I.reduce((s,x)=>s+x.ok,0);return [[C.length,'Preventivas concluídas'],[tot?Math.round(ok/tot*100)+'%':'—','Itens conformes'],[I.filter(x=>x.nc.length).length,'Com não conformidade'],[I.filter(x=>x.ints.length).length,'Com intervenção'],[I.filter(x=>x.ags.length).length,'Precisam agendar'],[L.filter(tkAb).length,'Em aberto']].concat(tkAutKpis(L))},
+  ins:L=>{const nc={};L.forEach(c=>tkPrevInfo(c).nc.forEach(x=>{const k=(x.sn||tkSesN(x.s))+': '+x.q;nc[k]=(nc[k]||0)+1}));const top=Object.entries(nc).sort((a,b)=>b[1]-a[1]).slice(0,8);
    const ult={};L.filter(txConcl).forEach(c=>{const p=tkPop(c);if(!ult[p]||tkDt(ult[p])<tkDt(c))ult[p]=c});const U=Object.values(ult).sort((a,b)=>tkPop(a).localeCompare(tkPop(b)));
    const cel=(v,u,f)=>v==null?'<td class="tkmut">—</td>':`<td class="${f?'tkfora':''}">${f?'✕ ':''}${String(v).replace('.',',')} ${u}</td>`;
    return `<div class="tkg2"><section class="tkp"><div class="tkph"><h3>Não conformidades mais frequentes</h3><small>Toque para buscar os relatórios</small></div>${top.length?`<div class="tkhb">${top.map(([k,n])=>`<button type="button" class="tkhbr" data-act="tk" data-o="dq" data-v="${esc(k.split(': ').slice(1).join(': '))}" data-tktip="${esc(k)}<br><b>${n}</b> ${n===1?'vez':'vezes'}"><span title="${esc(k)}">${esc(k)}</span><span class="tkhbb"><i style="width:${n/top[0][1]*100}%"></i></span><b>${n}</b></button>`).join('')}</div>`:'<p class="muted" style="margin:0">Nenhuma não conformidade no filtro.</p>'}</section>
-    <section class="tkp"><div class="tkph"><h3>Últimas medições por POP</h3><small>Faixas: banco 49 a 55 V · equip. até 42 °C · ambiente até 27 °C · AC ±10%</small></div>${U.length?`<div class="tablewrap"><table class="tktb"><thead><tr><th>POP</th><th>Data</th><th>Tensão AC</th><th>Banco</th><th>Temp. equip.</th><th>Temp. ambiente</th></tr></thead><tbody>${U.map(c=>{const m=tkPrevInfo(c).med,f=tkFora(m);return `<tr><td>${esc(tkPop(c))}</td><td style="white-space:nowrap">${tkD(tkDt(c))}</td>${cel(m.ac,'V',f.includes('ac'))}${cel(m.bk,'V',f.includes('bk'))}${cel(m.teq,'°C',f.includes('teq'))}${cel(m.tam,'°C',f.includes('tam'))}</tr>`}).join('')}</tbody></table></div>`:'<p class="muted" style="margin:0">Sem preventivas concluídas no filtro.</p>'}</section></div>`},
-  sum:c=>{const p=tkPrevInfo(c);return `<b>${tkHl(tkPop(c))}</b><small>${tkHl(tkCod(c))} · ${tkHl(tkTec(c))}${p.tot?` · ${p.ok} de ${p.tot} itens conformes`:''}</small><span class="tkrow" style="gap:6px"><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span>${txConcl(c)?(p.nc.length?`<span class="chip bad">✕ ${p.nc.length} não conforme${p.nc.length>1?'s':''}</span>`:'<span class="chip ok">✓ Tudo conforme</span>'):''}${p.ints.length?'<span class="chip info">Intervenção</span>':''}${p.ags.length?'<span class="chip warn">⚠ Agendar</span>':''}${tkFora(p.med).length?'<span class="chip bad">Medição fora da faixa</span>':''}</span>`},
+    <section class="tkp"><div class="tkph"><h3>Últimas medições por POP</h3><small>Faixas: banco 49 a 55 V · equip. até 42 °C · ambiente até 27 °C · AC 198 a 242 V ou 110 a 130 V</small></div>${U.length?`<div class="tablewrap"><table class="tktb"><thead><tr><th>POP</th><th>Data</th><th>Tensão AC</th><th>Banco</th><th>Temp. equip.</th><th>Temp. ambiente</th></tr></thead><tbody>${U.map(c=>{const m=tkPrevInfo(c).med,f=tkFora(m);return `<tr><td>${esc(tkPop(c))}</td><td style="white-space:nowrap">${tkD(tkDt(c))}</td>${cel(m.ac,'V',f.includes('ac'))}${cel(m.bk,'V',f.includes('bk'))}${cel(m.teq,'°C',f.includes('teq'))}${cel(m.tam,'°C',f.includes('tam'))}</tr>`}).join('')}</tbody></table></div>`:'<p class="muted" style="margin:0">Sem preventivas concluídas no filtro.</p>'}</section></div>${tkAutTab(tkS().d)}`},
+  sum:c=>{const p=tkPrevInfo(c);return `<b>${tkHl(tkPop(c))}</b><small>${tkHl(tkCod(c))} · ${tkHl(tkTec(c))}${p.tot?` · ${p.ok} de ${p.tot} itens conformes`:''}</small><span class="tkrow" style="gap:6px"><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span>${txConcl(c)?(p.nc.length?`<span class="chip bad">✕ ${p.nc.length} não conforme${p.nc.length>1?'s':''}</span>`:'<span class="chip ok">✓ Tudo conforme</span>'):''}${p.ints.length?'<span class="chip info">Intervenção</span>':''}${p.ags.length?'<span class="chip warn">⚠ Agendar</span>':''}${tkAguarda(c)?'<span class="chip warn">⚠ Aguardando análise de autonomia</span>':''}${tkFora(p.med).length?'<span class="chip bad">Medição fora da faixa</span>':''}</span>`},
   rel:c=>{const p=tkPrevInfo(c),r=tkR(c),f=tkFora(p.med);if(!txConcl(c)&&!p.tot)return '<p class="muted" style="margin:0">Ainda sem relatório.</p>';
-   return `<div><h4>Checklist por sessão</h4><div class="tkses">${TX_PS.map(s=>{const a=p.ses[s],nc=a.filter(x=>x.st==='NC'),val=a.filter(x=>x.st&&x.st!=='NA');return `<div><b>${esc(tkSesN(s))}</b><span class="chip ${nc.length?'bad':'ok'}" style="justify-self:start">${val.length-nc.length}/${val.length} conformes</span>${nc.length?`<ul>${nc.map(x=>`<li>${tkHl(x.q)}${x.v?` <small class="tkmut">(${tkHl(x.v)})</small>`:''}</li>`).join('')}</ul>`:''}</div>`}).join('')}</div></div>
+   return `${p.v2?tkBkRel(c):''}<div><h4>Checklist por sessão</h4><div class="tkses">${p.sesK.map(s=>{const a=p.ses[s],nc=a.filter(x=>x.st==='NC'),val=a.filter(x=>x.st&&x.st!=='NA');return `<div><b>${esc(p.sesN[s])}</b><span class="chip ${nc.length?'bad':'ok'}" style="justify-self:start">${val.length-nc.length}/${val.length} conformes</span>${nc.length?`<ul>${nc.map(x=>`<li>${tkHl(x.q)}${x.v?` <small class="tkmut">(${tkHl(x.v)})</small>`:''}</li>`).join('')}</ul>`:''}</div>`}).join('')}</div></div>
     <div><h4>Medições</h4><div class="tkfg">${tkFld('Tensão AC',p.med.ac!=null?`<span class="${f.includes('ac')?'tkfora':''}">${p.med.ac} V</span>`:'')}${tkFld('Banco de baterias',p.med.bk!=null?`<span class="${f.includes('bk')?'tkfora':''}">${String(p.med.bk).replace('.',',')} V</span>`:'')}${tkFld('Temp. equipamentos',p.med.teq!=null?`<span class="${f.includes('teq')?'tkfora':''}">${p.med.teq} °C</span>`:'')}${tkFld('Temp. ambiente',p.med.tam!=null?`<span class="${f.includes('tam')?'tkfora':''}">${p.med.tam} °C</span>`:'')}</div></div>
     <div class="tkfg">${tkFld('Intervenção feita',p.ints.length?p.ints.map(tkHl).join('<br>'):'Nenhuma')}${tkFld('Precisa agendar',p.ags.length?p.ags.map(tkHl).join('<br>'):'Não')}${tkFld('Observações gerais',tkHl(r.detalhes))}</div>${tkFotos(c)}`}},
  expT:{ph:'Buscar POP, cliente, etiqueta, equipamento, porta, DIO ou transceiver',fil:[['tt','Tipo',c=>tkR(c).ttipo||''],['tint','Interface',c=>tkR(c).tint||'']],chk:[['aberto','Em aberto',tkAb]],
@@ -20652,6 +20671,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .tktb mark,.tkrc mark{background:var(--warn-soft);color:inherit;border-radius:3px;padding:0 1px}
 .tkpg{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
 .tkfora{color:var(--bad);font-weight:700}
+.tkclk{cursor:pointer}.tkclk:hover td{background:var(--bg)}.tkhrow{background:var(--bg)}
 .tkseg{display:flex;height:30px;border-radius:6px;overflow:hidden;gap:2px;background:var(--surface)}
 .tkseg span{display:grid;place-items:center;color:#fff;font:600 12.5px Barlow,sans-serif;min-width:0;overflow:hidden;white-space:nowrap}
 .tksegl{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}.tksegl i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
@@ -20684,6 +20704,242 @@ document.head.insertAdjacentHTML('beforeend',`<style>
  .tkpvr{grid-template-columns:1fr}.tksel{flex:1 1 140px;max-width:none}.tkch text{font-size:17px}
  .tktl{grid-template-columns:1fr;gap:8px}.tktl>div{justify-items:start;text-align:left;padding:0 0 0 22px}.tktl>div::before{top:0;bottom:-8px;left:5px;right:auto;width:2px;height:auto}.tktl>div:first-child::before{left:5px;top:6px}.tktl>div:last-child::before{display:none}.tktl>div::after{top:2px;left:0}
  .tkrh{grid-template-columns:auto 1fr}.tkrx{display:none}}
+</style>`);
+
+/* ---- 15/11: preventiva de POP da Transmissão · checklist revisado (versão 2) ----
+   Novas preventivas usam R.pv=2: 5 partes (ambiente, energia AC, retificador e bancos, equipamentos, óptica) + fotos da visita.
+   Bancos: 1, 2 com redundância ou 2 em paralelo; cada banco com tipo (chumbo/lítio), modelo ou marca, capacidade, dobrado e BMS;
+   chumbo: tensão e resistência interna de cada bateria; todos: teste de descarga e recarga.
+   Valor fora da faixa, extintor vencido ou bateria fora da faixa viram Não conforme sozinhos. Não conforme exige observação e foto.
+   Relatórios antigos (sem pv) continuam com o checklist antigo (TX_PREV). A gestão aplica o fator de capacidade depois (autAna). */
+const TX2=[
+ {k:'amb',t:'Acesso e ambiente',int:'Houve correção, limpeza ou melhoria no ambiente do POP?',intPh:'Descreva o que foi feito (ex.: limpeza do rack, troca de lâmpada)',ag:'Precisa agendar algo do ambiente?',it:[
+  {q:'Acesso ao POP sem impedimento (portão, porta e fechadura funcionando)'},
+  {q:'Ambiente limpo, sem poeira acumulada, lixo ou material estranho'},
+  {q:'Sem infiltração, umidade ou goteira'},
+  {q:'Iluminação funcionando'},
+  {q:'Ar-condicionado funcionando, sem vazamento no dreno',ac:1,v:{l:'Temperatura ambiente',u:'°C',ob:1,max:27,fx:'até 27 °C'}},
+  {q:'Extintor dentro da validade',dt:{l:'Validade do extintor',ext:1}},
+  {q:'Sem sinais de pragas, insetos ou roedores'}]},
+ {k:'ac',t:'Energia AC e proteção',int:'Houve substituição ou reparo na parte elétrica?',intPh:'Descreva o que foi substituído ou reparado (ex.: disjuntor 20A)',ag:'Precisa agendar algo da parte elétrica?',it:[
+  {q:'Tensão AC de entrada na faixa',v:{l:'Tensão AC',u:'V',ob:1,acv:1,fx:'198 a 242 V (rede 220 V) ou 110 a 130 V (rede 127 V)'}},
+  {q:'Quadro elétrico fechado, disjuntores identificados'},
+  {q:'Conexões elétricas firmes, sem aquecimento ou escurecimento'},
+  {q:'DPS (protetor de surto) sem sinalização de falha'},
+  {q:'Aterramento: cabos conectados e sem oxidação',v:{l:'Medição (Ω), opcional',u:'Ω'}}]},
+ {k:'dc',t:'Retificador e banco de baterias',bancos:1,int:'Houve troca de bateria ou intervenção no retificador ou nos bancos?',intPh:'Descreva o que foi feito (ex.: troca de 4 baterias, limpeza dos terminais)',ag:'Precisa agendar algo do retificador ou dos bancos?',it:[
+  {q:'Módulos do retificador operando, sem alarmes críticos'}]},
+ {k:'eq',t:'Equipamentos ativos',int:'Houve substituição ou intervenção em algum equipamento?',intPh:'Descreva o que foi feito (ex.: troca de SFP, módulo de fan)',ag:'Precisa agendar algo dos equipamentos?',it:[
+  {q:'OLT, switch e roteador sem alarmes críticos',txt:{l:'Qual alarme (se houver)',ph:'Ex.: LOS na PON 1/3/7'}},
+  {q:'Temperatura dos equipamentos',v:{l:'Temperatura',u:'°C',ob:1,max:42,fx:'até 42 °C'}},
+  {q:'Fans funcionando e entrada de ar desobstruída'},
+  {q:'Fontes redundantes ligadas e em circuitos diferentes (A/B)'}]},
+ {k:'op',t:'Infraestrutura óptica e cabeamento',int:'Houve organização ou correção na parte óptica?',intPh:'Descreva o que foi feito (ex.: identificação dos cordões do DIO 2)',ag:'Precisa agendar algo da parte óptica?',it:[
+  {q:'DIOs organizados e identificados conforme o GEOGRID'},
+  {q:'Cordões sem dobra, sem tensão e com as duas pontas identificadas'},
+  {q:'Rack organizado, com cordões presos e identificados'},
+  {q:'Cabo de entrada (backbone) protegido e sem dano aparente'},
+  {q:'Sobras de cordão e cabo acomodadas, sem material solto no rack'}]}];
+const TX2_BK=[{q:'BMS (gerenciamento da bateria de lítio) sem alarme',lit:1},
+ {q:'Tensão do banco',v:{l:'Tensão do banco',u:'V',ob:1,min:49,max:55,fx:'49 a 55 V'}},
+ {q:'Tensão das baterias individualmente',bat:'v'},
+ {q:'Resistência interna das baterias',bat:'r'},
+ {q:'Baterias sem estufamento, vazamento ou aquecimento'},
+ {q:'Terminais limpos, sem oxidação, e cabos do banco em bom estado'},
+ {q:'Idade do banco',dt:{l:'Data de fabricação ou instalação',idade:1}},
+ {q:'Teste de descarga: corrente com a energia AC desligada',v:{l:'Corrente de descarga',u:'A',ob:1},calc:'aut'},
+ {q:'Teste de recarga: corrente quando a energia AC volta',v:{l:'Corrente de recarga',u:'A',ob:1},calc:'rec'}];
+const TX2_CFG={'1':{t:'1 banco',b:[['A','Banco de baterias','']]},'2r':{t:'2 bancos com redundância',b:[['A','Banco A','redundância'],['B','Banco B','redundância']]},'2p':{t:'2 bancos em paralelo (sem redundância)',b:[['1','Banco 1','em paralelo'],['2','Banco 2','em paralelo']]}};
+const TX2_VF=['Frente do rack','Display do retificador','Banco de baterias','DIO'];
+const TX2_AUT=TX2_BK.findIndex(x=>x.calc==='aut'),TX2_REC=TX2_BK.findIndex(x=>x.calc==='rec'),TX2_VB=TX2_BK.findIndex(x=>x.v&&x.v.min===49),TX2_ID=TX2_BK.findIndex(x=>x.dt&&x.dt.idade);
+const tx2V=R=>!!R&&R.tipo==='prev'&&R.pv===2;
+const tx2N=v=>{const m=String(v==null?'':v).replace(',','.').match(/-?\d+(\.\d+)?/);return m?+m[0]:null};
+const tx2Br=x=>String(+(+x).toFixed(1)).replace('.',',');
+const tx2H=h=>{if(h==null||!isFinite(h))return '—';const m=Math.round(h*60);return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')};
+const tx2Bancos=R=>R.bkCfg&&TX2_CFG[R.bkCfg]?TX2_CFG[R.bkCfg].b:[];
+const tx2Bk=(R,b,f)=>R['bk_'+b+'_'+f]||'';
+const tx2Nb=(R,b)=>Math.max(1,Math.min(24,parseInt(tx2Bk(R,b,'n'),10)||4));
+const tx2Tot=(R,b)=>tx2Nb(R,b)*(tx2Bk(R,b,'dob')==='sim'?2:1);
+const tx2Cap=(R,b)=>{const c=tx2N(tx2Bk(R,b,'cap'));return c?c*(tx2Bk(R,b,'dob')==='sim'?2:1):null};
+/* lista dos itens de uma parte (com os itens de cada banco) */
+function tx2Itens(R,S){const L=(S.it||[]).map((it,i)=>({it,key:S.k+'_'+i}));
+  if(S.bancos)tx2Bancos(R).forEach(([b,nm])=>{const t=tx2Bk(R,b,'tec');if(!t)return;TX2_BK.forEach((it,i)=>{if(t==='lit'?it.bat:it.lit)return;if(it.lit&&tx2Bk(R,b,'bms')!=='sim')return;L.push({it,key:'dc_'+b+'_'+i,b,bn:nm})})});return L}
+function tx2Fora(it,R,key){const v=it.v;if(!v)return null;const n=tx2N(R['qv_'+key]);if(n==null)return null;
+  if(v.acv)return !(n>165?(n>=198&&n<=242):(n>=110&&n<=130));if(v.min!=null&&n<v.min)return true;if(v.max!=null&&n>v.max)return true;return false}
+function tx2Bat(R,b){const T=tx2Tot(R,b),v=[],r=[];for(let j=0;j<T;j++){v.push(tx2N(R['bv_'+b+'_'+j]));r.push(tx2N(R['br_'+b+'_'+j]))}const rv=r.filter(x=>x!=null),med=rv.length?rv.reduce((a,c)=>a+c,0)/rv.length:null;
+  return {v,r,med,fv:v.map(x=>x!=null&&(x<11||x>14)),fr:r.map(x=>x!=null&&med&&rv.length>=2&&x>med*1.25)}}
+function tx2Dt(it,R,key){const s=R['qd_'+key];if(!it.dt||!s)return null;const d=new Date(s+'T12:00:00'),hj=new Date();if(isNaN(d))return null;
+  if(it.dt.ext)return d<hj?{c:'bad',t:'✕ Extintor vencido'}:{c:'ok',t:'✓ Válido até '+d.toLocaleDateString('pt-BR')};
+  const a=(hj-d)/(365.25*864e5);return {c:a>4?'warn':'ok',a,t:(a>4?'⚠ ':'✓ ')+'Banco com '+tx2Br(a)+' anos'+(a>4?' · avaliar troca':'')}}
+/* situação que vale: o técnico marca, mas faixa, validade e baterias podem forçar Não conforme */
+function tx2St(R,x){const {it,key,b}=x;if(it.ac&&R.semAC==='sim')return tx2Fora(it,R,key)===true?'NC':'NA';
+  if(tx2Fora(it,R,key)===true)return 'NC';const di=tx2Dt(it,R,key);if(di&&di.c==='bad')return 'NC';
+  if(it.bat){const B=tx2Bat(R,b);if((it.bat==='v'?B.fv:B.fr).some(Boolean))return 'NC'}return R['q_'+key]||''}
+function tx2FaltasD(c,R){const F=[];
+  TX2.forEach(S=>{const P=S.t+': ';if(S.bancos){if(!R.bkCfg)F.push(P+'quantos bancos de baterias');else tx2Bancos(R).forEach(([b,nm])=>{const t=tx2Bk(R,b,'tec');if(!t){F.push(P+nm+', tipo de bateria');return}
+      if(txVz(tx2Bk(R,b,'mod')))F.push(P+nm+', '+(t==='lit'?'marca':'modelo da bateria'));if(!tx2N(tx2Bk(R,b,'cap')))F.push(P+nm+', capacidade (Ah)');if(!tx2Bk(R,b,'dob'))F.push(P+nm+', banco dobrado?');if(t==='lit'&&!tx2Bk(R,b,'bms'))F.push(P+nm+', tem BMS?')})}
+    tx2Itens(R,S).forEach((x,n)=>{const {it,key,b,bn}=x,st=tx2St(R,x),nm=P+(bn?bn+', ':'')+'item '+(n+1);if(!st)F.push(nm+' sem resposta');
+      if(it.v&&it.v.ob&&!(it.ac&&false)&&tx2N(R['qv_'+key])==null)F.push(nm+': '+it.v.l.toLowerCase());
+      if(it.dt&&!R['qd_'+key])F.push(nm+': '+it.dt.l.toLowerCase());
+      if(it.bat){const B=tx2Bat(R,b),a=it.bat==='v'?B.v:B.r;if(a.some(v=>v==null))F.push(nm+': '+(it.bat==='v'?'tensão':'resistência interna')+' de cada bateria')}
+      if(st==='NC'){if(txVz(R['qo_'+key]))F.push(nm+': o que está errado');if(!txFt(R,'ck2_'+key).length)F.push(nm+': foto do não conforme')}});
+    if(!R['int_'+S.k])F.push(P+'houve intervenção?');else if(R['int_'+S.k]==='sim'&&txVz(R['intd_'+S.k]))F.push(P+'o que foi feito');
+    if(!R['ag_'+S.k])F.push(P+'precisa agendar?');else if(R['ag_'+S.k]==='sim'&&txVz(R['agd_'+S.k]))F.push(P+'o que agendar')});
+  TX2_VF.forEach((n,j)=>{if(!txFt(R,'vf_'+j).length)F.push('Fotos da visita: '+n.toLowerCase())});
+  if(!R.agG)F.push('agendamento para a próxima visita');else if(R.agG==='sim'&&txVz(R.agGd))F.push('o que precisa ser agendado');
+  return F}
+function tx2Faltas(c,R){const D=tx2FaltasD(c,R),M={},O=[];D.forEach(x=>{const i=x.indexOf(': ');const k=i>0&&!/^agendamento|^o que precisa/.test(x)?x.slice(0,i):'';if(k){if(!M[k]){M[k]=0;O.push(k)}M[k]++}else O.push(x)});return O.map(k=>M[k]!=null?k+': '+M[k]+(M[k]>1?' pendências':' pendência'):k)}
+const tx2FaltaParte=(c,R,t)=>{const L=tx2FaltasD(c,R).filter(x=>x.startsWith(t+': ')).map(x=>x.slice(t.length+2));return L.length?`<div class="tx2fl"><b>Falta nesta parte</b><ul>${L.slice(0,8).map(x=>`<li>${esc(x)}</li>`).join('')}${L.length>8?`<li>e mais ${L.length-8}</li>`:''}</ul></div>`:''};
+const tx2Score=(R,S)=>{let t=0,ok=0;tx2Itens(R,S).forEach(x=>{const v=tx2St(R,x);if(v==='C'){t++;ok++}else if(v==='NC')t++});return t?Math.round(ok/t*100):null};
+const tx2NC=(R,S)=>tx2Itens(R,S).filter(x=>tx2St(R,x)==='NC').length;
+/* ---------- tela do técnico ---------- */
+const tx2Btn=(c,k,v,lab,on)=>`<button type="button" data-act="txCk" data-id="${c.id}" data-k="${k}" data-v="${v}" aria-pressed="${!!on}">${lab}</button>`;
+const tx2Seg=(c,R,k,ops)=>`<div class="tvops txck" role="group">${ops.map(([v,l])=>tx2Btn(c,k,v,l,R[k]===v)).join('')}</div>`;
+const tx2Num=(c,R,k,ph)=>`<input class="inp" id="r2_${k}" data-in="r2t" data-id="${c.id}" data-k="${k}" placeholder="${esc(ph||'')}" value="${esc(R[k]||'')}" inputmode="decimal">`;
+function tx2Item(c,R,x,n){const {it,key,b}=x,st=tx2St(R,x),fo=tx2Fora(it,R,key),di=tx2Dt(it,R,key),na=it.ac&&R.semAC==='sim'&&fo!==true,auto=st==='NC'&&R['q_'+key]!=='NC';
+  let h=`<div class="txcki tx2i ${st==='NC'?'nok':''}"><span><b class="tx2n">${n}</b> ${esc(it.q)}${it.v&&it.v.ob?' <em class="tx2ob">valor obrigatório</em>':''}</span>`;
+  if(it.ac)h+=`<div class="tvops txck" role="group" aria-label="O POP tem ar-condicionado?">${tx2Btn(c,'semAC','nao','Tem ar-condicionado',R.semAC!=='sim')}${tx2Btn(c,'semAC','sim','POP sem ar-condicionado',R.semAC==='sim')}</div>`;
+  if(it.bat){const B=tx2Bat(R,b),fl=it.bat==='v'?B.fv:B.fr,N=tx2Nb(R,b),dob=tx2Bk(R,b,'dob')==='sim',T=tx2Tot(R,b),pre=it.bat==='v'?'bv_':'br_';
+    h+=`<div class="tx2bat">${it.bat==='v'?r2Fld(dob?'Baterias por conjunto':'Quantidade de baterias',1,`<input class="inp" style="max-width:110px" id="r2_bk_${b}_n" data-in="r2t" data-id="${c.id}" data-k="bk_${b}_n" value="${esc(tx2Bk(R,b,'n')||'4')}" inputmode="numeric">`):''}
+     <table><thead><tr><th>Bateria</th><th>${it.bat==='v'?'Tensão (V)':'Resistência interna (mΩ)'}</th></tr></thead><tbody>${Array.from({length:T},(_,j)=>`${dob&&j%N===0?`<tr><th colspan="2">Conjunto ${j/N+1}</th></tr>`:''}<tr><td>${b}${j+1}</td><td class="${fl[j]?'fl':''}">${tx2Num(c,R,pre+b+'_'+j,it.bat==='v'?'Ex.: 13,4':'Ex.: 4,8')}</td></tr>`).join('')}</tbody></table>
+     <small class="muted">${it.bat==='v'?'Faixa por bateria: 11 a 14 V.':'Comparada com a média do banco'+(B.med?` (${tx2Br(B.med)} mΩ)`:'')+': mais de 25% acima fica em vermelho.'}</small>
+     ${fl.some(Boolean)?`<div class="tx2a bad">✕ ${fl.map((z,j)=>z?b+(j+1):'').filter(Boolean).join(', ')} ${it.bat==='v'?'fora da faixa':'acima da média'} · marcado como não conforme</div>`:''}</div>`}
+  if(it.v)h+=r2Fld(esc(it.v.l)+(it.v.u?' ('+it.v.u+')':''),it.v.ob,tx2Num(c,R,'qv_'+key,it.v.u==='°C'?'Ex.: 24':it.v.u==='V'?'Ex.: 53,5':'Ex.: 12'),it.v.fx?'faixa: '+esc(it.v.fx):'')+(fo===true?'<div class="tx2a bad">✕ Fora da faixa · marcado como não conforme</div>':fo===false&&it.v.fx?'<div class="tx2a ok">✓ Dentro da faixa</div>':'');
+  if(it.calc){const I=tx2N(R['qv_'+key]),C=tx2Cap(R,b);h+=`<small class="muted">${it.calc==='aut'?'Desligue a energia AC e meça a corrente que o banco fornece.':'Religue a energia AC e meça a corrente de carga do banco.'}</small>`;
+    if(I&&C)h+=`<div class="tx2a ok">${it.calc==='aut'?'Autonomia estimada':'Tempo de recarga estimado'}: ${tx2H(C/I)} (${tx2Br(C)} Ah ÷ ${tx2Br(I)} A, com 100% da capacidade)</div>`}
+  if(it.dt)h+=r2Fld(it.dt.l,1,`<input class="inp" type="date" id="r2_qd_${key}" data-in="r2t" data-ch="tx2Re" data-id="${c.id}" data-k="qd_${key}" value="${esc(R['qd_'+key]||'')}">`)+(di?`<div class="tx2a ${di.c}">${di.t}</div>`:'');
+  if(it.txt)h+=r2Fld(it.txt.l,0,r2Txt(c,R,'qt_'+key,it.txt.ph||''));
+  if(na)h+='<div class="tx2a warn">N/A automático: POP sem ar-condicionado. A temperatura ambiente continua obrigatória.</div>';
+  else h+=`<div class="tvops txck" role="group" aria-label="Resposta">${[['C','Conforme'],['NC','Não conforme'],['NA','N/A']].map(([v,l])=>tx2Btn(c,'q_'+key,v,l,st===v)).join('')}</div>${auto?'<small class="muted">Marcado como não conforme pela medição.</small>':''}`;
+  if(st==='NC')h+=r2Fld('O que está errado?',1,r2Txt(c,R,'qo_'+key,'Descreva o problema encontrado',1));
+  h+=`<div class="txckf"><span class="r2l">Fotos${st==='NC'?' <em>*</em>':' <small class="muted">(opcional)</small>'}</span>${txFotoL(c,R,'ck2_'+key)}<span class="r2cg">${txCam(c,'ck2_'+key)}${txGal(c,'ck2_'+key)}</span></div></div>`;
+  return h}
+function tx2Bancos_(c,R){let h=r2Fld('Bancos de baterias do POP',1,`<div class="tvops txck tx2col" role="group">${Object.entries(TX2_CFG).map(([v,o])=>tx2Btn(c,'bkCfg',v,o.t,R.bkCfg===v)).join('')}</div>`);
+  if(!R.bkCfg)return h+'<small class="muted">Escolha para abrir os testes de cada banco.</small>';
+  tx2Bancos(R).forEach(([b,nm,tag])=>{const t=tx2Bk(R,b,'tec');
+    h+=`<div class="tx2bk"><div class="tx2bkh"><b>${nm}</b>${tag?`<span class="chip">${tag}</span>`:''}${t?`<span class="chip ${t==='lit'?'info':''}">${t==='lit'?'lítio':'chumbo-ácido'}</span>`:''}</div>
+      ${r2Fld('Tipo de bateria',1,`<div class="tvops txck" role="group">${tx2Btn(c,'bk_'+b+'_tec','ch','Chumbo-ácido',t==='ch')}${tx2Btn(c,'bk_'+b+'_tec','lit','Lítio',t==='lit')}</div>`)}
+      ${t?`<div class="r2two">${r2Fld(t==='lit'?'Marca':'Modelo da bateria',1,r2Txt(c,R,'bk_'+b+'_mod',t==='lit'?'Ex.: Unipower, Moura, BYD':'Ex.: Moura 12MVA-105'))}${r2Fld('Capacidade (Ah)',1,tx2Num(c,R,'bk_'+b+'_cap',t==='lit'?'Ex.: 100':'Ex.: 105'))}</div>
+       ${r2Fld('Banco dobrado (2 conjuntos em paralelo)?',1,`<div class="tvops txck" role="group">${tx2Btn(c,'bk_'+b+'_dob','sim','Sim',tx2Bk(R,b,'dob')==='sim')}${tx2Btn(c,'bk_'+b+'_dob','nao','Não',tx2Bk(R,b,'dob')==='nao')}</div>`)}
+       ${t==='lit'?r2Fld('Tem gerenciamento pelo BMS?',1,`<div class="tvops txck" role="group">${tx2Btn(c,'bk_'+b+'_bms','sim','Sim',tx2Bk(R,b,'bms')==='sim')}${tx2Btn(c,'bk_'+b+'_bms','nao','Não',tx2Bk(R,b,'bms')==='nao')}</div>`):''}
+       ${t==='lit'?'<small class="muted">Lítio: sem tensão individual e sem resistência interna.</small>':''}`:''}</div>`;
+    let n=0;const S=TX2.find(s=>s.bancos);tx2Itens(R,S).forEach(x=>{n++;if(x.b===b)h+=tx2Item(c,R,x,n)})});
+  return h+tx2Resumo(R,null)}
+function tx2Resumo(R,ana){const L=tx2Bancos(R).filter(([b])=>tx2Bk(R,b,'tec')).map(([b,nm])=>{const C=tx2Cap(R,b),f=ana&&ana.bk&&ana.bk[b]?tx2N(ana.bk[b].fat):null,Cu=C&&f?C*f/100:C;
+    return {b,nm,C,f,Cu,Id:tx2N(R['qv_dc_'+b+'_'+TX2_AUT]),Ir:tx2N(R['qv_dc_'+b+'_'+TX2_REC])}});
+  if(!L.some(x=>x.C&&(x.Id||x.Ir)))return '';const tC=L.reduce((a,x)=>a+(x.Cu||0),0),tI=L.reduce((a,x)=>a+(x.Id||0),0);
+  return `<div class="tx2rs"><b>Resumo dos bancos${ana?'':' (estimativa com 100% da capacidade)'}</b><div class="tablewrap"><table><thead><tr><th>Banco</th><th>Capacidade${ana?' útil':''}</th>${ana?'<th>Fator</th>':''}<th>Autonomia</th><th>Recarga</th></tr></thead><tbody>${L.map(x=>`<tr><td>${x.nm}</td><td>${x.Cu?tx2Br(x.Cu)+' Ah':'—'}</td>${ana?`<td>${x.f?x.f+'%':'—'}</td>`:''}<td>${x.Cu&&x.Id?tx2H(x.Cu/x.Id):'—'}</td><td>${x.Cu&&x.Ir?tx2H(x.Cu/x.Ir):'—'}</td></tr>`).join('')}</tbody></table></div>
+   ${L.length>1&&L.every(x=>x.Cu&&x.Id)?`<div class="tx2a ok">Autonomia do POP com os ${L.length} bancos juntos: ${tx2H(tC/tI)} (${tx2Br(tC)} Ah ÷ ${tx2Br(tI)} A)</div>`:''}
+   ${ana?'':'<small class="muted">Depois do envio, a gestão analisa e aplica o fator de capacidade útil de cada banco.</small>'}</div>`}
+function tx2Sec(c,R,S){let h='',n=0;const L=tx2Itens(R,S);
+  L.forEach(x=>{if(x.b)return;n++;h+=tx2Item(c,R,x,n)});if(S.bancos)h+=tx2Bancos_(c,R);
+  return `<div class="txckl">${h}</div>${r2Fld(S.int,1,txSN(c,R,'int_'+S.k,'Sim, houve intervenção','Não'))}${R['int_'+S.k]==='sim'?r2Txt(c,R,'intd_'+S.k,S.intPh,1):''}
+   ${r2Fld(S.ag,1,txSN(c,R,'ag_'+S.k,'Sim, agendar','Não'))}${R['ag_'+S.k]==='sim'?r2Txt(c,R,'agd_'+S.k,'Descreva o que precisa ser agendado e a urgência',1):''}${tx2FaltaParte(c,R,S.t)}`}
+const tx2Fotos=(c,R)=>TX2_VF.map((n,j)=>txFotos(c,R,'vf_'+j,n,1)).join('');
+TX2.forEach(S=>{S.it.forEach((it,i)=>{TX_FTN['ck2_'+S.k+'_'+i]=S.t+': '+it.q})});
+['A','B','1','2'].forEach(b=>TX2_BK.forEach((it,i)=>{TX_FTN['ck2_dc_'+b+'_'+i]='Banco '+b+': '+it.q}));TX2_VF.forEach((n,j)=>{TX_FTN['vf_'+j]=n});
+/* ---------- ganchos no relatório da Transmissão ---------- */
+{const _n=txNovoR;txNovoR=function(c,old){const R=_n.apply(this,arguments);if(R.tipo==='prev'){Object.keys(R).forEach(k=>{if(/^p_/.test(k))delete R[k]});R.pv=2}return R}}
+{const _r=txR;txR=function(c){const R=_r.apply(this,arguments);if(R&&R.tipo==='prev'&&R.pv===2&&Object.keys(R).some(k=>/^p_(el|eq|bk|am)_/.test(k)))delete R.pv;return R}}
+{const _f=txFaltas;txFaltas=function(c,R){if(!tx2V(R)||!R.desfecho||txImp(R))return _f.apply(this,arguments);return tx2Faltas(c,R)}}
+{const _b=txBlocos;txBlocos=function(c,R){if(!tx2V(R)||!R.desfecho||txImp(R))return _b.apply(this,arguments);const F=tx2Faltas(c,R);
+  const B=[{k:1,t:'Desfecho',r:R.desfecho,ok:true}];TX2.forEach((S,i)=>{const sc=tx2Score(R,S),n=tx2NC(R,S);B.push({k:2+i,t:S.t,r:`${sc==null?'responda os itens':sc+'% conforme'}${n?` · ${n} não conforme`:''}`,ok:!F.some(x=>x.startsWith(S.t+':'))})});
+  const nf=TX2_VF.filter((_,j)=>txFt(R,'vf_'+j).length).length;B.push({k:7,t:'Fotos da visita',r:nf+' de '+TX2_VF.length,ok:nf===TX2_VF.length},{k:8,t:'Observações e agendamentos',r:R.agG==='sim'?'precisa agendar':R.agG==='nao'?'sem pendências':'responda',ok:!F.some(x=>/próxima visita|precisa ser agendado/.test(x))},{k:9,t:'Outras fotos',r:'opcional',ok:true});return B}}
+{const _c=txCorpo;txCorpo=function(c,R,k){if(!tx2V(R)||!R.desfecho||txImp(R)||k===1)return _c.apply(this,arguments);
+  if(k>=2&&k<=6)return tx2Sec(c,R,TX2[k-2]);if(k===7)return '<p class="r2h">Obrigatórias em toda visita.</p>'+tx2Fotos(c,R)+tx2FaltaParte(c,R,'Fotos da visita');if(k===8)return _c.call(this,c,R,6);if(k===9)return txOutras(c,R);return ''}}
+Object.assign(CH,{tx2Re:el=>{const R=(ui.gRfo||{})[el.dataset.id];if(!R)return;R[el.dataset.k]=el.value;gRfoSalvar(el.dataset.id);r2Re()}});
+/* ---------- texto e PDF ---------- */
+{const _l=txLinhas;txLinhas=function(c,r){if(!tx2V(r)||txImp(r))return _l.apply(this,arguments);
+  const L=[['O que fazer',c.motivo||'—'],['Desfecho',r.desfecho||'—']];const sim=v=>v==='sim'?'Sim':v==='nao'?'Não':'—';
+  TX2.forEach(S=>{const sc=tx2Score(r,S);L.push([S.t,`${sc==null?'—':sc+'% conforme'} · intervenção: ${sim(r['int_'+S.k])}${r['int_'+S.k]==='sim'?' ('+(r['intd_'+S.k]||'')+')':''} · agendar: ${sim(r['ag_'+S.k])}${r['ag_'+S.k]==='sim'?' ('+(r['agd_'+S.k]||'')+')':''}`])});
+  if(r.semAC==='sim')L.push(['Ar-condicionado','POP sem ar-condicionado']);
+  L.push(['Bancos de baterias',r.bkCfg?TX2_CFG[r.bkCfg].t:'—']);
+  const A=c.autAna||null;tx2Bancos(r).forEach(([b,nm])=>{const t=tx2Bk(r,b,'tec');if(!t)return;const C=tx2Cap(r,b),f=A&&A.bk&&A.bk[b]?tx2N(A.bk[b].fat):null,Cu=C&&f?C*f/100:C,Id=tx2N(r['qv_dc_'+b+'_'+TX2_AUT]),Ir=tx2N(r['qv_dc_'+b+'_'+TX2_REC]);
+    L.push([nm,[t==='lit'?'Lítio'+(tx2Bk(r,b,'bms')==='sim'?' com BMS':' sem BMS'):'Chumbo-ácido',tx2Bk(r,b,'mod'),tx2Bk(r,b,'cap')&&tx2Bk(r,b,'cap')+' Ah'+(tx2Bk(r,b,'dob')==='sim'?' × 2 (dobrado)':''),
+      Id?'descarga '+tx2Br(Id)+' A':'',Ir?'recarga '+tx2Br(Ir)+' A':'',f?`fator ${f}% · autonomia ${Cu&&Id?tx2H(Cu/Id):'—'} · recarga ${Cu&&Ir?tx2H(Cu/Ir):'—'}`:`autonomia estimada (100%) ${C&&Id?tx2H(C/Id):'—'} · aguardando análise`].filter(Boolean).join(' · ')])});
+  if(A)L.push(['Análise de autonomia',(A.por||'')+' · '+(A.em?dBR(isoD(new Date(A.em))):'')]);
+  L.push(['Observações gerais',r.detalhes||'—'],['Agendar para a próxima visita',r.agG==='sim'?'Sim: '+(r.agGd||''):sim(r.agG)]);return L}}
+{const _k=txCkLinhas;txCkLinhas=r=>{if(!tx2V(r)||txImp(r))return _k(r);const O=[],nm={C:'Conforme',NC:'Não conforme',NA:'N/A'};
+  TX2.forEach(S=>tx2Itens(r,S).forEach(x=>{const {it,key,b,bn}=x,st=tx2St(r,x),val=[];if(it.v&&r['qv_'+key])val.push(r['qv_'+key]+' '+(it.v.u||''));if(it.dt&&r['qd_'+key])val.push(dBR(r['qd_'+key]));if(it.txt&&r['qt_'+key])val.push(r['qt_'+key]);
+    if(it.bat){const B=tx2Bat(r,b),a=it.bat==='v'?B.v:B.r;val.push(a.map((v,j)=>b+(j+1)+' '+(v==null?'—':tx2Br(v))).join(', ')+(it.bat==='v'?' V':' mΩ'))}if(it.ac&&r.semAC==='sim')val.push('sem ar-condicionado');if(r['qo_'+key])val.push(r['qo_'+key]);
+    O.push([(bn||S.t)+': '+it.q,nm[st]||'—',val.join(' · ')])}));return O}}
+{const _n=txFtN;txFtN=(R,f)=>/^(ck2_|vf_)/.test(f.tipo||'')?(TX_FTN[f.tipo]||f.leg||''):_n(R,f)}
+/* ---------- análise de autonomia pela gestão ---------- */
+const tx2PodeAna=()=>['coord','sup','enc'].includes(ui.perfil);
+function tx2UltFat(c,b){const L=G.ch.filter(x=>x.id!==c.id&&txDe(x)&&txT(x)==='prev'&&x.pop===c.pop&&x.autAna&&x.autAna.bk&&x.autAna.bk[b]).sort((a,z)=>(z.autAna.em||0)-(a.autAna.em||0));return L[0]?{fat:L[0].autAna.bk[b].fat,em:L[0].autAna.em}:null}
+function tx2AnaBox(c){const r=c.rfo||{};if(!tx2V(r)||c.status!=='concl'||txImp(r)||!r.bkCfg)return '';const A=c.autAna,pode=tx2PodeAna(),ed=ui.tx2AnaEd===c.id||(!A&&pode);
+  const tAmb=tx2N(r.qv_amb_4);let h=`<section class="gbox tx2ana"><div class="ah"><b>Análise de autonomia dos bancos</b><span class="chip ${A?'ok':'warn'}">${A?'✓ Analisada':'⚠ Aguardando análise'}</span></div>`;
+  if(!ed){h+=tx2Resumo(r,A||null)+(A?`<p class="muted" style="margin:6px 0 0;font-size:13px">Análise de ${esc(A.por||'')} em ${A.em?dBR(isoD(new Date(A.em)))+' às '+hm(A.em):''}.</p>`:'<p class="muted" style="margin:6px 0 0;font-size:13px">Encarregado, supervisor ou coordenador aplica o fator de capacidade útil de cada banco.</p>')+(pode&&A?`<div class="tools"><button class="btn sm" data-act="tx2AnaEd" data-id="${c.id}">Revisar análise</button></div>`:'');return h+'</section>'}
+  h+=`<p class="muted" style="margin:0 0 8px;font-size:13.5px">Temperatura ambiente medida: ${tAmb!=null?tx2Br(tAmb)+' °C'+(tAmb>27?' · acima de 27 °C':''):'—'}${r.semAC==='sim'?' · POP sem ar-condicionado':''}.</p>`;
+  tx2Bancos(r).forEach(([b,nm])=>{const t=tx2Bk(r,b,'tec');if(!t)return;const C=tx2Cap(r,b),Id=tx2N(r['qv_dc_'+b+'_'+TX2_AUT]),Ir=tx2N(r['qv_dc_'+b+'_'+TX2_REC]),di=tx2Dt(TX2_BK[TX2_ID],r,'dc_'+b+'_'+TX2_ID),u=tx2UltFat(c,b),
+      cur=(ui.tx2Fat||{})[c.id+b]!=null?ui.tx2Fat[c.id+b]:A&&A.bk&&A.bk[b]?String(A.bk[b].fat):u?String(u.fat):'',f=tx2N(cur),Cu=C&&f?C*Math.min(100,f)/100:null;
+    h+=`<div class="tx2bk"><div class="tx2bkh"><b>${nm}</b><span class="chip">${t==='lit'?'Lítio'+(tx2Bk(r,b,'bms')==='sim'?' com BMS':' sem BMS'):'Chumbo-ácido'}</span></div>
+     <div class="tx2g"><div><small>Modelo / marca</small><b>${esc(tx2Bk(r,b,'mod')||'—')}</b></div><div><small>Capacidade nominal</small><b>${C?tx2Br(C)+' Ah':'—'}${tx2Bk(r,b,'dob')==='sim'?' <small>(dobrado)</small>':''}</b></div><div><small>Idade</small><b class="${di&&di.a>4?'tx2bad':''}">${di?tx2Br(di.a)+' anos':'—'}</b></div><div><small>Descarga</small><b>${Id?tx2Br(Id)+' A':'—'}</b></div><div><small>Recarga</small><b>${Ir?tx2Br(Ir)+' A':'—'}</b></div></div>
+     <div class="r2two">${r2Fld('Capacidade útil considerada (%)',1,`<input class="inp" style="max-width:120px" id="tx2f_${b}" data-in="tx2Fat" data-id="${c.id}" data-b="${b}" value="${esc(cur)}" inputmode="decimal" placeholder="Ex.: 80">`)}<small class="muted" style="align-self:end">${u?`Último fator deste banco: ${u.fat}% (${dBR(isoD(new Date(u.em)))}).`:'Primeira análise deste banco.'}${(di&&di.a>4)||(tAmb>27)?' Banco antigo ou ambiente quente: avalie reduzir.':''}</small></div>
+     <div class="tx2g tx2res"><div><small>Capacidade útil</small><b>${Cu?tx2Br(Cu)+' Ah':'—'}</b></div><div><small>Autonomia</small><b>${Cu&&Id?tx2H(Cu/Id):'—'}</b></div><div><small>Tempo de recarga</small><b>${Cu&&Ir?tx2H(Cu/Ir):'—'}</b></div></div>${tx2Hist(c,b,Cu&&Id?Cu/Id:null)}</div>`});
+  return h+`<div class="tools"><button class="btn primary" data-act="tx2AnaSalvar" data-id="${c.id}">${A?'Atualizar análise':'Salvar análise'}</button>${A?`<button class="btn" data-act="tx2AnaEd" data-id="">Cancelar</button>`:''}</div></section>`}
+function tx2AutDe(c,b){const r=c.rfo||{},A=c.autAna;if(!A||!A.bk||!A.bk[b])return null;const C=tx2Cap(r,b),f=tx2N(A.bk[b].fat),Id=tx2N(r['qv_dc_'+b+'_'+TX2_AUT]);return C&&f&&Id?C*f/100/Id:null}
+function tx2Hist(c,b,agora){const L=G.ch.filter(x=>x.id!==c.id&&txDe(x)&&txT(x)==='prev'&&x.pop===c.pop&&x.autAna&&tx2AutDe(x,b)!=null).sort((a,z)=>tkDtOf(a)-tkDtOf(z)).slice(-4);
+  if(!L.length)return '';return `<div class="tx2hist"><small class="muted">Autonomia nas últimas preventivas</small><div>${L.map(x=>`<span><small>${dBR(isoD(new Date(tkDtOf(x))))}</small>${tx2H(tx2AutDe(x,b))}</span>`).join('')}${agora!=null?`<span class="now"><small>agora</small>${tx2H(agora)}</span>`:''}</div></div>`}
+const tkDtOf=c=>c.agendaEm||gIni(c);
+Object.assign(IN,{tx2Fat:el=>{ui.tx2Fat=ui.tx2Fat||{};ui.tx2Fat[el.dataset.id+el.dataset.b]=el.value;clearTimeout(ui.tx2T);const id=el.id,pos=el.selectionStart;ui.tx2T=setTimeout(()=>{r2Re();const n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},500)}});
+Object.assign(ACT,{tx2AnaEd:el=>{ui.tx2AnaEd=el.dataset.id||null;ui.tx2Fat={};r2Re()},
+ tx2AnaSalvar:async el=>{if(!tx2PodeAna())return semPerm();const c=G.ch.find(x=>x.id===el.dataset.id);if(!c)return;const r=c.rfo||{},bk={};let erro='';
+  tx2Bancos(r).forEach(([b,nm])=>{if(!tx2Bk(r,b,'tec'))return;const inp=document.getElementById('tx2f_'+b),f=tx2N(inp?inp.value:'');if(!f||f<=0||f>100)erro=erro||nm;else bk[b]={fat:f}});
+  if(erro){toast('Informe a capacidade útil (%) do '+erro+', entre 1 e 100.','bad');return}
+  const ok=await gAcao(c.id,x=>{x.autAna={bk,por:meNome()+(ui.perfil==='coord'?' (coordenador)':ui.perfil==='sup'?' (supervisor)':' (encarregado)'),em:Date.now()};gHist(x,'Análise de autonomia dos bancos')},'Análise salva. Autonomia atualizada nos KPIs.');
+  if(ok!==false){ui.tx2AnaEd=null;ui.tx2Fat={};render()}}});
+{const _d=gDetalhe;gDetalhe=function(c){const h=_d.apply(this,arguments);try{if(!txDe(c)||txT(c)!=='prev')return h;const box=tx2AnaBox(c);if(!box)return h;const k='<div class="gdet"><div class="stack">',i=h.indexOf(k);return i<0?box+h:h.slice(0,i+k.length)+box+h.slice(i+k.length)}catch(e){return h}}}
+/* ---------- ciclo da preventiva por POP ---------- */
+const txCiclo=p=>{const n=parseInt(p&&p.ciclo,10);return n>=7&&n<=365?n:TX_CICLO};
+const txBreve=ci=>Math.max(2,Math.ceil(ci/6));
+txPrevPop=function(p,L){const fe=L.filter(c=>txT(c)==='prev'&&c.pop===p.id&&txConcl(c)).sort((a,b)=>txDiaFim(b).localeCompare(txDiaFim(a)))[0];
+  const ag=L.filter(c=>txT(c)==='prev'&&c.pop===p.id&&GTD_ABERTOS.includes(c.status)).sort((a,b)=>(a.agendaEm||0)-(b.agendaEm||0))[0],ci=txCiclo(p);
+  if(!fe)return{ult:null,prox:null,d:null,st:'sem',ag,ciclo:ci};const ult=txDiaFim(fe),prox=addD(ult,ci),d=Math.round((new Date(prox+'T12:00:00')-new Date(hoje()+'T12:00:00'))/864e5);
+  return{ult,prox,d,st:d<0?'venc':d<=txBreve(ci)?'breve':'ok',ag,c:fe,ciclo:ci}};
+const txPodeCiclo=()=>ui.perfil==='coord'||pode('tx_a_ciclo');
+/* permissão nova em Usuários e acessos: Transmissão › Histórico e POPs */
+try{const n=PX_TX[1].find(x=>x[0]==='tx_hist');if(n){n[3]=(n[3]||[]).concat([['tx_a_ciclo','Alterar o ciclo da preventiva dos POPs','a']])}if(typeof PERM_ALL!=='undefined'&&!PERM_ALL.includes('tx_a_ciclo'))PERM_ALL.push('tx_a_ciclo')}catch(e){}
+function txCicloHist(p){const H=(p&&p.cicloHist)||[];return H.length?`<div class="tx2ch"><b>Histórico do ciclo</b><ul>${H.slice().reverse().map(x=>`<li><b>${x.de||TX_CICLO} → ${x.para} dias</b> · ${x.em?dBR(isoD(new Date(x.em))):''} · ${esc(x.por||'')}${x.motivo?' · '+esc(x.motivo):''}</li>`).join('')}</ul></div>`:'<p class="muted" style="margin:4px 0 0;font-size:13px">Ciclo nunca alterado (padrão de '+TX_CICLO+' dias).</p>'}
+function txCicloForm(ids){const ps=ids.map(txPop).filter(Boolean),um=ps.length===1?ps[0]:null;
+  openModal(`<h3>Ciclo da preventiva</h3><p class="muted" style="margin:0 0 8px">${um?esc(txPopN(um))+' · hoje: <b>'+txCiclo(um)+' dias</b>':ps.length+' POPs selecionados: '+esc(ps.slice(0,6).map(txPopN).join(', '))+(ps.length>6?' e mais '+(ps.length-6):'')}</p>
+   <div class="grid2 even" style="gap:0 12px"><label class="f"><span>Novo ciclo (dias) *</span><input class="inp" id="txCiN" type="number" min="7" max="365" value="${um?txCiclo(um):''}" placeholder="Ex.: 30"></label><div class="muted" style="align-self:end;font-size:13px;padding-bottom:10px">Aviso "vence em breve" no último 1/6 do ciclo.</div></div>
+   <label class="f"><span>Motivo *</span><input class="inp" id="txCiM" placeholder="Ex.: POP crítico, backbone de 3 cidades"></label>${um?txCicloHist(um):''}
+   <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="txCicloOk" data-ids="${ids.join(',')}">Salvar</button></div>`)}
+Object.assign(ACT,{txCiclo:el=>{if(!txPodeCiclo())return semPerm();txCicloForm([el.dataset.id])},
+ txCicloLote:()=>{if(!txPodeCiclo())return semPerm();const ids=Object.keys(ui.txpSel||{}).filter(k=>ui.txpSel[k]);if(!ids.length){toast('Marque os POPs na lista.','bad');return}txCicloForm(ids)},
+ txpSel:el=>{ui.txpSel=ui.txpSel||{};ui.txpSel[el.dataset.id]=!ui.txpSel[el.dataset.id];render()},
+ txpSelT:()=>{ui.txpSel=ui.txpSel||{};const L=txPopsVis(),todos=L.every(p=>ui.txpSel[p.id]);L.forEach(p=>{ui.txpSel[p.id]=!todos});render()},
+ txCicloOk:async el=>{if(!txPodeCiclo())return semPerm();const n=parseInt(($('txCiN')||{}).value,10),m=(($('txCiM')||{}).value||'').trim();
+  if(!(n>=7&&n<=365)){toast('O ciclo precisa ser entre 7 e 365 dias.','bad');return}if(!m){toast('Informe o motivo da mudança.','bad');return}
+  const ids=(el.dataset.ids||'').split(',').filter(Boolean);el.disabled=true;let k=0,er='';
+  for(const id of ids){const p=txPop(id);if(!p)continue;if(txCiclo(p)===n&&p.ciclo)continue;const o=Object.assign({},p,{ciclo:n,cicloMotivo:m,cicloHist:(p.cicloHist||[]).concat([{de:txCiclo(p),para:n,motivo:m,por:meNome(),em:Date.now()}])});
+    const row=txPopRow(o);row.atualizado_por=meNome();const r=await sb.from('ag_pops').update(row).eq('id',id);if(r.error){er=r.error.message;break}k++}
+  el.disabled=false;await txPopsCarregar();if(er){toast('Não foi possível salvar: '+er,'bad');render();return}ui.txpSel={};closeModal();render();toast(k?`Ciclo de ${n} dias salvo em ${k} POP${k>1?'s':''}.`:'Nada mudou: os POPs já tinham esse ciclo.')}});
+const txPopsVis=()=>{const q=normK(ui.txpQ||''),pf=TXP_F[ui.txpF]?ui.txpF:'';return TXP.L.filter(TXP_F[pf][1]).filter(p=>!q||normK([p.sigla,p.nome,p.cidade,p.endereco].join(' ')).includes(q))};
+viewTxPops=function(){const pf=TXP_F[ui.txpF]?ui.txpF:'',L=txPopsVis(),ch=G.ch.filter(txDe),pc=txPodeCiclo(),S=ui.txpSel||{},nS=L.filter(p=>S[p.id]).length;
+  const kc=(k,c)=>{const n=TXP.L.filter(TXP_F[k][1]).length;return `<button type="button" class="kpi kbtn ${n&&c||''}" data-act="txpF" data-v="${k}" aria-pressed="${pf===k}" title="${pf===k&&k?'Mostrar todos':'Filtrar a lista'}"><b>${n}</b><span>${TXP_F[k][0]}</span></button>`};
+  return `<div class="toolbar"><div><h2>POPs · Transmissão</h2><p class="muted">Cadastro dos POPs usados nos chamados e agendamentos da Transmissão.</p></div><div class="tools">${txPodePop()?'<button class="btn" data-act="txPopImp">Importar planilha</button><button class="btn primary" data-act="txPopEd" data-id="">Cadastrar POP</button>':''}</div></div>
+   ${txHistSeg()}${TXP.err?`<div class="result bad">${esc(TXP.err)}</div>`:''}
+   <div class="kpis" style="margin-bottom:12px">${kc('')}${kc('at','ok')}${kc('in')}${kc('se','warn')}${kc('sc','warn')}</div>
+   <div class="tools" style="margin-bottom:12px"><input class="inp" type="search" placeholder="Buscar POP, sigla ou cidade" data-in="txpQ" value="${esc(ui.txpQ||'')}" autocomplete="off">${pc?`<button class="btn" data-act="txCicloLote" ${nS?'':'disabled'}>Alterar ciclo${nS?' de '+nS+' POP'+(nS>1?'s':''):' (marque os POPs)'}</button>`:''}</div>
+   <div class="tablewrap"><table><thead><tr>${pc?`<th style="width:34px"><input type="checkbox" aria-label="Marcar todos" data-act="txpSelT" ${L.length&&nS===L.length?'checked':''}></th>`:''}<th>POP</th><th>Cidade</th><th>Endereço</th><th>Ciclo</th><th>Preventiva</th><th class="r">Chamados abertos</th><th></th></tr></thead><tbody>${L.map(p=>{const x=txPrevPop(p,ch),ab=ch.filter(c=>c.pop===p.id&&GTD_ABERTOS.includes(c.status)).length,ci=txCiclo(p);
+     return `<tr class="${p.ativo===false?'muted':''}">${pc?`<td><input type="checkbox" aria-label="Marcar ${esc(txPopN(p))}" data-act="txpSel" data-id="${p.id}" ${S[p.id]?'checked':''}></td>`:''}<td><b>${esc(txPopN(p))}</b>${p.ativo===false?' <span class="chip">Inativo</span>':''}</td><td>${esc([p.cidade,p.uf].filter(Boolean).join('/'))}</td><td><small>${esc(p.endereco||'—')}</small>${p.lat!=null&&p.lat!==''?`<br><a class="linkbtn" href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Ver no mapa</a>`:''}</td>
+      <td style="white-space:nowrap">${pc?`<button class="linkbtn" data-act="txCiclo" data-id="${p.id}" title="Alterar o ciclo">${ci} dias</button>`:ci+' dias'}${p.ciclo?'':' <small class="muted">padrão</small>'}</td><td>${x.ult?dBR(x.ult):'—'}${x.st==='venc'?' <span class="chip bad">Vencida</span>':x.st==='breve'?' <span class="chip warn">Vence em '+x.d+' d</span>':x.st==='sem'?' <span class="chip">Sem registro</span>':''}</td><td class="r">${ab||'—'}</td><td class="r">${txPodePop()?`<button class="btn sm" data-act="txPopEd" data-id="${p.id}">Editar</button>`:''}</td></tr>`}).join('')||`<tr><td colspan="${pc?8:7}" class="muted">${TXP.L.length?'Nenhum POP neste filtro.':'Nenhum POP cadastrado.'}</td></tr>`}</tbody></table></div>`};
+/* ciclo e histórico também no formulário do POP */
+{const _e=ACT.txPopEd;ACT.txPopEd=function(el){const r=_e.apply(this,arguments);const p=txPop(el.dataset.id);try{const m=document.querySelector('#modal .actions')||document.querySelector('.modal .actions');if(m&&p&&p.id)m.insertAdjacentHTML('beforebegin',`<div class="tx2cf"><div class="ah"><b>Ciclo da preventiva: ${txCiclo(p)} dias</b>${txPodeCiclo()?`<button class="btn sm" data-act="txCiclo" data-id="${p.id}">Alterar ciclo</button>`:''}</div>${txCicloHist(p)}</div>`)}catch(e){}return r}}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.tx2i{display:grid!important;grid-template-columns:minmax(0,1fr);gap:8px!important}.tx2i>*{min-width:0}.tx2i .txck{display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;padding:0;border:0}.tx2i .txck button{min-height:40px;padding:4px 6px}.tx2i .r2f{margin:0}.tx2col{grid-template-columns:1fr!important}.tx2fl{background:var(--warn-soft);border-radius:10px;padding:8px 12px;font-size:13.5px;margin-top:8px}.tx2fl ul{margin:4px 0 0;padding-left:18px}
+.tx2i>span:first-child{font-weight:600}.tx2n{display:inline-grid;place-items:center;min-width:22px;height:20px;border-radius:6px;border:1px solid var(--line);background:var(--bg);font-size:12px;color:var(--muted);margin-right:4px}
+.tx2ob{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 6px;white-space:nowrap}
+.tx2a{font-size:13px;font-weight:600;border-radius:8px;padding:6px 10px;margin:4px 0}.tx2a.bad{background:var(--bad-soft);color:var(--bad)}.tx2a.ok{background:var(--brand-soft);color:var(--brand-ink)}.tx2a.warn{background:var(--warn-soft);color:var(--warn)}
+.tx2bat table{border-collapse:collapse;width:100%;max-width:360px;font-size:14px;margin:4px 0}.tx2bat th{font-size:12px;color:var(--muted);text-align:left;font-weight:600;padding:4px}.tx2bat td{padding:3px 4px}.tx2bat td.fl .inp{border-color:var(--bad);background:var(--bad-soft)}
+.tx2bk{border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0;display:grid;gap:6px;background:var(--surface)}.tx2bkh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:600 17px "Barlow Condensed",sans-serif}
+.tx2col{flex-wrap:wrap}
+.tx2rs{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px;display:grid;gap:6px;background:var(--bg)}
+.tx2ana .tx2bk{background:var(--bg)}.tx2g{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}.tx2g div{display:grid}.tx2g small{color:var(--muted);font-size:12px}.tx2res{background:var(--brand-soft);border-radius:10px;padding:8px 10px}.tx2res b{font:600 20px "Barlow Condensed",sans-serif}.tx2bad{color:var(--bad)}
+.tx2hist div{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.tx2hist span{display:grid;border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-weight:600;font-size:13.5px}.tx2hist span small{color:var(--muted);font-size:11px;font-weight:500}.tx2hist .now{border-color:var(--brand);background:var(--brand-soft)}
+.tx2ch ul{margin:4px 0 0;padding-left:18px;font-size:13.5px;display:grid;gap:3px}.tx2cf{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
 </style>`);
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
