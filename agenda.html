@@ -20334,6 +20334,31 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 </style>`);
 document.addEventListener('toggle',ev=>{const t=ev.target;if(!t.classList||!t.classList.contains('fumapd')||!FU.R)return;FU.R.mapa=t.open;if(t.open&&FU.map)setTimeout(()=>{FU.map.invalidateSize(false);fuTudo()},30)},true);
 
+/* ---- 14/11: conversa (chat) com altura fixa na tela ----
+   O cabeçalho da conversa fica parado no topo e a caixa de escrever fica parada em cima da barra de baixo;
+   só a lista de mensagens rola. No celular, os botões de anexo ficam só com o ícone, numa linha. */
+function chatFit(){const v=document.querySelector('.chatv');document.body.classList.toggle('chat-on',!!v);if(!v)return;
+  const vv=window.visualViewport,vh=vv?vv.height:innerHeight,nb=document.getElementById('nbar'),nh=nb&&getComputedStyle(nb).position==='fixed'&&nb.offsetHeight?nb.offsetHeight:0;
+  const top=v.getBoundingClientRect().top+(window.scrollY||0);v.style.height=Math.max(300,Math.floor(vh-top-nh-8))+'px';if(window.scrollY)window.scrollTo(0,0);
+  v.querySelectorAll('.chatc .tools .btn.sm').forEach(b=>{if(!b.getAttribute('aria-label')){const t=b.textContent.trim();if(t){b.setAttribute('aria-label',t);b.title=t}}})}
+{const _r=render;render=function(){const r=_r.apply(this,arguments);chatFit();return r}}
+addEventListener('resize',()=>chatFit());if(window.visualViewport)visualViewport.addEventListener('resize',()=>{chatFit();const l=document.getElementById('chatList');if(l&&document.activeElement&&document.activeElement.id==='chatTxt')l.scrollTop=l.scrollHeight});
+document.head.insertAdjacentHTML('beforeend',`<style>
+body.chat-on .chatv{min-height:0;overflow:hidden}
+body.chat-on .chath,body.chat-on .chatc{position:static;flex:none}
+body.chat-on .chatl{flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain}
+body.chat-on .shell{padding-bottom:0!important}body.chat-on .shell>main{padding-bottom:0}
+body.chat-on #syncSt{display:none}
+@media (max-width:640px){
+ body.chat-on .chath{gap:8px}body.chat-on .chath b{font-size:15px;line-height:1.2}body.chat-on .chath small{font-size:12px;display:block;line-height:1.25}
+ body.chat-on .chath>div{min-width:0;flex:1}body.chat-on .chath .btn{flex:none}
+ body.chat-on .chatc{padding:6px 0 0;gap:6px}body.chat-on .chatc>small{display:none}body.chat-on .chatc textarea{min-height:44px;max-height:120px}
+ body.chat-on .chatc .tools{flex-wrap:nowrap;gap:6px;align-items:center}
+ body.chat-on .chatc .tools .btn.sm{font-size:0;gap:0;padding:0;width:42px;height:42px;justify-content:center;flex:none}
+ body.chat-on .chatc .tools .btn.sm svg{width:20px;height:20px}
+ body.chat-on .chatc .tools .btn.primary{margin-left:auto;flex:none;min-height:42px;padding-inline:20px}
+}</style>`);
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
