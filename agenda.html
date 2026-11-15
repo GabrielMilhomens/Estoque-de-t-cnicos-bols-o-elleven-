@@ -18700,12 +18700,14 @@ function melRicos(D,E){const g={lanc:'Lançamento',vist:'Lançamento',cfo:'CFO'}
   if((!g||g==='Lançamento')&&tmTemL(D))(D.trechos||[]).forEach((t,i)=>{const P=t.oTipo==='pop'&&tmPopL().find(p=>String(p.id)===String(t.oPop));
     const o=t.oTipo==='pop'?{nm:P?tmPopN(P):'POP',ll:P&&P.lat!=null?[+P.lat,+P.lng]:null,pop:true,ad:P?[P.endereco,P.cidade].filter(Boolean).join(' · '):''}:{nm:t.oNome||'caixa de origem',ll:tmLL(t.oCoord)};
     const d={nm:t.dNome||'caixa de destino',ll:tmLL(t.dCoord)};
-    R.push({k:'tr:'+t.id,g:'Lançamento',n:i+1,o,dd:d,cabo:KA_CABO_N[t.cabo]||'',m:t.des?tmCab(t.des):0,p:t.des?+t.des.postes||0:0})});
+    R.push({k:'tr:'+t.id,g:'Lançamento',n:i+1,o,dd:d,cabo:KA_CABO_N[t.cabo]||'',m:t.des?tmCab(t.des):0,p:t.des?+t.des.postes||0:0,mat:melMatT(t)})});
   if((!g||g==='CFO')&&tmTemC(D)&&D.cfo)Object.entries(D.cfo.sel||{}).forEach(([id,s])=>{const p=(D.cfo.pts||[]).find(x=>x.id===id)||{};
     const sv=[[s.acao==='troca'?'Troca de splitter':s.acao==='add'?'Novo splitter':s.acao==='rem'?'Retirar splitter':'Melhoria',s.acao==='troca'?`${s.de||'?'} por ${s.para||'?'}`:(s.spl||'')+(+s.qtd>1?` (${s.qtd}×)`:'')]];
     if(s.ext)sv.push(['Extensão de fibra',`${s.extM||'?'} m`]);if(s.obs)sv.push(['Observação',s.obs]);
     R.push({k:'cx:'+id,g:'CFO',nm:p.nome||'Caixa',ll:p.lat!=null?[+p.lat,+p.lon]:null,sv})});
   return R}
+/* 15/11: materiais do trecho para o técnico (código, descrição, quantidade e unidade; sem preço) */
+const melMatT=t=>((t&&t.des&&t.des.matL)||[]).filter(x=>+x.qtd>0).map(x=>({cod:x.cod||'',desc:x.desc||'',qtd:Math.round((+x.qtd||0)*100)/100,un:x.un||''}));
 const melRicoT=r=>r.g==='CFO'?`${r.nm}: ${r.sv.map(s=>s[0].toLowerCase()+' '+s[1]).join(' · ')}`:`Trecho ${r.n}: ${r.o.nm} → ${r.dd.nm}`;
 const melRicoD=r=>r.g==='CFO'?'':[r.cabo,r.m?melFm(r.m)+' m':'',r.p?r.p+' postes':''].filter(Boolean).join(' · ');
 const melPto=x=>{const ad=x.ad||melGeo(x.ll),co=melCo(x.ll);return `${x.nm}${ad?' · '+ad:''}${co?' ('+co+')':''}`};
@@ -18735,7 +18737,7 @@ ACT.melSelTodos=()=>{const c=ui.tmCtx;if(!c)return;const L=c.rich.filter(r=>!c.c
 {const _c=ACT.txCriar;ACT.txCriar=async function(){const c=ui.tmCtx;if(!c||!c.rich)return _c.apply(this,arguments);const S=melSelR(c);if(!S.length){toast('Marque pelo menos um item para despachar.','bad');return}
   const parcial=S.length<c.rich.length;
   c.itens=S.map(r=>r.g==='CFO'?{k:r.k,g:'CFO',t:melRicoT(r),d:'',ll:r.ll,nm:r.nm,ad:melGeo(r.ll),sv:r.sv}
-    :{k:r.k,g:'Lançamento',n:r.n,t:melRicoT(r),d:melRicoD(r),ll:r.o.ll||r.dd.ll,cabo:r.cabo,m:r.m,p:r.p,o:Object.assign({},r.o,{ad:r.o.ad||melGeo(r.o.ll)}),dd:Object.assign({},r.dd,{ad:melGeo(r.dd.ll)})});
+    :{k:r.k,g:'Lançamento',n:r.n,t:melRicoT(r),d:melRicoD(r),ll:r.o.ll||r.dd.ll,cabo:r.cabo,m:r.m,p:r.p,mat:r.mat||[],o:Object.assign({},r.o,{ad:r.o.ad||melGeo(r.o.ll)}),dd:Object.assign({},r.dd,{ad:melGeo(r.dd.ll)})});
   c.selK=S.map(r=>r.k);
   if(parcial&&c.kmz){try{const F=JSON.parse(JSON.stringify(c.D)),ks=new Set(c.selK);F.trechos=(F.trechos||[]).filter(t=>ks.has('tr:'+t.id));if(F.cfo&&F.cfo.sel)F.cfo.sel=Object.fromEntries(Object.entries(F.cfo.sel).filter(([id])=>ks.has('cx:'+id)));
     if(c.rich[0].g==='CFO')F.trechos=[];else if(F.cfo)F.cfo.sel={};const b=await kaKmz(await tmKml(F)),p=`txmel/${c.id}/campo_${c.etapa}_${Date.now()}.kmz`,u=await sb.storage.from('agenda').upload(p,b,{upsert:true,contentType:'application/vnd.google-earth.kmz'});if(!u.error)c.kmz=p}catch(e){console.warn('kmz parcial',e)}}
@@ -18762,7 +18764,9 @@ document.head.insertAdjacentHTML('beforeend',`<style>.melsel{margin:8px 0 6px;di
 .mdot{width:12px;height:12px;border-radius:50%;margin-top:4px;border:3px solid #7DB83A;background:transparent}.mdot.d{background:#7DB83A}.mdot.c{border-radius:3px;border-color:#1F4E6B;background:#1F4E6B}
 .mpt .nm{font-weight:700;font-size:13.5px}.mpt .nm i{font-style:normal;font-weight:500;font-size:12px;color:var(--muted,#5e6a58)}.mpt .ad{font-size:13px}.mpt .co{font:500 12px ui-monospace,Menlo,monospace;color:var(--muted,#5e6a58)}
 .msv{display:flex;flex-direction:column;gap:4px;margin:6px 0 2px}.msv span{font-weight:600;font-size:12.5px;border:1px solid var(--line,#dfe3da);border-radius:8px;padding:5px 8px}.msv em{font-style:normal;font-weight:500;color:var(--muted,#5e6a58)}
-.macts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.tvsub{color:var(--muted,#5e6a58);font-size:13px;margin-top:2px}.mloc{padding:12px 14px}.mloc h3{margin:0 0 6px;font-size:15px}</style>`);
+.macts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.tvsub{color:var(--muted,#5e6a58);font-size:13px;margin-top:2px}.mloc{padding:12px 14px}.mloc h3{margin:0 0 6px;font-size:15px}
+.mmat{margin-top:8px;border-top:1px solid var(--line,#dfe3da);padding-top:6px}.mmat summary{cursor:pointer;font-weight:700;font-size:13.5px}.mmtb{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px}.mmtb th{text-align:left;font-size:11.5px;color:var(--muted,#5e6a58);font-weight:600;padding:3px 0}.mmtb td{padding:5px 0;border-top:1px solid var(--line,#dfe3da);vertical-align:top}.mmtb td small{display:block;color:var(--muted,#5e6a58);font-size:11.5px}.mmtb .r{text-align:right;padding-left:8px}
+.tvbx small+b+small{display:block}</style>`);
 /* ---------- celular do técnico ---------- */
 const melNav=ll=>ll?`https://www.google.com/maps/dir/?api=1&destination=${ll[0]},${ll[1]}`:'';
 function melPtoH(x,tipo,cls,sv){const co=melCo(x.ll);return `<div class="mpt"><span class="mdot ${cls||''}" aria-hidden="true"></span><div style="min-width:0"><div class="nm">${esc(x.nm)}${tipo?` <i>${tipo}</i>`:''}</div>${x.ad?`<div class="ad">${esc(x.ad)}</div>`:''}${co?`<div class="co">${co}</div>`:''}
@@ -18771,17 +18775,28 @@ function melPtoH(x,tipo,cls,sv){const co=melCo(x.ll);return `<div class="mpt"><s
 ACT.melCopia=el=>{const t=el.dataset.co;try{navigator.clipboard.writeText(t).then(()=>toast('Coordenada copiada.'),()=>toast(t))}catch(e){toast(t)}};
 const melRico=m=>m&&Array.isArray(m.itens)&&m.itens.length&&m.itens.every(i=>i.o||i.sv);
 {const _t=gTecView;gTecView=function(c){let h=_t.apply(this,arguments);const m=c&&c.txMel;if(!melRico(m)||ui.lpuTela)return h;try{
-  const I=m.itens,cfo=I[0].g==='CFO';let corpo,tit,sub,loc='';
-  if(cfo){const ns=I.reduce((s,i)=>s+i.sv.length,0),cont={};I.forEach(i=>i.sv.forEach(s=>{cont[s[0]]=(cont[s[0]]||0)+1}));tit=`CFO em ${I.length} ${I.length>1?'caixas':'caixa'}`;sub=`${m.cod||''} · ${ns} ${ns>1?'serviços':'serviço'}`;
+  const I=m.itens,cfo=I[0].g==='CFO';let corpo,tit,sub,loc='',qtd=null;
+  /* materiais: o que veio no despacho; nos despachos antigos, do projeto (quando a pessoa enxerga o projeto) */
+  const P=typeof TM!=='undefined'&&TM.ok&&typeof tmGet==='function'?tmGet(m.id):null,matDe=i=>Array.isArray(i.mat)?i.mat:P?melMatT((P.trechos||[]).find(t=>'tr:'+t.id===i.k)):null;
+  const matH=i=>{const L=matDe(i);if(!L)return '';return `<details class="mmat"${I.length===1?' open':''}><summary>Materiais ${I.length>1?'do trecho '+i.n:'do lançamento'} <small class="muted">${L.length} ${L.length===1?'item':'itens'}</small></summary>${L.length?`<table class="mmtb"><thead><tr><th>Material</th><th class="r">Qtd</th></tr></thead><tbody>${L.map(x=>`<tr><td>${esc(x.desc)}${x.cod?`<small>${esc(x.cod)}</small>`:''}</td><td class="r" style="white-space:nowrap">${melFm(x.qtd)} ${esc(String(x.un||'').toLowerCase())}</td></tr>`).join('')}</tbody></table>`:'<p class="muted" style="margin:6px 0 0">Sem lista de materiais no projeto deste trecho.</p>'}</details>`};
+  if(cfo){const ns0=I.reduce((s,i)=>s+i.sv.length,0);qtd=[`${I.length} ${I.length>1?'caixas':'caixa'}`,`${ns0} ${ns0>1?'serviços':'serviço'}`];const ns=ns0,cont={};I.forEach(i=>i.sv.forEach(s=>{cont[s[0]]=(cont[s[0]]||0)+1}));tit=`CFO em ${I.length} ${I.length>1?'caixas':'caixa'}`;sub=`${m.cod||''} · ${ns} ${ns>1?'serviços':'serviço'}`;
     corpo=`<h3 style="margin:8px 0 0;font-size:15px">Caixas do CFO <small class="muted">${Object.entries(cont).map(([k,q])=>q+' '+k.toLowerCase()).join(' · ')}</small></h3><div class="mtrs">${I.map(i=>`<div class="mtr">${melPtoH(i,'','c',i.sv)}</div>`).join('')}</div>`}
-  else{const tot=I.reduce((s,i)=>s+(+i.m||0),0);tit=`${I[0].o.nm} → ${I[I.length-1].dd.nm}`;sub=`${m.cod||''} · ${I.length} ${I.length>1?'trechos':'trecho'}${tot?' · '+melFm(tot)+' m':''}`;
-    corpo=`<h3 style="margin:8px 0 0;font-size:15px">Trechos <small class="muted">${I.length}${tot?' · '+melFm(tot)+' m':''}</small></h3><div class="mtrs">${I.map(i=>`<div class="mtr"><div class="mtrn"><b>Trecho ${i.n}: ${esc(i.o.nm)} → ${esc(i.dd.nm)}</b>${i.m?`<small>${melFm(i.m)} m</small>`:''}</div>${i.d?`<div class="mtrc">${esc(i.d)}</div>`:''}${melPtoH(i.o,i.o.pop?'origem (POP)':'origem')}${melPtoH(i.dd,'destino','d')}</div>`).join('')}</div>`;
+  else{const tot=I.reduce((s,i)=>s+(+i.m||0),0),pt=I.reduce((s,i)=>s+(+i.p||0),0);qtd=[`${melFm(tot)} m`,pt?`${pt} postes`:''];tit=`${I[0].o.nm} → ${I[I.length-1].dd.nm}`;sub=`${m.cod||''} · ${I.length} ${I.length>1?'trechos':'trecho'}${tot?' · '+melFm(tot)+' m':''}`;
+    corpo=`<h3 style="margin:8px 0 0;font-size:15px">Trechos <small class="muted">${I.length}${tot?' · '+melFm(tot)+' m':''}</small></h3><div class="mtrs">${I.map(i=>`<div class="mtr"><div class="mtrn"><b>Trecho ${i.n}: ${esc(i.o.nm)} → ${esc(i.dd.nm)}</b>${i.m?`<small>${melFm(i.m)} m</small>`:''}</div>${i.d?`<div class="mtrc">${esc(i.d)}</div>`:''}${melPtoH(i.o,i.o.pop?'origem (POP)':'origem')}${melPtoH(i.dd,'destino','d')}${matH(i)}</div>`).join('')}</div>`;
     const v=[],s=new Set();I.forEach(i=>[i.o,i.dd].forEach(x=>{if(!s.has(x.nm)){s.add(x.nm);v.push(x)}}));
     loc=`<section class="tbox mloc"><h3>Localização das caixas <small class="muted">na ordem do lançamento</small></h3>${v.map((x,j)=>melPtoH(x,x.pop?'POP':j===0?'início':j===v.length-1?'fim':'passagem',j===v.length-1?'d':'')).join('')}</section>`}
-  const box=`<section class="tbox tmtec"><b>Melhoria de rede · ${esc(m.cod||'')}</b><span>${esc(m.nome||'')}</span>${corpo}${m.kmz?`<button class="btn" data-act="tmKmzCh" data-p="${esc(m.kmz)}" data-n="${esc((m.cod||'melhoria')+'_'+(m.nome||''))}">Baixar o KMZ ${cfo?'das caixas':'dos trechos'}</button>`:''}</section>`;
+  const box=`<section class="tbox tmtec"><b>Melhoria de rede · ${esc(m.cod||'')}</b><span>${esc(m.nome||'')}</span>${corpo}${m.kmz?`<button class="btn" data-act="tmKmzCh" data-p="${esc(m.kmz)}" data-n="${esc((m.cod||'melhoria')+'_'+(m.nome||''))}">Baixar o KMZ ${cfo?(I.length>1?'das caixas':'da caixa'):(I.length>1?'dos trechos':'do trecho')}</button>`:''}</section>`;
   h=h.replace(/<section class="tbox tmtec">[\s\S]*?<\/section>/,box).replace(/<h2 class="tvnome">[\s\S]*?<\/h2>/,`<h2 class="tvnome">${esc(tit)}</h2><div class="tvsub">${esc(sub)}</div>`);
-  if(loc)h=h.replace(/<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="g:end"[\s\S]*?<\/section>/,loc);
-  else h=h.replace(/<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="g:end"[\s\S]*?<\/section>/,'');
+  /* 15/11: sem o quadro "Localização das caixas" (as pontas já estão nos trechos) */
+  h=h.replace(/<section class="tacc"><button class="tacch" data-act="tvAcc" data-k="g:end"[\s\S]*?<\/section>/,'');
+  /* quantidade no lugar do horário do despacho */
+  if(qtd)h=h.replace(/<div class="tvbx"><small>Despachado<\/small><b>[^<]*<\/b><\/div>/,`<div class="tvbx"><small>${cfo?'Caixas':'Cabo a lançar'}</small><b>${esc(qtd[0])}</b>${qtd[1]?`<small>${esc(qtd[1])}</small>`:''}</div>`);
+  /* dados do chamado: tipo do lançamento, projeto, cidade e POP de referência */
+  const tl=cfo?'CFO nas caixas':I.some(i=>i.o&&i.o.pop)?(I.every(i=>i.o&&i.o.pop)?'Lançamento do POP para a caixa':'Lançamento caixa a caixa e do POP para a caixa'):'Lançamento caixa a caixa';
+  const cabos=[...new Set(I.map(i=>i.cabo).filter(Boolean))].join(', ');
+  h=h.replace(/<div class="car">(<svg[\s\S]*?<\/svg>)?<span><small>Tipo<\/small>Melhoria de rede<\/span><\/div>/,(mm,ic)=>{const car=(k,v)=>v?`<div class="car">${ic||''}<span><small>${k}</small>${esc(v)}</span></div>`:'';
+    return car('Tipo','Melhoria de rede · '+tl)+car('Projeto',[m.cod,m.nome].filter(Boolean).join(' · '))+car('Cidade',c.cidade||'')+car('POP de referência',c.cliente||'')+car('Cabo',cabos)})
+   .replace(/(<b>Dados do chamado<\/b><small>)Melhoria de rede(<\/small>)/,`$1${esc(tl)}${c.cidade?' · '+esc(c.cidade):''}$2`);
   return h}catch(e){console.warn('melTec',e);return h}}}
 /* card na lista do técnico: título pelo lançamento */
 {const _c=tvCardG;tvCardG=function(c){const h=_c.apply(this,arguments),m=c&&c.txMel;if(!melRico(m))return h;try{const I=m.itens,t=I[0].g==='CFO'?`CFO em ${I.length} ${I.length>1?'caixas':'caixa'}`:`${I[0].o.nm} → ${I[I.length-1].dd.nm}`;
