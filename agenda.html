@@ -2757,7 +2757,7 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<div class="whc"><span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span></div><div class="wbar">${['supply','visu'].includes(ui.perfil)?'':'<button class="wic wbb sino" data-act="avisos" data-l="Avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic wbb" data-act="conta" data-l="Conta" aria-label="Minha conta: senha e notificações" title="Minha conta: senha e notificações">${WHO_CONTA}</button><button class="wic wbb" data-act="logout" data-l="Sair" aria-label="Sair" title="Sair">${ICN.sair}</button></div>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpAg','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu','melKpi','melMin','cxProj','cxCrono','cxDesp','cxVist','oxProj','oxCrono','oxDesp','oxVist','melAprov','melBud','melDet','melPrest','melEq','gEst','gEstAt','gEstHist'],GRP={txMel:'Operação',gEst:'Estoque',gEstAt:'Estoque',gEstHist:'Estoque',melKpi:'Acompanhamento',melMin:'Acompanhamento',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Capex · Instalação de rede',cxVist:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Opex · Melhoria de rede (reparo programado)',oxVist:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpAg:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpAg','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu','melKpi','melMin','melHist','cxProj','cxCrono','cxDesp','cxVist','oxProj','oxCrono','oxDesp','oxVist','melAprov','melBud','melDet','melPrest','melEq','gEst','gEstAt','gEstHist'],GRP={txMel:'Operação',gEst:'Estoque',gEstAt:'Estoque',gEstHist:'Estoque',melKpi:'Acompanhamento',melMin:'Acompanhamento',melHist:'Acompanhamento',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Capex · Instalação de rede',cxVist:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Opex · Melhoria de rede (reparo programado)',oxVist:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpAg:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando'&&!lpuTx(l)).length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -17066,7 +17066,7 @@ function tmResumo(D){const T=D.trechos||[],sel=Object.entries((D.cfo&&D.cfo.sel)
 /* ---------- tela ---------- */
 function viewTxMel(){if(!TM.ok&&!TM.bus){tmCarregar();if(typeof txPopsCarregar==='function'&&typeof TXP!=='undefined'&&!(TXP.L||[]).length)txPopsCarregar().then(()=>{if(tmNaTela())render()}).catch(()=>{})}
   if(ui.tmD)return tmEditor();if(ui.tmV==='painel')return tmPainel();const f=ui.tmF||'',L=TM.L.filter(x=>!f||x.status===f);
-  const card=x=>{const R=tmResumo(x),st=TM_ST[x.status]||[x.status,''],tp=x.tipo==='infra'?'Infraestrutura do POP':(TM_TIPO.find(t=>t[0]===x.tipo)||[0,''])[1],C$=tmCustos(x);
+  const card=x=>{const R=tmResumo(x),st=TM_ST[x.status]||[x.status,''],tp=x.orig==='planilha'?'Projeto da planilha':x.tipo==='infra'?'Infraestrutura do POP':(TM_TIPO.find(t=>t[0]===x.tipo)||[0,''])[1],C$=tmCustos(x);
     return `<article class="tmcard"><div class="tmch"><div><b>${esc(x.codigo||'')}</b> <span class="chip ${st[1]}">${st[0]}</span></div><span class="chip">${tp}</span></div>
      <small class="muted">${esc([x.cidade,x.popNome,x.motivo].filter(Boolean).join(' · '))}</small>
      <ul class="tmres">${tmTemL(x)?`<li>Lançamento: <b>${R.nT} trecho${R.nT===1?'':'s'}</b>${R.m?` · ${tmM(R.m)} · ${R.postes} postes`:''}</li>`:''}${tmTemC(x)?`<li>CFO: <b>${R.nCx} caixa${R.nCx===1?'':'s'}</b>${R.nCx?' ('+TM_AC.filter(([k])=>R.ac[k]).map(([k,n])=>R.ac[k]+' '+n.split(' ')[0].toLowerCase()).join(', ')+')':''}${R.nExt?` · ${R.nExt} com extensão de fibra`:''}</li>`:''}
@@ -17725,7 +17725,7 @@ async function tmSobe(id,F){const out=[];for(const f of F){let blob=f,tipo=f.typ
     if(r.error)throw r.error;out.push({path,nome,tipo})}return out}
 /* ---------- aba Projeto: visualização do projeto inteiro (desenhado e com etapas) ---------- */
 function tmPronto(D){if(!D||!D.id||!tmEtapas(D).length)return false;if(D.tipo==='infra')return !!String(D.infraDesc||'').trim();const R=tmResumo(D);return (!tmTemL(D)||(R.nT>0&&R.nDes===R.nT))&&(!tmTemC(D)||R.nCx>0)}
-function tmVerHtml(D){const R=tmResumo(D),C=tmCustos(D),tp=D.tipo==='infra'?'Infraestrutura do POP':(TM_TIPO.find(t=>t[0]===D.tipo)||[0,''])[1],kv=(l,v)=>v?`<div class="tmkv"><small>${l}</small><span>${v}</span></div>`:'';
+function tmVerHtml(D){const R=tmResumo(D),C=tmCustos(D),tp=D.orig==='planilha'?'Projeto da planilha':D.tipo==='infra'?'Infraestrutura do POP':(TM_TIPO.find(t=>t[0]===D.tipo)||[0,''])[1],kv=(l,v)=>v?`<div class="tmkv"><small>${l}</small><span>${v}</span></div>`:'';
   const sel=Object.entries((D.cfo&&D.cfo.sel)||{});
   return `<div class="tmver">${tmPode()&&!['concl','canc'].includes(D.status)?`<div class="tmverbar"><span class="muted">Visualização do projeto. Para mudar o desenho, as etapas ou os custos, edite.</span><button class="btn primary" data-act="tmEditar">Editar o projeto</button></div>`:''}
    <section class="panel"><div class="secth"><h3>Dados da melhoria</h3><span class="chip">${esc(tp)}</span></div><div class="tmkvs">${kv('Motivo',esc(D.motivo||''))}${kv('Código anterior',esc([D.codAnt,D.tituloAnt].filter(Boolean).join(' · ')))}${kv('POP de referência',esc(D.popNome||''))}${kv('Cidade',esc(D.cidade||''))}
@@ -20965,6 +20965,133 @@ txaDoDia=x=>G.ch.filter(c=>txaFiltC(c)&&(gDiaDe(c)===x||txaCont(c,x))).map(c=>gD
     return _c.call(this,c,extra,Object.assign({fz:fz+'\nContinuação do dia anterior',foot:ult?'Janela até '+fim:'Janela continua no dia seguinte',fcls:'',cls2:'ev evn txl txcont'},o2||{}))}
   return _c.call(this,c,extra,Object.assign({fz},o2||{}))}}
 document.head.insertAdjacentHTML('beforeend',`<style>.ca2.txcont{border-style:dashed;opacity:.92}.ca2.txcont .cat b::after{content:" ↩";color:var(--muted);font-weight:600}</style>`);
+
+/* ---------- 15/11: Melhoria de rede · Histórico da planilha ----------
+   Os projetos que eram controlados na planilha MELHORIAS DE REDE (2025 e 2026) entram na área como histórico,
+   tabela ag_mel_hist (carga pelo SQL). Só o realizado (materiais e mão de obra) pode ser editado, com motivo, por quem
+   cria e edita projetos da natureza; o servidor guarda o histórico da edição (dados.ed e dados.edHist).
+   Cada projeto: código, POP, cidade, categoria (a da planilha e a padronizada), natureza (Opex = Clean Up, Regularização
+   Extra, Emergencial e Remanejamento; o resto Capex),
+   custo previsto e realizado (materiais e mão de obra), início e término (mês/ano), status, materiais (código, descrição,
+   quantidade, preço e total) e pagamentos de mão de obra (mês, empresa e valor).
+   Materiais: com a fórmula da planilha ou a coluna vazia, vale a soma dos itens (sinalizado quando a coluna estava vazia).
+   Mão de obra: com a fórmula, a soma dos pagamentos da aba M.O; sem fórmula, a coluna CUSTO M.O.
+   Os projetos em andamento ou planejamento também viraram projetos da ferramenta (ag_tx_mel, dados.orig 'planilha', com o
+   mesmo código): materiais já usados em matReal, mão de obra já paga em moAnt (entra no realizado), previsto em extra.
+   Quem vê: quem vê Capex e/ou Opex (cada um a sua natureza) e o financeiro da melhoria. */
+const MH={ok:false,bus:false,err:'',L:[]};
+const mhDe=r=>{const x=Object.assign({itens:[],pag:[]},r.dados||{},{id:r.id,codigo:r.codigo||(r.dados||{}).codigo,nat:r.nat||(r.dados||{}).nat||'cx'});x.matR0=x.matR;x.moR0=x.moR;
+  if(x.ed){if(x.ed.mat!=null&&x.ed.mat!=='')x.matR=+x.ed.mat;if(x.ed.mo!=null&&x.ed.mo!=='')x.moR=+x.ed.mo;x.totR=Math.round(((+x.matR||0)+(+x.moR||0))*100)/100}return x};
+const mhPodeEd=x=>ui.perfil==='coord'||melTem('mel_'+x.nat+'_ed');
+const mhAtivo=x=>typeof TM!=='undefined'&&TM.ok&&TM.L.find(y=>y.codigo===x.codigo&&y.orig==='planilha');
+async function mhCarregar(){if(MH.bus)return;MH.bus=true;try{const r=await sb.from('ag_mel_hist').select('*');if(r.error)throw r.error;MH.L=(r.data||[]).map(mhDe);MH.err=''}
+  catch(e){MH.err=/relation|does not exist|schema cache/i.test(e.message||'')?'O histórico ainda não foi carregado no banco: falta rodar o ajuste 85.':(e.message||String(e))}finally{MH.ok=true;MH.bus=false;if(ui.tab==='melHist')render()}}
+const mhVe=()=>!!ME&&!gTecPerfil()&&(melNats().length>0||melTem('mel_fin'));
+const mhNats=()=>melTem('mel_fin')||ui.perfil==='coord'?['cx','ox']:melNats();
+const mhYm=v=>{if(!v)return '—';const m=String(v).match(/^(\d{4})-(\d{2})/);return m?m[2]+'/'+m[1]:String(v)};
+const mhPer=x=>x.ini?(mhYm(x.ini)+(x.fim&&x.fim!==x.ini?' a '+mhYm(x.fim):x.fim?'':' · em aberto')):'—';
+const mhSt={concl:'ok',exec:'info',proj:'warn',canc:'bad'};
+const mhBrl=v=>v==null||v===''?'—':brl(v);
+const mhQ=x=>normK([x.codigo,x.pop,x.cidade,x.cat,x.catOrig,x.stTxt,...(x.itens||[]).map(i=>i.cod+' '+i.desc),...(x.pag||[]).map(p=>p.emp)].join(' '));
+function mhDados(){const nats=melSel(mhNats(),'mhN'),F=ui.mhF||{},q=normK(F.q||'').trim();
+  const base=MH.L.filter(x=>nats.includes(x.nat));
+  const L=base.filter(x=>(!F.ano||String(x.ini||'').slice(0,4)===F.ano)&&(!F.cat||x.cat===F.cat)&&(!F.st||x.st===F.st)&&(!F.pop||x.pop===F.pop)&&(!q||mhQ(x).includes(q)))
+    .sort((a,b)=>String(b.ini||'').localeCompare(String(a.ini||''))||String(a.codigo).localeCompare(String(b.codigo)));
+  return{nats,F,base,L}}
+function mhBarras(t,L,key,n){const m={};L.forEach(x=>{const k=key(x)||'—';m[k]=m[k]||{q:0,v:0};m[k].q++;m[k].v+=+x.totR||0});
+  const A=Object.entries(m).sort((a,b)=>b[1].v-a[1].v).slice(0,n||8),mx=Math.max(1,...A.map(a=>a[1].v));
+  return `<section class="mhbx"><h3>${t}</h3>${A.map(([k,o])=>`<div class="mhbr"><span class="mhbl">${esc(k)} <small class="muted">${o.q}</small></span><span class="mhbt"><i style="width:${Math.max(2,o.v/mx*100)}%"></i></span><b>${brl(o.v)}</b></div>`).join('')||'<p class="muted">Nada no filtro.</p>'}</section>`}
+function viewMelHist(){if(typeof TM!=='undefined'&&!TM.ok&&!TM.bus)tmCarregar();if(!MH.ok){if(!MH.bus)mhCarregar();return '<h2>Histórico da planilha</h2><p class="muted">Carregando…</p>'}
+  if(ui.mhSel){const x=MH.L.find(y=>y.id===ui.mhSel);if(x)return mhDet(x);ui.mhSel=null}
+  const{nats,F,base,L}=mhDados(),U=f=>[...new Set(base.map(f).filter(Boolean))].sort(),sm=f=>L.reduce((s,x)=>s+(+f(x)||0),0);
+  const opt=(k,lab,todos,V,nm)=>`<label class="f"><span>${lab}</span><select class="inp" data-ch="mhF" data-k="${k}"><option value="">${todos}</option>${V.map(v=>`<option value="${esc(v)}" ${F[k]===v?'selected':''}>${esc(nm?nm(v):v)}</option>`).join('')}</select></label>`;
+  const nIt=L.filter(x=>x.matIt).length,prevL=L.filter(x=>(+x.prevMat||0)+(+x.prevMo||0)>0),pv=prevL.reduce((s,x)=>s+(+x.prevMat||0)+(+x.prevMo||0),0),rv=prevL.reduce((s,x)=>s+(+x.totR||0),0);
+  const fil=F.ano||F.cat||F.st||F.pop||F.q;
+  const tb=`<div class="tablewrap"><table class="meltb mhtb"><thead><tr><th>Projeto</th>${nats.length>1?'<th>Natureza</th>':''}<th>POP</th><th>Categoria</th><th>Período</th><th>Situação</th><th class="r">Materiais</th><th class="r">Mão de obra</th><th class="r">Total</th></tr></thead><tbody>
+    ${L.map(x=>`<tr class="cl" data-act="mhAbre" data-id="${esc(x.id)}" tabindex="0"><td><b>${esc(x.codigo)}</b>${mhAtivo(x)?'<br><span class="chip info">Continua na ferramenta</span>':''}${x.ed?'<br><span class="chip warn">Realizado editado</span>':''}</td>${nats.length>1?`<td><span class="melnat ${x.nat}">${melNatN(x.nat)}</span></td>`:''}<td style="white-space:nowrap">${esc(x.pop||"—")}<br><small class="muted">${esc(x.cidade||"")}</small></td><td>${esc(x.cat||'—')}</td><td style="white-space:nowrap">${mhPer(x)}</td><td><span class="chip ${mhSt[x.st]||''}">${esc(x.stTxt||'')}</span></td>
+      <td class="r">${mhBrl(x.matR)}${x.matIt?'<br><small class="muted" title="Sem custo de materiais na planilha: soma dos itens">pelos itens</small>':''}</td><td class="r">${mhBrl(x.moR)}</td><td class="r"><b>${brl(x.totR)}</b></td></tr>`).join('')||`<tr><td colspan="9" class="muted">Nenhum projeto com esses filtros.</td></tr>`}</tbody></table></div>`;
+  return `<div class="toolbar"><div><h2>Histórico da planilha</h2><p class="muted">Projetos de melhoria de rede controlados na planilha MELHORIAS DE REDE, antes da ferramenta. Só leitura. Toque num projeto para ver os materiais e a mão de obra.</p></div><div class="tools"><button class="btn" data-act="mhXlsx">Baixar planilha</button></div></div>
+   ${MH.err?`<div class="rpbox bad">${esc(MH.err)}</div>`:''}${melSeg(mhNats(),'mhN')}
+   <div class="melfil"><label class="f mhq"><span>Buscar</span><input type="search" class="inp" id="mhQ" data-in="mhQ" value="${esc(F.q||'')}" placeholder="Projeto, POP, cidade, material ou empresa" autocomplete="off"></label>
+    ${opt('ano','Ano de início','Todos os anos',U(x=>String(x.ini||'').slice(0,4)).reverse())}${opt('cat','Categoria','Todas as categorias',U(x=>x.cat))}${opt('st','Situação','Todas',U(x=>x.st),v=>(base.find(x=>x.st===v)||{}).stTxt||v)}${opt('pop','POP','Todos os POPs',U(x=>x.pop))}
+    ${fil?'<button class="btn sm ghost" data-act="mhLimpa">Limpar filtros</button>':''}</div>
+   <div class="kpis melk mhk">${kp(L.length,'Projetos')}${kp(L.filter(x=>x.st==='exec'||x.st==='proj').length,'Em andamento ou planejamento')}${kp(brl(sm(x=>x.totR)),'Realizado','ok')}${kp(brl(sm(x=>x.matR)),'Materiais')}${kp(brl(sm(x=>x.moR)),'Mão de obra')}${kp(pv?Math.round(rv/pv*100)+'%':'—','Realizado / previsto ('+prevL.length+' com previsto)')}</div>
+   ${nIt?`<p class="muted mhnota">${nIt} ${nIt===1?'projeto não tem':'projetos não têm'} o custo de materiais lançado na planilha: o realizado usa a soma dos itens da aba Insumos e equipamentos.</p>`:''}
+   <div class="mhgr">${mhBarras('Por categoria',L,x=>x.cat)}${mhBarras('POPs com mais investimento',L,x=>x.pop)}</div>
+   <h3 style="margin:14px 0 6px">Projetos <small class="muted">${L.length}</small></h3>${tb}`}
+function mhDet(x){const pv=(+x.prevMat||0)+(+x.prevMo||0),sI=(x.itens||[]).reduce((s,i)=>s+(+i.vt||0),0),sP=(x.pag||[]).reduce((s,p)=>s+(+p.valor||0),0);
+  const cmp=(lab,p,r)=>`<div class="mhc"><span>${lab}</span><b>${mhBrl(r)}</b><small class="muted">${p?'Previsto '+brl(p)+(r!=null?` · ${r<=p?'−':'+'}${Math.abs(Math.round((r-p)/p*100))}%`:''):'Sem previsto na planilha'}</small></div>`;
+  const it=(x.itens||[]).length?`<div class="tablewrap"><table class="meltb"><thead><tr><th>Código</th><th>Descrição</th><th class="r">Qtd</th><th class="r">Preço unit.</th><th class="r">Total</th><th>Mês</th></tr></thead><tbody>
+      ${x.itens.map(i=>`<tr><td style="white-space:nowrap">${esc(i.cod||'—')}</td><td>${esc(i.desc||'')}</td><td class="r">${i.qtd!=null?(+i.qtd).toLocaleString('pt-BR'):'—'}</td><td class="r">${i.pu!=null?brl(i.pu):'<span class="muted">sem preço</span>'}</td><td class="r">${i.vt!=null?brl(i.vt):'<span class="muted">—</span>'}</td><td>${mhYm(i.ref)}</td></tr>`).join('')}
+      <tr class="mhtot"><td colspan="4">Soma dos itens</td><td class="r">${brl(sI)}</td><td></td></tr></tbody></table></div>`:'<p class="muted">Sem materiais lançados na planilha.</p>';
+  const pg=(x.pag||[]).length?`<div class="tablewrap"><table class="meltb"><thead><tr><th>Mês</th><th>Empresa / descrição</th><th class="r">Valor</th></tr></thead><tbody>
+      ${x.pag.map(p=>`<tr><td>${mhYm(p.ref)}</td><td>${esc(p.emp||'—')}</td><td class="r">${mhBrl(p.valor)}</td></tr>`).join('')}<tr class="mhtot"><td colspan="2">Soma dos pagamentos</td><td class="r">${brl(sP)}</td></tr></tbody></table></div>`:'<p class="muted">Sem pagamentos de mão de obra lançados na planilha.</p>';
+  const at=mhAtivo(x),eh=(x.edHist||[]).slice().reverse();
+  const edBox=`${x.ed?`<p class="mhed"><b>Realizado editado</b> por ${esc(x.ed.por||'')} em ${x.ed.em?dBR(isoD(new Date(x.ed.em))):''}: ${esc(x.ed.motivo||'')}. Valores da planilha: materiais ${mhBrl(x.matR0)} · mão de obra ${mhBrl(x.moR0)}.</p>`:''}
+    ${eh.length>1?`<details class="mhedh"><summary>Histórico de edições (${eh.length})</summary><ul>${eh.map(e=>`<li>${e.em?dBR(isoD(new Date(e.em))):''} · ${esc(e.por||'')}: materiais ${mhBrl(e.deMat)} → ${mhBrl(e.mat)}, mão de obra ${mhBrl(e.deMo)} → ${mhBrl(e.mo)} · ${esc(e.motivo||'')}</li>`).join('')}</ul></details>`:''}`;
+  const av=[];if(x.matIt)av.push('A planilha não tem o custo de materiais deste projeto: o realizado usa a soma dos itens.');else if(sI&&x.mat&&Math.abs(sI-x.mat)>1)av.push(`A soma dos itens (${brl(sI)}) é diferente do custo de materiais da planilha (${brl(x.mat)}).`);
+  if(sP&&x.moR&&Math.abs(sP-x.moR)>1)av.push(`A soma dos pagamentos (${brl(sP)}) é diferente do custo de mão de obra da planilha (${brl(x.moR)}).`);
+  return `<button class="linkbtn" data-act="mhVolta">‹ Histórico da planilha</button>
+   <div class="toolbar" style="margin-top:6px"><div><h2 style="overflow-wrap:anywhere">${esc(x.codigo)}</h2><p class="muted" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="melnat ${x.nat}">${melNatN(x.nat)}</span><span class="chip ${mhSt[x.st]||''}">${esc(x.stTxt||'')}</span><span class="chip">Histórico da planilha</span></p></div><div class="tools">${at?`<button class="btn primary" data-act="mhVaiProj" data-id="${esc(at.id)}">Abrir o projeto na ferramenta</button>`:''}${mhPodeEd(x)?`<button class="btn" data-act="mhEd" data-id="${esc(x.id)}">Editar realizado</button>`:''}</div></div>
+   ${at?`<div class="note mhat">Este projeto estava em aberto na planilha e continua na ferramenta com o mesmo código: materiais pelo Grafana, mão de obra pelas LPUs, etapas e despacho. Aqui fica o registro como estava na planilha.</div>`:''}
+   <section class="panel"><dl class="mhdl"><div><dt>POP</dt><dd>${esc(x.pop||'—')}</dd></div><div><dt>Cidade</dt><dd>${esc(x.cidade||'—')}</dd></div><div><dt>Categoria</dt><dd>${esc(x.cat||'—')}${x.catOrig&&normK(x.catOrig)!==normK(x.cat)?` <small class="muted">(na planilha: ${esc(x.catOrig)})</small>`:''}</dd></div><div><dt>Início</dt><dd>${mhYm(x.ini)}</dd></div><div><dt>Término</dt><dd>${x.fim?mhYm(x.fim):'—'}</dd></div></dl>
+    <div class="mhcs">${cmp('Materiais',x.prevMat,x.matR)}${cmp('Mão de obra',x.prevMo,x.moR)}${cmp('Total',pv,x.totR)}</div>
+    ${edBox}${av.length?`<ul class="mhav">${av.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>`:''}</section>
+   <h3 style="margin:14px 0 6px">Materiais e equipamentos <small class="muted">${(x.itens||[]).length}</small></h3>${it}
+   <h3 style="margin:14px 0 6px">Mão de obra <small class="muted">${(x.pag||[]).length}</small></h3>${pg}`}
+CH.mhF=el=>{ui.mhF=Object.assign({},ui.mhF||{},{[el.dataset.k]:el.value});render()};
+IN.mhQ=el=>{ui.mhF=Object.assign({},ui.mhF||{},{q:el.value});clearTimeout(ui._mhT);ui._mhT=setTimeout(()=>{const p=el.selectionStart;render();const e=$('mhQ');if(e){e.focus();try{e.setSelectionRange(p,p)}catch(_){}}},250)};
+Object.assign(ACT,{
+  mhLimpa:()=>{ui.mhF={};render()},
+  mhAbre:el=>{ui.mhSel=el.dataset.id;render();window.scrollTo(0,0)},
+  mhVolta:()=>{ui.mhSel=null;render()},
+  mhVaiProj:el=>{const x=tmGet(el.dataset.id);if(!x)return;const n=melNat(x);ui.mhSel=null;if(melNats().includes(n))ui.tab=n+'Proj';ACT.tmAbrir({dataset:{id:x.id}})},
+  mhEd:el=>{const x=MH.L.find(y=>y.id===el.dataset.id);if(!x||!mhPodeEd(x))return;const v=n=>n==null?'':String(n);
+    openModal(`<h3>Editar realizado</h3><p class="muted" style="margin:0 0 10px">${esc(x.codigo)} · na planilha: materiais ${mhBrl(x.matR0)}${x.matIt?' (soma dos itens)':''} · mão de obra ${mhBrl(x.moR0)}</p>
+      <div class="grid2 even" style="gap:0 12px"><label class="f"><span>Materiais realizados (R$)</span><input class="inp" id="mhEdMat" inputmode="decimal" value="${esc(v(x.matR))}"></label><label class="f"><span>Mão de obra realizada (R$)</span><input class="inp" id="mhEdMo" inputmode="decimal" value="${esc(v(x.moR))}"></label></div>
+      <label class="f"><span>Motivo *</span><textarea class="inp" id="mhEdMot" rows="2" placeholder="Ex.: conferido com as notas fiscais; itens lançados em outro projeto"></textarea></label>
+      <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="mhEdOk" data-id="${esc(x.id)}">Salvar</button></div>`)},
+  mhEdOk:async el=>{const x=MH.L.find(y=>y.id===el.dataset.id);if(!x)return;const nv=id=>{const t=String(($(id)||{}).value||'').trim().replace(/\s/g,'').replace(/R\$/,'');if(!t)return null;const n=+(/,/.test(t)?t.replace(/\./g,'').replace(',','.'):t);return isFinite(n)&&n>=0?Math.round(n*100)/100:NaN};
+    const mat=nv('mhEdMat'),mo=nv('mhEdMo'),mot=String(($('mhEdMot')||{}).value||'').trim();if(Number.isNaN(mat)||Number.isNaN(mo))return toast('Valor inválido.','bad');if(mot.length<3)return toast('Informe o motivo.','bad');
+    el.disabled=true;const r0=await sb.from('ag_mel_hist').select('*').eq('id',x.id).maybeSingle();const d=Object.assign({},(r0.data&&r0.data.dados)||{},{ed:{mat,mo,motivo:mot,por:meNome(),em:Date.now()}});
+    const r=await sb.from('ag_mel_hist').update({dados:d}).eq('id',x.id).select().maybeSingle();el.disabled=false;if(r.error)return toast('Não foi possível salvar: '+r.error.message,'bad');
+    const nx=mhDe(r.data||{id:x.id,codigo:x.codigo,nat:x.nat,dados:d});if(!r.data||!(r.data.dados||{}).edHist){nx.edHist=(x.edHist||[]).concat([Object.assign({deMat:x.matR,deMo:x.moR},d.ed)])}MH.L=MH.L.map(y=>y.id===x.id?nx:y);closeModal();render();toast('Realizado atualizado.')},
+  mhXlsx:()=>{const{L}=mhDados();const mes=v=>mhYm(v);
+    xlsxBaixar('melhoria_de_rede_historico_planilha.xlsx',[['Projetos',L.map(x=>({Projeto:x.codigo,Natureza:melNatN(x.nat),POP:x.pop,Cidade:x.cidade,Categoria:x.cat,'Categoria na planilha':x.catOrig,Início:mes(x.ini),Término:x.fim?mes(x.fim):'',Situação:x.stTxt,
+      'Previsto materiais':x.prevMat||'','Previsto mão de obra':x.prevMo||'','Materiais':x.matR||0,'Materiais pela soma dos itens':x.matIt?'sim':'','Mão de obra':x.moR||0,Total:x.totR||0}))],
+      ['Materiais',L.flatMap(x=>(x.itens||[]).map(i=>({Projeto:x.codigo,POP:x.pop,Código:i.cod,Descrição:i.desc,Quantidade:i.qtd,'Preço unitário':i.pu,Total:i.vt,Mês:mes(i.ref)})))],
+      ['Mão de obra',L.flatMap(x=>(x.pag||[]).map(p=>({Projeto:x.codigo,POP:x.pop,Mês:mes(p.ref),Empresa:p.emp,Valor:p.valor})))]])}});
+/* menu e permissões */
+if(!MEL_TABS.includes('melHist'))MEL_TABS.push('melHist');if(!GTD_T.includes('melHist'))GTD_T.push('melHist');
+Object.assign(RP_TL,{melHist:'Histórico da planilha'});try{NAV_TC.melHist='Histórico'}catch(e){}try{ICT.melHist='M3 3v18h18M7 14l3-3 3 3 5-6M12 7V3'}catch(e){}
+{const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments);try{if(typeof melAt==='function'&&melAt()&&mhVe()&&!T.includes('melHist')){const i=T.indexOf('melMin');T.splice(i>=0?i+1:T.length,0,'melHist')}}catch(e){}return T}}
+RP_VIEWS.melHist=viewMelHist;
+document.head.insertAdjacentHTML('beforeend',`<style>
+.mhgr{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px;margin-top:6px}
+.mhbx{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card,var(--bg))}.mhbx h3{margin:0 0 8px;font-size:15px}
+.mhbr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:8px;align-items:center;font-size:13px;padding:3px 0}.mhbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mhbt{height:8px;border-radius:4px;background:var(--line);overflow:hidden}.mhbt i{display:block;height:100%;background:var(--accent,#7cb342);border-radius:4px}
+.mhk .kpi b{font-size:clamp(18px,4.6vw,28px);overflow-wrap:anywhere}
+.mhnota{font-size:13px;margin:4px 0 0}.mhq{min-width:min(100%,280px);flex:1}
+.mhdl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 16px;margin:0 0 12px}.mhdl dt{font-size:12px;color:var(--muted)}.mhdl dd{margin:2px 0 0;font-weight:600}
+.mhcs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px}.mhc{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}.mhc span{font-size:12px;color:var(--muted)}.mhc b{font-size:20px}
+.mhed{margin:10px 0 0;font-size:13px;padding:8px 10px;border-radius:8px;background:var(--warn-soft,transparent);color:var(--text)}.mhedh{margin-top:6px;font-size:13px}.mhat{margin:0 0 12px}
+.mhav{margin:10px 0 0;padding-left:18px;font-size:13px;color:var(--warn)}.mhtot td{font-weight:700;border-top:2px solid var(--line)}
+</style>`);
+
+/* ---------- projetos trazidos da planilha que continuam na ferramenta ---------- */
+/* mão de obra já paga (planilha) entra no realizado; o resto (LPUs, Grafana) segue igual */
+{const _r=tmReal;tmReal=function(x){const R=_r.apply(this,arguments);const a=Math.round(((x&&x.moAnt)||[]).reduce((s,m)=>s+(+m.valor||0),0)*100)/100;if(!a)return R;
+  return Object.assign({},R,{moAnt:a,mo:Math.round((R.mo+a)*100)/100,tot:Math.round((R.tot+a)*100)/100})}}
+{const _h=tmRealHtml;tmRealHtml=function(D){let h=_h.apply(this,arguments);try{const L=(D&&D.moAnt)||[];if(!L.length)return h;const v=L.reduce((s,m)=>s+(+m.valor||0),0);
+  const bx=`<h4 class="tmh4">Mão de obra já paga antes da ferramenta (planilha) <span>${brl(v)}</span></h4><div class="tablewrap"><table class="tmct"><thead><tr><th>Mês</th><th>Empresa / descrição</th><th class="r">Valor</th></tr></thead><tbody>${L.map(m=>`<tr><td>${mhYm(m.ref)}</td><td>${esc(m.emp||'—')}</td><td class="r">${brl(m.valor)}</td></tr>`).join('')}</tbody></table></div>`;
+  const i=h.indexOf('<h4 class="tmh4">LPUs baixadas');h=i>=0?h.slice(0,i)+bx+h.slice(i):h.replace(/<\/section>\s*$/,bx+'</section>');
+  h=h.replace('Mão de obra realizada (LPU aprovada)','Mão de obra realizada (LPU aprovada + planilha)');const R=tmReal(D);h=h.replace('LPUs baixadas <span>'+brl(R.mo)+'</span>','LPUs baixadas <span>'+brl(Math.round((R.mo-v)*100)/100)+'</span>')}catch(e){console.warn('mhReal',e)}return h}}
+/* categoria da planilha vale como motivo (registro como estava) */
+{const _v=melValida;melValida=function(D){if(D&&D.orig==='planilha'&&D.motivo){if(!D.id&&!D.nat)D.nat=melNat(D);return true}return _v.apply(this,arguments)}}
+{const _e=tmEditor;tmEditor=function(){let h=_e.apply(this,arguments);try{const D=tmD();if(D&&D.orig==='planilha'){
+  if(D.motivo&&!h.includes(`<option selected>${esc(D.motivo)}</option>`))h=h.replace(/(data-k="motivo"[^>]*>)<option value="">Escolha<\/option>/,`$1<option value="">Escolha</option><option selected>${esc(D.motivo)}</option>`);
+  h=h.replace(/(<h2>[^<]*)/,'$1')+''}}catch(e){}return h}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
