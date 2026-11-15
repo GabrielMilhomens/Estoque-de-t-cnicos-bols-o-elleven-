@@ -20942,6 +20942,17 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .tx2ch ul{margin:4px 0 0;padding-left:18px;font-size:13.5px;display:grid;gap:3px}.tx2cf{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
 </style>`);
 
+/* 15/11: Editar dados do chamado não troca mais a categoria sem querer.
+   Antes a lista era sempre a do GTD: em chamado da Transmissão que não é corretiva (expansão, preventiva, cross, GMUD,
+   melhoria, outras) e em categoria fora da lista, o select abria em "Indisponibilidade" e o Salvar gravava isso.
+   Agora: Transmissão não corretiva mostra o tipo só para leitura e não grava categoria; nos demais a lista é a da área
+   e a categoria atual sempre aparece selecionada. */
+{const _e=ACT.gEditar;ACT.gEditar=function(el){const r=_e.apply(this,arguments);try{const c=G.ch.find(x=>x.id===el.dataset.id),s=$('ge_categoria');if(!c||!s)return r;
+  const tx=typeof txDe==='function'&&txDe(c),fixo=tx&&txT(c)!=='corr';
+  if(fixo){const lab=s.closest('label');if(lab)lab.outerHTML=`<div class="f"><span>Categoria</span><div class="inp" style="background:var(--soft,transparent);display:flex;align-items:center">${esc(c.categoria||txTipoN(txT(c)))}</div><small class="muted">Definida pelo tipo da atividade.</small></div>`;return r}
+  const L=(tx?TX_CORR:(typeof catsArea==='function'&&catsArea(c.area)))||GTD_CATS,cur=c.categoria||'',ops=cur&&!L.includes(cur)?[cur].concat(L):L;
+  s.innerHTML=ops.map(x=>`<option ${x===cur?'selected':''}>${esc(x)}</option>`).join('');if(cur)s.value=cur}catch(e){console.warn('gedcat',e)}return r}}
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
