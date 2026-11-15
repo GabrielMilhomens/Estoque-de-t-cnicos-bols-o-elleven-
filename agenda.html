@@ -20360,6 +20360,332 @@ body.chat-on #syncSt{display:none}
  body.chat-on .chatc .tools .btn.primary{margin-left:auto;flex:none;min-height:42px;padding-inline:20px}
 }</style>`);
 
+/* ---- 15/11: Painel de KPIs da Transmissão (novo) ----
+   Visão geral: busca, filtros, períodos prontos com comparação, indicadores com tendência e meta, gráficos mês a mês,
+   ranking de POPs e causas, mapa de calor POP × mês, ciclo da preventiva e tabela de chamados.
+   Abas por tipo (corretiva, preventiva, expansões, cross, GMUD, outras): busca dentro dos relatórios, filtros do tipo,
+   indicadores, análises e a lista de relatórios que abre o relatório completo na própria tela.
+   Metas: MTTR até 4h. Faixas da preventiva: banco 49 a 55 V; temperatura dos equipamentos até 42 °C; ambiente até 27 °C;
+   tensão AC 220 V ±10% (ou 110 V ±10%). Só leitura: nada muda nos dados. */
+const TK_META=4*36e5,TK_H=36e5,TK_DIA=864e5;
+const TK_PER=[['7','7 dias'],['30','30 dias'],['mes','Este mês'],['90','3 meses'],['365','12 meses'],['custom','Personalizado']];
+const TK_MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const tkS=()=>ui.tk||(ui.tk={per:'30',cmp:true,f:{},q:'',d:{},dq:'',sort:'rec',pg:0,dpg:0,ab:{},vsort:['data',-1]});
+const tkN=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const tkDt=c=>c.agendaEm||gIni(c);
+const tkPop=c=>c.cliente||'—';
+const tkTec=c=>c.tec?gTecN(c.tec):'Não despachado';
+const tkCod=c=>txPomV(c)||c.pom||'';
+const tkR=c=>(c.rfo&&c.rfo.v==='tx')?c.rfo:(c.rfo||{});
+const tkAb=c=>GTD_ABERTOS.includes(c.status);
+/* MTTR: só corretivas validadas que contam no MTTR (Improdutiva e Encaminhado para NOC ficam fora, como no resto da ferramenta) */
+const tkMt=c=>c.validadoEm&&!(typeof txSemMttr==='function'&&txSemMttr(c))?c.validadoEm-gIni(c):null;
+const tkFmtH=ms=>{if(ms==null||isNaN(ms))return '—';const m=Math.max(0,Math.round(ms/6e4));return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')};
+const tkD=t=>t?new Date(t).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
+const tkDH=t=>t?new Date(t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+const tkMK=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+const tkMN=k=>TK_MES[+k.slice(5)-1]+'/'+k.slice(2,4);
+const tkSit=c=>c.status==='concl'?(c.desfecho||'Encerrado'):(GST[gStK(c)]||[c.status])[0];
+const tkSitC=c=>c.status==='concl'?(/Não foi possível|Improdutiv|Não normalizado/.test(c.desfecho||'')?'bad':'ok'):c.status==='cancelado'?'':(GST[gStK(c)]||['',''])[1]||'';
+const tkNum=v=>{const m=String(v==null?'':v).replace(',','.').match(/-?\d+(\.\d+)?/);return m?+m[0]:null};
+function tkJan(off){const T=tkS(),agora=Date.now();let ini,fim;
+  if(T.per==='custom'){ini=new Date((ui.txIni||addD(hoje(),-30))+'T00:00:00').getTime();fim=new Date((ui.txFim||hoje())+'T23:59:59').getTime()}
+  else if(T.per==='mes'){const d=new Date();ini=new Date(d.getFullYear(),d.getMonth(),1).getTime();fim=agora}
+  else{fim=agora;ini=agora-(+T.per)*TK_DIA}
+  const len=fim-ini;return off?[ini-len,ini]:[ini,fim]}
+const tkAll=()=>G.ch.filter(c=>txDe(c)&&c.status!=='cancelado'&&TXK_N[txT(c)]);
+const tkInJ=(c,j)=>{const t=tkDt(c);return t>=j[0]&&t<=j[1]};
+/* ---------- campos dos relatórios ---------- */
+const tkSesN=s=>({el:'Elétrica',eq:'Equipamentos',bk:'Banco de baterias',am:'Ambiente'}[s]||String(TX_PREV[s].t).replace(/^Inspeção (d[aoe]s? )?/i,''));
+const tkCausa=c=>{const r=tkR(c);return r.raiz||''};
+function tkPrevInfo(c){const r=tkR(c),ses={},nc=[];let tot=0,ok=0;(typeof TX_PS!=='undefined'?TX_PS:[]).forEach(s=>{const P=TX_PREV[s];ses[s]=P.it.map(([q],i)=>{const st=r[`p_${s}_${i}`]||'',v=[r[`pv_${s}_${i}`],r[`po_${s}_${i}`]].filter(Boolean).join(' · ');if(st&&st!=='NA'){tot++;if(st==='C')ok++}if(st==='NC')nc.push({s,q,v});return {q,st,v}})});
+  const med={ac:tkNum(r.pv_el_0),bk:tkNum(r.pv_bk_0),teq:tkNum(r.pv_eq_3),tam:tkNum(r.pv_am_0)};
+  const ints=(typeof TX_PS!=='undefined'?TX_PS:[]).filter(s=>r['int_'+s]==='sim').map(s=>tkSesN(s)+(r['intd_'+s]?': '+r['intd_'+s]:''));
+  const ags=(typeof TX_PS!=='undefined'?TX_PS:[]).filter(s=>r['ag_'+s]==='sim').map(s=>tkSesN(s)+(r['agd_'+s]?': '+r['agd_'+s]:''));if(r.agG==='sim')ags.push('Geral'+(r.agGd?': '+r.agGd:''));
+  return {ses,nc,tot,ok,med,ints,ags}}
+function tkFora(m){const f=[];if(m.ac!=null){const ok=m.ac>150?(m.ac>=198&&m.ac<=242):(m.ac>=99&&m.ac<=121);if(!ok)f.push('ac')}if(m.bk!=null&&(m.bk<49||m.bk>55))f.push('bk');if(m.teq!=null&&m.teq>42)f.push('teq');if(m.tam!=null&&m.tam>27)f.push('tam');return f}
+function tkTxt(c){const r=tkR(c),t=txT(c);const b=[tkCod(c),tkPop(c),tkTec(c),c.motivo,c.categoria,tkSit(c),c.pnoc,c.txAfet,r.detalhes,r.desfecho];
+  if(t==='corr')b.push(txCatTxt(c),r.encM,r.encV,r.raiz,r.raizD,r.acao,r.acaoD,r.mRet,r.mIns,r.pendD,r.item,r.ifEq,r.ifInt,r.ifId,r.itemDef,r.impM,r.improd,r.parcFez);
+  if(t==='prev'){const p=tkPrevInfo(c);b.push(...p.nc.map(x=>x.q+' '+x.v),...p.ints,...p.ags)}
+  if(t==='expT')b.push(r.ttipo,r.cli,r.etq,r.equip,r.intf,r.dio,r.pos,r.obs,r.tint);
+  if(t==='expI')b.push(r.itipo,r.ien,r.ieq,r.idio,r.iper,r.iqtd,r.iesp);
+  if(t==='cross')b.push(r.xid,c.txXid,r.equip,r.intf,r.pp,r.pos,r.xsn,r.obs);
+  if(t==='gmud')b.push(r.gid,c.txGmud,r.gobs,r.gnoc);
+  if(t==='outra')b.push(r.feito);
+  return tkN(b.filter(Boolean).join(' '))}
+function tkHl(t){const T=tkS(),q=T._hq||'';t=t==null?'':String(t);const s=esc(t);if(!q)return s;const i=tkN(t).indexOf(tkN(q));return i<0?s:esc(t.slice(0,i))+'<mark>'+esc(t.slice(i,i+q.length))+'</mark>'+esc(t.slice(i+q.length))}
+/* ---------- pedaços visuais ---------- */
+function tkDelta(a,b,bomCai){const T=tkS();if(!T.cmp||a==null||b==null)return '';if(a===b)return '<span class="tkeq">= igual ao anterior</span>';const p=b?Math.round(Math.abs(a-b)/b*100):100,sobe=a>b,bom=bomCai?!sobe:sobe;
+  return `<span class="${bom?'tkbom':'tkruim'}">${sobe?'▲':'▼'} ${p}%</span><span class="tkmut">vs. período anterior</span>`}
+function tkSpark(v){const w=200,h=30,mx=Math.max(1,...v),st=w/(v.length-1||1),p=v.map((x,i)=>[i*st,h-3-(x/mx)*(h-6)]);return `<svg class="tksp" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${p.map(q=>q.join(',')).join(' ')}" fill="none" stroke="var(--brand-ink)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`}
+const tkMeses=()=>{const o=[],d=new Date();for(let i=11;i>=0;i--)o.push(tkMK(new Date(d.getFullYear(),d.getMonth()-i,1).getTime()));return o};
+function tkBarras(MK,vals,fmt,meta,isH,sel){const W=560,H=220,l=36,r=8,t=14,bt=26,mx=Math.max(meta||0,...vals,1)*1.15,bw=(W-l-r)/vals.length,y=v=>t+(H-t-bt)*(1-v/mx);
+  let g=[0,.5,1].map(f=>mx*f).map(v=>`<line class="tkgl" x1="${l}" x2="${W-r}" y1="${y(v)}" y2="${y(v)}"/><text x="${l-6}" y="${y(v)+4}" text-anchor="end">${isH?Math.round(v)+'h':Math.round(v)}</text>`).join('');
+  g+=vals.map((v,i)=>{const x=l+i*bw+bw*.18,w=bw*.64,h=Math.max(v?3:0,H-bt-y(v)),on=sel===MK[i],dim=sel&&!on;return `<path class="tkmk${on?' on':''}${dim?' dim':''}" data-act="tk" data-o="mes" data-v="${MK[i]}" data-tktip="${tkMN(MK[i])}<br><b>${fmt(v)}</b>" d="M${x},${H-bt}v${-Math.max(0,h-4)}q0,-4 4,-4h${w-8}q4,0 4,4v${Math.max(0,h-4)}z"/><text x="${x+w/2}" y="${H-8}" text-anchor="middle">${TK_MES[+MK[i].slice(5)-1]}</text>`}).join('');
+  if(meta)g+=`<line class="tkmeta" x1="${l}" x2="${W-r}" y1="${y(meta)}" y2="${y(meta)}"/><text x="${l+4}" y="${y(meta)-5}" class="tkmetat">meta ${Math.round(meta)}h</text>`;
+  const k=vals.length-1;g+=`<text x="${l+k*bw+bw/2}" y="${y(vals[k])-6}" text-anchor="middle" class="tkult">${isH?tkFmtH(vals[k]*TK_H):vals[k]}</text>`;
+  return `<svg class="tkch" viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`}
+function tkHbar(arr,o,sel,lbl){const mx=Math.max(1,...arr.map(x=>x[1]));return arr.length?`<div class="tkhb">${arr.map(([n,v])=>`<button type="button" class="tkhbr" data-act="tk" data-o="${o}" data-v="${esc(n)}" aria-pressed="${sel===n}" data-tktip="${esc(n)}<br><b>${v}</b> ${lbl||''}"><span title="${esc(n)}">${esc(n)}</span><span class="tkhbb"><i style="width:${v/mx*100}%"></i></span><b>${v}</b></button>`).join('')}</div>`:'<p class="muted" style="margin:0">Nada com esses filtros.</p>'}
+function tkPerBar(){const T=tkS(),[a,b]=tkJan(0);return `<div class="tkrow"><span class="tklbl">Período</span>${TK_PER.map(([k,t])=>`<button type="button" class="tkchip" data-act="tk" data-o="per" data-v="${k}" aria-pressed="${T.per===k}">${t}</button>`).join('')}
+  ${T.per==='custom'?`<label class="f inline"><span>De</span><input type="date" class="inp" data-ch="txPer" data-k="txIni" value="${ui.txIni||addD(hoje(),-30)}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="txPer" data-k="txFim" value="${ui.txFim||hoje()}"></label>`:''}
+  <span class="tkmut tkper">${tkD(a)} a ${tkD(b)}</span></div>`}
+let tkAtu={sig:'',em:Date.now()};
+function tkLive(){const sig=G.ch.filter(txDe).map(c=>c.id+c.status+(c.validadoEm||'')).join('|').length+':'+G.ch.length;if(sig!==tkAtu.sig){tkAtu={sig,em:Date.now()}}return `<span class="tklive" role="status"><i aria-hidden="true"></i>Atualiza sozinho · último dado ${hm(tkAtu.em)}</span>`}
+const TK_ABAS=()=>[['geral','Visão geral']].concat(Object.entries(TXK_N));
+function tkAbas(K){const j=tkJan(0),A=tkAll();return `<nav class="tkabas" aria-label="Painel de KPIs da Transmissão">${TK_ABAS().map(([k,t])=>{const n=k==='geral'?'':A.filter(c=>txT(c)===k&&tkInJ(c,j)).length;return `<button type="button" data-act="tk" data-o="aba" data-v="${k}" ${K===k?'aria-current="page"':''}>${t}${n!==''?`<span>${n}</span>`:''}</button>`}).join('')}</nav>`}
+function tkBusca(id,val,ph){return `<label class="tkbusca"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="${id}" data-in="tkq" data-k="${id}" value="${esc(val||'')}" placeholder="${esc(ph)}" aria-label="Buscar"></label>`}
+const tkSel=(k,lab,vals,cur,o)=>`<select class="inp tksel" data-ch="tkSel" data-o="${o}" data-k="${k}" aria-label="${esc(lab)}"><option value="">${esc(lab)}: todos</option>${vals.map(v=>`<option ${cur===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`;
+const tkUniq=(L,f)=>[...new Set(L.map(f).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b)));
+/* ---------- visão geral ---------- */
+function tkGeral(){const T=tkS(),F=T.f,q=tkN(T.q),A=tkAll(),j=tkJan(0),jp=tkJan(1);T._hq=T.q;
+  const pass=(c,semMes)=>(!F.pop||tkPop(c)===F.pop)&&(!F.tipo||txT(c)===F.tipo)&&(!F.tec||tkTec(c)===F.tec)&&(!F.cat||(txT(c)==='corr'&&(tkCausa(c)||'Sem causa registrada')===F.cat))&&(semMes||!F.mes||tkMK(tkDt(c))===F.mes)&&(!q||tkTxt(c).includes(q));
+  const passC=c=>pass(c);
+  const L=A.filter(c=>tkInJ(c,j)&&passC(c)),P=A.filter(c=>tkInJ(c,jp)&&passC(c));
+  const cor=L.filter(c=>txT(c)==='corr'),corP=P.filter(c=>txT(c)==='corr');
+  const mtA=X=>{const v=X.map(tkMt).filter(x=>x!=null);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
+  const sla=X=>{const v=X.map(tkMt).filter(x=>x!=null);return v.length?Math.round(v.filter(x=>x<=TK_META).length/v.length*100):null};
+  const ab=A.filter(c=>txT(c)==='corr'&&tkAb(c)&&(!F.pop||tkPop(c)===F.pop)),nDesp=ab.filter(c=>!c.tec).length;
+  const MK=tkMeses(),A12=A.filter(c=>pass(c,true)),por=(t,f)=>MK.map(k=>f(A12.filter(c=>txT(c)===t&&tkMK(tkDt(c))===k)));
+  const prevN=X=>X.filter(c=>txT(c)==='prev'&&txConcl(c)).length,expN=X=>X.filter(c=>['expT','expI','cross'].includes(txT(c))&&txConcl(c)).length,gmN=X=>X.filter(c=>txT(c)==='gmud').length;
+  const pops=TXP.L.filter(p=>p.ativo!==false&&(!F.pop||txPopN(p)===F.pop||p.nome===F.pop||p.sigla===F.pop)),PV=pops.map(p=>({p,x:txPrevPop(p,G.ch.filter(txDe))})),nOk=PV.filter(z=>z.x.st==='ok'||z.x.st==='breve').length;
+  const m=mtA(cor),mP=mtA(corP),s=sla(cor),sP=sla(corP);
+  const kp=(v,l,d,x,go)=>`<button type="button" class="tkkpi" data-act="tk" data-o="go" data-v="${go}"><b>${v}</b><span class="tkkl">${l}</span>${d?`<span class="tkkd">${d}</span>`:''}${x||''}</button>`;
+  const kpis=kp(cor.length,'Corretivas no período',tkDelta(cor.length,corP.length,true),tkSpark(por('corr',X=>X.length)),'corr')
+    +kp(ab.length,'Corretivas em aberto agora',ab.length?`<span class="chip warn">⚠ ${nDesp} não despachada${nDesp===1?'':'s'}</span>`:'<span class="chip ok">✓ nenhuma</span>','','aberto')
+    +kp(tkFmtH(m),'MTTR médio das corretivas',tkDelta(m&&Math.round(m/6e4),mP&&Math.round(mP/6e4),true),`<span class="tkbar" title="Meta: até 4h"><i style="width:${m?Math.min(100,TK_META/m*100):0}%"></i></span><span class="tkmut tksm">Meta até 4h00 · ${m==null?'sem dados':m<=TK_META?'<b class="tkbom">dentro</b>':'<b class="tkruim">acima</b>'}</span>`,'corr')
+    +kp(s==null?'—':s+'%','Corretivas resolvidas em até 4h',tkDelta(s,sP,false),tkSpark(por('corr',X=>sla(X)||0)),'corr')
+    +kp(prevN(L),'Preventivas realizadas',tkDelta(prevN(L),prevN(P),false),tkSpark(por('prev',X=>X.filter(txConcl).length)),'prev')
+    +kp(`${nOk} de ${pops.length}`,`POPs com preventiva em dia (${TX_CICLO} dias)`,pops.length-nOk?`<span class="chip bad">✕ ${pops.length-nOk} vencido${pops.length-nOk===1?'':'s'} ou sem registro</span>`:'<span class="chip ok">✓ todos em dia</span>',`<span class="tkbar"><i style="width:${pops.length?nOk/pops.length*100:0}%"></i></span>`,'prev')
+    +kp(expN(L),'Expansões e cross connects',tkDelta(expN(L),expN(P),false),tkSpark(MK.map(k=>A12.filter(c=>['expT','expI','cross'].includes(txT(c))&&txConcl(c)&&tkMK(tkDt(c))===k).length)),'expT')
+    +kp(gmN(L),'GMUDs',tkDelta(gmN(L),gmN(P),false),tkSpark(por('gmud',X=>X.length)),'gmud');
+  const c12=A12.filter(c=>txT(c)==='corr'),pm=MK.map(k=>c12.filter(c=>tkMK(tkDt(c))===k));
+  const cnt=(X,f)=>{const o={};X.forEach(c=>{const k=f(c);o[k]=(o[k]||0)+1});return Object.entries(o).sort((a,b)=>b[1]-a[1])};
+  const hpops=[...new Set(c12.map(tkPop))].sort((a,b)=>c12.filter(c=>tkPop(c)===b).length-c12.filter(c=>tkPop(c)===a).length);
+  const hmx=Math.max(1,...hpops.flatMap(p=>MK.map(k=>c12.filter(c=>tkPop(c)===p&&tkMK(tkDt(c))===k).length)));
+  const hcell=(p,k)=>{const n=c12.filter(c=>tkPop(c)===p&&tkMK(tkDt(c))===k).length,lv=n?Math.min(5,1+Math.floor(n/hmx*4.99)):0;return `<td class="tkc l${lv}" data-tktip="${esc(p)} · ${tkMN(k)}<br><b>${n}</b> ${n===1?'corretiva':'corretivas'}">${n||''}</td>`};
+  const chip={ok:['✓ Em dia','ok'],breve:['⚠ Vence em breve','warn'],venc:['✕ Vencida','bad'],sem:['Sem registro','']};
+  const pvRows=PV.sort((a,b)=>({venc:0,sem:1,breve:2,ok:3}[a.x.st]-{venc:0,sem:1,breve:2,ok:3}[b.x.st])||((a.x.d??-1e9)-(b.x.d??-1e9))).map(({p,x})=>{const pct=x.d==null?0:x.d<0?100:Math.max(0,Math.min(100,(TX_CICLO-x.d)/TX_CICLO*100));const cl=x.st==='venc'?'bad':x.st==='breve'?'warn':x.st==='sem'?'sem':'ok';
+    return `<div class="tkpvr"><span><b>${esc(txPopN(p))}</b><small class="tkmut">${x.ult?'Última: '+dBR(x.ult):'Nenhuma preventiva registrada'}</small></span><span class="tkpvb" data-tktip="${esc(txPopN(p))}<br>${x.ult?'Última '+dBR(x.ult)+'<br>Próxima até '+dBR(x.prox):'Sem registro'}"><i class="${cl}" style="width:${pct}%"></i></span><span class="tkrow" style="gap:6px"><span class="chip ${chip[x.st][1]}">${chip[x.st][0]}${x.d!=null?x.d<0?` há ${-x.d} d`:` · ${x.d} d`:''}</span>${x.ag?`<span class="chip info">Agendada ${gQuando(x.ag.agendaEm)}</span>`:txPodeAg()?`<button class="btn sm" data-act="txAgPrev" data-id="${p.id}">Agendar</button>`:''}</span></div>`}).join('');
+  /* tabela */
+  const [sk,sd]=T.vsort,val=(c,k)=>({data:tkDt(c),cod:tkCod(c),pop:tkPop(c),tipo:TXK_N[txT(c)]||'',cat:txT(c)==='corr'?(tkCausa(c)||txCatTxt(c)):(txOq(c)||c.motivo||''),tec:tkTec(c),dur:txT(c)==='corr'?(tkMt(c)??-1):-1,sit:tkSit(c)})[k];
+  const TB=L.slice().sort((a,b)=>{const x=val(a,sk),y=val(b,sk);return (x>y?1:x<y?-1:0)*sd}),pg=20,np=Math.max(1,Math.ceil(TB.length/pg));T.pg=Math.min(T.pg,np-1);
+  const th=(k,t)=>`<th><button type="button" data-act="tk" data-o="vsort" data-v="${k}" aria-sort="${sk===k?(sd>0?'ascending':'descending'):'none'}">${t}${sk===k?(sd>0?' ▲':' ▼'):''}</button></th>`;
+  const tags=[['q',T.q&&'Busca: “'+T.q+'”'],['pop',F.pop],['tipo',F.tipo&&TXK_N[F.tipo]],['tec',F.tec],['cat',F.cat&&'Causa: '+F.cat],['mes',F.mes&&'Mês: '+tkMN(F.mes)]].filter(x=>x[1]);
+  T._csv=TB;
+  return `<div class="tkbox"><div class="tkrow">${tkBusca('tkq',T.q,'Buscar POP, chamado, técnico, causa, equipamento ou observação')}
+     ${tkSel('pop','POP',tkUniq(A,tkPop),F.pop,'f')}${`<select class="inp tksel" data-ch="tkSel" data-o="f" data-k="tipo" aria-label="Tipo"><option value="">Tipo: todos</option>${Object.entries(TXK_N).map(([k,t])=>`<option value="${k}" ${F.tipo===k?'selected':''}>${t}</option>`).join('')}</select>`}${tkSel('tec','Técnico',tkUniq(A,tkTec),F.tec,'f')}</div>
+     ${tkPerBar()}<div class="tkrow"><label class="tkchk"><input type="checkbox" data-ch="tkCmp" ${T.cmp?'checked':''}> Comparar com o período anterior</label></div>
+     <div class="tkrow">${tags.length?tags.map(([k,t])=>`<span class="tktag">${esc(t)}<button type="button" data-act="tk" data-o="rm" data-v="${k}" aria-label="Tirar filtro ${esc(t)}">×</button></span>`).join('')+'<button class="linkbtn" data-act="tk" data-o="rm" data-v="*">Limpar tudo</button>':'<span class="tkmut tksm">Sem filtros. Toque nos indicadores, barras ou POPs para filtrar.</span>'}</div></div>
+   <div class="tkkpis">${kpis}</div>
+   <div class="tkg2"><section class="tkp"><div class="tkph"><h3>Corretivas por mês</h3><small>Últimos 12 meses · toque na barra para filtrar</small></div>${tkBarras(MK,pm.map(x=>x.length),v=>v+(v===1?' corretiva':' corretivas'),null,false,F.mes)}</section>
+    <section class="tkp"><div class="tkph"><h3>MTTR médio por mês</h3><small>Últimos 12 meses · tracejado = meta de 4h</small></div>${tkBarras(MK,pm.map(x=>{const v=mtA(x);return v?+(v/TK_H).toFixed(2):0}),v=>'MTTR '+tkFmtH(v*TK_H),4,true,F.mes)}</section></div>
+   <div class="tkg2"><section class="tkp"><div class="tkph"><h3>POPs com mais corretivas</h3><small>No período · toque para filtrar</small></div>${tkHbar(cnt(cor,tkPop).slice(0,8),'pop',F.pop,'corretivas')}</section>
+    <section class="tkp"><div class="tkph"><h3>Corretivas por causa raiz</h3><small>No período · toque para filtrar</small></div>${tkHbar(cnt(cor,c=>tkCausa(c)||'Sem causa registrada').slice(0,8),'cat',F.cat,'corretivas')}</section></div>
+   <section class="tkp"><div class="tkph"><h3>Corretivas por POP e mês</h3><span class="tkleg">menos <i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i><i class="l5"></i> mais</span></div>
+    ${hpops.length?`<div class="tkhm"><table><thead><tr><th>POP</th>${MK.map(k=>`<th>${tkMN(k)}</th>`).join('')}</tr></thead><tbody>${hpops.map(p=>`<tr><th>${esc(p)}</th>${MK.map(k=>hcell(p,k)).join('')}</tr>`).join('')}</tbody></table></div>`:'<p class="muted" style="margin:0">Nenhuma corretiva nos últimos 12 meses.</p>'}</section>
+   <section class="tkp"><div class="tkph"><h3>Preventiva: ciclo de ${TX_CICLO} dias por POP</h3><small>O que vence primeiro no topo</small></div><div class="tkpv">${pvRows||'<p class="muted" style="margin:0">Cadastre os POPs em Histórico › POPs.</p>'}</div></section>
+   <section class="tkp"><div class="tkph"><h3>Chamados do período</h3><div class="tkrow"><small>${TB.length} chamado${TB.length===1?'':'s'}</small><button class="btn sm" data-act="tk" data-o="csv" data-v="geral">Exportar planilha</button></div></div>
+    <div class="tablewrap"><table class="tktb"><thead><tr>${th('data','Data')}${th('cod','Chamado')}${th('pop','POP')}${th('tipo','Tipo')}${th('cat','Causa / o que fazer')}${th('tec','Técnico')}${th('dur','Duração')}${th('sit','Situação')}</tr></thead><tbody>
+    ${TB.slice(T.pg*pg,T.pg*pg+pg).map(c=>{const t=txT(c),mt=t==='corr'?tkMt(c):null;return `<tr><td style="white-space:nowrap">${tkD(tkDt(c))}</td><td style="white-space:nowrap"><button class="linkbtn" data-act="gAbrirRel" data-id="${c.id}">${tkHl(tkCod(c))||'abrir'}</button></td><td>${tkHl(tkPop(c))}</td><td>${esc(TXK_N[t]||'')}</td><td><span class="tkcl" title="${esc(val(c,'cat'))}">${tkHl(val(c,'cat'))}</span></td><td>${tkHl(tkTec(c))}</td><td>${t==='corr'?`<span class="${mt>TK_META?'tkruim':''}">${tkFmtH(mt)}</span>`:'—'}</td><td><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span></td></tr>`}).join('')||'<tr><td colspan="8" class="muted">Nada encontrado com esses filtros.</td></tr>'}</tbody></table></div>
+    <div class="tkpg"><span class="tkmut">Página ${T.pg+1} de ${np}</span><span class="tkrow"><button class="btn sm" data-act="tk" data-o="pg" data-v="-1" ${T.pg?'':'disabled'}>‹ Anterior</button><button class="btn sm" data-act="tk" data-o="pg" data-v="1" ${T.pg<np-1?'':'disabled'}>Próxima ›</button></span></div></section>`}
+/* ---------- abas por tipo ---------- */
+const TK_FASES=['Até despachar','Até chegar no POP','No local até pedir validação','Até o NOC validar'];
+function tkFases(c){const t=c.ts||{},p=[gIni(c),t.despacho,t.chegada,t.pedido,c.validadoEm];if(p.some(x=>!x))return null;for(let i=1;i<p.length;i++)if(p[i]<p[i-1])return null;return [p[1]-p[0],p[2]-p[1],p[3]-p[2],p[4]-p[3]]}
+const tkFld=(l,v)=>v?`<div><small>${l}</small><span>${v}</span></div>`:'';
+function tkFotos(c){const F=(c.rfoFotos||[]).filter(f=>f.path);if(!F.length)return '';const falta=F.filter(f=>!G.fotos[f.path]).map(f=>f.path);
+  if(falta.length&&!tkFotos.bus[falta[0]]){falta.forEach(p=>tkFotos.bus[p]=1);sb.storage.from('agenda').createSignedUrls(falta,3600).then(r=>{(r.data||[]).forEach(x=>{if(x.signedUrl)G.fotos[x.path]=x.signedUrl});render()}).catch(()=>{})}
+  return `<div><h4>Fotos (${F.length})</h4><div class="tkfts">${F.map((f,i)=>G.fotos[f.path]?`<a href="${esc(G.fotos[f.path])}" target="_blank" rel="noopener" title="${esc(f.leg||'')}"><img src="${esc(G.fotos[f.path])}" alt="${esc(f.leg||'Foto '+(i+1))}" loading="lazy"></a>`:`<span class="tkft">Carregando…</span>`).join('')}</div></div>`}
+tkFotos.bus={};
+const tkAcoes=c=>`<div class="tkrow">${c.rfoPdf?`<button class="btn sm primary" data-act="relVer" data-p="${esc(c.rfoPdf)}">Abrir PDF</button>`:''}${c.rfoTxt?`<button class="btn sm" data-act="gRfoVer" data-id="${c.id}">Texto do relatório</button>`:''}<button class="btn sm" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button>${gMsgBtn('g',c.id,'','Chat')}</div>`;
+const TKD={
+ corr:{ph:'Buscar POP, chamado, técnico, causa, ação, equipamento, material ou observação',
+  fil:[['mt','Tipo do chamado',c=>txCatTxt(c)],['res','Resultado',c=>tkR(c).desfecho||''],['causa','Causa raiz',c=>tkR(c).raiz||''],['acao','Ação',c=>tkR(c).acao||'']],
+  chk:[['aberto','Em aberto',c=>tkAb(c)],['acima','Acima de 4h',c=>(tkMt(c)||0)>TK_META],['troca','Com troca de material',c=>txRfoTroca(tkR(c))],['pend','Com nova visita',c=>tkR(c).pend==='sim']],
+  kpis:L=>{const v=L.map(tkMt).filter(x=>x!=null),m=v.length?v.reduce((s,x)=>s+x,0)/v.length:null;return [[L.length,'Corretivas'],[tkFmtH(m),'MTTR médio'],[v.length?Math.round(v.filter(x=>x<=TK_META).length/v.length*100)+'%':'—','Resolvidas em até 4h'],[L.filter(c=>txRfoTroca(tkR(c))).length,'Com troca de material'],[L.filter(c=>tkR(c).pend==='sim').length,'Com nova visita'],[L.filter(tkAb).length,'Em aberto']]},
+  ins:L=>{const F=L.map(tkFases).filter(Boolean),av=[0,1,2,3].map(i=>F.length?F.reduce((s,x)=>s+x[i],0)/F.length:0),tot=av.reduce((a,b)=>a+b,0);
+   const comb={};L.forEach(c=>{const r=tkR(c);if(r.raiz){const k=r.raiz+' → '+(r.acao||'sem ação');comb[k]=(comb[k]||0)+1}});const cb=Object.entries(comb).sort((a,b)=>b[1]-a[1]).slice(0,6);
+   const rein=Object.entries(L.reduce((o,c)=>(o[tkPop(c)]=(o[tkPop(c)]||0)+1,o),{})).filter(x=>x[1]>=3).sort((a,b)=>b[1]-a[1]),D=tkS().d;
+   return `<div class="tkg2"><section class="tkp"><div class="tkph"><h3>Onde vai o tempo do MTTR</h3><small>Média de ${F.length} corretiva${F.length===1?'':'s'} com todos os horários</small></div>${tot?`<div class="tkseg" role="img" aria-label="${TK_FASES.map((n,i)=>n+' '+tkFmtH(av[i])).join(', ')}">${av.map((x,i)=>`<span class="s${i}" style="width:${x/tot*100}%" data-tktip="${TK_FASES[i]}<br><b>${tkFmtH(x)}</b> (${Math.round(x/tot*100)}%)">${x/tot>.13?tkFmtH(x):''}</span>`).join('')}</div><div class="tksegl">${TK_FASES.map((n,i)=>`<span><i class="s${i}"></i>${n} · <b>${tkFmtH(av[i])}</b></span>`).join('')}</div>`:'<p class="muted" style="margin:0">Sem corretivas com todos os horários no filtro.</p>'}</section>
+    <section class="tkp"><div class="tkph"><h3>Causa raiz → ação mais comuns</h3><small>Toque para filtrar a causa</small></div>${cb.length?`<div class="tkhb">${cb.map(([k,n])=>`<button type="button" class="tkhbr" data-act="tk" data-o="dfx" data-k="causa" data-v="${esc(k.split(' → ')[0])}" data-tktip="${esc(k)}<br><b>${n}</b>"><span title="${esc(k)}">${esc(k)}</span><span class="tkhbb"><i style="width:${n/cb[0][1]*100}%"></i></span><b>${n}</b></button>`).join('')}</div>`:'<p class="muted" style="margin:0">Sem causa raiz registrada no filtro.</p>'}
+     ${rein.length?`<div class="tkrow"><small class="tkmut" style="font-weight:600">POPs reincidentes (3 ou mais no período):</small>${rein.map(([p,n])=>`<button class="tkchip" data-act="tk" data-o="dfx" data-k="pop" data-v="${esc(p)}" aria-pressed="${D.pop===p}">${esc(p)} · ${n}</button>`).join('')}</div>`:''}</section></div>`},
+  sum:c=>{const r=tkR(c),mt=tkMt(c);return `<b>${tkHl(tkPop(c))} · ${esc(txCatTxt(c))}</b><small>${tkHl(tkCod(c))} · ${tkHl(tkTec(c))}${r.desfecho?' · '+tkHl(r.desfecho):''}${r.raiz?' · '+tkHl(r.raiz):''}</small><span class="tkrow" style="gap:6px"><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span>${mt!=null?`<span class="chip ${mt>TK_META?'bad':'ok'}">${mt>TK_META?'✕':'✓'} MTTR ${tkFmtH(mt)}</span>`:(c.validadoEm&&typeof txSemMttr==='function'&&txSemMttr(c)?'<span class="chip">Fora do MTTR</span>':'')}${txRfoTroca(r)?'<span class="chip">Troca de material</span>':''}${r.pend==='sim'?'<span class="chip warn">⚠ Nova visita</span>':''}</span>`},
+  rel:c=>{const r=tkR(c),t=c.ts||{},P=[['Aberto',gIni(c)],['Despachado',t.despacho],['Chegou no POP',t.chegada],['Pediu validação',t.pedido],['Validado pelo NOC',c.validadoEm]];
+   return `<div><h4>Linha do tempo</h4><div class="tktl">${P.map(([n,v],i)=>{const ant=P.slice(0,i).reverse().find(x=>x[1]);return `<div class="${v?'':'no'}"><b>${n}</b><span>${tkDH(v)}</span>${v&&ant&&i?`<em>+${tkFmtH(v-ant[1])}</em>`:''}</div>`}).join('')}</div></div>
+    <div><h4>RFO</h4><div class="tkfg">${tkFld('Problema',tkHl(c.motivo))}${tkFld('Tipo',esc(txCatTxt(c)))}${tkFld('Resultado',tkHl(r.desfecho)||'Em andamento')}${tkFld('Causa raiz',tkHl([r.raiz,r.raizD].filter(Boolean).join(': ')))}${tkFld('Ação',tkHl([r.acao,r.acaoD].filter(Boolean).join(': ')))}${tkFld('Item',tkHl([r.item,r.ifEq,r.ifInt,r.ifId,r.itemDef].filter(Boolean).join(' · ')))}${tkFld('Material retirado',tkHl(r.mRet))}${tkFld('Material instalado',tkHl(r.mIns))}${tkFld('Nova visita',r.pend==='sim'?'Sim'+(r.pendD?': '+tkHl(r.pendD):''):r.pend==='nao'?'Não':'')}${tkFld('Motivo do encaminhamento',tkHl(r.encM))}${tkFld('Verificado no POP',tkHl(r.encV))}${typeof txSemMttr==='function'&&txSemMttr(c)?tkFld('MTTR','Não conta (resultado: '+esc(c.desfecho||'')+')'):''}${tkFld('Motivo da improdutiva',tkHl([r.impM,r.improd].filter(Boolean).join(': ')))}${tkFld('Protocolo NOC',tkHl(c.pnoc))}${tkFld('Técnico',tkHl(tkTec(c)))}</div></div>
+    ${r.detalhes?`<div><h4>Observações</h4><p style="margin:0">${tkHl(r.detalhes)}</p></div>`:''}${tkFotos(c)}`}},
+ prev:{ph:'Buscar POP, técnico, item não conforme, intervenção, agendamento ou observação',fil:[],
+  chk:[['nc','Com não conformidade',c=>tkPrevInfo(c).nc.length>0],['int','Com intervenção',c=>tkPrevInfo(c).ints.length>0],['ag','Precisa agendar',c=>tkPrevInfo(c).ags.length>0],['fora','Medição fora da faixa',c=>tkFora(tkPrevInfo(c).med).length>0]],
+  kpis:L=>{const C=L.filter(txConcl),I=C.map(tkPrevInfo),tot=I.reduce((s,x)=>s+x.tot,0),ok=I.reduce((s,x)=>s+x.ok,0);return [[C.length,'Preventivas concluídas'],[tot?Math.round(ok/tot*100)+'%':'—','Itens conformes'],[I.filter(x=>x.nc.length).length,'Com não conformidade'],[I.filter(x=>x.ints.length).length,'Com intervenção'],[I.filter(x=>x.ags.length).length,'Precisam agendar'],[L.filter(tkAb).length,'Em aberto']]},
+  ins:L=>{const nc={};L.forEach(c=>tkPrevInfo(c).nc.forEach(x=>{const k=tkSesN(x.s)+': '+x.q;nc[k]=(nc[k]||0)+1}));const top=Object.entries(nc).sort((a,b)=>b[1]-a[1]).slice(0,8);
+   const ult={};L.filter(txConcl).forEach(c=>{const p=tkPop(c);if(!ult[p]||tkDt(ult[p])<tkDt(c))ult[p]=c});const U=Object.values(ult).sort((a,b)=>tkPop(a).localeCompare(tkPop(b)));
+   const cel=(v,u,f)=>v==null?'<td class="tkmut">—</td>':`<td class="${f?'tkfora':''}">${f?'✕ ':''}${String(v).replace('.',',')} ${u}</td>`;
+   return `<div class="tkg2"><section class="tkp"><div class="tkph"><h3>Não conformidades mais frequentes</h3><small>Toque para buscar os relatórios</small></div>${top.length?`<div class="tkhb">${top.map(([k,n])=>`<button type="button" class="tkhbr" data-act="tk" data-o="dq" data-v="${esc(k.split(': ').slice(1).join(': '))}" data-tktip="${esc(k)}<br><b>${n}</b> ${n===1?'vez':'vezes'}"><span title="${esc(k)}">${esc(k)}</span><span class="tkhbb"><i style="width:${n/top[0][1]*100}%"></i></span><b>${n}</b></button>`).join('')}</div>`:'<p class="muted" style="margin:0">Nenhuma não conformidade no filtro.</p>'}</section>
+    <section class="tkp"><div class="tkph"><h3>Últimas medições por POP</h3><small>Faixas: banco 49 a 55 V · equip. até 42 °C · ambiente até 27 °C · AC ±10%</small></div>${U.length?`<div class="tablewrap"><table class="tktb"><thead><tr><th>POP</th><th>Data</th><th>Tensão AC</th><th>Banco</th><th>Temp. equip.</th><th>Temp. ambiente</th></tr></thead><tbody>${U.map(c=>{const m=tkPrevInfo(c).med,f=tkFora(m);return `<tr><td>${esc(tkPop(c))}</td><td style="white-space:nowrap">${tkD(tkDt(c))}</td>${cel(m.ac,'V',f.includes('ac'))}${cel(m.bk,'V',f.includes('bk'))}${cel(m.teq,'°C',f.includes('teq'))}${cel(m.tam,'°C',f.includes('tam'))}</tr>`}).join('')}</tbody></table></div>`:'<p class="muted" style="margin:0">Sem preventivas concluídas no filtro.</p>'}</section></div>`},
+  sum:c=>{const p=tkPrevInfo(c);return `<b>${tkHl(tkPop(c))}</b><small>${tkHl(tkCod(c))} · ${tkHl(tkTec(c))}${p.tot?` · ${p.ok} de ${p.tot} itens conformes`:''}</small><span class="tkrow" style="gap:6px"><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span>${txConcl(c)?(p.nc.length?`<span class="chip bad">✕ ${p.nc.length} não conforme${p.nc.length>1?'s':''}</span>`:'<span class="chip ok">✓ Tudo conforme</span>'):''}${p.ints.length?'<span class="chip info">Intervenção</span>':''}${p.ags.length?'<span class="chip warn">⚠ Agendar</span>':''}${tkFora(p.med).length?'<span class="chip bad">Medição fora da faixa</span>':''}</span>`},
+  rel:c=>{const p=tkPrevInfo(c),r=tkR(c),f=tkFora(p.med);if(!txConcl(c)&&!p.tot)return '<p class="muted" style="margin:0">Ainda sem relatório.</p>';
+   return `<div><h4>Checklist por sessão</h4><div class="tkses">${TX_PS.map(s=>{const a=p.ses[s],nc=a.filter(x=>x.st==='NC'),val=a.filter(x=>x.st&&x.st!=='NA');return `<div><b>${esc(tkSesN(s))}</b><span class="chip ${nc.length?'bad':'ok'}" style="justify-self:start">${val.length-nc.length}/${val.length} conformes</span>${nc.length?`<ul>${nc.map(x=>`<li>${tkHl(x.q)}${x.v?` <small class="tkmut">(${tkHl(x.v)})</small>`:''}</li>`).join('')}</ul>`:''}</div>`}).join('')}</div></div>
+    <div><h4>Medições</h4><div class="tkfg">${tkFld('Tensão AC',p.med.ac!=null?`<span class="${f.includes('ac')?'tkfora':''}">${p.med.ac} V</span>`:'')}${tkFld('Banco de baterias',p.med.bk!=null?`<span class="${f.includes('bk')?'tkfora':''}">${String(p.med.bk).replace('.',',')} V</span>`:'')}${tkFld('Temp. equipamentos',p.med.teq!=null?`<span class="${f.includes('teq')?'tkfora':''}">${p.med.teq} °C</span>`:'')}${tkFld('Temp. ambiente',p.med.tam!=null?`<span class="${f.includes('tam')?'tkfora':''}">${p.med.tam} °C</span>`:'')}</div></div>
+    <div class="tkfg">${tkFld('Intervenção feita',p.ints.length?p.ints.map(tkHl).join('<br>'):'Nenhuma')}${tkFld('Precisa agendar',p.ags.length?p.ags.map(tkHl).join('<br>'):'Não')}${tkFld('Observações gerais',tkHl(r.detalhes))}</div>${tkFotos(c)}`}},
+ expT:{ph:'Buscar POP, cliente, etiqueta, equipamento, porta, DIO ou transceiver',fil:[['tt','Tipo',c=>tkR(c).ttipo||''],['tint','Interface',c=>tkR(c).tint||'']],chk:[['aberto','Em aberto',tkAb]],
+  kpis:L=>{const C=L.filter(txConcl),n=t=>C.filter(c=>tkR(c).ttipo===t).length;return [[C.length,'Realizadas'],[n('Cliente'),'Para cliente'],[n('Porta GPON')+n('Porta XGSPON'),'Portas PON'],[n('Backbone'),'Backbone'],[L.filter(tkAb).length,'Em aberto']]},
+  sum:c=>{const r=tkR(c);return `<b>${tkHl(tkPop(c))}${r.ttipo?' · '+tkHl(r.ttipo):''}${r.cli?' · '+tkHl(r.cli):''}</b><small>${tkHl(tkCod(c))} · ${tkHl(tkTec(c))}${r.equip?' · '+tkHl(r.equip):''}${r.intf?' '+tkHl(r.intf):''}${r.obs?' · '+tkHl(r.obs):''}</small><span class="tkrow" style="gap:6px"><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span>${r.dio?`<span class="chip">${esc(r.dio)}${r.pos?' pos. '+esc(r.pos):''}</span>`:''}</span>`},
+  rel:c=>{const r=tkR(c);return `<div class="tkfg">${tkFld('O que fazer',tkHl(txOq(c)||c.motivo))}${tkFld('Tipo',tkHl(r.ttipo))}${tkFld('Cliente',tkHl(r.cli))}${tkFld('Etiqueta',tkHl(r.etq))}${tkFld('Equipamento',tkHl(r.equip))}${tkFld('Porta',tkHl(r.intf))}${tkFld('Tipo de interface',tkHl(r.tint))}${tkFld('DIO / posição',tkHl([r.dio,r.pos&&'pos. '+r.pos].filter(Boolean).join(' · ')))}${tkFld('Transceiver',tkHl(r.obs))}${tkFld('Observações',tkHl(r.detalhes))}${tkFld('Técnico',tkHl(tkTec(c)))}</div>${tkFotos(c)}`}},
+ expI:{ph:'Buscar POP, tipo, equipamento, quantidade ou especificação',fil:[['it','Tipo',c=>tkR(c).itipo||'']],chk:[['aberto','Em aberto',tkAb]],
+  kpis:L=>{const C=L.filter(txConcl);return [[C.length,'Realizadas']].concat(['Energia','Equipamento','DIO','Periférico'].map(t=>[C.filter(c=>tkR(c).itipo===t).length,t])).concat([[L.filter(tkAb).length,'Em aberto']])},
+  sum:c=>{const r=tkR(c),d=r.ien||r.ieq||(r.idio?r.idio+' fibras':'')||r.iper||'';return `<b>${tkHl(tkPop(c))}${r.itipo?' · '+tkHl(r.itipo):''}</b><small>${tkHl(tkCod(c))} · ${tkHl(tkTec(c))}${d?' · '+(r.iqtd?esc(r.iqtd)+'× ':'')+tkHl(d):''}</small><span class="tkrow" style="gap:6px"><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span></span>`},
+  rel:c=>{const r=tkR(c);return `<div class="tkfg">${tkFld('O que fazer',tkHl(c.motivo))}${tkFld('Tipo',tkHl(r.itipo))}${tkFld('Detalhe',tkHl(r.ien||r.ieq||(r.idio?r.idio+' fibras':'')||r.iper))}${tkFld('Quantidade',tkHl(r.iqtd))}${tkFld('Especificação',tkHl(r.iesp))}${tkFld('Observações',tkHl(r.detalhes))}${tkFld('Técnico',tkHl(tkTec(c)))}</div>${tkFotos(c)}`}},
+ cross:{ph:'Buscar POP, identificação, equipamento, porta, patch panel ou nº de série',fil:[],chk:[['aberto','Em aberto',tkAb]],
+  kpis:L=>[[L.filter(txConcl).length,'Realizados'],[L.filter(tkAb).length,'Em aberto']],
+  sum:c=>{const r=tkR(c);return `<b>${tkHl(tkPop(c))}${r.xid||c.txXid?' · '+tkHl(r.xid||c.txXid):''}</b><small>${tkHl(tkCod(c))} · ${tkHl(tkTec(c))}${r.equip?' · '+tkHl(r.equip)+' '+tkHl(r.intf||''):''}${r.pp?' → '+tkHl(r.pp)+(r.pos?' pos. '+esc(r.pos):''):''}</small><span class="tkrow" style="gap:6px"><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span></span>`},
+  rel:c=>{const r=tkR(c);return `<div class="tkfg">${tkFld('Identificação',tkHl(r.xid||c.txXid))}${tkFld('Equipamento',tkHl(r.equip))}${tkFld('Porta',tkHl(r.intf))}${tkFld('Patch panel / posição',tkHl([r.pp,r.pos&&'pos. '+r.pos].filter(Boolean).join(' · ')))}${tkFld('Nº de série / ID',tkHl(r.xsn))}${tkFld('Transceiver',tkHl(r.obs))}${tkFld('Observações',tkHl(r.detalhes))}${tkFld('Técnico',tkHl(tkTec(c)))}</div>${tkFotos(c)}`}},
+ gmud:{ph:'Buscar POP, ID da GMUD, o que foi executado ou responsável do NOC',fil:[['noc','Validada por',c=>tkR(c).gnoc||'']],chk:[['aberto','Em aberto',tkAb]],
+  kpis:L=>[[L.length,'GMUDs'],[L.filter(c=>c.status==='concl').length,'Encerradas'],[L.filter(tkAb).length,'Em aberto']],
+  sum:c=>{const r=tkR(c);return `<b>${tkHl(tkPop(c))} · ${tkHl(r.gid||c.txGmud||'GMUD')}</b><small>${tkHl(tkCod(c))} · ${tkHl(tkTec(c))}${r.gobs?' · '+tkHl(r.gobs):''}</small><span class="tkrow" style="gap:6px"><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span>${r.gnoc?`<span class="chip ok">✓ Validada · ${tkHl(r.gnoc)}</span>`:''}</span>`},
+  rel:c=>{const r=tkR(c);return `<div class="tkfg">${tkFld('GMUD',tkHl(r.gid||c.txGmud))}${tkFld('Janela',esc(typeof txJanTxt==='function'?txJanTxt(c)||'':''))}${tkFld('O que foi executado',tkHl(r.gobs))}${tkFld('Início',r.hIni?tkDH(r.hIni):'')}${tkFld('Validação',r.hVal?tkDH(r.hVal):'')}${tkFld('Responsável do NOC',tkHl(r.gnoc))}${tkFld('Observações',tkHl(r.detalhes))}${tkFld('Técnico',tkHl(tkTec(c)))}</div>${tkFotos(c)}`}},
+ outra:{ph:'Buscar POP, o que fazer, o que foi feito ou técnico',fil:[],chk:[['aberto','Em aberto',tkAb]],
+  kpis:L=>[[L.length,'Atividades'],[L.filter(txConcl).length,'Concluídas'],[L.filter(tkAb).length,'Em aberto']],
+  sum:c=>{const r=tkR(c);return `<b>${tkHl(tkPop(c))} · ${tkHl(c.motivo||'Atividade')}</b><small>${tkHl(tkCod(c))} · ${tkHl(tkTec(c))}${r.feito?' · '+tkHl(r.feito):''}</small><span class="tkrow" style="gap:6px"><span class="chip ${tkSitC(c)}">${esc(tkSit(c))}</span></span>`},
+  rel:c=>{const r=tkR(c);return `<div class="tkfg">${tkFld('O que fazer',tkHl(c.motivo))}${tkFld('O que foi feito',tkHl(r.feito))}${tkFld('Observações',tkHl(r.detalhes))}${tkFld('Técnico',tkHl(tkTec(c)))}</div>${tkFotos(c)}`}}};
+function tkPorPop(L,t){const o={};L.forEach(c=>{o[tkPop(c)]=(o[tkPop(c)]||0)+1});const a=Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,8);return `<section class="tkp"><div class="tkph"><h3>${{expT:'Transceivers por POP',expI:'Infraestrutura por POP',cross:'Cross connects por POP',gmud:'GMUDs por POP',outra:'Atividades por POP'}[t]||'Por POP'}</h3><small>Toque para filtrar o POP</small></div>${tkHbar(a,'dpop',tkS().d.pop,'')}</section>`}
+function tkDet(K){const T=tkS(),D=TKD[K],DF=T.d,q=tkN(T.dq),A=tkAll().filter(c=>txT(c)===K),j=tkJan(0);T._hq=T.dq;
+  const B=A.filter(c=>tkInJ(c,j));
+  const ok=c=>(!DF.pop||tkPop(c)===DF.pop)&&(!DF.tec||tkTec(c)===DF.tec)&&D.fil.every(([k,,f])=>!DF[k]||f(c)===DF[k])&&D.chk.every(([k,,f])=>!DF[k]||f(c))&&(!q||tkTxt(c).includes(q));
+  const L=B.filter(ok);const ord={rec:(x,y)=>tkDt(y)-tkDt(x),ant:(x,y)=>tkDt(x)-tkDt(y),dur:(x,y)=>(tkMt(y)||0)-(tkMt(x)||0),pop:(x,y)=>tkPop(x).localeCompare(tkPop(y))}[T.sort]||((x,y)=>tkDt(y)-tkDt(x));L.sort(ord);
+  const pg=15,np=Math.max(1,Math.ceil(L.length/pg));T.dpg=Math.min(T.dpg,np-1);T._csv=L;
+  const tags=Object.entries(DF).filter(x=>x[1]).map(([k,v])=>[k,v===true?((D.chk.find(x=>x[0]===k)||[])[1]||k):v]);if(T.dq)tags.unshift(['__q','Busca: “'+T.dq+'”']);
+  const ins=D.ins?D.ins(L):tkPorPop(L,K);
+  return `<div class="tkbox"><div class="tkrow">${tkBusca('tkdq',T.dq,D.ph)}</div>
+    <div class="tkrow">${tkSel('pop','POP',tkUniq(B,tkPop),DF.pop,'d')}${tkSel('tec','Técnico',tkUniq(B,tkTec),DF.tec,'d')}${D.fil.map(([k,l,f])=>tkSel(k,l,tkUniq(B,f),DF[k],'d')).join('')}${D.chk.map(([k,l])=>`<button type="button" class="tkchip" data-act="tk" data-o="dchk" data-v="${k}" aria-pressed="${!!DF[k]}">${l}</button>`).join('')}</div>
+    ${tkPerBar()}
+    <div class="tkrow">${tags.length?tags.map(([k,v])=>`<span class="tktag">${esc(v)}<button type="button" data-act="tk" data-o="drm" data-v="${k}" aria-label="Tirar filtro">×</button></span>`).join('')+'<button class="linkbtn" data-act="tk" data-o="drm" data-v="*">Limpar tudo</button>':'<span class="tkmut tksm">A busca procura também dentro dos relatórios.</span>'}</div></div>
+   <div class="tkkst">${D.kpis(L).map(([v,l])=>`<div class="tkkpi tkst"><b>${v}</b><span class="tkkl">${l}</span></div>`).join('')}</div>
+   ${ins}
+   <section class="tkp"><div class="tkph"><h3>Relatórios</h3><div class="tkrow"><small>${L.length} no filtro</small><select class="inp tksel" data-ch="tkSort" aria-label="Ordenar"><option value="rec" ${T.sort==='rec'?'selected':''}>Mais recentes</option><option value="ant" ${T.sort==='ant'?'selected':''}>Mais antigos</option>${K==='corr'?`<option value="dur" ${T.sort==='dur'?'selected':''}>Maior MTTR</option>`:''}<option value="pop" ${T.sort==='pop'?'selected':''}>POP (A-Z)</option></select><button class="btn sm" data-act="tk" data-o="csv" data-v="${K}">Exportar planilha</button></div></div>
+    <div class="tkrl">${L.slice(T.dpg*pg,T.dpg*pg+pg).map(c=>{const on=!!T.ab[c.id],d=new Date(tkDt(c));return `<article class="tkrc ${on?'on':''}"><button type="button" class="tkrh" data-act="tk" data-o="rel" data-v="${c.id}" aria-expanded="${on}"><span class="tkrd"><b>${String(d.getDate()).padStart(2,'0')}</b>${TK_MES[d.getMonth()]}</span><span class="tkrm">${D.sum(c)}</span><span class="tkrx" aria-hidden="true">›</span></button>${on?`<div class="tkrel">${D.rel(c)}${tkAcoes(c)}</div>`:''}</article>`}).join('')||'<p class="muted" style="margin:0">Nada encontrado com esses filtros.</p>'}</div>
+    <div class="tkpg"><span class="tkmut">Página ${T.dpg+1} de ${np}</span><span class="tkrow"><button class="btn sm" data-act="tk" data-o="dpg" data-v="-1" ${T.dpg?'':'disabled'}>‹ Anterior</button><button class="btn sm" data-act="tk" data-o="dpg" data-v="1" ${T.dpg<np-1?'':'disabled'}>Próxima ›</button></span></div></section>`}
+viewTxPainel=function(){const K=ui.txK&&(TXK_N[ui.txK]||ui.txK==='geral')?ui.txK:'geral';tkS();
+  return `<div class="tkw"><div class="toolbar"><div><h2>Painel de KPIs · Transmissão${K!=='geral'?' · '+TXK_N[K]:''}</h2></div>${tkLive()}</div>
+   ${TXP.err?`<div class="result bad">${esc(TXP.err)}</div>`:''}${K==='geral'?tkGeral():tkDet(K)}</div>`};
+/* ---------- ações ---------- */
+function tkCsv(K){const T=tkS(),L=T._csv||[],sep=';',q=v=>{v=v==null?'':String(v).replace(/\r?\n/g,' ');return /[;"]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const cab=['Data','Chamado','POP','Tipo','Técnico','Situação','Duração (MTTR)','Causa raiz','Ação','Resultado','O que fazer','Observações'];
+  const lin=L.map(c=>{const r=tkR(c),t=txT(c);return [tkD(tkDt(c)),tkCod(c),tkPop(c),TXK_N[t]||'',tkTec(c),tkSit(c),t==='corr'?tkFmtH(tkMt(c)):'',r.raiz||'',r.acao||'',r.desfecho||'',txOq(c)||c.motivo||'',r.detalhes||r.feito||r.gobs||'']});
+  const csv='﻿'+[cab].concat(lin).map(l=>l.map(q).join(sep)).join('\r\n'),b=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=`transmissao_${K}_${hoje()}.csv`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);toast(`Planilha com ${L.length} linha${L.length===1?'':'s'} baixada.`)}
+Object.assign(ACT,{tk:el=>{const T=tkS(),o=el.dataset.o,v=el.dataset.v;
+  if(o==='aba'){ui.txK=v;T.d={};T.dq='';T.dpg=0;T.ab={};window.scrollTo(0,0)}
+  else if(o==='per'){T.per=v;T.f.mes='';T.pg=0;T.dpg=0}
+  else if(o==='go'){ui.tab='gPainel';ui.gSec='geral';ui.txKF='';if(v==='aberto'){ui.txK='corr';T.d={aberto:true}}else{ui.txK=v;T.d={}}T.dq='';T.dpg=0;window.scrollTo(0,0)}
+  else if(o==='mes'){T.f.mes=T.f.mes===v?'':v;if(T.f.mes&&T.per!=='365')T.per='365';T.pg=0}
+  else if(o==='pop'||o==='cat'){T.f[o]=T.f[o]===v?'':v;T.pg=0}
+  else if(o==='rm'){if(v==='*'){T.f={};T.q=''}else if(v==='q')T.q='';else T.f[v]='';T.pg=0}
+  else if(o==='vsort'){T.vsort=[v,T.vsort[0]===v?-T.vsort[1]:-1];T.pg=0}
+  else if(o==='pg'){T.pg+=+v}
+  else if(o==='dchk'){T.d[v]=!T.d[v];T.dpg=0}
+  else if(o==='drm'){if(v==='*'){T.d={};T.dq=''}else if(v==='__q')T.dq='';else delete T.d[v];T.dpg=0}
+  else if(o==='dfx'){const k=el.dataset.k;T.d[k]=T.d[k]===v?'':v;T.dpg=0}
+  else if(o==='dpop'){T.d.pop=T.d.pop===v?'':v;T.dpg=0}
+  else if(o==='dq'){T.dq=v;T.dpg=0}
+  else if(o==='rel'){T.ab[v]=!T.ab[v]}
+  else if(o==='dpg'){T.dpg+=+v;setTimeout(()=>{const e=document.querySelector('.tkrl');if(e)e.scrollIntoView({block:'start'})},30)}
+  else if(o==='csv'){tkCsv(v);return}
+  render()}});
+Object.assign(CH,{tkSel:el=>{const T=tkS();(el.dataset.o==='d'?T.d:T.f)[el.dataset.k]=el.value;T.pg=0;T.dpg=0;render()},tkCmp:el=>{tkS().cmp=el.checked;render()},tkSort:el=>{tkS().sort=el.value;render()}});
+{const _k=ACT.txKSec;if(_k)ACT.txKSec=function(el){const T=tkS();if(el&&el.dataset.v!==ui.txK){T.d={};T.dq='';T.dpg=0;T.ab={}}return _k.apply(this,arguments)}}
+{const _p=CH.txPer;CH.txPer=el=>{tkS().per='custom';return _p(el)}}
+let tkTq;Object.assign(IN,{tkq:el=>{clearTimeout(tkTq);const k=el.dataset.k,v=el.value;tkTq=setTimeout(()=>{const T=tkS();if(k==='tkq'){T.q=v.trim();T.pg=0}else{T.dq=v.trim();T.dpg=0}const pos=el.selectionStart;render();const n=document.getElementById(k);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},220)}});
+/* dica ao passar o dedo/mouse */
+document.addEventListener('pointermove',e=>{const t=e.target.closest&&e.target.closest('[data-tktip]');let tip=document.getElementById('tkTip');if(!t){if(tip)tip.style.opacity=0;return}
+  if(!tip){tip=document.createElement('div');tip.id='tkTip';tip.setAttribute('role','tooltip');document.body.appendChild(tip)}tip.innerHTML=t.dataset.tktip;tip.style.opacity=1;
+  const x=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8),y=Math.max(8,e.clientY-tip.offsetHeight-12);tip.style.left=x+'px';tip.style.top=y+'px'});
+document.head.insertAdjacentHTML('beforeend',`<style>
+.tkw{display:grid;gap:14px;min-width:0}
+.tkw .toolbar{align-items:center}
+.tklive{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--muted)}.tklive i{width:8px;height:8px;border-radius:50%;background:var(--brand);animation:tkpul 2s infinite}
+@keyframes tkpul{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--brand) 60%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.tkabas{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:thin}
+.tkabas button{border:0;background:none;color:var(--muted);font:600 14.5px Barlow,sans-serif;padding:9px 12px;border-bottom:3px solid transparent;white-space:nowrap;cursor:pointer}
+.tkabas button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--brand)}.tkabas button span{font-size:12px;color:var(--muted);margin-left:5px}
+.tkbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:10px;min-width:0}
+.tkrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0}
+.tkbusca{flex:1 1 300px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--bg);min-width:0;color:var(--muted)}
+.tkbusca input{border:0;background:transparent;font:inherit;color:var(--ink);padding:10px 0;flex:1;min-width:0;outline:none}
+.tkbusca:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.tksel{width:auto;max-width:230px;min-width:0}
+.tklbl{font-size:13px;font-weight:600;color:var(--muted)}
+.tkchip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font:600 13.5px Barlow,sans-serif;cursor:pointer}
+.tkchip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.tkper{font-size:12.5px}
+.tkchk{display:inline-flex;gap:6px;align-items:center;font-size:14px;cursor:pointer}
+.tktag{display:inline-flex;gap:4px;align-items:center;background:var(--brand-soft);color:var(--brand-ink);border-radius:999px;padding:4px 6px 4px 10px;font-weight:600;font-size:13px}
+.tktag button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 4px}
+.tkmut{color:var(--muted)}.tksm{font-size:12.5px}.tkbom{color:var(--brand-ink)}.tkruim{color:var(--bad)}.tkeq{color:var(--muted)}
+.tkkpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.tkkst{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tkkpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:4px;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0;align-content:start}
+.tkkpi:hover{border-color:var(--brand)}.tkkpi.tkst{cursor:default}.tkkpi.tkst:hover{border-color:var(--line)}
+.tkkpi>b{font:600 30px/1.05 "Barlow Condensed",sans-serif}.tkkl{font-size:13.5px;color:var(--muted)}
+.tkkd{font-size:12.5px;font-weight:600;display:flex;gap:6px;flex-wrap:wrap;align-items:center}.tkkd .chip{font-weight:600}
+.tksp{width:100%;height:28px;display:block}
+.tkbar{display:block;height:6px;border-radius:3px;background:var(--bg);border:1px solid var(--line);overflow:hidden}.tkbar i{display:block;height:100%;background:var(--brand-ink)}
+.tkg2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+.tkp{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px;min-width:0;align-content:start}
+.tkph{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}.tkph h3{margin:0;font:600 19px "Barlow Condensed",sans-serif}.tkph small{color:var(--muted);font-size:12.5px}
+.tkch{width:100%;display:block;overflow:visible}.tkch text{fill:var(--muted);font:12px Barlow,sans-serif}
+.tkgl{stroke:var(--line);stroke-width:1}.tkmk{fill:var(--brand-ink);cursor:pointer}.tkmk.dim{opacity:.35}.tkmk:hover,.tkmk.on{fill:var(--info)}
+.tkmeta{stroke:var(--warn);stroke-width:1.5;stroke-dasharray:4 4}.tkch .tkmetat{fill:var(--warn);font-weight:600}.tkch .tkult{fill:var(--ink);font-weight:600}
+.tkhb{display:grid;gap:6px}
+.tkhbr{display:grid;grid-template-columns:minmax(110px,240px) 1fr 40px;gap:8px;align-items:center;border:0;background:none;padding:2px 0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.tkhbr span:first-child{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tkhbr b{font-size:13.5px;text-align:right}
+.tkhbb{height:14px;background:var(--bg);border-radius:0 4px 4px 0}.tkhbb i{display:block;height:100%;background:var(--brand-ink);border-radius:0 4px 4px 0}
+.tkhbr:hover .tkhbb i,.tkhbr[aria-pressed="true"] .tkhbb i{background:var(--info)}
+.tkhm{overflow-x:auto}.tkhm table{border-collapse:separate;border-spacing:3px;font-size:12.5px;min-width:640px;width:100%}
+.tkhm th{font-weight:600;color:var(--muted);text-align:left;white-space:nowrap;padding:2px 6px}
+.tkc{height:28px;min-width:40px;border-radius:5px;text-align:center;font-weight:600}
+.tkc.l0,.tkleg .l0{background:color-mix(in srgb,var(--brand-ink) 5%,var(--surface))}.tkc.l1,.tkleg .l1{background:color-mix(in srgb,var(--brand-ink) 18%,var(--surface))}.tkc.l2,.tkleg .l2{background:color-mix(in srgb,var(--brand-ink) 34%,var(--surface))}
+.tkc.l3,.tkleg .l3{background:color-mix(in srgb,var(--brand-ink) 52%,var(--surface))}.tkc.l4,.tkleg .l4{background:color-mix(in srgb,var(--brand-ink) 72%,var(--surface));color:var(--surface)}.tkc.l5,.tkleg .l5{background:var(--brand-ink);color:var(--surface)}
+.tkleg{display:flex;gap:3px;align-items:center;font-size:12px;color:var(--muted)}.tkleg i{display:inline-block;width:16px;height:10px;border-radius:2px}
+.tkpv{display:grid;gap:8px}
+.tkpvr{display:grid;grid-template-columns:minmax(120px,220px) 1fr auto;gap:10px;align-items:center;font-size:13.5px}.tkpvr>span:first-child{display:grid}
+.tkpvb{height:10px;border-radius:5px;background:var(--bg);border:1px solid var(--line);overflow:hidden}.tkpvb i{display:block;height:100%;background:var(--brand-ink)}.tkpvb i.bad{background:var(--bad)}.tkpvb i.warn{background:var(--warn)}
+.tktb{min-width:880px}.tktb td{vertical-align:top}.tktb .tkcl{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:340px}.tktb th button{border:0;background:none;font:inherit;font-weight:600;color:inherit;cursor:pointer;padding:0;white-space:nowrap}
+.tktb mark,.tkrc mark{background:var(--warn-soft);color:inherit;border-radius:3px;padding:0 1px}
+.tkpg{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.tkfora{color:var(--bad);font-weight:700}
+.tkseg{display:flex;height:30px;border-radius:6px;overflow:hidden;gap:2px;background:var(--surface)}
+.tkseg span{display:grid;place-items:center;color:#fff;font:600 12.5px Barlow,sans-serif;min-width:0;overflow:hidden;white-space:nowrap}
+.tksegl{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}.tksegl i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+:root{--tk-s0:#2a78d6;--tk-s1:#eb6834;--tk-s2:#1baf7a;--tk-s3:#c98500}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--tk-s0:#3987e5;--tk-s1:#d95926;--tk-s2:#199e70;--tk-s3:#c98500}}
+:root[data-theme="dark"]{--tk-s0:#3987e5;--tk-s1:#d95926;--tk-s2:#199e70;--tk-s3:#c98500}
+.s0{background:var(--tk-s0)}.s1{background:var(--tk-s1)}.s2{background:var(--tk-s2)}.s3{background:var(--tk-s3)}
+.tkrl{display:grid;gap:8px}
+.tkrc{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.tkrh{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:12px 14px;cursor:pointer}
+.tkrh:hover{background:var(--bg)}
+.tkrd{font:600 13px "Barlow Condensed",sans-serif;text-align:center;line-height:1.1;color:var(--muted);min-width:42px}.tkrd b{display:block;font-size:22px;color:var(--ink)}
+.tkrm{display:grid;gap:3px;min-width:0}.tkrm>b{font-size:15.5px}.tkrm>small{color:var(--muted);font-size:13px}
+.tkrx{font-size:20px;color:var(--muted);transition:transform .15s}.tkrc.on .tkrx{transform:rotate(90deg)}
+.tkrel{border-top:1px solid var(--line);padding:14px;display:grid;gap:14px;background:var(--bg)}
+.tkrel h4{margin:0 0 6px;font:600 14px "Barlow Condensed",sans-serif;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+.tkfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px 16px}.tkfg>div{display:grid;font-size:14px;min-width:0;overflow-wrap:anywhere}.tkfg small{color:var(--muted);font-size:12px}
+.tktl{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.tktl>div{display:grid;gap:2px;justify-items:center;text-align:center;font-size:12.5px;position:relative;padding-top:20px}
+.tktl>div::before{content:"";position:absolute;top:6px;left:0;right:0;height:2px;background:var(--line)}.tktl>div:first-child::before{left:50%}.tktl>div:last-child::before{right:50%}
+.tktl>div::after{content:"";position:absolute;top:1px;left:calc(50% - 6px);width:12px;height:12px;border-radius:50%;background:var(--brand-ink);box-shadow:0 0 0 3px var(--bg)}.tktl>div.no::after{background:var(--line)}
+.tktl b{font-size:13px}.tktl em{font-style:normal;color:var(--muted);font-size:11.5px}
+.tkses{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.tkses>div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:6px;font-size:13.5px;align-content:start}.tkses ul{margin:0;padding-left:18px;display:grid;gap:3px}
+.tkfts{display:flex;gap:8px;flex-wrap:wrap}.tkfts img{width:110px;height:82px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+.tkft{width:110px;height:82px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;color:var(--muted)}
+#tkTip{position:fixed;pointer-events:none;z-index:200;background:var(--ink);color:var(--surface);border-radius:8px;padding:6px 9px;font-size:12.5px;line-height:1.35;max-width:260px;opacity:0;transition:opacity .1s}
+@media (max-width:980px){.tkkpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tkg2{grid-template-columns:1fr}}
+@media (max-width:560px){.tkkpi>b{font-size:26px}.tkhbr{grid-template-columns:1fr 36px;row-gap:3px}.tkhbr .tkhbb{grid-column:1/-1;grid-row:2}
+ .tkpvr{grid-template-columns:1fr}.tksel{flex:1 1 140px;max-width:none}.tkch text{font-size:17px}
+ .tktl{grid-template-columns:1fr;gap:8px}.tktl>div{justify-items:start;text-align:left;padding:0 0 0 22px}.tktl>div::before{top:0;bottom:-8px;left:5px;right:auto;width:2px;height:auto}.tktl>div:first-child::before{left:5px;top:6px}.tktl>div:last-child::before{display:none}.tktl>div::after{top:2px;left:0}
+ .tkrh{grid-template-columns:auto 1fr}.tkrx{display:none}}
+</style>`);
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
