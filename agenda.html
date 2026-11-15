@@ -20210,6 +20210,130 @@ function rpAprRel(x){const A=rpAps(x).filter(a=>a.st!=='rej');
 {const _a=viewGAprov;viewGAprov=function(){let h=_a.apply(this,arguments);try{if(typeof reAt!=='function'||!reAt()||reLado()!=='prev')return h;
   (RP.rows||[]).forEach(x=>{if(x.lpu&&(x.lpu.env||x.lpu.dev||x.lpu.rep)){const a=`<b>O&amp;M ${esc(x.cod)}</b>`;if(h.includes(a))h=h.split(a).join(`<b>Programada ${esc(x.cod)}</b>`)}})}catch(e){}return h}}
 
+/* ---- 14/11: relatório de fusões da extensão em etapas claras ----
+   Tela 1 "Caixas do trajeto": etapas do relatório, mapa, lista das caixas com a situação de cada uma e o envio no fim.
+   Tela 2 "Caixa": uma caixa por vez, dividida em 5 partes numeradas (cabos, fusões, fusão do cliente, fotos, observação),
+   com "Confirmar caixa" que já leva para a próxima. Regras, dados e PDF não mudam (FU.R, fusoesParc, fusoes). */
+const fuTela=()=>(FU.R&&FU.R.tela==='cx'&&fuCx(FU.R.sel))?'cx':'lista';
+function fuCxSt(c){const d=fuD(c.id),n=d.fus.length;if(!n)return{k:'nada',t:'Sem fusões',F:[]};const F=[];
+  if(d.fus.some(f=>!f.ok)||d.mod)F.push('confirmar a caixa');if(n>1&&fuCliI(d)<0)F.push('marcar a fusão do cliente');if(!d.fotos.length)F.push('foto da caixa aberta');
+  d.spls.forEach(s=>{if(d.fus.some(f=>f.a.key==='s'+s.id)&&!d.fus.some(f=>f.b.key==='e'+s.id))F.push('ligar a entrada do '+s.nome)});
+  return F.length?{k:'pend',t:'Falta: '+F.join(', '),F}:{k:'ok',t:`Pronta · ${n} ${n===1?'fusão':'fusões'} confirmada${n===1?'':'s'}`,F}}
+const fuSec=(n,tit,sub,body,ok)=>`<section class="fusec${ok?' feito':''}"><header><span class="fusn">${ok?'✓':n}</span><div><h4>${tit}</h4>${sub?`<small>${sub}</small>`:''}</div></header><div class="fusb">${body}</div></section>`;
+function fuEtapas(a){const C=fuCaixas(),pr=C.filter(c=>fuCxSt(c).k==='ok').length,com=C.filter(c=>fuN(c.id)).length,ex=a.status==='execucao',F=fuFalta();
+  const st=[{t:'Registrar as fusões',s:com?`${pr} de ${com} ${com===1?'caixa pronta':'caixas prontas'}`:'Nenhuma caixa ainda',ok:com>0&&!F.length,on:true},
+    {t:'Concluir a atividade',s:ex?'Na tela da atividade':'Feito',ok:!ex,on:!ex},
+    {t:'Enviar o relatório',s:ex?'Depois de concluir':F.length?'Falta completar':'Pronto para enviar',ok:false,on:!ex&&!F.length}];
+  return `<ol class="fuetp">${st.map((x,i)=>`<li class="${x.ok?'ok':''} ${x.on&&!x.ok?'at':''}"><span>${x.ok?'✓':i+1}</span><div><b>${x.t}</b><small>${x.s}</small></div></li>`).join('')}</ol>`}
+function fuListaHtml(a){const R=FU.R,C=fuCaixas(),F=fuFalta(),fim=a.status!=='execucao';
+  const card=(c,i)=>{const s=fuCxSt(c),n=fuN(c.id);return `<li><button type="button" class="fulc ${s.k}" data-fu="cxab" data-id="${c.id}"><span class="fulcn">${i+1}</span><span class="fulct"><b>${esc(c.nome)}</b><small>${FU_TIPO[c.tipo]||'Caixa'}${c.novo?' · fora do KMZ':''}${c.m!=null?' · '+fuMt(c.m):''}</small><em class="fus-${s.k}">${s.k==='ok'?'✓ ':s.k==='pend'?'! ':''}${esc(s.t)}</em></span><span class="fulcg" aria-hidden="true">›</span></button></li>`};
+  return `<div class="fusec fusec0"><header><div><h4>Caixas do trajeto</h4><small>Toque numa caixa (na lista ou no mapa) para registrar as fusões dela. Caixa sem fusão (só passagem) pode ficar como está.</small></div></header><div class="fusb">
+     <ul class="fulcl">${C.map(card).join('')}</ul>
+     ${R.add?'<div class="result info" style="margin:0">Toque no mapa onde fica a caixa.</div><button class="btn sm" data-fu="addcx">Cancelar</button>':'<button class="link" data-fu="addc" style="justify-self:start">+ Caixa que não está no KMZ</button>'}
+     <details class="fumapd" ${R.add||R.mapa!==false?'open':''}><summary>Mapa do trajeto</summary>
+      <div class="fumapw"><div id="fuSlot"></div></div>
+      <div class="tools fubar">${VT_ORDEM_FUNDO.map(f=>`<button class="btn sm ${(FU.base||fuFundoAtual())===f?'primary':''}" data-fu="fundo" data-f="${f}">${VT_FUNDOS[f].n}</button>`).join('')}<button class="btn sm" data-fu="tudo">Ver tudo</button></div>
+      <details class="fupad"><summary>Cores dos traços no KMZ (padrão construtivo)</summary><ul>${FU_PAD.map(p=>`<li class="${FU.M.cab.some(c=>c.pad===p)?'on':''}"><i style="background:${p.c}"></i>${p.n}: ${p.t}${FU.M.cab.some(c=>c.pad===p)?' · este KMZ':''}</li>`).join('')}</ul></details></details>
+   </div></div>
+   <div id="fuFoot" class="fusec fusec0"><header><div><h4>Enviar o relatório</h4><small>${fim?'Atividade concluída: confira e envie o PDF.':'Disponível depois que você concluir a atividade. As caixas confirmadas já ficam registradas para a gestão.'}</small></div></header><div class="fusb">
+    ${fim?(F.length?`<div class="vtmiss"><b>Falta para enviar</b><ul>${F.slice(0,8).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><button class="bigbtn" disabled>Concluir e enviar o PDF</button>`:`<button class="bigbtn" data-act="fuEnviar" data-id="${a.id}">Concluir e enviar o PDF</button>`)
+      :`<button class="bigbtn" data-act="fuFechar">Voltar para a atividade</button>`}</div></div>`}
+function fuCaixaHtml(c){const d=fuD(c.id),It=fuItens(c.id),Lb=It.filter(x=>!x.spl),us=new Set(d.fus.flatMap(f=>['a|'+f.a.key+'|'+f.a.f,'b|'+f.b.key+'|'+f.b.f]));
+  const P=FU.P||(FU.P={a:{c:(It.find(x=>x.spl)||It[0]||{}).key||'',f:null},b:{c:(Lb[0]||{}).key||'',f:null},q:1,add:''});
+  P.q=1;if(!It.some(x=>x.key===P.a.c))P.a={c:(It.find(x=>x.spl)||It[0]||{}).key||'',f:null};if(!Lb.some(x=>x.key===P.b.c))P.b={c:(Lb[0]||{}).key||'',f:null};
+  const C=fuCaixas(),i=C.findIndex(x=>x.id===c.id),ant=C[i-1],prox=C[i+1],s=fuCxSt(c),cb=k=>It.find(x=>x.key===k),nomeI=x=>x.ent?x.nome:x.spl?`${x.nome} · saídas`:`${x.nome} · ${x.fo} fibras`;
+  /* 1. cabos e splitters */
+  const item=x=>x.ent?'':`<li><span><b>${esc(x.nome)}</b><small>${x.spl?(x.kmz?`Splitter do KMZ · ${x.fo} saídas · lado do POP`:`Incluído por você · ${esc(x.modelo||'Balanceado')}`):x.kmz?`${x.pad?`Traço ${x.pad.n.toLowerCase()} = ${x.pad.t} · `:''}${fuMt(x.m)}${x.desc?' · '+esc(x.desc):''}`:`${x.fo} fibras · incluído por você`}</small></span>
+    ${x.spl?`<label class="fuft"><span>Tipo</span><select class="inp" data-fuc="spl" data-k="${x.key}">${FU_SPL.map(n=>`<option value="${n}" ${n===x.fo?'selected':''}>1x${n}</option>`).join('')}</select></label>`:x.kmz?`<label class="fuft"><span>Fibras</span><select class="inp" data-fuc="fo" data-k="${x.key}">${(x.pad&&x.pad.fo?x.pad.fo.concat(FU_FOS.filter(n=>!x.pad.fo.includes(n))):FU_FOS).map(n=>`<option ${n===x.fo?'selected':''}>${n}</option>`).join('')}</select></label>`:''}${x.kmz?'':`<button type="button" class="fudel" data-fu="rm" data-k="${x.key}" aria-label="Tirar ${esc(x.nome)}">×</button>`}</li>`;
+  const form=P.add==='cab'?`<div class="fuadd"><label class="f"><span>Nome do cabo</span><input class="inp" id="fuCabNome" data-fui="cbN" value="${esc(P.cbN||'')}" placeholder="Ex.: CABO DROP 2F CLIENTE"></label><label class="f"><span>Fibras</span><input class="inp" id="fuCabFo" data-fui="cbF" type="number" min="1" max="288" value="${P.cbF||2}"></label><div class="tools"><button class="btn sm" data-fu="addx">Cancelar</button><button class="btn sm primary" data-fu="cabok">Incluir cabo</button></div></div>`
+    :P.add==='spl'?`<div class="fuadd fusp"><label class="f"><span>Tipo</span><select class="inp" id="fuSpT" data-fuc="spT">${FU_SPL.map(n=>`<option value="${n}" ${n===(P.spT||8)?'selected':''}>1x${n}</option>`).join('')}</select></label><label class="f"><span>Modelo</span><select class="inp" id="fuSpM" data-fuc="spM">${FU_MOD.map(m=>`<option ${m===(P.spM||'Balanceado')?'selected':''}>${m}</option>`).join('')}</select></label><label class="f" style="grid-column:1/-1"><span>Identificação do splitter</span><input class="inp" id="fuSpI" data-fui="spI" value="${esc(P.spI||'')}" placeholder="Ex.: SPL-01, bandeja 1"></label><div class="tools"><button class="btn sm" data-fu="addx">Cancelar</button><button class="btn sm primary" data-fu="splok">Incluir splitter</button></div></div>`
+    :'<div class="fulinks"><button class="link" data-fu="cab">+ Cabo que não está no KMZ</button><button class="link" data-fu="spl">+ Splitter</button></div>';
+  const s1=fuSec(1,'Confira os cabos da caixa','Ajuste o número de fibras se for diferente do KMZ.',`<ul class="fucab">${It.map(item).join('')}</ul>${form}`,false);
+  /* 2. fusões */
+  const lado=l=>{const k=cb(P[l].c),sel=P[l].f!=null&&k?fuPorta(k,P[l].f):null;return `<div class="fulado fulado-${l}"><p class="fulh"><span>${l==='a'?'A':'B'}</span>${l==='a'?'De · lado do POP':'Para · lado do cliente'}</p><select class="inp" data-fuc="cab" data-l="${l}" aria-label="${l==='a'?'De, lado do POP':'Para, lado do cliente'}">${(l==='a'?It:Lb).map(x=>`<option value="${x.key}" ${x.key===P[l].c?'selected':''}>${esc(nomeI(x))}</option>`).join('')}</select>${fuGrade(l,k,P,us)}${sel?`<p class="fusel">${fuDot(sel.cor)} ${esc(sel.txt)}</p>`:`<p class="muted" style="margin:0;font-size:13px">${k&&k.spl?'Toque na saída do splitter.':'Toque na fibra.'}</p>`}</div>`};
+  const pa=P.a.f!=null&&cb(P.a.c)?fuPorta(cb(P.a.c),P.a.f):null,pb=P.b.f!=null&&cb(P.b.c)?fuPorta(cb(P.b.c),P.b.f):null;
+  const linha=(f,j)=>`<li class="fuli${f.ok?'':' nc'}"><span class="fuk">${j+1}</span><span class="fuf fa">${fuDot(f.a.cor)}<span><b>${esc(f.a.nome)}</b><small>${esc(f.a.txt)}</small></span></span><span class="fux" aria-hidden="true">→</span><span class="fuf fb">${fuDot(f.b.cor)}<span><b>${esc(f.b.nome)}</b><small>${esc(f.b.txt)}</small></span></span><button type="button" class="fudel" data-fu="del" data-i="${j}" aria-label="Apagar fusão ${j+1}">×</button></li>`;
+  const s2=fuSec(2,'Registre as fusões',d.fus.length?`${d.fus.length} ${d.fus.length===1?'fusão registrada':'fusões registradas'}`:'Escolha a fibra em A e em B e toque em Adicionar.',
+    `${d.fus.length?`<ol class="fulist">${d.fus.map(linha).join('')}</ol>`:''}
+     <div class="funova"><div class="fulados">${lado('a')}${lado('b')}</div>
+      <div class="fuprev">${pa&&pb?`${fuDot(pa.cor)} ${esc(cb(P.a.c).nome)} · ${esc(pa.txt)} <b>→</b> ${fuDot(pb.cor)} ${esc(cb(P.b.c).nome)} · ${esc(pb.txt)}`:'<span class="muted">Falta escolher '+(!pa&&!pb?'a fibra em A e em B':!pa?'a fibra em A':'a fibra em B')+'.</span>'}</div>
+      <button class="btn primary wide" data-fu="add" ${pa&&pb?'':'disabled'}>Adicionar fusão</button></div>`,false);
+  /* 3. fusão do cliente */
+  const ci=fuCliI(d);const s3=fuSec(3,'Qual fusão atende o cliente?',d.fus.length>1?'Marque a fusão que leva o sinal até o cliente.':d.fus.length===1?'Com uma fusão só, ela já é a do cliente.':'Registre as fusões primeiro.',
+    d.fus.length>1?`<div class="fucli">${d.fus.map((f,j)=>`<button type="button" class="fuclb${j===ci?' on':''}" data-fu="cli" data-i="${j}" aria-pressed="${j===ci}"><span class="furd" aria-hidden="true"></span><span>${j+1}. ${fuDot(f.a.cor)} ${esc(f.a.txt)} → ${fuDot(f.b.cor)} ${esc(f.b.txt)}</span></button>`).join('')}</div>`:d.fus.length===1?`<p class="fusel" style="margin:0">${fuDot(d.fus[0].a.cor)} ${esc(d.fus[0].a.txt)} → ${fuDot(d.fus[0].b.cor)} ${esc(d.fus[0].b.txt)}</p>`:'',d.fus.length===1||(d.fus.length>1&&ci>=0));
+  /* 4. fotos e 5. observação */
+  const s4=fuSec(4,'Foto da caixa aberta',d.fus.length?'Obrigatória quando a caixa tem fusão (até 4).':'Até 4 fotos.',`${d.fotos.length?`<div class="fufts">${d.fotos.map((u,j)=>`<div class="vtft"><img src="${u}" alt="Foto ${j+1} da ${esc(c.nome)}"><button type="button" class="rfx" data-fu="fdel" data-i="${j}" aria-label="Apagar foto">×</button></div>`).join('')}</div>`:''}
+     ${d.fotos.length<4?`<div class="tools"><label class="btn sm">Câmera<input type="file" accept="image/*" capture="environment" data-fuc="foto" hidden></label><label class="btn sm">Galeria<input type="file" accept="image/*" data-fuc="foto" hidden></label></div>`:''}`,d.fotos.length>0);
+  const s5=fuSec(5,'Observação','Opcional.',`<textarea class="inp" rows="2" data-fui="obs" aria-label="Observação da caixa" placeholder="Ex.: caixa já tinha a fibra 1 com 1 emendada">${esc(d.obs||'')}</textarea>`,!!(d.obs||'').trim());
+  /* fim da caixa */
+  const pend=d.fus.some(f=>!f.ok)||d.mod,F=s.F.filter(x=>x!=='confirmar a caixa');
+  const fimCx=`<div class="fufim">${d.fus.length?(pend?`${F.length?`<div class="vtmiss"><b>Ainda falta nesta caixa</b><ul>${F.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><small>Pode confirmar agora e completar depois.</small></div>`:''}<button class="bigbtn" data-fu="confnx">Confirmar caixa${prox?' e ir para a próxima':''}</button><p class="muted" style="margin:0;font-size:12.5px">Ao confirmar, a gestão já recebe as fusões desta caixa.</p>`
+      :`<p class="fuokc">✓ Caixa confirmada às ${hmA(d.confEm)}.${F.length?' Ainda falta: '+esc(F.join(', '))+'.':''} Se mudar algo, confirme de novo.</p>`):'<p class="muted" style="margin:0;font-size:13.5px">Sem fusão nesta caixa? Se o cabo só passa por ela, não precisa registrar nada.</p>'}
+    <div class="funav">${ant?`<button class="btn" data-fu="cxab" data-id="${ant.id}">‹ ${esc(ant.nome)}</button>`:'<span></span>'}<button class="btn" data-fu="lista">Todas as caixas</button>${prox?`<button class="btn" data-fu="cxab" data-id="${prox.id}">${esc(prox.nome)} ›</button>`:'<span></span>'}</div></div>`;
+  return `<div class="fucxw"><div class="fucxh"><button class="back" data-fu="lista">‹ Todas as caixas</button><div class="fucxt"><div><small>Caixa ${i+1} de ${C.length}</small><h3>${esc(c.nome)}</h3><small class="muted">${FU_TIPO[c.tipo]||'Caixa'}${c.m!=null?' · a '+fuMt(c.m)+' do início do cabo':''} · ${c.ll[0].toFixed(6)}, ${c.ll[1].toFixed(6)}</small></div><span class="chip ${s.k==='ok'?'ok':''}">${s.k==='ok'?'Pronta':d.fus.length?d.fus.length+(d.fus.length>1?' fusões':' fusão'):'Sem fusões'}</span></div>
+     ${c.desc?`<p class="fudesc">Do projeto: ${esc(c.desc)}</p>`:''}${c.novo?`<label class="f"><span>Nome da caixa</span><input class="inp" data-fui="cxnome" value="${esc(c.nome)}"></label>`:''}</div>
+    ${s1}${s2}${s3}${s4}${s5}${fimCx}</div>`}
+fuView=function(a){const V=ui.fu||{},cli=esc(cliN(a.etiqueta)||a.etiqueta);
+  const top=(sub,body)=>`<button class="back" data-act="fuFechar">‹ Voltar para a atividade</button><article class="tcard vtw"><div class="tchd"><div class="tcl"><span class="tccli">${cli}</span></div><span class="tcetq">${esc(a.etiqueta)}</span></div><div class="tcband" style="background:${corFase(a)}"><span class="tck">RELATÓRIO DE FUSÕES · EXTENSÃO</span><span class="tcf">${sub}</span></div>${body}</article>`;
+  if(V.st==='carregando')return top('Abrindo o KMZ…','<div class="tcb"><p class="muted" style="margin:0">Baixando o KMZ de extensão do projeto e montando o mapa.</p></div>');
+  if(V.st==='semkmz'||V.st==='erro')return top(V.st==='erro'?'Não foi possível abrir':'Sem KMZ de extensão',`<div class="tcb vtsem">${V.st==='erro'?`<div class="result bad" style="margin:0">${esc(V.msg||'')}</div>`:'<p style="margin:0">Este projeto não tem o KMZ de extensão anexado. Peça à gestão para anexar ou carregue o KMZ que você recebeu.</p>'}
+    <label class="btn primary wide">Carregar o KMZ deste aparelho<input type="file" accept=".kmz,.kml" data-fuc="kmz" hidden></label></div>`);
+  if(fuTela()==='cx')return `<div class="vtw fuux">${fuCaixaHtml(fuCx(FU.R.sel))}</div>`;
+  return `${top('Caixas e fusões',`<div class="tcb">${fuEtapas(a)}<small class="muted" style="font-size:12.5px">KMZ: ${esc(FU.nome)} · salvo neste aparelho a cada toque</small></div>`)}<div class="vtw vtbody fuux">${fuListaHtml(a)}</div>`};
+/* mapa: tocar na caixa abre a caixa */
+fuMapaAtualiza=function(){const LL=window.L;if(!FU.map||!FU.R)return;FU.LY.cx.clearLayers();
+  fuCaixas().forEach(c=>{const on=c.id===FU.R.sel,mk=LL.marker(c.ll,{icon:LL.divIcon({className:'fuel'+(on?' on':''),html:fuIco(c,on)+`<span class="lb">${esc(c.nome)}</span>`,iconSize:[30,30],iconAnchor:[15,15]}),zIndexOffset:on?1000:0,title:c.nome}).addTo(FU.LY.cx);
+    mk.on('click',ev=>{LL.DomEvent.stopPropagation(ev);if(FU.R.add)return;FU.R.sel=c.id;FU.R.tela='cx';FU.P=null;fuSalvar();render();window.scrollTo(0,0)})});
+  const md=document.getElementById('fuMap');if(md)md.classList.toggle('drawing',!!FU.R.add)};
+/* caixa nova pelo mapa: abre direto na caixa */
+{const _r=render;render=function(){const R=FU.R;if(R&&ui.fu&&R.sel&&R._nb!==R.nb.length){if(R._nb!=null&&R.nb.length>R._nb){R.tela='cx';FU.P=null}R._nb=R.nb.length}return _r.apply(this,arguments)}}
+document.addEventListener('click',ev=>{const b=ev.target.closest('[data-fu]');if(!b||!ui.fu||!FU.R||b.closest('.leaflet-container'))return;const R=FU.R,v=b.dataset.fu;
+  if(v==='cxab'){R.sel=b.dataset.id;R.tela='cx';FU.P=null;fuSalvar();render();window.scrollTo(0,0);return}
+  if(v==='lista'){R.tela='lista';FU.P=null;fuSalvar();render();window.scrollTo(0,0);setTimeout(()=>{const c=fuCx(R.sel);if(c&&FU.map)FU.map.setView(c.ll,18)},60);return}
+  if(v==='confnx'){const c=fuCx(R.sel),D=c&&fuD(c.id),a=getAg(ui.fu.ag);if(!D||!D.fus.length)return;D.fus.forEach(f=>f.ok=true);D.mod=false;D.confEm=Date.now();fuSalvar();
+    if(a)fuParcial(a,`Confirmou ${D.fus.length} ${D.fus.length===1?'fusão':'fusões'} na ${c.nome}`);const C=fuCaixas(),nx=C[C.findIndex(x=>x.id===c.id)+1];
+    toast(`${c.nome} confirmada.`);if(nx){R.sel=nx.id;R.tela='cx'}else R.tela='lista';FU.P=null;fuSalvar();render();window.scrollTo(0,0)}},true);
+document.head.insertAdjacentHTML('beforeend',`<style>
+.fuux{display:grid;gap:12px}
+.fuetp{list-style:none;margin:0 0 6px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.fuetp li{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:8px;min-width:0;color:var(--muted)}
+.fuetp li>span{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 13px Barlow,sans-serif;background:var(--bg);border:1px solid var(--line)}
+.fuetp li div{display:grid;min-width:0}.fuetp b{font:700 14px 'Barlow Condensed',sans-serif;color:var(--ink)}.fuetp small{font-size:12px}
+.fuetp li.at{border-color:var(--ink);color:var(--ink)}.fuetp li.at>span{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.fuetp li.ok>span{background:var(--brand);border-color:var(--brand);color:#fff}
+.fusec{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fusec>header{display:flex;gap:10px;align-items:flex-start;padding:12px 12px 8px}
+.fusec h4{margin:0;font:700 18px 'Barlow Condensed',sans-serif}.fusec header small{color:var(--muted);font-size:13px;display:block;margin-top:1px}
+.fusn{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:700 15px Barlow,sans-serif;background:var(--ink);color:var(--surface)}
+.fusec.feito .fusn{background:var(--brand);color:#fff}
+.fusb{padding:0 12px 14px;display:grid;gap:10px;min-width:0}
+.fulcl{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.fulc{width:100%;display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
+.fulc.ok{border-left-color:var(--brand)}.fulc.pend{border-left-color:#d48a00}
+.fulcn{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 13px Barlow,sans-serif;background:var(--bg);border:1px solid var(--line)}
+.fulct{display:grid;min-width:0;flex:1}.fulct b{font-size:15.5px}.fulct small{color:var(--muted);font-size:12.5px}
+.fulct em{font-style:normal;font-size:13px;font-weight:600;margin-top:2px}.fus-ok{color:var(--brand-ink)}.fus-pend{color:var(--warn)}.fus-nada{color:var(--muted);font-weight:500!important}
+.fulcg{font-size:22px;color:var(--muted)}
+.fumapd>summary{cursor:pointer;font-weight:700;padding:4px 0;color:var(--ink)}.fumapd[open]>summary{margin-bottom:8px}.fumapd .fubar{margin-top:8px}
+.fucxh{display:grid;gap:8px}.fucxh>.back,.fuux .funav .btn{justify-self:start}.fufim .bigbtn{font-size:20px;line-height:1.2;padding-block:14px}.fucxt{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.fucxt h3{margin:0;font:700 22px 'Barlow Condensed',sans-serif}.fucxt small{display:block;font-size:12.5px}
+.fucxw{display:grid;gap:12px}
+.fulh{display:flex;gap:8px;align-items:center;margin:0;font:700 15px 'Barlow Condensed',sans-serif}
+.fulh span{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:var(--bg);border:1px solid var(--line);font-size:13px}
+.fulado{border:1px solid var(--line);border-radius:10px;padding:10px}
+.fuprev{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px;font-weight:600;background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:8px}
+.fuli.nc{border-style:dashed}
+.fucli{display:grid;gap:6px}
+.fuclb{display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:600 14px Barlow,sans-serif}
+.fuclb>span:last-child{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.furd{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--muted)}
+.fuclb.on{border-color:var(--brand);background:var(--brand-soft)}.fuclb.on .furd{border-color:var(--brand);box-shadow:inset 0 0 0 4px var(--surface);background:var(--brand)}
+.fufim{display:grid;gap:8px}.fufim .vtmiss small{display:block;margin-top:4px}
+.funav{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center}.funav>.btn{font-size:13.5px;padding:8px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.funav>.btn:last-child{justify-self:end}
+@media (max-width:560px){.fuetp{grid-template-columns:1fr}.fuetp li{padding:6px 8px}}
+</style>`);
+document.addEventListener('toggle',ev=>{const t=ev.target;if(!t.classList||!t.classList.contains('fumapd')||!FU.R)return;FU.R.mapa=t.open;if(t.open&&FU.map)setTimeout(()=>{FU.map.invalidateSize(false);fuTudo()},30)},true);
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
