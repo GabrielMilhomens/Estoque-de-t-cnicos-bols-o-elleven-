@@ -6491,7 +6491,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
   else if(R.parcial&&R.parcial.path)rels=`<div class="tools"><button class="btn sm" data-act="relVer" data-p="${esc(R.parcial.path)}">Relatório da não conclusão</button></div>`;
   const resul=rels+(med?`<dl class="dl" style="margin-top:8px">${med}</dl>`:'');
   const mats=ro?matRO(a.materiais):!FIM.includes(a.status)&&a.status!=='cancelada'&&(p.roi||a.materiais)?matHtml(matCheck(p,a.estoque||a.__tec0||a.tec,fasesOf(a),a.materiais)):'';
-  const obs=a.obs?`<p class="note" style="margin:6px 0 0"><b>Observação do agendamento:</b> ${esc(a.obs)}</p>`:'';
+  const obs=(caboAg(a)?`<p class="note" style="margin:6px 0 0"><b>Nome do cabo:</b> <span class="mono">${esc(caboAg(a))}</span></p>`:'')+(a.obs?`<p class="note" style="margin:6px 0 0"><b>Observação do agendamento:</b> ${esc(a.obs)}</p>`:'');
   const nMat=(a.materiais||[]).length,anx=anxDe(a.etiqueta);
   const pz=a.prazo&&a.prazo.resp==='mais'?`<div class="result ${a.prazo.status==='pendente'?'warn':a.prazo.status==='aprovado'?'ok':'bad'}" style="margin:0 0 8px"><b>Pedido de prazo (${a.prazo.status==='pendente'?'aguardando decisão':a.prazo.status}):</b> mais ${a.prazo.dias>1?a.prazo.dias+' dias':'1 dia'}, ${esc(a.prazo.motivo||'')}. ${esc(a.prazo.obs||'')}${a.prazo.resposta?`<br>Resposta: ${esc(a.prazo.resposta)}`:''}${a.prazo.status==='pendente'&&canReag()?`<br><button class="btn sm" data-act="pzDecidir" data-id="${a.id}" style="margin-top:6px">Decidir</button>`:''}</div>`:'';
   const avisos=pz+(a.motivo?`<div class="result bad" style="margin:0 0 8px">Não concluída: ${esc(a.motivo)}${a.obsMotivo?'. '+esc(a.obsMotivo):''}${a.reag?`. Reagendada para ${dBR(a.reag)}.`:''}</div>`:'')
@@ -6544,9 +6544,9 @@ function agEdSalvar(){const E=ui.agEd,a=getAg(E.id),F=ui.agForm,pp=pPor(a.etique
   const mk=L=>JSON.stringify((L||[]).map(x=>[x.cod||x.desc,+x.qtd||0]).sort());if(mk(lista)!==mk(a.materiais))mud.push('materiais: '+(lista&&lista.length?lista.map(x=>`${x.desc} (${x.qtd})`).join(', '):'nenhum'));
   if(fr.slice().sort().join()!==(a.fotosReq||[]).slice().sort().join())mud.push(`fotos do relatório: ${fr.length} ${fr.length===1?'foto':'fotos'}`);
   if(obs!==(a.obs||''))mud.push(obs?'observação: '+obs:'observação removida');
-  if(!mud.length){toast('Nada foi alterado.');return}
+  caboEd(a,F,mud);if(!mud.length){toast('Nada foi alterado.');return}
   const tecAnt=a.tec;a.fases=fz;a.fase=fz[0];a.data=dias[0];if(dias.length>1)a.dias=dias.slice();else delete a.dias;a.tec=F.tec;
-  if(lista)a.materiais=lista;else delete a.materiais;if(obs)a.obs=obs;else delete a.obs;if(fr.length)a.fotosReq=fr;else delete a.fotosReq;
+  if(lista)a.materiais=lista;else delete a.materiais;if(obs)a.obs=obs;else delete a.obs;caboAplica(a,F);if(fr.length)a.fotosReq=fr;else delete a.fotosReq;
   a.edicoes=(a.edicoes||[]).concat([{em:Date.now(),por:meNome(),mud}]);save();
   sb.from('ag_mensagens').insert({agendamento:a.id,texto:'Atividade alterada pela gestão: '+mud.join('; ')+'.'}).then(()=>{},()=>{});
   ui.agEd=null;ui.agDia=a.data;ui.agSel=null;ui.agForm={};render();toast(`Atividade alterada: ${mud.length} ${mud.length===1?'mudança':'mudanças'}${F.tec!==tecAnt?'. O técnico anterior recebe o aviso de retirada':''}.`)}
@@ -6848,7 +6848,7 @@ function agendForm(p){
   const c=S.comp[e]||{},precisa=FZ.some(k=>k==='interno'||k==='ativ'),falta=[!(c.endereco||'').trim()&&'o endereço',precisa&&!(c.contato||'').trim()&&'o contato',precisa&&!(c.telefone||'').trim()&&'o telefone'].filter(Boolean);
   const E=ui.agEd,ea=E&&getAg(E.id),emEd=ea&&ea.etiqueta===e;
   const res=`<div class="agres">${icA('dt')}<span>${FZ.length?`<b>${fzTxt}</b>`:'Escolha a fase'} ${n===1?'em':'·'} <b>${resDias}</b> com ${tecSel?`<b>${esc(tecSel.nome)}</b>`:'<span style="color:var(--warn)">escolha o técnico</span>'}.${falta.length?` <span class="agresf">Ainda falta ${falta.length>1?falta.slice(0,-1).join(', ')+' e '+falta[falta.length-1]:falta[0]} em Dados complementares. <button class="link" data-act="fTab" data-t="comp">Preencher agora</button></span>`:''}</span></div>`;
-  return `${agEdBanner(p)}${blk(1,'O que será feito',fzTxt||'escolha a fase',`<div class="agfz2">${fs}</div><div class="agxs"><span>Outras atividades (não contam como fase):</span>${ex}</div>${kmz}`)}
+  return `${agEdBanner(p)}${blk(1,'O que será feito',(fzTxt||'escolha a fase')+caboRes(F),`<div class="agfz2">${fs}</div><div class="agxs"><span>Outras atividades (não contam como fase):</span>${ex}</div>${kmz}${caboBloco(p,F)}`)}
    ${blk(2,'Quando e quem',`${resDias} · ${tecSel?esc(tecSel.nome):'escolha o técnico'}`,`${rangeHtml('ag',F.data,F.dataFim,F.uteis)}${modo}<p class="agb2l">Técnico${per?' · ocupação '+per:''}</p>${agTecBloco(F,dias)}`)}
    ${blk(3,'Material',resMat,nteEstSel(F)+(p.roi&&FZ.length?nteMatEd(p,F):`<p class="muted" style="margin:0">${!p.roi?'Projeto sem ROI: sem lista de materiais. Envie o ROI em Editar dados do projeto.':'Escolha a fase para ver os materiais.'}</p>`),falt?'bad':'')}
    ${blk(4,'Fotos e observação',resFot,`${fusNota}${fz.length?fotosEditor(F):fzExt?'':'<p class="muted" style="margin:0 0 10px">Sem fotos para as fases escolhidas.</p>'}<label class="f" style="margin:0"><span>Observação para o técnico</span><textarea class="inp" rows="2" data-in="agObs" placeholder="Ex.: sobra de cabo deixada no poste em frente ao cliente pela equipe do lançamento na rua">${esc(F.obs||'')}</textarea></label>`)}
@@ -9887,7 +9887,7 @@ function cabDet(x){const{a,p}=x,g=a.lancGeo||{},F=lmFasesL(a).length?lmFasesL(a)
     ${kz?`<button class="btn" data-act="anxOpen" data-id="${kz.id}">Baixar KMZ do projeto</button>`:'<span class="muted">Sem KMZ de lançamento anexado.</span>'}${M?`<button class="btn" data-act="lmVerG" data-id="${a.id}">Ver alteração no mapa</button><button class="btn" data-act="lmKml" data-id="${a.id}">KML do trajeto</button>`:''}</div>
    <div class="geoact">${ac}</div>${g.st==='ok'||(g.evid||[]).length?geoEvLista(g.evid||[],'cab',a.id):''}${geoLogHtml(a.lancGeoLog)}</article>`}
 function viewGeoCab(){const so=geoSoCad(),L=cabLinhas().filter(x=>!so||x.st==='cad'||x.st==='ok'),f=ui.cabF||'all',q=normK(ui.cabQ||''),cnt=k=>L.filter(x=>x.st===k).length;
-  const R=L.filter(x=>(f==='all'||x.st===f)&&(!q||normK([x.p.cliente,x.p.protocolo,x.a.etiqueta,tecN(x.a.tec),x.a.equipeNome].join(' ')).includes(q))),x=R.find(r=>r.a.id===ui.cabSel)||R[0];
+  const R=L.filter(x=>(f==='all'||x.st===f)&&(!q||normK([x.p.cliente,x.p.protocolo,x.a.etiqueta,tecN(x.a.tec),x.a.equipeNome,caboAg(x.a)].join(' ')).includes(q))),x=R.find(r=>r.a.id===ui.cabSel)||R[0];
   const lista=R.map(r=>`<button class="geoi ${x&&r.a.id===x.a.id?'on':''}" data-act="cabSel" data-id="${r.a.id}"><span class="geoih"><b>${geoNE(r.p.cliente,r.a.etiqueta)}</b>${geoPill(r.st,CAB_ST)}</span><small>${esc(fasesN(r.a))} · ${esc(tecN(r.a.tec))} · ${dBR(r.a.data)}</small><small>${r.m!=null?lmFmt(r.m)+' lançados':'sem metragem'}${r.a.lancMapa?' · <b class="geonov">trajeto alterado</b>':''}</small></button>`).join('')||'<p class="muted" style="padding:14px">Nenhum lançamento nesta situação.</p>';
   return `<div class="toolbar"><div><h2>Cadastro Geogrid</h2><p class="muted">O que precisa ser cadastrado no Geogrid.</p></div></div>${geoViews()}<div class="geohd"><h3>Cadastro de cabos</h3><p class="muted">Cabos lançados pelos técnicos (rua e interno), com metragem, lote, reservas e alteração de trajeto. O encarregado valida e o analista do Geogrid marca como cadastrado, com as evidências.</p></div>
    <div class="geobar"><div class="geochips">${CAB_F.filter(([k])=>k==='all'||cnt(k)).map(([k,n])=>`<button class="chip ${f===k?'go':''}" data-act="cabF" data-v="${k}" aria-pressed="${f===k}">${n} (${k==='all'?L.length:cnt(k)})</button>`).join('')}</div>
@@ -12090,7 +12090,7 @@ function tlEnd(d,o){const tel=String(d.telefone||'').replace(/\D/g,''),cv=tlCv(o
 function tlTecImpl(a){const p=pPor(a.etiqueta)||{},c=S.comp[a.etiqueta]||{},anx=anxDe(a.etiqueta),pi=p.inst||{},SD=svcDe(p),sv=SD.svc;
   const mp=loc=>loc?`<a class="tvcp txt" href="${esc(mapUrl(loc))}" target="_blank" rel="noopener">Mapa</a>`:'';
   const eq=String(p.equip||'').replace(/^\((.*)\)$/,'$1'),nt=SD.notas.join('. '),cobs=svcLimpa(c.obs,sv);
-  const h=tlR('lst','Serviços a entregar',sv.map((x,i)=>`${i+1}. ${esc(x)}`).join('\n'))+tlR('fz','Topologia',esc(p.topologia||''))+tlR('cabo','Cabo',+p.metros?(+p.metros)+' m':'')
+  const h=tlR('lst','Serviços a entregar',sv.map((x,i)=>`${i+1}. ${esc(x)}`).join('\n'))+tlR('fz','Topologia',esc(p.topologia||''))+tlR('cabo','Cabo',+p.metros?(+p.metros)+' m':'')+(n=>tlR('cabo','Nome do cabo',n?`<b class="mono">${esc(n)}</b>`:'',n?tvCpB(n,'Nome do cabo'):''))(caboAg(a))
     +tlR('top','POP',esc(p.pop||''),p.pop?tvCpB(p.pop,'POP'):'')+tlR('eqp','Equipamento de acesso',esc(eq),eq?tvCpB(eq,'Equipamento'):'')+tlR('top','Porta',pi.porta?`<span class="mono">${esc(pi.porta)}</span>`:'',pi.porta?tvCpB(pi.porta,'Porta'):'')
     +tlR('cid','Ponto de acesso',esc(pi.pa||''),mp(pi.locPa))+(p.semExt?'':tlR('cid','Ponto de derivação',esc(pi.pd||''),mp(pi.locPd)))
     +tlR('nota','Observação do agendamento',esc(a.obs||''))+tlR('nota','Observações do projeto',esc(cobs))+(nt&&!cobs.includes(nt)?tlR('nota','Observações técnicas',esc(nt)):'');
@@ -21338,6 +21338,107 @@ const refChatPai=id=>{const c=(G.ch||[]).find(x=>x.id===id);return c&&refChDe(c)
   const ref=via||filhos[0],tit='O&M '+((P&&P.pom)||(ref&&ref.pom)||''),sub=(P&&P.cliente)||(ref&&ref.cliente)||'';
   h=h.replace(/(<div class="chath">[\s\S]*?<b>[^·<]*· )[^<]*(<\/b><small class="muted">)[^<]*(<\/small>)/,(m,a,b,c)=>`${a}${esc(tit)}${b}${esc(sub)} · Principal, reforço, NOC e O&amp;M${c}`);
   return h}catch(e){return h}}}
+
+/* ---------- 15/11: nome do cabo no Geogrid (Implantação) ----------
+   Padrão (16/11): POP = 3 últimas letras do código UF+cidade+POP (SPVINOVE → OVE); # logo depois do POP se espinado.
+   Rede:    R + POP + número                         → ROVE001 · ROVE#002
+   Cliente: C + topologia (G GPON, X XGS-PON, P ponto a ponto, L last mile) + POP + número → CGOVE001 · CXOVE#002
+   Numeração de 3 dígitos por POP, uma sequência para rede e outra para cliente (no cliente, a mesma para G, X, P e L).
+   Definido uma vez, o nome não muda (16/11): sem Alterar no agendamento nem Corrigir no Geogrid; só dá para informar quando falta.
+   Nome único (16/11): não deixa agendar nem informar um nome que já é de outro projeto (confere na tela e no banco;
+   o banco também tem índice único em ag_complementos.dados->>'cabo' — agenda_ajuste_89_cabo_unico.sql).
+   Obrigatório para despachar lançamento na rua, interno e extensão de sinal (bloco "O que será feito"); vai em a.cabo.
+   O nome fica ligado à etiqueta (S.comp[etq].cabo): definido uma vez, aparece pronto nas próximas atividades do projeto
+   (ex.: rua hoje, extensão daqui a um mês). Alterar o nome muda o do projeto e o das atividades com o nome antigo.
+   O técnico vê o nome na tela da atividade (com copiar) e o analista vê em Cadastro Geogrid · Cadastro de cabos,
+   onde também dá para informar ou corrigir o nome (fica no registro). */
+const CABO_TOP=[['G','GPON'],['X','XGS-PON'],['P','Ponto a ponto'],['L','Last mile']];
+const caboLanc=FZ=>(FZ||[]).some(k=>k==='rua'||k==='interno'||k==='ext');
+const caboTopo=p=>{const t=normK((p&&p.topologia)||'');return /xgs/.test(t)?'X':/gpon|pon\b/.test(t)?'G':/last/.test(t)?'L':'P'};
+/* sigla do POP no padrão Net Turbo: UF (2) + cidade (3) + POP (3), ex.: SPVINOVE → OVE (as 3 últimas letras) */
+const caboUlt=c=>{const x=String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return x.length>3?x.slice(-3):x};
+function caboSig(p){const v=String((p&&p.pop)||'').trim();if(!v)return '';const k=normK(v);
+  const w=v.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,' ').trim(),T=w.split(/\s+/).filter(Boolean);
+  const UF='AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' '),c8=T.filter(x=>/^[A-Z]{8}$/.test(x)),cod=c8.find(x=>UF.includes(x.slice(0,2)));if(cod)return cod.slice(-3);
+  try{const L=(typeof TXP!=='undefined'&&TXP.L)||[];const x=L.find(q=>q.sigla&&normK(q.sigla)===k)||L.find(q=>q.sigla&&new RegExp('\\b'+normK(q.sigla)+'\\b').test(k))||L.find(q=>q.nome&&normK(q.nome)&&k.includes(normK(q.nome)));if(x)return caboUlt(x.sigla)}catch(e){}
+  const U=T.filter(x=>x!=='POP');return caboUlt(U.find(x=>/^[A-Z]{6,}$/.test(x))||U[U.length-1]||'')}
+const caboReR=/^R([A-Z0-9]{3})(#?)(\d{1,4})$/,caboReC=/^C([GXPL])([A-Z0-9]{3})(#?)(\d{1,4})(?:-([A-Z0-9]{1,8}))?$/;
+const caboNome=c=>{if(!c||!c.sig)return '';const n=String(c.n||'').padStart(3,'0'),e=c.esp?'#':'';return c.f==='R'?`R${c.sig}${e}${n}`:`C${c.t||'G'}${c.sig}${e}${n}`};
+function caboDe(nome){const v=String(nome||'').toUpperCase();let m=v.match(caboReR);if(m)return{f:'R',sig:m[1],esp:!!m[2],t:'G',n:m[3].padStart(3,'0'),pa:''};
+  m=v.match(caboReC);return m?{f:'C',t:m[1],sig:m[2],esp:!!m[3],n:m[4].padStart(3,'0'),pa:m[5]||''}:null}
+/* nome do cabo ligado à etiqueta (dados complementares do projeto) */
+const caboComp=etq=>String(((S.comp||{})[etq]||{}).cabo||'');
+const caboAg=a=>a?(a.cabo||(caboLanc(fasesOf(a))?caboComp(a.etiqueta):'')):'';
+const caboTodos=()=>(S.ags||[]).filter(a=>a.status!=='cancelada'&&a.cabo).map(a=>({n:a.cabo,etq:a.etiqueta,id:a.id})).concat(Object.entries(S.comp||{}).filter(([e,c])=>c&&c.cabo).map(([e,c])=>({n:c.cabo,etq:e})));
+function caboProx(sig,f,ign){let mx=0;caboTodos().forEach(x=>{if(x.id&&x.id===ign)return;const d=caboDe(x.n);if(d&&d.sig===sig&&d.f===(f||'C'))mx=Math.max(mx,+d.n)});return String(mx+1).padStart(3,'0')}
+function caboSalvaComp(etq,n){if(!etq||!n)return;const c=S.comp[etq]=S.comp[etq]||{},ant=c.cabo||'';if(ant)return;
+  c.cabo=n;c.caboEm=Date.now();c.caboPor=meNome();c.caboHist=(c.caboHist||[]).concat([{de:ant||null,para:n,em:c.caboEm,por:c.caboPor}]);
+  if(ant)(S.ags||[]).forEach(a=>{if(a.etiqueta===etq&&a.cabo===ant)a.cabo=n})}
+/* nome já usado em outra atividade de outro projeto */
+const caboDup=(nome,etq,ign)=>{if(!nome)return null;const x=caboTodos().find(y=>y.n===nome&&y.etq!==etq);return x?(getAg(x.id)||{etiqueta:x.etq,data:null}):null};
+function caboIni(F,p){if(F.cabo)return F.cabo;const E=ui.agEd,a=E&&getAg(E.id),de=(a&&a.etiqueta===p.etiqueta&&a.cabo)||caboComp(p.etiqueta);
+  if(de){F.cabo=Object.assign(caboDe(de)||{man:true,nome:de},{fixo:true});return F.cabo}
+  const sig=caboSig(p);F.cabo={f:'C',sig,esp:false,t:caboTopo(p),n:sig?caboProx(sig,'C',a&&a.id):'001'};return F.cabo}
+const caboFinal=F=>{const c=F&&F.cabo;if(!c)return '';return String(c.man?c.nome||'':caboNome(c)).trim().toUpperCase()};
+function caboAviso(F,p){const n=caboFinal(F),E=ui.agEd,d=caboDup(n,p.etiqueta,E&&E.id);
+  return !n?'<span class="cabow">Obrigatório para agendar o lançamento.</span>':d?`<span class="cabow">Já é o cabo de ${esc(d.etiqueta)}: não dá para repetir. Use o próximo número.</span>`:''}
+function caboBloco(p,F){if(!caboLanc(F.fases))return '';const c=caboIni(F,p),nome=caboFinal(F);
+  if(c.fixo){const C=S.comp[p.etiqueta]||{};return `<div class="cabobx"><div class="caboh"><b>Nome do cabo no Geogrid</b><span class="muted" style="font-size:12.5px">Definido, não muda</span></div>
+   <div class="cabonm"><span>Cabo deste projeto (${esc(p.etiqueta)}): vai para o técnico e para o Geogrid</span><b class="mono" id="caboNm">${esc(nome)}</b><small>${C.caboEm?`Definido em ${dBR(isoD(new Date(C.caboEm)))}${C.caboPor?' por '+esc(C.caboPor):''}.`:'Definido em uma atividade anterior deste projeto.'}</small></div></div>`}
+  const camp=(k,l,v,ph,w)=>`<label class="f cabof" style="--w:${w}"><span>${l}</span><input class="inp mono" data-in="caboF" data-k="${k}" value="${esc(v||'')}" placeholder="${ph}" maxlength="${k==='pa'?8:k==='n'?4:5}" autocapitalize="characters" autocomplete="off"></label>`;
+  const montar=c.man?`<label class="f" style="margin:0"><span>Nome do cabo</span><input class="inp mono" data-in="caboF" data-k="nome" value="${esc(c.nome||'')}" placeholder="Ex.: CGOVE001 ou ROVE001" autocapitalize="characters" autocomplete="off"></label>`
+   :`<div class="agmodo cabofin" role="radiogroup" aria-label="Finalidade do cabo">${[['C','Cliente','chega ao cliente'],['R','Rede','fica na rede']].map(([k,n,d])=>`<label class="chk ${c.f===k?'on':''}"><input type="radio" name="caboFin" data-ch="caboFin" value="${k}" ${c.f===k?'checked':''}><span><b>${k} · ${n}</b><small>${d}</small></span></label>`).join('')}</div>
+     <div class="cabog">${c.f==='R'?'':`<label class="f cabof" style="--w:9em"><span>Topologia</span><select class="inp" data-ch="caboT">${CABO_TOP.map(([k,n])=>`<option value="${k}" ${c.t===k?'selected':''}>${k} · ${n}</option>`).join('')}</select></label>`}${camp('sig','POP',c.sig,'OVE','4.5em')}
+     <label class="caboesp"><input type="checkbox" data-ch="caboEsp" ${c.esp?'checked':''}><span>Espinado (#)</span></label>${camp('n','Número',c.n,'001','4.5em')}</div>`;
+  return `<div class="cabobx"><div class="caboh"><b>Nome do cabo no Geogrid *</b><button class="link" data-act="caboMan">${c.man?'Montar pelo padrão':'Digitar outro nome'}</button></div>
+   ${montar}<div class="cabonm"><span>Nome que vai para o técnico e para o Geogrid</span><b class="mono" id="caboNm">${esc(nome||'—')}</b><small id="caboAv">${caboAviso(F,p)}</small></div>
+   ${c.man?'':c.f==='R'?'<small class="muted">Rede: R + POP (# se espinado) + número na sequência de rede do POP. Ex.: ROVE001, ROVE#002.</small>':'<small class="muted">Cliente: C + topologia (G GPON, X XGS-PON, P ponto a ponto, L last mile) + POP (# se espinado) + número na sequência de clientes do POP. Ex.: CGOVE001, CXOVE#002.</small>'}</div>`}
+const caboRes=F=>{const n=caboLanc(F&&F.fases)&&caboFinal(F);return n?' · cabo '+n:''};
+function caboTela(){const F=ui.agForm,p=pPor(F.etq||ui.agSel)||{},a=$('caboNm'),b=$('caboAv');if(a)a.textContent=caboFinal(F)||'—';if(b)b.innerHTML=caboAviso(F,p)}
+Object.assign(IN,{caboF:el=>{const F=ui.agForm,c=F.cabo;if(!c)return;let v=String(el.value||'').toUpperCase().replace(/\s+/g,'');
+  if(el.dataset.k==='n')v=v.replace(/\D/g,'');else if(el.dataset.k!=='nome')v=v.replace(/[^A-Z0-9]/g,'');if(v!==el.value){const pos=el.selectionStart;el.value=v;try{el.setSelectionRange(pos,pos)}catch(e){}}
+  c[el.dataset.k]=el.dataset.k==='n'?v:v;if(el.dataset.k==='sig'&&!c._nMan){c.n=v?caboProx(v,c.f,ui.agEd&&ui.agEd.id):'001';const i=document.querySelector('[data-in="caboF"][data-k="n"]');if(i)i.value=c.n}
+  if(el.dataset.k==='n')c._nMan=true;caboTela()}});
+Object.assign(CH,{caboFin:el=>{const c=ui.agForm.cabo;if(!c)return;c.f=el.value;if(!c._nMan&&c.sig)c.n=caboProx(c.sig,c.f,ui.agEd&&ui.agEd.id);render()},caboT:el=>{const c=ui.agForm.cabo;if(c){c.t=el.value;caboTela()}},caboEsp:el=>{const c=ui.agForm.cabo;if(c){c.esp=el.checked;caboTela()}}});
+Object.assign(ACT,{caboMan:()=>{const F=ui.agForm,c=F.cabo;if(!c)return;if(c.man){const d=caboDe(c.nome);F.cabo=d||null;if(!d){delete F.cabo;caboIni(F,pPor(F.etq||ui.agSel)||{})}}else F.cabo={man:true,nome:caboFinal(F),alt:c.alt};render()}});
+/* obrigatório para despachar lançamento na rua, interno e extensão */
+{const _a=ACT.agendar;ACT.agendar=function(){const F=ui.agForm||{};if(caboLanc(F.fases)&&F.etq===ui.agSel){if(!F.cabo)caboIni(F,pPor(ui.agSel)||{});const n=caboFinal(F);
+  if(!n||(!F.cabo.man&&!F.cabo.sig)){ui.agBk=Object.assign({},ui.agBk,{1:1});render();toast('Informe o nome do cabo: obrigatório para lançamento na rua, interno e extensão de sinal.','bad');return}
+  if(!caboDe(n)&&!F.cabo.man){toast('Nome do cabo fora do padrão.','bad');return}
+  if(!caboComp(ui.agSel)){const d=caboDup(n,ui.agSel,ui.agEd&&ui.agEd.id);if(d){caboUsado(n,d.etiqueta);return}
+    const args=arguments,me=this;return caboLivre(n,ui.agSel).then(o=>{if(o){caboUsado(n,o);return}return _a.apply(me,args)})}}return _a.apply(this,arguments)}}
+/* nome único: confere também no banco (projetos que não estão carregados nesta tela) */
+const caboUsado=(n,etq)=>{ui.agBk=Object.assign({},ui.agBk,{1:1});render();toast(`O cabo ${n} já é de ${etq}. Cada cabo tem nome único: use o próximo número.`,'bad')};
+async function caboLivre(n,etq){try{const q=sb.from('ag_complementos').select('etiqueta').eq('dados->>cabo',n).neq('etiqueta',etq).limit(1);
+  const r=await Promise.race([q,new Promise(ok=>setTimeout(()=>ok(null),6000))]);return r&&!r.error&&r.data&&r.data[0]?r.data[0].etiqueta:null}catch(e){return null}}
+/* grava: agendar (criarAgs), reagendar e replicar levam o nome */
+{const _c=criarAgs;criarAgs=function(etq,fases,tec,dias,por,extra){extra=Object.assign({},extra||{});
+  if(caboLanc(fases)&&!extra.cabo){const F=ui.agForm,n=F&&F.etq===etq&&F.cabo?caboFinal(F):'';const o=getAg(extra.origem||extra.replicaDe||'');if(caboComp(etq))extra.cabo=caboComp(etq);else if(n)extra.cabo=n;else if(o&&o.cabo)extra.cabo=o.cabo;else if(caboComp(etq))extra.cabo=caboComp(etq)}
+  if(extra.cabo)caboSalvaComp(etq,extra.cabo);
+  return _c.call(this,etq,fases,tec,dias,por,extra)}}
+function caboEd(a,F,mud){const n=caboLanc(F.fases)?caboFinal(F):'';if(n!==(a.cabo||''))mud.push(n?'nome do cabo: '+n:'nome do cabo removido')}
+function caboAplica(a,F){const n=caboLanc(F.fases)?(caboComp(a.etiqueta)||caboFinal(F)):'';if(n){caboSalvaComp(a.etiqueta,n);a.cabo=n}else delete a.cabo}
+{const _f=agFormDe;agFormDe=function(a){const F=_f.apply(this,arguments);const n=caboAg(a)||(a&&caboComp(a.etiqueta));if(n)F.cabo=Object.assign(caboDe(n)||{man:true,nome:n},{fixo:true});return F}}
+/* Cadastro Geogrid · Cadastro de cabos */
+const caboPodeEd=()=>pode('a_geoCad')||pode('a_geoVal')||pode('a_agendar');
+function caboGeo(a){const n=caboAg(a)||caboComp(a.etiqueta)||'',bt=!n&&caboPodeEd()?`<button class="btn sm" data-act="caboGeoEd" data-id="${a.id}">Informar nome</button>`:'';
+  return `<div class="cabogeo ${n?'':'falta'}"><span><small>Nome do cabo</small>${n?`<b class="mono">${esc(n)}</b>`:'<b>Não informado no agendamento</b>'}</span><span class="cabogb">${n?`<button class="btn sm" data-act="tvCopiar" data-v="${esc(n)}" data-n="Nome do cabo">Copiar</button>`:''}${bt}</span></div>`}
+{const _d=cabDet;cabDet=function(x){const h=_d.apply(this,arguments);try{return h.replace('<div class="tablewrap"><table class="geot"><thead><tr><th>Lançamento</th>',caboGeo(x.a)+'<div class="tablewrap"><table class="geot"><thead><tr><th>Lançamento</th>')}catch(e){return h}}}
+{const _v=viewGeoCab;viewGeoCab=function(){const h=_v.apply(this,arguments);try{return h.replace(/(data-act="cabSel" data-id="([^"]+)"><span class="geoih">[\s\S]*?<\/span><\/span>)/g,(m,a,id)=>{const g=getAg(id),n=g&&(caboAg(g)||caboComp(g.etiqueta));return n?a+`<small class="mono cabol">${esc(n)}</small>`:a})}catch(e){return h}}}
+/* Cadastro de fibras (extensão de sinal): nome do cabo no detalhe e na lista */
+{const _v=viewGeo;viewGeo=function(){let h=_v.apply(this,arguments);try{h=h.replace(/(data-act="geoSel" data-id="([^"]+)"><span class="geoih">[\s\S]*?<\/span><\/span>)/g,(m,a,id)=>{const g=getAg(id),n=g&&(caboAg(g)||caboComp(g.etiqueta));return n?a+`<small class="mono cabol">${esc(n)}</small>`:a});
+  const on=h.match(/class="geoi on" data-act="geoSel" data-id="([^"]+)"/),g=on&&getAg(on[1]);if(g)h=h.replace(/(<article class="geodet"><div class="geodh">[\s\S]*?<\/div>\s*<span class="chip[^"]*">[^<]*<\/span><\/div>)/,(m)=>m+caboGeo(g));return h}catch(e){return h}}}
+Object.assign(ACT,{caboGeoEd:el=>{if(!caboPodeEd())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const p=pPor(a.etiqueta)||{},sug=caboAg(a)||caboComp(a.etiqueta)||caboNome({f:'C',sig:caboSig(p),t:caboTopo(p),n:caboSig(p)?caboProx(caboSig(p),'C',a.id):'001'});
+  openModal(`<h3>Nome do cabo</h3><p class="muted">${esc(a.etiqueta)} · ${esc(fasesN(a))} · ${dBR(a.data)}. Padrão: cliente C + G/X/P/L + POP + número (ex.: CGOVE#002); rede R + POP + número (ex.: ROVE001). # logo depois do POP se espinado. O nome vale para todo o projeto.</p><label class="f" style="margin-top:10px"><span>Nome do cabo no Geogrid</span><input class="inp mono" id="caboGN" value="${esc(sug)}" autocapitalize="characters" autocomplete="off"></label><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="caboGeoOk" data-id="${a.id}">Salvar</button></div>`)},
+  caboGeoOk:async el=>{if(!caboPodeEd())return semPerm();const a=getAg(el.dataset.id);if(!a)return;const n=String(($('caboGN')||{}).value||'').trim().toUpperCase().replace(/\s+/g,'');if(!n){toast('Informe o nome do cabo.','bad');return}
+    const d=caboDup(n,a.etiqueta,a.id);const ant=caboAg(a)||caboComp(a.etiqueta)||'';if(ant){closeModal();toast('O nome do cabo já foi definido e não muda.','bad');return}if(d){toast(`O cabo ${n} já é de ${d.etiqueta}. Cada cabo tem nome único.`,'bad');return}const o2=await caboLivre(n,a.etiqueta);if(o2){toast(`O cabo ${n} já é de ${o2}. Cada cabo tem nome único.`,'bad');return}caboSalvaComp(a.etiqueta,n);a.cabo=n;a.lancGeoLog=(a.lancGeoLog||[]).concat([{em:Date.now(),acao:ant?`Nome do cabo corrigido: ${ant} → ${n}`:`Nome do cabo informado: ${n}`,por:meNome()}]);save();closeModal();render();toast('Nome do cabo salvo.')}});
+(function(){const st=document.createElement('style');st.textContent=`.cabobx{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);display:grid;gap:10px}
+.caboh{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}.cabog{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end}.cabof{margin:0;flex:0 0 var(--w)}.cabof .inp{width:100%}
+.caboesp{display:flex;gap:6px;align-items:center;min-height:40px;font-weight:600}.cabonm{display:grid;gap:2px;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:8px 12px}
+.cabonm span{font-size:12px;color:var(--muted)}.cabonm b{font-size:20px;letter-spacing:.04em;color:var(--brand-ink)}.cabow{color:var(--warn);font-size:12.5px}
+.cabogeo{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--brand-soft)}
+.cabogeo.falta{background:var(--warn-soft)}.cabogeo span{display:grid;gap:2px}.cabogeo small{color:var(--muted);font-size:12px}.cabogeo b.mono{font-size:18px;letter-spacing:.04em}.cabogb{display:flex!important;grid-auto-flow:column;gap:6px}
+.cabofin{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cabofin .chk{margin:0}.cabofin small{display:block;color:var(--muted);font-weight:400}.cabol{display:block;color:var(--brand-ink);font-weight:700}`;document.head.appendChild(st)})();
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
