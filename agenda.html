@@ -11028,7 +11028,7 @@ const areaModoAt=fn=>areaModo(!gTecPerfil()?areaAt():null,fn);
 function areaTexto(root,A){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement&&n.parentElement.closest('.catsw,#navCat')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});const L=[];while(w.nextNode())L.push(w.currentNode);
   const art=A.art||'da';L.forEach(n=>{let v=n.nodeValue,o=v;if(A.texto)v=A.texto(v);if(/GTD/.test(v))v=v.replace(/GTD Manutenção|Manutenção GTD|Manutenção do GTD/g,A.n).replace(/\bdo GTD\b/g,art+' '+A.n).replace(/\bno GTD\b/g,(art==='do'?'no':'na')+' '+A.n).replace(/\bGTD\b/g,A.n);if(v!==o)n.nodeValue=v})}
 {const _r=render;render=function(){areaFix();const gs=ui.cat==='gtd'&&!gTecPerfil(),at=gs?(ui.gArea||'gtd'):null;let o;
-  if(gs){const all=G.ch,allL=G.lpus,id=new Map(all.map(c=>[c.id,c])),ok=c=>areaDe(c)===at,F=all.filter(ok),FL=allL.filter(l=>{const c=id.get(l.chamado);return c?ok(c):at==='gtd'});
+  if(gs){const all=G.ch,allL=G.lpus,id=new Map((G.__full||all).map(c=>[c.id,c])),ok=c=>areaDe(c)===at,F=all.filter(ok),FL=allL.filter(l=>{const c=id.get(l.chamado);return c?ok(c):at==='gtd'});
     G.ch=F;G.lpus=FL;try{o=areaModo(at,()=>_r.apply(this,arguments))}finally{if(G.ch===F)G.ch=all;if(G.lpus===FL)G.lpus=allL}}
   else o=_r.apply(this,arguments);
   try{areaCats();const A=at&&at!=='gtd'&&areaCfg(at);if(A){['app','tabs','nbar'].forEach(i=>{const e=document.getElementById(i);if(e)areaTexto(e,A)});const t=$('mTitle');if(t)areaTexto(t,A)}}catch(e){console.warn('area',e)}return o}}
@@ -16897,7 +16897,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>.a-fin.ario,.a-fin .ario,.a
 .fgchips .chip{cursor:pointer}.fgchips .chip.on{background:var(--brand-ink,#3F6B12);color:#fff;border-color:transparent}.fgempty{color:var(--muted);font-size:14px;margin:8px 0 0}.gerk{grid-template-columns:repeat(3,minmax(0,1fr))!important}.gerk .kpi span{font-size:12.5px}@media(max-width:560px){.gerk{grid-template-columns:repeat(2,minmax(0,1fr))!important}}</style>`);
 /* ---- dados financeiros de todas as áreas ---- */
 const FIN_AR=[['impl','Implantação','0005'],['gtd','GTD Manutenção','0006'],['tx','Transmissão','0007'],['re','RE Corretiva','0008'],['rep','RE Preventiva','0101']];
-const finChArea=l=>{const c=l&&l.chamado&&(G.ch||[]).find(x=>x.id===l.chamado);return c?areaDe(c):null};
+const finChArea=l=>{const c=l&&l.chamado&&(G.__full||G.ch||[]).find(x=>x.id===l.chamado);return c?areaDe(c):null};
 function finAreaL(l){if(l._rp)return 'rep';if(l._pl)return l._pl;if(!l.chamado)return lpuTx(l)?'tx':'impl';const a=finChArea(l)||'gtd';if(a==='re')return rePrevL(l)?'rep':'re';return a}
 function finPlantoes(){if(typeof PLT==='undefined')return[];if(!PLT.ok&&!PLT.err&&!PLT.bus&&typeof plCarregar==='function')plCarregar();return(PLT.rows||[]).filter(x=>x.status==='apr'&&x.baixa).map(x=>({id:'pl:'+x.id,chamado:null,_pl:x.area==='re'?'re':'gtd',tec:x.tec,status:'aprovada',total:+x.baixa.total||0,data:isoD(new Date(x.apr.em)),categoria:'Plantão',hist:[{acao:'Aprovada',por:x.apr.por,em:x.apr.em}],itens:x.baixa.itens||[],conta:x.area==='re'?RE_CONTA:GTD_CONTA,etiqueta:'Plantão '+plPer(x),cliente:'Plantão'}))}
 function finTodas(){if(typeof RP!=='undefined'&&!RP.ok&&!RP.bus)rpCarregar().then(()=>{if(['fin','ger'].includes(ui.cat))render()}).catch(()=>{});
@@ -16957,7 +16957,7 @@ function gerHtml(k){const S0={cat:ui.cat,tab:ui.tab,gArea:ui.gArea,reLado:ui.reL
   try{if(k==='impl'){if(!pode('painel')&&ui.perfil!=='coord')return null;ui.cat='impl';ui.tab='painel';ui.pSec='geral';h=viewPainel()}
     else{const a=k==='rep'?'re':k;ui.cat='gtd';ui.tab='gPainel';ui.gArea=a;ui.reLado=k==='rep'?'prev':'cor';try{permEff()}catch(e){}
       if(k==='rep'&&!(ui.perfil==='coord'||rePrevVe()))return null;if(k==='re'&&!(ui.perfil==='coord'||reCorVe()))return null;if(!(areaVis().some(x=>x.k===a)))return null;if(!(ui.perfil==='coord'||pode('gPainel')))return null;
-      const ok=c=>areaDe(c)===a,ids=new Map(chA.map(c=>[c.id,c]));G.ch=chA.filter(ok);G.lpus=lA.filter(l=>{const c=ids.get(l.chamado);return c?ok(c):a==='gtd'});
+      const ok=c=>areaDe(c)===a,ids=new Map((G.__full||chA).map(c=>[c.id,c]));G.ch=chA.filter(ok);G.lpus=lA.filter(l=>{const c=ids.get(l.chamado);return c?ok(c):a==='gtd'});
       ui.gSec=k==='rep'?'prev':'geral';h=areaModo(a,()=>viewGPainel())}}
   catch(e){console.warn('gerencial',k,e);h=''}finally{G.ch=chA;G.lpus=lA;Object.assign(ui,S0);try{permEff()}catch(e){}}
   return h}
@@ -21465,11 +21465,12 @@ const cfgMin=ms=>{const m=Math.max(0,Math.round(ms/60e3));return m<60?m+' min':M
 const cfgHm=t=>t?new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
 const cfgRow=r=>({id:r.id,ag:r.agendamento||r.sim_ag,sim:!!r.sim,etq:r.etiqueta,tec:r.tecnico,st:r.status,noc:r.noc,d:r.dados||{},em:(r.dados&&r.dados.em)||Date.parse(r.criado_em)});
 const cfgDoAg=id=>CFG.rows.filter(r=>r.ag===id&&r.st!=='canc').sort((a,b)=>b.em-a.em)[0]||null;
-const cfgAtende=()=>!!ME&&(ui.perfil==='noc'||['coord','sup'].includes(ui.perfil));
+/* 17/11: supervisão só vê se tiver acesso à Implantação (Agenda); supervisão da Manutenção não vê */
+const cfgAtende=()=>!!ME&&(ui.perfil==='noc'||ui.perfil==='coord'||(ui.perfil==='sup'&&pode('agenda')));
 const cfgVeFila=()=>!!ME&&!gTecPerfil()&&(cfgAtende()||pode('agenda'));
 const cfgSvcs=p=>svcDe(p).svc.filter(x=>!/^[—–\-=_\s]{2,}/.test(x)&&!/^servi[çc]os a serem ativados$/i.test(x.trim()));
 const cfgAtivAg=a=>!!a&&fasesOf(a).includes('ativ');
-const cfgSimVe=()=>!!ME&&['coord','sup'].includes(ui.perfil);
+const cfgSimVe=()=>!!ME&&(ui.perfil==='coord'||(ui.perfil==='sup'&&pode('agenda')));
 /* alvo do pedido: atividade real ou ativação simulada (com a foto do projeto tirada na criação) */
 const cfgSimDe=id=>{const s=(CFG.sims||[]).find(x=>x.id===id);return s?{id:s.id,etiqueta:s.etiqueta,status:'execucao',materiais:[],sim:true,snap:s.dados||{},em:Date.parse(s.criado_em)}:null};
 const cfgAlvo=id=>(id&&(cfgSimDe(id)||getAg(id)))||null;
@@ -21737,6 +21738,11 @@ function slx(){if(slSem())return true;const W=ui.wiz;if(!W||!W.id)return false;i
   const fim=()=>{if(!sl||!e)return;const p=S.previsao.find(x=>(id&&x.id===id)||(etq&&x.etiqueta===etq));if(!p||!p.semLanc)return;let m=false;
     if(!(+p.kmFibra>0)&&e.m>0){p.kmFibra=Math.round(e.m);m=true}if(!(+p.caixas>0)&&e.cx>0){p.caixas=e.cx;m=true}if(m){try{save()}catch(x){}render()}};
   if(o&&typeof o.then==='function')return o.then(r=>{fim();return r});fim();return o}}
+
+/* ===== 17/11: LPU de chamado de reforço (e de qualquer chamado) mostra no PDF a área do chamado ("Rede Externa Corretiva, Reforço"), não "GTD Manutenção" ===== */
+{const _g=gerarPdfLpu;gerarPdfLpu=function(l){try{if(l&&l.chamado&&!l.areaPdf&&!/^(pl|rp):/.test(l.chamado)){const c=(G.__full||G.ch||[]).find(x=>x.id===l.chamado),a=c?areaDe(c):'gtd';
+  if(a!=='gtd'){const n=a==='re'?((typeof rePrevL==='function'&&rePrevL(l))?'Rede Externa Preventiva':'Rede Externa Corretiva'):((areaCfg(a)||{}).n||'');if(n){const a2=[...arguments];a2[0]=Object.assign({},l,{areaPdf:n});return _g.apply(this,a2)}}}}catch(e){}
+  return _g.apply(this,arguments)}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
