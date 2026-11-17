@@ -2946,7 +2946,7 @@ const COLS=[['etiqueta','Etiqueta','t','Etiqueta',118],['cliente','Cliente (raz�
 /* previsão de dias por fase: acesso próprio (a_prevDias), separado de incluir e editar projetos */
 const BDIAS=['dRua','dInterno','dExt','dAtiv'];
 const BGRUPOS=[['',1],['Projeto',3],['Local e rede',4],['Quantidades',3],['Previsão de dias por fase',5]];
-const baseFalta=p=>[!p.roi&&'Sem ROI',!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
+const baseFalta=p=>[!p.roi&&'Sem ROI',!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv||(p.semLanc&&+p.dExt))&&'Sem previsão de dias'].filter(Boolean);
 function viewBase(){
   const ed=pode('a_projeto')&&pode('a_valor'),q=ui.baseQ.toLowerCase(),F=ui.baseF||'todos';
   const all=S.previsao.filter(p=>!q||[p.protocolo,p.etiqueta,p.cliente,p.topologia,p.cidade].join(' ').toLowerCase().includes(q));
@@ -2956,6 +2956,7 @@ function viewBase(){
     if(p.semExt&&f==='caixas')return `<td class="ro r ${cls}" title="Sem extensão de sinal: direto do splitter">1</td>`;
     if(p.semExt&&f==='kmFibra')return `<td class="ro r na ${cls}" title="Sem extensão de sinal">N/A</td>`;
     if(p.semExt&&f==='dExt')return `<td class="ro r na ${cls}" title="Sem extensão de sinal">N/A</td>`;
+    if(p.semLanc&&(f==='dRua'||f==='dInterno'||f==='metros'))return `<td class="ro r na ${cls}" title="Só extensão de sinal: sem lançamento">N/A</td>`;
     if(p.semRua&&f==='dRua')return `<td class="ro r na ${cls}" title="Sem lançamento na rua: lançamento todo interno">N/A</td>`;
     if(p.semInt&&f==='dInterno')return `<td class="ro r na ${cls}" title="Sem lançamento interno: só na rua">N/A</td>`;
     if(!(BDIAS.includes(f)?pode('a_prevDias'):ed))return `<td class="ro ${t==='n'?'r':''} ${cls}" ${BDIAS.includes(f)&&ed?'title="Previsão de dias: só quem tem o acesso Previsão de dias por fase (O&M)"':''}>${f==='valor'?brl(v):f==='etiqueta'?`<b>${esc(v)}</b>`:esc(v)}</td>`;
@@ -3071,7 +3072,7 @@ function viewKanban(){
   const g={};KCOLS.forEach(([k])=>g[k]=[]);LF.forEach(p=>{g[etapa(p)].push(p)});
   const card=(p,k)=>{const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada'),t=T[p.id],meta=[];
     const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>a.data.localeCompare(b.data))[0];
-    const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
+    const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'Sem endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv||(p.semLanc&&+p.dExt))&&'Sem previsão de dias'].filter(Boolean);
     let linha=ab?`${ST[ab.status][0]}: ${fasesC(ab)}, ${dBR(ab.data)}, ${tecN(ab.tec)}`:x.length?'Aguardando agendamento da próxima fase':falta.length?'Cadastro incompleto':'Pronto para agendar';
     if(!x.length)falta.forEach(f=>meta.push(`<span class="chip warn">${f}</span>`));if(ab&&ab.data<hoje())meta.push('<span class="chip warn">Atrasada</span>');
     const atual=t.dias.find(d=>d.k===k);if(atual&&atual.r>atual.pv)meta.push('<span class="chip bad">Acima do previsto</span>');
@@ -5549,7 +5550,7 @@ Object.assign(ACT,{
   kXlsx:()=>{const{LF,T,sit}=kBase(),SN={rua:'Lançamento externo',interno:'Lançamento interno',ext:'Extensão',ativ:'Ativação'};
     const R=LF.map(p=>{const t=T[p.id],k=etapa(p),c=S.comp[p.etiqueta]||{},x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');
       const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>a.data.localeCompare(b.data))[0];
-      const falta=[!c.endereco&&'Sem endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'Sem previsão de dias'].filter(Boolean);
+      const falta=[!c.endereco&&'Sem endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'Sem dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv||(p.semLanc&&+p.dExt))&&'Sem previsão de dias'].filter(Boolean);
       const o={'Coluna':SN[k]||k,'Etiqueta':p.etiqueta,'Cliente':p.cliente||'','Protocolo':p.protocolo||'','Cidade':p.cidade||'','POP':p.pop||'','Topologia':p.topologia||'','Sem rua':p.semRua?'Sim':'Não','Sem interno':p.semInt?'Sim':'Não','Extensão de sinal':t.ext?'Sim':'Não',
         'Cabo do projeto (m)':t.metros,'Cabo lançado (m)':t.lanc,'Cabo a lançar (m)':t.falta,'Caixas de emenda':t.ext?t.cx:'','Caixas a fazer':t.cxPend,'KM de fibra (m)':t.ext?t.km:'','KM de fibra a estender (m)':t.kmPend,'Extensão':!t.ext?'':t.extFeita?'Concluída':'A fazer'};
       FASES.forEach(f=>{const d=t.dias.find(x=>x.k===f.k);o[FCURTO[f.k]+': dias previstos']=d?d.pv:'N/A';o[FCURTO[f.k]+': dias realizados']=d?d.r:'N/A';o[FCURTO[f.k]+': finalizada']=d?(d.fin?'Sim':'Não'):'N/A'});
@@ -6785,7 +6786,7 @@ function fiTl(p){const e=p.etiqueta,F=fasesProj(p);
     return `<div class="${cls}"><b>${FCURTO[f.k]}</b><span>${st}</span>${who?`<small>${esc(who)}</small>`:''}<small>${dias}</small></div>`}).join('')}</div>`}
 const fiKv=L=>`<dl class="fikv">${L.filter(x=>x).map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>`;
 function fiProj(p){const ab=ui.fdAb||{},I=p.inst||{},fin=p.roi&&p.roi.fin||{};
-  const SV19=typeof svcDe==='function'?svcDe(p).svc:[];const rede=[SV19.length&&['Serviços a serem ativados',SV19.map(esc).join('<br>')],['POP',esc(p.pop||'—')],['Equipamento de acesso',esc(p.equip||'—')],I.porta&&['Porta',esc(I.porta)],I.pa&&['Ponto de acesso',esc(I.pa)],I.pd&&['Ponto de derivação',esc(I.pd)],['Lançamento na rua',p.semRua?'Não tem (todo interno)':'Previsto'],['Lançamento interno',p.semInt?'Não tem (só na rua)':p.semRua?'Previsto (todo interno)':'Previsto'],['Extensão de sinal',p.semExt?'Não se aplica':'Prevista']];
+  const SV19=typeof svcDe==='function'?svcDe(p).svc:[];const rede=[SV19.length&&['Serviços a serem ativados',SV19.map(esc).join('<br>')],['POP',esc(p.pop||'—')],['Equipamento de acesso',esc(p.equip||'—')],I.porta&&['Porta',esc(I.porta)],I.pa&&['Ponto de acesso',esc(I.pa)],I.pd&&['Ponto de derivação',esc(I.pd)],['Lançamento na rua',p.semLanc?'Não tem (só extensão de sinal)':p.semRua?'Não tem (todo interno)':'Previsto'],['Lançamento interno',p.semLanc?'Não tem (só extensão de sinal)':p.semInt?'Não tem (só na rua)':p.semRua?'Previsto (todo interno)':'Previsto'],['Extensão de sinal',p.semExt?'Não se aplica':'Prevista']];
   const vals=[['Valor mensal',brl(p.valor)]].concat(FIN.filter(([k])=>fin[k]!==undefined).map(([k,l,m])=>[l,m?brl(fin[k]):String(fin[k]).replace('.',',')]));
   const li=(k,t,r,b)=>`<div class="fili${ab[k]?' on':''}"><button data-act="fdAb" data-k="${k}" aria-expanded="${!!ab[k]}"><b>${t}</b><span>${r}</span><i>›</i></button>${ab[k]?`<div>${b}</div>`:''}</div>`;
   const roiB=p.roi?`<p style="margin:0"><b style="overflow-wrap:anywhere">${esc(p.roi.nome)}</b><br><span class="muted">${p.roi.itens.length} itens de material lidos do ROI</span></p>`:'<p class="muted" style="margin:0">Lista de ROI não enviada. Envie em Editar dados do projeto.</p>';
@@ -9208,7 +9209,7 @@ function kleCalc(p,P){P=P||klp();const q=p.kl.q,n=v=>+String(v==null?0:v).replac
   else fraco.push('topologia sem regra de ativação por KMZ ('+(p.topologia||'não informada')+')');
   /* Deslocamento pela região da LPU */
   /* deslocamento: dias de campo previstos na base de previsão, em cada fase */
-  const ds=kcDesloc(p.cidade);if(ds){const dr=p.semRua?0:n(p.dRua),di=p.semInt?0:n(p.dInterno),de=temExt(p)?n(p.dExt):0,da=n(p.dAtiv);
+  const ds=kcDesloc(p.cidade);if(ds){const dr=p.semRua||p.semLanc?0:n(p.dRua),di=p.semInt||p.semLanc?0:n(p.dInterno),de=temExt(p)?n(p.dExt):0,da=n(p.dAtiv);
     add('lanc','Deslocamento',ds.cod,dr+di,`dias previstos: ${dr} rua + ${di} interno`);add('ext','Deslocamento',ds.cod,de,`${de} ${de===1?'dia previsto':'dias previstos'} de extensão`);add('ativ','Deslocamento',ds.cod,da,`${da} ${da===1?'dia previsto':'dias previstos'} de ativação`);
     if(!(dr+di+de+da))fraco.push('sem dias previstos na base de previsão para o deslocamento')}
   const tot=Math.round(L.reduce((s,x)=>s+x.v,0)*100)/100,porF={};L.forEach(x=>porF[x.fase]=Math.round(((porF[x.fase]||0)+x.v)*100)/100);
@@ -12416,13 +12417,13 @@ Object.assign(ACT,{
       const up=await sb.storage.from('agenda').upload(path,f.file,{contentType:f.mime||'application/octet-stream',upsert:false});if(up.error){el.disabled=false;toast('Não foi possível enviar '+f.nome+': '+up.error.message,'bad');return}arqs.push({path,nome:f.nome,mime:f.mime,tam:f.file.size})}
     pvHist(p,{t:m,txt:txt||undefined,arqs:arqs.length?arqs:undefined});p.val.st=m==='reprov'?'reprov':'pend';
     PV_F.forEach(f=>{if(f.url)URL.revokeObjectURL(f.url)});PV_F=[];save();closeModal();render();toast(m==='reprov'?`Projeto ${p.etiqueta} reprovado. O projetista recebe o aviso.`:`Projeto ${p.etiqueta} reenviado para a validação do O&M.`)},
-  pvAprov:el=>{const p=S.previsao.find(x=>x.id===el.dataset.id);if(!p||!pvPodeVal())return;const dias=pode('a_prevDias'),ks=BDIAS.filter(k=>!(k==='dExt'&&p.semExt)&&!(k==='dRua'&&p.semRua)&&!(k==='dInterno'&&p.semInt));
+  pvAprov:el=>{const p=S.previsao.find(x=>x.id===el.dataset.id);if(!p||!pvPodeVal())return;const dias=pode('a_prevDias'),ks=BDIAS.filter(k=>!(k==='dExt'&&p.semExt)&&!(k==='dRua'&&(p.semRua||p.semLanc))&&!(k==='dInterno'&&(p.semInt||p.semLanc)));
     openModal(`<h3>Aprovar · ${esc(p.etiqueta)}</h3><p class="muted">${esc(p.cliente||'')}${p.topologia?' · '+esc(p.topologia):''}${p.cidade?' · '+esc(p.cidade):''}</p>
      ${dias?`<p style="margin:10px 0 6px"><b>Previsão de dias por fase</b></p><div class="grid2 even" style="gap:0 12px">${ks.map(k=>`<label class="f"><span>${PV_DN[k]} *</span><input class="inp" type="number" min="0" step="0.5" inputmode="decimal" id="pvD_${k}" value="${+p[k]?esc(p[k]):''}"></label>`).join('')}</div>`:'<p class="note">A previsão de dias por fase fica para quem tem o acesso "Previsão de dias por fase (O&amp;M)".</p>'}
      <label class="f"><span>Observação (opcional)</span><textarea class="inp" id="pvTxt" rows="2"></textarea></label>
      <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="pvAprovOk" data-id="${p.id}">Aprovar projeto</button></div>`)},
   pvAprovOk:el=>{const p=S.previsao.find(x=>x.id===el.dataset.id);if(!p)return;const D={};
-    if(pode('a_prevDias')){for(const k of BDIAS.filter(k=>!(k==='dExt'&&p.semExt)&&!(k==='dRua'&&p.semRua)&&!(k==='dInterno'&&p.semInt))){const i=$('pvD_'+k),v=i?String(i.value).replace(',','.').trim():'';if(v===''||isNaN(+v)||+v<0){toast('Informe os dias previstos de '+PV_DN[k].toLowerCase()+'.','bad');if(i)i.focus();return}D[k]=+v}}
+    if(pode('a_prevDias')){for(const k of BDIAS.filter(k=>!(k==='dExt'&&p.semExt)&&!(k==='dRua'&&(p.semRua||p.semLanc))&&!(k==='dInterno'&&(p.semInt||p.semLanc)))){const i=$('pvD_'+k),v=i?String(i.value).replace(',','.').trim():'';if(v===''||isNaN(+v)||+v<0){toast('Informe os dias previstos de '+PV_DN[k].toLowerCase()+'.','bad');if(i)i.focus();return}D[k]=+v}}
     Object.assign(p,D);const txt=(($('pvTxt')||{}).value||'').trim();
     pvHist(p,{t:'aprov',txt:txt||undefined,dias:Object.keys(D).length?Object.entries(D).map(([k,v])=>PV_DN[k].split(' (')[0]+' '+String(v).replace('.',',')).join(' · '):undefined});p.val.st='aprov';
     save();closeModal();render();toast(`Projeto ${p.etiqueta} aprovado. Já pode ser agendado.`)}});
@@ -12448,10 +12449,10 @@ function pvFull(){let o=document.getElementById('pvFull');const p=ui.pvVer&&S.pr
     ${sec('Dados do projeto',dl([['Etiqueta',esc(p.etiqueta)],['Cliente',esc(p.cliente||'')],['Protocolo',esc(p.protocolo||'')],['Topologia',esc(p.topologia||'')],['Cidade',esc(p.cidade||'')],val&&['Valor mensal',brl(p.valor)],soAtiv(p)?['Lançamento (ROI)','N/A']:[kmzCabo(p)?'Cabo a lançar (KMZ)':'Lançamento (ROI)',(+p.metros||0).toLocaleString('pt-BR')+' m'+(kmzCabo(p)?' <small class="muted">desenho + 5% + 30 m em cada ponta</small>':'')],['Caixas de emenda',esc(caixasTxt(p))],
       ...(val?FIN.filter(([k])=>fin[k]!==undefined&&fin[k]!=='').map(([k,l,m])=>[l,m?brl(fin[k]):String(fin[k]).replace('.',',')]):[]),p.roi&&p.roi.nome&&['ROI',esc(p.roi.nome)+(p.roiKmz?' (pelo KMZ)':' (do PDF)')]]))}
     ${sec('Endereço de instalação e contato',dl([['Endereço',esc(c.endereco||'')],['Coordenada',c.coord?esc(c.coord)+mapa(c.coord):''],['Contato',esc(c.contato||'')],['Telefone',esc(c.telefone||'')],['Janela',esc(c.janela||'')],['Acesso',esc(c.acesso||'')],['Observações',esc(c.obs||'')]]))}
-    ${sec('Informações técnicas',dl([svc.length&&['Serviços a serem ativados',svc.map(esc).join('<br>')],['POP',soAtiv(p)&&!p.pop?'N/A':esc(p.pop||'')],['Equipamento de acesso',soAtiv(p)&&!p.equip?'N/A':esc(p.equip||'')],['Porta',esc(I.porta||'')],['Ponto de acesso',I.pa?esc(I.pa)+(I.locPa?' · '+lk(I.locPa):''):''],['Ponto de derivação',I.pd&&!p.semExt?esc(I.pd)+(I.locPd?' · '+lk(I.locPd):''):''],['Lançamento na rua',soAtiv(p)?'N/A':p.semRua?'Não tem (todo interno)':'Previsto'],['Lançamento interno',soAtiv(p)?'N/A':p.semInt?'Não tem (só na rua)':p.semRua?'Previsto (todo interno)':'Previsto'],['Extensão de sinal',soAtiv(p)?'N/A':ext],p.migGpon!=null&&['Migração de GPON',p.migGpon===true||p.migGpon==='sim'?'Sim':'Não, cliente novo'],p.lmLanc&&['Last mile com lançamento',p.lmLanc==='sim'?'Sim':p.lmLanc==='nao'?'Não (só instalação da RB)':esc(p.lmLanc)],['Observações técnicas',(I.notas||[]).map(esc).join('<br>')]]))}
+    ${sec('Informações técnicas',dl([svc.length&&['Serviços a serem ativados',svc.map(esc).join('<br>')],['POP',soAtiv(p)&&!p.pop?'N/A':esc(p.pop||'')],['Equipamento de acesso',soAtiv(p)&&!p.equip?'N/A':esc(p.equip||'')],['Porta',esc(I.porta||'')],['Ponto de acesso',I.pa?esc(I.pa)+(I.locPa?' · '+lk(I.locPa):''):''],['Ponto de derivação',I.pd&&!p.semExt?esc(I.pd)+(I.locPd?' · '+lk(I.locPd):''):''],['Lançamento na rua',soAtiv(p)?'N/A':p.semLanc?'Não tem (só extensão de sinal)':p.semRua?'Não tem (todo interno)':'Previsto'],['Lançamento interno',soAtiv(p)?'N/A':p.semLanc?'Não tem (só extensão de sinal)':p.semInt?'Não tem (só na rua)':p.semRua?'Previsto (todo interno)':'Previsto'],['Extensão de sinal',soAtiv(p)?'N/A':ext],p.migGpon!=null&&['Migração de GPON',p.migGpon===true||p.migGpon==='sim'?'Sim':'Não, cliente novo'],p.lmLanc&&['Last mile com lançamento',p.lmLanc==='sim'?'Sim':p.lmLanc==='nao'?'Não (só instalação da RB)':esc(p.lmLanc)],['Observações técnicas',(I.notas||[]).map(esc).join('<br>')]]))}
     ${sec('KMZ do projeto',kmzH,'pvKmzS')}
     ${sec('Outros anexos',O.length?O.map(x=>anxLinha(x,0)).join(''):'<p class="muted">Nenhum.</p>')}
-    ${pvProj()?'':sec('Previsão de dias por fase',dl(BDIAS.filter(k=>!(soAtiv(p)&&k!=='dAtiv')&&!(k==='dExt'&&p.semExt)&&!(k==='dRua'&&p.semRua)&&!(k==='dInterno'&&p.semInt)).map(k=>[PV_DN[k],+p[k]?String(p[k]).replace('.',',')+' dia'+(+p[k]===1?'':'s'):'<span class="muted">não informado</span>'])))}
+    ${pvProj()?'':sec('Previsão de dias por fase',dl(BDIAS.filter(k=>!(soAtiv(p)&&k!=='dAtiv')&&!(k==='dExt'&&p.semExt)&&!(k==='dRua'&&(p.semRua||p.semLanc))&&!(k==='dInterno'&&(p.semInt||p.semLanc))).map(k=>[PV_DN[k],+p[k]?String(p[k]).replace('.',',')+' dia'+(+p[k]===1?'':'s'):'<span class="muted">não informado</span>'])))}
    </div>`;
   const b=o.querySelector('.krfb');if(b&&keep)b.scrollTop=keep}
 Object.assign(ACT,{pvNav:el=>{const Ls=ui.pvLista||[],ix=Ls.indexOf(ui.pvVer),n=Ls[ix+(+el.dataset.d)];if(n){ui.pvVer=n;pvFull();const b=document.querySelector('#pvFull .krfb');if(b)b.scrollTop=0}},pvVerP:el=>{ui.pvVer=el.dataset.id;pvFull()},pvFecha:()=>{ui.pvVer=null;pvFull()},pvIrKmz:()=>{const e=document.getElementById('pvKmzS');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})}});
@@ -14084,7 +14085,7 @@ const KB_GR=[['atr','Atrasados','bad'],['pronto','Para agendar','go'],['inc','Fa
 const KB_CAMPO=['deslocamento','no_local','execucao'];
 function kbSit(p){const x=S.ags.filter(a=>a.etiqueta===p.etiqueta&&a.status!=='cancelada');
   const ab=x.filter(a=>!FIM.includes(a.status)&&fasesOf(a).some(f=>!isExtra(f))).sort((a,b)=>String(a.data).localeCompare(String(b.data)))[0];
-  const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv)&&'previsão de dias'].filter(Boolean);
+  const falta=[!(S.comp[p.etiqueta]||{}).endereco&&'endereço',!p.pop&&!p.equip&&!soAtiv(p)&&'dados técnicos',!(+p.dRua||+p.dInterno||+p.dAtiv||(p.semLanc&&+p.dExt))&&'previsão de dias'].filter(Boolean);
   let k='pronto';if(ab){k=KB_CAMPO.includes(ab.status)?'campo':ab.data<hoje()&&ab.status==='agendada'?'atr':'ag'}else if(!x.length&&falta.length)k='inc';
   return {k,ab,x,falta}}
 function kbMetr(p,k,t){
@@ -21712,6 +21713,30 @@ async function senhaIr(id){const r=await sb.from('ag_senha_pedidos').select('*')
 {const q=new URLSearchParams(location.search).get('senha');if(q){try{history.replaceState(null,'',location.pathname)}catch(e){}window.__senhaLink=q}}
 {const _r=render;render=function(){const r=_r.apply(this,arguments);try{if(window.__senhaLink&&ME){const id=window.__senhaLink;window.__senhaLink=null;setTimeout(()=>senhaIr(id),0)}}catch(e){}return r}}
 (function(){const st=document.createElement('style');st.textContent=`.usup{display:flex;flex-direction:column;gap:4px;margin-top:6px;font-size:12px;color:var(--muted)}.usup .inp{min-width:190px;font-size:14px;color:var(--ink,inherit)}.usup .btn{align-self:flex-start}.usup b{color:var(--ink,inherit);font-size:13px}.scod{font-size:40px;font-weight:700;letter-spacing:.18em;text-align:center;padding:16px;border-radius:12px;background:var(--info-soft);user-select:all}.spanel .item small{display:block}`;document.head.appendChild(st)})();
+
+/* ===== 17/11: Projeto "Só extensão de sinal (sem lançamento)" sem perguntas de lançamento no cadastro =====
+   Quando o KMZ foi lido só como extensão de sinal (slSem), a etapa 3 não pergunta mais o tipo de lançamento
+   (rua e interno / só rua / só interno) nem pede o KMZ de lançamento; a etapa 4 (Extensão) fica sempre liberada,
+   já com o mesmo KMZ; e o ROI mostra o cabo lançado como "sem lançamento". */
+/* projeto novo com o KMZ lido só como extensão, ou projeto já salvo como sem lançamento que está sendo editado */
+function slx(){if(slSem())return true;const W=ui.wiz;if(!W||!W.id)return false;if(W.kr&&W.kr.M&&!W.kr.M.semLanc)return false;const p=S.previsao.find(x=>x.id===W.id);return !!(p&&p.semLanc)}
+{const _t=wizTemExt;wizTemExt=function(){if(slx()&&!(typeof wzSoAtiv==='function'&&wzSoAtiv()))return true;return _t.apply(this,arguments)}}
+{const _w=wzPasso3;wzPasso3=function(W,p,fl,paste){let h=_w.apply(this,arguments);if(!slx())return h;
+  h=h.replace(/<label class="f"><span>Lançamento<\/span><select class="inp" id="wzRua"[\s\S]*?<\/select><\/label>/,'');
+  try{const k=kmzLBloco(W,p);if(k)h=h.replace(k,'')}catch(e){}
+  const e=W.kr&&W.kr.ext;
+  let xo='';try{xo='<div id="wzExt">'+extNote(W.t)+'</div>'}catch(e){}
+  if(xo&&h.includes(xo))h=h.replace(xo,`<div class="note slx" style="margin:4px 0 10px"><b>Só extensão de sinal, sem lançamento.</b> ${e?`${kmN0(Math.round(e.m))} m de fibra e ${e.cx} ${e.cx===1?'caixa':'caixas'} de emenda no caminho. `:''}Na previsão ficam só a extensão e a ativação. Na próxima etapa, marque o início e o término da extensão.</div>`);
+  return h}}
+{const _r=roiPreview;roiPreview=function(){let h=_r.apply(this,arguments);if(!slSem())return h;
+  return h.replace(/Metros de cabo( \(não identificado\))?<\/span>/,'Metros de cabo lançado (sem lançamento)</span>')}}
+/* ao salvar: sem os campos de lançamento */
+{const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,sl=!!(W&&slx()),id=W&&W.id,etq=ui.roiTmp&&ui.roiTmp.etiqueta,e=W&&W.kr&&W.kr.ext;if(sl){W.t.semRua='';W.t.semInt=''}
+  const o=_s.apply(this,arguments);
+  /* sem início e término marcados na etapa 4: KM de fibra e caixas vêm do KMZ da extensão */
+  const fim=()=>{if(!sl||!e)return;const p=S.previsao.find(x=>(id&&x.id===id)||(etq&&x.etiqueta===etq));if(!p||!p.semLanc)return;let m=false;
+    if(!(+p.kmFibra>0)&&e.m>0){p.kmFibra=Math.round(e.m);m=true}if(!(+p.caixas>0)&&e.cx>0){p.caixas=e.cx;m=true}if(m){try{save()}catch(x){}render()}};
+  if(o&&typeof o.then==='function')return o.then(r=>{fim();return r});fim();return o}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
