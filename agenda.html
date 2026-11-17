@@ -2432,9 +2432,9 @@ body:has(#klab) .modal{z-index:230}body:has(#klab) #toast{z-index:240}
   <p class="aerr hidden" id="suErr"></p><button class="btn primary wide" data-act="signup">Criar conta</button>
   <div class="alinks"><button class="link" data-act="authCard" data-c="cLogin">Já tenho conta</button></div></div>
  <div class="acard hidden" id="cForgot"><h3>Recuperar senha</h3><label class="f" style="margin-top:12px"><span>E-mail</span><input class="inp" id="fgEmail" type="email"></label>
-  <p class="muted" id="fgMsg"></p><button class="btn primary wide" data-act="forgot">Enviar link</button>
+  <p class="muted" id="fgMsg"></p><button class="btn primary wide" data-act="forgot">Enviar</button>
   <div class="alinks"><button class="link" data-act="authCard" data-c="cLogin">Voltar ao login</button></div></div>
- <div class="acard hidden" id="cNewPass"><h3 id="npTitle">Definir nova senha</h3>
+ <div class="acard hidden" id="cNewPass"><h3 id="npTitle">Definir nova senha</h3><p class="muted hidden" id="npInfo" style="margin:6px 0 0"></p>
   <label class="f" style="margin-top:12px"><span>Nova senha</span><input class="inp" id="np1" type="password" autocomplete="new-password"></label>
   <label class="f"><span>Repita a nova senha</span><input class="inp" id="np2" type="password" autocomplete="new-password"></label>
   <p class="aerr hidden" id="npErr"></p><button class="btn primary wide" data-act="newPass">Salvar senha</button>
@@ -4327,12 +4327,12 @@ function viewPermissoes(){const id=ui.permSel,pf=USR.pf.find(x=>x.id===id),pp=US
 function viewUsuarios(){if(USR&&ui.permSel)return viewPermissoes();if(!USR){carregarUsuarios().then(render).catch(e=>toast(e.message,'bad'));return '<p class="muted pad">Carregando usuários…</p>'}
   const pap=id=>{const x=USR.pp.find(p=>p.user_id===id&&p.ativo);return x?(x.papel==='tecnico'?(x.vinculo==='terceiro'&&x.empresa?'tecnico:func':'tecnico:'+x.vinculo):x.papel):''};
   const adms=USR.pp.filter(x=>x.papel==='tecnico'&&x.vinculo==='terceiro'&&!x.empresa&&x.ativo).map(x=>USR.pf.find(p=>p.id===x.user_id)).filter(Boolean);
-  const pend=USR.pf.filter(p=>p.status==='pendente'),q=normK(ui.uQ||''),apr=USR.pf.filter(p=>p.status==='aprovado'&&(!q||normK(p.nome+' '+(p.equipe||'')).includes(q))&&(!ui.uSo||pap(p.id)||(p.equipe||'').toLowerCase().includes('implanta')));
+  const pend=USR.pf.filter(p=>p.status==='pendente'),q=normK(ui.uQ||''),apr=USR.pf.filter(p=>p.status==='aprovado'&&(!q||normK(p.nome+' '+(p.equipe||'')).includes(q))&&(!ui.uSo||pap(p.id)||(p.equipe||'').toLowerCase().includes('implanta'))&&uSupOk(p.id));
   return `<div class="toolbar"><div><h2>Usuários e acessos</h2><p class="muted">Os cadastros são os mesmos do Estoque de Materiais. Aqui você aprova cadastros novos e define quem acessa a ferramenta (Implantação, GTD Manutenção e Rede Externa) e com qual papel.</p></div>${ui.perfil==='coord'?'<a class="btn sm" href="armazenamento.html">Espaço de armazenamento</a>':''}</div>
    ${(()=>{const rj=USR.pf.filter(p=>p.status==='rejeitado');return rj.length?`<details class="panel" style="margin-bottom:14px"><summary><b>Cadastros recusados (${rj.length})</b> <small class="muted">quem foi recusado não consegue criar a conta de novo com o mesmo e-mail; aprove aqui se mudou de ideia</small></summary>${rj.map(p=>`<div class="item"><div><b>${esc(p.nome)}</b><small>${p.tipo==='tecnico'?'Técnico, '+esc(p.cnpj||''):'Gestão'} · recusado</small></div><div class="right"><button class="btn sm primary" data-act="uApr" data-id="${p.id}">Aprovar</button></div></div>`).join('')}</details>`:''})()}
    ${pend.length?`<section class="panel" style="margin-bottom:14px"><h3>Cadastros aguardando aprovação</h3>${pend.map(p=>`<div class="item"><div><b>${esc(p.nome)}</b><small>${p.tipo==='tecnico'?'Técnico, '+esc(p.cnpj||''):'Gestão'}</small></div><div class="right"><button class="btn sm" data-act="uRej" data-id="${p.id}">Recusar</button><button class="btn sm primary" data-act="uApr" data-id="${p.id}">Aprovar</button></div></div>`).join('')}</section>`:''}
-   <div class="tools" style="margin-bottom:10px"><input class="inp" type="search" id="uQ" placeholder="Buscar nome ou equipe" data-in="uQ" value="${esc(ui.uQ||'')}"><label class="chk" style="margin:0"><input type="checkbox" data-ch="uSo" ${ui.uSo?'checked':''}> Só Implantação e quem já tem acesso</label></div>
-   <div class="tablewrap"><table><thead><tr><th>Nome</th><th>Cadastro</th><th>Equipe</th><th>Acesso à agenda</th><th>Permissões</th></tr></thead><tbody>${apr.map(p=>`<tr><td><b>${esc(p.nome)}</b>${p.cnpj?`<br><small class="muted">${esc(p.cnpj)}</small>`:''}</td><td>${p.tipo==='tecnico'?'Técnico':p.tipo==='om'?'Gestão O&M':p.tipo==='supply'?'Supply Chain':esc(p.tipo)}</td><td>${esc(p.equipe||'—')}</td><td><select class="inp" style="min-width:190px" data-ch="uPapel" data-id="${p.id}" ${p.id===ME.id?'disabled':''}>${PAPEIS.map(([v,n])=>`<option value="${v}" ${pap(p.id)===v?'selected':''}>${n}</option>`).join('')}</select>${pap(p.id)==='tecnico:func'?(()=>{const x=USR.pp.find(y=>y.user_id===p.id);return `<select class="inp" style="min-width:190px;margin-top:6px" data-ch="uEmpresa" data-id="${p.id}" aria-label="Empresa do funcionário"><option value="">Escolha a empresa…</option>${adms.map(a=>`<option value="${a.id}" ${x.empresa===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`})():''}${pap(p.id)==='tecnico:terceiro'?uCnpjCampo(p.id):''}${['tecnico:terceiro','tecnico:func','tecnico:clt'].includes(pap(p.id))?uSemLpuCampo(p.id):''}</td><td>${['supervisor','encarregado','supply','delivery','noc','visualizacao'].includes(pap(p.id))?(()=>{const x=USR.pp.find(y=>y.user_id===p.id),L=permDe(x.papel,x.permissoes),nt=L.filter(k=>!k.startsWith('a_')).length;return `<button class="btn sm" data-act="permAbrir" data-id="${p.id}">Definir</button><br><small class="muted">${x.permissoes==null?'Padrão do papel':nt+(nt===1?' tela':' telas')}</small>`})():pap(p.id)==='coordenador'?'<small class="muted">Acesso total</small>':'<small class="muted">—</small>'}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Nenhum usuário encontrado.</td></tr>'}</tbody></table></div>`}
+   ${senhaPainel()}<div class="tools" style="margin-bottom:10px"><input class="inp" type="search" id="uQ" placeholder="Buscar nome ou equipe" data-in="uQ" value="${esc(ui.uQ||'')}"><label class="chk" style="margin:0"><input type="checkbox" data-ch="uSo" ${ui.uSo?'checked':''}> Só Implantação e quem já tem acesso</label>${uSupFiltro()}</div>
+   <div class="tablewrap"><table><thead><tr><th>Nome</th><th>Cadastro</th><th>Equipe</th><th>Acesso à agenda</th><th>Permissões</th></tr></thead><tbody>${apr.map(p=>`<tr><td><b>${esc(p.nome)}</b>${p.cnpj?`<br><small class="muted">${esc(p.cnpj)}</small>`:''}</td><td>${p.tipo==='tecnico'?'Técnico':p.tipo==='om'?'Gestão O&M':p.tipo==='supply'?'Supply Chain':esc(p.tipo)}</td><td>${esc(p.equipe||'—')}</td><td><select class="inp" style="min-width:190px" data-ch="uPapel" data-id="${p.id}" ${p.id===ME.id?'disabled':''}>${PAPEIS.map(([v,n])=>`<option value="${v}" ${pap(p.id)===v?'selected':''}>${n}</option>`).join('')}</select>${pap(p.id)==='tecnico:func'?(()=>{const x=USR.pp.find(y=>y.user_id===p.id);return `<select class="inp" style="min-width:190px;margin-top:6px" data-ch="uEmpresa" data-id="${p.id}" aria-label="Empresa do funcionário"><option value="">Escolha a empresa…</option>${adms.map(a=>`<option value="${a.id}" ${x.empresa===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`})():''}${pap(p.id)==='tecnico:terceiro'?uCnpjCampo(p.id):''}${['tecnico:terceiro','tecnico:func','tecnico:clt'].includes(pap(p.id))?uSemLpuCampo(p.id)+uSupCampo(p.id):''}</td><td>${['supervisor','encarregado','supply','delivery','noc','visualizacao'].includes(pap(p.id))?(()=>{const x=USR.pp.find(y=>y.user_id===p.id),L=permDe(x.papel,x.permissoes),nt=L.filter(k=>!k.startsWith('a_')).length;return `<button class="btn sm" data-act="permAbrir" data-id="${p.id}">Definir</button><br><small class="muted">${x.permissoes==null?'Padrão do papel':nt+(nt===1?' tela':' telas')}</small>`})():pap(p.id)==='coordenador'?'<small class="muted">Acesso total</small>':'<small class="muted">—</small>'}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Nenhum usuário encontrado.</td></tr>'}</tbody></table></div>`}
 // ---- sessão
 let RECUP=/type=recovery/.test(location.hash),NP_OPEN=RECUP,BOOT_UID=null;
 async function checarSessao(){if(NP_OPEN)return;
@@ -4344,6 +4344,7 @@ async function checarSessao(){if(NP_OPEN)return;
   if(pf.status!=='aprovado'){showAuth('cPend');$('pendMsg').textContent=pf.status==='rejeitado'?'Seu cadastro foi recusado. Fale com a coordenação.':'Seu cadastro está aguardando aprovação da coordenação.';return}
   const{data:pp}=await sb.from('agenda_papeis').select('*').eq('user_id',session.user.id).eq('ativo',true).maybeSingle();
   if(!pp){showAuth('cPend');$('pendMsg').textContent='Seu cadastro está aprovado, mas o acesso à Ferramenta de Gestão O&M ainda não foi liberado pela coordenação.';return}
+  if(pp.trocar_senha){SENHA_OBR=true;NP_OPEN=true;showAuth('cNewPass');senhaObrTela();return}
   ME={id:session.user.id,nome:pf.nome,cnpj:pf.cnpj,papel:pp.papel,vinculo:pp.vinculo,perm:pp.permissoes,empresa:pp.empresa||null,semLpu:!!pp.sem_lpu};
   ui.perfil={coordenador:'coord',supervisor:'sup',encarregado:'enc',supply:'supply',visualizacao:'visu',noc:'noc',delivery:'deliv',tecnico:pp.vinculo==='terceiro'?(pp.empresa?'func':'terc'):'clt'}[pp.papel];if(!ui.perfil){showAuth('cPend');$('pendMsg').textContent='Seu perfil de acesso à ferramenta não é reconhecido. Fale com a coordenação.';return}ui.tab=tabsDe()[0]||'semAcesso';ui.tec=ME.id;
   try{await carregar()}catch(e){$('loadMsg').textContent='Erro ao carregar os dados: '+(e.message||e);return}
@@ -21653,6 +21654,64 @@ function cfgIr(id){ui.cat='impl';ui.tab='cfgNoc';ui.chat=null;render();cfgCarreg
 .cfgschr{display:flex;gap:8px}.cfgschr .inp{flex:1;min-width:0}.cfgsimban{margin:0 0 12px}.cfgsimc .cfgsimn .note{font-size:13.5px}
 @media (max-width:1100px){.cfgsimg{grid-template-columns:1fr}.cfgfone{position:static}}
 @media (max-width:700px){.cfgdg{grid-template-columns:1fr}}`;document.head.appendChild(st)})();
+
+/* ===== 17/11: Supervisão de cada técnico e "Esqueci minha senha" pela supervisão (ajuste 91) =====
+   Técnico de campo (CLT, terceiro, funcionário de empresa) que esquece a senha: o pedido vai para a supervisão dele
+   no sino e no celular; a supervisão gera uma senha provisória e passa para ele; no primeiro acesso ele cria a senha nova.
+   Liderança (coordenação, supervisão, encarregados e demais): continua recebendo o link no próprio e-mail. */
+var SENHA_OBR=false;const SENHA={ped:null,lendo:false};
+const SUP_PAP=['coordenador','supervisor','encarregado'];
+function supOpcoes(){return (USR&&USR.pp||[]).filter(x=>x.ativo&&SUP_PAP.includes(x.papel)).map(x=>({id:x.user_id,nome:((USR.pf||[]).find(p=>p.id===x.user_id)||{}).nome||'—'})).sort((a,b)=>a.nome.localeCompare(b.nome))}
+function supNome(id){return ((USR&&USR.pf||[]).find(p=>p.id===id)||{}).nome||'—'}
+function senhaPodeGerar(uid){const x=(USR&&USR.pp||[]).find(y=>y.user_id===uid&&y.ativo);if(!x||uid===ME.id)return false;return ui.perfil==='coord'?x.papel!=='coordenador':(x.papel==='tecnico'&&x.supervisao===ME.id)}
+function uSupCampo(id){const x=(USR.pp||[]).find(y=>y.user_id===id)||{};
+  const sel=ui.perfil==='coord'?`<select class="inp" data-ch="uSup" data-id="${id}" aria-label="Supervisão"><option value="">Sem supervisão (avisa a coordenação)</option>${supOpcoes().map(s=>`<option value="${s.id}" ${x.supervisao===s.id?'selected':''}>${esc(s.nome)}</option>`).join('')}</select>`:`<b>${x.supervisao?esc(supNome(x.supervisao)):'não definida'}</b>`;
+  return `<div class="usup"><span>Supervisão</span>${sel}${senhaPodeGerar(id)?`<button class="btn sm" data-act="senhaGerarU" data-id="${id}">Senha provisória</button>`:''}</div>`}
+function uSupFiltro(){const L=supOpcoes();return `<select class="inp" data-ch="uSupF" aria-label="Filtrar por supervisão" style="max-width:240px"><option value="">Todas as supervisões</option><option value="-" ${ui.uSupF==='-'?'selected':''}>Técnicos sem supervisão</option>${L.map(s=>`<option value="${s.id}" ${ui.uSupF===s.id?'selected':''}>Supervisão: ${esc(s.nome)}</option>`).join('')}</select>`}
+function uSupOk(id){if(!ui.uSupF)return true;const x=(USR.pp||[]).find(y=>y.user_id===id&&y.ativo);if(!x||x.papel!=='tecnico')return false;return ui.uSupF==='-'?!x.supervisao:x.supervisao===ui.uSupF}
+async function senhaCarregar(){if(SENHA.lendo)return;SENHA.lendo=true;try{const r=await sb.from('ag_senha_pedidos').select('*').eq('status','aberto').order('criado_em',{ascending:false});SENHA.ped=r.error?[]:(r.data||[])}catch(e){SENHA.ped=[]}SENHA.lendo=false;render()}
+function senhaQuando(t){const m=Math.round((Date.now()-new Date(t).getTime())/60000);return m<1?'agora':m<60?'há '+m+' min':m<1440?'há '+Math.round(m/60)+' h':new Date(t).toLocaleDateString('pt-BR')}
+function senhaPainel(){if(SENHA.ped===null){senhaCarregar();return ''}if(!SENHA.ped.length)return '';
+  return `<section class="panel spanel" style="margin-bottom:14px"><h3>Pedidos de senha <span class="chip warn">${SENHA.ped.length}</span></h3><p class="muted" style="margin:2px 0 8px">Técnicos que tocaram em "Esqueci minha senha". Gere a senha provisória e passe por telefone ou WhatsApp.</p>${SENHA.ped.map(q=>`<div class="item"><div><b>${esc(supNome(q.usuario))}</b><small>${esc(q.email)} · ${senhaQuando(q.criado_em)} · supervisão: ${q.supervisao?esc(supNome(q.supervisao)):'não definida'}</small></div><div class="right">${senhaPodeGerar(q.usuario)?`<button class="btn sm primary" data-act="senhaGerarU" data-id="${q.usuario}">Gerar senha provisória</button>`:''}</div></div>`).join('')}</section>`}
+async function senhaAbrir(uid,ped){let nome=USR?supNome(uid):'',email=ped&&ped.email||'';if(!nome||nome==='—'){const r=await sb.from('perfis').select('nome').eq('id',uid).maybeSingle();nome=(r.data||{}).nome||'Técnico'}
+  const res=ped&&ped.status==='resolvido'?`<p class="note">Este pedido já foi resolvido${ped.resolvido_em?' em '+new Date(ped.resolvido_em).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):''}. Gere outra só se a pessoa ainda não conseguiu entrar.</p>`:'';
+  openModal(`<h3>Senha provisória</h3><p style="margin:4px 0 2px"><b>${esc(nome)}</b>${email?`<br><small class="muted">${esc(email)}</small>`:''}</p>${ped?`<p class="muted" style="margin:0 0 8px">Pediu ${senhaQuando(ped.criado_em)} pela tela de login.</p>`:''}${res}
+   <p class="muted">A senha atual deixa de valer. Você recebe uma senha de 6 números para passar à pessoa por telefone ou WhatsApp; no primeiro acesso ela cria a senha dela.</p>
+   <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="senhaGerarOk" data-id="${uid}">Gerar senha provisória</button></div>`)}
+Object.assign(ACT,{
+  senhaGerarU:el=>senhaAbrir(el.dataset.id,(SENHA.ped||[]).find(q=>q.usuario===el.dataset.id)),
+  senhaGerarOk:async el=>{el.disabled=true;const id=el.dataset.id,r=await sb.rpc('ag_senha_provisoria',{p_user:id});if(r.error){el.disabled=false;toast(r.error.message,'bad');return}
+    const nome=USR?supNome(id):'a pessoa';SENHA.ped=null;
+    openModal(`<h3>Senha provisória criada</h3><p class="muted" style="margin:4px 0 10px">Passe para <b>${esc(nome)}</b> por telefone ou WhatsApp. Ela vale para um acesso: na entrada, a ferramenta pede para criar a senha nova.</p>
+     <div class="scod mono" id="senhaCod">${esc(r.data)}</div>
+     <div class="actions"><button class="btn" data-act="senhaCopiar">Copiar</button><button class="btn primary" data-act="close">Pronto</button></div>`);
+    if(USR){await carregarUsuarios();render()}},
+  senhaCopiar:async()=>{const t=$('senhaCod').textContent;try{await navigator.clipboard.writeText(t);toast('Senha copiada.')}catch(e){toast('Selecione e copie a senha.')}}});
+Object.assign(CH,{uSup:async el=>{const r=await sb.rpc('ag_set_supervisao',{p_user:el.dataset.id,p_sup:el.value||null});if(r.error){toast('Erro: '+r.error.message,'bad');render();return}
+    await carregarUsuarios();render();toast(el.value?'Supervisão definida: '+supNome(el.value)+'.':'Sem supervisão: os pedidos de senha vão para a coordenação.')},
+  uSupF:el=>{ui.uSupF=el.value;render()}});
+/* "Esqueci minha senha": técnico → supervisão; liderança → e-mail (como antes) */
+{ACT.forgot=async function(){const email=$('fgEmail').value.trim();if(!email){$('fgMsg').textContent='Informe o e-mail.';return}
+  $('fgMsg').textContent='Enviando…';let tipo='email';try{const r=await sb.rpc('ag_senha_esqueci',{p_email:email});if(!r.error&&r.data)tipo=r.data}catch(e){}
+  if(tipo==='aviso'){$('fgMsg').innerHTML='<b>Pedido enviado ao seu supervisor.</b> Entre em contato com ele para receber a nova senha.';return}
+  const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  $('fgMsg').innerHTML=error?'Não foi possível enviar agora: '+esc(error.message):'<b>Link enviado para o seu e-mail.</b> Confira também o spam.'}}
+/* troca obrigatória depois da senha provisória */
+function senhaObrTela(){$('npTitle').textContent='Crie a sua senha';const i=$('npInfo');if(i){i.textContent='Você entrou com uma senha provisória. Crie agora a sua senha (pelo menos 6 caracteres) para continuar.';i.classList.remove('hidden')}
+  $('np1').value='';$('np2').value='';$('npErr').classList.add('hidden');const c=$('npCancel');c.textContent='Sair';c.classList.remove('hidden')}
+{const _n=ACT.newPass;ACT.newPass=async function(){if(!SENHA_OBR)return _n.apply(this,arguments);
+  const a=$('np1').value,b=$('np2').value;if(a.length<6)return aErr('npErr','A senha precisa ter ao menos 6 caracteres.');if(a!==b)return aErr('npErr','As duas senhas não são iguais.');
+  const{error}=await sb.auth.updateUser({password:a});if(error)return aErr('npErr',error.message);
+  const r=await sb.rpc('ag_senha_trocada');if(r&&r.error)return aErr('npErr',r.error.message);
+  SENHA_OBR=false;NP_OPEN=false;$('npCancel').textContent='Cancelar';const i=$('npInfo');if(i)i.classList.add('hidden');BOOT_UID=null;await checarSessao();toast('Senha criada. Use ela nos próximos acessos.')}}
+{const _c=ACT.npCancel;ACT.npCancel=function(){if(SENHA_OBR){SENHA_OBR=false;NP_OPEN=false;$('npCancel').textContent='Cancelar';return ACT.logout()}return _c.apply(this,arguments)}}
+{const _p=ACT.chPass;ACT.chPass=function(){const r=_p.apply(this,arguments);const i=$('npInfo');if(i)i.classList.add('hidden');return r}}
+/* link do aviso: agenda.html?senha=<pedido> */
+async function senhaIr(id){const r=await sb.from('ag_senha_pedidos').select('*').eq('id',id).maybeSingle();if(r.error||!r.data){toast('Pedido de senha não encontrado ou fora da sua supervisão.','bad');return}senhaAbrir(r.data.usuario,r.data)}
+{const _g=gIr;gIr=function(url){let q=null;try{q=new URL(url||'',location.href).searchParams}catch(e){}const id=q&&q.get('senha');if(id)return senhaIr(id);return _g.apply(this,arguments)}}
+{const q=new URLSearchParams(location.search).get('senha');if(q){try{history.replaceState(null,'',location.pathname)}catch(e){}window.__senhaLink=q}}
+{const _r=render;render=function(){const r=_r.apply(this,arguments);try{if(window.__senhaLink&&ME){const id=window.__senhaLink;window.__senhaLink=null;setTimeout(()=>senhaIr(id),0)}}catch(e){}return r}}
+(function(){const st=document.createElement('style');st.textContent=`.usup{display:flex;flex-direction:column;gap:4px;margin-top:6px;font-size:12px;color:var(--muted)}.usup .inp{min-width:190px;font-size:14px;color:var(--ink,inherit)}.usup .btn{align-self:flex-start}.usup b{color:var(--ink,inherit);font-size:13px}.scod{font-size:40px;font-weight:700;letter-spacing:.18em;text-align:center;padding:16px;border-radius:12px;background:var(--info-soft);user-select:all}.spanel .item small{display:block}`;document.head.appendChild(st)})();
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
