@@ -2757,7 +2757,7 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<div class="whc"><span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span></div><div class="wbar">${['supply','visu'].includes(ui.perfil)?'':'<button class="wic wbb sino" data-act="avisos" data-l="Avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic wbb" data-act="conta" data-l="Conta" aria-label="Minha conta: senha e notificações" title="Minha conta: senha e notificações">${WHO_CONTA}</button><button class="wic wbb" data-act="logout" data-l="Sair" aria-label="Sair" title="Sair">${ICN.sair}</button></div>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpAg','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu','melKpi','melMin','melHist','cxDesp','oxDesp','melAg','melCh','cxProj','cxCrono','cxVist','oxProj','oxCrono','oxVist','melAprov','melBud','melDet','melPrest','melEq','gEst','gEstAt','gEstHist'],GRP={txMel:'Operação',gEst:'Estoque',gEstAt:'Estoque',gEstHist:'Estoque',melKpi:'Acompanhamento',melMin:'Acompanhamento',melHist:'Acompanhamento',melAg:'Operação',melCh:'Operação',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Operação',cxVist:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Operação',oxVist:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpAg:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','cfgNoc','cfgSim','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpAg','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finVis','finPrest','finDet','finLpu','melKpi','melMin','melHist','cxDesp','oxDesp','melAg','melCh','cxProj','cxCrono','cxVist','oxProj','oxCrono','oxVist','melAprov','melBud','melDet','melPrest','melEq','gEst','gEstAt','gEstHist'],GRP={txMel:'Operação',gEst:'Estoque',gEstAt:'Estoque',gEstHist:'Estoque',melKpi:'Acompanhamento',melMin:'Acompanhamento',melHist:'Acompanhamento',melAg:'Operação',melCh:'Operação',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Operação',cxVist:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Operação',oxVist:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finVis:'Financeiro',finPrest:'Financeiro',finDet:'Financeiro',finLpu:'Financeiro',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',cfgNoc:'Operação',cfgSim:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpAg:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando'&&!lpuTx(l)).length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -5867,7 +5867,7 @@ function detalhe(a){
 }
 
 /* 19/10: Endereço e contato (Local / Contato no local) e Dados técnicos em seções */
-const tvSvcLinhas=t=>String(Array.isArray(t)?t.join('\n'):t||'').split(/\r?\n/).map(x=>x.trim()).filter(x=>x&&!/^-{2,}.*-{2,}$/.test(x)&&!/^-{3,}$/.test(x)).map(x=>x.replace(/^[-•*]\s*/,'').trim()).filter(Boolean);
+const tvSvcLinhas=t=>String(Array.isArray(t)?t.join('\n'):t||'').split(/\r?\n/).map(x=>x.trim()).filter(x=>x&&!/^[-—–]{2,}.*[-—–]{2,}$/.test(x)&&!/^[-—–]{3,}$/.test(x)).map(x=>x.replace(/^[-•*]\s*/,'').trim()).filter(Boolean);
 /* serviços a serem ativados: campo próprio; projetos antigos têm as linhas "- ..." dentro das observações técnicas */
 function svcDe(p){const pi=(p&&p.inst)||{},n=(pi.notas||[]).map(x=>String(x||'').trim()).filter(Boolean);
   if(String(pi.servicos||'').trim())return{svc:tvSvcLinhas(pi.servicos),notas:n};
@@ -21439,6 +21439,220 @@ Object.assign(ACT,{caboGeoEd:el=>{if(!caboPodeEd())return semPerm();const a=getA
 .cabogeo{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--brand-soft)}
 .cabogeo.falta{background:var(--warn-soft)}.cabogeo span{display:grid;gap:2px}.cabogeo small{color:var(--muted);font-size:12px}.cabogeo b.mono{font-size:18px;letter-spacing:.04em}.cabogb{display:flex!important;grid-auto-flow:column;gap:6px}
 .cabofin{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cabofin .chk{margin:0}.cabofin small{display:block;color:var(--muted);font-weight:400}.cabol{display:block;color:var(--brand-ink);font-weight:700}`;document.head.appendChild(st)})();
+
+/* ---------- 16/11: Configuração pelo NOC na ativação (Implantação) ----------
+   Substitui o pedido no grupo de WhatsApp. Banco: agenda_ajuste_90_configuracao_noc.sql (tabela ag_cfg_noc + funções).
+   Técnico (atividade com Ativação, no local ou em execução): "Pedir configuração ao NOC" → marca os serviços a serem
+     ativados do projeto, os equipamentos (da lista de materiais; o serial vem do patrimônio dele) e uma observação.
+     Acompanha: aguardando o NOC, configurando (quem pegou), concluída (retorno do NOC) ou devolvida (motivo) → pede de novo.
+     Não trava a conclusão da atividade (fase de teste do processo).
+   NOC (e coordenação/supervisão): Implantação › Operação › Configurações em campo: quadro Aguardando início,
+     Em configuração, Devolvidas e Concluídas hoje; o pedido abre com os dados do projeto e do técnico; Iniciar,
+     Configuração concluída, Não consegui concluir (motivo); Conversa abre o chat da atividade (técnico, Delivery, NOC e O&M).
+   Avisos: NOC a cada pedido; técnico quando o NOC inicia, conclui ou devolve. Fila e tela do técnico atualizam sozinhas.
+   16/11 (2): AMBIENTE DE SIMULAÇÃO para apresentar ao NOC. Por enquanto o pedido NÃO aparece para os técnicos (CFG_REAL=false):
+     eles seguem como hoje. Implantação › Operação › Simulação NOC (coordenação/supervisão): cria ativações simuladas a partir
+     da base de previsão e faz o papel do técnico num celular na tela; o NOC atende na própria fila (cards com a marca
+     Simulação). Nada é contabilizado: não cria atividade, não mexe em projeto, estoque, LPU ou indicadores; a conversa da
+     simulação fica no próprio pedido. "Apagar dados da simulação" limpa tudo. */
+let CFG_REAL=false;
+const CFG={rows:[],sims:[],em:0,bus:false,pat:null,patBus:false,err:''};
+const CFG_MOT=['Equipamento não sobe / sem sinal','Serial ou MAC não confere','Falta dado de provisionamento (VLAN, IP, plano)','Problema na OLT / POP','Cliente sem energia ou sem acesso ao rack','Outro'];
+const CFG_ST={wait:['Aguardando o NOC','warn'],run:['Configurando','info'],ok:['Configurada','ok'],bad:['Devolvida','bad'],canc:['Cancelada','']};
+const cfgMin=ms=>{const m=Math.max(0,Math.round(ms/60e3));return m<60?m+' min':Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')};
+const cfgHm=t=>t?new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+const cfgRow=r=>({id:r.id,ag:r.agendamento||r.sim_ag,sim:!!r.sim,etq:r.etiqueta,tec:r.tecnico,st:r.status,noc:r.noc,d:r.dados||{},em:(r.dados&&r.dados.em)||Date.parse(r.criado_em)});
+const cfgDoAg=id=>CFG.rows.filter(r=>r.ag===id&&r.st!=='canc').sort((a,b)=>b.em-a.em)[0]||null;
+const cfgAtende=()=>!!ME&&(ui.perfil==='noc'||['coord','sup'].includes(ui.perfil));
+const cfgVeFila=()=>!!ME&&!gTecPerfil()&&(cfgAtende()||pode('agenda'));
+const cfgSvcs=p=>svcDe(p).svc.filter(x=>!/^[—–\-=_\s]{2,}/.test(x)&&!/^servi[çc]os a serem ativados$/i.test(x.trim()));
+const cfgAtivAg=a=>!!a&&fasesOf(a).includes('ativ');
+const cfgSimVe=()=>!!ME&&['coord','sup'].includes(ui.perfil);
+/* alvo do pedido: atividade real ou ativação simulada (com a foto do projeto tirada na criação) */
+const cfgSimDe=id=>{const s=(CFG.sims||[]).find(x=>x.id===id);return s?{id:s.id,etiqueta:s.etiqueta,status:'execucao',materiais:[],sim:true,snap:s.dados||{},em:Date.parse(s.criado_em)}:null};
+const cfgAlvo=id=>(id&&(cfgSimDe(id)||getAg(id)))||null;
+const cfgProj=a=>a&&a.sim?(a.snap.p||{}):(pPor(a.etiqueta)||{});
+const cfgEnd=a=>a&&a.sim?(a.snap.end||''):((S.comp[a.etiqueta]||{}).endereco||'');
+async function cfgCarregar(quieto){if(!ME)return;if(CFG.bus){CFG.again=true;return}CFG.bus=true;try{
+  let q=sb.from('ag_cfg_noc').select('*').gte('criado_em',new Date(Date.now()-3*864e5).toISOString()).order('criado_em',{ascending:true});
+  if(gTecPerfil()){if(!CFG_REAL){CFG.em=Date.now();return}q=q.eq('tecnico',ME.id)}
+  const r=await q;if(r.error)throw r.error;CFG.rows=(r.data||[]).map(cfgRow);
+  if(cfgSimVe()){const s2=await sb.from('ag_cfg_sim').select('*').order('criado_em',{ascending:false}).limit(60);if(!s2.error)CFG.sims=s2.data||[]}
+  CFG.em=Date.now();CFG.err=''}
+  catch(e){CFG.err=/ag_cfg_noc|relation|does not exist/i.test(e.message||'')?'falta':String(e.message||e)}
+  finally{CFG.bus=false}if(CFG.again){CFG.again=false;return cfgCarregar(quieto)}if(!quieto||cfgTelaAberta())render()}
+const cfgTelaAberta=()=>!!ME&&!ui.chat&&(ui.tab==='cfgNoc'||ui.tab==='cfgSim'||(gTecPerfil()&&ui.campoSel&&cfgAtivAg(getAg(ui.campoSel))));
+let CFG_RT=null;function cfgTempoReal(){if(CFG_RT||!ME)return;try{CFG_RT=sb.channel('cfgnoc').on('postgres_changes',{event:'*',schema:'public',table:'ag_cfg_noc'},()=>cfgCarregar(true)).subscribe()}catch(e){}}
+/* sem tempo real (ou caiu): confere a cada 20 s enquanto alguém está olhando */
+setInterval(()=>{if(!ME||document.visibilityState!=='visible')return;const ae=document.activeElement;if(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;
+  if(cfgTelaAberta())cfgCarregar(true)},20000);
+/* ---------- técnico ---------- */
+async function cfgPat(){if(CFG.pat||CFG.patBus)return;const doc=meuDoc();if(!doc){CFG.pat=[];return}CFG.patBus=true;
+  try{CFG.pat=await todas(()=>sb.from('estoque_patrimonio').select('serial,codigo_material,descricao_material').eq('cnpj',doc))}catch(e){CFG.pat=[]}finally{CFG.patBus=false}
+  if(ui.cfgForm)cfgFormAbrir()}
+function cfgEqs(a){const P=CFG.pat||[],M=a.materiais||[];
+  return M.filter(m=>m.cod&&P.some(x=>String(x.codigo_material)===String(m.cod))).map(m=>({cod:String(m.cod),desc:m.desc||'',ser:P.filter(x=>String(x.codigo_material)===String(m.cod)).map(x=>x.serial)}))}
+function cfgBox(a){const r=cfgDoAg(a.id),T=Date.now();if(CFG.err==='falta')return '';
+  if(!r){if(!['no_local','execucao'].includes(a.status))return '';
+    return `<section class="upd cfgbx"><b>Configuração pelo NOC</b><small class="muted">Equipamento instalado e ligado? Peça a configuração por aqui, no lugar do grupo do WhatsApp. O NOC recebe na hora.</small><button class="btn primary wide" data-act="cfgPedir" data-id="${a.id}">Pedir configuração ao NOC</button></section>`}
+  const d=r.d,sv=esc((d.svcs||[]).join(' · ')||'Configuração');
+  const ped=`<div class="tvbxs" style="margin-top:6px">${r.st==='wait'?tvBox('Aguardando há',cfgMin(T-r.em)):r.st==='run'?tvBox('Configurando há',cfgMin(T-(d.ini||T))):''}</div>${(d.eq||[]).length?`<small class="muted">${(d.eq||[]).map(e=>esc(e.desc||'Equipamento')+': <b class="mono">'+esc(e.serial)+'</b>').join('<br>')}</small>`:''}`;
+  if(r.st==='wait')return `<section class="upd cfgbx wait"><b>Aguardando o NOC iniciar</b><small class="muted">Pedido enviado às ${cfgHm(r.em)}${d.tent>1?' ('+d.tent+'ª tentativa)':''}: ${sv}. Você recebe um aviso quando começarem.</small>${ped}<button class="btn wide" data-act="cfgCanc" data-id="${r.id}">Cancelar pedido</button></section>`;
+  if(r.st==='run')return `<section class="upd cfgbx run"><b>${esc(d.nocN||'O NOC')} está configurando</b><small class="muted">Iniciou às ${cfgHm(d.ini)}. Aguarde no local; se precisar, fale pelo Mensagens.</small>${ped}</section>`;
+  if(r.st==='ok')return `<section class="upd cfgbx ok"><b>Configuração concluída</b><small class="muted">${esc(d.nocN||'NOC')} concluiu às ${cfgHm(d.fim)} (${cfgMin((d.fim||T)-(d.ini||r.em))}).${d.ret?' “'+esc(d.ret)+'”':''}</small><small>Siga com os testes e o relatório.</small><button class="link" data-act="cfgPedir" data-id="${a.id}" style="justify-self:start">Pedir outra configuração</button></section>`;
+  return `<section class="upd cfgbx bad"><b>O NOC não conseguiu concluir</b><small><b>${esc(d.mot||'')}</b>${d.ret?' · “'+esc(d.ret)+'”':''}</small><small class="muted">Corrija o que foi apontado e peça de novo.</small><button class="btn primary wide" data-act="cfgPedir" data-id="${a.id}" data-de="${r.id}">Pedir configuração de novo</button></section>`}
+{const _d=detalhe;detalhe=function(a){let h=_d.apply(this,arguments);try{if(!CFG_REAL||!gTecPerfil()||!cfgAtivAg(a))return h;if(!CFG.em&&!CFG.bus)setTimeout(()=>cfgCarregar(),0);const b=cfgBox(a);if(!b)return h;
+  if(h.includes('<div class="tvpre">'))return h.replace('<div class="tvpre">','<div class="tvpre">'+b);const i=h.indexOf('</article>');return i<0?h:h.slice(0,i+10)+`<div class="tvpre">${b}</div>`+h.slice(i+10)}catch(e){return h}}}
+function cfgFormHtml(){const F=ui.cfgForm,a=cfgAlvo(F.ag);if(!a)return '';const p=cfgProj(a),svs=cfgSvcs(p);if(!a.sim&&!CFG.pat)cfgPat();const eqs=a.sim?[]:cfgEqs(a),ant=F.de&&CFG.rows.find(r=>r.id===F.de);
+  const svH=svs.length?svs.map((s,i)=>`<label class="chk ${F.svcs.includes(s)?'on':''}" style="margin:0"><input type="checkbox" data-ch="cfgSvc" data-v="${esc(s)}" ${F.svcs.includes(s)?'checked':''}><span>${esc(s)}</span></label>`).join(''):'<p class="muted" style="margin:0">O projeto não tem serviços a serem ativados cadastrados. Descreva em "Outro".</p>';
+  const eqM=`${(F.eqL||[]).map((e,i)=>`<div class="cfgeq"><div class="cfgeqh"><small class="muted">Equipamento ${i+1}</small>${(F.eqL||[]).length>1?`<button class="link" data-act="cfgEqDel" data-i="${i}">Remover</button>`:''}</div><input class="inp" id="cfgEqLd${i}" data-in="cfgEqLd" data-i="${i}" value="${esc(e.d||'')}" placeholder="Equipamento (ex.: ONU, firewall)"><input class="inp mono" id="cfgEqLs${i}" data-in="cfgEqLs" data-i="${i}" value="${esc(e.s||'')}" placeholder="Serial / MAC" autocomplete="off"></div>`).join('')}<button class="btn sm" data-act="cfgEqAdd" style="justify-self:start">+ Adicionar equipamento</button>`;
+  const eqH=a.sim?`<small class="muted">Simulação: informe o equipamento e o serial (pode ser um serial de exemplo).</small>${eqM}`:!CFG.pat?'<p class="muted" style="margin:0">Carregando seu patrimônio…</p>':eqs.length?eqs.map(e=>{const v=F.ser[e.cod]||'',man=F.man[e.cod];return `<div class="cfgeq"><b>${esc(e.desc)}</b><small class="muted">Código ${esc(e.cod)} · da lista de materiais · serial do seu patrimônio</small>
+     <select class="inp mono" data-ch="cfgSer" data-c="${esc(e.cod)}"><option value="">Escolha o serial</option>${e.ser.map(s=>`<option ${v===s&&!man?'selected':''}>${esc(s)}</option>`).join('')}<option value="__m" ${man?'selected':''}>Outro serial (digitar)</option></select>
+     ${man?`<input class="inp mono" id="cfgSm_${esc(e.cod)}" data-in="cfgSm" data-c="${esc(e.cod)}" value="${esc(v)}" placeholder="Digite ou leia da etiqueta" autocomplete="off">`:''}</div>`}).join('')
+   :`<small class="muted">Nenhum equipamento da lista de materiais está no seu patrimônio. Informe o equipamento e o serial.</small>${eqM}`;
+  return `<h3>Pedir configuração ao NOC${a.sim?' <i class="chip warn">Simulação</i>':''}</h3><p class="muted">${esc(p.cliente||cliN(a.etiqueta)||'')} - ${esc(a.etiqueta)}. Cliente, endereço, POP, equipamento de acesso e porta já vão automático.</p>
+   ${ant?`<div class="result bad" style="margin:0 0 10px"><b>Devolvido:</b> ${esc(ant.d.mot||'')}${ant.d.ret?' · '+esc(ant.d.ret):''}</div>`:''}
+   <div class="f"><span>O que precisa configurar * <small class="muted">(serviços a serem ativados)</small></span><div class="cfgsv">${svH}</div><input class="inp" id="cfgOutro" data-in="cfgOutro" value="${esc(F.outro||'')}" placeholder="Outro (opcional)" style="margin-top:6px"></div>
+   <div class="f" style="margin-top:10px"><span>Equipamentos instalados *</span><div style="display:grid;gap:8px;margin-top:4px">${eqH}</div></div>
+   ${ant?`<label class="f"><span>O que foi corrigido *</span><textarea class="inp" id="cfgCorr" data-in="cfgCorr" rows="2" placeholder="Ex.: serial conferido na etiqueta">${esc(F.corr||'')}</textarea></label>`:''}
+   <label class="f"><span>Observação para o NOC</span><textarea class="inp" id="cfgObs" data-in="cfgObs" rows="2" placeholder="Ex.: ONU com PON acesa, firewall na porta 2">${esc(F.obs||'')}</textarea></label>
+   <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="cfgEnviar">Enviar ao NOC</button></div>`}
+function cfgFormAbrir(){if(!ui.cfgForm)return;const h=cfgFormHtml();if(h)openModal(h)}
+Object.assign(IN,{cfgOutro:el=>{ui.cfgForm.outro=el.value},cfgObs:el=>{ui.cfgForm.obs=el.value},cfgCorr:el=>{ui.cfgForm.corr=el.value},
+  cfgEqLd:el=>{(ui.cfgForm.eqL[+el.dataset.i]||{}).d=el.value},cfgEqLs:el=>{(ui.cfgForm.eqL[+el.dataset.i]||{}).s=el.value},cfgMsgT:el=>{ui.cfgMsgT=el.value},cfgMsgN:el=>{ui.cfgMsgN=el.value},
+  cfgSm:el=>{ui.cfgForm.ser[el.dataset.c]=el.value.trim()},cfgDevT:el=>{ui.cfgDevT=el.value},cfgRet:el=>{ui.cfgRet=el.value}});
+Object.assign(CH,{cfgSvc:el=>{const L=ui.cfgForm.svcs,v=el.dataset.v;if(el.checked){if(!L.includes(v))L.push(v)}else L.splice(L.indexOf(v),1);el.closest('label').classList.toggle('on',el.checked)},
+  cfgSer:el=>{const F=ui.cfgForm,c=el.dataset.c;if(el.value==='__m'){F.man[c]=true;F.ser[c]='';cfgFormAbrir();setTimeout(()=>{const i=$('cfgSm_'+c);if(i)i.focus()},50)}else{if(F.man[c]){delete F.man[c];F.ser[c]=el.value;cfgFormAbrir()}else F.ser[c]=el.value}},
+  cfgMot:el=>{ui.cfgMot=el.value}});
+Object.assign(ACT,{
+  cfgPedir:el=>{const a=cfgAlvo(el.dataset.id);if(!a)return;const p=cfgProj(a),ant=el.dataset.de&&CFG.rows.find(r=>r.id===el.dataset.de);
+    ui.cfgForm={ag:a.id,de:el.dataset.de||'',svcs:ant?(ant.d.svcs||[]).slice():cfgSvcs(p),outro:ant?ant.d.outro||'':'',obs:ant?ant.d.obs||'':'',ser:{},man:{},corr:'',eqL:[]};
+    if(ant)(ant.d.eq||[]).forEach(e=>{if(e.cod)ui.cfgForm.ser[e.cod]=e.serial;else ui.cfgForm.eqL.push({d:e.desc,s:e.serial})});
+    if(!ui.cfgForm.eqL.length)ui.cfgForm.eqL=[{d:a.sim?'ONU':'',s:''}];
+    cfgFormAbrir()},
+  cfgEqAdd:()=>{const F=ui.cfgForm;if(!F)return;F.eqL.push({d:'',s:''});cfgFormAbrir()},
+  cfgEqDel:el=>{const F=ui.cfgForm;if(!F)return;F.eqL.splice(+el.dataset.i,1);cfgFormAbrir()},
+  cfgEnviar:async()=>{const F=ui.cfgForm;if(!F)return;const a=cfgAlvo(F.ag);if(!a)return;const p=cfgProj(a),pi=p.inst||{};
+    const svcs=F.svcs.slice();if(String(F.outro||'').trim())svcs.push('Outro: '+F.outro.trim());if(!svcs.length){toast('Marque o que precisa configurar.','bad');return}
+    let eq=[];if(!a.sim&&CFG.pat&&cfgEqs(a).length){for(const e of cfgEqs(a)){const s=String(F.ser[e.cod]||'').trim();if(!s){toast('Escolha o serial de '+e.desc+'.','bad');return}eq.push({cod:e.cod,desc:e.desc,serial:s})}}
+    else{eq=(F.eqL||[]).filter(e=>String(e.s||'').trim()).map(e=>({cod:'',desc:String(e.d||'Equipamento').trim()||'Equipamento',serial:String(e.s).trim()}));if(!eq.length){toast('Informe o serial do equipamento.','bad');return}}
+    if(F.de&&!String(F.corr||'').trim()){toast('Conte o que foi corrigido.','bad');return}
+    const d={cli:p.cliente||'',cid:p.cidade||'',end:cfgEnd(a),pop:p.pop||'',olt:String(p.equip||'').replace(/^\((.*)\)$/,'$1'),porta:pi.porta||'',topo:p.topologia||'',pa:pi.pa||'',svcs,outro:F.outro||'',eq,obs:String(F.obs||'').trim(),corr:F.de?String(F.corr||'').trim():'',fase:'Ativação'};if(a.sim)d.tecN=a.snap.tecN||'Técnico (simulação)';
+    if(ui._cfgEnv)return;ui._cfgEnv=1;try{const r=a.sim?await sb.rpc('ag_cfg_sim_pedir',{p_sim:a.id,p_dados:d}):await sb.rpc('ag_cfg_pedir',{p_ag:a.id,p_dados:d});if(r.error)throw r.error;ui.cfgForm=null;closeModal();toast('Pedido enviado ao NOC. Você recebe um aviso quando começarem.');await cfgCarregar()}
+    catch(e){toast(/ag_cfg_pedir|does not exist/i.test(e.message||'')?'A configuração pelo NOC ainda não foi liberada no banco. Avise a coordenação.':(e.message||'Não foi possível enviar.'),'bad')}finally{ui._cfgEnv=0}},
+  cfgCanc:async el=>{try{const r=await sb.rpc('ag_cfg_cancelar',{p_id:el.dataset.id});if(r.error)throw r.error;toast('Pedido cancelado.');await cfgCarregar()}catch(e){toast(e.message||'Não foi possível cancelar.','bad')}}});
+/* ---------- NOC: Configurações em campo ---------- */
+const CFG_COLS=[['wait','Aguardando início','Técnico no local pediu; ninguém pegou ainda'],['run','Em configuração','Alguém do NOC está configurando'],['bad','Devolvidas ao técnico','Não deu para concluir; aguardando o técnico'],['ok','Concluídas hoje','Configuradas; o técnico segue com os testes']];
+const cfgHoje=r=>new Date(r.d.fim||r.em).toDateString()===new Date().toDateString();
+function cfgCard(r){const T=Date.now(),d=r.d,late=r.st==='wait'&&T-r.em>10*60e3,nm=r.sim?(d.msgs||[]).length:gNMsg('a',r.ag),nv=r.sim?0:gNNova('a',r.ag);
+  const st=r.st==='wait'?`<i class="chip ${late?'bad':'warn'}">Aguardando há ${cfgMin(T-r.em)}</i>`:r.st==='run'?`<i class="chip info">Configurando · ${cfgMin(T-(d.ini||T))}</i>`:r.st==='ok'?`<i class="chip ok">Concluída em ${cfgMin((d.fim||T)-(d.ini||r.em))}</i>`:`<i class="chip bad">Devolvida</i>`;
+  const cas=r.st==='wait'?'<span class="cas ag">Técnico no local aguardando</span>':r.st==='run'?`<span class="cas">Com ${esc(d.nocN||'NOC')} desde ${cfgHm(d.ini)}</span>`:r.st==='ok'?`<span class="cas">${esc(d.nocN||'NOC')} · ${cfgHm(d.fim)}</span>`:`<span class="cas">${esc(d.mot||'')}</span>`;
+  return `<button class="ca2 ev evn gcc gkc" data-act="cfgAbrir" data-id="${r.id}" title="${esc(d.cli||r.etq)}"><span class="cat"><b>${esc(d.cli||'')} - ${esc(r.etq)}</b>${r.sim?'<i class="chip warn cfgsimc">Simulação</i>':''}${nm?`<span class="kchat${nv?' nova':''}" role="button" tabindex="0" data-act="cfgChat" data-id="${r.id}" title="Conversa da atividade" aria-label="Conversa da atividade">${nm}</span>`:''}${st}</span>
+   <div class="car"><span><b>${esc((d.svcs||[]).join(' + '))}</b></span></div><div class="car"><span>${esc(d.fase||'Ativação')}${d.tent>1?' · '+d.tent+'ª tentativa':''}</span></div><div class="car"><span>${esc(d.cid||'')}</span></div><div class="car"><span>${esc(d.tecN||'')}</span></div>${(d.eq||[]).map(e=>`<div class="car"><span class="mono" style="font-size:12px">${esc(e.serial)}</span></div>`).join('')}${cas}</button>`}
+function viewCfgNoc(){if(!CFG.em&&!CFG.bus)setTimeout(()=>cfgCarregar(),0);cfgTempoReal();const R=CFG.rows,T=Date.now();
+  if(CFG.err==='falta')return `<div class="toolbar"><div><h2>Configurações em campo</h2></div></div><div class="result warn">Falta rodar o ajuste 90 no banco (agenda_ajuste_90_configuracao_noc.sql).</div>`;
+  const novo=r=>R.some(x=>x.ag===r.ag&&x.id!==r.id&&x.st!=='canc'&&x.em>r.em),col=k=>R.filter(r=>r.st===k&&(k==='ok'||k==='bad'?cfgHoje(r):true)&&!(k==='bad'&&novo(r))).sort((a,b)=>k==='ok'?(b.d.fim||0)-(a.d.fim||0):a.em-b.em);
+  const q=normK(ui.cfgQ||''),fil=L=>q?L.filter(r=>normK([r.d.cli,r.etq,r.d.tecN,r.d.cid,(r.d.eq||[]).map(e=>e.serial).join(' ')].join(' ')).includes(q)):L;
+  const temReal=R.some(r=>!r.sim),RK=R.filter(r=>!temReal||!r.sim),ini=RK.filter(r=>r.d.ini),ok=RK.filter(r=>r.st==='ok'&&cfgHoje(r)),avg=L=>L.length?L.reduce((s,x)=>s+x,0)/L.length:0;
+  const mEsp=avg(ini.filter(r=>cfgHoje(r)).map(r=>r.d.ini-r.em)),mCfg=avg(ok.map(r=>r.d.fim-r.d.ini));
+  return `<div class="toolbar"><div><h2>Configurações em campo</h2><p class="muted">Técnicos no cliente pedindo configuração de equipamento na ativação. Pegue o pedido, configure e conclua: o técnico é avisado na hora.</p></div>
+   <div class="tools"><input class="inp" type="search" id="cfgQ" data-in="cfgQ" placeholder="Buscar cliente, etiqueta, serial ou técnico" value="${esc(ui.cfgQ||'')}" autocomplete="off"></div></div>
+   ${R.some(r=>r.sim)||!CFG_REAL?`<div class="result warn cfgsimban"><b>Ambiente de simulação.</b> Os pedidos marcados como <b>Simulação</b> servem para apresentar o processo: não são de técnicos de verdade e nada é contabilizado.${CFG_REAL?'':' Por enquanto os técnicos continuam pedindo como hoje.'}${cfgSimVe()?' <button class="link" data-act="tab" data-t="cfgSim">Abrir a simulação</button>':''}</div>`:''}
+   <section class="gag" aria-label="Agora"><div class="gagh"><b>Agora</b><span class="gagt aceite"><b>${col('wait').length}</b><span>aguardando início</span></span><span class="gagt atend"><b>${col('run').length}</b><span>em configuração</span></span><span class="gagt disp"><b>${ok.length}</b><span>concluídas hoje</span></span>
+    <span class="gagr">Espera média até iniciar <b>${mEsp?cfgMin(mEsp):'—'}</b> · Configuração média <b>${mCfg?cfgMin(mCfg):'—'}</b>${temReal?'':' <small>(simulação)</small>'}</span></div></section>
+   <div class="kbwrap"><div class="kb cfgkb">${CFG_COLS.map(([k,n,aj])=>{const L=fil(col(k));return `<section class="gkcol" aria-label="${n}"><div class="kcolh"><h3>${n}</h3><b>${L.length}</b></div><small class="muted">${aj}</small>${L.map(cfgCard).join('')||'<span class="muted kvz">Nada aqui.</span>'}</section>`}).join('')}</div></div>`}
+IN.cfgQ=el=>{ui.cfgQ=el.value;const p=el.selectionStart;render();const i=$('cfgQ');if(i){i.focus();try{i.setSelectionRange(p,p)}catch(e){}}};
+function cfgDetHtml(r){const d=r.d,meu=r.noc===(ME&&ME.id)||['coord','sup'].includes(ui.perfil),T=Date.now();
+  const kv=(k,v)=>v?`<div class="cfgkv"><span class="muted">${k}</span><b>${v}</b></div>`:'';
+  const box=(t,h)=>`<section class="cfgdbx"><b>${t}</b>${h}</section>`;
+  const hist=(d.hist||[]).map(h=>kv(cfgHm(h.em),esc(h.acao+(h.por?' · '+h.por:'')))).join('');
+  let bt='',extra='';const chat=r.sim?'':`<button class="btn" data-act="cfgChat" data-id="${r.id}">Conversa (técnico, Delivery e O&amp;M)</button>`;
+  if(r.st==='wait'&&cfgAtende())bt=`${chat}<button class="btn primary" data-act="cfgIni" data-id="${r.id}">Iniciar configuração</button>`;
+  else if(r.st==='run'&&cfgAtende()&&meu&&ui.cfgDev===r.id){extra=`<label class="f"><span>Motivo *</span><select class="inp" data-ch="cfgMot">${CFG_MOT.map(m=>`<option ${ui.cfgMot===m?'selected':''}>${esc(m)}</option>`).join('')}</select></label><label class="f"><span>O que o técnico precisa fazer</span><textarea class="inp" id="cfgDevT" data-in="cfgDevT" rows="2">${esc(ui.cfgDevT||'')}</textarea></label>`;
+    bt=`<button class="btn" data-act="cfgDevX" data-id="${r.id}">Voltar</button><button class="btn danger" data-act="cfgFim" data-ok="0" data-id="${r.id}">Devolver ao técnico</button>`}
+  else if(r.st==='run'&&cfgAtende()&&meu){extra=`<label class="f"><span>Retorno para o técnico (opcional)</span><input class="inp" id="cfgRet" data-in="cfgRet" value="${esc(ui.cfgRet||'')}" placeholder="Ex.: ONU provisionada, pode testar"></label>`;
+    bt=`${chat}<button class="btn danger" data-act="cfgDevA" data-id="${r.id}">Não consegui concluir</button><button class="btn primary" data-act="cfgFim" data-ok="1" data-id="${r.id}">Configuração concluída</button>`}
+  else bt=`${chat}${r.st==='run'?`<span class="muted">Com ${esc(d.nocN||'outra pessoa')}.</span>`:''}`;
+  const sit=r.st==='wait'?` · <b style="color:var(--warn)">aguardando há ${cfgMin(T-r.em)}</b>`:r.st==='run'?` · com ${esc(d.nocN||'')} desde ${cfgHm(d.ini)}`:'';
+  return `<h3>${esc(d.cli||'')} - ${esc(r.etq)}${r.sim?' <i class="chip warn">Simulação</i>':''}</h3><p class="muted">${esc(d.fase||'Ativação')} · ${esc(d.cid||'')} · pedido às ${cfgHm(r.em)}${d.tent>1?' · '+d.tent+'ª tentativa':''}${sit}</p>
+   ${r.st==='bad'?`<div class="result bad" style="margin:8px 0 0"><b>Devolvido:</b> ${esc(d.mot||'')}${d.ret?' · '+esc(d.ret):''}</div>`:''}${r.st==='ok'&&d.ret?`<div class="result ok" style="margin:8px 0 0">${esc(d.ret)}</div>`:''}
+   <div class="cfgdg">${box('Pedido do técnico',`<span class="cfgsvs">${(d.svcs||[]).map(s=>`<i class="chip">${esc(s)}</i>`).join(' ')}</span>${(d.eq||[]).map(e=>kv(esc(e.desc||'Equipamento'),`<span class="mono">${esc(e.serial)}</span>`)).join('')}${kv('Observação',esc(d.obs||''))}${kv('Corrigido',esc(d.corr||''))}`)}
+    ${box('Dados técnicos do projeto',kv('POP',esc(d.pop||''))+kv('Equipamento de acesso',esc(d.olt||''))+kv('Porta',`<span class="mono">${esc(d.porta||'')}</span>`)+kv('Topologia',esc(d.topo||''))+kv('Ponto de acesso',esc(d.pa||'')))}
+    ${box('Técnico no local',kv('Nome',esc(d.tecN||''))+kv('Endereço',esc(d.end||'')))}
+    ${box('Registro',hist||'<span class="muted">—</span>')}</div>${r.sim?cfgSimChat(r,'n'):''}${extra}<div class="actions">${bt}</div>`}
+/* conversa da simulação: fica no próprio pedido (não usa o chat das atividades) */
+function cfgSimChat(r,l){const L=r.d.msgs||[],v=l==='t'?ui.cfgMsgT:ui.cfgMsgN;
+  return `<section class="cfgsch"><b>Conversa ${l==='t'?'com o NOC':'com o técnico'} <small class="muted">(simulação)</small></b><div class="cfgschl">${L.length?L.map(m=>`<div class="cfgm ${m.papel==='NOC'?'noc':''}"><small><b>${esc(m.por||'')}</b> · ${esc(m.papel||'')} · ${cfgHm(m.em)}</small>${esc(m.txt)}</div>`).join(''):'<small class="muted">Sem mensagens.</small>'}</div>
+   <div class="cfgschr"><input class="inp" id="cfgMsg${l}" data-in="cfgMsg${l==='t'?'T':'N'}" value="${esc(v||'')}" placeholder="Mensagem" autocomplete="off"><button class="btn sm" data-act="cfgMsg" data-l="${l}" data-id="${r.id}">Enviar</button></div></section>`}
+function cfgDetAbrir(id){const r=CFG.rows.find(x=>x.id===id);if(!r)return;ui.cfgSel=id;openModal(cfgDetHtml(r))}
+async function cfgRpc(n,a,msg){if(ui._cfgRpc)return false;ui._cfgRpc=1;try{const r=await sb.rpc(n,a);if(r.error)throw r.error;if(msg)toast(msg);await cfgCarregar(true);return true}catch(e){toast(e.message||'Não foi possível salvar.','bad');await cfgCarregar(true);return false}finally{ui._cfgRpc=0}}
+Object.assign(ACT,{
+  cfgAbrir:el=>{ui.cfgDev=null;ui.cfgRet='';cfgDetAbrir(el.dataset.id)},
+  cfgIni:async el=>{if(await cfgRpc('ag_cfg_iniciar',{p_id:el.dataset.id},'Configuração iniciada. O técnico foi avisado.'))cfgDetAbrir(el.dataset.id);else closeModal()},
+  cfgDevA:el=>{ui.cfgDev=el.dataset.id;ui.cfgMot=ui.cfgMot||CFG_MOT[0];ui.cfgDevT='';cfgDetAbrir(el.dataset.id)},
+  cfgDevX:el=>{ui.cfgDev=null;cfgDetAbrir(el.dataset.id)},
+  cfgFim:async el=>{const ok=el.dataset.ok==='1';const a=ok?{p_id:el.dataset.id,p_ok:true,p_ret:String(ui.cfgRet||'').trim(),p_mot:''}:{p_id:el.dataset.id,p_ok:false,p_ret:String(ui.cfgDevT||'').trim(),p_mot:ui.cfgMot||CFG_MOT[0]};
+    if(await cfgRpc('ag_cfg_finalizar',a,ok?'Configuração concluída. O técnico foi avisado.':'Devolvido ao técnico.')){ui.cfgDev=null;ui.cfgRet='';closeModal()}},
+  cfgChat:el=>{const r=CFG.rows.find(x=>x.id===el.dataset.id);if(!r)return;if(r.sim)return cfgDetAbrir(r.id);try{closeModal()}catch(e){}ACT.chatAbrir({dataset:{t:'a',id:r.ag}})},
+  cfgMsg:async el=>{const l=el.dataset.l,t=String((l==='t'?ui.cfgMsgT:ui.cfgMsgN)||'').trim();if(!t)return;
+    if(await cfgRpc('ag_cfg_msg',{p_id:el.dataset.id,p_txt:t,p_papel:l==='t'?'Técnico':'NOC'},'')){if(l==='t')ui.cfgMsgT='';else{ui.cfgMsgN='';cfgDetAbrir(el.dataset.id)}render()}}});
+/* conversa da atividade: o NOC não tem a atividade carregada; o título vem do pedido */
+{const _v=viewChat;viewChat=function(){let h=_v.apply(this,arguments);try{const ch=ui.chat;if(!ch||ch.t!=='a')return h;const r=CFG.rows.filter(x=>x.ag===ch.id&&x.st!=='canc')[0];if(!r)return h;
+  return h.replace(/(<div class="chath">[\s\S]*?<b>Mensagens · )[^<]*(<\/b><small class="muted">)[^<]*(<\/small>)/,(m,a,b,c)=>`${a}${esc(r.etq)}${b}${esc((r.d.cli||cliN(r.etq)||'')+' · '+(r.d.fase||'Ativação'))} · Técnico, Delivery, NOC e O&amp;M${c}`)}catch(e){return h}}}
+/* ---------- Simulação (coordenação/supervisão) ---------- */
+function cfgSimFone(a){const s=a.snap,p=s.p||{},pi=p.inst||{},r=cfgDoAg(a.id);
+  const row=(l,v)=>v?`<div class="tvrow"><div><span>${l}</span><b>${esc(v)}</b></div></div>`:'';
+  return `<div class="cfgfone"><div class="campo tv"><article class="tvtop"><div class="tvtt"><span class="tvtag impl">Implantação · ${esc(a.etiqueta)}</span><div class="tvch"><span class="chip info">Em execução</span><span class="chip warn">Simulação</span></div><h2 class="tvnome">${esc(p.cliente||'')}<span class="tvetq"> - ${esc(a.etiqueta)}</span></h2></div>
+   ${tvBand('#4F3A86','Ativação','Técnico: '+(s.tecN||'—'))}</article>
+   <div class="tvpre">${cfgBox(a)}${r?cfgSimChat(r,'t'):''}</div>
+   <section class="tacc cfgsimdt"><div class="tact" style="padding:12px 14px"><b>Dados técnicos</b>${row('POP',p.pop)}${row('Equipamento de acesso',String(p.equip||'').replace(/^\((.*)\)$/,'$1'))}${row('Porta',pi.porta)}${row('Ponto de acesso',pi.pa)}${row('Endereço',s.end)}</div></section></div></div>`}
+function viewCfgSim(){if(!CFG.em&&!CFG.bus)setTimeout(()=>cfgCarregar(),0);cfgTempoReal();
+  if(CFG.err==='falta')return `<div class="toolbar"><div><h2>Simulação · Configuração pelo NOC</h2></div></div><div class="result warn">Falta rodar o ajuste 90 no banco (agenda_ajuste_90_configuracao_noc.sql).</div>`;
+  const q=normK(ui.cfgSimQ||''),res=q.length>=2?(S.previsao||[]).filter(p=>p.etiqueta&&normK([p.cliente,p.etiqueta,p.cidade].join(' ')).includes(q)).slice(0,6):[];
+  const pj=ui.cfgSimP&&pPor(ui.cfgSimP),TL=(typeof TEC!=='undefined'?TEC:[]).filter(t=>t&&t.nome);
+  const nova=`<section class="card cfgsimn"><h3>Nova ativação simulada</h3><label class="f"><span>Projeto da base de previsão</span><input class="inp" type="search" id="cfgSimQ" data-in="cfgSimQ" value="${esc(ui.cfgSimQ||'')}" placeholder="Buscar cliente, etiqueta ou cidade" autocomplete="off"></label>
+   ${res.length?`<div class="cfgsimres">${res.map(p=>`<button class="cfgsimp ${ui.cfgSimP===p.etiqueta?'on':''}" data-act="cfgSimP" data-e="${esc(p.etiqueta)}"><b>${esc(p.cliente||'')} - ${esc(p.etiqueta)}</b><small class="muted">${esc([p.cidade,p.topologia,p.pop].filter(Boolean).join(' · '))}</small></button>`).join('')}</div>`:q.length>=2?'<p class="muted" style="margin:0">Nenhum projeto encontrado.</p>':''}
+   ${pj?`<div class="note" style="margin:0"><b>${esc(pj.cliente||'')} - ${esc(pj.etiqueta)}</b><br>${esc([pj.pop,pj.topologia].filter(Boolean).join(' · '))} · ${cfgSvcs(pj).length} serviço(s) a serem ativados</div>`:''}
+   <label class="f"><span>Técnico (só o nome, ninguém é avisado)</span><select class="inp" data-ch="cfgSimTec"><option value="">Técnico de demonstração</option>${TL.map(t=>`<option ${ui.cfgSimTec===t.nome?'selected':''}>${esc(t.nome)}</option>`).join('')}</select></label>
+   <button class="btn primary" data-act="cfgSimCriar" ${pj?'':'disabled'}>Criar ativação simulada</button></section>`;
+  const L=CFG.sims||[],sel=cfgSimDe(ui.cfgSimSel)||(L[0]&&cfgSimDe(L[0].id));if(sel)ui.cfgSimSel=sel.id;
+  const lista=`<section class="card"><h3>Ativações simuladas <small class="muted">${L.length}</small></h3>${L.length?`<div class="cfgsiml">${L.map(x=>{const r=cfgDoAg(x.id),st=r?CFG_ST[r.st]:null,d=x.dados||{};return `<button class="cfgsimp ${sel&&sel.id===x.id?'on':''}" data-act="cfgSimSel" data-id="${x.id}"><b>${esc((d.p||{}).cliente||'')} - ${esc(x.etiqueta)}</b><small class="muted">${esc(d.tecN||'')} · ${cfgHm(Date.parse(x.criado_em))}</small>${st?`<i class="chip ${st[1]}">${st[0]}</i>`:'<i class="chip">Sem pedido</i>'}</button>`}).join('')}</div>`:'<p class="muted" style="margin:0">Nenhuma ainda. Crie uma acima.</p>'}</section>`;
+  return `<div class="toolbar"><div><h2>Simulação · Configuração pelo NOC</h2><p class="muted">Ambiente para apresentar o processo ao NOC. Crie ativações a partir da base de previsão e faça o papel do técnico no celular ao lado; o NOC atende na fila dele (Configurações em campo). Nada aqui é contabilizado e os técnicos não veem.</p></div>
+   <div class="tools"><button class="btn" data-act="tab" data-t="cfgNoc">Abrir a fila do NOC</button><button class="btn dangerl" data-act="cfgSimLimpar">Apagar dados da simulação</button></div></div>
+   <div class="cfgsimg"><div class="cfgsimc">${nova}${lista}</div><div class="cfgsimf">${sel?cfgSimFone(sel):'<div class="empty muted" style="padding:40px 10px;text-align:center">Crie ou escolha uma ativação simulada para ver a tela do técnico.</div>'}</div></div>`}
+IN.cfgSimQ=el=>{ui.cfgSimQ=el.value;const p=el.selectionStart;render();const i=$('cfgSimQ');if(i){i.focus();try{i.setSelectionRange(p,p)}catch(e){}}};
+CH.cfgSimTec=el=>{ui.cfgSimTec=el.value};
+Object.assign(ACT,{
+  cfgSimP:el=>{ui.cfgSimP=el.dataset.e;render()},
+  cfgSimSel:el=>{ui.cfgSimSel=el.dataset.id;ui.cfgMsgT='';render()},
+  cfgSimCriar:async()=>{const p=ui.cfgSimP&&pPor(ui.cfgSimP);if(!p)return;const c=S.comp[p.etiqueta]||{},pi=p.inst||{};
+    const snap={tecN:ui.cfgSimTec||'Técnico de demonstração',end:c.endereco||'',p:{cliente:p.cliente||'',cidade:p.cidade||'',pop:p.pop||'',equip:p.equip||'',topologia:p.topologia||'',inst:{porta:pi.porta||'',pa:pi.pa||'',servicos:pi.servicos||'',notas:pi.notas||[]}}};
+    try{const r=await sb.rpc('ag_cfg_sim_criar',{p_etq:p.etiqueta,p_dados:snap});if(r.error)throw r.error;CFG.sims=[{id:r.data,etiqueta:p.etiqueta,dados:snap,criado_em:new Date().toISOString()}].concat((CFG.sims||[]).filter(x=>x.id!==r.data));ui.cfgSimSel=r.data;ui.cfgSimQ='';ui.cfgSimP='';toast('Ativação simulada criada. Faça o papel do técnico no celular.');await cfgCarregar()}catch(e){toast(e.message||'Não foi possível criar.','bad')}},
+  cfgSimLimpar:()=>openModal(`<h3>Apagar dados da simulação?</h3><p class="muted">Apaga todas as ativações simuladas e os pedidos marcados como Simulação (também da fila do NOC). Pedidos reais não são afetados.</p><div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="cfgSimLimparOk">Apagar</button></div>`),
+  cfgSimLimparOk:async()=>{closeModal();if(await cfgRpc('ag_cfg_sim_limpar',{},'Dados da simulação apagados.')){ui.cfgSimSel=null;render()}}});
+RP_TL.cfgSim='Simulação NOC';try{NAV_TC.cfgSim='Simulação';ICT.cfgSim='M9 3h6M10 3v6L4 19a1 1 0 0 0 .9 1.5h14.2A1 1 0 0 0 20 19l-6-10V3M7 14h10'}catch(e){}
+RP_VIEWS.cfgSim=viewCfgSim;
+/* menu: Implantação › Operação › Configurações em campo (NOC, coordenação e quem vê a agenda) */
+RP_TL.cfgNoc='Configurações em campo';try{NAV_TC.cfgNoc='Config. NOC';ICT.cfgNoc='M4 6h16v8H4zM8 18h8M12 14v4M7 10h.01M11 10h6'}catch(e){}
+RP_VIEWS.cfgNoc=viewCfgNoc;
+{const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments);try{if(cfgVeFila()&&!T.includes('cfgNoc'))T.push('cfgNoc');if(cfgSimVe()&&!T.includes('cfgSim'))T.push('cfgSim')}catch(e){}return T}}
+/* link dos avisos: ?cfg=<pedido> */
+function cfgIr(id){ui.cat='impl';ui.tab='cfgNoc';ui.chat=null;render();cfgCarregar().then(()=>{if(CFG.rows.some(r=>r.id===id))cfgDetAbrir(id)})}
+{const _g=gIr;gIr=function(url){let q=null;try{q=new URL(url||'',location.href).searchParams}catch(e){}const id=q&&q.get('cfg');if(id&&cfgVeFila())return cfgIr(id);const si=q&&q.get('cfgsim');if(si&&cfgSimVe()){ui.cat='impl';ui.tab='cfgSim';ui.cfgSimSel=si;ui.chat=null;return cfgCarregar()}return _g.apply(this,arguments)}}
+{const q=new URLSearchParams(location.search).get('cfg')||(new URLSearchParams(location.search).get('cfgsim')?'sim:'+new URLSearchParams(location.search).get('cfgsim'):null);if(q){try{history.replaceState(null,'',location.pathname)}catch(e){}window.__cfgLink=q}}
+{const _r=render;render=function(){const r=_r.apply(this,arguments);try{if(window.__cfgLink&&ME&&cfgVeFila()){const id=window.__cfgLink;window.__cfgLink=null;setTimeout(()=>{if(/^sim:/.test(id)){ui.cat='impl';ui.tab='cfgSim';ui.cfgSimSel=id.slice(4);cfgCarregar()}else cfgIr(id)},0)}if(ME&&!CFG_RT&&(cfgVeFila()||gTecPerfil()))cfgTempoReal()}catch(e){}return r}}
+(function(){const st=document.createElement('style');st.textContent=`.cfgbx{display:grid;gap:6px}.cfgbx.wait{background:var(--warn-soft)}.cfgbx.run{background:var(--info-soft)}.cfgbx.ok{background:var(--brand-soft)}.cfgbx.bad{background:var(--bad-soft)}
+.cfgsv{display:grid;grid-template-columns:1fr;gap:6px;margin-top:6px}.cfgeq{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:6px}
+.cfgkb{min-width:0!important;grid-template-columns:repeat(4,minmax(210px,1fr))!important}
+.cfgdg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}.cfgdbx{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:4px;align-content:start;min-width:0}
+.cfgkv{display:grid;grid-template-columns:minmax(90px,38%) 1fr;gap:8px;font-size:13.5px}.cfgkv b{min-width:0;overflow-wrap:anywhere}.cfgsvs{display:flex;flex-wrap:wrap;gap:4px}
+.cfgeqh{display:flex;justify-content:space-between;align-items:center}.cfgsimc{display:grid;gap:14px;align-content:start;min-width:0}.cfgsimc .card{display:grid;gap:10px}.cfgsimc h3{margin:0}
+.cfgsimg{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px;align-items:start}.cfgfone{background:#1f2a22;border-radius:28px;padding:10px;position:sticky;top:12px}.cfgfone>.campo{background:var(--bg);border-radius:20px;padding:12px;max-height:80vh;overflow:auto}
+.cfgsimres,.cfgsiml{display:grid;gap:6px}.cfgsimp{text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 10px;display:grid;gap:2px;justify-items:start;font:inherit;cursor:pointer}.cfgsimp.on{border-color:var(--brand);background:var(--brand-soft)}
+.cfgsch{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:8px;background:var(--surface)}.cfgschl{display:grid;gap:6px;max-height:200px;overflow:auto}.cfgm{background:var(--bg);border-radius:10px;padding:6px 10px;font-size:13.5px;display:grid}.cfgm.noc{background:var(--info-soft)}.cfgm small{color:var(--muted);font-size:11.5px}
+.cfgschr{display:flex;gap:8px}.cfgschr .inp{flex:1;min-width:0}.cfgsimban{margin:0 0 12px}.cfgsimc .cfgsimn .note{font-size:13.5px}
+@media (max-width:1100px){.cfgsimg{grid-template-columns:1fr}.cfgfone{position:static}}
+@media (max-width:700px){.cfgdg{grid-template-columns:1fr}}`;document.head.appendChild(st)})();
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
