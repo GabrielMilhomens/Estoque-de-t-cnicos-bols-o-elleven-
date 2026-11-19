@@ -4135,7 +4135,7 @@ const CH={
   cell:el=>{const p=S.previsao.find(x=>x.id===el.dataset.id),f=el.dataset.f,col=COLS.find(c=>c[0]===f);let v=el.value;
     if(col[2]==='n')v=v===''?0:parseFloat(v);else v=v.trim();
     if(f==='etiqueta'){if(!v){toast('A etiqueta não pode ficar vazia.','bad');el.value=p.etiqueta;return}
-      if(S.previsao.some(x=>x.id!==p.id&&x.etiqueta.toLowerCase()===v.toLowerCase())){toast(`Já existe um projeto com a etiqueta ${v}.`,'bad');el.value=p.etiqueta;return}
+      if(S.previsao.some(x=>x.id!==p.id&&x.etiqueta.toLowerCase()===v.toLowerCase())){toast(`Já existe um projeto com a etiqueta ${v}. Para upgrade do mesmo cliente, use Incluir novo projeto (entra como ${upgBase(v)}-UP${upgProx(upgBase(v))}).`,'bad');el.value=p.etiqueta;return}
       const old=p.etiqueta;if(old&&old!==v){if(S.comp[old]){S.comp[v]=S.comp[old];delete S.comp[old]}S.ags.forEach(a=>{if(a.etiqueta===old)a.etiqueta=v});S.lpus.forEach(l=>{if(l.etiqueta===old)l.etiqueta=v})}}
     p[f]=v;if(f==='topologia')fwaAjusta(p);save();if(f==='topologia')render()},
   agF:el=>{const F=ui.agForm,k=el.dataset.f;F[k]=el.type==='checkbox'?el.checked:el.value;if(k==='data'&&(!F.dataFim||F.dataFim<F.data))F.dataFim=F.data;render()},
@@ -21743,6 +21743,41 @@ function slx(){if(slSem())return true;const W=ui.wiz;if(!W||!W.id)return false;i
 {const _g=gerarPdfLpu;gerarPdfLpu=function(l){try{if(l&&l.chamado&&!l.areaPdf&&!/^(pl|rp):/.test(l.chamado)){const c=(G.__full||G.ch||[]).find(x=>x.id===l.chamado),a=c?areaDe(c):'gtd';
   if(a!=='gtd'){const n=a==='re'?((typeof rePrevL==='function'&&rePrevL(l))?'Rede Externa Preventiva':'Rede Externa Corretiva'):((areaCfg(a)||{}).n||'');if(n){const a2=[...arguments];a2[0]=Object.assign({},l,{areaPdf:n});return _g.apply(this,a2)}}}}catch(e){}
   return _g.apply(this,arguments)}}
+
+/* ===== 19/11: Projeto de upgrade para cliente que já está na base (mudança de topologia, aumento de banda) =====
+   Em "Incluir novo projeto", quando a etiqueta já existe na Base de previsão, a ferramenta pergunta o que fazer:
+   - Novo projeto de upgrade: entra como <etiqueta>-UP1 (UP2, UP3… nos próximos), com o endereço do projeto anterior;
+     o projeto anterior fica como está, com agendamentos, relatórios e LPUs.
+   - Atualizar o projeto existente com este ROI (como era antes).
+   Se o cliente já foi ativado, a opção marcada de início é o upgrade. */
+const upgEsc=s=>String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const upgBase=e=>String(e||'').replace(/-UP\d+$/i,'');
+function upgProx(base){const re=new RegExp('^'+upgEsc(base)+'-UP(\\d+)$','i');let n=0;S.previsao.forEach(p=>{const m=re.exec(p.etiqueta||'');if(m)n=Math.max(n,+m[1])});return n+1}
+function upgAtivado(etq){return S.ags.some(a=>a.etiqueta===etq&&fasesOf(a).includes('ativ')&&['concluida','lpu','relatorios'].includes(a.status))}
+function upgIni(ex){const W=ui.wiz;if(W&&W.upgEtq!==ex.etiqueta){W.upgEtq=ex.etiqueta;W.upg=upgAtivado(ex.etiqueta)?'novo':'atual'}return W?W.upg:'atual'}
+function upgEscolha(ex){const m=upgIni(ex),base=upgBase(ex.etiqueta),nova=base+'-UP'+upgProx(base),at=upgAtivado(ex.etiqueta);
+  const op=(v,t,d)=>`<button type="button" class="upgop ${m===v?'on':''}" data-act="upgModo" data-v="${v}"><span class="upgr"></span><span><b>${t}</b><small>${d}</small></span></button>`;
+  return `<div class="upgbox"><p style="margin:0 0 8px"><b>A etiqueta ${esc(ex.etiqueta)} já está na base</b>${ex.cliente?` (${esc(ex.cliente)}${ex.topologia?', '+esc(ex.topologia):''})`:''}${at?'. Esse cliente já foi ativado.':'.'} O que você quer fazer?</p>
+   ${op('novo','Novo projeto de upgrade',`Mudança de topologia ou aumento de banda. Entra como <b>${esc(nova)}</b>, com o mesmo endereço. O projeto anterior fica como está, com o histórico.`)}
+   ${op('atual','Atualizar o projeto existente',`Troca os dados do projeto ${esc(ex.etiqueta)} pelos deste ROI.`)}</div>`}
+{const _r=roiPreview;roiPreview=function(r,target){let h=_r.apply(this,arguments);if(target||!r||!r.etiqueta)return h;
+  const ex=S.previsao.find(x=>x.etiqueta.toLowerCase()===String(r.etiqueta).toLowerCase());if(!ex)return h;
+  return h.replace(/<p class="note">A etiqueta [^<]* já existe na base\. Ao confirmar, o projeto existente será atualizado com este ROI\.<\/p>/,upgEscolha(ex))}}
+function upgPrev(){const pv=$('roiPrev');if(!pv||!ui.roiTmp)return renderWiz();const keep={};pv.querySelectorAll('[id^=rp_]').forEach(e=>keep[e.id]=e.value);pv.innerHTML=roiPreview(ui.roiTmp,ui.roiTarget);Object.entries(keep).forEach(([i,v])=>{const e=$(i);if(e)e.value=v})}
+ACT.upgModo=el=>{const W=ui.wiz;if(!W)return;const etq=$('rp_etiqueta')&&$('rp_etiqueta').value.trim();if(ui.roiTmp&&etq)ui.roiTmp.etiqueta=etq;W.upg=el.dataset.v;upgPrev()};
+{const _c=wizCap1;wizCap1=function(){const W=ui.wiz,i=$('rp_etiqueta'),etq=i&&i.value.trim();
+  if(W&&!W.id&&etq&&ui.roiTmp){const ex=S.previsao.find(x=>x.etiqueta.toLowerCase()===etq.toLowerCase());
+    if(ex){if(W.upgEtq!==ex.etiqueta){ui.roiTmp.etiqueta=etq;upgIni(ex);upgPrev();toast('Essa etiqueta já está na base: escolha se é um projeto de upgrade ou se atualiza o projeto existente.');return false}
+      if(W.upg==='novo'){const base=upgBase(ex.etiqueta),n=upgProx(base),nova=base+'-UP'+n;i.value=nova;W.upgDe={id:ex.id,etiqueta:ex.etiqueta,base,n};
+        const f=wizFrom(ex);Object.keys(f.e).forEach(c=>{if(!W.e[c])W.e[c]=f.e[c]});if(!W.t.pop&&f.t.pop)W.t.pop=f.t.pop;
+        const ok=_c.apply(this,arguments);if(!ok){i.value=etq;W.upgDe=null}return ok}}
+    else if(W.upgDe&&etq.toLowerCase()!==(W.upgDe.base+'-UP'+W.upgDe.n).toLowerCase())W.upgDe=null}
+  return _c.apply(this,arguments)}}
+/* ao salvar: o projeto de upgrade guarda de qual projeto veio */
+{const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,u=W&&!W.id&&W.upgDe;const o=_s.apply(this,arguments);
+  const fim=()=>{if(!u)return;const p=S.previsao.find(x=>x.etiqueta===u.base+'-UP'+u.n);if(!p||p.upgDe)return;p.upgDe=u.id;p.upgEtq=u.etiqueta;p.upgN=u.n;save();render()};
+  if(o&&typeof o.then==='function')return o.then(r=>{fim();return r});fim();return o}}
+(function(){const st=document.createElement('style');st.textContent=`.upgbox{border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0 10px;background:var(--warn-soft,#fff8e6)}.upgop{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--card,#fff);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:6px;cursor:pointer;font:inherit;color:inherit}.upgop small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.4}.upgop.on{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand) inset}.upgr{flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--line);margin-top:2px}.upgop.on .upgr{border:5px solid var(--brand)}`;document.head.appendChild(st)})();
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
