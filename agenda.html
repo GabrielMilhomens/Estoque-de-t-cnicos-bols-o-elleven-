@@ -3627,7 +3627,7 @@ function openAjuste(lid){const l=S.lpus.find(x=>x.id===lid),k='L:'+lid;if(!ui.dr
 
 /* ---------- APROVAÇÃO ---------- */
 const CABO_LPU=['SEV0006','SEV0008','SEV0011','SEV0012','SEV0013','SEV0014','SEV0015','SEV0016','SEV0017'];
-const caboLpu=l=>(l.itens||[]).filter(i=>CABO_LPU.includes(i.cod)).reduce((s,i)=>s+(+i.qtd||0),0);
+let caboLpu=l=>(l.itens||[]).filter(i=>CABO_LPU.includes(i.cod)).reduce((s,i)=>s+(+i.qtd||0),0);
 const metrosAg=a=>{const m=a&&a.medicoes;if(!m)return null;const v=['rua','interno'].map(f=>m[f+':metros']).filter(x=>x!=null);return v.length?v.reduce((s,x)=>s+(+x||0),0):null};
 const metrosProj=e=>{const v=S.ags.filter(a=>a.etiqueta===e).map(metrosAg).filter(x=>x!=null);return v.length?v.reduce((s,x)=>s+x,0):null};
 const difTxt=(d,base)=>`${d>0?'+':''}${d.toLocaleString('pt-BR')} m${base?` (${d>0?'+':''}${Math.round(d/base*100)}%)`:''}`;
@@ -19657,6 +19657,8 @@ async function cfSalvar(x,msg){const i=CF.rows.findIndex(y=>y.id===x.id);if(i>=0
   if(r&&r.error){toast('Não foi possível salvar: '+r.error.message,'bad');await cfCarregar(true);return false}if(msg)toast(msg);render();return true}
 const cfCoord=()=>!!ME&&ui.perfil==='coord';
 const cfSup=()=>!!ME&&['coord','sup'].includes(ui.perfil);
+/* acesso gerencial (só ver): vê o contrato fixo, sem cadastrar, marcar ou aprovar */
+const cfEdita=()=>cfSup()&&!(typeof gerSoVer==='function'&&gerSoVer());
 const cfVis=()=>cfSup()&&!gTecPerfil()&&typeof areaAt==='function'&&areaAt()==='re'&&!(typeof reLado==='function'&&reLado()==='prev');
 const cfH=(x,acao,obs)=>{x.hist=(x.hist||[]).concat([{acao,por:meNome(),em:Date.now(),obs:obs||''}])};
 /* período: ref "AAAA-MM" = mês em que termina (dia 20) */
@@ -19703,15 +19705,15 @@ GFSUB.push(['cfix','Fechamento do mês','g_fin']);
 {const _v=viewGPainel;viewGPainel=function(){if(ui.gSec==='fin'&&ui.gFinSub==='cfix'&&cfVis()&&gSubsOk().some(x=>x[0]==='cfix'))return viewCfix();return _v.apply(this,arguments)}}
 function viewCfix(){if(!CF.ok&&!CF.err)cfCarregar();const subs=gSubsOk().filter(([k])=>!['det','aprov'].includes(k)),ref=ui.cfRef||(ui.cfRef=cfRefHoje()),a='re';
   const top=`<div class="toolbar"><div><h2>Financeiro · GTD Manutenção</h2><p class="muted">Equipes marcadas como <b>Sem LPU (fora do contrato)</b> fazem só o relatório, sem LPU. Aqui entra o pagamento delas: valor fixo até a franquia de chamados, R$ ${rpFmt(CF_EXC,0)} por chamado acima dela (ou o valor do contrato) e as variáveis atingidas. Se a equipe fizer menos chamados que a franquia, a diferença (valor fixo ÷ franquia por chamado) aparece como <b>improdutivo</b>. Os chamados com deslocamento iniciado vão acumulando no período (21 a 20); nada é pago chamado a chamado. Fechado o mês (a partir do dia 21), a supervisão marca as variáveis atingidas e aprova o fechamento; o valor entra no budget no mês da aprovação.</p></div>
-    <div class="tools"><button class="btn sm" data-act="cfRef" data-k="-1" aria-label="Período anterior">‹</button><b class="cfper">${cfPerTxt(ref)}</b><button class="btn sm" data-act="cfRef" data-k="1" aria-label="Próximo período">›</button>${cfSup()?'<button class="btn primary" data-act="cfContratos">Contratos</button>':''}</div></div>
+    <div class="tools"><button class="btn sm" data-act="cfRef" data-k="-1" aria-label="Período anterior">‹</button><b class="cfper">${cfPerTxt(ref)}</b><button class="btn sm" data-act="cfRef" data-k="1" aria-label="Próximo período">›</button>${cfEdita()?'<button class="btn primary" data-act="cfContratos">Contratos</button>':''}</div></div>
     ${subs.length>1?`<div class="views" style="margin-bottom:14px">${subs.map(([k,n])=>`<button data-act="gpSec" data-v="fin" data-s="${k}" aria-current="${k==='cfix'}">${n}${k==='aprov'&&gNAprov()?` (${gNAprov()})`:''}</button>`).join('')}</div>`:''}`;
   if(CF.err)return top+`<div class="result bad">${esc(CF.err)} <button class="btn sm" data-act="cfRecarr">Tentar de novo</button></div>`;
   if(!CF.ok)return top+'<p class="muted pad">Carregando…</p>';
   const K=cfContratos(a).sort((p,q)=>gTecN(p.tec).localeCompare(gTecN(q.tec)));
-  if(!K.length)return top+`<section class="panel"><p class="muted">Nenhum contrato fixo cadastrado.${cfSup()?' Use <b>Contratos</b> para cadastrar a franquia, o valor fixo e as variáveis de cada equipe.':' Quem tem acesso ao financeiro cadastra os contratos.'}</p></section>`;
+  if(!K.length)return top+`<section class="panel"><p class="muted">Nenhum contrato fixo cadastrado.${cfEdita()?' Use <b>Contratos</b> para cadastrar a franquia, o valor fixo e as variáveis de cada equipe.':' Quem tem acesso ao financeiro cadastra os contratos.'}</p></section>`;
   const R=K.map(k=>[k,cfApura(a,k.tec,ref)]),tot=R.reduce((s,[,A])=>s+A.total,0),apr=R.filter(([,A])=>A.st==='apr').reduce((s,[,A])=>s+A.total,0);
   const kp=(v,l,c)=>`<div class="kpi ${c||''}"><b>${v}</b><span>${l}</span></div>`;
-  const card=([k,A])=>{const ed=['aberto','dev'].includes(A.st)&&cfSup(),s=A.st==='aberto'?(Date.now()<=cfFim(ref)?['Mês em andamento','warn']:['Mês encerrado · enviar','warn']):CF_ST[A.st],F=A.F;
+  const card=([k,A])=>{const ed=['aberto','dev'].includes(A.st)&&cfEdita(),s=A.st==='aberto'?(Date.now()<=cfFim(ref)?['Mês em andamento','warn']:['Mês encerrado · enviar','warn']):CF_ST[A.st],F=A.F;
     return `<section class="panel cfcard"><div class="ah"><div><h3>${esc(gTecN(k.tec))}</h3><small class="muted">${esc(String(gTecV(k.tec)||'').replace(/<[^>]*>/g,''))}${((S.cnpj||{})[k.tec]||{}).empresa?' · '+esc(gTecN(S.cnpj[k.tec].empresa)):''}</small></div><span class="chip ${s[1]}">${s[0]}</span></div>
       ${A.st==='dev'&&F&&F.dev?`<div class="result bad" style="margin:8px 0 0">Reaberto: ${esc(F.dev)}</div>`:''}
       <div class="cfnums"><div><small>Chamados no período</small><b>${A.n} <span class="muted">de ${A.qtd}</span></b><button class="linkbtn" data-act="cfChs" data-tec="${k.tec}" data-ref="${ref}">ver chamados</button></div>
@@ -19719,8 +19721,8 @@ function viewCfix(){if(!CF.ok&&!CF.err)cfCarregar();const subs=gSubsOk().filter(
       <div class="cfvars"><small>Variáveis${ed?' · marque as atingidas no período':''}</small>${A.vars.length?A.vars.map(v=>`<label class="cfvar ${v.ok?'on':''}"><input type="checkbox" ${v.ok?'checked':''} ${ed?`data-act="cfVar" data-tec="${k.tec}" data-ref="${ref}" data-v="${esc(v.id)}"`:'disabled'}><span>${esc(v.nome)}</span><b>${brl(v.valor)}</b></label>`).join(''):'<p class="muted" style="margin:4px 0">Sem variáveis no contrato.</p>'}</div>
       <div class="cftot"><span>Total do período</span><b>${brl(A.total)}</b></div>
       <div class="actions" style="justify-content:flex-start">${ed&&Date.now()>cfFim(ref)?`<button class="btn primary" data-act="cfEnviar" data-tec="${k.tec}" data-ref="${ref}">Aprovar fechamento</button>`:ed?`<small class="muted">Mês em andamento: os chamados vão acumulando até ${dBR(isoD(new Date(cfFim(ref))))}. A aprovação do fechamento fica liberada a partir do dia 21.</small>`:''}
-        ${A.st==='env'&&cfSup()?`<button class="btn primary" data-act="cfAprovar" data-tec="${k.tec}" data-ref="${ref}">Aprovar</button><button class="btn" data-act="cfDevolver" data-tec="${k.tec}" data-ref="${ref}">Devolver</button>`:''}
-        ${A.st==='apr'&&cfSup()?`<button class="btn" data-act="cfReabrir" data-tec="${k.tec}" data-ref="${ref}">Reabrir</button>`:''}
+        ${A.st==='env'&&cfEdita()?`<button class="btn primary" data-act="cfAprovar" data-tec="${k.tec}" data-ref="${ref}">Aprovar</button><button class="btn" data-act="cfDevolver" data-tec="${k.tec}" data-ref="${ref}">Devolver</button>`:''}
+        ${A.st==='apr'&&cfEdita()?`<button class="btn" data-act="cfReabrir" data-tec="${k.tec}" data-ref="${ref}">Reabrir</button>`:''}
         ${F&&(F.hist||[]).length?`<button class="btn" data-act="cfVer" data-tec="${k.tec}" data-ref="${ref}">Histórico</button>`:''}</div>
       ${F&&F.env&&A.st!=='aberto'?`<small class="muted">Enviado por ${esc(F.env.por)} em ${dBR(isoD(new Date(F.env.em)))}${F.apr&&A.st==='apr'?` · aprovado por ${esc(F.apr.por)} em ${dBR(isoD(new Date(F.apr.em)))}`:''}</small>`:''}</section>`};
   return top+`<div class="kpis cfk">${kp(K.length,'Equipes com contrato fixo')}${kp(R.reduce((s,[,A])=>s+A.n,0),'Chamados no período')}${kp(brl(tot),'Total do período')}${kp(brl(R.reduce((s,[,A])=>s+A.vImp,0)),'Improdutivo (abaixo da franquia)','bad')}${kp(brl(apr),'Aprovado','ok')}</div><div class="cfgrid">${R.map(card).join('')}</div>`}
@@ -19757,11 +19759,11 @@ Object.assign(ACT,{
   cfRef:el=>{ui.cfRef=cfRefMais(ui.cfRef||cfRefHoje(),+el.dataset.k);render()},
   cfChs:el=>cfModalChs(el.dataset.tec,el.dataset.ref),
   cfAbrirCh:el=>{closeModal();ui.tab='gCham';ui.gSel=el.dataset.id;render();window.scrollTo(0,0)},
-  cfContratos:()=>{if(!cfSup())return;ui.cfEd=null;cfModalContratos()},
-  cfKEd:el=>{if(!cfSup())return;const k=el.dataset.id&&CF.rows.find(x=>x.id===el.dataset.id);ui.cfEd=k?JSON.parse(JSON.stringify(k)):{id:null,area:'re',tipo:'contrato',tec:'',qtd:'',fixo:'',exc:CF_EXC,vars:[],ativo:true};if(!ui.cfEd.vars)ui.cfEd.vars=[];cfModalK()},
+  cfContratos:()=>{if(!cfEdita())return;ui.cfEd=null;cfModalContratos()},
+  cfKEd:el=>{if(!cfEdita())return;const k=el.dataset.id&&CF.rows.find(x=>x.id===el.dataset.id);ui.cfEd=k?JSON.parse(JSON.stringify(k)):{id:null,area:'re',tipo:'contrato',tec:'',qtd:'',fixo:'',exc:CF_EXC,vars:[],ativo:true};if(!ui.cfEd.vars)ui.cfEd.vars=[];cfModalK()},
   cfVAdd:()=>{ui.cfEd.vars.push({id:'v'+Date.now().toString(36),nome:'',valor:''});cfModalK();const L=document.querySelectorAll('#modal [data-cfv="nome"]');if(L.length)L[L.length-1].focus()},
   cfVRm:el=>{ui.cfEd.vars.splice(+el.dataset.i,1);cfModalK()},
-  cfKSalvar:async()=>{if(!cfSup())return;const E=ui.cfEd;if(!E.tec){toast('Escolha o técnico ou a equipe.','bad');return}
+  cfKSalvar:async()=>{if(!cfEdita())return;const E=ui.cfEd;if(!E.tec){toast('Escolha o técnico ou a equipe.','bad');return}
     const qtd=parseInt(E.qtd,10),fixo=+String(E.fixo).replace(',','.'),exc=E.exc===''||E.exc==null?CF_EXC:+String(E.exc).replace(',','.');
     if(!(qtd>=0)||!(fixo>=0)||String(E.fixo).trim()===''||String(E.qtd).trim()===''){toast('Preencha a quantidade de chamados e o valor fixo.','bad');return}if(!(exc>=0)){toast('Valor do excedente inválido.','bad');return}
     const vars=(E.vars||[]).map(v=>({id:v.id,nome:String(v.nome||'').trim(),valor:+String(v.valor).replace(',','.')})).filter(v=>v.nome||v.valor);
@@ -19771,9 +19773,9 @@ Object.assign(ACT,{
     if(!x.desde)x.desde=cfRefHoje();if(x.ativo===false){if(!ant||ant.ativo!==false)x.ate=cfRefHoje()}else delete x.ate;
     cfH(x,ant?'Contrato alterado':'Contrato criado',`${qtd} chamados · ${brl(fixo)} · excedente ${brl(exc)} · ${vars.length} variável(is)`);
     if(await cfSalvar(x,'Contrato salvo.')){ui.cfEd=null;cfModalContratos()}},
-  cfVar:async el=>{if(!cfSup())return;const tec=el.dataset.tec,ref=el.dataset.ref,F=await cfFechGarante(tec,ref);if(!['aberto','dev'].includes(F.status)){render();return}
+  cfVar:async el=>{if(!cfEdita())return;const tec=el.dataset.tec,ref=el.dataset.ref,F=await cfFechGarante(tec,ref);if(!['aberto','dev'].includes(F.status)){render();return}
     F.ok=Object.assign({},F.ok||{});F.ok[el.dataset.v]=!!el.checked;await cfSalvar(F)},
-  cfEnviar:async el=>{if(!cfSup())return;const tec=el.dataset.tec,ref=el.dataset.ref,F=await cfFechGarante(tec,ref);if(!['aberto','dev'].includes(F.status))return;
+  cfEnviar:async el=>{if(!cfEdita())return;const tec=el.dataset.tec,ref=el.dataset.ref,F=await cfFechGarante(tec,ref);if(!['aberto','dev'].includes(F.status))return;
     if(Date.now()<=cfFim(ref)){toast('O mês fecha em '+dBR(isoD(new Date(cfFim(ref))))+'. A aprovação fica liberada a partir do dia 21.','bad');return}
     const A=cfApura('re',tec,ref);
     openModal(`<h3>Aprovar o fechamento?</h3><p class="muted">${esc(gTecN(tec))} · ${cfPerTxt(ref)}</p>
@@ -19781,15 +19783,15 @@ Object.assign(ACT,{
       <tr><td>Variáveis atingidas (${A.vars.filter(v=>v.ok).length} de ${A.vars.length})</td><td class="r">${brl(A.vOk)}</td></tr><tr><td><b>Total para pagamento</b></td><td class="r"><b>${brl(A.total)}</b></td></tr>${A.vImp?`<tr><td class="cfimp"><span>Improdutivo: ${A.ni} chamado(s) abaixo da franquia</span></td><td class="r cfimp"><span>${brl(A.vImp)}</span></td></tr>`:''}</tbody></table></div>
       <p class="muted">Aprovado, entra no budget da RE Corretiva e fica disponível para a empresa como valor para pagamento.</p>
       <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn primary" data-act="cfFecharOk" data-tec="${tec}" data-ref="${ref}">Aprovar fechamento</button></div>`)},
-  cfFecharOk:async el=>{if(!cfSup())return;closeModal();const tec=el.dataset.tec,ref=el.dataset.ref,F=await cfFechGarante(tec,ref);if(!['aberto','dev'].includes(F.status)||Date.now()<=cfFim(ref))return;
+  cfFecharOk:async el=>{if(!cfEdita())return;closeModal();const tec=el.dataset.tec,ref=el.dataset.ref,F=await cfFechGarante(tec,ref);if(!['aberto','dev'].includes(F.status)||Date.now()<=cfFim(ref))return;
     const A=cfApura('re',tec,ref),T=Date.now();
     Object.assign(F,{qtd:A.qtd,fixo:A.fixo,exc:A.exc,vars:A.vars,ids:A.ids,n:A.n,total:A.total,status:'apr',env:{por:meNome(),em:T},apr:{por:meNome(),em:T}});delete F.dev;
     cfH(F,'Fechamento aprovado',`${A.n} chamado(s) · ${A.vars.filter(v=>v.ok).length} de ${A.vars.length} variável(is) · ${brl(A.total)}`);await cfSalvar(F,'Fechamento aprovado. Entrou no budget da RE Corretiva.')},
-  cfAprovar:async el=>{if(!cfSup())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='env'){toast('Este fechamento não está aguardando aprovação.','bad');return}
+  cfAprovar:async el=>{if(!cfEdita())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='env'){toast('Este fechamento não está aguardando aprovação.','bad');return}
     F.status='apr';F.apr={por:meNome(),em:Date.now()};cfH(F,'Aprovado',brl(F.total));await cfSalvar(F,'Fechamento aprovado. Entrou no budget da RE Corretiva.')},
-  cfDevolver:el=>{if(!cfSup())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='env')return;
+  cfDevolver:el=>{if(!cfEdita())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='env')return;
     rpPergunta('Devolver o fechamento',`${gTecN(F.tec)} · ${cfPerTxt(F.ref)}`,'Motivo',async m=>{F.status='dev';F.dev=m;cfH(F,'Devolvido para a supervisão',m);await cfSalvar(F,'Fechamento devolvido para a supervisão.')},true)},
-  cfReabrir:el=>{if(!cfSup())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='apr')return;
+  cfReabrir:el=>{if(!cfEdita())return;const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F||F.status!=='apr')return;
     rpPergunta('Reabrir o fechamento aprovado',`${gTecN(F.tec)} · ${cfPerTxt(F.ref)}. Sai do budget até ser aprovado de novo.`,'Motivo',async m=>{F.status='dev';F.dev=m;delete F.apr;cfH(F,'Reaberto',m);await cfSalvar(F,'Fechamento reaberto.')},true)},
   cfVer:el=>{const F=cfFech('re',el.dataset.tec,el.dataset.ref);if(!F)return;const A=cfApura('re',F.tec,F.ref);
     openModal(`<h3>Contrato fixo · ${esc(gTecN(F.tec))}</h3><p class="muted">${cfPerTxt(F.ref)} · <span class="chip ${CF_ST[F.status][1]}">${CF_ST[F.status][0]}</span></p>
@@ -19815,7 +19817,7 @@ tr.cfex td{background:#fff8e8}.cfimp small,.cfimp b,.cfimp span{color:#b42318!im
    (variáveis aparecem depois do envio). Fechado: valor para pagamento. A devolução interna não aparece. */
 const cfMeus=me=>CF.rows.filter(x=>x.tipo==='contrato'&&x.ativo!==false&&(x.tec===me||((S.cnpj||{})[x.tec]||{}).empresa===me));
 function cfPrestBloco(me){if(!CF.ok&&!CF.err&&!CF.bus)cfCarregar();const K=CF.ok?cfMeus(me):[];if(!K.length)return '';const ref=cfRefHoje();
-  const card=k=>{const a=k.area,A=cfApura(a,k.tec,ref),F=A.F,fe=F&&F.status==='apr',env=F&&['env','apr','dev'].includes(F.status);
+  const card=k=>{if(k.area==='impl'&&typeof cfiPrestCard==='function')return cfiPrestCard(k);const a=k.area,A=cfApura(a,k.tec,ref),F=A.F,fe=F&&F.status==='apr',env=F&&['env','apr','dev'].includes(F.status);
     const anteriores=CF.rows.filter(x=>x.tipo==='fech'&&x.tec===k.tec&&x.area===a&&x.ref!==ref).sort((p,q)=>q.ref.localeCompare(p.ref)).slice(0,6);
     const ult=cfRefMais(ref,-1),Fu=cfFech(a,k.tec,ult),Au=cfApura(a,k.tec,ult),stU=Fu&&Fu.status==='apr'?['Fechado · valor para pagamento','ok']:['Mês encerrado · em fechamento na Net Turbo','info'];
     const linhaVal=(AA)=>`<div class="cfnums"><div><small>Valor fixo</small><b>${brl(AA.fixo)}</b></div><div><small>Acima da franquia</small><b>${AA.ne} × ${brl(AA.exc)}</b></div><div><small>Variáveis atingidas</small><b>${brl(AA.vOk)}</b></div></div>
@@ -19873,7 +19875,7 @@ function cfRefs(k,de,ate){const L=[];let r=cfDesde(k);const fim=k.ativo===false?
 const cfMid=ref=>new Date(+ref.slice(0,4),+ref.slice(5,7)-1,10,12).getTime();
 /* budget e menu Financeiro: valor do contrato todo mês; fechamento aprovado substitui pelo total */
 cfLpus=function(a){if(!CF.ok&&!CF.err&&!CF.bus&&cfSup())cfCarregar();const ate=cfRefMais(cfRefHoje(),2),out=[];
-  CF.rows.filter(k=>k.tipo==='contrato'&&(!a||k.area===a)).forEach(k=>{const cx=(S.cnpj||{})[k.tec]||{};
+  CF.rows.filter(k=>k.tipo==='contrato'&&k.area==='re'&&(!a||k.area===a)).forEach(k=>{const cx=(S.cnpj||{})[k.tec]||{};
     cfRefs(k,null,ate).forEach(ref=>{const F=cfFech(k.area,k.tec,ref),ap=F&&F.status==='apr',m=cfMid(ref),per=cfPerTxt(ref);
       const o={id:'cf:'+(F?F.id:k.id+':'+ref),chamado:null,_pl:k.area,_cf:1,_cfId:F?F.id:null,_cfK:k.id,_cfRef:ref,tec:k.tec,prestador:cx.empresa||undefined,status:'aprovada',data:isoD(new Date(m)),
         categoria:'Contrato fixo',pom:'',cliente:'Contrato fixo '+per,etiqueta:'Contrato fixo '+per,itens:[],conta:k.area==='re'?(typeof RE_CONTA!=='undefined'?RE_CONTA:''):'',
@@ -19899,7 +19901,7 @@ const cfTitulo=(h,grp)=>h.replace('<h2>Financeiro · GTD Manutenção</h2>',`<h2
     return cfTitulo(cfTrocaViews(h,sub,'cf').replace(/consumido pelas LPUs aprovadas no mês da aprovação\./,'consumido pelas LPUs aprovadas no mês da aprovação e pelos contratos fixos (valor do contrato todo mês; depois do fechamento aprovado, o total do fechamento).'),'cf')}
   if(sub==='cfix')return cfTitulo(cfTrocaViews(_v.apply(this,arguments),sub,'cf'),'cf');
   const top=`<div class="toolbar"><div><h2>Financeiro · GTD Manutenção · Contrato fixo</h2><p class="muted">${sub==='cfk'?'Contratos das equipes Sem LPU. O valor fixo de cada contrato consome o budget geral da RE Corretiva todo mês, a partir do período do cadastro.':sub==='cfprest'?'Quanto cada empresa recebe por contrato fixo nos períodos escolhidos (21 a 20).':'Fechamento de cada equipe por período: chamados, fixo, excedentes, variáveis e improdutivo.'}</p></div>
-    ${sub==='cfk'?(cfSup()?'<div class="tools"><button class="btn primary" data-act="cfKEd">Novo contrato</button></div>':''):cfRangeSel()}</div>${cfViews(sub,'cf')}`;
+    ${sub==='cfk'?(cfEdita()?'<div class="tools"><button class="btn primary" data-act="cfKEd">Novo contrato</button></div>':''):cfRangeSel()}</div>${cfViews(sub,'cf')}`;
   if(CF.err)return top+`<div class="result bad">${esc(CF.err)} <button class="btn sm" data-act="cfRecarr">Tentar de novo</button></div>`;
   if(!CF.ok)return top+'<p class="muted pad">Carregando…</p>';
   return top+'<div class="cfpg">'+(sub==='cfk'?cfViewContratos():sub==='cfprest'?cfViewPrest():cfViewDet())+'</div>'}}
@@ -19907,7 +19909,7 @@ const cfTitulo=(h,grp)=>h.replace('<h2>Financeiro · GTD Manutenção</h2>',`<h2
 {const _c=viewCfix;viewCfix=function(){return cfTrocaViews(_c.apply(this,arguments),'cfix','cf')}}
 /* período De/Até (refs) */
 function cfRangeSel(){const hoje=cfRefHoje(),de=ui.cfDe||(ui.cfDe=cfRefMais(hoje,-2)),ate=ui.cfAte||(ui.cfAte=hoje);
-  const ks=CF.rows.filter(x=>x.tipo==='contrato'),ini=ks.length?ks.map(cfDesde).sort()[0]:cfRefMais(hoje,-6),L=[];let r=ini<cfRefMais(hoje,-12)?cfRefMais(hoje,-12):(ini>hoje?hoje:ini);for(let i=0;i<30&&r<=hoje;i++){L.push(r);r=cfRefMais(r,1)}
+  const ks=CF.rows.filter(x=>x.tipo==='contrato'&&x.area==='re'),ini=ks.length?ks.map(cfDesde).sort()[0]:cfRefMais(hoje,-6),L=[];let r=ini<cfRefMais(hoje,-12)?cfRefMais(hoje,-12):(ini>hoje?hoje:ini);for(let i=0;i<30&&r<=hoje;i++){L.push(r);r=cfRefMais(r,1)}
   if(!L.includes(de))L.unshift(de);const op=v=>L.map(x=>`<option value="${x}" ${x===v?'selected':''}>${cfPerTxt(x)}</option>`).join('');
   return `<div class="tools"><label class="f inline"><span>De</span><select class="inp" data-ch="cfDe">${op(de)}</select></label><label class="f inline"><span>Até</span><select class="inp" data-ch="cfAte">${op(ate)}</select></label></div>`}
 Object.assign(CH,{cfDe:el=>{ui.cfDe=el.value;if(ui.cfAte<ui.cfDe)ui.cfAte=ui.cfDe;render()},cfAte:el=>{ui.cfAte=el.value;if(ui.cfDe>ui.cfAte)ui.cfDe=ui.cfAte;render()}});
@@ -19918,13 +19920,13 @@ function cfLinhas(){const de=ui.cfDe||cfRefMais(cfRefHoje(),-2),ate=ui.cfAte||cf
   return L.sort((p,q)=>q.ref.localeCompare(p.ref)||gTecN(p.k.tec).localeCompare(gTecN(q.k.tec)))}
 const cfKp=(v,l,c)=>`<div class="kpi ${c||''}"><b>${v}</b><span>${l}</span></div>`;
 function cfViewContratos(){const K=CF.rows.filter(x=>x.tipo==='contrato'&&x.area==='re').sort((p,q)=>(p.ativo===false)-(q.ativo===false)||gTecN(p.tec).localeCompare(gTecN(q.tec))),At=K.filter(k=>k.ativo!==false);
-  if(!K.length)return `<section class="panel"><p class="muted">Nenhum contrato fixo cadastrado.${cfSup()?' Use <b>Novo contrato</b>.':' Quem tem acesso ao financeiro cadastra os contratos.'}</p></section>`;
+  if(!K.length)return `<section class="panel"><p class="muted">Nenhum contrato fixo cadastrado.${cfEdita()?' Use <b>Novo contrato</b>.':' Quem tem acesso ao financeiro cadastra os contratos.'}</p></section>`;
   const mx=k=>(+k.fixo||0)+(k.vars||[]).reduce((s,v)=>s+(+v.valor||0),0);
   return `<div class="kpis cfk3">${cfKp(At.length,'Contratos ativos')}${cfKp(brl(At.reduce((s,k)=>s+(+k.fixo||0),0)),'Consumo fixo do budget por mês')}${cfKp(brl(At.reduce((s,k)=>s+mx(k),0)),'Máximo por mês sem excedentes (fixo + variáveis)')}</div>
    <section class="panel"><div class="tablewrap"><table><thead><tr><th>Equipe</th><th>Empresa</th><th class="r">Franquia</th><th class="r">Valor fixo/mês</th><th class="r">Excedente</th><th>Variáveis</th><th>Desde</th><th>Situação</th><th></th></tr></thead><tbody>
    ${K.map(k=>{const cx=(S.cnpj||{})[k.tec]||{};return `<tr><td><b>${esc(gTecN(k.tec))}</b></td><td>${esc(cx.empresa?gTecN(cx.empresa):'—')}</td><td class="r">${+k.qtd||0}</td><td class="r">${brl(+k.fixo||0)}</td><td class="r">${brl(k.exc!=null?+k.exc:CF_EXC)}</td>
      <td>${(k.vars||[]).length?(k.vars||[]).map(v=>`<small class="cfvl">${esc(v.nome)} · ${brl(+v.valor||0)}</small>`).join(''):'<small class="muted">—</small>'}</td><td class="nw">${cfPerTxt(cfDesde(k)).slice(0,5)}${cfDesde(k).slice(0,4)!==cfRefHoje().slice(0,4)?'/'+cfDesde(k).slice(0,4):''}</td>
-     <td>${k.ativo===false?`<span class="chip">Inativo${k.ate?' desde '+cfPerTxt(k.ate).slice(-10):''}</span>`:'<span class="chip ok">Ativo</span>'}</td><td>${cfSup()?`<button class="btn sm" data-act="cfKEd" data-id="${k.id}">Editar</button>`:''}</td></tr>`}).join('')}
+     <td>${k.ativo===false?`<span class="chip">Inativo${k.ate?' desde '+cfPerTxt(k.ate).slice(-10):''}</span>`:'<span class="chip ok">Ativo</span>'}</td><td>${cfEdita()?`<button class="btn sm" data-act="cfKEd" data-id="${k.id}">Editar</button>`:''}</td></tr>`}).join('')}
    </tbody></table></div></section>`}
 function cfViewPrest(){const L=cfLinhas();if(!L.length)return '<section class="panel"><p class="muted">Nenhum contrato no período.</p></section>';const M={};
   L.forEach(x=>{const m=M[x.emp]=M[x.emp]||{eq:new Set(),n:0,fixo:0,exc:0,var:0,imp:0,apr:0,pend:0,nAp:0,nT:0};m.eq.add(x.k.tec);m.n+=x.A.n;m.nT++;
@@ -21998,6 +22000,7 @@ async function f2Carregar(){if(F2.bus)return;F2.bus=true;const T=['ag_fin_tercei
     Object.assign(F2,{terc:R[0],ctr:R[1],cm:R[2],fat:R[3],hist:R[4],cod:R[5],ok:true})}finally{F2.bus=false}if(ui.cat==='fin')render()}
 const f2Ok=()=>{if(!F2.ok&&!F2.bus)f2Carregar();return F2.ok};
 let F2C=null;{const _r=render;render=function(){F2C=null;return _r.apply(this,arguments)}}
+const f2EhCf=l=>!!(l&&(l.cf||l._cf));
 const f2LpuCod=l=>fcCod(l.conta)||FIN_AREA_COD[finAreaL(l)]||'';
 function f2Idx(){if(F2C)return F2C;const M={};finTodas().forEach(l=>{if(l.status!=='aprovada'||finClt(l))return;const a=aprovEm(l);if(!a)return;const m=mesDe(a);(M[m]=M[m]||[]).push(l)});return F2C=M}
 const f2Lpus=m=>f2Idx()[m]||[];
@@ -22020,7 +22023,7 @@ function f2Exec(cod,m){const H=f2HistM(m);if(H.length)return{tot:H.filter(h=>h.c
 const f2Bud=(m,cod)=>finBud(m,cod);
 /* faturas do mês: LPUs aprovadas (por terceiro) + contratos */
 function f2Faturas(m){const G0={};const add=(k,nome,tipo,v,o)=>{const id=k.chave+'|'+tipo;const g=G0[id]=G0[id]||{chave:k.chave,nome:k.nome||nome,fin:k.fin,tipo,valor:0,itens:[]};g.valor+=v;g.itens.push(o)};
-  f2Lpus(m).forEach(l=>{const k=f2TerL(l);add(k,k.nome,'lpu',+l.total||0,l)});
+  f2Lpus(m).forEach(l=>{const k=f2TerL(l);add(k,k.nome,f2EhCf(l)?'ctr':'lpu',+l.total||0,l)});
   f2CtrMes(m).forEach(c=>{const x=f2Calc(c,m);if(!x.total)return;add(f2TerC(c),c.nome,'ctr',x.total,c)});
   const L=Object.values(G0).map(g=>{const s=F2.fat.find(f=>f.chave===g.chave&&f.mes===m&&f.tipo===g.tipo);return Object.assign(g,{mes:m,valor:Math.round(g.valor*100)/100,s:s||null,etapa:s?+s.etapa:-1})});
   F2.fat.filter(f=>f.mes===m&&!L.some(g=>g.chave===f.chave&&g.tipo===f.tipo)).forEach(f=>L.push({chave:f.chave,nome:f.nome,tipo:f.tipo,valor:+f.valor||0,itens:[],mes:m,s:f,etapa:+f.etapa}));
@@ -22078,7 +22081,7 @@ function viewFinConta(){if(!f2Ok())return f2Top('Conta contábil','Executado e b
   const cards=FC.map(([cod,n,g])=>{const x=f2Exec(cod,m),b=f2Bud(m,cod),p=f2Pct(x.tot,b);return `<button class="fgcard f2cc ${cod===c?'on':''}" data-act="f2Conta" data-c="${cod}" aria-pressed="${cod===c}"><small class="muted">${cod} · ${g}</small><b class="f2cn">${n}</b><span class="f2cv">${brl(x.tot)}</span><small class="muted">de ${brl(b)} · <b style="color:${f2Cor(p)}">${b?p+'%':'sem budget'}</b></small>${f2Bar(x.tot,b)}</button>`}).join('');
   const x=f2Exec(c,m),b=f2Bud(m,c),R={};const add=(k,nome,o,v)=>{const r=R[k+'|'+o]=R[k+'|'+o]||{nome,o,v:0,n:0};r.v+=v;r.n++};
   if(x.hist)f2HistM(m).filter(h=>h.conta===c).forEach(h=>add('h:'+h.terceiro,h.terceiro||'(sem terceiro)','Histórico SAP',+h.valor||0));
-  else{f2Lpus(m).filter(l=>f2LpuCod(l)===c).forEach(l=>{const k=f2TerL(l);add(k.chave,k.nome,'LPU da ferramenta',+l.total||0)});f2CtrMes(m).filter(z=>fcCod(z.conta)===c).forEach(z=>{const k=f2TerC(z);add(k.chave,k.nome,'Contrato fixo',f2Calc(z,m).total)})}
+  else{f2Lpus(m).filter(l=>f2LpuCod(l)===c).forEach(l=>{const k=f2TerL(l);add(k.chave,k.nome,f2EhCf(l)?'Contrato fixo':'LPU da ferramenta',+l.total||0)});f2CtrMes(m).filter(z=>fcCod(z.conta)===c).forEach(z=>{const k=f2TerC(z);add(k.chave,k.nome,'Contrato fixo',f2Calc(z,m).total)})}
   const L=Object.values(R).sort((a,b)=>b.v-a.v),tot=L.reduce((s,r)=>s+r.v,0);
   return f2Top('Conta contábil','Um cartão por conta no mês. Toque na conta para ver de quais terceiros veio o valor.',tools)+`<div class="f2cards">${cards}</div>
    <div class="fgcard" style="margin-top:14px"><h3>${c} · ${fcNome(c)} <span class="muted" style="font-weight:500">· ${f2MesN(m)}</span></h3><p class="muted" style="margin:2px 0 10px">Executado ${brl(x.tot)} de ${brl(b)} orçados${x.hist?' (histórico do SAP)':''}. Área na ferramenta: ${FCN[c]?FCN[c][3]:'—'}.</p>
@@ -22097,7 +22100,7 @@ function viewFinPagar(){if(!f2Ok())return f2Top('Contas a pagar','Faturas dos te
   return f2Top('Contas a pagar','Cada fatura é um terceiro, um mês e um tipo (LPU ou contrato fixo). Ela anda pelas etapas: NF solicitada, NF recebida, lançada no SAP, aprovada e paga, com quem fez cada passo.',`${f2MesSel('fpMes',m)}<button class="btn" data-act="f2PagXlsx">Baixar planilha</button>`)+
    `<div class="kpis">${kb(ab,'Em aberto','','')}${kb(L.filter(g=>g.etapa<0),'NF a solicitar','','sol')}${kb(venc,'Vencidas','bad','venc')}${kb(sete,'Vencem em 7 dias','warn','7d')}${kb(pg,'Pagas','ok','pg')}</div>
    ${V.length?`<div class="tablewrap"><table class="f2t f2pag"><thead><tr><th>Terceiro</th><th>Tipo</th><th class="r">Valor</th><th>Vencimento</th><th>Etapa</th><th>Ticket SAP</th><th></th></tr></thead><tbody>${V.map(g=>{const v=f2Venc(g),atr=g.etapa<4&&v&&v<H,id=encodeURIComponent(g.chave)+'|'+g.tipo,ult=g.s&&(g.s.hist||[]).slice(-1)[0];
-     return `<tr><td><b>${esc(g.nome)}</b><br><small class="muted">${g.fin&&g.fin.codigo_sap?esc(g.fin.codigo_sap)+' · ':''}${g.tipo==='lpu'?g.itens.length+' LPU'+(g.itens.length>1?'s':''):g.itens.map(c=>esc(c.nome)).join(', ')||'contrato'}</small></td><td>${g.tipo==='lpu'?'LPU':'Contrato fixo'}</td><td class="r"><b>${brl(g.valor)}</b></td>
+     return `<tr><td><b>${esc(g.nome)}</b><br><small class="muted">${g.fin&&g.fin.codigo_sap?esc(g.fin.codigo_sap)+' · ':''}${g.tipo==='lpu'?g.itens.length+' LPU'+(g.itens.length>1?'s':''):[...new Set(g.itens.map(c=>c.status?'baixas do contrato fixo':c.nome))].map(esc).join(', ')||'contrato'}</small></td><td>${g.tipo==='lpu'?'LPU':'Contrato fixo'}</td><td class="r"><b>${brl(g.valor)}</b></td>
       <td>${v?dBR(v):'<small class="muted">—</small>'}${atr?' <span class="chip bad">vencida</span>':''}</td><td>${f2Steps(g.etapa)}<small class="muted">${g.etapa>=4&&g.s.pago_em?'Paga em '+dBR(g.s.pago_em)+(g.s.comprovante_path?' · comprovante anexado':''):ult?esc(ult.acao)+' por '+esc(ult.por)+' em '+dtBR(ult.em):'NF ainda não solicitada'}</small></td>
       <td style="white-space:nowrap">${g.s&&g.s.ticket_sap?esc(g.s.ticket_sap):'<small class="muted">—</small>'}</td><td class="r">${f2Edita()?`<button class="btn sm ${g.etapa<4?'primary':''}" data-act="f2Fat" data-id="${id}">${g.etapa<4?['Marcar NF solicitada','Marcar NF recebida','Lançar no SAP','Aprovar','Marcar paga'][g.etapa+1]:'Ver'}</button>`:''}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="fgempty">Nenhuma fatura com esse filtro no mês.</p>'}`}
 function f2FatDe(id){const [k,t]=id.split('|'),ch=decodeURIComponent(k),m=ui.fpMes||ui.fnMes||hoje().slice(0,7);return f2Faturas(m).find(g=>g.chave===ch&&g.tipo===t)}
@@ -22116,7 +22119,7 @@ async function f2FatGrava(g,patch,acao){const s=g.s||{},row=Object.assign({chave
 
 /* ---------- 4. Solicitar NF ---------- */
 function f2NfLinhas(g,tipo){const R=[];if(tipo!=='ctr'&&g.lpu)g.lpu.itens.forEach(l=>R.push({t:'lpu',data:l.data||'',ac:[l.cliente||(typeof cliN==='function'&&l.etiqueta?cliN(l.etiqueta):'')||'',l.etiqueta?`(${l.etiqueta})`:'',l.pom?`O&M ${l.pom}`:''].filter(Boolean).join(' ')||'(sem identificação)',conta:f2LpuCod(l),v:+l.total||0}));
-  if(tipo!=='lpu'&&g.ctr)g.ctr.itens.forEach(c=>{const x=f2Calc(c,g.ctr.mes);R.push({t:'ctr',data:'',comp:g.ctr.mes,ac:'Contrato fixo - '+c.nome+(c.tipo==='meta'?` · ${x.ativ} atividades`:''),conta:fcCod(c.conta),v:x.total})});return R}
+  if(tipo!=='lpu'&&g.ctr)g.ctr.itens.forEach(c=>{if(c.status){R.push({t:'ctr',data:c.data||'',ac:'Contrato fixo - '+(c.categoria||'').replace(/^Contrato fixo · /,'')+(c.etiqueta&&!c._cf?' · '+c.etiqueta:''),conta:f2LpuCod(c),v:+c.total||0});return}const x=f2Calc(c,g.ctr.mes);R.push({t:'ctr',data:'',comp:g.ctr.mes,ac:'Contrato fixo - '+c.nome+(c.tipo==='meta'?` · ${x.ativ} atividades`:''),conta:fcCod(c.conta),v:x.total})});return R}
 function f2NfGrupos(m){const G0={};f2Faturas(m).forEach(f=>{const g=G0[f.chave]=G0[f.chave]||{chave:f.chave,nome:f.nome,fin:f.fin};g[f.tipo]=f});return Object.values(G0).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function f2NfHtml(g,m,tipo){if(tipo==='ambos'&&!(g.lpu&&g.ctr))tipo=g.lpu?'lpu':'ctr';const R=f2NfLinhas(g,tipo),tot=R.reduce((s,r)=>s+r.v,0),pz=f2UltUtil(m),h=new Date().getHours(),sd=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
   const oq=tipo==='lpu'?'das atividades consideradas':tipo==='ctr'?'dos contratos considerados':'das atividades (LPU) e dos contratos considerados';
@@ -22320,6 +22323,248 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .f2open td{background:var(--soft,#F6F8F3)}.f2cmg{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.f2bon{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .f2form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}.f2form .f2w{grid-column:1/-1}@media(max-width:560px){.f2form{grid-template-columns:1fr}}.f2bonE{margin-top:10px;display:grid;gap:6px}.f2bonr{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:6px}
 .f2bud{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}@media(max-width:560px){.f2bud{grid-template-columns:1fr}}.f2dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:10px 0}.f2dl dt{font-size:12px;color:var(--muted)}.f2dl dd{margin:0;overflow-wrap:anywhere}.f2h4{margin:12px 0 4px;font-size:14px}
+</style>`);
+
+/* ===== 20/11: Contrato fixo da Implantação =====
+   Hoje: equipe SOUZA TELECOM (KEYTO), funcionária da SOUZA TELECOM (KHLEYTON). A equipe só manda a mensagem do que fez;
+   o dono da empresa faz a baixa (como na LPU) e a baixa passa pela aprovação da Implantação.
+   Três categorias por atividade:
+     · Ativação/lançamento até 650 m: valor fixo;
+     · Ativação/lançamento acima de 650 m: itens da tabela do contrato + fusões e identificação;
+     · CFO: valor fixo por atividade + fusões e identificação.
+   Valores ficam no contrato (ag_contrato_fixo, área 'impl'), nunca no código. O contrato tem um valor fixo por mês (21 a 20):
+   a produção do mês (soma das baixas aprovadas com data da atividade de 21 a 20; 21/10 a 20/11 → budget de novembro) abaixo do fixo → a diferença é improdutivo; acima → excedente.
+   Pago = maior entre fixo e produção + bônus por metas (supervisão ou coordenação marca e aprova o fechamento a partir do dia 21).
+   Budget da Implantação: o contrato consome todo mês, desde o período do cadastro (fixo, ou a produção se passar); aprovado o
+   fechamento, o consumo é o total, com o improdutivo separado. As baixas não consomem uma a uma.
+   Financeiro da Implantação separado em Contrato LPU e Contrato fixo; Gestão financeira do dono da empresa também.
+   A baixa é gravada como LPU (ag_lpus) com dados.cf; sem SQL novo. */
+const CFI_TAB0=[['CABO AS','m'],['CORDOALHA','m'],['CTO','un'],['ESPINAMENTO','m'],['CABO DROP','m'],['RETIRADA DE CABO','m'],['CEO/DIO','un'],['TERMINAÇÃO','un'],['IDENTIFICAÇÃO','un'],['DGOI','un'],
+  ['MANUTENÇÃO / DIA','dia'],['INSTALAÇÃO CLIENTE','un'],['FUSÃO','un'],['MONTAGEM DE POP','un'],['GMUD','un'],['RETIRADA DE EMENDA E/OU CTO','un']];
+const CFI_CAT={a650:'Ativação/lançamento até 650 m',m650:'Ativação/lançamento acima de 650 m',cfo:'CFO'};
+const cfiK=tec=>{const k=typeof cfContrato==='function'&&CF.ok?cfContrato('impl',tec):null;return k&&k.ativo!==false?k:null};
+const cfiLim=k=>+k.lim||650;
+const cfiFusRe=/fus[aã]o|identifica/i;
+const cfiConta=()=>LPU_CONTAS.find(c=>/^3\.1\.1\.2\.05\.0005/.test(c))||LPU_CONTAS[0];
+const cfiVis=()=>typeof cfSup==='function'&&cfSup();
+const cfiEd=()=>typeof cfEdita==='function'&&cfEdita();
+const aprovRaw=l=>{const h=(l.hist||[]).filter(x=>x.acao==='Aprovada').pop();return h?h.em:null};
+const cfiNum=v=>{const n=parseFloat(String(v==null?'':v).replace(/\./g,'').replace(',','.'));return isFinite(n)?n:0};
+const cfiNumS=v=>{const s=String(v==null?'':v).trim();if(!s)return 0;return /,/.test(s)?cfiNum(s):(+s||0)};
+
+/* ---------- baixa do dono da empresa (no lugar da LPU) ---------- */
+function cfiItens(a,d){const k=cfiK(a.tec),c=d.cf||{};if(!k)return[];const M=cfiNumS(c.m),I=(cod,desc,unit,qtd,med)=>({cod,desc,classe:'Contrato fixo',medida:med||'Unidade',fator:'Comum',unit:+unit||0,qtd:+qtd||0});
+  const fi=[c.fus>0?I('CF-FUS','Fusão',k.fus,c.fus):null,c.ide>0?I('CF-IDE','Identificação de fusão',k.ide,c.ide):null].filter(Boolean);
+  if(c.t==='cfo')return[I('CF-CFO','CFO (valor fixo por atividade)',k.cfo,1)].concat(fi);
+  if(c.t!=='ativ'||!(M>0))return[];
+  if(M<=cfiLim(k))return[I('CF-A650',`Ativação/lançamento até ${cfiLim(k)} m (valor fixo) · ${M.toLocaleString('pt-BR')} m`,k.fixo650,1)];
+  return (k.tab||[]).filter(r=>!cfiFusRe.test(r.nome)&&+((c.q||{})[r.id])>0).map(r=>I('CF-'+r.id,r.nome,r.valor,+c.q[r.id],r.un==='m'?'Metro':r.un==='dia'?'Diária':'Unidade')).concat(fi)}
+const cfiCatDe=(a,d)=>{const c=d.cf||{},k=cfiK(a.tec)||{};return c.t==='cfo'?'cfo':cfiNumS(c.m)>cfiLim(k)?'m650':'a650'};
+{const _d=draftItens;draftItens=function(key){const d=ui.draft&&ui.draft[key];if(d&&d.cf){const a=getAg(key);if(a)return cfiItens(a,d)}return _d.apply(this,arguments)}}
+{const _g=lpuGravar;lpuGravar=async function(nl){const d=nl&&nl.ag&&ui.draft&&ui.draft[nl.ag];if(d&&d.cf){const a=getAg(nl.ag),k=cfiK(nl.tec)||{};
+    nl.cf={cat:cfiCatDe(a,d),m:cfiNumS(d.cf.m)||null,fus:+d.cf.fus||0,ide:+d.cf.ide||0,k:k.id||null};nl.categoria='Contrato fixo · '+CFI_CAT[nl.cf.cat];
+    (nl.hist||[]).forEach(h=>{h.acao=String(h.acao).replace(/^Enviada e assinada/,'Baixa do contrato fixo enviada e assinada')})}
+  return _g.apply(this,arguments)}}
+function cfiForm(a){const key=a.id,d=lpuDraft(key),k=cfiK(a.tec),vv=verValor(),mt=metrosAg(a);d.conta=cfiConta();
+  const c=d.cf=d.cf||{t:'',m:mt!=null?String(mt):'',q:{},fus:'',ide:''},M=cfiNumS(c.m),lim=cfiLim(k),acima=c.t==='ativ'&&M>lim;
+  const val=v=>vv?` <small class="muted">${brl(+v||0)}</small>`:'';
+  const qIn=(id,v,lab,un)=>`<label class="lprow"><span>${lab}</span><input class="inp lpq" type="text" inputmode="decimal" autocomplete="off" value="${v?String(v).replace('.',','):''}" data-in="cfiQ" data-c="${esc(id)}" aria-label="${esc(lab)}"><em>${un}</em></label>`;
+  const fusIde=`<section class="tbox"><b>Fusões e identificação</b>${qIn('fus',c.fus,'Fusões'+(vv?' · '+brl(+k.fus||0):''),'un')}${qIn('ide',c.ide,'Identificação de fusão'+(vv?' · '+brl(+k.ide||0):''),'un')}</section>`;
+  const itens=cfiItens(a,d),tot=itens.reduce((s,i)=>s+i.unit*i.qtd,0);
+  return `<button class="back" data-act="lpuFechar">‹ Voltar para a atividade</button>
+   <section class="tbox"><span class="tck2">BAIXA DO CONTRATO FIXO, PASSO 1 DE 3</span><b class="lpt">${esc(cliN(a.etiqueta))}</b><span class="muted" style="font-size:14px">${esc(a.etiqueta)}, ${fasesN(a)}, ${dBR(a.data)} · ${esc(tecN(a.tec))}</span>
+    <div class="lpst">${['Atividade','Conferência','Assinatura'].map((n,i)=>`<div class="${i===0?'now':''}"><i></i><span>${i+1}. ${n}</span></div>`).join('')}</div>
+    <div class="note" style="margin:0">Esta equipe é de <b>contrato fixo</b>: no lugar da LPU, informe o tipo da atividade e o que foi feito. A baixa vai para a aprovação da Implantação.</div>${notaAdmVer(a.notaAdm)}</section>
+   <section class="tbox"><b>Tipo da atividade</b><div class="cfiseg" role="radiogroup">
+    <button class="${c.t==='ativ'?'on':''}" role="radio" aria-checked="${c.t==='ativ'}" data-act="cfiTipo" data-v="ativ"><b>Ativação / lançamento</b><small>Até ${lim} m: valor fixo${val(k.fixo650)}. Acima: itens da tabela + fusões e identificação.</small></button>
+    <button class="${c.t==='cfo'?'on':''}" role="radio" aria-checked="${c.t==='cfo'}" data-act="cfiTipo" data-v="cfo"><b>CFO</b><small>Valor fixo por atividade${val(k.cfo)} + fusões e identificação.</small></button></div></section>
+   ${c.t==='ativ'?`<section class="tbox"><b>Metragem lançada</b>${qIn('m',c.m,'Metros','m')}${mt!=null?`<span class="lpdica">O relatório registrou ${mt.toLocaleString('pt-BR')} m nesta atividade.</span>`:''}
+     ${M>0?`<div class="result ${acima?'warn':'ok'}" style="margin:0">${acima?`<b>Acima de ${lim} m.</b> Lance os itens da tabela e as fusões.`:`<b>Até ${lim} m: valor fixo${vv?' de '+brl(+k.fixo650||0):''}.</b> Não precisa lançar itens.`}</div>`:''}</section>`:''}
+   ${acima?`<section class="tbox"><b>Itens da tabela do contrato</b><div class="cfitab">${(k.tab||[]).filter(r=>!cfiFusRe.test(r.nome)).map(r=>qIn('q:'+r.id,(c.q||{})[r.id],esc(r.nome)+(vv?' · '+brl(+r.valor||0):''),r.un||'un')).join('')}</div></section>${fusIde}`:''}
+   ${c.t==='cfo'?fusIde:''}
+   <div class="lpbar"><b>${itens.length?`${CFI_CAT[cfiCatDe(a,d)]}${vv?' · '+brl(tot):''}`:'Escolha o tipo da atividade'}</b><button class="btn primary" data-act="cfiRevisar">Revisar</button></div>`}
+{const _v=lpuView;lpuView=function(a){if(a&&!(ui.lpuDia&&ui.lpuDia.id===a.id)){if(!CF.ok&&!CF.err){if(!CF.bus)cfCarregar();return '<p class="muted pad">Carregando…</p>'}
+    if(cfiK(a.tec)){const d=lpuDraft(a.id);if((ui.lpuP||1)===1||!d.cf||!d.cf.t)return cfiForm(a);
+      return _v.apply(this,arguments).replace(/LPU DA ATIVIDADE/,'BAIXA DO CONTRATO FIXO').replace(/>Enviar LPU</,'>Enviar baixa<').replace(/Declaro que os serviços desta LPU/,'Declaro que os serviços desta baixa').replace(/Ao enviar, a agenda gera o PDF da LPU/,'Ao enviar, a agenda gera o PDF da baixa').replace(/1\. Serviços/,'1. Atividade').replace(/<small class="muted">Condição comum(, )?/g,'<small class="muted">').replace(/<span class="lpcod">CF-[^<]*<\/span>/g,'').replace(/devolver a LPU para ajuste/,'devolver a baixa para ajuste').replace(/(\d+) serviços?, conta [0-9.]+/,(m0,n)=>esc(CFI_CAT[cfiCatDe(a,d)])+' · '+n+(n==='1'?' item':' itens'))}}
+  return _v.apply(this,arguments)}}
+Object.assign(ACT,{
+  cfiTipo:el=>{const d=lpuDraft(ui.lpuTela);d.cf=d.cf||{q:{}};d.cf.t=el.dataset.v;render()},
+  cfiRevisar:()=>{const a=getAg(ui.lpuTela),d=lpuDraft(a.id);if(!d.cf||!d.cf.t){toast('Escolha o tipo da atividade.','bad');return}
+    if(d.cf.t==='ativ'&&!(cfiNumS(d.cf.m)>0)){toast('Informe a metragem lançada.','bad');return}
+    const it=cfiItens(a,d);if(cfiCatDe(a,d)==='m650'&&!it.length){toast('Lance pelo menos um item da tabela.','bad');return}
+    ui.lpuP=2;render();window.scrollTo(0,0)}});
+Object.assign(IN,{cfiQ:el=>{const d=lpuDraft(ui.lpuTela);d.cf=d.cf||{q:{}};const c=el.dataset.c,v=el.value;if(c.startsWith('q:'))(d.cf.q=d.cf.q||{})[c.slice(2)]=cfiNumS(v);else d.cf[c]=c==='m'?v:cfiNumS(v);
+  const was=c==='m';if(was){clearTimeout(ui.cfiT);ui.cfiT=setTimeout(()=>{render();refoca(el.id||'')},500)}else{const b=document.querySelector('.lpbar b');const a=getAg(ui.lpuTela);if(b&&a&&verValor()){const t=cfiItens(a,d).reduce((s,i)=>s+i.unit*i.qtd,0);b.textContent=CFI_CAT[cfiCatDe(a,d)]+' · '+brl(t)}}}});
+/* metragem: o input precisa de id para voltar o foco */
+{const _f=cfiForm;cfiForm=function(a){return _f.apply(this,arguments).replace('data-c="m" aria-label','id="cfiM" data-c="m" aria-label')}}
+/* aprovação: chip do contrato fixo; a metragem da baixa entra na conferência de cabo */
+{const _c=caboLpu;caboLpu=l=>l&&l.cf?(l.cf.cat==='cfo'?0:+l.cf.m||0):_c(l)}
+{const _c=rcChip;rcChip=function(l){const h=_c.apply(this,arguments);return l&&l.cf?` <span class="chip info">Contrato fixo · ${esc(CFI_CAT[l.cf.cat]||'')}${l.cf.m?' · '+(+l.cf.m).toLocaleString('pt-BR')+' m':''}</span>`+h:h}}
+
+/* ---------- fechamento do mês (21 a 20) ---------- */
+const cfiKs=()=>CF.rows.filter(x=>x.tipo==='contrato'&&x.area==='impl');
+let CFI_ALL=null;const cfiL=()=>CFI_ALL||S.lpus;
+function cfiApura(tec,ref){const k=cfContrato('impl',tec)||{},F=cfFech('impl',tec,ref),vivo=!F||['aberto','dev'].includes(F.status),di=isoD(new Date(cfIni(ref))),df=isoD(new Date(cfFim(ref))),LL=cfiL(),noPer=l=>{const d=String(l.data||'').slice(0,10);return d>=di&&d<=df};
+  const B=vivo?LL.filter(l=>l.cf&&l.tec===tec&&l.status==='aprovada'&&noPer(l)):LL.filter(l=>(F.ids||[]).includes(l.id));
+  const vb=vivo?Math.round(B.reduce((s,l)=>s+(+l.total||0),0)*100)/100:+F.vb||0,fixo=vivo?+k.fixo||0:+F.fixo||0;
+  const vars=vivo?(k.vars||[]).map(v=>({id:v.id,nome:v.nome,valor:+v.valor||0,ok:!!(F&&(F.ok||{})[v.id])})):(F.vars||[]);
+  const vOk=vars.filter(v=>v.ok).reduce((s,v)=>s+v.valor,0),pend=LL.filter(l=>l.cf&&l.tec===tec&&['aguardando','ajuste','conferencia'].includes(l.status)&&noPer(l));
+  const cat={};B.forEach(l=>{const c=(l.cf||{}).cat||'a650';cat[c]=cat[c]||{n:0,v:0};cat[c].n++;cat[c].v+=+l.total||0});
+  const r2=v=>Math.round(v*100)/100,imp=r2(Math.max(0,fixo-vb)),exc=r2(Math.max(0,vb-fixo));
+  return{k,F,B,vb,fixo,imp,exc,vars,vOk,pend,cat,total:r2(Math.max(fixo,vb)+vOk),st:F?F.status:'aberto'}}
+function cfiFechCard(k,ref){const A=cfiApura(k.tec,ref),ed=['aberto','dev'].includes(A.st)&&cfiEd(),aberto=Date.now()<=cfFim(ref),F=A.F,cx=(S.cnpj||{})[k.tec]||{};
+  const s=A.st==='apr'?['Aprovado','ok']:A.st==='dev'?['Reaberto','bad']:aberto?['Mês em andamento','warn']:['Mês encerrado · aprovar','info'];
+  return `<section class="panel cfcard"><div class="ah"><div><h3>${esc(gTecN(k.tec))}</h3><small class="muted">${cx.empresa?esc(gTecN(cx.empresa))+' · ':''}período ${cfPerTxt(ref)}</small></div><span class="chip ${s[1]}">${s[0]}</span></div>
+   ${A.st==='dev'&&F&&F.dev?`<div class="result bad" style="margin:8px 0 0">Reaberto: ${esc(F.dev)}</div>`:''}
+   <div class="cfnums cfinb"><div><small>Baixas aprovadas do período</small><b>${A.B.length}</b><button class="linkbtn" data-act="cfiBaixas" data-tec="${k.tec}" data-ref="${ref}">ver baixas</button></div>
+    ${Object.keys(CFI_CAT).map(c=>`<div><small>${{a650:'Até 650 m',m650:'Acima de 650 m',cfo:'CFO'}[c]}</small><b>${(A.cat[c]||{}).n||0}</b><span class="muted">${brl((A.cat[c]||{}).v||0)}</span></div>`).join('')}</div>
+   ${A.pend.length?`<div class="result warn" style="margin:8px 0 0">${A.pend.length} ${A.pend.length===1?'baixa aguardando':'baixas aguardando'} aprovação neste período. Aprove ou reprove antes de fechar o mês.</div>`:''}
+   <div class="cfvars"><small>Bônus por metas${ed?' · marque as metas atingidas no período':''}</small>${A.vars.length?A.vars.map(v=>`<label class="cfvar ${v.ok?'on':''}"><input type="checkbox" ${v.ok?'checked':''} ${ed?`data-act="cfiVar" data-tec="${k.tec}" data-ref="${ref}" data-v="${esc(v.id)}"`:'disabled'}><span>${esc(v.nome)}</span><b>${brl(v.valor)}</b></label>`).join(''):'<p class="muted" style="margin:4px 0">Sem metas no contrato.</p>'}</div>
+   <div class="cfinums"><div><small>Valor fixo do contrato</small><b>${brl(A.fixo)}</b></div><div><small>Produção (baixas)</small><b>${brl(A.vb)}</b></div>
+    ${A.exc?`<div class="cfiexc"><small>Excedente</small><b>+ ${brl(A.exc)}</b></div>`:`<div class="cfimp"><small>Improdutivo${aberto&&A.st==='aberto'?' até agora':''}</small><b>${brl(A.imp)}</b></div>`}<div><small>Bônus por metas</small><b>${brl(A.vOk)}</b></div></div>
+   <div class="cftot"><span>${A.exc?'Produção':'Valor fixo'} + bônus</span><b>${brl(A.total)}</b></div>
+   <div class="actions" style="margin-top:10px">${A.st==='apr'?`<small class="muted" style="margin-right:auto">Aprovado por ${esc(F.apr.por)} em ${dtBR(F.apr.em)}</small>${cfiEd()?`<button class="btn" data-act="cfiReab" data-tec="${k.tec}" data-ref="${ref}">Reabrir</button>`:''}`
+     :cfiEd()?`<button class="btn primary" data-act="cfiApr" data-tec="${k.tec}" data-ref="${ref}" ${aberto?'disabled':''}>${aberto?'Aprovar a partir do dia 21':'Aprovar fechamento'}</button>`:''}</div></section>`}
+async function cfiFechGarante(tec,ref){let F=cfFech('impl',tec,ref);if(F)return F;F={id:uid(),area:'impl',tec,tipo:'fech',ref,status:'aberto',ok:{},hist:[]};cfH(F,'Apuração aberta');CF.rows.push(F);return F}
+Object.assign(ACT,{
+  cfiVar:async el=>{if(!cfiEd())return;const F=await cfiFechGarante(el.dataset.tec,el.dataset.ref);if(!['aberto','dev'].includes(F.status))return render();F.ok=F.ok||{};F.ok[el.dataset.v]=!F.ok[el.dataset.v];await cfSalvar(F)},
+  cfiApr:el=>{const tec=el.dataset.tec,ref=el.dataset.ref,A=cfiApura(tec,ref);if(A.pend.length){toast(A.pend.length+(A.pend.length===1?' baixa do período aguarda':' baixas do período aguardam')+' aprovação. Decida antes de fechar o mês.','bad');return}
+    openModal(`<h3>Aprovar o fechamento</h3><p class="muted">${esc(gTecN(tec))} · ${cfPerTxt(ref)}</p><dl class="dl"><div><dt>Valor fixo</dt><dd>${brl(A.fixo)}</dd></div><div><dt>Produção (${A.B.length} baixas)</dt><dd>${brl(A.vb)}</dd></div><div><dt>${A.exc?'Excedente':'Improdutivo'}</dt><dd>${brl(A.exc||A.imp)}</dd></div><div><dt>Bônus</dt><dd>${A.vars.filter(v=>v.ok).map(v=>esc(v.nome)).join(', ')||'nenhum'} · ${brl(A.vOk)}</dd></div><div><dt>Total do mês</dt><dd><b>${brl(A.total)}</b></dd></div></dl>
+
+     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="cfiAprOk" data-tec="${tec}" data-ref="${ref}">Aprovar ${brl(A.total)}</button></div>`)},
+  cfiAprOk:async el=>{const tec=el.dataset.tec,ref=el.dataset.ref,A=cfiApura(tec,ref),F=await cfiFechGarante(tec,ref);
+    Object.assign(F,{status:'apr',ids:A.B.map(l=>l.id),vb:A.vb,fixo:A.fixo,imp:A.imp,exc:A.exc,vars:A.vars,vOk:A.vOk,total:A.total,apr:{por:meNome(),em:Date.now()},dev:null});cfH(F,'Fechamento aprovado',brl(A.total));closeModal();await cfSalvar(F,'Fechamento aprovado: '+brl(A.total)+'.')},
+  cfiReab:el=>{openModal(`<h3>Reabrir o fechamento</h3><label class="f"><span>Motivo *</span><textarea class="inp" id="cfiMot" rows="3"></textarea></label><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn danger" data-act="cfiReabOk" data-tec="${el.dataset.tec}" data-ref="${el.dataset.ref}">Reabrir</button></div>`)},
+  cfiReabOk:async el=>{const m=(($('cfiMot')||{}).value||'').trim();if(!m){toast('Informe o motivo.','bad');return}const F=cfFech('impl',el.dataset.tec,el.dataset.ref);if(!F)return;F.status='dev';F.dev=m;cfH(F,'Reaberto',m);closeModal();await cfSalvar(F,'Fechamento reaberto.')},
+  cfiBaixas:el=>{const tec=el.dataset.tec,ref=el.dataset.ref,A=cfiApura(tec,ref);
+    openModal(`<h3>Baixas · ${esc(gTecN(tec))}</h3><p class="muted">${cfPerTxt(ref)} · atividades do período, aprovadas</p><div class="tablewrap"><table><thead><tr><th>Atividade</th><th>Tipo</th><th class="r">Metros</th><th class="r">Valor</th><th>Atividade em</th><th>Aprovada</th></tr></thead><tbody>${A.B.map(l=>`<tr><td><b>${esc(l.etiqueta)}</b><br><small class="muted">${esc(cliN(l.etiqueta))} · ${dBR(l.data)}</small></td><td>${esc(CFI_CAT[(l.cf||{}).cat]||'')}</td><td class="r">${(l.cf||{}).m?(+l.cf.m).toLocaleString('pt-BR'):'—'}</td><td class="r">${brl(+l.total||0)}</td><td>${dBR(l.data)}</td><td>${dtBR(aprovRaw(l))}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">Nenhuma baixa aprovada no período.</td></tr>'}</tbody></table></div><div class="actions"><button class="btn" data-act="close">Fechar</button></div>`)},
+  cfiXlsx:()=>{const L=S.lpus.filter(l=>l.cf&&l.status!=='reprovada'&&lpuNoPer(l,'cfd')),ws=XLSX.utils.aoa_to_sheet([['Data','Atividade','Cliente','Equipe','Tipo','Metros','Valor','Situação']].concat(L.map(l=>[dBR(l.data),l.etiqueta,cliN(l.etiqueta),tecN(l.tec),CFI_CAT[l.cf.cat]||'',l.cf.m||'',+l.total||0,l.status]))),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Baixas');baixaArq(new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})]),'baixas_contrato_fixo.xlsx')},
+  cfiRef:el=>{ui.cfiRef=cfRefMais(ui.cfiRef||cfRefHoje(),+el.dataset.k);render()}});
+
+/* ---------- contratos ---------- */
+function cfiKModal(id){const k=id?CF.rows.find(x=>x.id===id):null,usados=cfiKs().filter(x=>x.id!==id).map(x=>x.tec),T=TEC.filter(t=>tecT(t.id)==='TERC'&&(!usados.includes(t.id)||(k&&t.id===k.tec))).sort((a,b)=>a.nome.localeCompare(b.nome));
+  const tab=k&&k.tab&&k.tab.length?k.tab:CFI_TAB0.map(([n,u],i)=>({id:'i'+i,nome:n,un:u,valor:''})),v=x=>x==null||x===''?'':String(x).replace('.',',');
+  ui.cfiEd={id:k?k.id:null,tab:tab.map(r=>Object.assign({},r)),vars:(k&&k.vars||[]).map(x=>Object.assign({},x))};
+  openModal(`<h3>${k?'Contrato fixo · Implantação':'Novo contrato fixo · Implantação'}</h3><p class="muted">Os valores ficam só no banco. A equipe continua fazendo só o relatório e a mensagem; o dono da empresa faz a baixa.</p>
+   <div class="cfiform"><label class="f cfiw"><span>Equipe (técnico)</span><select class="inp" id="cfiTec" ${k?'disabled':''}><option value="">Escolha…</option>${T.map(t=>`<option value="${t.id}" ${k&&k.tec===t.id?'selected':''}>${esc(t.nome)}${(S.cnpj[t.id]||{}).empresa?' · '+esc(gTecN(S.cnpj[t.id].empresa)):''}</option>`).join('')}</select></label>
+    <label class="f"><span>Valor fixo do contrato (por mês)</span><input class="inp" id="cfiFixo" inputmode="decimal" value="${v(k&&k.fixo)}" placeholder="0,00"></label>
+    <label class="f"><span>Consome o budget a partir do período</span><select class="inp" id="cfiDesde">${(()=>{const h=cfRefHoje(),d=k?cfDesde(k):h,O=[];for(let i=-6;i<=3;i++)O.push(cfRefMais(h,i));if(!O.includes(d))O.unshift(d);return O.map(r=>`<option value="${r}" ${r===d?'selected':''}>${cfPerTxt(r)}</option>`).join('')})()}</select></label>
+    <label class="f"><span>Limite da ativação com valor fixo (m)</span><input class="inp" id="cfiLim" inputmode="numeric" value="${k?cfiLim(k):650}"></label>
+    <label class="f"><span>Valor fixo até o limite</span><input class="inp" id="cfiF650" inputmode="decimal" value="${v(k&&k.fixo650)}" placeholder="0,00"></label>
+    <label class="f"><span>CFO · valor fixo por atividade</span><input class="inp" id="cfiCfo" inputmode="decimal" value="${v(k&&k.cfo)}" placeholder="0,00"></label>
+    <label class="f"><span>Fusão (por unidade)</span><input class="inp" id="cfiFus" inputmode="decimal" value="${v(k&&k.fus)}" placeholder="0,00"></label>
+    <label class="f"><span>Identificação de fusão (por unidade)</span><input class="inp" id="cfiIde" inputmode="decimal" value="${v(k&&k.ide)}" placeholder="0,00"></label></div>
+   <h4 class="cfih">Tabela de itens (acima do limite)</h4><div id="cfiTabL">${cfiTabHtml()}</div><button class="btn sm" data-act="cfiTabAdd">Adicionar item</button>
+   <h4 class="cfih">Bônus por metas</h4><div id="cfiVarL">${cfiVarHtml()}</div><button class="btn sm" data-act="cfiVarAdd">Adicionar meta</button>
+   <div class="actions">${k?`<button class="btn" data-act="cfiKAtivo" data-id="${k.id}">${k.ativo===false?'Reativar':'Inativar'}</button>`:''}<button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="cfiKOk">Salvar contrato</button></div>`)}
+const cfiTabHtml=()=>`<div class="cfitl">${ui.cfiEd.tab.map((r,i)=>`<div class="cfitr"><input class="inp" id="cfiTn${i}" value="${esc(r.nome)}" aria-label="Item"><select class="inp" id="cfiTu${i}" aria-label="Unidade">${['m','un','dia'].map(u=>`<option ${r.un===u?'selected':''}>${u}</option>`).join('')}</select><input class="inp" id="cfiTv${i}" inputmode="decimal" value="${r.valor===''||r.valor==null?'':String(r.valor).replace('.',',')}" placeholder="R$" aria-label="Valor de ${esc(r.nome)}"><button class="icon" data-act="cfiTabDel" data-i="${i}" aria-label="Tirar ${esc(r.nome)}">✕</button></div>`).join('')}</div>`;
+const cfiVarHtml=()=>ui.cfiEd.vars.length?ui.cfiEd.vars.map((r,i)=>`<div class="cfitr cfivr"><input class="inp" id="cfiVn${i}" value="${esc(r.nome||'')}" placeholder="Meta (ex.: prazo de ativação)"><input class="inp" id="cfiVv${i}" inputmode="decimal" value="${r.valor!=null&&r.valor!==''?String(r.valor).replace('.',','):''}" placeholder="R$"><button class="icon" data-act="cfiVarDel" data-i="${i}" aria-label="Tirar meta">✕</button></div>`).join(''):'<p class="muted" style="margin:4px 0">Nenhuma meta.</p>';
+const cfiLe=()=>{const E=ui.cfiEd;E.tab=E.tab.map((r,i)=>({id:r.id,nome:(($('cfiTn'+i)||{}).value||r.nome).trim(),un:($('cfiTu'+i)||{}).value||r.un,valor:($('cfiTv'+i)||{}).value!=null?cfiNum(($('cfiTv'+i)||{}).value):r.valor}));
+  E.vars=E.vars.map((r,i)=>({id:r.id,nome:(($('cfiVn'+i)||{}).value||'').trim(),valor:cfiNum(($('cfiVv'+i)||{}).value)}))};
+Object.assign(ACT,{
+  cfiKEd:el=>cfiKModal(el&&el.dataset&&el.dataset.id),
+  cfiTabAdd:()=>{cfiLe();ui.cfiEd.tab.push({id:'n'+Date.now().toString(36),nome:'',un:'un',valor:''});$('cfiTabL').innerHTML=cfiTabHtml()},
+  cfiTabDel:el=>{cfiLe();ui.cfiEd.tab.splice(+el.dataset.i,1);$('cfiTabL').innerHTML=cfiTabHtml()},
+  cfiVarAdd:()=>{cfiLe();ui.cfiEd.vars.push({id:'v'+Date.now().toString(36),nome:'',valor:''});$('cfiVarL').innerHTML=cfiVarHtml()},
+  cfiVarDel:el=>{cfiLe();ui.cfiEd.vars.splice(+el.dataset.i,1);$('cfiVarL').innerHTML=cfiVarHtml()},
+  cfiKOk:async()=>{cfiLe();const E=ui.cfiEd,old=E.id?CF.rows.find(x=>x.id===E.id):null,tec=old?old.tec:($('cfiTec')||{}).value;if(!tec){toast('Escolha a equipe.','bad');return}
+    const n=id=>cfiNum(($(id)||{}).value),x=Object.assign({},old||{id:uid(),area:'impl',tec,tipo:'contrato',status:'ativo',ativo:true,hist:[]},{fixo:n('cfiFixo'),desde:($('cfiDesde')||{}).value||cfRefHoje(),lim:parseInt(($('cfiLim')||{}).value)||650,fixo650:n('cfiF650'),cfo:n('cfiCfo'),fus:n('cfiFus'),ide:n('cfiIde'),
+      tab:E.tab.filter(r=>r.nome),vars:E.vars.filter(v=>v.nome)});cfH(x,old?'Contrato alterado':'Contrato cadastrado');closeModal();await cfSalvar(x,'Contrato salvo.')},
+  cfiKAtivo:async el=>{const k=CF.rows.find(x=>x.id===el.dataset.id);if(!k)return;k.ativo=k.ativo===false;k.status=k.ativo?'ativo':'inativo';cfH(k,k.ativo?'Reativado':'Inativado');closeModal();await cfSalvar(k,k.ativo?'Contrato reativado.':'Contrato inativado.')}});
+
+/* ---------- Financeiro da Implantação: Contrato LPU | Contrato fixo ---------- */
+const CFI_SUBS=[['cfiFech','Fechamento do mês','Baixas com atividade de 21 a 20 (21/10 a 20/11 → novembro) e bônus por metas: a supervisão ou a coordenação marca as metas e aprova o total do mês.'],
+  ['cfiAprov','Aprovação das baixas','Baixas do contrato fixo feitas pelo dono da empresa. Confira e aprove; a baixa conta no período (21 a 20) da data da atividade.'],
+  ['cfiDet','Baixas por atividade','Cada baixa do contrato fixo, com tipo, metragem, valor e situação.'],
+  ['cfiK','Contratos','Contratos fixos da Implantação: valor fixo até o limite de metragem, CFO, fusão, identificação, tabela de itens e metas.']];
+const CFI_KEYS=CFI_SUBS.map(x=>x[0]);
+CFI_SUBS.forEach(x=>{FSUB.push(x);FSUB_K[x[0]]=x[0]==='cfiDet'?'f_det':x[0]==='cfiK'?'f_budget':'f_aprov'});
+{const _r=render;render=function(){const tir=[];if(!cfiVis())for(let i=FSUB.length-1;i>=0;i--)if(CFI_KEYS.includes(FSUB[i][0]))tir.unshift(FSUB.splice(i,1)[0]);
+  let r;try{r=_r.apply(this,arguments)}finally{tir.forEach(x=>FSUB.push(x))}
+  try{if(cfiVis()){const nav=b=>b.parentElement&&!b.parentElement.classList.contains('views');document.querySelectorAll('[data-act="pSec"][data-v="fin"][data-s="cfiFech"]').forEach(b=>{if(!nav(b)||(b.previousElementSibling&&b.previousElementSibling.classList.contains('cfigl')))return;b.insertAdjacentHTML('beforebegin','<div class="cfigl" role="presentation">Contrato fixo</div>')});
+    document.querySelectorAll('[data-act="pSec"][data-v="fin"][data-s]').forEach(b=>{if(CFI_KEYS.includes(b.dataset.s)||!nav(b))return;const p=b.parentElement;if(p.querySelector('.cfigl.lpu'))return;const f=p.querySelector('[data-act="pSec"][data-v="fin"][data-s]:not([data-s^="cfi"])');if(f)f.insertAdjacentHTML('beforebegin','<div class="cfigl lpu" role="presentation">Contrato LPU</div>')})}}catch(e){}
+  return r}}
+const cfiGrp=s=>CFI_KEYS.includes(s)?'cf':'lpu';
+const cfiSoLpu=fn=>{const all=S.lpus;if(!all.some(l=>l.cf))return fn();const F=all.filter(l=>!l.cf);CFI_ALL=CFI_ALL||all;F.find=all.find.bind(all);F.findIndex=all.findIndex.bind(all);F.push=all.push.bind(all);S.lpus=F;try{return fn()}finally{if(S.lpus===F)S.lpus=all;if(CFI_ALL===all)CFI_ALL=null}};
+const cfiSoCf=fn=>{const all=S.lpus,F=all.filter(l=>l.cf);F.find=all.find.bind(all);F.findIndex=all.findIndex.bind(all);F.push=all.push.bind(all);S.lpus=F;try{return fn()}finally{if(S.lpus===F)S.lpus=all}};
+{const _f=finViews;finViews=function(FO,sub){const g=cfiGrp(sub),F2=(FO||[]).filter(([k])=>cfiGrp(k)===g);if(g==='cf'){const nA=S.lpus.filter(l=>l.cf&&l.status==='aguardando').length;
+    return F2.length>1?`<div class="views" style="margin-bottom:14px;width:fit-content;max-width:100%">${F2.map(([k,n])=>`<button data-act="pSec" data-v="fin" data-s="${k}" aria-current="${k===sub}">${n}${k==='cfiAprov'&&nA?` (${nA})`:''}</button>`).join('')}</div>`:''}
+  return cfiSoLpu(()=>_f.call(this,F2,sub))}}
+{const _p=pPrest;pPrest=function(area){if(area==='Implantação')return cfiSoLpu(()=>_p.apply(this,arguments));return _p.apply(this,arguments)}}
+{const _d=pDetalhe;pDetalhe=function(){return cfiSoLpu(()=>_d.apply(this,arguments))}}
+{const _a=viewAprov;viewAprov=function(emb){if(ui.tab==='painel'&&ui.pSec==='fin'&&ui.finSub==='cfiAprov')return cfiSoCf(()=>_a.apply(this,arguments)).replace(/Nenhuma LPU nesta situação/,'Nenhuma baixa nesta situação');
+  const n=S.lpus.filter(l=>l.cf&&l.status==='aguardando').length;const h=cfiSoLpu(()=>_a.apply(this,arguments));
+  return n&&cfiVis()?`<div class="note" style="margin-bottom:12px"><b>${n} ${n===1?'baixa':'baixas'} do contrato fixo</b> aguardando em Financeiro › Contrato fixo › Aprovação das baixas. <button class="link" data-act="pSec" data-v="fin" data-s="cfiAprov">Abrir</button></div>`+h:h}}
+/* consumo do contrato no budget da Implantação e no menu Financeiro, mês a mês (mês em que o período termina) */
+const cfiMid=ref=>new Date(+ref.slice(0,4),+ref.slice(5,7)-1,10,12).getTime();
+function cfiVirt(){if(!CF.ok)return[];const ate=cfRefHoje(),out=[];
+  cfiKs().forEach(k=>cfRefs(k,null,ate).forEach(ref=>{const A=cfiApura(k.tec,ref),ap=A.st==='apr',per=cfPerTxt(ref),m=cfiMid(ref),cx=(S.cnpj||{})[k.tec]||{};
+    const o={id:'cfi:'+k.id+':'+ref,ag:null,chamado:null,_pl:'impl',_cf:1,_cfi:1,_cfRef:ref,tec:k.tec,prestador:cx.empresa||undefined,status:'aprovada',data:isoD(new Date(m)),conta:cfiConta(),
+      categoria:'Contrato fixo',etiqueta:'',cliente:'Contrato fixo '+per,itens:[],hist:[{acao:'Aprovada',por:ap?A.F.apr.por:'Contrato fixo',em:m}]};
+    const base=Math.max(A.fixo,A.vb);out.push(Object.assign({},o,{total:Math.round((base-A.imp)*100)/100}));
+    if(A.imp)out.push(Object.assign({},o,{id:o.id+':imp',categoria:'Contrato fixo · improdutivo',cliente:'Improdutivo '+per,total:A.imp}));
+    if(ap&&A.vOk)out.push(Object.assign({},o,{id:o.id+':bon',categoria:'Contrato fixo · bônus por metas',cliente:'Bônus por metas '+per,total:A.vOk}))}));return out}
+const cfiBudSwap=fn=>{const all=S.lpus;CFI_ALL=all;const V=cfiVirt(),F=all.filter(l=>!l.cf).concat(V);F.find=all.find.bind(all);F.findIndex=all.findIndex.bind(all);F.push=all.push.bind(all);S.lpus=F;try{return fn()}finally{if(S.lpus===F)S.lpus=all;CFI_ALL=null}};
+{const _b=pBudget;pBudget=function(){if(cfiGrp(ui.finSub)==='cf'&&ui.pSec==='fin')return cfiView(ui.finSub);const a=arguments,h=cfiBudSwap(()=>_b.apply(this,a));
+  const mes=ui.bMes||hoje().slice(0,7),K=cfiKs();if(!K.length)return h;let fx=0,pr=0,ex=0,im=0,bo=0,n=0;
+  K.forEach(k=>{if(!cfRefs(k,mes,mes).length)return;const A=cfiApura(k.tec,mes);fx+=A.fixo;pr+=A.vb;ex+=A.exc;im+=A.imp;if(A.st==='apr')bo+=A.vOk;n+=A.B.length});
+  const bx=`<section style="margin-top:14px"><div class="secth"><h3>Contrato fixo no mês</h3><span class="muted">Período ${cfPerTxt(mes)} · já somado no consumo acima (um budget só)</span></div><div class="kpis cfi5">${kp(brl(fx),'Valor fixo dos contratos')}${kp(brl(pr),'Produção · '+n+(n===1?' baixa aprovada':' baixas aprovadas'),'ok')}${kp(brl(ex),'Excedente')}${kp(brl(im),'Improdutivo','bad')}${kp(brl(bo),'Bônus por metas aprovados')}</div></section>`;
+  const i=h.indexOf('</section>');return i<0?h+bx:h.slice(0,i+10)+bx+h.slice(i+10)}}
+{const _f=finPlantoes;finPlantoes=function(){return _f.apply(this,arguments).concat(cfiVirt())}}
+/* ROI por etiqueta e previsão dos projetos seguem com as baixas reais (sem o consumo do contrato) */
+const cfiReal=fn=>{if(!CFI_ALL||S.lpus===CFI_ALL)return fn();const F=S.lpus;S.lpus=CFI_ALL;try{return fn()}finally{S.lpus=F}};
+['moHtml','klbPainel','dkPainel'].forEach(n=>{try{const f=eval(n);if(typeof f!=='function')return;eval(n+'=function(){const a=arguments;return cfiReal(()=>f.apply(this,a))}')}catch(e){}});
+{const _t=finTodas;finTodas=function(){return _t.apply(this,arguments).filter(l=>!l.cf)}}
+function cfiView(sub){if(!CF.ok&&!CF.err){if(!CF.bus)cfCarregar();return '<p class="muted pad">Carregando…</p>'}if(CF.err)return `<div class="result bad">${esc(CF.err)}</div>`;
+  if(sub==='cfiAprov')return viewAprov(true);
+  if(sub==='cfiK'){const K=cfiKs().sort((p,q)=>(p.ativo===false)-(q.ativo===false)||gTecN(p.tec).localeCompare(gTecN(q.tec))),vv=v=>brl(+v||0);
+    return `<div class="tools" style="margin-bottom:12px">${cfiEd()?'<button class="btn primary" data-act="cfiKEd">Novo contrato</button>':''}</div>${K.length?`<section class="panel"><div class="tablewrap"><table class="cfpg"><thead><tr><th>Equipe</th><th>Empresa</th><th class="r">Fixo/mês</th><th class="r">Até o limite</th><th class="r">CFO</th><th class="r">Fusão</th><th class="r">Identificação</th><th class="r">Itens na tabela</th><th>Metas</th><th>Situação</th><th></th></tr></thead><tbody>
+     ${K.map(k=>{const cx=(S.cnpj||{})[k.tec]||{};return `<tr><td><b>${esc(gTecN(k.tec))}</b></td><td>${cx.empresa?esc(gTecN(cx.empresa)):'—'}</td><td class="r"><b>${vv(k.fixo)}</b><br><small class="muted">desde ${cfPerTxt(cfDesde(k)).slice(0,5)}</small></td><td class="r">${vv(k.fixo650)}<br><small class="muted">até ${cfiLim(k)} m</small></td><td class="r">${vv(k.cfo)}</td><td class="r">${vv(k.fus)}</td><td class="r">${vv(k.ide)}</td><td class="r">${(k.tab||[]).length}</td><td>${(k.vars||[]).map(v=>`<small class="cfvl">${esc(v.nome)} · ${vv(v.valor)}</small>`).join('')||'<small class="muted">—</small>'}</td><td>${k.ativo===false?'<span class="chip">Inativo</span>':'<span class="chip ok">Ativo</span>'}</td><td>${cfiEd()?`<button class="btn sm" data-act="cfiKEd" data-id="${k.id}">Editar</button>`:''}</td></tr>`}).join('')}</tbody></table></div></section>`:'<section class="panel"><p class="muted">Nenhum contrato fixo na Implantação ainda.</p></section>'}`}
+  if(sub==='cfiDet'){const L=S.lpus.filter(l=>l.cf&&l.status!=='reprovada'&&lpuNoPer(l,'cfd')).sort((a,b)=>String(b.data).localeCompare(String(a.data)));const st={aprovada:['Aprovada','ok'],aguardando:['Aguardando','warn'],ajuste:['Em ajuste','bad'],conferencia:['Conferência','info']};
+    return `${lpuPerBar('cfd','cfiXlsx')}<div class="kpis cfk3">${kp(brl(L.filter(l=>l.status==='aprovada').reduce((s,l)=>s+(+l.total||0),0)),'Aprovadas','ok')}${kp(brl(L.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+(+l.total||0),0)),'Aguardando ou em ajuste','warn')}${kp(L.length,'Baixas no período')}</div>
+     <section class="panel"><div class="tablewrap"><table class="cfpg"><thead><tr><th>Data</th><th>Atividade</th><th>Equipe</th><th>Tipo</th><th class="r">Metros</th><th class="r">Valor</th><th>Situação</th><th></th></tr></thead><tbody>${L.map(l=>`<tr><td>${dBR(l.data)}</td><td><b>${esc(l.etiqueta)}</b><br><small class="muted">${esc(cliN(l.etiqueta))}</small></td><td>${esc(tecN(l.tec))}</td><td>${esc(CFI_CAT[l.cf.cat]||'')}</td><td class="r">${l.cf.m?(+l.cf.m).toLocaleString('pt-BR'):'—'}</td><td class="r"><b>${brl(+l.total||0)}</b></td><td><span class="chip ${(st[l.status]||['',''])[1]}">${(st[l.status]||[l.status])[0]}</span></td><td><button class="btn sm" data-act="pdf" data-id="${l.id}">PDF</button></td></tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhuma baixa no período.</td></tr>'}</tbody></table></div></section>`}
+  const ref=ui.cfiRef||(ui.cfiRef=cfRefHoje()),K=cfiKs().filter(k=>k.ativo!==false||cfFech('impl',k.tec,ref));
+  return `<div class="tools" style="margin-bottom:12px"><button class="btn sm" data-act="cfiRef" data-k="-1" aria-label="Período anterior">‹</button><b class="cfper">${cfPerTxt(ref)}</b><button class="btn sm" data-act="cfiRef" data-k="1" aria-label="Próximo período">›</button></div>
+   ${K.length?`<div class="cfigrid">${K.map(k=>cfiFechCard(k,ref)).join('')}</div>`:`<section class="panel"><p class="muted">Nenhum contrato fixo na Implantação.${cfiEd()?' Cadastre em <b>Contratos</b>.':''}</p></section>`}`}
+/* ---------- Financeiro (menu Financeiro, Pamela) › Contratos fixos: os contratos das áreas, mês a mês ----------
+   Mês de referência = mês em que o período termina (21/10 a 20/11 → novembro), igual ao budget. Esses valores já entram no
+   executado, nas contas a pagar e no e-mail de NF; não cadastre o mesmo contrato de novo no Financeiro. */
+function cfAreaLinhas(m){if(!CF.ok)return[];return CF.rows.filter(k=>k.tipo==='contrato'&&['re','impl'].includes(k.area)&&cfRefs(k,m,m).length).map(k=>{const cx=(S.cnpj||{})[k.tec]||{},F=cfFech(k.area,k.tec,m),ap=F&&F.status==='apr';
+  if(k.area==='impl'){const A=cfiApura(k.tec,m);return{k,emp:cx.empresa||k.tec,ap,area:'Implantação',conta:'0005',fixo:A.fixo,prod:`${brl(A.vb)}<br><small class="muted">${A.B.length} baixa(s)</small>`,exc:A.exc,imp:A.imp,bon:ap?A.vOk:0,cons:Math.max(A.fixo,A.vb)+(ap?A.vOk:0)}}
+  const A=cfApura('re',k.tec,m);return{k,emp:cx.empresa||k.tec,ap,area:'RE Corretiva',conta:'0008',fixo:A.fixo,prod:`${A.n} de ${A.qtd} chamados`,exc:A.vExc,imp:A.vImp,bon:ap?A.vOk:0,cons:ap?A.total:(+k.fixo||0)}})}
+function cfAreaBloco(m){if(!CF.ok){if(!CF.bus&&!CF.err)cfCarregar();return CF.err?'':'<p class="muted">Carregando os contratos das áreas…</p>'}const L=cfAreaLinhas(m);if(!L.length)return '';const per=cfPerTxt(m),tot=L.reduce((s,x)=>s+x.cons,0);
+  return `<div class="fgcard" style="margin-bottom:14px"><h3 style="margin:0">Contratos das áreas · Implantação e RE Corretiva</h3><p class="muted" style="margin:2px 0 10px">Período ${per} → ${MESES_N[+m.slice(5)-1]}. Cadastrados e fechados em cada área; já entram no executado, nas contas a pagar e no e-mail de NF. Não cadastre de novo aqui.</p>
+   <div class="tablewrap"><table class="f2t cfarea"><thead><tr><th>Equipe · empresa</th><th>Área · conta</th><th class="r">Valor fixo</th><th class="r">Produção</th><th class="r">Excedente</th><th class="r">Improdutivo</th><th class="r">Bônus</th><th class="r">Consumo do mês</th><th>Situação</th></tr></thead><tbody>
+   ${L.map(x=>`<tr><td><b>${esc(gTecN(x.k.tec))}</b>${x.emp!==x.k.tec?`<br><small class="muted">${esc(gTecN(x.emp))}</small>`:''}</td><td>${x.area}<br><small class="muted">${x.conta} · ${esc(fcNome(x.conta))}</small></td><td class="r">${brl(x.fixo)}</td><td class="r">${x.prod}</td><td class="r">${x.exc?brl(x.exc):'—'}</td><td class="r" style="color:${x.imp?'var(--bad)':'inherit'}">${x.imp?brl(x.imp):'—'}</td><td class="r">${x.bon?brl(x.bon):'—'}</td><td class="r"><b>${brl(x.cons)}</b></td><td>${x.ap?'<span class="chip ok">Fechamento aprovado</span>':'<span class="chip warn">Em apuração</span>'}</td></tr>`).join('')}
+   <tr><td colspan="7"><b>Total dos contratos das áreas</b></td><td class="r"><b>${brl(tot)}</b></td><td></td></tr></tbody></table></div>
+   <p class="muted" style="font-size:12.5px;margin:6px 0 0">Em apuração: Implantação mostra o fixo ou a produção, se passar; RE Corretiva mostra o valor do contrato até o fechamento.</p></div>`}
+{const _v=viewFinCtr;viewFinCtr=function(){const h=_v.apply(this,arguments);if(!F2.ok)return h;const m=ui.fkMes||hoje().slice(0,7),b=cfAreaBloco(m);if(!b)return h;
+  const i=h.search(/<div class="tablewrap"><table class="f2t">|<p class="fgempty">/);const sub='<h3 style="margin:4px 0 8px">Outros contratos (cadastrados no Financeiro)</h3>';return i<0?h+b:h.slice(0,i)+b+sub+h.slice(i)}}
+RP_VIEWS.finCtr=viewFinCtr;
+{const _c=f2Carregar;f2Carregar=async function(){if(typeof CF!=='undefined'&&!CF.ok&&!CF.bus)cfCarregar();return _c.apply(this,arguments)}}
+
+/* ---------- Gestão financeira do dono da empresa: Contrato fixo | Contrato LPU ---------- */
+function cfiPrestCard(k){const ref=cfRefHoje(),A=cfiApura(k.tec,ref),ult=cfRefMais(ref,-1),Fu=cfFech('impl',k.tec,ult),Au=cfiApura(k.tec,ult),fe=Fu&&Fu.status==='apr';
+  const pc=A.fixo?Math.min(100,Math.round(A.vb/A.fixo*100)):0,cats=Object.keys(CFI_CAT).filter(c=>A.cat[c]).map(c=>`${A.cat[c].n} ${CFI_CAT[c].toLowerCase()}`).join(' · ');
+  const ant=CF.rows.filter(x=>x.tipo==='fech'&&x.area==='impl'&&x.tec===k.tec&&x.status==='apr'&&x.ref!==ult&&x.ref!==ref).sort((p,q)=>q.ref.localeCompare(p.ref)).slice(0,6);
+  return `<section class="panel cfcard"><div class="ah"><div><h3>${esc(gTecN(k.tec))}</h3><small class="muted">Contrato fixo · Implantação · ${brl(A.fixo)} por mês</small></div><span class="chip warn">Mês em andamento</span></div>
+   <div class="cfprog"><div><small>Produção de ${cfPerTxt(ref)}</small><b>${brl(A.vb)} <span class="muted">de ${brl(A.fixo)}</span></b>${A.exc?`<span class="chip ok">+ ${brl(A.exc)} de excedente</span>`:''}</div>
+    <div class="cfbar"><i style="width:${pc}%"></i></div><small class="muted">${A.B.length} ${A.B.length===1?'baixa aprovada':'baixas aprovadas'}${cats?' ('+cats+')':''}${A.pend.length?` · ${A.pend.length} aguardando aprovação`:''}. O pagamento é feito depois do fechamento do mês (dia 20).</small></div>
+   ${Fu||Au.B.length?`<div class="cfult"><div class="ah"><b>Mês ${cfPerTxt(ult)}</b><span class="chip ${fe?'ok':'info'}">${fe?'Fechado · valor para pagamento':'Mês encerrado · em fechamento na Net Turbo'}</span></div>
+     ${fe?`<div class="cfinums"><div><small>Valor fixo</small><b>${brl(Au.fixo)}</b></div><div><small>Produção</small><b>${brl(Au.vb)}</b></div><div><small>Excedente</small><b>${brl(Au.exc)}</b></div><div><small>Bônus por metas</small><b>${brl(Au.vOk)}</b></div></div>
+      <div class="cfvars">${Au.vars.map(v=>`<div class="cfvar ${v.ok?'on':''}"><span>${esc(v.nome)}</span><b>${v.ok?'atingida':'não atingida'}</b></div>`).join('')}</div><div class="cftot"><span>Valor para pagamento</span><b>${brl(Au.total)}</b></div>`
+     :`<p class="muted" style="margin:4px 0">${Au.B.length} baixa(s) aprovada(s) no mês. O valor sai depois da aprovação do fechamento.</p>`}</div>`:''}
+   ${ant.length?`<details class="cfhist"><summary>Meses anteriores</summary>${ant.map(x=>`<div class="cfkrow"><span>${cfPerTxt(x.ref)}</span><b>${brl(+x.total||0)}</b></div>`).join('')}</details>`:''}</section>`}
+/* na aba Contrato LPU do dono, as baixas do contrato fixo não aparecem */
+{const _m=viewMinhas;viewMinhas=function(){const a=arguments;return cfiSoLpu(()=>_m.apply(this,a))}}
+
+document.head.insertAdjacentHTML('beforeend',`<style>
+.cfiseg{display:grid;gap:8px;grid-template-columns:1fr 1fr}@media(max-width:560px){.cfiseg{grid-template-columns:1fr}}.cfiseg button{display:grid;gap:4px;text-align:left;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card,#fff);font:inherit;color:inherit;cursor:pointer}.cfiseg button.on{border-color:var(--brand,#8CBF3F);box-shadow:0 0 0 1px var(--brand,#8CBF3F) inset;background:var(--brand-soft,#E6F1D5)}.cfiseg small{color:var(--muted);font-size:13px}
+.cfitab{display:grid;gap:6px}.cfitab .lprow>span{width:auto;flex:1;min-width:0}.cfiform{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}.cfiform .cfiw{grid-column:1/-1}@media(max-width:560px){.cfiform{grid-template-columns:1fr}}.cfih{margin:14px 0 6px;font-size:14.5px}
+.cfitl{display:grid;gap:6px;max-height:42vh;overflow:auto;margin-bottom:6px}.cfitr{display:grid;grid-template-columns:minmax(0,2fr) 70px minmax(0,1fr) auto;gap:6px;align-items:center}.cfivr{grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;margin-bottom:6px}
+.cfinums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}@media(max-width:560px){.cfinums{grid-template-columns:1fr 1fr}}.cfinums small{display:block;color:var(--muted);font-size:12.5px}.cfinums b{font-size:17px}.cfiexc b{color:var(--ok-ink,#2E5410)}.cfinums .cfimp b{color:var(--bad)}.cfinb{grid-template-columns:repeat(4,minmax(0,1fr))!important}.cfi5{grid-template-columns:repeat(5,minmax(0,1fr))!important}@media(max-width:900px){.cfi5{grid-template-columns:1fr 1fr!important}}
+.cfarea{min-width:860px}.cfarea td,.cfarea th{word-break:normal!important;overflow-wrap:normal!important;white-space:nowrap}
+.cfigl{display:block;border:0!important;background:none!important;box-shadow:none!important;margin:0!important;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px 10px 2px}.cfigrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))}
 </style>`);
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
