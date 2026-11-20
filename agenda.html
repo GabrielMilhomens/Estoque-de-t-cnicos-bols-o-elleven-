@@ -19359,7 +19359,9 @@ const refChTodos=()=>G.__full||G.ch;
 const refChFilhos=c=>c?refChTodos().filter(x=>x.refDe===c.id&&x.status!=='cancelado'):[];
 const refChPai=c=>c&&c.refDe?refChTodos().find(x=>x.id===c.refDe)||null:null;
 const refChPode=()=>typeof gPodeDesp==='function'&&gPodeDesp();
-const REF_FIM=['lpu','aprov','concl'];
+const REF_FIM=['rfo','lpu','aprov','concl'];
+/* 20/11: na Rede Externa (fora da Transmissão) o reforço também preenche o relatório, igual ao principal, antes da LPU */
+const refRfoPede=c=>!!c&&typeof reDe==='function'&&reDe(c)&&!(typeof txDe==='function'&&txDe(c))&&!c.refSaida;
 /* 15/11: reforço sem LPU: CLT (todas as áreas) e Transmissão (como o principal da Transmissão, que encerra no relatório);
    na Transmissão só a etapa de melhoria de rede feita por terceiro pede LPU */
 /* 15/11 (3): fora da Transmissão o reforço CLT também preenche a LPU (registrada, sem valores e sem budget, igual ao principal CLT) */
@@ -19372,7 +19374,7 @@ function refChSem(fn){if(gTecPerfil()||G.__full||REF_TEC_TABS.includes(ui.tab)||
 {const _r=render;render=function(){const a=arguments;return refChSem(()=>_r.apply(this,a))}}
 ['tpXlsx','g4Xlsx','rkXlsx','kdXlsx'].forEach(k=>{const f=ACT[k];if(f)ACT[k]=function(){const a=arguments;return refChSem(()=>f.apply(this,a))}});
 /* lista: selo no principal */
-const refStCurto=x=>x.status==='aberto'?(gAceito(x)?'aceito':'aguardando aceite'):x.status==='desloc'?'a caminho':['local','atend'].includes(x.status)?'no local':REF_FIM.includes(x.status)?'apoio concluído':'';
+const refStCurto=x=>x.status==='aberto'?(gAceito(x)?'aceito':'aguardando aceite'):x.status==='desloc'?'a caminho':['local','atend'].includes(x.status)?'no local':x.status==='rfo'?'apoio concluído, relatório pendente':REF_FIM.includes(x.status)?'apoio concluído':'';
 {const _c=gCard;gCard=function(c){const h=_c.apply(this,arguments),A=refChFilhos(c).filter(x=>!x.refSaida);if(!A.length)return h;
   const t=A.map(x=>`Reforço: ${esc((gTecN(x.tec)||'').split(' ')[0])} · ${refStCurto(x)}`).join(' | '),cl=A.some(x=>x.status==='aberto'&&!gAceito(x))?'warn':'info';
   return h.replace(/(<\/span>)?(\s*)<\/button>\s*$|<\/article>\s*$|<\/div>\s*$/,m=>`<span class="chip ${cl}" style="margin-top:4px;white-space:normal;text-align:left;height:auto;line-height:1.3">${t}</span>${m}`)}}
@@ -19441,17 +19443,17 @@ Object.assign(ACT,{
    closeModal();render();toast(`${paraN} assumiu o chamado. ${deN} segue para ${gTecV(de)==='CLT'?'o encerramento':'a LPU'} do que fez.`)}
   catch(e){delete el.dataset.bus;el.textContent='Passar o chamado';toast('Não foi possível passar o chamado: '+(e.message||e),'bad')}},
  refChFim:async el=>{const id=el.dataset.id;await gAcao(id,c=>{if(!['local','atend'].includes(c.status)){toast('O chamado já mudou de etapa. Tela atualizada.','bad');return false}c.ts.fimApoio=Date.now();c.ts.inicio=c.ts.inicio||c.ts.chegada;
-   c.status=refSemLpu(c)?'concl':'lpu';gHist(c,'Apoio concluído')},'Apoio concluído.');window.scrollTo(0,0)}});
+   c.status=refSemLpu(c)?'concl':refRfoPede(c)?'rfo':'lpu';gHist(c,'Apoio concluído')},refRfoPede(G.ch.find(x=>x.id===id))?'Apoio concluído. Agora preencha o relatório do que a sua equipe fez.':'Apoio concluído.');window.scrollTo(0,0)}});
 /* app do técnico */
 {const _t=gTecView;gTecView=function(c){let h=_t.apply(this,arguments);if(!c||ui.lpuTela==='G:'+c.id)return h;try{
   const tf=(inner)=>{const i=h.lastIndexOf('<div class="tvft">');const nv=`<div class="tvft">${inner}</div>`;if(i<0)return h+nv;let d=0,j=i;const re=/<\/?div\b/g;re.lastIndex=i;let m;while((m=re.exec(h))){d+=m[0]==='<div'?1:-1;if(d===0){j=h.indexOf('>',m.index)+1;break}}return h.slice(0,i)+nv+h.slice(j)};
   const ins=b=>{const k=h.indexOf('</article>');return k>=0?h.slice(0,k+10)+b+h.slice(k+10):b+h};
   if(refChDe(c)){const pn=c.refNome||'o técnico principal';
    if(c.refSaida)h=ins(`<div class="result warn" style="margin:0 0 10px"><b>Chamado passado para ${esc(c.refSaida.paraNome)}.</b> Ele assume o relatório e a validação do NOC.${c.status==='lpu'?' Preencha a LPU só do que a sua equipe executou.':''}</div>`);
-   else h=ins(`<div class="result info" style="margin:0 0 10px"><b>Vocês vão como reforço de ${esc(pn)}.</b> Ajudem no serviço. O relatório${typeof txAg==='function'&&txAg(c)?' fica':' e a validação do NOC ficam'} com o principal.${c.refObs?`<br><b>Observação:</b> ${esc(c.refObs)}`:''}</div>`);
-   if(['local','atend'].includes(c.status))h=tf(`<button class="bigbtn" data-act="refChFim" data-id="${c.id}" data-hold="2000">Segure: concluir o apoio</button><small class="tvnota">${refSemLpu(c)?'Ao concluir, o apoio fica registrado.':'Ao concluir, abre a LPU só do que a sua equipe executou.'}</small>`);
+   else h=ins(`<div class="result info" style="margin:0 0 10px"><b>Vocês vão como reforço de ${esc(pn)}.</b> Ajudem no serviço. ${refRfoPede(c)?'A validação do NOC fica com o principal. No fim, vocês preenchem o relatório do que a sua equipe fez e a LPU.':`O relatório${typeof txAg==='function'&&txAg(c)?' fica':' e a validação do NOC ficam'} com o principal.`}${c.refObs?`<br><b>Observação:</b> ${esc(c.refObs)}`:''}</div>`);
+   if(['local','atend'].includes(c.status))h=tf(`<button class="bigbtn" data-act="refChFim" data-id="${c.id}" data-hold="2000">Segure: concluir o apoio</button><small class="tvnota">${refSemLpu(c)?'Ao concluir, o apoio fica registrado.':refRfoPede(c)?'Ao concluir, abre o relatório do que a sua equipe fez e, depois, a LPU.':'Ao concluir, abre a LPU só do que a sua equipe executou.'}</small>`);
    else if(c.status==='lpu'&&ui.perfil!=='func')h=tf(`<button class="bigbtn" data-act="gLpuAbrir" data-id="${c.id}">Preencher a LPU</button><small class="tvnota">Lance só o que a sua equipe executou como reforço.</small>`);
-   h=h.replace(/O RFO já foi gerado\. A LPU tem 3 passos\./,'A LPU tem 3 passos.').replace(/<b>RFO enviado\.<\/b>/,'<b>Apoio concluído.</b>');return h}
+   h=h.replace(/Validado pelo NOC\.\s*Preencha o relatório( da rede externa)?/,'Apoio concluído. Preencha o relatório do que a sua equipe fez').replace(/O RFO já foi gerado\. A LPU tem 3 passos\./,'A LPU tem 3 passos.').replace(/<b>RFO enviado\.<\/b>/,'<b>Apoio concluído.</b>');return h}
   const R=(c.refs||[]).filter(r=>r.tec!==c.tec);if(R.length&&GTD_ABERTOS.includes(c.status))h=ins(`<div class="result info" style="margin:0 0 10px"><b>${esc(R.map(r=>r.nome).join(', '))} ${R.length>1?'vão':'vai'} como reforço.</b> Vocês continuam como principal: relatório e validação do NOC são com vocês.</div>`);
   if(c.assumiu&&c.assumiu.para===c.tec&&GTD_ABERTOS.includes(c.status))h=ins(`<div class="result ok" style="margin:0 0 10px"><b>Você assumiu este chamado de ${esc(c.assumiu.deNome)}.</b> Agora o relatório e a validação do NOC são com você. O MTTR continua contando do início.${c.assumiu.falta?`<br><b>O que falta:</b> ${esc(c.assumiu.falta)}`:''}</div>`);
   return h}catch(e){console.warn('refch tec',e);return h}}}
@@ -21935,7 +21937,7 @@ function refAprBox(l,c){const g=refAprGrupo(c);if(!g)return '';const L=[g.P].con
   const sit=x=>{const lp=refAprLpu(x);if(lp){tot+=+lp.total||0;return{lp,h:`${lchip(lp.status)} <b>${brl(lp.total)}</b>`}}
     if(typeof refSemLpu==='function'&&refSemLpu(x))return{h:'<span class="chip">Sem LPU</span>'};
     if(gTecV(x.tec)==='CLT')return{h:'<span class="chip">Equipe própria · LPU não enviada</span>'};
-    falta++;return{h:GTD_ABERTOS.includes(x.status)?'<span class="chip warn">Ainda em atendimento · LPU não enviada</span>':'<span class="chip bad">LPU ainda não enviada</span>'}};
+    falta++;if(x.status==='rfo')return{h:'<span class="chip warn">Relatório e LPU ainda não enviados</span>'};return{h:GTD_ABERTOS.includes(x.status)?'<span class="chip warn">Ainda em atendimento · LPU não enviada</span>':'<span class="chip bad">LPU ainda não enviada</span>'}};
   const linha=x=>{const s=sit(x),eu=x.id===c.id,pr=x===g.P;
     return `<div class="rfap ${eu?'eu':''}"><div class="rfapt"><span class="chip ${pr?'ok':'info'}">${pr?'Principal':'Reforço'}</span><b>${esc(gTecN(x.tec)||'—')}</b><small>${esc(gTecV(x.tec)||'')} · O&amp;M ${esc(x.pom||'—')}${eu?' · <b>esta LPU</b>':''}</small></div>
      <div class="rfaps">${s.h}</div>
