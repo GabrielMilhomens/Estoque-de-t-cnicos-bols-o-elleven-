@@ -1009,6 +1009,7 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   8. **SLA do cliente na RE Corretiva:** a prioridade virou "SLA do cliente" com 04:00, 08:00, 12:00 (novo) e 24:00; os nomes Normal, Alta e Escalonado saem da tela (o de 12 horas grava "Média"); o selo do card mostra "SLA 4h" etc. GTD continua igual.
   9. **Confirmação ao validar / não validar** (GTD, RE Corretiva e Transmissão): mostra cliente, protocolo, técnico, categoria e SLA (e o motivo, no não validado) e só grava depois de confirmar.
   Código em `mod/ajustes20.js`, `mod/carimbo.js`, `mod/rphist.js` e `mod/reprev.js`. Sem SQL.
+- **Aprovação de LPU da RE Corretiva com reforço (20/11):** a LPU do chamado principal mostra "Com reforço (N)" e a do reforço mostra "Reforço do O&M …". Ao abrir, o quadro "Atendimento com reforço" lista o principal e cada reforço com o técnico, a situação da LPU e o valor (ou "LPU ainda não enviada", "Ainda em atendimento", "Equipe própria · LPU não enviada"), o total do atendimento e quantas LPUs faltam, o relatório (PDF) e o RFO de cada um, "Ver LPU" (abre a LPU do outro técnico) e "Abrir chamado". Categoria, desfecho e tempos da LPU do reforço deixam de ficar em branco. Código em `mod/refapr.js`. Sem SQL.
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1073,6 +1074,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 20/11/2026 | Aprovação de LPU da RE Corretiva liga o chamado principal e os reforços (situação da LPU de cada um, o que falta enviar, relatórios e RFO) | `agenda.html` (`mod/refapr.js`). Sem SQL. |
 | 20/11/2026 | Busca na Aprovação de LPU; carimbo só em foto da câmera; tudo aberto na RE Corretiva fica na corretiva; Histórico na RE Preventiva; aviso de RFO/LPU pendente leva ao Histórico filtrado; "Localizei o defeito"; reforço fora de disponíveis; SLA do cliente 4/8/12/24h; confirmação ao validar | `agenda.html` (`mod/ajustes20.js`, `mod/carimbo.js`, `mod/rphist.js`, `mod/reprev.js`). Sem SQL. |
 | 19/11/2026 | Agenda: card de atividade concluída em parte mostra "Concluída em parte" e "Feito: … · Falta: …" | `agenda.html` (`mod/fzparc.js`). Sem SQL. |
 | 19/11/2026 | Projeto de upgrade (mudança de topologia / aumento de banda) para cliente com etiqueta já na base: entra como etiqueta-UP1, sem mexer no projeto anterior; ou atualiza o existente, como antes | `agenda.html` (`mod/upgrade.js`). Sem SQL. |

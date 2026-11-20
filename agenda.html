@@ -5053,10 +5053,10 @@ function viewGAprov(emb){if(G.erro)return `<h2>Aprovação de LPU · GTD</h2>${g
   const tabs=[['aguardando','Aguardando'],['ajuste','Em ajuste'],['aprovada','Aprovadas'],['reprovada','Reprovadas']],tab=tabs.some(x=>x[0]===ui.gaTab)?ui.gaTab:'aguardando';
   const AP=G.lpus.filter(l=>lpuNoPer(l,'ga')),tot=s=>AP.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0),cnt=s=>AP.filter(l=>l.status===s).length;
   const rows=AP.filter(l=>l.status===tab).sort((a,b)=>String(b.data).localeCompare(String(a.data)));
-  const card=l=>{const c=G.ch.find(x=>x.id===l.chamado)||{ts:{}},op=ui.gaOpen===l.id,t=c.ts||{};
-    return `<div class="lcard"><button class="lhead" data-act="gaOpen" data-id="${l.id}" aria-expanded="${op}"><div><b>O&amp;M ${esc(l.pom||c.pom||'')}</b> <span>${esc(l.cliente||c.cliente||'')}</span>${c.desfecho==='Improdutivo'?' <span class="chip warn">Improdutivo</span>':''}${gLpuClt(l)?' <span class="chip info">Equipe própria · não consome budget</span>':''}<small>${esc(gTecN(l.tec))} (${gTecV(l.tec)||'terceiro'}), ${esc(l.categoria||c.categoria||'')}, ${dBR(l.data)}</small>${aprovPor(l)?`<small class="aprovp">${aprovPor(l)}</small>`:''}</div><span class="val">${brl(l.total)}</span></button>
+  const card=l=>{const c=(G.__full||G.ch).find(x=>x.id===l.chamado)||{ts:{}},op=ui.gaOpen===l.id,t=c.ts||{};
+    return `<div class="lcard"><button class="lhead" data-act="gaOpen" data-id="${l.id}" aria-expanded="${op}"><div><b>O&amp;M ${esc(l.pom||c.pom||'')}</b> <span>${esc(l.cliente||c.cliente||'')}</span>${c.desfecho==='Improdutivo'?' <span class="chip warn">Improdutivo</span>':''}${typeof refAprChip==='function'?refAprChip(c):''}${gLpuClt(l)?' <span class="chip info">Equipe própria · não consome budget</span>':''}<small>${esc(gTecN(l.tec))} (${gTecV(l.tec)||'terceiro'}), ${esc(l.categoria||c.categoria||'')}, ${dBR(l.data)}</small>${aprovPor(l)?`<small class="aprovp">${aprovPor(l)}</small>`:''}</div><span class="val">${brl(l.total)}</span></button>
     ${op?`<div class="lbody">${(()=>{const h=(l.hist||[]).slice().reverse().find(x=>/pelo prestador/.test(x.acao));return h?`<div class="note" style="margin-top:12px"><b>Conferida pelo prestador:</b> ${esc(h.por)} em ${dtBR(h.em)}. Executada por ${esc(l.tecNome||gTecN(l.tec))}.</div>`:''})()}${l.obs?`<div class="note" style="margin-top:12px"><b>Observação do técnico:</b> ${esc(l.obs)}</div>`:''}
-     <p class="note" style="margin-top:12px"><b>Conta contábil (fixa no GTD):</b> ${esc(GTD_CONTA)}</p>
+     ${typeof refAprBox==='function'?refAprBox(l,c):''}<p class="note" style="margin-top:12px"><b>Conta contábil (fixa no GTD):</b> ${esc(GTD_CONTA)}</p>
      <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd</th><th class="r">Unitário</th><th class="r">Subtotal</th></tr></thead><tbody>${(l.itens||[]).map(i=>`<tr><td>${i.cod}</td><td>${esc(i.desc)}</td><td>${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r">${brl(i.unit*i.qtd)}</td></tr>`).join('')}</tbody></table></div>
      <dl class="dl" style="margin-top:12px"><div><dt>Categoria</dt><dd>${esc(c.categoria||'—')}</dd></div><div><dt>Desfecho</dt><dd>${esc(c.desfecho?c.desfecho+(c.encEquipe?' para '+c.encEquipe:''):'—')}</dd></div><div><dt>MTTR</dt><dd>${c.validadoEm?gDur(c.validadoEm-gIni(c)):'—'}</dd></div><div><dt>Deslocamento</dt><dd>${fdur(dur(t.desloc,t.chegada))}</dd></div><div><dt>Atendimento</dt><dd>${fdur(dur(t.inicio,c.validadoEm))}</dd></div><div><dt>Situação</dt><dd>${lchip(l.status)}</dd></div></dl>
      ${c.rfoTxt?`<details style="margin-top:10px"><summary>Ver RFO</summary><pre class="rfo">${esc(c.rfoTxt)}</pre></details>`:''}${c.rfoPdf?`<div class="tools" style="margin-top:8px"><button class="btn sm" data-act="relVer" data-p="${esc(c.rfoPdf)}">Relatório do atendimento (PDF${(c.rfoFotos||[]).length?', '+c.rfoFotos.length+' foto(s)':''})</button></div>`:''}
@@ -21920,6 +21920,34 @@ if(typeof RP_TK!=='undefined')RP_TK.rpHist=RP_TK.rpEst||'rp_est';
 RP_VIEWS.rpHist=typeof rpDetWrap==='function'?rpDetWrap(viewRpHist):viewRpHist;if(typeof GTD_T!=='undefined'&&!GTD_T.includes('rpHist'))GTD_T.push('rpHist');
 {const _t=tabsDe;tabsDe=function(){const T=_t.apply(this,arguments);const j=T.indexOf('rpHist');if(T.includes('rpEst')){if(j<0){const i=T.indexOf('rpAg')>=0?T.indexOf('rpAg'):T.indexOf('rpEst');T.splice(i+1,0,'rpHist')}}else if(j>=0)T.splice(j,1);return T}}
 (function(){const st=document.createElement('style');st.textContent=`.rph tbody tr{cursor:pointer}.rph tbody tr:hover{background:var(--soft,#f3f6ef)}.rph td{vertical-align:top}.rph td:first-child{white-space:nowrap}`;document.head.appendChild(st)})();
+
+/* ===== 20/11: RE Corretiva · aprovação de LPU mostra o atendimento completo quando houve reforço =====
+   Na LPU do chamado principal ou do reforço, a supervisão vê o quadro "Atendimento com reforço": o chamado principal e
+   cada reforço, com o técnico, a situação da LPU (ainda não enviada, aguardando, em ajuste, aprovada, reprovada) e o valor,
+   o relatório de cada um (RFO e PDF) e o total do atendimento. "Ver LPU" abre a LPU do outro técnico.
+   O cabeçalho da LPU mostra "Reforço do O&M …" ou "Com reforço". Categoria, desfecho e tempos do reforço vêm do chamado
+   do reforço (antes ficavam em branco). */
+const refAprCtx=c=>!!c&&!!c.id&&typeof reDe==='function'&&reDe(c)&&!(typeof txDe==='function'&&txDe(c));
+const refAprLpu=x=>(G.lpus||[]).filter(l=>l.chamado===x.id&&l.status!=='cancelada').sort((a,b)=>String(b.data).localeCompare(String(a.data)))[0]||null;
+function refAprGrupo(c){if(!refAprCtx(c))return null;const P=c.refDe?refChPai(c):c;if(!P)return null;const F=refChFilhos(P);if(!F.length)return null;return{P,F}}
+function refAprChip(c){const g=refAprGrupo(c);if(!g)return '';return c.refDe?` <span class="chip info">Reforço do O&amp;M ${esc(g.P.pom||'—')}</span>`:` <span class="chip info">Com reforço (${g.F.length})</span>`}
+function refAprBox(l,c){const g=refAprGrupo(c);if(!g)return '';const L=[g.P].concat(g.F);let tot=0,falta=0;
+  const sit=x=>{const lp=refAprLpu(x);if(lp){tot+=+lp.total||0;return{lp,h:`${lchip(lp.status)} <b>${brl(lp.total)}</b>`}}
+    if(typeof refSemLpu==='function'&&refSemLpu(x))return{h:'<span class="chip">Sem LPU</span>'};
+    if(gTecV(x.tec)==='CLT')return{h:'<span class="chip">Equipe própria · LPU não enviada</span>'};
+    falta++;return{h:GTD_ABERTOS.includes(x.status)?'<span class="chip warn">Ainda em atendimento · LPU não enviada</span>':'<span class="chip bad">LPU ainda não enviada</span>'}};
+  const linha=x=>{const s=sit(x),eu=x.id===c.id,pr=x===g.P;
+    return `<div class="rfap ${eu?'eu':''}"><div class="rfapt"><span class="chip ${pr?'ok':'info'}">${pr?'Principal':'Reforço'}</span><b>${esc(gTecN(x.tec)||'—')}</b><small>${esc(gTecV(x.tec)||'')} · O&amp;M ${esc(x.pom||'—')}${eu?' · <b>esta LPU</b>':''}</small></div>
+     <div class="rfaps">${s.h}</div>
+     <div class="rfapb">${s.lp&&!eu?`<button class="btn sm" data-act="refAprIr" data-id="${s.lp.id}">Ver LPU</button>`:''}${x.rfoPdf?`<button class="btn sm" data-act="relVer" data-p="${esc(x.rfoPdf)}">Relatório (PDF${(x.rfoFotos||[]).length?', '+x.rfoFotos.length+' foto(s)':''})</button>`:''}${!eu?`<button class="btn sm" data-act="gAbrirRel" data-id="${x.id}">Abrir chamado</button>`:''}</div>
+     ${x.rfoTxt&&!eu?`<details class="rfapr"><summary>Ver RFO ${pr?'do principal':'do reforço'}</summary><pre class="rfo">${esc(x.rfoTxt)}</pre></details>`:''}</div>`};
+  const corpo=L.map(linha).join('');
+  return `<section class="rfapbox"><div class="rfaph"><b>Atendimento com reforço</b><span>${L.length} técnicos · total ${brl(tot)}${falta?` · <b class="bad">${falta} ${falta>1?'LPUs ainda não enviadas':'LPU ainda não enviada'}</b>`:''}</span></div>${corpo}</section>`}
+Object.assign(ACT,{refAprIr:el=>{const l=(G.lpus||[]).find(x=>x.id===el.dataset.id);if(!l)return;ui.gaTab=l.status;ui.gaOpen=l.id;['ga'].forEach(k=>{ui[k+'Q']='';ui[k+'Ini']='';ui[k+'Fim']=''});render();
+  setTimeout(()=>{const b=document.querySelector(`[data-act="gaOpen"][data-id="${l.id}"]`);if(b)b.scrollIntoView({block:'start',behavior:'smooth'})},50)}});
+(function(){const st=document.createElement('style');st.textContent=`.rfapbox{border:1px solid var(--line);border-radius:12px;margin-top:12px;overflow:hidden}.rfaph{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline;padding:10px 12px;background:var(--info-soft,#eaf2fb)}.rfaph span{font-size:13px;color:var(--muted)}.rfaph .bad{color:var(--bad,#b3261e)}
+.rfap{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}.rfap.eu{background:var(--soft,#f6f8f3)}.rfapt{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}.rfapt small{width:100%;color:var(--muted)}.rfapb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.rfapr{grid-column:1/-1}
+@media(max-width:760px){.rfap{grid-template-columns:1fr}.rfapb{justify-content:flex-start}}`;document.head.appendChild(st)})();
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
