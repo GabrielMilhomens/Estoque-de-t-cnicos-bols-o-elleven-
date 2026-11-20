@@ -6702,8 +6702,8 @@ function agEv(a,d,extra){const p=pPor(a.etiqueta)||{},cli=p.cliente||cliN(a.etiq
       return cardA({tag:'button',attrs:`data-act="agOpen" data-id="${a.id}" title="${esc((cli?cli+' - ':'')+a.etiqueta)}"`,cls2:'ev evn',cli,eti:a.etiqueta,chip:'Dia encerrado',cls:'info',fz:agFzC(a)+(di?' · '+di:''),top:topoTxt(p),cid:p.cidade||'',tec:agResp(a),eqk:!!a.equipe,
         foot:`Dia encerrado${fd?' às '+hmA(fd):''} · ${fimTx} ${DSEM[new Date(dF+'T12:00:00').getDay()]} ${dBR(dF).slice(0,5)}${fimT?' às '+hmA(fimT):''}`,fcls:'info',mot:dd&&dd.resumo?'Fez: '+dd.resumo:''})}}
   const cont=typeof d==='string'&&d===a.data&&(a.diario||[]).filter(x=>x.data<d).slice(-1)[0];if(cont&&!extra)extra='continuação de '+dBR(cont.data).slice(0,5);
-  return cardA({tag:'button',attrs:`data-act="agOpen" data-id="${a.id}" title="${esc((cli?cli+' - ':'')+a.etiqueta)}"`,cls2:'ev evn',cli,eti:a.etiqueta,chip:agParc(a)?'Não concluída':agStTxt(a),cls:agChipCls(a),x:a.status==='cancelada',
-    fz:agFzC(a)+(di?' · '+di:''),top:topoTxt(p),cid:p.cidade||'',tec:agResp(a),eqk:!!a.equipe,foot:ft+(extra?' · '+extra:''),fcls:fc,mot:agParc(a)||a.status==='nao_concluida'?[a.obsMotivo,agParc(a)?(a.status==='lpu'?'Falta a LPU do que foi feito.':'Falta o relatório do que foi feito.'):''].filter(Boolean).join(' '):''})}
+  return cardA({tag:'button',attrs:`data-act="agOpen" data-id="${a.id}" title="${esc((cli?cli+' - ':'')+a.etiqueta)}"`,cls2:'ev evn',cli,eti:a.etiqueta,chip:agParc(a)?'Não concluída':agConcParc(a)?'Concluída em parte':agStTxt(a),cls:agConcParc(a)?'warn':agChipCls(a),x:a.status==='cancelada',
+    fz:agFzCard(a)+(di?' · '+di:''),top:topoTxt(p),cid:p.cidade||'',tec:agResp(a),eqk:!!a.equipe,foot:ft+(extra?' · '+extra:''),fcls:fc,mot:agParc(a)||a.status==='nao_concluida'?[a.obsMotivo,agParc(a)?(a.status==='lpu'?'Falta a LPU do que foi feito.':'Falta o relatório do que foi feito.'):''].filter(Boolean).join(' '):''})}
 
 /* Painel do dia */
 function pdCardA(r,f){const t=r.ts||{},nc=f.naoC(r),enc=f.encDia(r),g=f.grupo(r),p=pPor(r.etiqueta)||{};
@@ -6747,7 +6747,7 @@ Object.assign(ACT,{agOpen:el=>{const a=getAg(el.dataset.id);if(!a)return;const p
    <div class="capn" data-k="end" hidden>${endH}</div><div class="capn" data-k="mat" hidden>${matH}</div><div class="capn" data-k="anx" hidden>${anxH}</div>`;
   const edHist=(a.edicoes||[]).length?`<details class="caup"><summary>Histórico de alterações (${a.edicoes.length})</summary><div class="catl">${a.edicoes.slice().reverse().map(e=>`<div><b>${dBR(isoD(new Date(e.em))).slice(0,5)} ${hmA(e.em)}</b> ${esc(e.por)}: ${esc(e.mud.join('; '))}</div>`).join('')}</div></details>`:'';
   const pdEd=agPodeEditar(a);
-  openModal(`<div class="agdt2"><div class="cat cath"><b>${esc(cli?cli+' - '+a.etiqueta:a.etiqueta)}</b><i class="chip ${agChipCls(a)}">${esc(agStTxt(a))}</i></div>
+  openModal(`<div class="agdt2"><div class="cat cath"><b>${esc(cli?cli+' - '+a.etiqueta:a.etiqueta)}</b><i class="chip ${agConcParc(a)?'warn':agChipCls(a)}">${esc(agConcParc(a)?'Concluída em parte':agStTxt(a))}</i></div>
    ${cRow('dt',`<b>${dataTxt}</b>`)}${cRow('fz',`<b>${esc(fasesN(a))}</b>${(a.fasesFin||[]).length?` <span class="muted">· finalizou: ${a.fasesFin.map(k=>FCURTO[k]).join(', ')}</span>`:''}`)}${cRow('top',esc(topoTxt(p)))}${cRow('cid',`${esc(p.cidade||'')}${c.endereco?` <span class="muted">· ${esc(endCurtoA(c.endereco))}</span>`:''}`)}
    ${a.equipe?cRow('eq',`<b>${esc(a.equipeNome||'Equipe')}</b> <span class="muted">· ${esc(nteNomes(a).join(' + '))} · material no estoque de ${esc(nteEstN(a))}${a.criadoPor?' · agendado por '+esc(a.criadoPor):''}</span>`):''}${a.equipe?'':cRow('tec',`${esc(tecN(a.tec))} <span class="muted">· ${vinc(a.tec)}${a.criadoPor?' · agendado por '+esc(a.criadoPor):''}</span>`)}
    <div class="casit ${fc}"><b>${esc(ft)}</b>${nc&&(a.obsMotivo||falta)?`<span>${esc((a.obsMotivo||'')+falta)}</span>`:''}</div>${notas}
@@ -21778,6 +21778,14 @@ ACT.upgModo=el=>{const W=ui.wiz;if(!W)return;const etq=$('rp_etiqueta')&&$('rp_e
   const fim=()=>{if(!u)return;const p=S.previsao.find(x=>x.etiqueta===u.base+'-UP'+u.n);if(!p||p.upgDe)return;p.upgDe=u.id;p.upgEtq=u.etiqueta;p.upgN=u.n;save();render()};
   if(o&&typeof o.then==='function')return o.then(r=>{fim();return r});fim();return o}}
 (function(){const st=document.createElement('style');st.textContent=`.upgbox{border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0 10px;background:var(--warn-soft,#fff8e6)}.upgop{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--card,#fff);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:6px;cursor:pointer;font:inherit;color:inherit}.upgop small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.4}.upgop.on{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand) inset}.upgr{flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--line);margin-top:2px}.upgop.on .upgr{border:5px solid var(--brand)}`;document.head.appendChild(st)})();
+
+/* ===== 19/11: Agenda: atividade concluída em parte mostra no card o que foi feito e o que faltou =====
+   Quando o técnico conclui só algumas das fases agendadas (ex.: Rua + Interno + Extensão e finalizou só a Rua),
+   o card do Dia, Semana, Mês e da lista mostra "Concluída em parte" e "Feito: Rua · Falta: Interno + Extensão". */
+const agFzFeitas=a=>{const fin=a.fasesFin||[];return fasesOf(a).filter(k=>FCURTO[k]&&fin.includes(k))};
+const agFzFaltam=a=>{const fin=a.fasesFin||[];return fasesOf(a).filter(k=>FCURTO[k]&&!fin.includes(k))};
+const agConcParc=a=>!!a&&['concluida','relatorios','lpu'].includes(a.status)&&!agParc(a)&&(a.fasesFin||[]).length>0&&agFzFaltam(a).length>0&&agFzFeitas(a).length>0;
+const agFzCard=a=>agConcParc(a)?'Feito: '+agFzFeitas(a).map(k=>FCURTO[k]).join(' + ')+' · Falta: '+agFzFaltam(a).map(k=>FCURTO[k]).join(' + '):agFzC(a);
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
