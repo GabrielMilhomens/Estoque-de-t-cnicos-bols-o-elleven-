@@ -1012,6 +1012,7 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   Código em `mod/ajustes20.js`, `mod/carimbo.js`, `mod/rphist.js` e `mod/reprev.js`. Sem SQL.
 - **Aprovação de LPU da RE Corretiva com reforço (20/11):** a LPU do chamado principal mostra "Com reforço (N)" e a do reforço mostra "Reforço do O&M …". Ao abrir, o quadro "Atendimento com reforço" lista o principal e cada reforço com o técnico, a situação da LPU e o valor (ou "LPU ainda não enviada", "Ainda em atendimento", "Equipe própria · LPU não enviada"), o total do atendimento e quantas LPUs faltam, o relatório (PDF) e o RFO de cada um, "Ver LPU" (abre a LPU do outro técnico) e "Abrir chamado". Categoria, desfecho e tempos da LPU do reforço deixam de ficar em branco. Código em `mod/refapr.js`. Sem SQL.
 - **Reforço da RE Corretiva com relatório (20/11):** o técnico de reforço passa a preencher o mesmo relatório da rede externa do principal (desfecho, causa raiz, localização, fotos, o que foi feito, metros e caixas). Fluxo: "Segure: concluir o apoio" → relatório → "Gerar relatório e seguir para a LPU" → LPU só do que a equipe dele executou. A validação do NOC e o MTTR continuam só no principal. A gestão recebe "Reforço concluiu o apoio" e "Relatório do reforço"; na Aprovação de LPU, o quadro "Atendimento com reforço" mostra o relatório e o RFO de cada reforço ou "Relatório e LPU ainda não enviados". GTD e Transmissão não mudam. Código em `mod/refch.js` e `mod/refapr.js`; SQL `agenda_ajuste_92_reforco_relatorio.sql`.
+- **Implantação · selo da equipe própria na Aprovação de LPU (20/11):** a LPU de técnico da equipe própria (CLT) mostra o selo "Equipe própria · não consome budget", igual ao GTD, e o texto da fila avisa que as da equipe própria não consomem o budget (o Budget da Implantação já contava só as LPUs de terceiros).
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1076,6 +1077,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 20/11/2026 | Implantação: selo "Equipe própria · não consome budget" na Aprovação de LPU | `agenda.html`. Sem SQL. |
 | 20/11/2026 | Reforço da RE Corretiva preenche o relatório (igual ao principal) antes da LPU | **`agenda_ajuste_92_reforco_relatorio.sql` no Supabase** (não subir no GitHub), depois `agenda.html` (`mod/refch.js`, `mod/refapr.js`). |
 | 20/11/2026 | Aprovação de LPU da RE Corretiva liga o chamado principal e os reforços (situação da LPU de cada um, o que falta enviar, relatórios e RFO) | `agenda.html` (`mod/refapr.js`). Sem SQL. |
 | 20/11/2026 | Busca na Aprovação de LPU; carimbo só em foto da câmera; tudo aberto na RE Corretiva fica na corretiva; Histórico na RE Preventiva; aviso de RFO/LPU pendente leva ao Histórico filtrado; "Localizei o defeito"; reforço fora de disponíveis; SLA do cliente 4/8/12/24h; confirmação ao validar | `agenda.html` (`mod/ajustes20.js`, `mod/carimbo.js`, `mod/rphist.js`, `mod/reprev.js`). Sem SQL. |
