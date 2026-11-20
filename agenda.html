@@ -8073,7 +8073,7 @@ function navBarHtml(){const o=NAVD;if(!o)return '';const todas=navTodas();if(tod
   if(todas.length<=5)return todas.map(t=>bt('navGo',`data-t="${t}"`,_ni(ICT[t]||''),NAV_TC[t]||tabLabel(t),t===ui.tab&&!shOpen,navNum(t))).join('');
   const grupos=[...new Set(o.vis.map(t=>o.GRP[t]))],na=grupos.slice(0,4),gAt=o.GRP[ui.tab];
   return na.map(g=>{const its=o.vis.filter(t=>o.GRP[t]===g),n=its.reduce((s,t)=>s+navNum(t),0);
-      return bt('navArea',`data-g="${esc(g)}"`,ICN[g]||'',NAV_GC[g]||g,shOpen?ui.navSheet===g:g===gAt,n)}).join('')
+      return bt('navArea',`data-g="${esc(g)}"`,navGIc(g,its),navGcCurto(g),shOpen?ui.navSheet===g:g===gAt,n)}).join('')
     +bt('navMenu','',NAV_SVG.menu,'Menu',shOpen?ui.navSheet==='menu':!na.includes(gAt),0)}
 /* celular: gaveta (área ou Menu) */
 function navLinha(t,star){const on=NAVS.pins.includes(t),lb=esc(tabLabel(t)),cur=t===ui.tab;
@@ -22566,6 +22566,39 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .cfarea{min-width:860px}.cfarea td,.cfarea th{word-break:normal!important;overflow-wrap:normal!important;white-space:nowrap}
 .cfigl{display:block;border:0!important;background:none!important;box-shadow:none!important;margin:0!important;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px 10px 2px}.cfigrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))}
 </style>`);
+
+/* ===== 20/11: celular e modo escuro =====
+   - Cores: tokens que só existiam como "fallback" claro (--card, --panel, --soft, --ok…) viram apelidos dos tokens do tema,
+     então cartões e caixas acompanham o modo escuro (ex.: cartões da Visão gerencial e do Financeiro ficavam brancos).
+   - Chip marcado legível no modo escuro.
+   - Barra inferior: grupo sem ícone próprio usa o ícone da primeira tela do grupo, e o nome vai curto (Capex, Opex,
+     Visão, Fechamento, LPUs, Apoio…).
+   - Nada passa da largura da tela: o que for mais largo rola dentro da própria caixa, a página não "encolhe" no Android
+     (era o que empurrava a barra inferior para baixo e cortava os nomes). */
+const MOB_GC={'Capex · Instalação de rede':'Capex','Opex · Melhoria de rede (reparo programado)':'Opex','Visão do financeiro':'Visão','Fechamento do mês':'Fechamento','LPUs e prestadores':'LPUs','Apoio':'Apoio'};
+function navGcCurto(g){if(NAV_GC[g])return NAV_GC[g];if(MOB_GC[g])return MOB_GC[g];const a=String(g).split(/ · | \(|:/)[0].trim();return a.length>11?a.split(' ')[0]:a}
+function navGIc(g,its){if(ICN[g])return ICN[g];const t=(its||[])[0];return t&&ICT[t]?_ni(ICT[t]):''}
+document.head.insertAdjacentHTML('beforeend',`<style>
+:root{--card:var(--surface);--panel:var(--surface);--soft:var(--bg);--surface-2:var(--bg);--bg2:var(--bg);--ok:var(--brand-ink);--ok-soft:var(--brand-soft);--ok-ink:var(--brand-ink);--text:var(--ink);--accent:var(--brand)}
+.chip.on{background:var(--brand-ink);color:var(--surface)}
+.fgchips .chip.on{background:var(--brand-ink);color:var(--surface)}
+button.g4c.kdbtn{background:var(--surface)}
+.plcard{background:var(--warn-soft);border-color:var(--warn)}.plcard.ok{background:var(--brand-soft);border-color:var(--brand)}
+a.btn{color:var(--ink);text-decoration:none}
+.f.inline>.inp,.f.inline>select,.f.inline>input{min-width:0;max-width:100%}
+html,body{overflow-x:clip;max-width:100%}
+@media(max-width:760px){.tablewrap td,.tablewrap th{word-break:normal;overflow-wrap:normal}.tablewrap td:first-child,.tablewrap th:first-child{min-width:7.5em}
+ .nbt .nbl{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #app .grid2,#app .grid2.even{grid-template-columns:minmax(0,1fr)}
+ #app .views{display:flex;max-width:100%;overflow-x:auto;scrollbar-width:none}#app .views>*{flex:0 0 auto}
+ #app .f.inline{max-width:100%;flex-wrap:wrap}#app select.inp{max-width:100%}
+ #app .tkkpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:460px){#app .kpis .kpi>b{font-size:clamp(20px,5.9vw,30px)}}
+#app a:not([class]),.modal a:not([class]){color:var(--info)}
+#app .grid2>*,#app section,#app .panel{min-width:0}
+.grid2.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+</style>`);
+{const m=document.querySelector('meta[name="viewport"]');if(m&&!/minimum-scale/.test(m.content))m.content=m.content+', minimum-scale=1'}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
