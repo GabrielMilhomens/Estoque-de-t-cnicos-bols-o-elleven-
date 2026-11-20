@@ -2757,7 +2757,7 @@ function render(){
   const P={tabs:TT.filter(t=>gCatDe(t)===ui.cat)};if(!P.tabs.includes(ui.tab))ui.tab=P.tabs[0]||'semAcesso';
   const ini=String(ME.nome||'?').trim().split(/\s+/).filter(Boolean),sig=((ini[0]||'?')[0]+(ini.length>1?ini[ini.length-1][0]:'')).toUpperCase();
   $('whoBox').innerHTML=`<div class="whc"><span class="av">${esc(sig)}</span><span class="wn"><b>${esc(ME.nome)}</b><small>${PERFIS[ui.perfil].n}</small></span></div><div class="wbar">${['supply','visu'].includes(ui.perfil)?'':'<button class="wic wbb sino" data-act="avisos" data-l="Avisos" aria-label="Avisos" title="Avisos"></button>'}<button class="wic wbb" data-act="conta" data-l="Conta" aria-label="Minha conta: senha e notificações" title="Minha conta: senha e notificações">${WHO_CONTA}</button><button class="wic wbb" data-act="logout" data-l="Sair" aria-label="Sair" title="Sair">${ICN.sair}</button></div>`;
-  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','cfgNoc','cfgSim','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpAg','rpHist','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finAno','finConta','finVis','finPagar','finNf','finCtr','finTerc','finPrest','finDet','finLpu','finCod','melKpi','melMin','melHist','cxDesp','oxDesp','melAg','melCh','cxProj','cxCrono','cxVist','oxProj','oxCrono','oxVist','melAprov','melBud','melDet','melPrest','melEq','gEst','gEstAt','gEstHist'],GRP={txMel:'Operação',gEst:'Estoque',gEstAt:'Estoque',gEstHist:'Estoque',melKpi:'Acompanhamento',melMin:'Acompanhamento',melHist:'Acompanhamento',melAg:'Operação',melCh:'Operação',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Operação',cxVist:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Operação',oxVist:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finAno:'Visão do financeiro',finConta:'Visão do financeiro',finVis:'Visão do financeiro',finPagar:'Fechamento do mês',finNf:'Fechamento do mês',finCtr:'Fechamento do mês',finTerc:'Fechamento do mês',finPrest:'LPUs e prestadores',finDet:'LPUs e prestadores',finLpu:'LPUs e prestadores',finCod:'Apoio',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',cfgNoc:'Operação',cfgSim:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpAg:'Programadas',rpHist:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
+  const ORD=['gPainel','gCham','gAgenda','gNovo','gRel','gPlant','reFisc','reGeo','painel','agenda','painelDia','cfgNoc','cfgSim','relat','vist','geo','ausencias','estoque','estAtual','estHist','base','prev','kanban','aprov','campo','eqVer','equipe','meuEst','meuHist','minhas','usuarios','eqTec','gEqTec','rpEst','rpAg','rpHist','rpPrev','rpMel','rpRet','rpCia','rpRev','gCampo','gEqVer','txMel','gerKpi','gerRel','finAno','finConta','finVis','finPagar','finNf','finCtr','finTerc','finPrest','finDet','finLpu','finImp','finCod','melKpi','melMin','melHist','cxDesp','oxDesp','melAg','melCh','cxProj','cxCrono','cxVist','oxProj','oxCrono','oxVist','melAprov','melBud','melDet','melPrest','melEq','gEst','gEstAt','gEstHist'],GRP={txMel:'Operação',gEst:'Estoque',gEstAt:'Estoque',gEstHist:'Estoque',melKpi:'Acompanhamento',melMin:'Acompanhamento',melHist:'Acompanhamento',melAg:'Operação',melCh:'Operação',cxProj:'Capex · Instalação de rede',cxCrono:'Capex · Instalação de rede',cxDesp:'Operação',cxVist:'Capex · Instalação de rede',oxProj:'Opex · Melhoria de rede (reparo programado)',oxCrono:'Opex · Melhoria de rede (reparo programado)',oxDesp:'Operação',oxVist:'Opex · Melhoria de rede (reparo programado)',melAprov:'Financeiro',melBud:'Financeiro',melDet:'Financeiro',melPrest:'Financeiro',melEq:'Administração',gerKpi:'Visão gerencial',gerRel:'Visão gerencial',finAno:'Visão do financeiro',finConta:'Visão do financeiro',finVis:'Visão do financeiro',finPagar:'Fechamento do mês',finNf:'Fechamento do mês',finCtr:'Fechamento do mês',finTerc:'Fechamento do mês',finPrest:'LPUs e prestadores',finDet:'LPUs e prestadores',finLpu:'LPUs e prestadores',finImp:'LPUs e prestadores',finCod:'Apoio',gPainel:'Acompanhamento',gCham:'Operação',gPlant:'Operação',reFisc:'Operação',reGeo:'Operação',gAgenda:'Operação',gNovo:'Operação',gRel:'Operação',painelDia:'Operação',cfgNoc:'Operação',cfgSim:'Operação',ausencias:'Operação',usuarios:'Administração',eqTec:'Administração',gEqTec:'Administração',relat:'Operação',vist:'Operação',geo:'Operação',painel:'Acompanhamento',agenda:'Operação',estoque:'Estoque',estAtual:'Estoque',estHist:'Estoque',meuEst:'Campo',meuHist:'Campo',base:'Projetos',prev:'Projetos',sim:'Projetos',kanban:'Projetos',aprov:'Financeiro',campo:'Campo',eqVer:'Campo',minhas:'Campo',equipe:'Campo',rpEst:'Programadas',rpAg:'Programadas',rpHist:'Programadas',rpPrev:'Programadas',rpMel:'Programadas',rpRet:'Programadas',rpCia:'Programadas',rpRev:'Programadas',gCampo:'Campo',gEqVer:'Campo'};
   const badge=t=>{let n=0;if(t==='aprov')n=S.lpus.filter(l=>l.status==='aguardando'&&!lpuTx(l)).length;else if(t==='campo'&&ui.perfil!=='coord'){const T=hoje(),L=tecsPerfil();if(!L.some(x=>x.id===ui.tec))ui.tec=L[0].id;n=S.ags.filter(a=>a.tec===ui.tec&&!FIM.includes(a.status)&&a.status!=='cancelada'&&a.data<=T).length+G.ch.filter(c=>c.tec===ui.tec&&(GTD_ABERTOS.includes(c.status)||c.status==='rfo'||c.status==='lpu')).length}else if(t==='equipe'){const ids=new Set((S.equipe||[]).map(x=>x.id));n=S.ags.filter(a=>ids.has(a.tec)&&a.status==='lpu'&&!semLpuAg(a)).length+G.ch.filter(c=>ids.has(c.tec)&&c.status==='lpu').length}else if(t==='minhas')n=S.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length+G.lpus.filter(l=>l.tec===ui.tec&&l.status==='ajuste').length;else if(t==='gCham')n=gPodeValidar()&&ui.perfil!=='coord'?G.ch.filter(c=>c.status==='valid').length:G.ch.filter(c=>c.status==='aberto'&&!c.tec).length;return n?`<span class="nbadge">${n}</span>`:''};
   const vis=ORD.filter(t=>P.tabs.includes(t)),grupos=[...new Set(vis.map(t=>GRP[t]))],seta=o=>`<em class="nar">${o?'▴':'▾'}</em>`;
   ui.grpOpen=ui.grpOpen||{};if(ui.grpOpen[GRP[ui.tab]]===undefined)ui.grpOpen[GRP[ui.tab]]=true;
@@ -22353,7 +22353,8 @@ const cfiNum=v=>{const n=parseFloat(String(v==null?'':v).replace(/\./g,'').repla
 const cfiNumS=v=>{const s=String(v==null?'':v).trim();if(!s)return 0;return /,/.test(s)?cfiNum(s):(+s||0)};
 
 /* ---------- baixa do dono da empresa (no lugar da LPU) ---------- */
-function cfiItens(a,d){const k=cfiK(a.tec),c=d.cf||{};if(!k)return[];const M=cfiNumS(c.m),I=(cod,desc,unit,qtd,med)=>({cod,desc,classe:'Contrato fixo',medida:med||'Unidade',fator:'Comum',unit:+unit||0,qtd:+qtd||0});
+function cfiItens(a,d){const _b=cfiItens0(a,d),c=d.cf||{},av=cfiNumS(c.av);return _b.length&&av>0?_b.concat([{cod:'CF-ADD',desc:'Valor adicional: '+(String(c.mot||'').trim()||'sem motivo'),classe:'Contrato fixo',medida:'Unidade',fator:'Comum',unit:av,qtd:1}]):_b}
+function cfiItens0(a,d){const k=cfiK(a.tec),c=d.cf||{};if(!k)return[];const M=cfiNumS(c.m),I=(cod,desc,unit,qtd,med)=>({cod,desc,classe:'Contrato fixo',medida:med||'Unidade',fator:'Comum',unit:+unit||0,qtd:+qtd||0});
   const fi=[c.fus>0?I('CF-FUS','Fusão',k.fus,c.fus):null,c.ide>0?I('CF-IDE','Identificação de fusão',k.ide,c.ide):null].filter(Boolean);
   if(c.t==='cfo')return[I('CF-CFO','CFO (valor fixo por atividade)',k.cfo,1)].concat(fi);
   if(c.t!=='ativ'||!(M>0))return[];
@@ -22362,7 +22363,7 @@ function cfiItens(a,d){const k=cfiK(a.tec),c=d.cf||{};if(!k)return[];const M=cfi
 const cfiCatDe=(a,d)=>{const c=d.cf||{},k=cfiK(a.tec)||{};return c.t==='cfo'?'cfo':cfiNumS(c.m)>cfiLim(k)?'m650':'a650'};
 {const _d=draftItens;draftItens=function(key){const d=ui.draft&&ui.draft[key];if(d&&d.cf){const a=getAg(key);if(a)return cfiItens(a,d)}return _d.apply(this,arguments)}}
 {const _g=lpuGravar;lpuGravar=async function(nl){const d=nl&&nl.ag&&ui.draft&&ui.draft[nl.ag];if(d&&d.cf){const a=getAg(nl.ag),k=cfiK(nl.tec)||{};
-    nl.cf={cat:cfiCatDe(a,d),m:cfiNumS(d.cf.m)||null,fus:+d.cf.fus||0,ide:+d.cf.ide||0,k:k.id||null};nl.categoria='Contrato fixo · '+CFI_CAT[nl.cf.cat];
+    nl.cf={cat:cfiCatDe(a,d),m:cfiNumS(d.cf.m)||null,fus:+d.cf.fus||0,ide:+d.cf.ide||0,k:k.id||null};if(cfiNumS(d.cf.av)>0)nl.cf.add={v:cfiNumS(d.cf.av),mot:String(d.cf.mot||'').trim()};nl.categoria='Contrato fixo · '+CFI_CAT[nl.cf.cat];
     (nl.hist||[]).forEach(h=>{h.acao=String(h.acao).replace(/^Enviada e assinada/,'Baixa do contrato fixo enviada e assinada')})}
   return _g.apply(this,arguments)}}
 function cfiForm(a){const key=a.id,d=lpuDraft(key),k=cfiK(a.tec),vv=verValor(),mt=metrosAg(a);d.conta=cfiConta();
@@ -22382,6 +22383,7 @@ function cfiForm(a){const key=a.id,d=lpuDraft(key),k=cfiK(a.tec),vv=verValor(),m
      ${M>0?`<div class="result ${acima?'warn':'ok'}" style="margin:0">${acima?`<b>Acima de ${lim} m.</b> Lance os itens da tabela e as fusões.`:`<b>Até ${lim} m: valor fixo${vv?' de '+brl(+k.fixo650||0):''}.</b> Não precisa lançar itens.`}</div>`:''}</section>`:''}
    ${acima?`<section class="tbox"><b>Itens da tabela do contrato</b><div class="cfitab">${(k.tab||[]).filter(r=>!cfiFusRe.test(r.nome)).map(r=>qIn('q:'+r.id,(c.q||{})[r.id],esc(r.nome)+(vv?' · '+brl(+r.valor||0):''),r.un||'un')).join('')}</div></section>${fusIde}`:''}
    ${c.t==='cfo'?fusIde:''}
+   ${c.t?`<section class="tbox"><b>Valor adicional <small class="muted" style="font-weight:400">(opcional)</small></b><span class="lpdica">Algo fora da tabela nesta atividade. Informe o valor e o motivo; vai para a aprovação junto com a baixa.</span>${qIn('av',c.av,'Valor adicional (R$)','R$')}<label class="f"><span>Motivo do valor adicional</span><textarea class="inp" rows="2" data-in="cfiMot" placeholder="Ex.: travessia com escada extra, poste de difícil acesso">${esc(c.mot||'')}</textarea></label></section>`:''}
    <div class="lpbar"><b>${itens.length?`${CFI_CAT[cfiCatDe(a,d)]}${vv?' · '+brl(tot):''}`:'Escolha o tipo da atividade'}</b><button class="btn primary" data-act="cfiRevisar">Revisar</button></div>`}
 {const _v=lpuView;lpuView=function(a){if(a&&!(ui.lpuDia&&ui.lpuDia.id===a.id)){if(!CF.ok&&!CF.err){if(!CF.bus)cfCarregar();return '<p class="muted pad">Carregando…</p>'}
     if(cfiK(a.tec)){const d=lpuDraft(a.id);if((ui.lpuP||1)===1||!d.cf||!d.cf.t)return cfiForm(a);
@@ -22391,15 +22393,15 @@ Object.assign(ACT,{
   cfiTipo:el=>{const d=lpuDraft(ui.lpuTela);d.cf=d.cf||{q:{}};d.cf.t=el.dataset.v;render()},
   cfiRevisar:()=>{const a=getAg(ui.lpuTela),d=lpuDraft(a.id);if(!d.cf||!d.cf.t){toast('Escolha o tipo da atividade.','bad');return}
     if(d.cf.t==='ativ'&&!(cfiNumS(d.cf.m)>0)){toast('Informe a metragem lançada.','bad');return}
-    const it=cfiItens(a,d);if(cfiCatDe(a,d)==='m650'&&!it.length){toast('Lance pelo menos um item da tabela.','bad');return}
+    const it=cfiItens0(a,d);if(cfiCatDe(a,d)==='m650'&&!it.length){toast('Lance pelo menos um item da tabela.','bad');return}if(cfiNumS(d.cf.av)>0&&String(d.cf.mot||'').trim().length<4){toast('Informe o motivo do valor adicional.','bad');return}
     ui.lpuP=2;render();window.scrollTo(0,0)}});
-Object.assign(IN,{cfiQ:el=>{const d=lpuDraft(ui.lpuTela);d.cf=d.cf||{q:{}};const c=el.dataset.c,v=el.value;if(c.startsWith('q:'))(d.cf.q=d.cf.q||{})[c.slice(2)]=cfiNumS(v);else d.cf[c]=c==='m'?v:cfiNumS(v);
+Object.assign(IN,{cfiMot:el=>{const d=lpuDraft(ui.lpuTela);d.cf=d.cf||{q:{}};d.cf.mot=el.value},cfiQ:el=>{const d=lpuDraft(ui.lpuTela);d.cf=d.cf||{q:{}};const c=el.dataset.c,v=el.value;if(c.startsWith('q:'))(d.cf.q=d.cf.q||{})[c.slice(2)]=cfiNumS(v);else d.cf[c]=c==='m'?v:cfiNumS(v);
   const was=c==='m';if(was){clearTimeout(ui.cfiT);ui.cfiT=setTimeout(()=>{render();refoca(el.id||'')},500)}else{const b=document.querySelector('.lpbar b');const a=getAg(ui.lpuTela);if(b&&a&&verValor()){const t=cfiItens(a,d).reduce((s,i)=>s+i.unit*i.qtd,0);b.textContent=CFI_CAT[cfiCatDe(a,d)]+' · '+brl(t)}}}});
 /* metragem: o input precisa de id para voltar o foco */
 {const _f=cfiForm;cfiForm=function(a){return _f.apply(this,arguments).replace('data-c="m" aria-label','id="cfiM" data-c="m" aria-label')}}
 /* aprovação: chip do contrato fixo; a metragem da baixa entra na conferência de cabo */
 {const _c=caboLpu;caboLpu=l=>l&&l.cf?(l.cf.cat==='cfo'?0:+l.cf.m||0):_c(l)}
-{const _c=rcChip;rcChip=function(l){const h=_c.apply(this,arguments);return l&&l.cf?` <span class="chip info">Contrato fixo · ${esc(CFI_CAT[l.cf.cat]||'')}${l.cf.m?' · '+(+l.cf.m).toLocaleString('pt-BR')+' m':''}</span>`+h:h}}
+{const _c=rcChip;rcChip=function(l){const h=_c.apply(this,arguments);return l&&l.cf?` <span class="chip info">Contrato fixo · ${esc(CFI_CAT[l.cf.cat]||'')}${l.cf.m?' · '+(+l.cf.m).toLocaleString('pt-BR')+' m':''}</span>${l.cf.add?` <span class="chip warn">Valor adicional ${verValor()?brl(l.cf.add.v)+' ':''}· ${esc(l.cf.add.mot||'')}</span>`:''}`+h:h}}
 
 /* ---------- fechamento do mês (21 a 20) ---------- */
 const cfiKs=()=>CF.rows.filter(x=>x.tipo==='contrato'&&x.area==='impl');
@@ -22522,7 +22524,7 @@ function cfiView(sub){if(!CF.ok&&!CF.err){if(!CF.bus)cfCarregar();return '<p cla
      ${K.map(k=>{const cx=(S.cnpj||{})[k.tec]||{};return `<tr><td><b>${esc(gTecN(k.tec))}</b></td><td>${cx.empresa?esc(gTecN(cx.empresa)):'—'}</td><td class="r"><b>${vv(k.fixo)}</b><br><small class="muted">desde ${cfPerTxt(cfDesde(k)).slice(0,5)}</small></td><td class="r">${vv(k.fixo650)}<br><small class="muted">até ${cfiLim(k)} m</small></td><td class="r">${vv(k.cfo)}</td><td class="r">${vv(k.fus)}</td><td class="r">${vv(k.ide)}</td><td class="r">${(k.tab||[]).length}</td><td>${(k.vars||[]).map(v=>`<small class="cfvl">${esc(v.nome)} · ${vv(v.valor)}</small>`).join('')||'<small class="muted">—</small>'}</td><td>${k.ativo===false?'<span class="chip">Inativo</span>':'<span class="chip ok">Ativo</span>'}</td><td>${cfiEd()?`<button class="btn sm" data-act="cfiKEd" data-id="${k.id}">Editar</button>`:''}</td></tr>`}).join('')}</tbody></table></div></section>`:'<section class="panel"><p class="muted">Nenhum contrato fixo na Implantação ainda.</p></section>'}`}
   if(sub==='cfiDet'){const L=S.lpus.filter(l=>l.cf&&l.status!=='reprovada'&&lpuNoPer(l,'cfd')).sort((a,b)=>String(b.data).localeCompare(String(a.data)));const st={aprovada:['Aprovada','ok'],aguardando:['Aguardando','warn'],ajuste:['Em ajuste','bad'],conferencia:['Conferência','info']};
     return `${lpuPerBar('cfd','cfiXlsx')}<div class="kpis cfk3">${kp(brl(L.filter(l=>l.status==='aprovada').reduce((s,l)=>s+(+l.total||0),0)),'Aprovadas','ok')}${kp(brl(L.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+(+l.total||0),0)),'Aguardando ou em ajuste','warn')}${kp(L.length,'Baixas no período')}</div>
-     <section class="panel"><div class="tablewrap"><table class="cfpg"><thead><tr><th>Data</th><th>Atividade</th><th>Equipe</th><th>Tipo</th><th class="r">Metros</th><th class="r">Valor</th><th>Situação</th><th></th></tr></thead><tbody>${L.map(l=>`<tr><td>${dBR(l.data)}</td><td><b>${esc(l.etiqueta)}</b><br><small class="muted">${esc(cliN(l.etiqueta))}</small></td><td>${esc(tecN(l.tec))}</td><td>${esc(CFI_CAT[l.cf.cat]||'')}</td><td class="r">${l.cf.m?(+l.cf.m).toLocaleString('pt-BR'):'—'}</td><td class="r"><b>${brl(+l.total||0)}</b></td><td><span class="chip ${(st[l.status]||['',''])[1]}">${(st[l.status]||[l.status])[0]}</span></td><td><button class="btn sm" data-act="pdf" data-id="${l.id}">PDF</button></td></tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhuma baixa no período.</td></tr>'}</tbody></table></div></section>`}
+     <section class="panel"><div class="tablewrap"><table class="cfpg"><thead><tr><th>Data</th><th>Atividade</th><th>Equipe</th><th>Tipo</th><th class="r">Metros</th><th class="r">Valor</th><th>Situação</th><th></th></tr></thead><tbody>${L.map(l=>`<tr><td>${dBR(l.data)}</td><td><b>${esc(l.etiqueta)}</b><br><small class="muted">${esc(cliN(l.etiqueta))}</small></td><td>${esc(tecN(l.tec))}</td><td>${esc(CFI_CAT[l.cf.cat]||'')}${l.cf.add?`<br><small class="muted">+ adicional ${brl(l.cf.add.v)}: ${esc(l.cf.add.mot||'')}</small>`:''}</td><td class="r">${l.cf.m?(+l.cf.m).toLocaleString('pt-BR'):'—'}</td><td class="r"><b>${brl(+l.total||0)}</b></td><td><span class="chip ${(st[l.status]||['',''])[1]}">${(st[l.status]||[l.status])[0]}</span></td><td><button class="btn sm" data-act="pdf" data-id="${l.id}">PDF</button></td></tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhuma baixa no período.</td></tr>'}</tbody></table></div></section>`}
   const ref=ui.cfiRef||(ui.cfiRef=cfRefHoje()),K=cfiKs().filter(k=>k.ativo!==false||cfFech('impl',k.tec,ref));
   return `<div class="tools" style="margin-bottom:12px"><button class="btn sm" data-act="cfiRef" data-k="-1" aria-label="Período anterior">‹</button><b class="cfper">${cfPerTxt(ref)}</b><button class="btn sm" data-act="cfiRef" data-k="1" aria-label="Próximo período">›</button></div>
    ${K.length?`<div class="cfigrid">${K.map(k=>cfiFechCard(k,ref)).join('')}</div>`:`<section class="panel"><p class="muted">Nenhum contrato fixo na Implantação.${cfiEd()?' Cadastre em <b>Contratos</b>.':''}</p></section>`}`}
@@ -22599,6 +22601,309 @@ html,body{overflow-x:clip;max-width:100%}
 .grid2.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 </style>`);
 {const m=document.querySelector('meta[name="viewport"]');if(m&&!/minimum-scale/.test(m.content))m.content=m.content+', minimum-scale=1'}
+
+/* ===== 20/11: LPU em PDF lançada pelo Financeiro =====
+   Financeiro › LPUs e prestadores › "Lançar LPU em PDF": lê o Relatório de Prestação de Serviços (os formatos que o
+   módulo da Pamela lia: o da ferramenta, o novo de 2026 e o antigo), confere soma × total, sugere a área pela conta
+   contábil e o prestador da ferramenta pelo CNPJ. A baixa entra JÁ APROVADA: consome o budget da área no mês em que foi
+   incluída e aparece nos totais por prestador e no detalhamento da área (Implantação, GTD, RE Corretiva, RE Preventiva,
+   Transmissão e Melhoria de rede Capex/Opex), além do menu Financeiro. Banco: ag_fin_baixas (agenda_ajuste_95).
+   PDF em imagem (escaneado) não tem texto para ler: lança à mão no mesmo formulário. */
+const FB={ok:false,bus:false,err:'',rows:[]};
+const FB_AREAS=[['impl','Implantação','3.1.1.2.05.0005'],['gtd','GTD Manutenção','3.1.1.2.05.0006'],['re','RE Corretiva','3.1.1.2.05.0008'],['rep','RE Preventiva','3.1.1.2.05.0101'],
+  ['tx','Transmissão','3.1.1.2.05.0007'],['melcx','Melhoria de rede · Capex','3.1.1.2.05.0007'],['melox','Melhoria de rede · Opex','3.1.1.2.05.0103']];
+const FB_AN=Object.fromEntries(FB_AREAS.map(a=>[a[0],a[1]]));
+const fbContaFull=a=>{const c=(FB_AREAS.find(x=>x[0]===a)||[])[2]||'';return (typeof LPU_CONTAS!=='undefined'&&LPU_CONTAS.find(x=>x.startsWith(c)))||c};
+const fbAreaDeConta=c=>({'0005':'impl','0006':'gtd','0007':'tx','0008':'re','0101':'rep','0103':'melox'})[String(c||'')]||'';
+async function fbCarregar(){if(FB.bus)return;FB.bus=true;try{FB.rows=await todas(()=>sb.from('ag_fin_baixas').select('*'));FB.ok=true;FB.err=''}catch(e){FB.err=String((e&&e.message)||e);FB.ok=false}finally{FB.bus=false}render()}
+const fbPode=()=>!!ME&&!gTecPerfil()&&(['coord','sup','enc'].includes(ui.perfil)||(typeof f2Edita==='function'&&(ui.cat==='fin'||ui.cat==='ger')));
+function fbVirt(r){const em=new Date(r.criado_em||Date.now()).getTime()||Date.now(),a=r.area,o={id:'fb:'+r.id,_fb:r.id,ag:null,chamado:null,tec:r.tecnico||undefined,status:'aprovada',total:+r.total||0,conta:r.conta,data:isoD(new Date(em)),
+  etiqueta:r.etiqueta||'',cliente:r.cliente||r.empresa||'',categoria:'LPU lançada no Financeiro',fases:['Lançada no Financeiro'],dataRel:r.data_rel,pdf_path:null,_fbPdf:r.pdf_path,
+  itens:(r.itens||[]).map(i=>({cod:i.c||'',desc:i.d||'',fator:i.f||'',classe:i.cl||'',medida:i.m||'',unit:+i.u||0,qtd:+i.q||0})),hist:[{acao:'Aprovada',por:(r.criado_nome||'Financeiro')+' (Financeiro)',em}]};
+  if(['gtd','re','rep'].includes(a))o._pl=a==='rep'?'rep':a;if(a==='melcx'||a==='melox'){o._pl='mel';o._fbNat=a==='melcx'?'cx':'ox'}return o}
+/* em que lista (S ou G) entram as baixas, conforme a área aberta */
+function fbAlvo(){if(!FB.ok||!ME||gTecPerfil())return null;if(ui.cat==='impl')return{S:['impl']};if(ui.cat!=='gtd')return null;const a=ui.gArea||'gtd';
+  if(typeof melAt==='function'&&melAt())return{G:['melcx','melox']};if(a==='tx')return{S:['tx']};if(a==='re'||a==='rep')return{G:['re','rep']};if(a==='gtd')return{G:['gtd']};return null}
+{const _r=render;render=function(){if(!FB.ok&&!FB.bus&&!FB.err&&ME&&!gTecPerfil()&&(['coord','sup','enc'].includes(ui.perfil)||pode('fin_vis')||pode('fin_imp')))fbCarregar();
+  const al=fbAlvo();if(!al)return _r.apply(this,arguments);const sA=S.lpus,gA=G.lpus;
+  const add=(arr,as)=>{const V=FB.rows.filter(r=>as.includes(r.area)).map(fbVirt);if(!V.length)return arr;const F=arr.concat(V);F.find=arr.find.bind(arr);F.findIndex=arr.findIndex.bind(arr);F.push=arr.push.bind(arr);F.filter2=arr;return F};
+  if(al.S)S.lpus=add(sA,al.S);if(al.G&&gA)G.lpus=add(gA,al.G);try{return _r.apply(this,arguments)}finally{S.lpus=sA;if(gA)G.lpus=gA}}}
+{const _n=melLpuNat;melLpuNat=function(l){if(l&&l._fbNat)return l._fbNat;return _n.apply(this,arguments)}}
+{const _f=finPlantoes;finPlantoes=function(){const o=_f.apply(this,arguments);if(!FB.ok)return o;const ja=new Set(S.lpus.concat(G.lpus||[]).map(l=>l.id));return o.concat(FB.rows.map(fbVirt).filter(l=>!ja.has(l.id)))}}
+{const _a=finAreaL;finAreaL=function(l){if(l&&l._fbNat)return 'mel';return _a.apply(this,arguments)}}
+async function fbAbrePdf(id){const r=FB.rows.find(x=>'fb:'+x.id===id||x.id===id);if(!r||!r.pdf_path){toast('Esta LPU foi lançada sem PDF.','warn');return}const w=window.open('','_blank');
+  const s=await sb.storage.from('financeiro').createSignedUrl(r.pdf_path,300);if(s.error||!s.data){if(w)w.close();toast('Não foi possível abrir o PDF.','bad');return}if(w&&!w.closed)w.location.href=s.data.signedUrl;else location.href=s.data.signedUrl}
+{const _p=ACT.pdfArq;ACT.pdfArq=function(el){if(String(el.dataset.id).startsWith('fb:'))return fbAbrePdf(el.dataset.id);return _p.apply(this,arguments)}}
+{const _p=ACT.pdf;ACT.pdf=function(el){if(String(el.dataset.id).startsWith('fb:'))return fbAbrePdf(el.dataset.id);return _p.apply(this,arguments)}}
+/* na lista, um selo mostra que veio do Financeiro */
+{const _c=rcChip;rcChip=function(l){const h=_c.apply(this,arguments);return l&&l._fb?' <span class="chip info">Lançada no Financeiro</span>'+h:h}}
+
+/* ---------- leitura do PDF (mesma lógica do módulo da Pamela) ---------- */
+function fbNum(s){s=String(s||'').replace(/[^\d.,-]/g,'');const ld=s.lastIndexOf('.'),lc=s.lastIndexOf(',');
+  if(ld>=0&&lc>=0)s=ld>lc?s.replace(/,/g,''):s.replace(/\./g,'').replace(',','.');else if(lc>=0)s=/^-?\d{1,3}(,\d{3})+$/.test(s)?s.replace(/,/g,''):s.replace(',','.');else if((s.match(/\./g)||[]).length>1)s=s.replace(/\./g,'');const n=parseFloat(s);return isNaN(n)?0:n}
+const fbData=s=>{const m=/(\d{2})\/(\d{2})\/(\d{4})/.exec(s||'');return m?`${m[3]}-${m[2]}-${m[1]}`:''};
+const fbRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const fbContaDe=d=>{const m=/(?:^|[.\s])(\d{4})\s*-/.exec(d||'')||/\b(0\d{3})\b/.exec(d||'');return m?m[1]:''};
+function fbRel(r,arq){const soma=Math.round((r.itens||[]).reduce((s,i)=>s+(i.t||0),0)*100)/100,total=r.total!=null&&r.total>0?r.total:soma,conta=fbContaDe(r.contaDesc);
+  const ruim=(r.itens||[]).filter(i=>i.u&&i.q&&Math.abs(i.u*i.q-i.t)>0.02);
+  const aviso=ruim.length?`Conferir ${ruim.map(i=>i.c).join(', ')}: quantidade × valor não bate com o total`:!(r.itens||[]).length?'Sem itens: confira o arquivo':Math.abs(soma-total)>0.05?`Soma dos itens (${brl(soma)}) diferente do total geral`:'';
+  return{formato:r.formato||'',empresa:r.empresa||'',cnpj:soDig(r.cnpj||''),tecnicos:r.tecnicos||'',cidade:r.cidade||'',cliente:r.cliente||'',etiqueta:r.etiqueta||'',protocolo:r.protocolo||'',data:r.data||r.ate||'',contaDesc:r.contaDesc||'',conta,total,itens:r.itens||[],arquivo:arq,aviso}}
+function fbParseTool(T,arq){const flat=s=>String(s||'').replace(/\s+/g,' ').trim();
+  return T.split(/(?=Relat[óo]rio de Presta[çc][ãa]o de Servi[çc]os\s+Empresa\b)/i).filter(p=>/Empresa\s/.test(p)&&/C[óo]d\./.test(p)).map(P=>{const g=re=>{const m=re.exec(P);return m?flat(m[1]):''};
+    const r={empresa:g(/Empresa\s+([\s\S]+?)\s+CNPJ\b/),cnpj:g(/CNPJ\s+([\d.\/-]+)/),tecnicos:g(/T[ée]cnicos?\s+([\s\S]+?)\s+Cidade\b/),cidade:g(/Cidade\s+([\s\S]+?)\s+Cliente\s*\/\s*POP/),
+      cliente:g(/Cliente\s*\/\s*POP\s+([\s\S]*?)\s+ID\s*\/\s*Etiqueta/),etiqueta:g(/ID\s*\/\s*Etiqueta\s+([\s\S]*?)\s*Per[íi]odo/),contaDesc:g(/Descri[çc][ãa]o Cont[áa]bil\s+([\s\S]+?)\s+C[óo]d\./)};
+    const per=/Per[íi]odo\s+(\d{2}\/\d{2}\/\d{4})\s+a\s+(\d{2}\/\d{2}\/\d{4})/.exec(P);if(per)r.ate=fbData(per[2]);r.data=fbData(g(/Data\s+Relat[óo]rio\s+(\d{2}\/\d{2}\/\d{4})/));
+    const tg=/TOTAL\s+GERAL:?\s*R\$\s*([\d.,]+)/i.exec(P);r.total=tg?fbNum(tg[1]):null;const subs=[];P.replace(/Subtotal\s+([^:]+?):/g,(m,c,idx)=>{subs.push({c:flat(c),idx});return m});
+    r.itens=[];const re=/(?:^|\s)([A-Z]{2,5}\d{3,6})\s+([\s\S]+?)\s+R\$\s*(-?[\d.,]+)\s+(-?[\d.,]+)\s+R\$\s*(-?[\d.,]+)(?=\s|$)/g;let m;
+    while((m=re.exec(P))){const cells=m[2].split('\t').map(flat).filter(Boolean),M=cells.join(' ');let d=M,f='',cl='',md='';const nx=subs.find(s=>s.idx>m.index),cands=[...(nx?[nx.c]:[]),...subs.map(s=>s.c)];
+      for(const c of cands){const x=new RegExp('^(.*)\\s'+fbRe(c)+'\\s(\\S+)$').exec(M);if(x){cl=c;md=x[2];const pre=x[1];if(cells.length>=4&&cells[cells.length-2]===c){f=cells[cells.length-3];d=cells.slice(0,-3).join(' ')}else{const k=pre.lastIndexOf(' ');f=k>0?pre.slice(k+1):'';d=k>0?pre.slice(0,k):pre}break}}
+      if(!cl&&cells.length>=4){md=cells[cells.length-1];cl=cells[cells.length-2];f=cells[cells.length-3];d=cells.slice(0,-3).join(' ')}r.itens.push({c:m[1],d,f,cl,m:md,u:fbNum(m[3]),q:fbNum(m[4]),t:fbNum(m[5])})}
+    return fbRel(r,arq)})}
+function fbParseNovo(T,arq){const flat=s=>String(s||'').replace(/\s+/g,' ').trim();
+  return T.split(/(?=Relat[óo]rio de Presta[çc][ãa]o de Servi[çc]os(?:\s*\(LPU\))?\s+Prestador\b)/i).filter(p=>/Prestador\s/.test(p)&&/C[óo]d\./.test(p)).map(P=>{const g=re=>{const m=re.exec(P);return m?flat(m[1]):''};
+    const r={formato:'novo',empresa:g(/Prestador\s+([\s\S]+?)\s+CNPJ\b/),cnpj:g(/CNPJ\s+([\d.\/-]+)/),cliente:g(/Cliente\s+([\s\S]+?)\s+Etiqueta\b/),etiqueta:g(/Etiqueta\s+(\S+)/),protocolo:g(/Protocolo\s+(\S+)/),
+      cidade:g(/Cidade\s+([\s\S]+?)\s+Fases?\b/),contaDesc:g(/Descri[çc][ãa]o cont[áa]bil\s+([\s\S]+?)\s+C[óo]d\./i)};r.data=fbData(g(/\bData\s+(\d{2}\/\d{2}\/\d{4})/));
+    const tg=/TOTAL\s+GERAL:?\s*R\$\s*([\d.,]+)/i.exec(P);r.total=tg?fbNum(tg[1]):null;const subs=[];P.replace(/Subtotal\s+(?:Classe\s+)?(.+?)\s+R\$/g,(m,c,idx)=>{subs.push({c:flat(c),idx});return m});
+    r.itens=[];const re=/(?:^|\s)([A-Z]{2,5}\d{3,6})\s+([\s\S]+?)\s+R\$\s*(-?[\d.,]+)\s+(-?[\d.,]+)\s+R\$\s*(-?[\d.,]+)(?=\s|$)/g;let m;
+    while((m=re.exec(P))){const cells=m[2].split('\t').map(flat).filter(Boolean);let d=cells.join(' '),f='',md='';if(cells.length>=3){md=cells[cells.length-1];f=cells[cells.length-2];d=cells.slice(0,-2).join(' ')}else{const x=/^(.*)\s(\S+)\s(\S+)$/.exec(d);if(x){d=x[1];f=x[2];md=x[3]}}
+      const nx=subs.find(s=>s.idx>m.index);r.itens.push({c:m[1],d,f,cl:nx?nx.c:'',m:md,u:fbNum(m[3]),q:fbNum(m[4]),t:fbNum(m[5])})}
+    return fbRel(r,arq)})}
+function fbParseAntigo(T,arq){if(!/RELAT[ÓO]RIO DE PRESTA[ÇC][ÃA]O DE SERVI[ÇC]OS/i.test(T)||/Empresa\s/.test(T)||!/C[óo]d\./.test(T))return[];const flat=s=>String(s||'').replace(/\s+/g,' ').trim(),P=T.split(/RELAT[ÓO]RIO FOTOGR[ÁA]FICO/i)[0];
+  const itens=[],re=/(?:^|\s)([A-Z]{2,5}\d{3,6})\s+([\s\S]+?)\s+(?:R\$\s*)?(\d[\d.,]*)\s+(\d[\d.,]*)\s+(?:R\$\s*)?(\d[\d.,]*\d)(?=\s|$)/gi;let m;
+  while((m=re.exec(P)))itens.push({c:m[1].toUpperCase(),d:flat(m[2].split('\t').join(' ')),f:'',cl:'',m:'',u:fbNum(m[3]),q:fbNum(m[4]),t:fbNum(m[5])});if(!itens.length)return[];
+  const tg=/TOTAL\s+GERAL:?\s*R\$\s*([\d.,]+)/i.exec(T);return[fbRel({formato:'antigo',etiqueta:(/Relat[óo]rio[_ ]?(\d{5,})/i.exec(arq)||[])[1]||'',total:tg?fbNum(tg[1]):null,itens},arq)]}
+async function fbLePdf(file){if(!window.pdfjsLib)throw new Error('O leitor de PDF não carregou. Recarregue a página.');const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise,tok=[];
+  for(let p=1;p<=Math.min(pdf.numPages,200);p++){const tc=await(await pdf.getPage(p)).getTextContent();for(const it of tc.items){const s=String(it.str||'').replace(/\s+/g,' ').trim();if(s)tok.push(s)}}
+  const T=tok.join('\t');let R=fbParseTool(T,file.name);if(!R.length)R=fbParseNovo(T,file.name);if(!R.length)R=fbParseAntigo(T,file.name);return{R,semTexto:T.replace(/\s/g,'').length<80}}
+
+/* ---------- prestador da ferramenta pelo CNPJ ---------- */
+const fbPrestOpts=()=>TEC.filter(t=>tecT(t.id)==='TERC'&&!((S.cnpj||{})[t.id]||{}).empresa).sort((a,b)=>a.nome.localeCompare(b.nome));
+function fbAchaPrest(cnpj,nome){const c=soDig(cnpj);if(c){const t=fbPrestOpts().find(t=>soDig(((S.cnpj||{})[t.id]||{}).cnpj)===c);if(t)return t.id}
+  const n=normK(nome||'');if(n.length>4){const t=fbPrestOpts().find(t=>{const a=normK(t.nome);return a&&(a.includes(n)||n.includes(a.split(' (')[0]))});if(t)return t.id}return ''}
+const fbDup=r=>FB.rows.find(x=>soDig(x.cnpj)===soDig(r.cnpj)&&String(x.etiqueta||'')===String(r.etiqueta||'')&&Math.abs((+x.total||0)-r.total)<0.01&&(x.data_rel||'')===(r.data||''));
+
+/* ---------- tela ---------- */
+function viewFinImp(){if(!FB.ok){if(!FB.bus&&!FB.err)fbCarregar();return f2Top('Lançar LPU em PDF','LPU de prestador que não passou pela ferramenta, já aprovada.')+(FB.err&&/relation|does not exist|schema cache/i.test(FB.err)?`<div class="result warn"><b>O banco ainda não tem a tabela.</b> Rode o <b>agenda_ajuste_95_lpu_pdf_financeiro.sql</b> no Supabase.</div>`:FB.err?`<div class="result bad">${esc(FB.err)}</div>`:'<p class="muted">Carregando…</p>')}
+  const ed=f2Edita(),L=ui.fbLidos||[],m=ui.fbMes||hoje().slice(0,7),feitas=FB.rows.filter(r=>String(r.criado_em).slice(0,7)===m||isoD(new Date(r.criado_em)).slice(0,7)===m).sort((a,b)=>String(b.criado_em).localeCompare(String(a.criado_em)));
+  const op=(v,o)=>o.map(([k,n])=>`<option value="${k}" ${k===v?'selected':''}>${esc(n)}</option>`).join(''),P=fbPrestOpts().map(t=>[t.id,t.nome+(((S.cnpj||{})[t.id]||{}).cnpj?' · '+fmtCnpj(S.cnpj[t.id].cnpj):'')]);
+  const card=(r,i)=>{const dup=fbDup(r);return `<div class="fgcard fbc"><div class="fgtop" style="margin:0 0 6px"><div><b>${esc(r.empresa||'Prestador não identificado')}</b> <small class="muted">${r.cnpj?fmtCnpj(r.cnpj):'sem CNPJ'}</small><br><small class="muted">${esc(r.arquivo)}${r.formato==='antigo'?' · formato antigo':''}</small></div><b class="fbt">${brl(r.total)}</b></div>
+    <dl class="f2dl"><div><dt>Cliente / POP</dt><dd>${esc(r.cliente||'—')}</dd></div><div><dt>Etiqueta</dt><dd>${esc(r.etiqueta||'—')}</dd></div><div><dt>Data do relatório</dt><dd>${r.data?dBR(r.data):'—'}</dd></div><div><dt>Conta no PDF</dt><dd>${esc(r.contaDesc||r.conta||'—')}</dd></div><div><dt>Itens</dt><dd>${r.itens.length}</dd></div></dl>
+    ${r.aviso?`<div class="result warn" style="margin:6px 0">${esc(r.aviso)}</div>`:''}${dup?`<div class="result bad" style="margin:6px 0">Parece repetida: já lançada em ${dtBR(new Date(dup.criado_em).getTime())} por ${esc(dup.criado_nome||'')}.</div>`:''}
+    <div class="fbsel"><label class="f"><span>Área (consome o budget dela)</span><select class="inp" data-ch="fbSet" data-i="${i}" data-k="area">${op(r.area,[['','Escolha…']].concat(FB_AREAS.map(a=>[a[0],a[1]])))}</select></label>
+     <label class="f"><span>Prestador na ferramenta</span><select class="inp" data-ch="fbSet" data-i="${i}" data-k="tec">${op(r.tec,[['','Escolha…']].concat(P))}</select></label></div>
+    ${ed?`<div class="tools" style="margin-top:8px"><button class="btn primary" data-act="fbLanca" data-i="${i}" ${r.area&&r.tec?'':'disabled'}>Lançar aprovada · ${brl(r.total)}</button><button class="btn" data-act="fbTira" data-i="${i}">Descartar</button></div>`:''}</div>`};
+  return f2Top('Lançar LPU em PDF','LPU de prestador que não passou pela ferramenta. Ela entra <b>já aprovada</b>: consome o budget da área escolhida no mês de hoje e aparece nos totais por prestador e no detalhamento da área.',
+     ed?`<label class="btn primary">Escolher PDFs<input type="file" accept="application/pdf,.pdf" multiple hidden data-ch="fbArq"></label><button class="btn" data-act="fbManual">Lançar à mão</button>`:'')+
+   (ui.fbMsg?`<p class="muted" role="status">${esc(ui.fbMsg)}</p>`:'')+(L.length?`<div class="fbgrid">${L.map(card).join('')}</div>`:'')+
+   `<div class="fgtop" style="margin-top:18px"><h3 style="margin:0">Lançadas no Financeiro</h3><div class="tools">${f2MesSel('fbMes',m,13,0)}</div></div>
+   ${feitas.length?`<div class="tablewrap"><table class="f2t"><thead><tr><th>Incluída</th><th>Área</th><th>Prestador</th><th>Cliente · etiqueta</th><th class="r">Valor</th><th></th></tr></thead><tbody>${feitas.map(r=>`<tr><td>${dtBR(new Date(r.criado_em).getTime())}<br><small class="muted">${esc(r.criado_nome||'')}</small></td><td>${esc(FB_AN[r.area]||r.area)}<br><small class="muted">${esc(fbContaFull(r.area).slice(11,15))}</small></td><td>${esc(r.tecnico?gTecN(r.tecnico):r.empresa||'—')}${r.cnpj?`<br><small class="muted">${fmtCnpj(r.cnpj)}</small>`:''}</td><td>${esc(r.cliente||'—')}<br><small class="muted">${esc(r.etiqueta||'')}${r.data_rel?' · relatório '+dBR(r.data_rel):''}</small></td><td class="r"><b>${brl(+r.total||0)}</b></td><td class="r" style="white-space:nowrap">${r.pdf_path?`<button class="btn sm" data-act="fbPdf" data-id="${r.id}">PDF</button>`:''}${ed?` <button class="btn sm" data-act="fbApaga" data-id="${r.id}">Excluir</button>`:''}</td></tr>`).join('')}
+    <tr><td colspan="4"><b>Total do mês</b></td><td class="r"><b>${brl(feitas.reduce((s,r)=>s+(+r.total||0),0))}</b></td><td></td></tr></tbody></table></div>`:'<p class="fgempty">Nenhuma LPU lançada no Financeiro neste mês.</p>'}`}
+Object.assign(CH,{
+  fbArq:async el=>{const fs=[...el.files];el.value='';if(!fs.length)return;ui.fbLidos=ui.fbLidos||[];const falha=[],img=[];
+    for(let i=0;i<fs.length;i++){const f=fs[i];ui.fbMsg=`Lendo ${i+1} de ${fs.length}: ${f.name}…`;render();
+      try{const {R,semTexto}=await fbLePdf(f);if(!R.length){(semTexto?img:falha).push(f.name);continue}
+        R.forEach(r=>{r.file=f;r.area=fbAreaDeConta(r.conta);r.tec=fbAchaPrest(r.cnpj,r.empresa);ui.fbLidos.push(r)})}catch(e){console.error(e);falha.push(f.name)}}
+    ui.fbMsg=(img.length?`PDF em imagem, sem texto para ler: ${img.join(', ')}. Use "Lançar à mão". `:'')+(falha.length?`Não reconheci como LPU: ${falha.join(', ')}.`:'');render()},
+  fbSet:el=>{const r=(ui.fbLidos||[])[+el.dataset.i];if(r){r[el.dataset.k]=el.value;render()}}});
+async function fbGrava(r){let path=null;if(r.file){const p=`lpu/${hoje().slice(0,7)}/${Date.now()}_${Math.random().toString(36).slice(2,7)}.pdf`;const u=await sb.storage.from('financeiro').upload(p,r.file,{contentType:'application/pdf',upsert:false});
+    if(u.error){toast('Não foi possível guardar o PDF: '+u.error.message,'bad');return false}path=p}
+  const cx=(S.cnpj||{})[r.tec]||{},row={area:r.area,conta:fbContaFull(r.area),tecnico:r.tec||null,empresa:r.empresa||gTecN(r.tec),cnpj:soDig(r.cnpj||cx.cnpj||'')||null,cliente:r.cliente||null,etiqueta:r.etiqueta||null,protocolo:r.protocolo||null,cidade:r.cidade||null,
+    data_rel:r.data||null,total:Math.round((+r.total||0)*100)/100,itens:r.itens||[],pdf_path:path,arquivo:r.arquivo||null,obs:r.obs||null,criado_nome:ME.nome};
+  const ins=await sb.from('ag_fin_baixas').insert(row).select();if(ins.error){toast('Não foi possível lançar: '+ins.error.message+(/relation|does not exist|schema cache/i.test(ins.error.message)?' (falta rodar o ajuste 95)':''),'bad');return false}
+  const nv=Object.assign({id:uid(),criado_em:new Date().toISOString()},row,(ins.data||[])[0]||{});if(!nv.criado_em)nv.criado_em=new Date().toISOString();FB.rows.push(nv);return true}
+Object.assign(ACT,{
+  fbLanca:async el=>{const i=+el.dataset.i,r=(ui.fbLidos||[])[i];if(!r||!r.area||!r.tec)return;el.disabled=true;if(await fbGrava(r)){ui.fbLidos.splice(i,1);toast(`LPU lançada aprovada em ${FB_AN[r.area]}: ${brl(r.total)}.`);render()}else el.disabled=false},
+  fbTira:el=>{(ui.fbLidos||[]).splice(+el.dataset.i,1);render()},
+  fbPdf:el=>fbAbrePdf(el.dataset.id),
+  fbApaga:el=>{const r=FB.rows.find(x=>x.id===el.dataset.id);if(!r)return;openModal(`<h3>Excluir a LPU lançada?</h3><p>${esc(r.tecnico?gTecN(r.tecnico):r.empresa||'')} · ${brl(+r.total||0)} · ${esc(FB_AN[r.area]||'')}</p><p class="muted">Ela sai do budget e dos totais da área.</p><div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn danger" data-act="fbApagaOk" data-id="${r.id}">Excluir</button></div>`)},
+  fbApagaOk:async el=>{const r=FB.rows.find(x=>x.id===el.dataset.id);if(!r)return;const d=await sb.from('ag_fin_baixas').delete().eq('id',r.id);if(d.error){toast(d.error.message,'bad');return}
+    if(r.pdf_path)try{await sb.storage.from('financeiro').remove([r.pdf_path])}catch(e){}FB.rows=FB.rows.filter(x=>x.id!==r.id);closeModal();render();toast('LPU excluída.')},
+  fbManual:()=>{const P=fbPrestOpts();openModal(`<h3>Lançar LPU à mão</h3><p class="muted">Para PDF em imagem ou LPU sem arquivo. Entra já aprovada.</p><div class="f2form">
+    <label class="f"><span>Área *</span><select class="inp" id="fbmA"><option value="">Escolha…</option>${FB_AREAS.map(a=>`<option value="${a[0]}">${a[1]}</option>`).join('')}</select></label>
+    <label class="f"><span>Prestador na ferramenta *</span><select class="inp" id="fbmT"><option value="">Escolha…</option>${P.map(t=>`<option value="${t.id}">${esc(t.nome)}</option>`).join('')}</select></label>
+    <label class="f"><span>Valor total *</span><input class="inp" id="fbmV" inputmode="decimal" placeholder="0,00"></label><label class="f"><span>Data do relatório</span><input class="inp" type="date" id="fbmD"></label>
+    <label class="f"><span>Cliente / POP</span><input class="inp" id="fbmC"></label><label class="f"><span>Etiqueta</span><input class="inp" id="fbmE"></label>
+    <label class="f f2w"><span>Descrição do serviço</span><input class="inp" id="fbmS" placeholder="Ex.: lançamento de 800 m de cabo"></label>
+    <label class="f f2w"><span>PDF (opcional)</span><input class="inp" type="file" id="fbmF" accept="application/pdf,.pdf"></label></div>
+    <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="fbManualOk">Lançar aprovada</button></div>`)},
+  fbManualOk:async el=>{const g=id=>(($(id)||{}).value||'').trim(),a=g('fbmA'),t=g('fbmT'),v=f2Num(g('fbmV'));if(!a||!t||!(v>0)){toast('Informe área, prestador e valor.','bad');return}
+    const f=$('fbmF')&&$('fbmF').files[0],s=g('fbmS')||'Serviço lançado à mão';el.disabled=true;
+    const ok=await fbGrava({area:a,tec:t,total:v,data:g('fbmD'),cliente:g('fbmC'),etiqueta:g('fbmE'),file:f||null,arquivo:f?f.name:null,itens:[{c:'MANUAL',d:s,f:'',cl:'',m:'',u:v,q:1,t:v}]});
+    if(ok){closeModal();render();toast(`LPU lançada aprovada em ${FB_AN[a]}: ${brl(v)}.`)}else el.disabled=false}});
+/* menu Financeiro: tela nova em "LPUs e prestadores" */
+{FIN_G[1].push(['fin_imp','Lançar LPU em PDF (entra aprovada e consome o budget da área)','t']);if(!PERM_ALL.includes('fin_imp'))PERM_ALL.push('fin_imp');
+  if(!FIN_T.includes('finImp'))FIN_T.push('finImp');FIN_K.finImp='fin_imp';RP_TL.finImp='Lançar LPU em PDF';try{NAV_TC.finImp='Lançar PDF'}catch(e){}ICT.finImp='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M12 18v-6M9 15l3-3 3 3';window.CAT_X.finImp='fin';RP_VIEWS.finImp=viewFinImp}
+document.head.insertAdjacentHTML('beforeend',`<style>.fbgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));margin-top:12px}.fbt{font-size:20px;font-variant-numeric:tabular-nums}
+.fbsel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}@media(max-width:560px){.fbsel{grid-template-columns:1fr}}</style>`);
+
+/* ===== 20/11: "Ver projeto" da Validação mais fácil de ler =====
+   Mesmas informações de antes, organizadas por pergunta:
+   - Resumo no topo: situação da validação, cabo a lançar, caixas, dias previstos e (quem vê valores) custo e ROI;
+   - Caminho do sinal desenhado como um percurso: POP → ponto de acesso → ponto de derivação → extensão → rua → interno
+     → cliente, com o que não se aplica apagado;
+   - Fases com os dias previstos; custos e retorno; serviços; endereço e contato; arquivos; histórico da validação;
+   - atalhos para as seções no topo. No celular tudo vira uma coluna. */
+const _pvi=d=>`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+const PVI={pop:_pvi('M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16M8 7h8M8 11h8M8 15h8M2 21h20'),pa:_pvi('M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'),pd:_pvi('M6 3v6a6 6 0 0 0 6 6h6M18 9l3 3-3 3M6 21v-6'),
+  ext:_pvi('M2 12c2.5-4 5-4 7.5 0s5 4 7.5 0 3.5-2 5-1'),rua:_pvi('M4 21L8 3M20 21L16 3M12 5v2M12 11v2M12 17v2'),int:_pvi('M3 11l9-8 9 8M5 10v11h14V10M10 21v-6h4v6'),cli:_pvi('M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z')};
+pvFull=function(){let o=document.getElementById('pvFull');const p=ui.pvVer&&S.previsao.find(x=>x.id===ui.pvVer);
+  if(!p){if(o)o.remove();document.body.classList.remove('krfull-on');return}
+  const keep=o&&o.querySelector('.krfb')?o.querySelector('.krfb').scrollTop:0;
+  if(!o){o=document.createElement('div');o.id='pvFull';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');document.body.appendChild(o)}document.body.classList.add('krfull-on');
+  const I=p.inst||{},c=S.comp[p.etiqueta]||{},fin=(p.roi&&p.roi.fin)||{},val=pode('a_valor'),A=anxDe(p.etiqueta),K=A.filter(pvKmz),O=A.filter(x=>!pvKmz(x)),s=typeof kvSnap==='function'?kvSnap(p):null,at=soAtiv(p);
+  const mapa=v=>{const k=coordOf(v||'');return k?`<a class="pvmap" href="https://www.google.com/maps/search/?api=1&query=${k[0]},${k[1]}" target="_blank" rel="noopener">ver no mapa</a>`:''};
+  const lk=v=>v?(/^https?:/i.test(v)?`<a href="${esc(v)}" target="_blank" rel="noopener">abrir</a>`:esc(v)+' '+mapa(v)):'';
+  const svc=typeof svcDe==='function'?svcDe(p).svc:[],nt=(I.notas||[]).map(x=>String(x||'').trim()).filter(Boolean),desc=nt.join('\n').replace(/(^|\.)\s+-\s+(?=\S)/g,'$1\n- ').trim(),m=+p.metros||0,cab=kmzCabo(p);
+  const temRua=!at&&!p.semLanc&&!p.semRua,temInt=!at&&!p.semLanc&&!p.semInt,temExt=!at&&!p.semExt;
+  const fases=BDIAS.filter(k=>!(at&&k!=='dAtiv')).map(k=>{const na=(k==='dExt'&&!temExt)||(k==='dRua'&&!temRua)||(k==='dInterno'&&!temInt);return{k,n:PV_DN[k],na,d:+p[k]||0}});
+  const dias=fases.filter(f=>!f.na).reduce((t,f)=>t+f.d,0),diasOk=fases.filter(f=>!f.na).every(f=>f.d>0);
+  const st=pvSt(p),stN=(PV_ST[st]||['Sem validação',''])[0];
+  const kpi=(v,l,cls)=>`<div class="pvk ${cls||''}"><b>${v}</b><span>${l}</span></div>`;
+  const ctot=+fin.custoTotal||0,roi=fin.roiIdx!=null&&fin.roiIdx!==''?String(fin.roiIdx).replace('.',','):'';
+  /* caminho do sinal */
+  const no=(ic,t,d,na,extra)=>`<li class="pvn ${na?'na':''}"><span class="pvni" aria-hidden="true">${ic}</span><div><b>${t}</b>${d?`<span>${d}</span>`:''}${extra?`<small>${extra}</small>`:''}${na?'<em>não se aplica</em>':''}</div></li>`;
+  const ext=p.kmz?[p.kmz.metros!=null?kmN0(Math.round(p.kmz.metros))+' m pela rota do KMZ':'',p.caixas!=null?p.caixas+(+p.caixas===1?' caixa de emenda':' caixas de emenda'):''].filter(Boolean).join(' · '):caixasTxt(p);
+  const cam=at?'':`<ol class="pvpath">
+    ${no(PVI.pop,'POP',esc(p.pop||'—'),false,[p.equip&&'Equipamento '+esc(p.equip),I.porta&&'Porta '+esc(I.porta)].filter(Boolean).join(' · '))}
+    ${no(PVI.pa,'Ponto de acesso',I.pa?esc(I.pa):'—',false,I.locPa?lk(I.locPa):'')}
+    ${no(PVI.pd,'Ponto de derivação',I.pd&&!p.semExt?esc(I.pd):'—',!temExt,I.locPd&&!p.semExt?lk(I.locPd):'')}
+    ${no(PVI.ext,'Extensão de sinal',temExt?esc(ext||'Prevista'):'',!temExt,p.kmz&&p.kmz.nome?esc(p.kmz.nome):'')}
+    ${no(PVI.rua,'Lançamento na rua',temRua?(m?(m.toLocaleString('pt-BR')+' m'+(cab?' de cabo (KMZ)':'')):'Previsto'):'',!temRua,temRua&&cab?'desenho + 5% + 30 m em cada ponta':'')}
+    ${no(PVI.int,'Lançamento interno',temInt?(p.semRua?'Previsto (todo interno)':'Previsto'):'',!temInt,'')}
+    ${no(PVI.cli,'Cliente',esc(p.cliente||''),false,esc(c.endereco||''))}</ol>`;
+  const sec=(id,t,b,sub)=>`<section class="pvsec pvs2" id="pvs-${id}"><div class="pvsh"><h3>${t}</h3>${sub?`<span class="muted">${sub}</span>`:''}</div>${b}</section>`;
+  const dl=L=>{const r=L.filter(x=>x&&x[1]!==undefined&&x[1]!==null&&x[1]!=='');return r.length?`<dl class="pvdl pvdl2">${r.map(([l,v])=>`<div><dt>${l}</dt><dd>${v}</dd></div>`).join('')}</dl>`:'<p class="muted">Nada informado.</p>'};
+  const v=p.val,h=(v&&v.hist)||[];
+  const custos=val&&(ctot||Object.keys(fin).length)?(()=>{const mat=+fin.valorMat||0,mo=+fin.custoMO||0,ad=+fin.custosAdic||0,t=ctot||mat+mo+ad,pc=x=>t?Math.max(0,Math.round(x/t*100)):0;
+    return sec('custos','Custos e retorno',`<div class="pvks">${kpi(brl(t),'Custo total')}${kpi(brl(+p.valor||0),'Valor mensal')}${fin.taxa!=null&&fin.taxa!==''?kpi(brl(+fin.taxa),'Taxa de instalação'):''}${roi?kpi(roi+' meses','Retorno (ROI)','hl'):''}</div>
+     ${t?`<div class="pvbar" role="img" aria-label="Composição do custo">${mat?`<i class="pvc1" style="width:${pc(mat)}%"></i>`:''}${mo?`<i class="pvc2" style="width:${pc(mo)}%"></i>`:''}${ad?`<i class="pvc3" style="width:${pc(ad)}%"></i>`:''}</div>
+      <div class="pvleg">${mat?`<span><i class="pvc1"></i>Materiais ${brl(mat)}</span>`:''}${mo?`<span><i class="pvc2"></i>Mão de obra ${brl(mo)}</span>`:''}${ad?`<span><i class="pvc3"></i>Adicionais ${brl(ad)}</span>`:''}</div>`:''}
+     <p class="muted pvroi">${p.roi&&p.roi.nome?'ROI: '+esc(p.roi.nome)+(p.roiKmz?' (pelo KMZ desenhado)':' (do PDF)'):''}</p>`)})():'';
+  const nav=[['resumo','Resumo'],desc&&['descritivo','Descritivo'],!at&&['caminho','Caminho do sinal'],['fases','Fases'],custos&&['custos','Custos'],svc.length&&['servicos','Serviços'],['contato','Endereço e contato'],['arquivos','Arquivos'],h.length&&['validacao','Validação']].filter(Boolean);
+  const box=(()=>{const b=pvBloco(p);const m1=/<div class="pvbox[\s\S]*?<\/div>/.exec(b);return m1?m1[0]:''})();
+  o.innerHTML=`<header class="krfh"><div class="krft"><h2>${esc(p.etiqueta)} · ${esc(p.cliente||'')}</h2><span class="muted">${[p.protocolo&&'Protocolo '+esc(p.protocolo),esc(p.topologia||''),esc(p.cidade||'')].filter(Boolean).join(' · ')}</span> ${pvChip(p)}</div>
+    <div class="krfa">${K.length===1?`<button class="btn sm primary" data-act="anxOpen" data-id="${K[0].id}">Baixar KMZ</button>`:K.length?`<button class="btn sm primary" data-act="pvIrKmz">Baixar KMZ (${K.length})</button>`:''}${s?`<button class="btn sm" data-act="kvPdf" data-id="${p.id}" data-p="all">PDF do ROI completo</button><button class="btn sm" data-act="kvVer" data-id="${p.id}">Materiais e mão de obra</button>`:''}
+     ${st==='pend'&&pvPodeVal()?`<button class="btn sm primary" data-act="pvAprov" data-id="${p.id}">Aprovar</button><button class="btn sm pvrep" data-act="pvReprov" data-id="${p.id}">Reprovar</button>`:''}${st==='reprov'&&pode('a_projInc')?`<button class="btn sm primary" data-act="pvReenv" data-id="${p.id}">Reenviar para validação</button>`:''}${(()=>{const Ls=ui.pvLista||[],ix=Ls.indexOf(p.id);return ix>=0&&Ls.length>1?`<span class="pvnav"><button class="btn sm" data-act="pvNav" data-d="-1" ${ix===0?"disabled":""} aria-label="Projeto anterior">‹</button><span class="muted">${ix+1} de ${Ls.length}</span><button class="btn sm" data-act="pvNav" data-d="1" ${ix===Ls.length-1?"disabled":""} aria-label="Próximo projeto">›</button></span>`:""})()}<button class="btn sm" data-act="pvFecha">Fechar</button></div>
+    <nav class="pvjump" aria-label="Seções do projeto">${nav.map(([k,n])=>`<button type="button" data-act="pvIr" data-v="${k}">${n}</button>`).join('')}</nav></header>
+   <div class="krfb pvb pvb2">
+    <section class="pvsec pvs2 pvhero" id="pvs-resumo">${box}
+     <div class="pvks">${kpi(esc({pend:'Aguardando',reprov:'Reprovado',aprov:'Aprovado'}[st]||'—'),'Validação do O&amp;M',st==='aprov'?'ok':st==='reprov'?'bad':st==='pend'?'warn':'')}${at?kpi('Só ativação','Sem lançamento'):kpi(m?m.toLocaleString('pt-BR')+' m':'—',cab?'Cabo a lançar (KMZ)':'Lançamento (ROI)')}${at?'':kpi(esc(caixasTxt(p)||'—'),'Caixas de emenda')}${kpi(dias?String(dias).replace('.',',')+' dia'+(dias===1?'':'s'):'—','Dias previstos'+(diasOk?'':' (falta informar)'))}${val&&ctot?kpi(brl(ctot),'Custo total'):''}${val&&roi?kpi(roi+' meses','ROI','hl'):''}</div>
+     <p class="pvfrase">${esc(p.topologia||'Projeto')}${p.cidade?' em '+esc(p.cidade):''}: ${at?'só ativação, sem lançamento.':[temExt&&'extensão de sinal',temRua&&'lançamento na rua'+(m?' de '+m.toLocaleString('pt-BR')+' m':''),temInt&&'lançamento interno','ativação'].filter(Boolean).join(', ').replace(/, ([^,]*)$/,' e $1')+'.'}${p.migGpon!=null?(p.migGpon===true||p.migGpon==='sim'?' Migração de GPON.':' Cliente novo.'):''}</p></section>
+    ${sec('descritivo','Descritivo do projeto',desc?`<div class="pvdesc">${esc(desc)}</div>`:'<p class="muted">Nenhum descritivo no cadastro (campo "informações da atividade").</p>','pontos de acesso e derivação, informações da atividade')}
+    ${cam?sec('caminho','Caminho do sinal',cam,'do POP até o cliente'):''}
+    ${sec('fases','Fases e prazos',`<div class="pvfases">${fases.map(f=>`<div class="pvf2 ${f.na?'na':''}"><b>${esc(f.n)}</b><span>${f.na?'Não tem':f.d?String(f.d).replace('.',',')+' dia'+(f.d===1?'':'s'):'<span class="muted">dias não informados</span>'}</span></div>`).join('')}</div>`,pvProj()?'':diasOk?'total '+String(dias).replace('.',',')+' dia'+(dias===1?'':'s'):'')}
+    ${custos}
+    ${svc.length?sec('servicos','Serviços a serem ativados',`<ul class="pvsvc">${svc.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`):''}
+    ${sec('contato','Endereço de instalação e contato',`<div class="pvend"><div><b>${esc(c.endereco||'Endereço não informado')}</b>${c.coord?`<span class="muted">${esc(c.coord)}</span> ${mapa(c.coord)}`:''}</div></div>`+dl([['Contato',esc(c.contato||'')],['Telefone',esc(c.telefone||'')],['Janela',esc(c.janela||'')],['Acesso',esc(c.acesso||'')],['Observações',esc(c.obs||'')]]))}
+    ${sec('dados','Dados do cadastro',dl([['Etiqueta',esc(p.etiqueta)],['Protocolo',esc(p.protocolo||'')],['Topologia',esc(p.topologia||'')],['Cidade',esc(p.cidade||'')],val&&['Valor mensal',brl(p.valor)],['POP',at&&!p.pop?'N/A':esc(p.pop||'')],['Equipamento de acesso',at&&!p.equip?'N/A':esc(p.equip||'')],['Porta',esc(I.porta||'')],
+      p.lmLanc&&['Last mile com lançamento',esc(String(p.lmLanc)==='true'||p.lmLanc==='sim'?'Sim':String(p.lmLanc))],...(val?FIN.filter(([k])=>fin[k]!==undefined&&fin[k]!=='').map(([k,l,mm])=>[l,mm?brl(fin[k]):String(fin[k]).replace('.',',')]):[])]))}
+    ${sec('arquivos','Arquivos',`<div id="pvKmzS"><h4 class="pvh4">KMZ do projeto</h4>${K.length?`<div class="pvkmz">${K.map(x=>`<div class="pvkf"><span>🗺️</span><div><b>${esc(x.nome)}</b><small class="muted">${esc(ANX[x.tipo]||'KMZ')}${x.tam?' · '+kb(x.tam):''}${x.por?' · '+esc(x.por):''}${x.em?' em '+dtBR(x.em):''}</small></div><button class="btn sm primary" data-act="anxOpen" data-id="${x.id}">Baixar KMZ</button></div>`).join('')}</div>`:'<p class="muted">Nenhum KMZ anexado ao projeto.</p>'}</div>
+      <h4 class="pvh4">Outros anexos</h4>${O.length?O.map(x=>anxLinha(x,0)).join(''):'<p class="muted">Nenhum.</p>'}`)}
+    ${h.length?sec('validacao','Histórico da validação',`<ol class="pvtl">${h.slice().reverse().map(e=>`<li class="t-${esc(e.t||'')}">${pvEnt(e)}</li>`).join('')}</ol>`,h.length+(h.length===1?' registro':' registros')):''}
+   </div>`;
+  const b=o.querySelector('.krfb');if(b&&keep)b.scrollTop=keep};
+ACT.pvIr=el=>{const e=document.getElementById('pvs-'+el.dataset.v);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})};
+ACT.pvIrKmz=()=>{const e=document.getElementById('pvs-arquivos');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})};
+document.head.insertAdjacentHTML('beforeend',`<style>
+.pvb2{display:grid;gap:12px;align-content:start;padding-top:12px;max-width:1100px}
+.pvjump{display:flex;gap:6px;overflow-x:auto;padding:0 0 10px;scrollbar-width:none}.pvjump button{flex:0 0 auto;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:13.5px;cursor:pointer}.pvjump button:hover{border-color:var(--brand)}
+.pvs2{scroll-margin-top:8px}.pvsh{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap;margin-bottom:10px}.pvsh h3{margin:0}
+.pvks{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.pvk{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:2px;background:var(--surface)}
+.pvk b{font:600 22px/1.15 "Barlow Condensed",Barlow,sans-serif;color:var(--ink)}.pvk span{font-size:13px;color:var(--muted)}.pvk.ok{border-left:4px solid var(--brand)}.pvk.warn{border-left:4px solid var(--warn)}.pvk.bad{border-left:4px solid var(--bad)}.pvk.hl b{color:var(--brand-ink)}
+.pvhero{display:grid;gap:12px}.pvfrase{margin:0;font-size:15.5px;line-height:1.5}
+.pvpath{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0}
+.pvn{position:relative;display:grid;justify-items:center;align-content:start;text-align:center;gap:6px;padding:0 4px}
+.pvn::before{content:"";position:absolute;top:21px;left:-50%;width:100%;height:3px;background:var(--brand);z-index:0}.pvn:first-child::before{display:none}
+.pvn.na::before{background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 10px)}
+.pvni{position:relative;z-index:1;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--brand-ink);background:var(--brand-soft);border:2px solid var(--brand)}
+.pvn.na .pvni{background:var(--bg);border-color:var(--line);filter:grayscale(1);opacity:.55}
+.pvn div{display:grid;gap:2px;min-width:0}.pvn b{font-size:14px}.pvn span{font-size:13.5px;overflow-wrap:anywhere}.pvn small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.pvn em{font-size:12px;color:var(--muted);font-style:normal}.pvn.na b{color:var(--muted)}
+@media(max-width:900px){.pvpath{grid-template-columns:1fr;gap:0}.pvn{grid-template-columns:44px minmax(0,1fr);justify-items:start;text-align:left;gap:12px;padding:0 0 14px}
+ .pvn::before{top:-50%;left:21px;width:3px;height:100%}.pvn.na::before{background:repeating-linear-gradient(180deg,var(--line) 0 6px,transparent 6px 10px)}}
+.pvfases{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}.pvf2{border-radius:10px;padding:10px 12px;background:var(--brand-soft);display:grid;gap:2px}.pvf2 b{font-size:14px}.pvf2 span{font-size:15px}.pvf2.na{background:var(--bg);color:var(--muted);border:1px dashed var(--line)}
+.pvbar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin-top:12px}.pvbar i{display:block}.pvbar i.pvc1,.pvleg i.pvc1{background:var(--info)}.pvbar i.pvc2,.pvleg i.pvc2{background:var(--brand)}.pvbar i.pvc3,.pvleg i.pvc3{background:var(--warn)}
+.pvleg{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:13.5px;margin-top:6px}.pvleg span{display:inline-flex;align-items:center}.pvleg i{display:inline-block;flex:0 0 auto;width:10px;height:10px;border-radius:3px;margin-right:6px}.pvroi{margin:6px 0 0;font-size:13px}
+.pvdesc{white-space:pre-line;font-size:15.5px;line-height:1.6;background:var(--bg);border-left:4px solid var(--info);border-radius:8px;padding:12px 14px;overflow-wrap:anywhere}
+.pvsvc{margin:0;padding-left:18px;display:grid;gap:4px}.pvend{display:flex;gap:10px;margin-bottom:10px}.pvend div{display:grid;gap:2px}.pvend b{font-size:15.5px}.pvmap{font-size:13px;white-space:nowrap}#pvFull a:not(.btn){color:var(--info)}
+.pvdl2 dt{font-size:12.5px;color:var(--muted)}.pvdl2 dd{margin:0;font-weight:500}.pvh4{margin:12px 0 6px;font-size:14px}.pvh4:first-child{margin-top:0}
+.pvtl{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--line);display:grid;gap:10px}.pvtl li{position:relative}.pvtl li::before{content:"";position:absolute;left:-21px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.pvtl li.t-aprov::before{background:var(--brand)}.pvtl li.t-reprov::before{background:var(--bad)}.pvtl li.t-envio::before,.pvtl li.t-reenvio::before{background:var(--warn)}
+</style>`);
+
+/* ===== 20/11: inclusão de projeto guiada (rede própria e last mile com lançamento) =====
+   Depois do tipo e da tecnologia, a etapa 1 pergunta, uma coisa de cada vez:
+     1) Como é o lançamento? na rua e interno · só na rua · só interno · sem lançamento (só extensão de sinal)
+     2) Tem extensão de sinal? (pula quando é só extensão)
+     3) Como montar o ROI? KMZ pronto · desenhar pelas coordenadas · PDF do ROI (quando o perfil tem)
+   Só depois aparece o painel do ROI, já no modo escolhido (sem os botões soltos de antes). As respostas valem para o
+   resto do cadastro: o "Lançamento" da etapa 3 vem travado, a extensão de sinal segue a resposta (a etapa 3 avisa se as
+   localizações do ponto de acesso e de derivação dizem outra coisa) e o KMZ é conferido contra as respostas. */
+const GU_L=[['ri','Na rua e interno','Cabo na rua até o cliente e lançamento interno'],['r','Só na rua','Não tem lançamento interno'],['i','Só interno','Prédio, galpão ou condomínio: sem lançamento na rua'],['ext','Sem lançamento','Só extensão de sinal: a fibra já existe no caminho']];
+const GU_E=[['sim','Sim, tem extensão de sinal','Sai da caixa de derivação até o ponto de acesso, com caixas de emenda e fusões'],['nao','Não tem extensão','O ponto de acesso é o próprio ponto de derivação']];
+const GU_M=[['kmz','Tenho o KMZ do projeto','A ferramenta lê o KMZ e monta materiais, mão de obra e ROI'],['des','Desenhar aqui','Pelas coordenadas do cliente e da caixa de derivação'],['pdf','Importar PDF do ROI','ROI já pronto em PDF']];
+const guW=()=>{const W=ui.wiz;return W&&!W.id&&W.np&&npOk()&&(W.np.cat==='rede'||(W.np.cat==='lm'&&W.np.sub==='lanc'))&&!npFixo()&&!npPdfM()?W:null};
+const guG=W=>W.g=W.g||{};
+const guPdfOk=()=>!!document.querySelector('#modal .krseg [data-v="pdf"]')&&getComputedStyle(document.querySelector('#modal .krseg [data-v="pdf"]')).display!=='none';
+const guPronto=W=>{const g=guG(W);return !!(g.l&&(g.l==='ext'||g.e)&&g.m)};
+const guRua=l=>({ri:'',r:'int',i:'1',ext:''})[l];
+function guFases(g){const F=[];if(g.l==='ext'||g.e==='sim')F.push('Extensão de sinal');if(g.l==='ri'||g.l==='r')F.push('Lançamento na rua');if(g.l==='ri'||g.l==='i')F.push('Lançamento interno');F.push('Ativação');return F}
+function guHtml(W,pdf){const g=guG(W),card=(k,t,s,on,act)=>`<button type="button" class="npc${on?' on':''}" data-act="${act}" data-v="${k}" aria-pressed="${on}"><b>${t}</b>${s?`<small>${s}</small>`:''}</button>`;
+  if(guPronto(W)&&!g.edit){const L=GU_L.find(x=>x[0]===g.l),M=GU_M.find(x=>x[0]===g.m);
+    return `<div class="npres gures"><span><b>${esc(L[1])}</b>${g.l==='ext'?'':' · '+(g.e==='sim'?'com extensão de sinal':'sem extensão de sinal')} · ROI: ${esc(M[1].replace(/^Tenho o /,'').replace(/^Desenhar aqui$/,'desenhado aqui'))}</span><button type="button" class="linkbtn" data-act="guEdit">alterar</button></div>
+     <div class="gufases" aria-label="Fases previstas">${guFases(g).map((f,i)=>`${i?'<i aria-hidden="true">→</i>':''}<span>${f}</span>`).join('')}</div>`}
+  const passo=(n,t,on)=>`<p class="npt guq"><span class="gun">${n}</span>${t}</p>`;
+  let h=`<div class="npq gu">${passo(1,'Como é o lançamento de cabo?')}<div class="npg c4">${GU_L.map(([k,t,s])=>card(k,t,s,g.l===k,'guL')).join('')}</div>`;
+  if(g.l&&g.l!=='ext')h+=`${passo(2,'Tem extensão de sinal?')}<div class="npg c2">${GU_E.map(([k,t,s])=>card(k,t,s,g.e===k,'guE')).join('')}</div>`;
+  if(g.l&&(g.l==='ext'||g.e)){const M=GU_M.filter(([k])=>k!=='pdf'||pdf).filter(([k])=>!(g.l==='ext'&&k==='des'));
+    h+=`${passo(g.l==='ext'?2:3,'Como vai montar o ROI?')}<div class="npg c${M.length}">${M.map(([k,t,s])=>card(k,g.l==='ext'&&k==='kmz'?'Tenho o KMZ da extensão':t,g.l==='ext'&&k==='kmz'?'A ferramenta conta os metros de fibra e as caixas de emenda no caminho':s,g.m===k,'guM')).join('')}</div>`}
+  if(g.edit&&guPronto(W))h+=`<div class="actions" style="justify-content:flex-start;margin-top:4px"><button class="btn sm primary" data-act="guOk">Pronto</button></div>`;
+  return h+'</div>'}
+/* conferência do KMZ contra as respostas */
+function guConfere(W){const g=guG(W),R=W.kr||{},o=[];if(!R.M)return'';const e=R.ext;
+  if(g.l!=='ext'&&g.e==='nao'&&e&&+e.m>0)o.push(`O KMZ tem <b>${kmN0(Math.round(e.m))} m</b> de extensão de sinal, mas você respondeu que <b>não tem extensão</b>. Confira o KMZ ou altere a resposta.`);
+  if(g.l!=='ext'&&g.e==='sim'&&R.M&&!(e&&+e.m>0)&&!document.querySelector('#modal .krext input[type=file]')?.files?.length)o.push('Você respondeu que <b>tem extensão de sinal</b>: envie também o KMZ da extensão (campo abaixo do KMZ do lançamento), se ela não estiver no mesmo arquivo.');
+  return o.length?`<div class="result warn gucf">${o.map(x=>`<p style="margin:0">${x}</p>`).join('')}</div>`:''}
+{const _w=renderWiz;renderWiz=function(){const o=_w.apply(this,arguments),W=guW();if(!W||W.step!==1)return o;
+  try{const box=$('npBox');if(!box)return o;const g=guG(W),seg=document.querySelector('#modal .krseg:not(.npseg)'),pdf=!!(seg&&seg.querySelector('[data-v="pdf"]')&&seg.querySelector('[data-v="pdf"]').style.display!=='none');
+    if(g.m==='pdf'&&!pdf)g.m='';box.insertAdjacentHTML('beforeend',`<div id="guBox">${guHtml(W,pdf)}</div>`);
+    const irm=[];let e=box.nextElementSibling;while(e&&!e.classList.contains('actions')){irm.push(e);e=e.nextElementSibling}
+    if(!guPronto(W)||g.edit){irm.forEach(x=>x.style.display='none');return o}
+    document.querySelectorAll('#modal .krseg:not(.npseg),#modal .slseg').forEach(x=>x.style.display='none');
+    if(g.l!=='ext'&&g.e==='nao')document.querySelectorAll('#modal .krext').forEach(x=>x.style.display='none');
+    const cf=guConfere(W),kb=document.querySelector('#modal .krbox');if(cf&&kb)kb.insertAdjacentHTML('afterbegin',cf)}catch(x){console.warn('guia',x)}return o}}
+function guAplica(W){const g=guG(W);W.t=W.t||{};W.t.semRua=guRua(g.l||'ri');const so=g.l==='ext';W.kr=W.kr||{};
+  const modo=g.m||'';if(modo&&W.roiModo!==modo){W.roiModo=modo}
+  if(!!W.kr.soExt!==so){if(W.kr.arq&&typeof ACT.slModo==='function'){W.kr.soExt=!so;return ACT.slModo({dataset:{v:so?'ext':'lanc'}})}W.kr.soExt=so}}
+Object.assign(ACT,{
+  guL:el=>{const W=ui.wiz,g=guG(W);g.l=el.dataset.v;if(g.l==='ext'){g.e='sim';if(g.m==='des')g.m=''}else if(g.e==='sim'&&g.eAuto){delete g.e}delete g.eAuto;if(g.l==='ext')g.eAuto=1;guAplica(W);renderWiz()},
+  guE:el=>{const W=ui.wiz,g=guG(W);g.e=el.dataset.v;delete g.eAuto;guAplica(W);renderWiz()},
+  guM:el=>{const W=ui.wiz,g=guG(W);if(g.m&&g.m!==el.dataset.v&&W.kr&&(W.kr.M||W.kr.des||W.kr.nome)&&!confirm('Trocar o jeito de montar o ROI? O que já foi lido ou desenhado nesta etapa é descartado.'))return;
+    if(g.m!==el.dataset.v){W.kr={soExt:g.l==='ext'};ui.roiTmp=null}g.m=el.dataset.v;delete g.edit;guAplica(W);renderWiz()},
+  guEdit:()=>{guG(ui.wiz).edit=1;renderWiz()},guOk:()=>{delete guG(ui.wiz).edit;guAplica(ui.wiz);renderWiz()}});
+/* trocar o tipo do projeto zera as respostas */
+{const _t=ACT.npTroca;ACT.npTroca=function(){const r=_t.apply(this,arguments);if(ui.wiz&&!(ui.wiz.np&&ui.wiz.np.cat))delete ui.wiz.g;return r}}
+{const _s=ACT.npSub;ACT.npSub=function(){if(ui.wiz)delete ui.wiz.g;return _s.apply(this,arguments)}}
+/* não avança sem responder */
+{const _g=ACT.wizGo;ACT.wizGo=function(el){const W=guW();if(W&&W.step===1&&+el.dataset.n>1&&(!guPronto(W)||guG(W).edit)){toast('Responda as perguntas do projeto para continuar.','bad');return}return _g.apply(this,arguments)}}
+/* etapa 3: lançamento travado pela resposta e extensão conferida com as localizações */
+const guAtivo=()=>{const W=ui.wiz;return W&&!W.id&&W.g&&guPronto(W)?W:null};
+{const _t=wizTemExt;wizTemExt=function(){const W=guAtivo();if(W){const g=W.g;return g.l==='ext'||g.e==='sim'}return _t.apply(this,arguments)}}
+{const _w=renderWiz;renderWiz=function(){const o=_w.apply(this,arguments),W=guAtivo();if(!W||W.step!==3)return o;
+  try{const g=W.g,s=$('wzRua');if(s&&g.l!=='ext'){s.value=guRua(g.l);s.disabled=true;s.insertAdjacentHTML('afterend',`<small class="muted gufix">Definido na etapa 1 (${esc(GU_L.find(x=>x[0]===g.l)[1].toLowerCase())}). Para mudar, volte à etapa 1 e toque em "alterar".</small>`)}
+    const ex=$('wzExt');if(ex){const v=semExtOf(W.t),tem=g.l==='ext'||g.e==='sim';
+      ex.innerHTML=`<p class="note">${tem?'Projeto <b>com extensão de sinal</b> (resposta da etapa 1).':'Projeto <b>sem extensão de sinal</b> (resposta da etapa 1): a fase sai do fluxo.'}</p>`+
+        (v===true&&tem?`<div class="result warn" style="margin:6px 0">A localização do ponto de acesso é a mesma do ponto de derivação, o que indica <b>sem extensão</b>. Confira as localizações ou altere a resposta na etapa 1.</div>`:v===false&&!tem?`<div class="result warn" style="margin:6px 0">As localizações do ponto de acesso e do ponto de derivação são diferentes, o que indica <b>extensão de sinal</b>. Confira as localizações ou altere a resposta na etapa 1.</div>`:'')}}catch(x){console.warn('guia3',x)}return o}}
+/* salvar: as respostas valem (lançamento e extensão) */
+{const _s=ACT.wizSave;ACT.wizSave=function(){const W=guAtivo();if(!W)return _s.apply(this,arguments);const g=Object.assign({},W.g),etq=ui.roiTmp&&ui.roiTmp.etiqueta;if(g.l!=='ext')W.t.semRua=guRua(g.l);
+  const o=_s.apply(this,arguments);const fim=()=>{const p=S.previsao.find(x=>etq&&x.etiqueta===etq);if(!p)return;const tem=g.l==='ext'||g.e==='sim';p.semExt=!tem;if(!tem){p.dExt=0;p.caixas=1}
+    if(g.l==='ext'){p.semLanc=true}else{delete p.semLanc;p.semRua=g.l==='i';if(p.semRua)p.dRua=0;if(g.l==='r'){p.semInt=true;p.dInterno=0}else delete p.semInt}p.guia={l:g.l,e:g.e||null,m:g.m};try{save()}catch(x){}};
+  if(o&&typeof o.then==='function')return o.then(r=>{fim();return r});fim();return o}}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.gu{margin-top:6px}.guq{display:flex;align-items:center;gap:8px}.gun{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:var(--surface);font-size:12.5px;font-weight:700;flex:0 0 auto}
+.npg.c4{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:760px){.npg.c4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gures{margin-top:8px}.gufases{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 2px;font-size:13.5px}.gufases span{background:var(--brand-soft);color:var(--brand-ink);border-radius:999px;padding:3px 10px;font-weight:600}.gufases i{color:var(--muted);font-style:normal}
+.gucf{display:grid;gap:4px;margin:0 0 10px}.gufix{display:block;margin:-6px 0 10px;font-size:12.5px}
+</style>`);
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
