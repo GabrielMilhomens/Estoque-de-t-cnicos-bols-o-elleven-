@@ -22905,6 +22905,78 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .gucf{display:grid;gap:4px;margin:0 0 10px}.gufix{display:block;margin:-6px 0 10px;font-size:12.5px}
 </style>`);
 
+/* ===== 23/11: LPU duplicada =====
+   Causa: enquanto o PDF da LPU sobe (internet fraca no campo), a tela da atividade continuava com o botão "Enviar LPU";
+   o técnico tocava de novo, assinava de novo e a ferramenta criava outra LPU (outro número) para a mesma atividade.
+   O mesmo acontecia se a atividade não fosse encerrada no banco e o técnico abrisse o app de novo.
+   Agora:
+   - Uma LPU por atividade (por dia, na LPU parcial do dia). Antes de gravar, a ferramenta confere no banco se a
+     atividade já tem LPU que não foi reprovada; se tiver, não grava outra, avisa o técnico e encerra a atividade.
+   - Durante o envio, o botão "Enviar LPU" fica bloqueado ("Enviando a LPU…").
+   - No banco (ajuste 96), um gatilho recusa a segunda LPU da mesma atividade ou do mesmo chamado do GTD.
+   - Aprovação de LPU: selo "Duplicada" quando há outra LPU da mesma atividade; aprovar uma duplicada pede confirmação
+     (com a opção de reprovar como duplicada); nas aprovadas, "Cancelar aprovação" com justificativa obrigatória:
+     a LPU vai para Reprovadas, sai do budget e dos totais, e o histórico guarda quem cancelou, quando e por quê. */
+const LPUENV=new Set();
+const lpuDupK=l=>l&&l.ag?l.ag+'|'+(l.dia||''):null;
+function lpuDups(l){const k=lpuDupK(l);if(!k||l.status==='reprovada')return[];return S.lpus.filter(x=>x!==l&&x.id!==l.id&&x.status!=='reprovada'&&lpuDupK(x)===k)}
+const lpuStN=s=>({aguardando:'aguardando aprovação',conferencia:'em conferência no prestador',ajuste:'em ajuste',aprovada:'aprovada',registrada:'registrada'})[s]||s;
+function lpuAtivFecha(a,dia){if(!a)return;if(dia){const x=(a.diario||[]).find(y=>y.data===dia);if(x)x.lpuEnv=true;if(ui.lpuDia&&ui.lpuDia.id===a.id)ui.lpuDia=null}
+  else if(a.status==='lpu'){if(a.parcial)a.status='nao_concluida';else encerrar(a)}delete ui.draft[a.id];ui.lpuTela=null}
+/* técnico: não abre o envio se a atividade já tem LPU */
+{const _e=ACT.lpuEnviar;ACT.lpuEnviar=function(el){const a=getAg(el.dataset.id);if(a){const dia=ui.lpuDia&&ui.lpuDia.id===a.id?ui.lpuDia.d:'';
+    if(LPUENV.has(a.id))return toast('A LPU desta atividade está sendo enviada. Aguarde a confirmação.','bad');
+    const ex=S.lpus.find(l=>l.ag===a.id&&(l.dia||'')===(dia||'')&&l.status!=='reprovada');
+    if(ex){lpuAtivFecha(a,dia);save();render();window.scrollTo(0,0);return toast(`Esta atividade já tem LPU enviada em ${dBR(ex.data)} (${lpuStN(ex.status)}). Não é preciso enviar de novo.`,'bad')}}
+  return _e.apply(this,arguments)}}
+/* trava durante o envio (assinatura → PDF → banco) */
+{const _s=ACT.sgOk;ACT.sgOk=async function(){const g=ui.sign,k=g&&(g.tipo==='novo'||g.tipo==='gtd')&&!ui.gLpuAj?g.key||g.id:null;if(!k)return _s.apply(this,arguments);
+  if(LPUENV.has(k))return toast('A LPU já está sendo enviada. Aguarde a confirmação.','bad');
+  LPUENV.add(k);document.body.classList.add('lpuEnv');try{return await _s.apply(this,arguments)}finally{LPUENV.delete(k);if(!LPUENV.size)document.body.classList.remove('lpuEnv')}}}
+/* conferência no banco antes de gravar */
+{const _g=lpuGravar;lpuGravar=async function(nl){if(!nl||!nl.ag)return _g.apply(this,arguments);let rows=null;
+  try{const r=await sb.from('ag_lpus').select('*').eq('agendamento',nl.ag);if(!r.error)rows=r.data||[]}catch(e){}
+  const ex=(rows||[]).find(r=>r.id!==nl.id&&r.status!=='reprovada'&&String((r.dados&&r.dados.dia)||'')===String(nl.dia||''));
+  if(ex){const a=getAg(nl.ag);if(!S.lpus.some(l=>l.id===ex.id)){const o=Object.assign({},ex.dados,{id:ex.id,ag:ex.agendamento,etiqueta:ex.etiqueta,tec:ex.tecnico,status:ex.status,total:+ex.total,pdf_path:ex.pdf_path,prestador:ex.prestador||undefined});S.lpus.push(o);try{SNAP.l.set(o.id,JSON.stringify(rowL(o)))}catch(e){}}
+    lpuAtivFecha(a,nl.dia);save();try{await flushSync()}catch(e){}render();window.scrollTo(0,0);
+    toast(`Esta atividade já tem LPU enviada${ex.dados&&ex.dados.data?' em '+dBR(ex.dados.data):''} (${lpuStN(ex.status)}). A LPU não foi enviada de novo.`,'bad');return false}
+  const ok=await _g.apply(this,arguments);return ok}}
+/* Aprovação de LPU: selo, aprovar duplicada e cancelar aprovação */
+{const _v=viewAprov;viewAprov=function(){let h=_v.apply(this,arguments);
+  S.lpus.forEach(l=>{const d=lpuDups(l);if(d.length&&h.includes(`data-act="aOpen" data-id="${l.id}"`)){const ap=d.filter(x=>x.status==='aprovada').length;
+      h=h.replace(new RegExp(`(data-act="aOpen" data-id="${l.id}"[^>]*><div><b>[^<]*</b>)`),`$1 <span class="chip bad" title="Outra LPU da mesma atividade${l.dia?' e do mesmo dia':''}">Duplicada${ap?` · ${ap>1?ap+' aprovadas':'outra aprovada'}`:''}</span>`)}
+    const ca=l.aprovCanc;if(ca&&l.status==='reprovada')h=h.replace(`<button class="btn primary" data-act="lpuReab" data-id="${l.id}">Reabrir para ajuste</button>`,'');
+    if(l.status==='aprovada'&&pode('a_aprovar'))h=h.replace(`<button class="btn" data-act="pdf" data-id="${l.id}">Ver PDF</button>`,m=>m+`<button class="btn danger" data-act="lpuCancAp" data-id="${l.id}">Cancelar aprovação</button>`);
+    if(ca&&l.status==='reprovada')h=h.replace(new RegExp(`(data-act="aOpen" data-id="${l.id}"[^>]*><div><b>[^<]*</b>)`),`$1 <span class="chip">Aprovação cancelada</span>`)});
+  return h}}
+function lpuCancHtml(l,ctx){const d=lpuDups(l),o=d.find(x=>x.status==='aprovada')||d[0];
+  const sug=o?`LPU duplicada: mesma atividade de ${dBR(l.data)} já ${o.status==='aprovada'?(aprovPor(o)?aprovPor(o).replace(/<[^>]+>/g,'').replace(/^Aprovada/,'aprovada'):'aprovada'):lpuStN(o.status)}. Valor cobrado duas vezes.`:'';
+  return {o,sug}}
+Object.assign(ACT,{
+  lpuCancAp:el=>{if(!pode('a_aprovar'))return semPerm();const l=S.lpus.find(x=>x.id===el.dataset.id);if(!l)return;const {sug}=lpuCancHtml(l);
+    openModal(`<h3>Cancelar aprovação da LPU</h3><p class="muted">${esc(l.etiqueta)} · ${esc(cliN(l.etiqueta)||'')} · ${esc(l.tecNome||tecN(l.tec))} · ${dBR(l.data)} · <b>${brl(l.total)}</b></p>
+     <div class="result warn" style="margin:10px 0">A LPU sai de Aprovadas e vai para Reprovadas: deixa de contar no budget, nos totais por prestador e no financeiro. O histórico guarda quem cancelou, quando e o motivo.</div>
+     <div class="chips" style="margin:6px 0">${[sug&&['dup','LPU duplicada'],['eng','Aprovada por engano'],['val','Valor ou serviço incorreto']].filter(Boolean).map(([k,t])=>`<button type="button" data-act="lpuCancM" data-k="${k}">${t}</button>`).join('')}</div>
+     <label class="f"><span>Justificativa *</span><textarea class="inp" id="cancMot" rows="4" placeholder="Por que a aprovação está sendo cancelada">${esc(sug)}</textarea></label>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn danger" data-act="lpuCancOk" data-id="${l.id}">Cancelar aprovação</button></div>`);ui.cancSug=sug},
+  lpuCancM:el=>{const t=$('cancMot');if(!t)return;t.value=el.dataset.k==='dup'?ui.cancSug:el.dataset.k==='eng'?'Aprovada por engano. ':'Valor ou serviço incorreto: ';t.focus()},
+  lpuCancOk:el=>{if(!pode('a_aprovar'))return semPerm();const l=S.lpus.find(x=>x.id===el.dataset.id),m=(($('cancMot')||{}).value||'').trim();if(!l)return;
+    if(m.length<10)return toast('Escreva a justificativa (pelo menos 10 caracteres).','bad');
+    const o=lpuDups(l).find(x=>x.status==='aprovada'),ap=(l.hist||[]).slice().reverse().find(h=>h.acao==='Aprovada');
+    l.status='reprovada';l.aprovCanc={por:meNome(),em:Date.now(),motivo:m,aprovadaPor:ap?ap.por:null,aprovadaEm:ap?ap.em:null,dupDe:o?o.id:null};
+    (l.hist=l.hist||[]).push({acao:'Aprovação cancelada',por:meNome(),em:Date.now(),motivo:m});ui.aOpen=null;save();closeModal();render();toast(`Aprovação cancelada. ${brl(l.total)} saiu do budget e dos totais.`)},
+  lpuDupRep:el=>{const l=S.lpus.find(x=>x.id===el.dataset.id);if(!l)return;const m=(($('dupMot')||{}).value||'').trim();if(m.length<10)return toast('Escreva o motivo.','bad');
+    l.status='reprovada';(l.hist=l.hist||[]).push({acao:'Reprovada',por:meNome(),em:Date.now(),motivo:m});ui.aOpen=null;save();closeModal();render();toast('LPU reprovada como duplicada.')},
+  lpuDupAp:el=>{closeModal();ui.dupOk=el.dataset.id;ACT.aprovar(el)}});
+{const _a=ACT.aprovar;ACT.aprovar=function(el){const l=S.lpus.find(x=>x.id===el.dataset.id);const d=l?lpuDups(l):[];
+  if(d.length&&ui.dupOk!==l.id){const {o,sug}=lpuCancHtml(l);
+    return openModal(`<h3>LPU duplicada</h3><p class="muted">${esc(l.etiqueta)} · ${esc(cliN(l.etiqueta)||'')} · ${esc(l.tecNome||tecN(l.tec))} · ${dBR(l.data)} · <b>${brl(l.total)}</b></p>
+     <div class="result bad" style="margin:10px 0">Esta atividade${l.dia?' (neste dia)':''} já tem ${d.length>1?d.length+' outras LPUs':'outra LPU'}: ${d.map(x=>`${brl(x.total)} ${lpuStN(x.status)}`).join(', ')}. Aprovar esta cobra o serviço de novo.</div>
+     <label class="f"><span>Motivo da reprovação *</span><textarea class="inp" id="dupMot" rows="3">${esc(sug)}</textarea></label>
+     <div class="actions"><button class="btn" data-act="close">Voltar</button><button class="btn" data-act="lpuDupAp" data-id="${l.id}">Aprovar mesmo assim</button><button class="btn danger" data-act="lpuDupRep" data-id="${l.id}">Reprovar como duplicada</button></div>`)}
+  ui.dupOk=null;return _a.apply(this,arguments)}}
+document.head.insertAdjacentHTML('beforeend',`<style>body.lpuEnv [data-act="lpuEnviar"],body.lpuEnv [data-act="sgOk"]{pointer-events:none;opacity:.55}body.lpuEnv [data-act="lpuEnviar"]::after{content:" (enviando…)"}</style>`);
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
