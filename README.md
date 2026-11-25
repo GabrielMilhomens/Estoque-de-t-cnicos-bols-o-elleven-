@@ -287,6 +287,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 96. `agenda_ajuste_95_lpu_pdf_financeiro.sql` — LPU em PDF lançada pelo Financeiro: tabela `ag_fin_baixas` (área, conta, prestador, cliente, etiqueta, itens, total, PDF), leitura por `ag_fin_ve()` ou `ag_gestao()`, gravação por `fin_a_editar`; policy `agenda_st_fin_lpu_ve` para a gestão abrir os PDFs em `financeiro/lpu/`. Rodar depois do 93 e antes de publicar o `agenda.html`. Não subir no GitHub.
 97. `agenda_ajuste_96_lpu_sem_duplicidade.sql` — LPU duplicada: gatilho `ag_lpu_sem_duplicidade` (security definer) em `ag_lpus` recusa a segunda LPU da mesma atividade (por `dados.dia` na LPU parcial do dia) ou do mesmo chamado do GTD, sem contar as reprovadas; também recusa reabrir uma reprovada quando a atividade já tem outra LPU valendo. Trava por atividade (`pg_advisory_xact_lock`) para dois envios ao mesmo tempo. Não altera as LPUs já gravadas; a última consulta do script lista as duplicadas que já existem.
 98. `agenda_ajuste_97_fin_baixas_retirada.sql` — `ag_fin_baixas`: a checagem de área passa a aceitar `rpr` (RE Preventiva · Retirada, conta 0102), para o Lançar LPU em PDF.
+99. `agenda_ajuste_98_financeiro_ve_todos.sql` — quem vê o Financeiro (`ag_fin_ve()`) passa a ler `ag_lpus` (todas as áreas), `ag_re_prog` e `ag_plantao`; `ag_cnpjs()` também responde para o Financeiro e inclui técnicos inativos (para juntar por CNPJ). Só leitura.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -1078,6 +1079,13 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 - **Lançar LPU em PDF: conta de Retirada (25/11, `mod/finpdf.js`):** nova área "RE Preventiva · Retirada" (conta 3.1.1.2.05.0102). PDF com conta 0102 já vem com essa área escolhida; a baixa entra aprovada no financeiro da Retirada (mesma área `rpr` das programadas de retirada da RE Preventiva) e aparece nas listas da RE Preventiva. O lançamento não depende de saldo no budget: com budget zerado, o consumo fica acima do budget.
 
 
+- **Financeiro por CNPJ e com todos os prestadores (25/11, `mod/finfix.js`, ajustes em `mod/finmod.js`, `agenda_ajuste_98_financeiro_ve_todos.sql`):**
+  - Contas a pagar, Solicitar NF e Conta contábil juntam o prestador pelo CNPJ: LPUs aprovadas de todas as áreas (Implantação, GTD, RE Corretiva, RE Preventiva e programadas, Transmissão, Melhoria, plantões), LPUs lançadas em PDF (CNPJ lido do PDF) e contratos fixos. O e-mail da NF mostra cada linha com a sua conta contábil.
+  - Quem vê o Financeiro carrega as LPUs do GTD/RE, contratos fixos, plantões, programadas e CNPJs mesmo sem acesso às telas dessas áreas (no banco, ajuste 98).
+  - Conta contábil: cartão com o nome da área como no Budget de todas as áreas (ex.: "RE Corretiva", "RE Preventiva · Retirada") e a descrição da conta em cima; Budget de todas as áreas mostra o nome da conta ao lado do código. Origens separadas: LPU da ferramenta, LPU lançada em PDF, Contrato fixo e Variáveis do contrato.
+  - Contrato fixo: variáveis aprovadas (metas marcadas no fechamento) em linha própria, "Contrato fixo · variáveis aprovadas", na RE Corretiva e na Implantação (antes "bônus por metas"); o total do contrato não muda.
+
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1142,6 +1150,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/11/2026 | Financeiro: prestador pelo CNPJ em Contas a pagar e Solicitar NF (todas as áreas e LPUs em PDF), todos os prestadores para quem vê o Financeiro, nomes de conta iguais ao budget, variáveis do contrato fixo em linha própria | **`agenda_ajuste_98_financeiro_ve_todos.sql` no Supabase**, depois `agenda.html` (`mod/finfix.js`, `mod/finmod.js`). |
 | 25/11/2026 | Lançar LPU em PDF na conta de Retirada dava erro `ag_fin_baixas_area_check` | **`agenda_ajuste_97_fin_baixas_retirada.sql` no Supabase**; `agenda.html` (`mod/finpdf.js`, mensagem do erro aponta o ajuste 97). |
 | 25/11/2026 | Lançar LPU em PDF: a escolha passa a ser pela **conta contábil** (código e descrição), não pela área; a conta 0007, usada por Transmissão e Melhoria de rede · Capex, mostra a área entre parênteses | `agenda.html` (`mod/finpdf.js`). |
 | 25/11/2026 | Lançar LPU em PDF aceita a conta de Retirada (RE Preventiva · Retirada, 0102) | `agenda.html` (`mod/finpdf.js`). Sem SQL novo. |

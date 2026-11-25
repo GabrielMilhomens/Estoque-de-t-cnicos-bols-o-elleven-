@@ -22043,14 +22043,14 @@ function viewFinAno(){if(!f2Ok())return f2Top('Visão geral do ano','Executado �
 function viewFinConta(){if(!f2Ok())return f2Top('Conta contábil','Executado e budget de cada conta no mês.')+f2Wait('o financeiro');
   const m=ui.fcMes||hoje().slice(0,7),c=ui.fcCod||'0008';ui.fcMes=m;
   const tools=`${f2MesSel('fcMes',m)}${f2BudPode()?'<button class="btn" data-act="f2BudEd">Budget do mês</button>':''}`;
-  const cards=FC.map(([cod,n,g])=>{const x=f2Exec(cod,m),b=f2Bud(m,cod),p=f2Pct(x.tot,b);return `<button class="fgcard f2cc ${cod===c?'on':''}" data-act="f2Conta" data-c="${cod}" aria-pressed="${cod===c}"><small class="muted">${cod} · ${g}</small><b class="f2cn">${n}</b><span class="f2cv">${brl(x.tot)}</span><small class="muted">de ${brl(b)} · <b style="color:${f2Cor(p)}">${b?p+'%':'sem budget'}</b></small>${f2Bar(x.tot,b)}</button>`}).join('');
+  const cards=FC.map(([cod,n,g])=>{const x=f2Exec(cod,m),b=f2Bud(m,cod),p=f2Pct(x.tot,b);return `<button class="fgcard f2cc ${cod===c?'on':''}" data-act="f2Conta" data-c="${cod}" aria-pressed="${cod===c}"><small class="muted">${cod} · ${n} · ${g}</small><b class="f2cn">${esc(f3AreaN(cod)||n)}</b><span class="f2cv">${brl(x.tot)}</span><small class="muted">de ${brl(b)} · <b style="color:${f2Cor(p)}">${b?p+'%':'sem budget'}</b></small>${f2Bar(x.tot,b)}</button>`}).join('');
   const x=f2Exec(c,m),b=f2Bud(m,c),R={};const add=(k,nome,o,v)=>{const r=R[k+'|'+o]=R[k+'|'+o]||{nome,o,v:0,n:0};r.v+=v;r.n++};
   if(x.hist)f2HistM(m).filter(h=>h.conta===c).forEach(h=>add('h:'+h.terceiro,h.terceiro||'(sem terceiro)','Histórico SAP',+h.valor||0));
-  else{f2Lpus(m).filter(l=>f2LpuCod(l)===c).forEach(l=>{const k=f2TerL(l);add(k.chave,k.nome,f2EhCf(l)?'Contrato fixo':'LPU da ferramenta',+l.total||0)});f2CtrMes(m).filter(z=>fcCod(z.conta)===c).forEach(z=>{const k=f2TerC(z);add(k.chave,k.nome,'Contrato fixo',f2Calc(z,m).total)})}
+  else{f2Lpus(m).filter(l=>f2LpuCod(l)===c).forEach(l=>{const k=f2TerL(l);add(k.chave,k.nome,f3Orig(l),+l.total||0)});f2CtrMes(m).filter(z=>fcCod(z.conta)===c).forEach(z=>{const k=f2TerC(z);add(k.chave,k.nome,'Contrato fixo',f2Calc(z,m).total)})}
   const L=Object.values(R).sort((a,b)=>b.v-a.v),tot=L.reduce((s,r)=>s+r.v,0);
   return f2Top('Conta contábil','Um cartão por conta no mês. Toque na conta para ver de quais terceiros veio o valor.',tools)+`<div class="f2cards">${cards}</div>
    <div class="fgcard" style="margin-top:14px"><h3>${c} · ${fcNome(c)} <span class="muted" style="font-weight:500">· ${f2MesN(m)}</span></h3><p class="muted" style="margin:2px 0 10px">Executado ${brl(x.tot)} de ${brl(b)} orçados${x.hist?' (histórico do SAP)':''}. Área na ferramenta: ${FCN[c]?FCN[c][3]:'—'}.</p>
-   ${L.length?`<div class="tablewrap"><table class="f2t"><thead><tr><th>Terceiro</th><th>Origem</th><th class="r">Itens</th><th class="r">Valor</th><th class="r">% da conta</th></tr></thead><tbody>${L.map(r=>`<tr><td><b>${esc(r.nome)}</b></td><td><span class="chip ${r.o==='LPU da ferramenta'?'ok':r.o==='Contrato fixo'?'info':''}">${r.o}</span></td><td class="r">${r.o==='Contrato fixo'?r.n+' contrato'+(r.n>1?'s':''):r.o==='Histórico SAP'?'—':r.n+' LPU'+(r.n>1?'s':'')}</td><td class="r">${brl(r.v)}</td><td class="r">${tot?Math.round(r.v/tot*100):0}%</td></tr>`).join('')}<tr><td colspan="3"><b>Total da conta</b></td><td class="r"><b>${brl(tot)}</b></td><td class="r"><b>100%</b></td></tr></tbody></table></div>`:'<p class="fgempty">Nada lançado nesta conta no mês.</p>'}</div>`}
+   ${L.length?`<div class="tablewrap"><table class="f2t"><thead><tr><th>Terceiro</th><th>Origem</th><th class="r">Itens</th><th class="r">Valor</th><th class="r">% da conta</th></tr></thead><tbody>${L.map(r=>`<tr><td><b>${esc(r.nome)}</b></td><td><span class="chip ${r.o==='LPU da ferramenta'?'ok':r.o==='Contrato fixo'?'info':r.o==='Variáveis do contrato'?'warn':''}">${r.o}</span></td><td class="r">${r.o==='Contrato fixo'?r.n+' lançamento'+(r.n>1?'s':''):r.o==='Variáveis do contrato'?'aprovadas':r.o==='Histórico SAP'?'—':r.n+' LPU'+(r.n>1?'s':'')}</td><td class="r">${brl(r.v)}</td><td class="r">${tot?Math.round(r.v/tot*100):0}%</td></tr>`).join('')}<tr><td colspan="3"><b>Total da conta</b></td><td class="r"><b>${brl(tot)}</b></td><td class="r"><b>100%</b></td></tr></tbody></table></div>`:'<p class="fgempty">Nada lançado nesta conta no mês.</p>'}</div>`}
 function f2BudModal(){const m=ui.fcMes||hoje().slice(0,7),[y,mo]=m.split('-').map(Number),ant=isoD(new Date(y,mo-2,1)).slice(0,7);
   openModal(`<h3 style="margin-top:0">Budget de ${f2MesN(m)}</h3><p class="muted" style="margin:0 0 10px">Um budget só, por conta e mês. Cada área continua vendo a parte dela no Financeiro da área.</p>
    <div class="f2bud">${FC.map(([c,n,g])=>`<label class="f"><span>${c} · ${n} <small class="muted">${g}</small></span><input class="inp" inputmode="decimal" id="f2b_${c}" value="${f2Bud(m,c)?String(f2Bud(m,c)).replace('.',','):''}" placeholder="0,00"></label>`).join('')}</div>
@@ -23181,6 +23181,36 @@ function mcMatRoi(r){const p=r.p||{};let src=p;if(r.trabN&&r.trabN!==(+p.trab||1
         o[k]=row[k];if(k==='Mão de obra no ROI (R$)'){const v=isT?tot:mat[i];if(!isT&&v!=null)tot+=v;o['Material no ROI (R$)']=v==null?'Sem ROI':xR(v);o['Total previsto no ROI (R$)']=v==null&&row[k]==='Sem ROI'?'':xR((v||0)+(isT?(+String(row[k]).replace(',','.')||0):(M[i].roi||0)))}});return o})}}catch(e){console.warn('mcX',e)}
     return _b.apply(this,arguments)};
   try{return _x.apply(this,arguments)}finally{xlsxBaixar=_b}}}
+
+/* ===== 25/11: Financeiro — mesmos nomes de conta, tudo por CNPJ, todos os prestadores, variáveis do contrato fixo =====
+   1. Conta contábil e Budget de todas as áreas usam os mesmos nomes: cartão da conta com a área da ferramenta (como no
+      budget) e a tabela do budget com o nome da conta ao lado do código.
+   2. Contas a pagar e Solicitar NF juntam o prestador pelo CNPJ: LPUs aprovadas de todas as áreas (Implantação, GTD, RE
+      Corretiva, RE Preventiva e programadas, Transmissão, Melhoria, plantões), as lançadas em PDF no Financeiro e os
+      contratos fixos. A LPU lançada em PDF usa o CNPJ lido do PDF.
+   3. Quem vê o Financeiro carrega tudo o que ele precisa (LPUs do GTD/RE, contratos fixos, plantões, CNPJs), mesmo sem
+      acesso às telas dessas áreas. No banco, o ajuste 98 libera a leitura dessas tabelas para quem vê o Financeiro.
+   4. Contrato fixo: as variáveis aprovadas (metas/bônus marcados no fechamento) aparecem como linha própria
+      ("Contrato fixo · variáveis aprovadas") na conta contábil, em Contas a pagar e no e-mail da NF. */
+let F3G=false;
+async function f3GLpus(){if(F3G||ui.perfil==='func')return;F3G=true;try{if(!(G.lpus||[]).length){const lp=await lpuTodas(q=>q.not('chamado','is',null));if(!(G.lpus||[]).length&&lp.length){G.lpus=lp.map(gLpuDeRow);render()}}}catch(e){console.warn('fin GTD',e)}}
+{const _c=f2Carregar;f2Carregar=async function(){try{if(typeof CF!=='undefined'&&!CF.ok&&!CF.bus)cfCarregar();if(typeof PLT!=='undefined'&&!PLT.ok&&!PLT.bus&&typeof plCarregar==='function')plCarregar();
+    if(typeof RP!=='undefined'&&!RP.ok&&!RP.bus)rpCarregar().catch(()=>{});f3GLpus();if(typeof cnpjCarregar==='function'&&!Object.keys(S.cnpj||{}).length)cnpjCarregar().then(()=>render())}catch(e){}return _c.apply(this,arguments)}}
+/* prestador pelo CNPJ */
+f2TerL=function(l){let e;try{e=lpuEmpresa(l)}catch(x){e={id:l.tec,nome:'',cnpj:''}}const cn=soDig(e.cnpj)||soDig(l.cnpj||'');const t=cn&&F2.terc.find(x=>soDig(x.cnpj)===cn),sc=cn&&!t&&Object.values(S.cnpj||{}).find(x=>soDig(x.cnpj)===cn&&x.nome);
+  return{chave:cn?'cnpj:'+cn:'tec:'+(e.id||l.empresa||'?'),nome:t?t.nome:sc?sc.nome:(e.nome&&e.nome!=='—'?e.nome:'')||l.empresa||(typeof tecNomeL==='function'?tecNomeL(l):'')||'—',fin:t||null,cnpj:cn,emp:e.id}};
+{const _v=fbVirt;fbVirt=function(r){const o=_v.apply(this,arguments);o.cnpj=soDig(r.cnpj||'');o.empresa=r.empresa||'';return o}}
+/* RE Corretiva (contrato fixo): variáveis aprovadas em linha própria */
+{const _l=cfLpus;cfLpus=function(a){const R=_l.apply(this,arguments),out=[];R.forEach(o=>{if(!o._cfId||/:imp$/.test(o.id)){out.push(o);return}
+    const x=CF.rows.find(y=>y.id===o._cfId),A=x&&cfApura(x.area,x.tec,x.ref),v=A?Math.round((+A.vOk||0)*100)/100:0;
+    if(v>0&&o.total>=v){out.push(Object.assign({},o,{total:Math.round((o.total-v)*100)/100}));out.push(Object.assign({},o,{id:o.id+':var',categoria:'Contrato fixo · variáveis aprovadas',cliente:'Variáveis aprovadas '+cfPerTxt(x.ref),total:v}))}else out.push(o)});return out}}
+/* Implantação (contrato fixo): o bônus por metas aprovado é a variável aprovada */
+{const _v=cfiVirt;cfiVirt=function(){return _v.apply(this,arguments).map(o=>/:bon$/.test(o.id)?Object.assign({},o,{categoria:'Contrato fixo · variáveis aprovadas',cliente:String(o.cliente||'').replace(/^Bônus por metas/,'Variáveis aprovadas')}):o)}}
+const f3Var=l=>/variáveis aprovadas/i.test(l&&l.categoria||'');
+/* nomes: área da ferramenta no cartão da conta; nome da conta na tabela do budget */
+const f3AreaN=cod=>{const N=(typeof FIN_AR!=='undefined'?FIN_AR:[]).filter(a=>a[2]===cod).map(a=>a[1]);return N.length?N.join(' · '):(FCN[cod]?FCN[cod][3]:'')};
+{const _t=finTabela;finTabela=function(){return _t.apply(this,arguments).replace(/<small>3\.1\.1\.2\.05\.(\d{4})<\/small>/g,(m,c)=>`<small>3.1.1.2.05.${c}<br><span class="muted">${esc(fcNome(c))}</span></small>`)}}
+const f3Orig=l=>f2EhCf(l)?(f3Var(l)?'Variáveis do contrato':'Contrato fixo'):l._fb?'LPU lançada em PDF':'LPU da ferramenta';
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
