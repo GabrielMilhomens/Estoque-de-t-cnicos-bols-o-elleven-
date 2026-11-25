@@ -22591,6 +22591,8 @@ const FB_AREAS=[['impl','Implantação','3.1.1.2.05.0005'],['gtd','GTD Manutenç
   ['tx','Transmissão','3.1.1.2.05.0007'],['melcx','Melhoria de rede · Capex','3.1.1.2.05.0007'],['melox','Melhoria de rede · Opex','3.1.1.2.05.0103']];
 const FB_AN=Object.fromEntries(FB_AREAS.map(a=>[a[0],a[1]]));
 const fbContaFull=a=>{const c=(FB_AREAS.find(x=>x[0]===a)||[])[2]||'';return (typeof LPU_CONTAS!=='undefined'&&LPU_CONTAS.find(x=>x.startsWith(c)))||c};
+/* 25/11: a escolha é pela conta contábil; conta usada por duas áreas (0007) mostra a área entre parênteses */
+const fbContaOps=()=>{const n={};FB_AREAS.forEach(x=>{n[x[2]]=(n[x[2]]||0)+1});return FB_AREAS.slice().sort((x,y)=>x[2].localeCompare(y[2])||x[1].localeCompare(y[1])).map(x=>[x[0],fbContaFull(x[0])+(n[x[2]]>1?' ('+x[1]+')':'')])};
 const fbAreaDeConta=c=>({'0005':'impl','0006':'gtd','0007':'tx','0008':'re','0101':'rep','0102':'rpr','0103':'melox'})[String(c||'')]||'';
 async function fbCarregar(){if(FB.bus)return;FB.bus=true;try{FB.rows=await todas(()=>sb.from('ag_fin_baixas').select('*'));FB.ok=true;FB.err=''}catch(e){FB.err=String((e&&e.message)||e);FB.ok=false}finally{FB.bus=false}render()}
 const fbPode=()=>!!ME&&!gTecPerfil()&&(['coord','sup','enc'].includes(ui.perfil)||(typeof f2Edita==='function'&&(ui.cat==='fin'||ui.cat==='ger')));
@@ -22666,7 +22668,7 @@ function viewFinImp(){if(!FB.ok){if(!FB.bus&&!FB.err)fbCarregar();return f2Top('
   const card=(r,i)=>{const dup=fbDup(r);return `<div class="fgcard fbc"><div class="fgtop" style="margin:0 0 6px"><div><b>${esc(r.empresa||'Prestador não identificado')}</b> <small class="muted">${r.cnpj?fmtCnpj(r.cnpj):'sem CNPJ'}</small><br><small class="muted">${esc(r.arquivo)}${r.formato==='antigo'?' · formato antigo':''}</small></div><b class="fbt">${brl(r.total)}</b></div>
     <dl class="f2dl"><div><dt>Cliente / POP</dt><dd>${esc(r.cliente||'—')}</dd></div><div><dt>Etiqueta</dt><dd>${esc(r.etiqueta||'—')}</dd></div><div><dt>Data do relatório</dt><dd>${r.data?dBR(r.data):'—'}</dd></div><div><dt>Conta no PDF</dt><dd>${esc(r.contaDesc||r.conta||'—')}</dd></div><div><dt>Itens</dt><dd>${r.itens.length}</dd></div></dl>
     ${r.aviso?`<div class="result warn" style="margin:6px 0">${esc(r.aviso)}</div>`:''}${dup?`<div class="result bad" style="margin:6px 0">Parece repetida: já lançada em ${dtBR(new Date(dup.criado_em).getTime())} por ${esc(dup.criado_nome||'')}.</div>`:''}
-    <div class="fbsel"><label class="f"><span>Área (consome o budget dela)</span><select class="inp" data-ch="fbSet" data-i="${i}" data-k="area">${op(r.area,[['','Escolha…']].concat(FB_AREAS.map(a=>[a[0],a[1]])))}</select></label>
+    <div class="fbsel"><label class="f"><span>Conta contábil (consome o budget dela)</span><select class="inp" data-ch="fbSet" data-i="${i}" data-k="area">${op(r.area,[['','Escolha…']].concat(fbContaOps()))}</select></label>
      <label class="f"><span>Prestador na ferramenta</span><select class="inp" data-ch="fbSet" data-i="${i}" data-k="tec">${op(r.tec,[['','Escolha…']].concat(P))}</select></label></div>
     ${ed?`<div class="tools" style="margin-top:8px"><button class="btn primary" data-act="fbLanca" data-i="${i}" ${r.area&&r.tec?'':'disabled'}>Lançar aprovada · ${brl(r.total)}</button><button class="btn" data-act="fbTira" data-i="${i}">Descartar</button></div>`:''}</div>`};
   return f2Top('Lançar LPU em PDF','LPU de prestador que não passou pela ferramenta. Ela entra <b>já aprovada</b>: consome o budget da área escolhida no mês de hoje e aparece nos totais por prestador e no detalhamento da área.',

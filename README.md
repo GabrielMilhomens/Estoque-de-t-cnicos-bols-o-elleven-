@@ -1141,6 +1141,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/11/2026 | Lançar LPU em PDF: a escolha passa a ser pela **conta contábil** (código e descrição), não pela área; a conta 0007, usada por Transmissão e Melhoria de rede · Capex, mostra a área entre parênteses | `agenda.html` (`mod/finpdf.js`). |
 | 25/11/2026 | Lançar LPU em PDF aceita a conta de Retirada (RE Preventiva · Retirada, 0102) | `agenda.html` (`mod/finpdf.js`). Sem SQL novo. |
 | 25/11/2026 | LPU preenchida pelo administrador da empresa: assinatura com o nome de quem está logado e histórico com o acesso que enviou | `agenda.html` (`mod/lpudup.js`, patch). Sem SQL novo. |
 | 25/11/2026 | Baixa do contrato fixo: campo "Motivo do valor adicional" sem texto de exemplo | `agenda.html` (`mod/cfimpl.js`). |
