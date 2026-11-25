@@ -1071,6 +1071,9 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 - **Contrato fixo em Minha equipe (25/11, `mod/cfimpl.js`):** atividade de equipe com contrato fixo aparece como **Baixa pendente** (não "LPU pendente"), com o botão **Fazer a baixa do contrato fixo** para o administrador da empresa e o aviso "a baixa substitui a LPU e vai para a aprovação da Implantação". Na Visão da empresa terceira (gestão, só consulta) o cartão diz que o administrador faz a baixa em Minha equipe. Seção "LPU e baixas para preencher" quando há baixa.
 
 
+- **Quem assinou e quem enviou a LPU (25/11, `mod/lpudup.js` + patch):** o "Nome do responsável" da assinatura vinha preenchido com o técnico da atividade; quando o administrador da empresa terceira preenchia a LPU do funcionário, o histórico ficava "Enviada e assinada por (funcionário)". Agora vem preenchido com quem está logado (o administrador) e o histórico guarda também o acesso que enviou (`hist[].login`); se o nome assinado for outro, a Aprovação de LPU mostra "(enviada pelo acesso de …)". LPUs antigas não têm o acesso gravado.
+
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1135,6 +1138,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/11/2026 | LPU preenchida pelo administrador da empresa: assinatura com o nome de quem está logado e histórico com o acesso que enviou | `agenda.html` (`mod/lpudup.js`, patch). Sem SQL novo. |
 | 25/11/2026 | Baixa do contrato fixo: campo "Motivo do valor adicional" sem texto de exemplo | `agenda.html` (`mod/cfimpl.js`). |
 | 25/11/2026 | Contrato fixo: "Baixa pendente" e botão "Fazer a baixa do contrato fixo" em Minha equipe; aviso de quem faz a baixa na Visão da empresa terceira | `agenda.html` (`mod/cfimpl.js`). Sem SQL novo. |
 | 24/11/2026 | Tela Materiais por cliente (por cliente e necessidade da logística) e material previsto na planilha do ROI x LPU | `agenda.html` (`mod/matcli.js`). Sem SQL novo. |
