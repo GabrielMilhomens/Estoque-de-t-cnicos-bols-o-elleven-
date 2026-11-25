@@ -1086,6 +1086,9 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - Contrato fixo: variáveis aprovadas (metas marcadas no fechamento) em linha própria, "Contrato fixo · variáveis aprovadas", na RE Corretiva e na Implantação (antes "bônus por metas"); o total do contrato não muda.
 
 
+- **Contrato fixo sem fechamento fora do executado do Financeiro (25/11, `mod/finfix.js`, `mod/finmod.js`):** o budget da área (RE Corretiva e Implantação) continua reservando o valor do contrato desde o início do período (regra de 14/11), mas Conta contábil, Contas a pagar, Solicitar NF e Visão geral só contam o contrato com o fechamento aprovado. Na Conta contábil, os contratos ainda não fechados aparecem à parte ("Contratos fixos ainda não fechados", fora do total). Variáveis só viram linha própria depois do fechamento aprovado.
+
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1150,6 +1153,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/11/2026 | Financeiro: contrato fixo só entra no executado, contas a pagar e NF com o fechamento aprovado; não fechados aparecem à parte na Conta contábil | `agenda.html` (`mod/finfix.js`, `mod/finmod.js`). Sem SQL novo. |
 | 25/11/2026 | Financeiro: prestador pelo CNPJ em Contas a pagar e Solicitar NF (todas as áreas e LPUs em PDF), todos os prestadores para quem vê o Financeiro, nomes de conta iguais ao budget, variáveis do contrato fixo em linha própria | **`agenda_ajuste_98_financeiro_ve_todos.sql` no Supabase**, depois `agenda.html` (`mod/finfix.js`, `mod/finmod.js`). |
 | 25/11/2026 | Lançar LPU em PDF na conta de Retirada dava erro `ag_fin_baixas_area_check` | **`agenda_ajuste_97_fin_baixas_retirada.sql` no Supabase**; `agenda.html` (`mod/finpdf.js`, mensagem do erro aponta o ajuste 97). |
 | 25/11/2026 | Lançar LPU em PDF: a escolha passa a ser pela **conta contábil** (código e descrição), não pela área; a conta 0007, usada por Transmissão e Melhoria de rede · Capex, mostra a área entre parênteses | `agenda.html` (`mod/finpdf.js`). |
