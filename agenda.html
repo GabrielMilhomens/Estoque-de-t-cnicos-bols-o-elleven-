@@ -22587,27 +22587,27 @@ html,body{overflow-x:clip;max-width:100%}
    Transmissão e Melhoria de rede Capex/Opex), além do menu Financeiro. Banco: ag_fin_baixas (agenda_ajuste_95).
    PDF em imagem (escaneado) não tem texto para ler: lança à mão no mesmo formulário. */
 const FB={ok:false,bus:false,err:'',rows:[]};
-const FB_AREAS=[['impl','Implantação','3.1.1.2.05.0005'],['gtd','GTD Manutenção','3.1.1.2.05.0006'],['re','RE Corretiva','3.1.1.2.05.0008'],['rep','RE Preventiva','3.1.1.2.05.0101'],
+const FB_AREAS=[['impl','Implantação','3.1.1.2.05.0005'],['gtd','GTD Manutenção','3.1.1.2.05.0006'],['re','RE Corretiva','3.1.1.2.05.0008'],['rep','RE Preventiva','3.1.1.2.05.0101'],['rpr','RE Preventiva · Retirada','3.1.1.2.05.0102'],
   ['tx','Transmissão','3.1.1.2.05.0007'],['melcx','Melhoria de rede · Capex','3.1.1.2.05.0007'],['melox','Melhoria de rede · Opex','3.1.1.2.05.0103']];
 const FB_AN=Object.fromEntries(FB_AREAS.map(a=>[a[0],a[1]]));
 const fbContaFull=a=>{const c=(FB_AREAS.find(x=>x[0]===a)||[])[2]||'';return (typeof LPU_CONTAS!=='undefined'&&LPU_CONTAS.find(x=>x.startsWith(c)))||c};
-const fbAreaDeConta=c=>({'0005':'impl','0006':'gtd','0007':'tx','0008':'re','0101':'rep','0103':'melox'})[String(c||'')]||'';
+const fbAreaDeConta=c=>({'0005':'impl','0006':'gtd','0007':'tx','0008':'re','0101':'rep','0102':'rpr','0103':'melox'})[String(c||'')]||'';
 async function fbCarregar(){if(FB.bus)return;FB.bus=true;try{FB.rows=await todas(()=>sb.from('ag_fin_baixas').select('*'));FB.ok=true;FB.err=''}catch(e){FB.err=String((e&&e.message)||e);FB.ok=false}finally{FB.bus=false}render()}
 const fbPode=()=>!!ME&&!gTecPerfil()&&(['coord','sup','enc'].includes(ui.perfil)||(typeof f2Edita==='function'&&(ui.cat==='fin'||ui.cat==='ger')));
 function fbVirt(r){const em=new Date(r.criado_em||Date.now()).getTime()||Date.now(),a=r.area,o={id:'fb:'+r.id,_fb:r.id,ag:null,chamado:null,tec:r.tecnico||undefined,status:'aprovada',total:+r.total||0,conta:r.conta,data:isoD(new Date(em)),
   etiqueta:r.etiqueta||'',cliente:r.cliente||r.empresa||'',categoria:'LPU lançada no Financeiro',fases:['Lançada no Financeiro'],dataRel:r.data_rel,pdf_path:null,_fbPdf:r.pdf_path,
   itens:(r.itens||[]).map(i=>({cod:i.c||'',desc:i.d||'',fator:i.f||'',classe:i.cl||'',medida:i.m||'',unit:+i.u||0,qtd:+i.q||0})),hist:[{acao:'Aprovada',por:(r.criado_nome||'Financeiro')+' (Financeiro)',em}]};
-  if(['gtd','re','rep'].includes(a))o._pl=a==='rep'?'rep':a;if(a==='melcx'||a==='melox'){o._pl='mel';o._fbNat=a==='melcx'?'cx':'ox'}return o}
+  if(['gtd','re','rep','rpr'].includes(a))o._pl=a==='rep'||a==='rpr'?'rep':a;if(a==='rpr')o._fbArea='rpr';if(a==='melcx'||a==='melox'){o._pl='mel';o._fbNat=a==='melcx'?'cx':'ox'}return o}
 /* em que lista (S ou G) entram as baixas, conforme a área aberta */
 function fbAlvo(){if(!FB.ok||!ME||gTecPerfil())return null;if(ui.cat==='impl')return{S:['impl']};if(ui.cat!=='gtd')return null;const a=ui.gArea||'gtd';
-  if(typeof melAt==='function'&&melAt())return{G:['melcx','melox']};if(a==='tx')return{S:['tx']};if(a==='re'||a==='rep')return{G:['re','rep']};if(a==='gtd')return{G:['gtd']};return null}
+  if(typeof melAt==='function'&&melAt())return{G:['melcx','melox']};if(a==='tx')return{S:['tx']};if(a==='re'||a==='rep')return{G:['re','rep','rpr']};if(a==='gtd')return{G:['gtd']};return null}
 {const _r=render;render=function(){if(!FB.ok&&!FB.bus&&!FB.err&&ME&&!gTecPerfil()&&(['coord','sup','enc'].includes(ui.perfil)||pode('fin_vis')||pode('fin_imp')))fbCarregar();
   const al=fbAlvo();if(!al)return _r.apply(this,arguments);const sA=S.lpus,gA=G.lpus;
   const add=(arr,as)=>{const V=FB.rows.filter(r=>as.includes(r.area)).map(fbVirt);if(!V.length)return arr;const F=arr.concat(V);F.find=arr.find.bind(arr);F.findIndex=arr.findIndex.bind(arr);F.push=arr.push.bind(arr);F.filter2=arr;return F};
   if(al.S)S.lpus=add(sA,al.S);if(al.G&&gA)G.lpus=add(gA,al.G);try{return _r.apply(this,arguments)}finally{S.lpus=sA;if(gA)G.lpus=gA}}}
 {const _n=melLpuNat;melLpuNat=function(l){if(l&&l._fbNat)return l._fbNat;return _n.apply(this,arguments)}}
 {const _f=finPlantoes;finPlantoes=function(){const o=_f.apply(this,arguments);if(!FB.ok)return o;const ja=new Set(S.lpus.concat(G.lpus||[]).map(l=>l.id));return o.concat(FB.rows.map(fbVirt).filter(l=>!ja.has(l.id)))}}
-{const _a=finAreaL;finAreaL=function(l){if(l&&l._fbNat)return 'mel';return _a.apply(this,arguments)}}
+{const _a=finAreaL;finAreaL=function(l){if(l&&l._fbNat)return 'mel';if(l&&l._fbArea==='rpr')return 'rpr';return _a.apply(this,arguments)}}
 async function fbAbrePdf(id){const r=FB.rows.find(x=>'fb:'+x.id===id||x.id===id);if(!r||!r.pdf_path){toast('Esta LPU foi lançada sem PDF.','warn');return}const w=window.open('','_blank');
   const s=await sb.storage.from('financeiro').createSignedUrl(r.pdf_path,300);if(s.error||!s.data){if(w)w.close();toast('Não foi possível abrir o PDF.','bad');return}if(w&&!w.closed)w.location.href=s.data.signedUrl;else location.href=s.data.signedUrl}
 {const _p=ACT.pdfArq;ACT.pdfArq=function(el){if(String(el.dataset.id).startsWith('fb:'))return fbAbrePdf(el.dataset.id);return _p.apply(this,arguments)}}

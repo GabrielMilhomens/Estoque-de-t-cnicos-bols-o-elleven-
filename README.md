@@ -1074,6 +1074,9 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 - **Quem assinou e quem enviou a LPU (25/11, `mod/lpudup.js` + patch):** o "Nome do responsável" da assinatura vinha preenchido com o técnico da atividade; quando o administrador da empresa terceira preenchia a LPU do funcionário, o histórico ficava "Enviada e assinada por (funcionário)". Agora vem preenchido com quem está logado (o administrador) e o histórico guarda também o acesso que enviou (`hist[].login`); se o nome assinado for outro, a Aprovação de LPU mostra "(enviada pelo acesso de …)". LPUs antigas não têm o acesso gravado.
 
 
+- **Lançar LPU em PDF: conta de Retirada (25/11, `mod/finpdf.js`):** nova área "RE Preventiva · Retirada" (conta 3.1.1.2.05.0102). PDF com conta 0102 já vem com essa área escolhida; a baixa entra aprovada no financeiro da Retirada (mesma área `rpr` das programadas de retirada da RE Preventiva) e aparece nas listas da RE Preventiva. O lançamento não depende de saldo no budget: com budget zerado, o consumo fica acima do budget.
+
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1138,6 +1141,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/11/2026 | Lançar LPU em PDF aceita a conta de Retirada (RE Preventiva · Retirada, 0102) | `agenda.html` (`mod/finpdf.js`). Sem SQL novo. |
 | 25/11/2026 | LPU preenchida pelo administrador da empresa: assinatura com o nome de quem está logado e histórico com o acesso que enviou | `agenda.html` (`mod/lpudup.js`, patch). Sem SQL novo. |
 | 25/11/2026 | Baixa do contrato fixo: campo "Motivo do valor adicional" sem texto de exemplo | `agenda.html` (`mod/cfimpl.js`). |
 | 25/11/2026 | Contrato fixo: "Baixa pendente" e botão "Fazer a baixa do contrato fixo" em Minha equipe; aviso de quem faz a baixa na Visão da empresa terceira | `agenda.html` (`mod/cfimpl.js`). Sem SQL novo. |
