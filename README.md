@@ -1060,6 +1060,14 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - Projetos criados com `-UP1` antes desta versão continuam como projetos separados.
 
 
+- **Materiais por cliente (24/11, `mod/matcli.js`):**
+  - Nova tela em Implantação › Projetos › Materiais por cliente (para quem vê Base de previsão, Previsão, Backlog ou Estoque; técnicos e terceiros não). Valores só com "Ver o custo previsto dos projetos" (`a_custo`).
+  - Aba "Por cliente": materiais previstos no ROI de cada etiqueta (mesmo retrato do "Materiais e mão de obra": ROI pelo KMZ ou itens do PDF com a tabela de preços), situação do projeto, itens com código SAP, quantidade e valor; trabalhos anteriores no detalhe.
+  - Aba "Necessidade da logística": soma dos materiais dos projetos não ativados por código SAP, com a primeira atividade agendada (próximos 7/15/30 dias ou todos) e os projetos de cada material. É o previsto: não desconta o que já saiu.
+  - Planilhas das duas abas. A tela e a planilha "Por cliente" mostram só materiais (sem a coluna de mão de obra).
+  - Planilha do "Mão de obra por etiqueta: ROI x LPU" (Financeiro da Implantação): colunas "Material no ROI (R$)" ao lado da mão de obra prevista e "Total previsto no ROI (R$)"; coluna "Trabalho" quando o cliente tem mais de um trabalho.
+
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1124,6 +1132,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 24/11/2026 | Tela Materiais por cliente (por cliente e necessidade da logística) e material previsto na planilha do ROI x LPU | `agenda.html` (`mod/matcli.js`). Sem SQL novo. |
 | 24/11/2026 | Trabalhos no mesmo cliente (upgrade, mudança de ponto, mudança de endereço, novo trabalho) com a mesma etiqueta; cadastro técnico com PPI/GMUD de clique, POP com busca e campos técnicos; Ver projeto sem dias previstos antes da aprovação | `agenda.html` (`mod/trab.js`, `mod/ppi.js`, `mod/pvver.js`, `mod/guia.js`). Sem SQL novo. |
 | 23/11/2026 | LPU duplicada: uma LPU por atividade (bloqueio no envio, conferência no banco e gatilho), selo Duplicada na aprovação e "Cancelar aprovação" com justificativa | **`agenda_ajuste_96_lpu_sem_duplicidade.sql` no Supabase**, depois `agenda.html` (`mod/lpudup.js`). Na LPU M6CXH73T aprovada duas vezes: Aprovadas › abrir a segunda aprovação › Cancelar aprovação. |
 | 20/11/2026 | Inclusão de projeto guiada (lançamento, extensão de sinal e forma de montar o ROI antes do painel; etapa 3 travada pelas respostas) | `agenda.html` (`mod/guia.js`). Sem SQL. |
