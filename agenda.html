@@ -22050,7 +22050,7 @@ function viewFinConta(){if(!f2Ok())return f2Top('Conta contábil','Executado e b
   const L=Object.values(R).sort((a,b)=>b.v-a.v),tot=L.reduce((s,r)=>s+r.v,0);
   return f2Top('Conta contábil','Um cartão por conta no mês. Toque na conta para ver de quais terceiros veio o valor.',tools)+`<div class="f2cards">${cards}</div>
    <div class="fgcard" style="margin-top:14px"><h3>${c} · ${fcNome(c)} <span class="muted" style="font-weight:500">· ${f2MesN(m)}</span></h3><p class="muted" style="margin:2px 0 10px">Executado ${brl(x.tot)} de ${brl(b)} orçados${x.hist?' (histórico do SAP)':''}. Área na ferramenta: ${FCN[c]?FCN[c][3]:'—'}.</p>
-   ${L.length?`<div class="tablewrap"><table class="f2t"><thead><tr><th>Terceiro</th><th>Origem</th><th class="r">Itens</th><th class="r">Valor</th><th class="r">% da conta</th></tr></thead><tbody>${L.map(r=>`<tr><td><b>${esc(r.nome)}</b></td><td><span class="chip ${r.o==='LPU da ferramenta'?'ok':r.o==='Contrato fixo'?'info':r.o==='Variáveis do contrato'?'warn':''}">${r.o}</span></td><td class="r">${r.o==='Contrato fixo'?r.n+' lançamento'+(r.n>1?'s':''):r.o==='Variáveis do contrato'?'aprovadas':r.o==='Histórico SAP'?'—':r.n+' LPU'+(r.n>1?'s':'')}</td><td class="r">${brl(r.v)}</td><td class="r">${tot?Math.round(r.v/tot*100):0}%</td></tr>`).join('')}<tr><td colspan="3"><b>Total da conta</b></td><td class="r"><b>${brl(tot)}</b></td><td class="r"><b>100%</b></td></tr></tbody></table></div>`:'<p class="fgempty">Nada lançado nesta conta no mês.</p>'}</div>`}
+   ${L.length?`<div class="tablewrap"><table class="f2t"><thead><tr><th>Terceiro</th><th>Origem</th><th class="r">Itens</th><th class="r">Valor</th><th class="r">% da conta</th></tr></thead><tbody>${L.map(r=>`<tr><td><b>${esc(r.nome)}</b></td><td><span class="chip ${r.o==='LPU da ferramenta'?'ok':r.o==='Contrato fixo'?'info':r.o==='Variáveis do contrato'?'warn':r.o==='Desconto do contrato'?'bad':''}">${r.o}</span></td><td class="r">${r.o==='Contrato fixo'?r.n+' lançamento'+(r.n>1?'s':''):r.o==='Variáveis do contrato'?'aprovadas':r.o==='Desconto do contrato'?r.n+' desconto'+(r.n>1?'s':''):r.o==='Histórico SAP'?'—':r.n+' LPU'+(r.n>1?'s':'')}</td><td class="r">${brl(r.v)}</td><td class="r">${tot?Math.round(r.v/tot*100):0}%</td></tr>`).join('')}<tr><td colspan="3"><b>Total da conta</b></td><td class="r"><b>${brl(tot)}</b></td><td class="r"><b>100%</b></td></tr></tbody></table></div>`:'<p class="fgempty">Nada lançado nesta conta no mês.</p>'}</div>`}
 function f2BudModal(){const m=ui.fcMes||hoje().slice(0,7),[y,mo]=m.split('-').map(Number),ant=isoD(new Date(y,mo-2,1)).slice(0,7);
   openModal(`<h3 style="margin-top:0">Budget de ${f2MesN(m)}</h3><p class="muted" style="margin:0 0 10px">Um budget só, por conta e mês. Cada área continua vendo a parte dela no Financeiro da área.</p>
    <div class="f2bud">${FC.map(([c,n,g])=>`<label class="f"><span>${c} · ${n} <small class="muted">${g}</small></span><input class="inp" inputmode="decimal" id="f2b_${c}" value="${f2Bud(m,c)?String(f2Bud(m,c)).replace('.',','):''}" placeholder="0,00"></label>`).join('')}</div>
@@ -22084,14 +22084,15 @@ async function f2FatGrava(g,patch,acao){const s=g.s||{},row=Object.assign({chave
 
 /* ---------- 4. Solicitar NF ---------- */
 function f2NfLinhas(g,tipo){const R=[];if(tipo!=='ctr'&&g.lpu)g.lpu.itens.forEach(l=>R.push({t:'lpu',data:l.data||'',ac:[l.cliente||(typeof cliN==='function'&&l.etiqueta?cliN(l.etiqueta):'')||'',l.etiqueta?`(${l.etiqueta})`:'',l.pom?`O&M ${l.pom}`:''].filter(Boolean).join(' ')||'(sem identificação)',conta:f2LpuCod(l),v:+l.total||0}));
-  if(tipo!=='lpu'&&g.ctr)g.ctr.itens.forEach(c=>{if(c.status){R.push({t:'ctr',data:c.data||'',ac:'Contrato fixo - '+(c.categoria||'').replace(/^Contrato fixo · /,'')+(c.etiqueta&&!c._cf?' · '+c.etiqueta:''),conta:f2LpuCod(c),v:+c.total||0});return}const x=f2Calc(c,g.ctr.mes);R.push({t:'ctr',data:'',comp:g.ctr.mes,ac:'Contrato fixo - '+c.nome+(c.tipo==='meta'?` · ${x.ativ} atividades`:''),conta:fcCod(c.conta),v:x.total})});return R}
+  if(tipo!=='lpu'&&g.ctr)g.ctr.itens.forEach(c=>{if(c.status){const ds=/desconto/i.test(c.categoria||'');R.push({t:ds?'desc':'ctr',data:c.data||'',ac:ds?'Desconto do contrato fixo - '+(c.descMot||String(c.cliente||'').replace(/^Desconto [^:]*: /,'')):c._cf&&c.cliente?'Contrato fixo - '+String(c.cliente).replace(/^Contrato fixo /,''):'Contrato fixo - '+(c.categoria||'').replace(/^Contrato fixo · /,'')+(c.etiqueta&&!c._cf?' · '+c.etiqueta:''),conta:f2LpuCod(c),v:+c.total||0});return}const x=f2Calc(c,g.ctr.mes);R.push({t:'ctr',data:'',comp:g.ctr.mes,ac:'Contrato fixo - '+c.nome+(c.tipo==='meta'?` · ${x.ativ} atividades`:''),conta:fcCod(c.conta),v:x.total})});return R}
 function f2NfGrupos(m){const G0={};f2Faturas(m).forEach(f=>{const g=G0[f.chave]=G0[f.chave]||{chave:f.chave,nome:f.nome,fin:f.fin};g[f.tipo]=f});return Object.values(G0).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function f2NfHtml(g,m,tipo){if(tipo==='ambos'&&!(g.lpu&&g.ctr))tipo=g.lpu?'lpu':'ctr';const R=f2NfLinhas(g,tipo),tot=R.reduce((s,r)=>s+r.v,0),pz=f2UltUtil(m),h=new Date().getHours(),sd=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
   const oq=tipo==='lpu'?'das atividades consideradas':tipo==='ctr'?'dos contratos considerados':'das atividades (LPU) e dos contratos considerados';
   const th='style="background:#cfe2f3;border:1px solid #9fb6c9;padding:3px 6px;text-align:left;font-weight:bold"',td='style="border:1px solid #9fb6c9;padding:3px 6px"',tdr='style="border:1px solid #9fb6c9;padding:3px 6px;text-align:right;white-space:nowrap"';
   const lin=rs=>rs.map(r=>`<tr><td ${tdr}>${r.data?dBR(r.data):r.comp?r.comp.slice(5)+'/'+r.comp.slice(0,4):''}</td><td ${td}>${esc(r.ac)}</td><td ${td}>${esc(fcFull(r.conta))}</td><td ${tdr}>${brl(r.v)}</td></tr>`).join('');
   const dois=tipo==='ambos';const sec=(t,rs)=>dois&&rs.length?`<tr><td colspan="4" style="background:#eef3f8;border:1px solid #9fb6c9;padding:3px 6px;font-weight:bold">${t}</td></tr>`+lin(rs)+`<tr><td ${td} colspan="3"><b>Subtotal ${t}</b></td><td ${tdr}><b>${brl(rs.reduce((s,r)=>s+r.v,0))}</b></td></tr>`:lin(rs);
-  const body=(tipo!=='ctr'?sec('LPU',R.filter(r=>r.t==='lpu')):'')+(tipo!=='lpu'?sec('Contrato fixo',R.filter(r=>r.t==='ctr')):'');
+  const secD=rs=>rs.length?`<tr><td colspan="4" style="background:#fbeaea;border:1px solid #9fb6c9;padding:3px 6px;font-weight:bold">Descontos do contrato fixo</td></tr>`+lin(rs)+`<tr><td ${td} colspan="3"><b>Subtotal descontos</b></td><td ${tdr}><b>${brl(rs.reduce((s,r)=>s+r.v,0))}</b></td></tr>`:'';
+  const body=(tipo!=='ctr'?sec('LPU',R.filter(r=>r.t==='lpu')):'')+(tipo!=='lpu'?sec('Contrato fixo',R.filter(r=>r.t==='ctr'))+secD(R.filter(r=>r.t==='desc')):'');
   return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#000"><p>${sd}, time,</p><p>Segue abaixo o detalhamento ${oq} no <b>fechamento</b> de ${f2MesN(m)}, referentes ao período.</p>
 <p><b>Reforçamos que a NF deve ser obrigatoriamente emitida e entregue até o último dia útil do mês (${pz.slice(8,10)}/${pz.slice(5,7)}), a fim de evitar impactos no fechamento.</b></p>
 <table style="border-collapse:collapse;font-size:10pt"><tr><th ${th}>DATA</th><th ${th}>${tipo==='ctr'?'CONTRATO':'ACIONAMENTOS'}</th><th ${th}>DESCRIÇÃO CONTÁBIL</th><th ${th}>VALOR</th></tr>${body}
@@ -23213,13 +23214,131 @@ const f3Var=l=>/variáveis aprovadas/i.test(l&&l.categoria||'');
 /* nomes: área da ferramenta no cartão da conta; nome da conta na tabela do budget */
 const f3AreaN=cod=>{const N=(typeof FIN_AR!=='undefined'?FIN_AR:[]).filter(a=>a[2]===cod).map(a=>a[1]);return N.length?N.join(' · '):(FCN[cod]?FCN[cod][3]:'')};
 {const _t=finTabela;finTabela=function(){return _t.apply(this,arguments).replace(/<small>3\.1\.1\.2\.05\.(\d{4})<\/small>/g,(m,c)=>`<small>3.1.1.2.05.${c}<br><span class="muted">${esc(fcNome(c))}</span></small>`)}}
-const f3Orig=l=>f2EhCf(l)?(f3Var(l)?'Variáveis do contrato':'Contrato fixo'):l._fb?'LPU lançada em PDF':'LPU da ferramenta';
+const f3Orig=l=>f2EhCf(l)?(f3Var(l)?'Variáveis do contrato':/desconto/i.test(l.categoria||'')?'Desconto do contrato':'Contrato fixo'):l._fb?'LPU lançada em PDF':'LPU da ferramenta';
 {const _f=viewFinConta;viewFinConta=function(){const h=_f.apply(this,arguments);try{const m=ui.fcMes||hoje().slice(0,7),c=ui.fcCod||'0008';if(f2HistM(m).length)return h;
   const P=finTodas().filter(l=>l._cfPrev&&f2LpuCod(l)===c&&aprovEm(l)&&mesDe(aprovEm(l))===m);if(!P.length)return h;const R={};P.forEach(l=>{const k=f2TerL(l);const r=R[k.chave]=R[k.chave]||{nome:k.nome,v:0,per:new Set()};r.v+=+l.total||0;r.per.add(String(l.cliente||'').replace(/^Contrato fixo (\(valor do contrato\) )?/,''))});
   const bx=`<div class="fgcard" style="margin-top:14px"><h3 style="margin:0">Contratos fixos ainda não fechados</h3><p class="muted" style="margin:2px 0 10px">Fora do executado, das contas a pagar e do e-mail de NF até o fechamento ser aprovado na área. O budget da área já reserva esse valor.</p>
    <div class="tablewrap"><table class="f2t"><thead><tr><th>Terceiro</th><th>Período</th><th class="r">Valor do contrato</th></tr></thead><tbody>${Object.values(R).map(r=>`<tr><td><b>${esc(r.nome)}</b></td><td>${esc([...r.per].join(', '))}</td><td class="r">${brl(r.v)}</td></tr>`).join('')}</tbody></table></div></div>`;
   return h+bx}catch(e){console.warn('f3c',e);return h}}}
 RP_VIEWS.finConta=viewFinConta;
+
+/* ===== 25/11: fechamento manual do contrato fixo (RE Corretiva e Implantação) =====
+   Para o período que não foi feito inteiro na ferramenta (ex.: 21/10 a 20/11): a coordenação lança o fechamento com os
+   números do mês (chamados/produção, variáveis atingidas, valor adicional) e ele já entra aprovado, como qualquer
+   fechamento: budget da área, Conta contábil, Contas a pagar e NF do mês. Ao lançar, o contrato passa a valer na
+   ferramenta a partir do período seguinte (ex.: 21/11 a 20/12), então o período manual não é contado duas vezes. */
+const cfmEd=a=>a==='impl'?(typeof cfiEd==='function'&&cfiEd()):cfEdita();
+const cfmKs=a=>CF.rows.filter(x=>x.tipo==='contrato'&&x.area===a).sort((p,q)=>(p.ativo===false)-(q.ativo===false)||gTecN(p.tec).localeCompare(gTecN(q.tec)));
+const cfmN=v=>{const n=parseFloat(String(v==null?'':v).replace(/\./g,'').replace(',','.'));return isNaN(n)?0:n};
+const cfmR=v=>Math.round(v*100)/100;
+/* números do fechamento manual */
+function cfmCalc(a,F){const vOk=(F.vars||[]).filter(v=>v.ok).reduce((s,v)=>s+(+v.valor||0),0),add=F.add?+F.add.v||0:0;
+  if(a==='impl'){const fixo=+F.fixo||0,vb=+F.vb||0;return{fixo,vb,imp:cfmR(Math.max(0,fixo-vb)),exc:cfmR(Math.max(0,vb-fixo)),vOk,add,total:cfmR(Math.max(fixo,vb)+vOk+add)}}
+  const qtd=+F.qtd||0,n=+F.n||0,fixo=+F.fixo||0,exc=+F.exc||0,ne=Math.max(0,n-qtd),ni=Math.max(0,qtd-n),un=qtd?fixo/qtd:0;
+  return{qtd,n,ne,ni,un,fixo,exc,vExc:ne*exc,vImp:cfmR(ni*un),vOk,add,total:cfmR(fixo+ne*exc+vOk+add)}}
+{const _a=cfApura;cfApura=function(a,tec,ref){const F=cfFech(a,tec,ref);if(!F||!F.manual)return _a.apply(this,arguments);const k=cfContrato(a,tec)||{},C=cfmCalc(a,F);
+  return{qtd:C.qtd,fixo:C.fixo,exc:C.exc,vars:(F.vars||[]).map(v=>Object.assign({},v)),F,ids:[],n:C.n,ne:C.ne,ni:C.ni,un:C.un,vImp:C.vImp,vExc:C.vExc,vOk:C.vOk,vAdd:C.add,total:C.total,st:F.status,manual:true}}}
+{const _a=cfiApura;cfiApura=function(tec,ref){const F=cfFech('impl',tec,ref);if(!F||!F.manual)return _a.apply(this,arguments);const k=cfContrato('impl',tec)||{},C=cfmCalc('impl',F);
+  return{k,F,B:[],vb:C.vb,fixo:C.fixo,imp:C.imp,exc:C.exc,vars:F.vars||[],vOk:C.vOk,vAdd:C.add,pend:[],cat:{},total:C.total,st:F.status,manual:true}}}
+/* Implantação: o valor adicional do fechamento manual entra como linha própria */
+{const _v=cfiVirt;cfiVirt=function(){const R=_v.apply(this,arguments),out=[];R.forEach(o=>{out.push(o);if(/:(imp|bon)$/.test(o.id)||!o._cfRef)return;const F=cfFech('impl',o.tec,o._cfRef);
+  if(F&&F.manual&&F.add&&+F.add.v)out.push(Object.assign({},o,{id:o.id+':add',categoria:'Contrato fixo · valor adicional',cliente:'Valor adicional '+cfPerTxt(o._cfRef)+(F.add.mot?' · '+F.add.mot:''),total:+F.add.v}))});return out}}
+/* modal */
+function cfmModal(){const M=ui.cfm,K=cfmKs(M.area),k=K.find(x=>x.tec===M.tec)||K[0];if(!k){toast('Cadastre o contrato fixo da equipe antes.','bad');return}
+  if(M.tec!==k.tec||!M.F){M.tec=k.tec;cfmIni(k)}const F=M.F,C=cfmCalc(M.area,F),hj=cfRefHoje(),refs=[];for(let i=-6;i<=0;i++)refs.push(cfRefMais(hj,i));
+  const ja=cfFech(M.area,M.tec,M.ref),bloq=ja&&!ja.manual&&ja.status==='apr',num=(f,l,v,dis)=>`<label class="f"><span>${l}</span><input class="inp" inputmode="decimal" data-in="cfmF" data-f="${f}" value="${v==null?'':String(v).replace('.',',')}" ${dis?'disabled':''}></label>`;
+  openModal(`<h3>Fechamento manual do contrato fixo</h3><p class="muted">${M.area==='impl'?'Implantação':'RE Corretiva'} · para o período que não foi feito inteiro na ferramenta. Entra já aprovado e conta no mês do período (21 a 20 → mês do dia 20).</p>
+   <div class="grid2"><label class="f"><span>Equipe</span><select class="inp" data-ch="cfmTec">${K.map(x=>`<option value="${x.tec}" ${x.tec===M.tec?'selected':''}>${esc(gTecN(x.tec))}${x.ativo===false?' (inativo)':''}</option>`).join('')}</select></label>
+   <label class="f"><span>Período</span><select class="inp" data-ch="cfmRef">${refs.map(r=>`<option value="${r}" ${r===M.ref?'selected':''}>${cfPerTxt(r)}${r===hj?' (atual)':''}</option>`).join('')}</select></label></div>
+   ${bloq?`<div class="result warn">Esse período já tem fechamento aprovado na ferramenta (${brl(cfmR((M.area==='impl'?cfiApura(M.tec,M.ref):cfApura(M.area,M.tec,M.ref)).total))}). Para refazer, devolva o fechamento na tela do mês.</div>`:''}
+   <div class="grid2">${M.area==='impl'?num('fixo','Valor fixo do mês (R$)',F.fixo)+num('vb','Produção do período: valor das baixas (R$)',F.vb)
+     :num('qtd','Franquia de chamados',F.qtd)+num('n','Chamados atendidos no período',F.n)+num('fixo','Valor fixo (R$)',F.fixo)+num('exc','Valor por chamado acima da franquia (R$)',F.exc)}</div>
+   ${(F.vars||[]).length?`<p style="margin:8px 0 4px"><b>Variáveis atingidas</b></p>${F.vars.map((v,i)=>`<label class="cfmv"><input type="checkbox" data-ch="cfmVar" data-i="${i}" ${v.ok?'checked':''}> <span>${esc(v.nome)}</span><b>${brl(+v.valor||0)}</b></label>`).join('')}`:'<p class="muted">Contrato sem variáveis.</p>'}
+   <div class="grid2">${num('addv','Valor adicional (R$, opcional)',F.add?F.add.v:'')}<label class="f"><span>Motivo do valor adicional</span><input class="inp" data-in="cfmF" data-f="addm" value="${esc(F.add&&F.add.mot||'')}"></label></div>
+   <label class="f"><span>Observação</span><textarea class="inp" rows="2" data-in="cfmF" data-f="obs">${esc(F.obs||'')}</textarea></label>
+   <div class="cfmtot" id="cfmTot">${cfmTotHtml(M.area,C)}</div>
+   <label class="cfmv"><input type="checkbox" data-ch="cfmVig" ${M.vig!==false?'checked':''}> <span>O contrato passa a valer na ferramenta a partir de <b>${cfPerTxt(cfRefMais(M.ref,1))}</b> (o período manual não é apurado de novo)</span></label>
+   <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="cfmSalvar" ${bloq?'disabled':''}>Lançar fechamento aprovado</button></div>`)}
+function cfmTotHtml(a,C){const l=(t,v,c)=>`<div><span>${t}</span><b ${c?`style="color:var(--${c})"`:''}>${v}</b></div>`;
+  return (a==='impl'?l('Fixo',brl(C.fixo))+l('Produção',brl(C.vb))+(C.exc?l('Acima do fixo',brl(C.exc)):'')+(C.imp?l('Improdutivo (dentro do fixo)',brl(C.imp),'bad'):'')
+    :l('Fixo',brl(C.fixo))+(C.ne?l(`${C.ne} chamado(s) acima`,brl(C.vExc)):'')+(C.ni?l(`${C.ni} abaixo da franquia · improdutivo (dentro do fixo)`,brl(C.vImp),'bad'):''))
+    +(C.vOk?l('Variáveis',brl(C.vOk)):'')+(C.add?l('Valor adicional',brl(C.add)):'')+`<div class="cfmt"><span>Total do período</span><b>${brl(C.total)}</b></div>`}
+function cfmIni(k){const M=ui.cfm,ja=cfFech(M.area,k.tec,M.ref);
+  if(ja&&ja.manual){M.F=JSON.parse(JSON.stringify(ja));return}
+  M.F=M.area==='impl'?{fixo:+k.fixo||0,vb:0,vars:(k.vars||[]).map(v=>({id:v.id,nome:v.nome,valor:+v.valor||0,ok:false}))}
+    :{qtd:+k.qtd||0,n:0,fixo:+k.fixo||0,exc:k.exc!=null?+k.exc:CF_EXC,vars:(k.vars||[]).map(v=>({id:v.id,nome:v.nome,valor:+v.valor||0,ok:false}))}}
+const cfmTot=()=>{const e=$('cfmTot');if(e&&ui.cfm)e.innerHTML=cfmTotHtml(ui.cfm.area,cfmCalc(ui.cfm.area,ui.cfm.F))};
+IN.cfmF=el=>{const F=ui.cfm&&ui.cfm.F;if(!F)return;const f=el.dataset.f,v=el.value;if(f==='addv'){F.add=Object.assign({},F.add,{v:cfmN(v)})}else if(f==='addm'){F.add=Object.assign({v:0},F.add,{mot:v})}else if(f==='obs')F.obs=v;else F[f]=cfmN(v);cfmTot()};
+CH.cfmVar=el=>{const F=ui.cfm&&ui.cfm.F;if(!F)return;F.vars[+el.dataset.i].ok=el.checked;cfmTot()};
+CH.cfmTec=el=>{ui.cfm.tec=el.value;ui.cfm.F=null;cfmModal()};
+CH.cfmRef=el=>{ui.cfm.ref=el.value;ui.cfm.F=null;cfmModal()};
+CH.cfmVig=el=>{ui.cfm.vig=el.checked};
+Object.assign(ACT,{
+  cfmAbrir:el=>{const a=el.dataset.a;if(!cfmEd(a))return semPerm();if(!CF.ok){toast('Carregando os contratos…');cfCarregar();return}
+    ui.cfm={area:a,ref:cfRefMais(cfRefHoje(),-1),tec:null,F:null,vig:true};cfmModal()},
+  cfmSalvar:async()=>{const M=ui.cfm;if(!M||!cfmEd(M.area))return;const F0=M.F,C=cfmCalc(M.area,F0),k=cfContrato(M.area,M.tec);
+    if(F0.add&&+F0.add.v>0&&!String(F0.add.mot||'').trim())return toast('Escreva o motivo do valor adicional.','bad');
+    if(!(C.total>0))return toast('O total do período está zerado.','bad');
+    const ja=cfFech(M.area,M.tec,M.ref);if(ja&&!ja.manual&&ja.status==='apr')return toast('Esse período já tem fechamento aprovado.','bad');
+    const now=Date.now(),x=Object.assign({},ja||{},F0,{id:ja?ja.id:uid(),area:M.area,tec:M.tec,tipo:'fech',ref:M.ref,status:'apr',manual:true,ids:[],ok:Object.fromEntries((F0.vars||[]).map(v=>[v.id,!!v.ok])),apr:{por:meNome(),em:now}});
+    if(F0.add&&!(+F0.add.v>0))delete x.add;
+    cfH(x,ja?'Fechamento manual alterado':'Fechamento manual lançado',`${cfPerTxt(M.ref)} · total ${brl(C.total)}${F0.obs?' · '+F0.obs:''}`);
+    if(!ja)CF.rows.push(x);else Object.assign(ja,x);
+    if(!await cfSalvar(ja||x))return;
+    if(k&&M.vig!==false&&cfDesde(k)<=M.ref){const nk=Object.assign({},k,{desde:cfRefMais(M.ref,1)});cfH(nk,'Vigência ajustada',`Passa a valer a partir de ${cfPerTxt(nk.desde)} (fechamento manual de ${cfPerTxt(M.ref)})`);Object.assign(k,nk);await cfSalvar(k)}
+    closeModal();ui.cfm=null;render();toast(`Fechamento de ${cfPerTxt(M.ref)} lançado: ${brl(C.total)}.`)}});
+/* botões nas telas de fechamento */
+{const _v=viewCfix;viewCfix=function(){const h=_v.apply(this,arguments);return cfEdita()?h.replace('<button class="btn primary" data-act="cfContratos">Contratos</button>','<button class="btn" data-act="cfmAbrir" data-a="re">Fechamento manual</button><button class="btn primary" data-act="cfContratos">Contratos</button>'):h}}
+{const _v=cfiView;cfiView=function(sub){const h=_v.apply(this,arguments);if(sub!=='cfiFech'||!cfiEd())return h;return h.replace('<button class="btn sm" data-act="cfiRef" data-k="1" aria-label="Próximo período">›</button></div>','<button class="btn sm" data-act="cfiRef" data-k="1" aria-label="Próximo período">›</button><button class="btn" data-act="cfmAbrir" data-a="impl" style="margin-left:auto">Fechamento manual</button></div>')}}
+/* cartões do mês: avisa que o fechamento foi manual */
+{const _c=cfiFechCard;cfiFechCard=function(k,ref){const h=_c.apply(this,arguments),F=cfFech('impl',k.tec,ref);return F&&F.manual?h.replace(/(<\/h3>|<\/b>)/,`$1 <span class="chip info">Fechamento manual</span>`):h}}
+document.head.insertAdjacentHTML('beforeend',`<style>.cfmv{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin:6px 0}.cfmv span{flex:1}
+.cfmtot{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;display:grid;gap:4px}.cfmtot div{display:flex;justify-content:space-between;gap:10px;font-size:14px}.cfmtot .cfmt{border-top:1px solid var(--line);padding-top:6px;margin-top:4px;font-size:16px}</style>`);
+/* ===== 25/11: desconto no contrato fixo (falta no dia, quebra de contrato) =====
+   No fechamento do mês (RE Corretiva e Implantação) e no fechamento manual: valor e motivo informados pela supervisão.
+   O total do período é líquido (com o desconto). No Financeiro o desconto vira linha própria, negativa, com o motivo:
+   Conta contábil, Contas a pagar e o e-mail da NF (bloco "Descontos do contrato fixo"). */
+const cfmDescV=F=>F&&Array.isArray(F.desc)?Math.round(F.desc.reduce((s,d)=>s+(+d.v||0),0)*100)/100:0;
+{const _a=cfApura;cfApura=function(a,tec,ref){const A=_a.apply(this,arguments),F=A.F||cfFech(a,tec,ref),d=cfmDescV(F);if(d&&A.manual){A.vDesc=d;A.desc=F.desc}else if(d){A.vDesc=d;A.desc=F.desc;A.total=cfmR(A.total-d)}return A}}
+{const _a=cfiApura;cfiApura=function(tec,ref){const A=_a.apply(this,arguments),F=A.F||cfFech('impl',tec,ref),d=cfmDescV(F);if(d&&A.manual){A.vDesc=d;A.desc=F.desc}else if(d){A.vDesc=d;A.desc=F.desc;A.total=cfmR(A.total-d)}return A}}
+const cfmDescRows=(o,F,per)=>(F.desc||[]).filter(d=>+d.v>0).map((d,i)=>Object.assign({},o,{id:o.id+':desc'+i,categoria:'Contrato fixo · desconto',cliente:'Desconto '+per+': '+(d.mot||''),descMot:d.mot||'',total:-(+d.v)}));
+{const _l=cfLpus;cfLpus=function(a){const R=_l.apply(this,arguments),out=[];R.forEach(o=>{out.push(o);if(o._cfPrev||!o._cfId||/:(imp|var|desc\d*)$/.test(o.id))return;const F=CF.rows.find(y=>y.id===o._cfId);const d=cfmDescV(F);if(!d)return;
+  o.total=cfmR(o.total+d);cfmDescRows(o,F,cfPerTxt(F.ref)).forEach(x=>out.push(x))});return out}}
+{const _v=cfiVirt;cfiVirt=function(){const R=_v.apply(this,arguments),out=[];R.forEach(o=>{out.push(o);if(/:(imp|bon|add|desc\d*)$/.test(o.id)||!o._cfRef)return;const F=cfFech('impl',o.tec,o._cfRef);if(cfmDescV(F))cfmDescRows(Object.assign({},o,{_cfPrev:o._cfPrev}),F,cfPerTxt(o._cfRef)).forEach(x=>out.push(x))});return out}}
+{const _c=cfAreaLinhas;cfAreaLinhas=function(m){return _c.apply(this,arguments).map(x=>{const d=x.k.area==='impl'?cfmDescV(cfFech('impl',x.k.tec,m)):0;if(d)x.cons=cfmR(x.cons-d);return x})}}
+/* bloco de descontos nos cartões do mês */
+function cfmDescBloco(area,tec,ref,F,ed){const L=(F&&F.desc)||[];if(!L.length&&!ed)return '';
+  return `<div class="cfmdesc"><small>Descontos${ed?' · falta no dia, quebra de contrato':''}</small>${L.map((d,i)=>`<div class="cfmdl"><span>${esc(d.mot||'')}<br><small class="muted">${esc(d.por||'')}${d.em?' · '+dBR(isoD(new Date(d.em))):''}</small></span><b>− ${brl(+d.v||0)}</b>${ed?`<button class="btn sm" data-act="cfmDescDel" data-a="${area}" data-tec="${tec}" data-ref="${ref}" data-i="${i}" aria-label="Tirar desconto">Tirar</button>`:''}</div>`).join('')}
+   ${ed?`<button class="btn sm" data-act="cfmDescNovo" data-a="${area}" data-tec="${tec}" data-ref="${ref}">Adicionar desconto</button>`:''}</div>`}
+{const _v=viewCfix;viewCfix=function(){const h=_v.apply(this,arguments),ref=ui.cfRef||cfRefHoje();
+  return h.split('<section class="panel cfcard">').map((seg,i)=>{if(!i)return seg;const t=(seg.match(/data-tec="([^"]+)"/)||[])[1];if(!t)return seg;const A=cfApura('re',t,ref),ed=['aberto','dev'].includes(A.st)&&cfEdita();
+    return seg.replace('<div class="cftot"><span>Total do período</span>',cfmDescBloco('re',t,ref,A.F,ed)+`<div class="cftot"><span>Total do período${A.vDesc?' (com desconto)':''}</span>`)}).join('<section class="panel cfcard">')}}
+{const _c=cfiFechCard;cfiFechCard=function(k,ref){const h=_c.apply(this,arguments),A=cfiApura(k.tec,ref),ed=['aberto','dev'].includes(A.st)&&cfiEd();
+  return h.replace(/<div class="cftot"><span>([^<]*)<\/span>/,(m,t)=>cfmDescBloco('impl',k.tec,ref,A.F,ed)+`<div class="cftot"><span>${t}${A.vDesc?' − descontos':''}</span>`)}}
+const cfmGarante=async(a,tec,ref)=>a==='impl'?cfiFechGarante(tec,ref):cfFechGarante(tec,ref);
+Object.assign(ACT,{
+  cfmDescNovo:el=>{const a=el.dataset.a;if(!cfmEd(a))return semPerm();ui.cfmD={a,tec:el.dataset.tec,ref:el.dataset.ref};
+    openModal(`<h3>Desconto no contrato fixo</h3><p class="muted">${esc(gTecN(el.dataset.tec))} · período ${cfPerTxt(el.dataset.ref)}. Sai do total do fechamento e aparece com o motivo no Financeiro e no e-mail da NF.</p>
+     <div class="grid2"><label class="f"><span>Valor do desconto (R$)</span><input class="inp" id="cfmDv" inputmode="decimal"></label><label class="f"><span>Motivo</span><input class="inp" id="cfmDm"></label></div>
+     <div class="actions"><button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="cfmDescOk">Lançar desconto</button></div>`)},
+  cfmDescOk:async()=>{const D=ui.cfmD;if(!D||!cfmEd(D.a))return;const v=cfmN(($('cfmDv')||{}).value),m=(($('cfmDm')||{}).value||'').trim();
+    if(!(v>0))return toast('Informe o valor do desconto.','bad');if(m.length<5)return toast('Escreva o motivo do desconto.','bad');
+    const F=await cfmGarante(D.a,D.tec,D.ref);if(!['aberto','dev'].includes(F.status)){toast('Fechamento já aprovado: reabra para lançar desconto.','bad');return}
+    F.desc=(F.desc||[]).concat([{v,mot:m,por:meNome(),em:Date.now()}]);cfH(F,'Desconto lançado',`${brl(v)} · ${m}`);closeModal();ui.cfmD=null;await cfSalvar(F,'Desconto lançado.')},
+  cfmDescDel:async el=>{const a=el.dataset.a;if(!cfmEd(a))return;const F=cfFech(a,el.dataset.tec,el.dataset.ref);if(!F||!['aberto','dev'].includes(F.status))return;const d=(F.desc||[])[+el.dataset.i];if(!d)return;
+    F.desc=F.desc.filter((x,i)=>i!==+el.dataset.i);cfH(F,'Desconto retirado',`${brl(+d.v||0)} · ${d.mot||''}`);await cfSalvar(F,'Desconto retirado.')},
+  cfmDescAdd:()=>{const M=ui.cfm;if(!M)return;const v=cfmN(($('cfmNv')||{}).value),m=(($('cfmNm')||{}).value||'').trim();if(!(v>0))return toast('Informe o valor do desconto.','bad');if(m.length<5)return toast('Escreva o motivo do desconto.','bad');
+    M.F.desc=(M.F.desc||[]).concat([{v,mot:m,por:meNome(),em:Date.now()}]);cfmModal()},
+  cfmDescTira:el=>{const M=ui.cfm;if(!M)return;M.F.desc=(M.F.desc||[]).filter((x,i)=>i!==+el.dataset.i);cfmModal()}});
+/* fechamento manual: descontos no formulário e no total */
+{const _c=cfmCalc;cfmCalc=function(a,F){const C=_c.apply(this,arguments),d=cfmDescV(F);if(d){C.vDesc=d;C.total=cfmR(C.total-d)}return C}}
+{const _t=cfmTotHtml;cfmTotHtml=function(a,C){const h=_t.apply(this,arguments);return C.vDesc?h.replace('<div class="cfmt">',`<div><span>Descontos</span><b style="color:var(--bad)">− ${brl(C.vDesc)}</b></div><div class="cfmt">`):h}}
+{const _m=cfmModal;cfmModal=function(){_m.apply(this,arguments);const M=ui.cfm,t=$('cfmTot');if(!M||!M.F||!t)return;const L=M.F.desc||[];
+  t.insertAdjacentHTML('beforebegin',`<div class="cfmdesc"><small><b>Descontos</b> · falta no dia, quebra de contrato</small>${L.map((d,i)=>`<div class="cfmdl"><span>${esc(d.mot)}</span><b>− ${brl(+d.v||0)}</b><button class="btn sm" data-act="cfmDescTira" data-i="${i}">Tirar</button></div>`).join('')}
+   <div class="grid2"><label class="f"><span>Valor do desconto (R$)</span><input class="inp" id="cfmNv" inputmode="decimal"></label><label class="f"><span>Motivo do desconto</span><input class="inp" id="cfmNm"></label></div><button class="btn sm" data-act="cfmDescAdd">Adicionar desconto</button></div>`);
+  cfmTot()}}
+{const _s=ACT.cfmSalvar;ACT.cfmSalvar=async function(){const M=ui.cfm,v=cfmN(($('cfmNv')||{}).value);if(M&&v>0){toast('Toque em "Adicionar desconto" para incluir o desconto digitado, ou apague o valor.','bad');return}return _s.apply(this,arguments)}}
+document.head.insertAdjacentHTML('beforeend',`<style>.cfmdesc{border:1px dashed var(--line);border-radius:10px;padding:8px 10px;margin:10px 0;display:grid;gap:6px}.cfmdl{display:flex;gap:10px;align-items:center}.cfmdl span{flex:1;min-width:0;font-size:14px}.cfmdl b{color:var(--bad);white-space:nowrap}</style>`);
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();

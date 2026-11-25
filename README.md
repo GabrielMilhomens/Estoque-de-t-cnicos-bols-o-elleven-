@@ -1089,6 +1089,13 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 - **Contrato fixo sem fechamento fora do executado do Financeiro (25/11, `mod/finfix.js`, `mod/finmod.js`):** o budget da área (RE Corretiva e Implantação) continua reservando o valor do contrato desde o início do período (regra de 14/11), mas Conta contábil, Contas a pagar, Solicitar NF e Visão geral só contam o contrato com o fechamento aprovado. Na Conta contábil, os contratos ainda não fechados aparecem à parte ("Contratos fixos ainda não fechados", fora do total). Variáveis só viram linha própria depois do fechamento aprovado.
 
 
+- **Fechamento manual e desconto no contrato fixo (25/11, `mod/cfman.js`, ajustes em `mod/finmod.js` e `mod/finfix.js`):**
+  - Botão **Fechamento manual** no Fechamento do mês da RE Corretiva e da Implantação (coordenação/supervisão): equipe, período (padrão: o anterior), números do mês (RE: franquia, chamados atendidos, fixo, valor por chamado acima; Implantação: fixo e produção das baixas), variáveis atingidas, valor adicional com motivo, descontos e observação. Entra já aprovado (`dados.manual`), conta no mês do período e aparece com o selo "Fechamento manual". Bloqueado se o período já tem fechamento aprovado feito pela ferramenta.
+  - Opção (marcada) para o contrato passar a valer a partir do período seguinte (`desde`), para o período manual não ser apurado de novo.
+  - **Desconto** (falta no dia, quebra de contrato): no cartão do mês, enquanto aberto ou reaberto, e no fechamento manual; valor e motivo obrigatórios, com quem lançou e quando (`dados.desc[]`). O total do período fica líquido.
+  - Financeiro: desconto em linha própria negativa ("Contrato fixo · desconto", origem "Desconto do contrato" na Conta contábil). E-mail da NF separado em LPU, Contrato fixo (período e variáveis) e "Descontos do contrato fixo" com o motivo de cada um e subtotal.
+
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1153,6 +1160,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/11/2026 | Contrato fixo: fechamento manual (período fora da ferramenta) e desconto com motivo; NF separada em LPU, contrato fixo e descontos | `agenda.html` (`mod/cfman.js`, `mod/finmod.js`, `mod/finfix.js`). Sem SQL novo. Para novembro: Fechamento do mês › Fechamento manual › período 21/10 a 20/11 em cada equipe. |
 | 25/11/2026 | Financeiro: contrato fixo só entra no executado, contas a pagar e NF com o fechamento aprovado; não fechados aparecem à parte na Conta contábil | `agenda.html` (`mod/finfix.js`, `mod/finmod.js`). Sem SQL novo. |
 | 25/11/2026 | Financeiro: prestador pelo CNPJ em Contas a pagar e Solicitar NF (todas as áreas e LPUs em PDF), todos os prestadores para quem vê o Financeiro, nomes de conta iguais ao budget, variáveis do contrato fixo em linha própria | **`agenda_ajuste_98_financeiro_ve_todos.sql` no Supabase**, depois `agenda.html` (`mod/finfix.js`, `mod/finmod.js`). |
 | 25/11/2026 | Lançar LPU em PDF na conta de Retirada dava erro `ag_fin_baixas_area_check` | **`agenda_ajuste_97_fin_baixas_retirada.sql` no Supabase**; `agenda.html` (`mod/finpdf.js`, mensagem do erro aponta o ajuste 97). |
