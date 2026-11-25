@@ -286,6 +286,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 95. `agenda_ajuste_94_contrato_fixo_financeiro.sql` — quem vê o Financeiro (coordenação ou alguma tela `fin_*`, inclusive o acesso gerencial) passa a ler `ag_contrato_fixo` (contratos e fechamentos da Implantação e da RE Corretiva), só leitura: policy `agcf_select_fin` com `ag_fin_ve()`. Rodar depois do 93 e antes de publicar o `agenda.html`. Não subir no GitHub.
 96. `agenda_ajuste_95_lpu_pdf_financeiro.sql` — LPU em PDF lançada pelo Financeiro: tabela `ag_fin_baixas` (área, conta, prestador, cliente, etiqueta, itens, total, PDF), leitura por `ag_fin_ve()` ou `ag_gestao()`, gravação por `fin_a_editar`; policy `agenda_st_fin_lpu_ve` para a gestão abrir os PDFs em `financeiro/lpu/`. Rodar depois do 93 e antes de publicar o `agenda.html`. Não subir no GitHub.
 97. `agenda_ajuste_96_lpu_sem_duplicidade.sql` — LPU duplicada: gatilho `ag_lpu_sem_duplicidade` (security definer) em `ag_lpus` recusa a segunda LPU da mesma atividade (por `dados.dia` na LPU parcial do dia) ou do mesmo chamado do GTD, sem contar as reprovadas; também recusa reabrir uma reprovada quando a atividade já tem outra LPU valendo. Trava por atividade (`pg_advisory_xact_lock`) para dois envios ao mesmo tempo. Não altera as LPUs já gravadas; a última consulta do script lista as duplicadas que já existem.
+98. `agenda_ajuste_97_fin_baixas_retirada.sql` — `ag_fin_baixas`: a checagem de área passa a aceitar `rpr` (RE Preventiva · Retirada, conta 0102), para o Lançar LPU em PDF.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -1141,6 +1142,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/11/2026 | Lançar LPU em PDF na conta de Retirada dava erro `ag_fin_baixas_area_check` | **`agenda_ajuste_97_fin_baixas_retirada.sql` no Supabase**; `agenda.html` (`mod/finpdf.js`, mensagem do erro aponta o ajuste 97). |
 | 25/11/2026 | Lançar LPU em PDF: a escolha passa a ser pela **conta contábil** (código e descrição), não pela área; a conta 0007, usada por Transmissão e Melhoria de rede · Capex, mostra a área entre parênteses | `agenda.html` (`mod/finpdf.js`). |
 | 25/11/2026 | Lançar LPU em PDF aceita a conta de Retirada (RE Preventiva · Retirada, 0102) | `agenda.html` (`mod/finpdf.js`). Sem SQL novo. |
 | 25/11/2026 | LPU preenchida pelo administrador da empresa: assinatura com o nome de quem está logado e histórico com o acesso que enviou | `agenda.html` (`mod/lpudup.js`, patch). Sem SQL novo. |
