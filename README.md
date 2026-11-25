@@ -1045,6 +1045,21 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - **Cancelar aprovação** (Aprovadas, com `a_aprovar`): justificativa obrigatória (atalhos: LPU duplicada, aprovada por engano, valor ou serviço incorreto). A LPU vai para Reprovadas, sai do budget, dos totais por prestador e do financeiro; histórico "Aprovação cancelada" com motivo; `dados.aprovCanc` (quem cancelou, quando, motivo, quem tinha aprovado, LPU que vale). A cancelada não mostra "Reabrir para ajuste".
 
 
+- **Cadastro técnico e Ver projeto (24/11, `mod/ppi.js`, ajustes em `mod/pvver.js` e `mod/guia.js`):**
+  - Etapa 3: "Precisa de vistoria técnica (PPI)?" e "Precisa de GMUD (trabalho na rede)?" viram perguntas Sim/Não (obrigatórias no projeto novo e no trabalho novo; gravadas em `inst.ppi`/`inst.gmud`). Ao colar o bloco do comercial, as marcações "( ) SIM (X) NÃO" respondem as perguntas e saem do texto, junto com "MEIO DE ENTREGA".
+  - POP com lista de busca dos POPs cadastrados na Transmissão (`ag_pops`), com aviso quando o POP não está na lista. Rótulos: Equipamento de acesso, Interface de acesso (porta), Ponto de acesso e localização, Caixa de derivação (CTO/CEO) e localização, "Descritivo do projeto".
+  - No projeto guiado, o campo "Lançamento" sai da etapa 3 (vale a resposta da etapa 1); o aviso de extensão só aparece quando diverge.
+  - Ver projeto: PPI e GMUD em quadros (selo "PPI/GMUD — necessário antes da execução" no resumo quando Sim); descritivo sem as marcações; dias previstos só depois da aprovação (antes: fases "Prevista"); Observações do contato não repetem o descritivo; ROI negativo aparece como "Imediato".
+- **Trabalhos no mesmo cliente (24/11, `mod/trab.js`, substitui o `-UP1` de `mod/upgrade.js`):**
+  - Etiqueta do ROI que já existe na base: "Que trabalho é este?" — Upgrade, Mudança de ponto, Mudança de endereço, Novo trabalho no cliente ou Corrigir o cadastro do trabalho atual. A etiqueta não muda.
+  - O projeto ganha trabalhos (`trab`, `trabTipo`, `trabIni`; histórico em `trabs[]` com dados do projeto, complemento/endereço, ROI, validação e data da ativação). Ao abrir um trabalho novo o atual vai para o histórico, o projeto volta para a validação e os dias previstos zeram. Mudança de endereço: endereço antigo fica só no histórico.
+  - Um trabalho aberto por vez: só abre outro depois da ativação concluída do atual.
+  - Agendamentos e LPUs guardam o trabalho em `dados.trab` (os antigos são marcados ao abrir o trabalho novo; os novos recebem o atual). As telas por projeto (fases, previsão, backlog, validação, agendar, painéis por etiqueta) olham só o trabalho atual (`trabOk`, aplicado pelo patch); histórico de clientes, agenda e exclusão olham todos.
+  - Guia da etapa 1: nova opção "Nenhum lançamento — só ativação ou configuração" (só a fase de Ativação).
+  - Ver projeto: seção "Trabalhos neste cliente" e selo do trabalho no topo e na lista da Validação. ROI x LPU: uma linha por trabalho, cada uma com o ROI do seu trabalho.
+  - Projetos criados com `-UP1` antes desta versão continuam como projetos separados.
+
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1109,6 +1124,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 24/11/2026 | Trabalhos no mesmo cliente (upgrade, mudança de ponto, mudança de endereço, novo trabalho) com a mesma etiqueta; cadastro técnico com PPI/GMUD de clique, POP com busca e campos técnicos; Ver projeto sem dias previstos antes da aprovação | `agenda.html` (`mod/trab.js`, `mod/ppi.js`, `mod/pvver.js`, `mod/guia.js`). Sem SQL novo. |
 | 23/11/2026 | LPU duplicada: uma LPU por atividade (bloqueio no envio, conferência no banco e gatilho), selo Duplicada na aprovação e "Cancelar aprovação" com justificativa | **`agenda_ajuste_96_lpu_sem_duplicidade.sql` no Supabase**, depois `agenda.html` (`mod/lpudup.js`). Na LPU M6CXH73T aprovada duas vezes: Aprovadas › abrir a segunda aprovação › Cancelar aprovação. |
 | 20/11/2026 | Inclusão de projeto guiada (lançamento, extensão de sinal e forma de montar o ROI antes do painel; etapa 3 travada pelas respostas) | `agenda.html` (`mod/guia.js`). Sem SQL. |
 | 20/11/2026 | Ver projeto da Validação reorganizado (resumo, descritivo do projeto, caminho do sinal, fases, custos, contato, arquivos, histórico) | `agenda.html` (`mod/pvver.js`). Sem SQL. |
