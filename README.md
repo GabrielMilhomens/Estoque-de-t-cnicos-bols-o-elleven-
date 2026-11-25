@@ -1068,6 +1068,9 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - Planilha do "Mão de obra por etiqueta: ROI x LPU" (Financeiro da Implantação): colunas "Material no ROI (R$)" ao lado da mão de obra prevista e "Total previsto no ROI (R$)"; coluna "Trabalho" quando o cliente tem mais de um trabalho.
 
 
+- **Contrato fixo em Minha equipe (25/11, `mod/cfimpl.js`):** atividade de equipe com contrato fixo aparece como **Baixa pendente** (não "LPU pendente"), com o botão **Fazer a baixa do contrato fixo** para o administrador da empresa e o aviso "a baixa substitui a LPU e vai para a aprovação da Implantação". Na Visão da empresa terceira (gestão, só consulta) o cartão diz que o administrador faz a baixa em Minha equipe. Seção "LPU e baixas para preencher" quando há baixa.
+
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1132,6 +1135,8 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/11/2026 | Baixa do contrato fixo: campo "Motivo do valor adicional" sem texto de exemplo | `agenda.html` (`mod/cfimpl.js`). |
+| 25/11/2026 | Contrato fixo: "Baixa pendente" e botão "Fazer a baixa do contrato fixo" em Minha equipe; aviso de quem faz a baixa na Visão da empresa terceira | `agenda.html` (`mod/cfimpl.js`). Sem SQL novo. |
 | 24/11/2026 | Tela Materiais por cliente (por cliente e necessidade da logística) e material previsto na planilha do ROI x LPU | `agenda.html` (`mod/matcli.js`). Sem SQL novo. |
 | 24/11/2026 | Trabalhos no mesmo cliente (upgrade, mudança de ponto, mudança de endereço, novo trabalho) com a mesma etiqueta; cadastro técnico com PPI/GMUD de clique, POP com busca e campos técnicos; Ver projeto sem dias previstos antes da aprovação | `agenda.html` (`mod/trab.js`, `mod/ppi.js`, `mod/pvver.js`, `mod/guia.js`). Sem SQL novo. |
 | 23/11/2026 | LPU duplicada: uma LPU por atividade (bloqueio no envio, conferência no banco e gatilho), selo Duplicada na aprovação e "Cancelar aprovação" com justificativa | **`agenda_ajuste_96_lpu_sem_duplicidade.sql` no Supabase**, depois `agenda.html` (`mod/lpudup.js`). Na LPU M6CXH73T aprovada duas vezes: Aprovadas › abrir a segunda aprovação › Cancelar aprovação. |

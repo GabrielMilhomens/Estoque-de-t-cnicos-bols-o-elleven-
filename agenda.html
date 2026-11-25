@@ -22348,7 +22348,7 @@ function cfiForm(a){const key=a.id,d=lpuDraft(key),k=cfiK(a.tec),vv=verValor(),m
      ${M>0?`<div class="result ${acima?'warn':'ok'}" style="margin:0">${acima?`<b>Acima de ${lim} m.</b> Lance os itens da tabela e as fusões.`:`<b>Até ${lim} m: valor fixo${vv?' de '+brl(+k.fixo650||0):''}.</b> Não precisa lançar itens.`}</div>`:''}</section>`:''}
    ${acima?`<section class="tbox"><b>Itens da tabela do contrato</b><div class="cfitab">${(k.tab||[]).filter(r=>!cfiFusRe.test(r.nome)).map(r=>qIn('q:'+r.id,(c.q||{})[r.id],esc(r.nome)+(vv?' · '+brl(+r.valor||0):''),r.un||'un')).join('')}</div></section>${fusIde}`:''}
    ${c.t==='cfo'?fusIde:''}
-   ${c.t?`<section class="tbox"><b>Valor adicional <small class="muted" style="font-weight:400">(opcional)</small></b><span class="lpdica">Algo fora da tabela nesta atividade. Informe o valor e o motivo; vai para a aprovação junto com a baixa.</span>${qIn('av',c.av,'Valor adicional (R$)','R$')}<label class="f"><span>Motivo do valor adicional</span><textarea class="inp" rows="2" data-in="cfiMot" placeholder="Ex.: travessia com escada extra, poste de difícil acesso">${esc(c.mot||'')}</textarea></label></section>`:''}
+   ${c.t?`<section class="tbox"><b>Valor adicional <small class="muted" style="font-weight:400">(opcional)</small></b><span class="lpdica">Algo fora da tabela nesta atividade. Informe o valor e o motivo; vai para a aprovação junto com a baixa.</span>${qIn('av',c.av,'Valor adicional (R$)','R$')}<label class="f"><span>Motivo do valor adicional</span><textarea class="inp" rows="2" data-in="cfiMot">${esc(c.mot||'')}</textarea></label></section>`:''}
    <div class="lpbar"><b>${itens.length?`${CFI_CAT[cfiCatDe(a,d)]}${vv?' · '+brl(tot):''}`:'Escolha o tipo da atividade'}</b><button class="btn primary" data-act="cfiRevisar">Revisar</button></div>`}
 {const _v=lpuView;lpuView=function(a){if(a&&!(ui.lpuDia&&ui.lpuDia.id===a.id)){if(!CF.ok&&!CF.err){if(!CF.bus)cfCarregar();return '<p class="muted pad">Carregando…</p>'}
     if(cfiK(a.tec)){const d=lpuDraft(a.id);if((ui.lpuP||1)===1||!d.cf||!d.cf.t)return cfiForm(a);
@@ -22533,6 +22533,18 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .cfarea{min-width:860px}.cfarea td,.cfarea th{word-break:normal!important;overflow-wrap:normal!important;white-space:nowrap}
 .cfigl{display:block;border:0!important;background:none!important;box-shadow:none!important;margin:0!important;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px 10px 2px}.cfigrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))}
 </style>`);
+/* 25/11: Minha equipe (dono) e Visão da empresa terceira (gestão): atividade de equipe com contrato fixo fala em "baixa".
+   Antes aparecia "LPU pendente" e, na visão da gestão, o botão sumia sem explicar quem faz a baixa. */
+function cfiEqCard(h,a,cons){const k=`data-k="a:${a.id}"`,j=h.indexOf(k);if(j<0)return h;const i=h.lastIndexOf('<article',j);if(i<0)return h;
+  let art=h.slice(i,j);const imp=a.status==='nao_concluida';
+  art=art.replace(/(<span class="chip[^"]*">)LPU pendente(<\/span>)/,'$1Baixa pendente$2')
+    .replace(/(<button class="bigbtn" data-act="lpuAbrir"[^>]*>)Preencher a LPU(<\/button>)/,'$1Fazer a baixa do contrato fixo$2')
+    .replace('LPU já enviada: encerrar a atividade','Baixa já enviada: encerrar a atividade');
+  if(!imp&&!S.lpus.some(l=>l.ag===a.id&&l.status!=='reprovada'))art=art.replace(/(<span class="eqt">)/,`<span class="cfitag">Contrato fixo: ${cons?'o administrador da empresa faz a baixa em Minha equipe':'a baixa substitui a LPU e vai para a aprovação da Implantação'}</span>$1`);
+  return h.slice(0,i)+art+h.slice(j)}
+{const _e=viewEquipe;viewEquipe=function(){let h=_e.apply(this,arguments);try{const cons=ui.tab==='eqVer';S.ags.forEach(a=>{if((a.status==='lpu'||a.status==='nao_concluida')&&cfiK(a.tec))h=cfiEqCard(h,a,cons)});
+  h=h.replace(/>LPU para preencher </,S.ags.some(a=>a.status==='lpu'&&cfiK(a.tec))?'>LPU e baixas para preencher <':'>LPU para preencher ')}catch(e){console.warn('cfiEq',e)}return h}}
+document.head.insertAdjacentHTML('beforeend','<style>.cfitag{display:block;margin:6px 0 2px;font-size:13px;color:var(--info);background:var(--info-soft);border-radius:8px;padding:6px 10px}</style>');
 
 /* ===== 20/11: celular e modo escuro =====
    - Cores: tokens que só existiam como "fallback" claro (--card, --panel, --soft, --ok…) viram apelidos dos tokens do tema,
