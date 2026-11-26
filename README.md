@@ -289,6 +289,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 98. `agenda_ajuste_97_fin_baixas_retirada.sql` — `ag_fin_baixas`: a checagem de área passa a aceitar `rpr` (RE Preventiva · Retirada, conta 0102), para o Lançar LPU em PDF.
 99. `agenda_ajuste_98_financeiro_ve_todos.sql` — quem vê o Financeiro (`ag_fin_ve()`) passa a ler `ag_lpus` (todas as áreas), `ag_re_prog` e `ag_plantao`; `ag_cnpjs()` também responde para o Financeiro e inclui técnicos inativos (para juntar por CNPJ). Só leitura.
 100. `agenda_ajuste_99_fin_baixas_prestador.sql` — função `ag_fin_baixa_minha(tecnico, cnpj)` e leitura de `ag_fin_baixas` (e do PDF no bucket `financeiro`, pasta `lpu/`) para o prestador: lançadas para ele, para técnico da empresa dele ou com o CNPJ da empresa. Só leitura.
+101. `agenda_ajuste_100_financeiro_pamela.sql` — melhorias do Financeiro (26/11): tabela `ag_fin_obs` (observações por mês, conta ou prestador), `ag_fin_lotes` (importações, para desfazer) e coluna `lote` em `ag_fin_baixas`, `ag_fin_contratos` e `ag_fin_ctr_mes` (mais `itens` e `obs` no mês do contrato); `ativo` e `tecnicos` em `ag_fin_terceiros`; função `ag_fin_aviso_nf` (aviso "Solicitar nota" no app do dono da empresa pelo CNPJ, só quem edita o Financeiro); leitura de `ag_chamados` para quem vê o Financeiro (policy `agch_select_fin`). Rodar antes de publicar o `agenda.html`. Não subir no GitHub.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -1098,6 +1099,17 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 
 - **LPU lançada no Financeiro na Gestão financeira do prestador (25/11, `mod/finpdf.js`, `agenda_ajuste_99_fin_baixas_prestador.sql`):** o administrador da empresa terceira (e o técnico terceiro) vê em Gestão financeira › Aprovadas as LPUs lançadas em PDF no Financeiro para ele (prestador escolhido, técnico da empresa ou mesmo CNPJ), com "Lançada no Financeiro", quem lançou e o botão Ver PDF. Entram pela data do lançamento e somam no Aprovado do período.
+- **Financeiro · melhorias da chamada com a Pamela (26/11, `mod/finpam.js`, `agenda_ajuste_100_financeiro_pamela.sql`):**
+  - **Período único:** mês e ano no topo de todas as telas do Financeiro; escolhido uma vez, vale para todas (as telas com De/Até ficam no mês escolhido e ainda aceitam um intervalo próprio).
+  - **Visão geral do ano:** "Comparar períodos" mês × mês (mês e ano de cada lado) e ano × ano (todas as contas ou uma), com diferença, variação e Excel. Botão "Budget do ano".
+  - **Observações com histórico** (`ag_fin_obs`): do mês, de uma conta contábil ou de um prestador. Aparecem na Visão geral (lista do ano, com filtro), na Conta contábil e no prestador em Contas a pagar; quem edita o Financeiro inclui e exclui.
+  - **Budget do ano:** grade com os 12 meses por conta, "Todos os meses" + Repetir, soma do ano; grava em `ag_budget` só o que mudou.
+  - **Contas a pagar · fechamento do mês:** toca no prestador → atividades (LPU da ferramenta, LPU em PDF, contrato fixo, variáveis, descontos) → itens (código, quantidade, unitário) ou chamados/baixas do contrato; X para fechar; "Baixar detalhamento" (prestador ou mês inteiro, uma linha por item); CAPEX e OPEX no topo e por fatura; coluna Competência · período (contrato: 21 a 20; LPU: aprovadas no mês). Toda janela do Financeiro tem X.
+  - **Solicitar nota:** no lugar de "Marcar NF solicitada", avisa no app o administrador da empresa (pelo CNPJ) com o valor e o prazo (último dia útil) e marca "NF solicitada". O prestador vê o aviso no topo da Gestão financeira e manda a NF pelo WhatsApp.
+  - **Contratos fixos (Financeiro):** toca no contrato da área → chamados (RE) ou baixas (Implantação), variáveis atingidas ou não (ou em apuração), descontos com motivo, conta contábil, totais e Excel. Fechamento da Implantação ganha os indicadores do topo da RE Corretiva.
+  - **Terceiros e técnicos:** ativo/inativo (filtro), técnicos e auxiliares cadastrados no Financeiro além dos usuários da ferramenta, lista em Excel e PDF.
+  - **Códigos SAP:** lê a planilha nova (aba "Códigos SAP" e "Contas contábeis" com "Quando usar cada conta") e a antiga; "Novo código" e "Editar" (códigos incluídos à mão ficam ao atualizar pela planilha); Excel.
+  - **Importar fechamentos** (Apoio, permissão `fin_impp`): modelo com as abas LPU (uma linha por item) e Contrato fixo (uma linha por contrato e mês). A LPU entra aprovada no mês da competência em `ag_fin_baixas` (como a lançada em PDF); o contrato entra em Outros contratos (`ag_fin_contratos` tipo valor informado + `ag_fin_ctr_mes`). Conferência antes de gravar (erros e avisos, LPU da ferramenta no mesmo mês e CNPJ) e "Desfazer" por importação. O fechamento manual do contrato fixo também ganhou "Desfazer".
 
 
 ## 8. Publicação
@@ -1164,6 +1176,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 26/11/2026 | Financeiro: período único, comparação mês/ano, observações, budget do ano, detalhamento em Contas a pagar, Solicitar nota no app, detalhe do contrato fixo, terceiros ativos/técnicos, códigos SAP novos e importação de fechamentos com desfazer | **`agenda_ajuste_100_financeiro_pamela.sql` no Supabase**, depois `agenda.html` (`mod/finpam.js`). Dar a tela "Importar fechamentos" (`fin_impp`) para a Pamela em Usuários e acessos. |
 | 25/11/2026 | Prestador vê na Gestão financeira as LPUs lançadas em PDF no Financeiro | **`agenda_ajuste_99_fin_baixas_prestador.sql` no Supabase**, depois `agenda.html` (`mod/finpdf.js`). |
 | 25/11/2026 | Contrato fixo: fechamento manual (período fora da ferramenta) e desconto com motivo; NF separada em LPU, contrato fixo e descontos | `agenda.html` (`mod/cfman.js`, `mod/finmod.js`, `mod/finfix.js`). Sem SQL novo. Para novembro: Fechamento do mês › Fechamento manual › período 21/10 a 20/11 em cada equipe. |
 | 25/11/2026 | Financeiro: contrato fixo só entra no executado, contas a pagar e NF com o fechamento aprovado; não fechados aparecem à parte na Conta contábil | `agenda.html` (`mod/finfix.js`, `mod/finmod.js`). Sem SQL novo. |
