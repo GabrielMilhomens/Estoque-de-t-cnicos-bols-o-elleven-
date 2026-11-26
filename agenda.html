@@ -24104,6 +24104,14 @@ const f6MatTab=(it,val)=>{const R=v=>val?krBrl(v):'—',fq=v=>(+v).toLocaleStrin
     const b=el.querySelector('.krfb');if(b)b.innerHTML=`<p class="muted" style="margin:0 0 10px">Material lido do KMZ de cada lançamento (sem os ajustes do projetista e sem o kit da ponta B, que ficam na lista do projeto). Ao agendar só um lançamento, o técnico recebe esta lista; o que não é de um lançamento vai junto com o Lançamento 1.</p>`+
       L.map(x=>`<section class="f6kv"><h3>${esc(f6Nome(x))}</h3><p class="muted">${esc(f6Pontas(x))}${ag[x.n]?' · '+esc(ag[x.n]):''}${val?' · materiais '+krBrl(x.valorMat):''}</p>${f6MatTab(x.itens,val)}</section>`).join('')}}catch(e){console.warn('f6kv',e)}return o}}
 
+
+/* projeto salvo antes desta versão: separa sozinho, a partir do KMZ de lançamento anexado, na primeira vez que se abre */
+const F6_BUSCA={};
+async function f6Garante(p){try{if(!p||!p.etiqueta||!p.roiKmz||p.roiKmz.origem==='pdf'||f6Ls(p)||F6_BUSCA[p.etiqueta])return;F6_BUSCA[p.etiqueta]=1;const x=anxKmz(p.etiqueta,'kmzL');if(!x)return;
+  await krCarregaPrecos();const L=f6LancMat(await anxTexto(x));if(!L||L.length<2)return;p.roiKmz.lancs=L;try{save()}catch(e){}render();if(ui.kvVer===p.id)kvFull()}catch(e){console.warn('f6garante',e)}}
+{const _f=agendForm;agendForm=function(p){f6Garante(p);return _f.apply(this,arguments)}}
+{const _f=kvFull;kvFull=function(){try{const p=ui.kvVer&&S.previsao.find(x=>x.id===ui.kvVer);if(p)f6Garante(p)}catch(e){}return _f.apply(this,arguments)}}
+{const _w=ACT.wiz;ACT.wiz=function(){const r=_w.apply(this,arguments);try{const W=ui.wiz,p=W&&W.id&&S.previsao.find(x=>x.id===W.id);if(p){if(f6Ls(p)&&W.kr&&!W.kr.lancIt)W.kr.lancIt=f6Ls(p);else f6Garante(p).then(()=>{if(ui.wiz===W&&W.kr&&f6Ls(p)&&!W.kr.lancIt){W.kr.lancIt=f6Ls(p);renderWiz()}})}}catch(e){}return r}}
 /* ---------- 2. agendamento ---------- */
 const f6Vivo=a=>!['cancelada','nao_concluida'].includes(a.status);
 /* quem já tem cada lançamento: texto curto por número */
