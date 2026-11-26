@@ -288,6 +288,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 97. `agenda_ajuste_96_lpu_sem_duplicidade.sql` — LPU duplicada: gatilho `ag_lpu_sem_duplicidade` (security definer) em `ag_lpus` recusa a segunda LPU da mesma atividade (por `dados.dia` na LPU parcial do dia) ou do mesmo chamado do GTD, sem contar as reprovadas; também recusa reabrir uma reprovada quando a atividade já tem outra LPU valendo. Trava por atividade (`pg_advisory_xact_lock`) para dois envios ao mesmo tempo. Não altera as LPUs já gravadas; a última consulta do script lista as duplicadas que já existem.
 98. `agenda_ajuste_97_fin_baixas_retirada.sql` — `ag_fin_baixas`: a checagem de área passa a aceitar `rpr` (RE Preventiva · Retirada, conta 0102), para o Lançar LPU em PDF.
 99. `agenda_ajuste_98_financeiro_ve_todos.sql` — quem vê o Financeiro (`ag_fin_ve()`) passa a ler `ag_lpus` (todas as áreas), `ag_re_prog` e `ag_plantao`; `ag_cnpjs()` também responde para o Financeiro e inclui técnicos inativos (para juntar por CNPJ). Só leitura.
+100. `agenda_ajuste_99_fin_baixas_prestador.sql` — função `ag_fin_baixa_minha(tecnico, cnpj)` e leitura de `ag_fin_baixas` (e do PDF no bucket `financeiro`, pasta `lpu/`) para o prestador: lançadas para ele, para técnico da empresa dele ou com o CNPJ da empresa. Só leitura.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -1096,6 +1097,9 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - Financeiro: desconto em linha própria negativa ("Contrato fixo · desconto", origem "Desconto do contrato" na Conta contábil). E-mail da NF separado em LPU, Contrato fixo (período e variáveis) e "Descontos do contrato fixo" com o motivo de cada um e subtotal.
 
 
+- **LPU lançada no Financeiro na Gestão financeira do prestador (25/11, `mod/finpdf.js`, `agenda_ajuste_99_fin_baixas_prestador.sql`):** o administrador da empresa terceira (e o técnico terceiro) vê em Gestão financeira › Aprovadas as LPUs lançadas em PDF no Financeiro para ele (prestador escolhido, técnico da empresa ou mesmo CNPJ), com "Lançada no Financeiro", quem lançou e o botão Ver PDF. Entram pela data do lançamento e somam no Aprovado do período.
+
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1160,6 +1164,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 25/11/2026 | Prestador vê na Gestão financeira as LPUs lançadas em PDF no Financeiro | **`agenda_ajuste_99_fin_baixas_prestador.sql` no Supabase**, depois `agenda.html` (`mod/finpdf.js`). |
 | 25/11/2026 | Contrato fixo: fechamento manual (período fora da ferramenta) e desconto com motivo; NF separada em LPU, contrato fixo e descontos | `agenda.html` (`mod/cfman.js`, `mod/finmod.js`, `mod/finfix.js`). Sem SQL novo. Para novembro: Fechamento do mês › Fechamento manual › período 21/10 a 20/11 em cada equipe. |
 | 25/11/2026 | Financeiro: contrato fixo só entra no executado, contas a pagar e NF com o fechamento aprovado; não fechados aparecem à parte na Conta contábil | `agenda.html` (`mod/finfix.js`, `mod/finmod.js`). Sem SQL novo. |
 | 25/11/2026 | Financeiro: prestador pelo CNPJ em Contas a pagar e Solicitar NF (todas as áreas e LPUs em PDF), todos os prestadores para quem vê o Financeiro, nomes de conta iguais ao budget, variáveis do contrato fixo em linha própria | **`agenda_ajuste_98_financeiro_ve_todos.sql` no Supabase**, depois `agenda.html` (`mod/finfix.js`, `mod/finmod.js`). |

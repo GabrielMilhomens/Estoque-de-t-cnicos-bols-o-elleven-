@@ -22715,6 +22715,14 @@ Object.assign(ACT,{
   if(!FIN_T.includes('finImp'))FIN_T.push('finImp');FIN_K.finImp='fin_imp';RP_TL.finImp='Lançar LPU em PDF';try{NAV_TC.finImp='Lançar PDF'}catch(e){}ICT.finImp='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M12 18v-6M9 15l3-3 3 3';window.CAT_X.finImp='fin';RP_VIEWS.finImp=viewFinImp}
 document.head.insertAdjacentHTML('beforeend',`<style>.fbgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));margin-top:12px}.fbt{font-size:20px;font-variant-numeric:tabular-nums}
 .fbsel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}@media(max-width:560px){.fbsel{grid-template-columns:1fr}}</style>`);
+/* 25/11: o prestador vê na Gestão financeira as LPUs lançadas em PDF no Financeiro para a empresa dele
+   (prestador escolhido no lançamento, técnico da empresa ou mesmo CNPJ). Só consulta, com o PDF. Banco: ajuste 99. */
+function fbMinhas(){if(!FB.ok||!ui.tec)return[];const me=ui.tec,C=S.cnpj||{},cx=C[me]||{},cn=soDig(cx.cnpj||(C[cx.empresa]||{}).cnpj||'');
+  return FB.rows.filter(r=>r.tecnico===me||(C[r.tecnico]||{}).empresa===me||(cn&&soDig(r.cnpj||'')===cn)).map(r=>Object.assign(fbVirt(r),{tec:me,_fbPrest:1,pdf_path:r.pdf_path||null,etiqueta:r.etiqueta||r.cliente||'LPU lançada no Financeiro',cliente:r.cliente||r.empresa||''}))}
+{const _r=render;render=function(){try{if(!FB.ok&&!FB.bus&&!FB.err&&ME&&ui.perfil==='terc')fbCarregar()}catch(e){}return _r.apply(this,arguments)}}
+{const _m=viewMinhas;viewMinhas=function(){const X=fbMinhas();if(!X.length)return _m.apply(this,arguments);const g0=G.lpus;G.lpus=(G.lpus||[]).concat(X);let h;
+  try{h=_m.apply(this,arguments)}finally{G.lpus=g0}
+  X.forEach(l=>{h=h.split(`data-act="pdfArq" data-id="${l.id}"`).join(`data-act="fbPdf" data-id="${l.id}"`)});return h}}
 
 /* ===== 20/11: "Ver projeto" da Validação mais fácil de ler =====
    Mesmas informações de antes, organizadas por pergunta:
