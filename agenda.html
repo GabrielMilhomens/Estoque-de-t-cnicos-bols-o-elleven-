@@ -24049,6 +24049,140 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .f6abas p{flex-basis:100%;margin:2px 0 0;font-size:12.5px}.f6del{font-size:13px}
 </style>`);
 
+/* ===== 26/11 (noite): Implantação · despachar só um lançamento =====
+   Projeto com mais de um lançamento no KMZ (lido ou desenhado):
+   1. Material por lançamento: ao ler o KMZ, cada lançamento vira um KMZ próprio (os cabos dele e os postes, cordoalhas,
+      reservas e caixas mais perto dele) e tem a sua lista de materiais. Fica no projeto (roiKmz.lancs) e aparece na
+      lista dos lançamentos do cadastro, em "Materiais e mão de obra" (aba Por lançamento) e na Necessidade da logística.
+   2. Agendar: com Lançamento na rua marcado, o agendamento pergunta quais lançamentos esta equipe vai fazer. O técnico
+      recebe o KMZ só dos lançamentos marcados (anexo só deste agendamento) e a lista de material só deles. O que não é de
+      um lançamento (ajustes do projetista, itens sem lançamento) vai junto com o Lançamento 1.
+   3. A fase Lançamento na rua só conta como concluída quando todos os lançamentos estiverem concluídos (como nas frentes).
+   Nada muda para projeto com um lançamento só. Sem SQL novo (os campos vão no JSON do projeto e do agendamento). */
+
+/* ---------- KMZ de lançamentos desenhados: uma pasta "LANÇAMENTO n" por lançamento → numeração das abas ---------- */
+{const _l=f6Lancs;f6Lancs=function(K){const C=K.L.filter(l=>!f6Ex(l)&&!f6Cord(l)&&!f6Rota(l)&&f6EhCabo(l)),fn=l=>{for(const s of String(l.pasta||'').split(' / ')){const m=/^LANCAMENTO (\d+)$/.exec(kmN(s));if(m)return +m[1]}return null};
+  if(C.length<2||!C.every(l=>fn(l)!=null)||new Set(C.map(fn)).size<2)return _l.apply(this,arguments);
+  const G={};C.forEach(l=>(G[fn(l)]=G[fn(l)]||[]).push(l));const K2=Object.assign({},K,{L:K.L.filter(l=>!C.includes(l))});
+  return Object.keys(G).map(Number).sort((a,b)=>a-b).map(n=>{const r=_l.call(this,Object.assign({},K2,{L:K2.L.concat(G[n])}));const x=r.length===1?r[0]:{ls:G[n],m:Math.round(G[n].reduce((s,l)=>s+kmLen(l.c),0)),tipos:[...new Set(r.flatMap(y=>y.tipos))],de:(r[0]||{}).de,ate:(r[0]||{}).ate,a:(r[0]||{}).a,b:(r[0]||{}).b};x.ls=G[n];x.m=Math.round(G[n].reduce((s,l)=>s+kmLen(l.c),0));x.n=n;return x})}}
+
+/* ---------- KML de um ou mais lançamentos ---------- */
+function f6Dono(txt){const K=f6Prep(kmParse(txt)),G=f6Lancs(K),doc=new DOMParser().parseFromString(txt,'application/xml'),all=(el,n)=>[...el.getElementsByTagNameNS('*',n)];
+  const crd=s=>s.trim().split(/\s+/).map(t=>t.split(',').map(Number)).filter(a=>a.length>=2&&isFinite(a[0])&&isFinite(a[1])).map(a=>[a[1],a[0]]);
+  const key=c=>c.length+'|'+c[0].join(',')+'|'+c[c.length-1].join(','),km=new Map();G.forEach((g,i)=>g.ls.forEach(l=>km.set(key(l.c),i)));
+  const perto=pts=>{let b=0,bd=1e18;const P=pts.length>24?pts.filter((_,k)=>k%Math.ceil(pts.length/24)===0):pts;G.forEach((g,i)=>g.ls.forEach(l=>P.forEach(p=>{const d=kmDist(p,l.c);if(d<bd){bd=d;b=i}})));return b};
+  const pms=all(doc,'Placemark'),dono=pms.map(pm=>{const ls=all(pm,'LineString').map(x=>{const c=all(x,'coordinates')[0];return c?crd(c.textContent):[]}).filter(c=>c.length>1);
+    for(const c of ls){const i=km.get(key(c));if(i!=null)return i}const pts=ls.flat().concat(all(pm,'Point').map(x=>{const c=all(x,'coordinates')[0];return c?crd(c.textContent)[0]:null}).filter(Boolean));return pts.length?perto(pts):-1});
+  return{G,doc,dono}}
+function f6KmlSel(D,sel){const d=D.doc.cloneNode(true),pms=[...d.getElementsByTagNameNS('*','Placemark')];pms.forEach((pm,j)=>{const o=D.dono[j];if(o>=0&&!sel.has(o))pm.remove()});
+  let vaz;do{vaz=[...d.getElementsByTagNameNS('*','Folder')].filter(f=>!f.getElementsByTagNameNS('*','Placemark').length);vaz.forEach(f=>f.remove())}while(vaz.length);
+  return new XMLSerializer().serializeToString(d)}
+/* lista de materiais de cada lançamento (com preço da tabela) */
+function f6LancMat(txt){const D=f6Dono(txt);if(D.G.length<2)return null;
+  return D.G.map((g,i)=>{let M;try{M=kmMat(kmParse(f6KmlSel(D,new Set([i]))))}catch(e){M={itens:[]}}
+    const it=(M.itens||[]).map(x=>{const pr=krPr(x.cod),vu=pr?pr.v:null;return{cod:x.cod||'',desc:(pr&&pr.desc)||x.desc,tipo:'PONTA A',qtd:x.qtd,un:x.un,vu,vt:vu==null?null:Math.round(vu*x.qtd*100)/100}});
+    return{n:g.n,m:g.m,tipos:g.tipos,de:g.de||'',ate:g.ate||'',itens:it,valorMat:Math.round(it.reduce((s,x)=>s+(x.vt||0),0)*100)/100}})}
+const f6Ls=p=>{const L=p&&p.roiKmz&&p.roiKmz.lancs;return Array.isArray(L)&&L.length>1?L:null};
+const f6Nome=x=>`Lançamento ${x.n} · ${(x.tipos||[]).join(' + ')} · ${kmN0(x.m)} m`;
+const f6Pontas=x=>x.de||x.ate?`${x.de||'ponta sem nome'} → ${x.ate||'ponta sem nome'}`:'';
+const f6Sel=a=>a&&Array.isArray(a.lancs)&&a.lancs.length?a.lancs:null;
+
+/* ---------- 1. no cadastro: material por lançamento ---------- */
+{const _a=CH.krArq;CH.krArq=async function(el){const W=ui.wiz,f=el&&el.files&&el.files[0];const r=await _a.apply(this,arguments);
+  try{const R=W&&W.kr;if(R&&f&&R.M&&!R.soExt&&(R.M.lancs||[]).length>1){R.lancIt=f6LancMat(await kmzTexto(await f.arrayBuffer(),f.name));renderWiz()}else if(R&&f)R.lancIt=null}catch(e){console.warn('f6mat',e)}return r}}
+{const _s=krSnap;krSnap=function(){const s=_s.apply(this,arguments);try{const W=ui.wiz,R=W&&W.kr;if(!s||!R||!R.M)return s;const n=(R.M.lancs||[]).length;
+  if(n>1&&R.lancIt&&R.lancIt.length===n)s.lancs=JSON.parse(JSON.stringify(R.lancIt));
+  else if(n>1){const p=W.id&&S.previsao.find(x=>x.id===W.id),L=f6Ls(p);if(L&&L.length===n)s.lancs=L}}catch(e){}return s}}
+const f6MatTab=(it,val)=>{const R=v=>val?krBrl(v):'—',fq=v=>(+v).toLocaleString('pt-BR');return `<div class="tablewrap"><table class="kmmt f6mt"><thead><tr><th>Código SAP</th><th>Produto</th><th class="r">Qtd</th>${val?'<th class="r">Total</th>':''}</tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.cod||'—')}</td><td style="white-space:normal">${esc(i.desc)}</td><td class="r">${fq(i.qtd)}${i.un==='M'?' m':''}</td>${val?`<td class="r">${i.vt==null?'<span class="krsem">sem preço</span>':R(i.vt)}</td>`:''}</tr>`).join('')||`<tr><td colspan="${val?4:3}" class="muted">Sem material lido neste lançamento.</td></tr>`}</tbody></table></div>`};
+{const _h=f6LancHtml;f6LancHtml=function(M,ed){let h=_h.apply(this,arguments);try{const R=ui.wiz&&ui.wiz.kr,LI=R&&R.lancIt;if(!h||!LI||LI.length<2)return h;const val=pode('a_valor');
+  LI.forEach(x=>{const re=new RegExp(`(<li><span class="f6n">${x.n}</span><span>[\\s\\S]*?)(</span></li>)`);h=h.replace(re,(m0,a,b)=>a+`<details class="f6md"><summary>Materiais deste lançamento: ${x.itens.length} ${x.itens.length===1?'item':'itens'}${val?' · '+krBrl(x.valorMat):''}</summary>${f6MatTab(x.itens,val)}</details>`+b)});
+  h=h.replace('materiais, mão de obra e ROI somam todos.</p>','materiais, mão de obra e ROI somam todos. Ao agendar o lançamento na rua dá para mandar só um lançamento: o técnico recebe o KMZ e o material só dele.</p>')}catch(e){}return h}}
+/* Materiais e mão de obra: aba Por lançamento */
+{const _f=kvFull;kvFull=function(){const o=_f.apply(this,arguments);try{const el=document.getElementById('kvFull'),p=ui.kvVer&&S.previsao.find(x=>x.id===ui.kvVer),L=f6Ls(p);if(!el||!L)return o;
+  const tabs=el.querySelector('.krftabs');if(!tabs)return o;const on=ui.kvTab==='lanc';tabs.insertAdjacentHTML('beforeend',`<button type="button" data-act="kvTab" data-v="lanc" aria-pressed="${on}">Por lançamento (${L.length})</button>`);
+  if(on){tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v==='lanc')));const val=pode('a_valor'),ag=f6AgDe(p);
+    const b=el.querySelector('.krfb');if(b)b.innerHTML=`<p class="muted" style="margin:0 0 10px">Material lido do KMZ de cada lançamento (sem os ajustes do projetista e sem o kit da ponta B, que ficam na lista do projeto). Ao agendar só um lançamento, o técnico recebe esta lista; o que não é de um lançamento vai junto com o Lançamento 1.</p>`+
+      L.map(x=>`<section class="f6kv"><h3>${esc(f6Nome(x))}</h3><p class="muted">${esc(f6Pontas(x))}${ag[x.n]?' · '+esc(ag[x.n]):''}${val?' · materiais '+krBrl(x.valorMat):''}</p>${f6MatTab(x.itens,val)}</section>`).join('')}}catch(e){console.warn('f6kv',e)}return o}}
+
+/* ---------- 2. agendamento ---------- */
+const f6Vivo=a=>!['cancelada','nao_concluida'].includes(a.status);
+/* quem já tem cada lançamento: texto curto por número */
+function f6AgDe(p,exceto){const L=f6Ls(p),o={};if(!L)return o;S.ags.filter(a=>a.etiqueta===p.etiqueta&&trabOk(a)&&f6Vivo(a)&&a.id!==exceto&&fasesOf(a).includes('rua')).sort((a,b)=>String(a.data).localeCompare(String(b.data))).forEach(a=>{const s=f6Sel(a)||L.map(x=>x.n);
+  const fim=(a.fasesFin||[]).includes('rua')||a.lancFeito;s.forEach(n=>{if(!o[n]||fim)o[n]=(fim?'concluído':'agendado')+' '+dBR(a.data).slice(0,5)+' · '+tecN(a.tec)})});return o}
+function f6Bloco(p,F){const L=f6Ls(p);if(!L||!(F.fases||[]).includes('rua'))return '';const ed=ui.agEd&&ui.agEd.modo==='edit'?ui.agEd.id:null,ag=f6AgDe(p,ed),sel=new Set(F.lancSel||L.map(x=>x.n));
+  return `<div class="f6ag"><b>Lançamentos deste agendamento</b><small class="muted">O projeto tem ${L.length} lançamentos. Marque o que esta equipe vai fazer: o técnico recebe o KMZ e a lista de material só dos marcados.</small>
+   ${L.map(x=>`<label class="chk ${sel.has(x.n)?'on':''}"><input type="checkbox" data-ch="f6Ls" value="${x.n}" ${sel.has(x.n)?'checked':''}><span><b>${esc(f6Nome(x))}</b><small>${esc([f6Pontas(x),x.itens.length+' '+(x.itens.length===1?'item':'itens')+' de material',ag[x.n]].filter(Boolean).join(' · '))}</small></span></label>`).join('')}</div>`}
+{const _f=agendForm;agendForm=function(p){const F=ui.agForm||{};try{const L=f6Ls(p);if(L&&!F.__f6&&!(ui.agEd&&ui.agEd.modo==='edit')){F.__f6=true;const ag=f6AgDe(p),livre=L.filter(x=>!ag[x.n]).map(x=>x.n);if(livre.length&&livre.length<L.length)F.lancSel=livre}}catch(e){}
+  let h=_f.apply(this,arguments);try{const b=f6Bloco(p,F);if(b){const k2=h.indexOf('data-k="2"'),i2=k2>=0?h.lastIndexOf('<div class="agbk',k2):-1,k='<div class="agbk"><div class="agbh"><i>2</i>',i=i2>=0?i2:h.indexOf(k);h=i>=0?h.slice(0,i)+b+h.slice(i):h+b}}catch(e){console.warn('f6ag',e)}return h}}
+/* o bloco fica logo abaixo de "O que será feito" (o formulário novo reorganiza os blocos) */
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{const f=document.querySelector('.f6ag'),c=document.querySelector('input[data-ch="agFz"]'),bk=c&&c.closest('.agbk');if(f&&bk&&bk.nextElementSibling!==f&&!bk.contains(f))bk.after(f)}catch(e){}return o}}
+Object.assign(CH,{f6Ls:el=>{const F=ui.agForm=ui.agForm||{},p=pPor(ui.agSel),L=f6Ls(p);if(!L)return;const s=new Set(F.lancSel||L.map(x=>x.n)),n=+el.value;if(el.checked)s.add(n);else s.delete(n);
+  if(!s.size){el.checked=true;toast('Marque ao menos um lançamento.','bad');return}F.lancSel=s.size===L.length?null:[...s].sort((a,b)=>a-b);render()}});
+/* edição e replicação: o formulário volta com os lançamentos do agendamento */
+{const _f=agFormDe;agFormDe=function(a,modo){const F=_f.apply(this,arguments);try{if(F&&a){F.__f6=true;F.lancSel=f6Sel(a)?a.lancs.slice():null}}catch(e){}return F}}
+/* material: só o dos lançamentos marcados (o que não é de um lançamento vai com o Lançamento 1) */
+function f6Ajusta(p,sel,lista){const L=f6Ls(p);if(!L||!sel)return lista;const S1=new Set(sel),q={},qa={};L.forEach(x=>x.itens.forEach(i=>{const k=mKey(i);qa[k]=(qa[k]||0)+(+i.qtd||0);if(S1.has(x.n))q[k]=(q[k]||0)+(+i.qtd||0)}));const com1=S1.has(L[0].n);
+  return lista.map(n=>{if(!/^A\b/.test(String(n.ponta||''))||/interno/.test(String(n.ponta||'')))return n;const k=mKey(n),tot=+n.qtd||0,res=Math.max(0,tot-(qa[k]||0)),nq=Math.round(((q[k]||0)*(tot&&qa[k]>tot?tot/qa[k]:1)+(com1?res:0))*100)/100;return Object.assign({},n,{qtd:nq})}).filter(n=>+n.qtd>0)}
+{const _n=necessidade;necessidade=function(p,fases){const r=_n.apply(this,arguments);try{const F=ui.agForm;if(F&&fases===F.fases&&p&&p.etiqueta===ui.agSel&&F.lancSel&&fases.includes('rua'))return f6Ajusta(p,F.lancSel,r)}catch(e){}return r}}
+/* KMZ só dos lançamentos marcados, a partir do KMZ de lançamento do projeto */
+async function f6KmzSel(e,sel){const x=anxKmz(e,'kmzL');if(!x)throw new Error('o projeto não tem KMZ de lançamento anexado');const txt=await anxTexto(x),D=f6Dono(txt);
+  const I=new Set(D.G.map((g,i)=>sel.includes(g.n)?i:-1).filter(i=>i>=0));if(I.size!==sel.length)throw new Error('o KMZ do projeto não tem todos os lançamentos marcados');
+  const blob=await kaKmz(f6KmlSel(D,I));return new File([blob],`${e}_LANCAMENTO_${sel.join('_')}.kmz`.replace(/[^\w.\-]+/g,'_'),{type:'application/vnd.google-earth.kmz'})}
+async function f6Parte(e,dono,sel){const f=await f6KmzSel(e,sel),ok=await frPtUpload(e,dono,[f],'kmzL','rua');return ok.map(p=>Object.assign(p,{auto:true,lancs:sel.slice()}))}
+let F6_CTX=null;
+{const _c=criarAgs;criarAgs=function(etq,fases,tec,dias,por,extra){let x=extra||{};
+  const F=ui.agForm,c=F6_CTX||(F&&etq===ui.agSel&&!(ui.agEd&&ui.agEd.modo==='edit')&&F.__f6sel);if(c&&fases.includes('rua'))x=Object.assign({},x,{lancs:c.slice()});
+  else if(!x.lancs){const o=getAg(x.origem||x.replicaDe||x.refDe);if(o&&o.etiqueta===etq&&f6Sel(o)&&fases.includes('rua'))x=Object.assign({},x,{lancs:o.lancs.slice()})}
+  return _c.call(this,etq,fases,tec,dias,por,x)}}
+{const _ag=ACT.agendar;ACT.agendar=async function(...x){const F=ui.agForm||{},E=ui.agEd,e=ui.agSel,p=pPor(e),L=f6Ls(p),rua=(F.fases||[]).includes('rua'),sel=L&&rua&&F.lancSel&&F.lancSel.length<L.length?F.lancSel.slice():null;
+  if(!L)return _ag.apply(this,x);
+  /* edição de um agendamento existente */
+  if(E&&E.modo==='edit'){const a=getAg(E.id);if(!a)return _ag.apply(this,x);const antes=JSON.stringify(f6Sel(a)||null),dep=JSON.stringify(rua?sel:null),r=_ag.apply(this,x);
+    if(antes!==dep&&getAg(a.id)){try{const vel=(a.partes||[]).filter(q=>q.auto);a.partes=(a.partes||[]).filter(q=>!q.auto);if(sel){a.lancs=sel;a.partes=a.partes.concat(await f6Parte(e,a.id,sel))}else delete a.lancs;
+      a.edicoes=(a.edicoes||[]).concat([{em:Date.now(),por:meNome(),mud:['lançamentos: '+(sel?sel.map(n=>'Lançamento '+n).join(', '):'todos')]}]);save();vel.forEach(q=>{if(!ptUsado(q.path))sb.storage.from('agenda').remove([q.path]).then(()=>{},()=>{})});render();toast(sel?`Agendamento agora com ${sel.length>1?'os lançamentos '+sel.join(' e '):'só o Lançamento '+sel[0]}: KMZ e material trocados.`:'Agendamento agora com todos os lançamentos.')}
+      catch(err){toast('Não foi possível trocar o KMZ do agendamento: '+(err.message||err),'bad')}}return r}
+  F.ptN=(F.ptN||[]).filter(q=>!q.auto);
+  delete F.__f6sel;if(!sel||!F.data||!F.tec)return _ag.apply(this,x);
+  if(F.ptN.some(q=>q.tipo==='kmzL')){toast('Este agendamento já tem um KMZ de lançamento próprio: ele vai no lugar do KMZ dos lançamentos marcados.','warn')}
+  else{try{toast('Separando o KMZ do lançamento…');F.ptN=F.ptN.concat(await f6Parte(e,'pend-'+uid(),sel))}catch(err){toast('Agendado sem KMZ separado: '+(err.message||err)+'. O técnico recebe o KMZ do projeto.','bad')}}
+  F.__f6sel=sel;return _ag.apply(this,x)}}
+/* selo no card da agenda e no detalhe */
+{const _e=agEv;agEv=function(a){const h=_e.apply(this,arguments);try{const s=f6Sel(a);if(!s||a.status==='cancelada')return h;const L=f6Ls(pPor(a.etiqueta)),t=L?L.length:0,i=h.lastIndexOf('</button>');
+  return i<0?h:h.slice(0,i)+`<span class="refsel f6sel">${s.length>1?'Lançamentos '+s.join(' e '):'Lançamento '+s[0]}${t?' de '+t:''}</span>`+h.slice(i)}catch(e){return h}}}
+{const _b=refBloco;refBloco=function(a){let h=_b.apply(this,arguments);try{const s=f6Sel(a);if(!a||!s||a.status==='cancelada')return h;const p=pPor(a.etiqueta),L=f6Ls(p);if(!L)return h;const ag=f6AgDe(p,a.id);
+  h=`<div class="refbox f6box"><h3 class="lsub" style="margin-top:0">Lançamentos deste agendamento</h3>${L.map(x=>`<div class="refl${s.includes(x.n)?' at':''}"><span class="refchip f6chip">${s.includes(x.n)?'Este agendamento':'Outro'}</span><b>${esc(f6Nome(x))}</b><small>${esc(f6Pontas(x))}</small>${!s.includes(x.n)?`<small>${esc(ag[x.n]||'ainda não agendado')}</small>`:''}</div>`).join('')}
+    <p class="muted" style="margin:6px 0 0;font-size:13px">O técnico recebe o KMZ e o material só ${s.length>1?'destes lançamentos':'deste lançamento'}. A fase Lançamento na rua só conta como concluída quando todos os lançamentos estiverem concluídos.</p></div>`+h}catch(e){}return h}}
+
+/* ---------- 3. fase Lançamento na rua: só fecha com todos os lançamentos concluídos ---------- */
+function f6Falta(a){const p=pPor(a.etiqueta),L=f6Ls(p);if(!L)return[];const ok=new Set();S.ags.filter(x=>x.etiqueta===a.etiqueta&&trabOk(x)&&x.id!==a.id&&f6Vivo(x)&&((x.fasesFin||[]).includes('rua')||x.lancFeito)).forEach(x=>(f6Sel(x)||L.map(y=>y.n)).forEach(n=>ok.add(n)));
+  (f6Sel(a)||[]).forEach(n=>ok.add(n));return L.filter(x=>!ok.has(x.n)).map(x=>x.n)}
+{const _c=ACT.concluirOk;ACT.concluirOk=function(el){const d=(el&&el.dataset)||{},a=getAg(d.id),s=f6Sel(a);if(!a||!s)return _c.apply(this,arguments);
+  const ff=d.ff!==undefined?String(d.ff).split(',').filter(Boolean):[...document.querySelectorAll('.fzFin:checked')].map(x=>x.value),f=ff.includes('rua')?f6Falta(a):[];if(!f.length)return _c.apply(this,arguments);
+  /* a fase só fecha no último lançamento: esta parte fica registrada como feita (lancFeito) e o anexo do projeto continua */
+  const ant=a.status,r=_c.call(this,{dataset:Object.assign({},d,{id:a.id,ff:ff.filter(k=>k!=='rua').join(',')})});
+  try{if(a.status!==ant){a.lancFeito=true;save();render();setTimeout(()=>toast(`${s.length>1?'Lançamentos '+s.join(' e ')+' concluídos':'Lançamento '+s[0]+' concluído'}. A fase Lançamento na rua fecha quando ${f.length>1?'os lançamentos '+f.join(' e ')+' forem concluídos':'o Lançamento '+f[0]+' for concluído'}.`),3600)}}catch(e){console.warn('f6fim',e)}return r}}
+
+/* ---------- Necessidade da logística: material de cada lançamento na data do agendamento dele ---------- */
+{const _m=mcLinhas;mcLinhas=function(){const T=_m.apply(this,arguments);if((ui.mcAba||'cli')!=='log')return T;const o=[];
+  T.forEach(r=>{const L=f6Ls(r.p);const ags=L?S.ags.filter(a=>a.etiqueta===r.p.etiqueta&&trabOk(a)&&f6Vivo(a)&&!FIM.includes(a.status)&&fasesOf(a).includes('rua')&&f6Sel(a)):[];if(!ags.length||r.sit.k==='ativ'){o.push(r);return}
+    const feito=a=>a.lancFeito||(a.fasesFin||[]).includes('rua'),ok=new Set(),dt={};S.ags.filter(a=>a.etiqueta===r.p.etiqueta&&trabOk(a)&&f6Vivo(a)&&feito(a)).forEach(a=>(f6Sel(a)||L.map(x=>x.n)).forEach(n=>ok.add(n)));
+    ags.filter(a=>!feito(a)).sort((a,b)=>String(a.data).localeCompare(String(b.data))).forEach(a=>a.lancs.forEach(n=>{if(!dt[n]&&!ok.has(n))dt[n]=a.data}));
+    const sem=L.filter(x=>!dt[x.n]&&!ok.has(x.n)).map(x=>x.n),grupos=[...new Set(Object.values(dt))].map(d=>({d,s:L.filter(x=>dt[x.n]===d).map(x=>x.n)}));if(sem.length)grupos.push({d:r.sit.d,s:sem,sem:true});if(ok.size)grupos.unshift({s:[...ok],feito:true});
+    const usado={};grupos.forEach((g,gi)=>{let it=f6Ajusta(r.p,g.s,r.it.map(i=>Object.assign({},i,{ponta:String(i.tipo||'').toUpperCase().includes('PONTA B')?'B':'A'})));
+      it=it.filter(i=>i.ponta==='A').map(i=>{const k=mKey(i);usado[k]=(usado[k]||0)+(+i.qtd||0);const u=r.it.find(y=>mKey(y)===k);return Object.assign({},u,{qtd:i.qtd,vt:u&&u.vu!=null?Math.round(u.vu*i.qtd*100)/100:null})});
+      if(!g.feito)o.push(Object.assign({},r,{p:Object.assign({},r.p,{etiqueta:r.p.etiqueta+' · '+(g.s.length>1?'Lançamentos '+g.s.join(' e '):'Lançamento '+g.s[0])+(g.sem?' (sem agendamento próprio)':'')}),it,sit:Object.assign({},r.sit,{d:g.d}),mat:it.reduce((a,i)=>a+(i.vt||0),0)}))});
+    const resto=r.it.map(i=>{if(String(i.tipo||'').toUpperCase().includes('PONTA B'))return i;const k=mKey(i),q=Math.round(((+i.qtd||0)-(usado[k]||0))*100)/100;return q>0?Object.assign({},i,{qtd:q,vt:i.vu!=null?Math.round(i.vu*q*100)/100:null}):null}).filter(Boolean);
+    if(resto.length)o.push(Object.assign({},r,{p:Object.assign({},r.p,{etiqueta:r.p.etiqueta+' · ativação e demais itens'}),it:resto,mat:resto.reduce((a,i)=>a+(i.vt||0),0)}))});
+  return o}}
+
+document.head.insertAdjacentHTML('beforeend',`<style>
+.f6md{margin:4px 0 2px}.f6md summary{cursor:pointer;font-size:13px;color:var(--brand-ink,#3F6B12);font-weight:600}.f6md .tablewrap{margin-top:6px}.f6mt{width:100%;font-size:12.5px}
+.f6ag{display:grid;gap:6px;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.f6ag>small{font-size:12.5px}.f6ag .chk{display:flex;gap:8px;align-items:flex-start;padding:6px 8px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.f6ag .chk.on{border-color:var(--brand,#8CBF3F);background:var(--brand-soft,#E6F1D5)}.f6ag .chk span{display:grid;gap:1px;min-width:0}.f6ag .chk small{color:var(--muted);font-size:12.5px}
+.f6sel{color:#0e7490!important;background:color-mix(in srgb,#0891b2 12%,transparent)!important}.f6chip{background:color-mix(in srgb,#0891b2 14%,transparent);color:#0e7490}.f6box .refl small{color:var(--muted)}
+.f6kv{margin:0 0 16px}.f6kv h3{margin:0 0 2px;font-size:15px}.f6kv p{margin:0 0 6px;font-size:13px}
+</style>`);
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
