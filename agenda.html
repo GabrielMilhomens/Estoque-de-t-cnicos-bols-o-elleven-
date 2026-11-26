@@ -23466,7 +23466,7 @@ const f4BudSoma=c=>{const y=f4M().slice(0,4),s=Array.from({length:12},(_,i)=>f2N
 Object.assign(IN,{f4BudSoma:el=>f4BudSoma(el.id.split('_')[1])});
 
 /* ---------- 5–8. Contas a pagar ---------- */
-const f4LpuRef=l=>{const c=l.chamado&&!l._rp&&f4ChAll().find(x=>x.id===l.chamado),cl=l.cliente||(typeof cliN==='function'&&l.etiqueta?cliN(l.etiqueta):'')||'';return [cl,l.etiqueta&&l.etiqueta!==l.cliente&&(cl||!(l.pom||c))?`(${l.etiqueta})`:'',l.pom?`O&M ${l.pom}`:c&&c.pom?`O&M ${c.pom}`:''].filter(Boolean).join(' ')||'(sem identificação)'};
+const f4LpuRef=l=>{const c=l.chamado&&!l._rp&&f4ChAll().find(x=>x.id===l.chamado),cl=l.cliente||(typeof cliN==='function'&&l.etiqueta?cliN(l.etiqueta):'')||'';return [cl,l.etiqueta&&l.etiqueta!==l.cliente&&(cl||!(l.pom||c))?(cl?`(${l.etiqueta})`:l.etiqueta):'',l.pom?`O&M ${l.pom}`:c&&c.pom?`O&M ${c.pom}`:''].filter(Boolean).join(' ')||'(sem identificação)'};
 const f4ItLpu=l=>{const L=(typeof finItFix==='function'?finItFix([l])[0]:l).itens||[];return L.map(i=>({cod:i.cod||'',desc:i.desc||'',qtd:+i.qtd||0,unit:+i.unit||0,total:f4R2((+i.unit||0)*(+i.qtd||0))}))};
 /* contrato fixo de uma linha virtual: área, técnico e período */
 function f4CfDe(l){if(l._cfi&&l._cfRef)return{area:'impl',tec:l.tec,ref:l._cfRef};if(l._cfId){const x=CF.rows.find(y=>y.id===l._cfId);if(x)return{area:x.area,tec:x.tec,ref:x.ref}}if(l._cfRef)return{area:l._pl==='impl'?'impl':'re',tec:l.tec,ref:l._cfRef};return null}
@@ -23518,7 +23518,7 @@ function f4SolDados(ch,tp){const m=f4M(),gs=f2NfGrupos(m).find(g=>g.chave===ch);
   const tot=f4R2(tipos.reduce((s,t)=>s+gs[t].valor,0)),pz=f2UltUtil(m),cn=String(ch).startsWith('cnpj:')?ch.slice(5):'',tecId=String(ch).startsWith('tec:')?ch.slice(4):'';
   const dono=Object.entries(S.cnpj||{}).filter(([id,x])=>(cn&&soDig(x.cnpj)===cn&&(!x.empresa||x.empresa===id))||id===tecId).map(([id])=>id);
   const partes=tipos.map(t=>`${t==='lpu'?'LPU':'contrato fixo'} ${brl(gs[t].valor)}`).join(' + ');
-  return{m,gs,tipos,tot,pz,cn,dono,titulo:`Fechamento de ${f2MesN(m)} realizado`,texto:`Valor para a nota: ${brl(tot)}${tipos.length>1?' ('+partes+')':''}. Emita a NF até ${dBR(pz)} (último dia útil) e envie pelo WhatsApp para o Financeiro. O detalhamento está na sua Gestão financeira.`}}
+  return{m,gs,tipos,tot,pz,cn,dono,titulo:`Fechamento de ${f2MesN(m)} realizado`,texto:`Valor para a nota: ${brl(tot)}${tipos.length>1?' ('+partes+')':''}. Emita a NF até ${dBR(pz)} (último dia útil) e envie ao seu gestor da NetTurbo. O detalhamento está na sua Gestão financeira.`}}
 function f4SolModal(ch,tp){const D=f4SolDados(ch,tp);if(!D){toast('Nada a solicitar para esse prestador no mês.','warn');return}
   const nomes=D.dono.map(id=>gTecN(id)).filter(Boolean);
   openModal(`<h3 style="margin-top:0">Solicitar nota · ${esc(D.gs.nome)}</h3><p class="muted" style="margin:0 0 8px">${f4MesN(D.m)} · ${D.tipos.map(t=>t==='lpu'?'LPU':'Contrato fixo').join(' e ')}</p>
@@ -23675,8 +23675,16 @@ function viewFinImpPl(){if(!f2Ok())return f2Top('Importar fechamentos','Planilha
 {const _m=cfmModal;cfmModal=function(){const r=_m.apply(this,arguments);try{const M=ui.cfm,ja=M&&cfFech(M.area,M.tec,M.ref);if(ja&&ja.manual&&cfmEd(M.area)){const a=document.querySelector('#modal .actions');if(a)a.insertAdjacentHTML('afterbegin',`<button class="btn" data-act="f4CfmDes" style="margin-right:auto">${ui.f4CfmC?'Confirmar: desfazer':'Desfazer este fechamento manual'}</button>`)}}catch(e){}return r}}
 
 /* ---------- prestador: aviso de fechamento na Gestão financeira ---------- */
+/* o que entrou na nota: as mesmas atividades e itens que o Financeiro vê em Contas a pagar */
+function f4NfPrestGs(av){const x=/^finnf:(.*):(\d{4}-\d{2})$/.exec(av&&av.ref||'');if(!x)return null;let g=null;try{g=f2NfGrupos(x[2]).find(y=>y.chave===x[1])}catch(e){}return g?{g,m:x[2]}:null}
+function f4NfPrestDet(av){const D=f4NfPrestGs(av);if(!D)return '';const T=['lpu','ctr'].filter(t=>D.g[t]),A={};T.forEach(t=>A[t]=f4Ativs(D.g[t]));const n=T.reduce((s,t)=>s+A[t].length,0),tot=T.reduce((s,t)=>s+D.g[t].valor,0);
+  return `<details class="f4nfd"><summary>Ver o que entrou nesta nota · ${n} atividade(s) · ${brl(tot)}</summary><p class="muted" style="margin:6px 0">Toque na atividade para ver os itens.</p>
+   ${T.map(t=>`<h4>${t==='lpu'?'LPU':'Contrato fixo'} · ${brl(D.g[t].valor)}</h4><div class="f4ats">${A[t].map(f4AtivHtml).join('')}</div>`).join('')}
+   <div class="tools" style="margin-top:8px"><button class="btn sm" data-act="f4NfPrestXlsx" data-id="${esc(av.id)}">Baixar detalhamento (Excel)</button></div></details>`}
+ACT.f4NfPrestXlsx=el=>{const av=(G.avisos||[]).find(a=>a.id===el.dataset.id),D=f4NfPrestGs(av);if(!D)return;const gs=['lpu','ctr'].filter(t=>D.g[t]).map(t=>Object.assign({},D.g[t],{nome:D.g.nome}));
+  f2Xlsx(f4DetAoa(gs,D.m).map(r=>r.filter((c,i)=>i!==2)),'fechamento_'+D.m+'.xlsx','Fechamento')};
 {const _m=viewMinhas;viewMinhas=function(){const h=_m.apply(this,arguments);try{if(!gTecPerfil||!gTecPerfil())return h;const lim=Date.now()-50*864e5,A=(G.avisos||[]).filter(a=>/^finnf:/.test(a.ref||'')&&new Date(a.em).getTime()>lim).sort((a,b)=>String(b.em).localeCompare(String(a.em)));if(!A.length)return h;
-  const b=`<div class="f4nfb" role="status"><b>${esc(A[0].titulo)}</b><p>${esc(A[0].texto)}</p><small class="muted">Aviso do Financeiro · ${dtBR(new Date(A[0].em).getTime())}</small></div>`;const j=h.indexOf('</h2>'),i=j<0?-1:h.indexOf('</div>',j);return i<0?b+h:h.slice(0,i+6)+b+h.slice(i+6)}catch(e){return h}}}
+  const b=`<div class="f4nfb" role="status"><b>${esc(A[0].titulo)}</b><p>${esc(A[0].texto)}</p><small class="muted">Aviso do Financeiro · ${dtBR(new Date(A[0].em).getTime())}</small>${f4NfPrestDet(A[0])}</div>`;const j=h.indexOf('</h2>'),i=j<0?-1:h.indexOf('</div>',j);return i<0?b+h:h.slice(0,i+6)+b+h.slice(i+6)}catch(e){return h}}}
 
 /* ---------- ações ---------- */
 Object.assign(ACT,{
@@ -23755,15 +23763,20 @@ tr.f4on td{background:var(--brand-soft,#E6F1D5)}.f4open>td{padding:0!important}.
 .f4x{border:1px solid var(--line);background:var(--card,#fff);color:var(--ink);border-radius:8px;width:34px;height:34px;font-size:16px;line-height:1;cursor:pointer;flex:none}.f4x:hover{background:var(--soft,#F6F8F3)}.f4mx{float:right;margin:-4px -4px 6px 8px;position:sticky;top:0;z-index:2}
 .f4ats{display:grid;gap:6px}.f4at{border:1px solid var(--line);border-radius:10px;background:var(--card,#fff)}.f4at>summary{display:grid;grid-template-columns:110px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 10px;cursor:pointer;list-style:none}.f4at>summary::-webkit-details-marker{display:none}
 .f4at>summary:before{content:'›';position:absolute;margin-left:-6px;opacity:0}.f4at[open]>summary{border-bottom:1px solid var(--line)}.f4atd{font-size:13px;color:var(--muted)}.f4ata{display:grid;min-width:0}.f4ata b{overflow-wrap:anywhere}.f4atn{font-size:12.5px;color:var(--info);white-space:nowrap}.f4atv{font-variant-numeric:tabular-nums;white-space:nowrap}
-.f4atb{padding:8px 10px}.f4it td,.f4it th{padding:4px 8px;font-size:13px}.f4d2 summary{cursor:pointer;color:var(--info);font-size:12.5px}@media(max-width:640px){.f4at>summary{grid-template-columns:1fr auto}.f4atd,.f4atn{display:none}}
+.f4atb{padding:8px 10px}.f4it td,.f4it th{padding:4px 8px;font-size:13px}.f4it td:first-child{white-space:nowrap}.f4d2 summary{cursor:pointer;color:var(--info);font-size:12.5px}@media(max-width:640px){.f4at>summary{grid-template-columns:1fr auto}.f4atd,.f4atn{display:none}}
 .f4nb,.f4nw{white-space:nowrap}table.f2pag td:first-child{min-width:150px}table.f2pag td:nth-child(3){min-width:120px}.f4av{border:1px solid var(--line);border-left:4px solid var(--info);border-radius:10px;padding:10px 12px;display:grid;gap:4px;background:var(--info-soft)}.f4av p{margin:0}
-.f4nfb{border:1px solid var(--line);border-left:4px solid var(--info);border-radius:12px;padding:10px 14px;margin:8px 0 12px;background:var(--info-soft);display:grid;gap:2px}.f4nfb p{margin:0}
+.f4nfb{border:1px solid var(--line);border-left:4px solid var(--info);border-radius:12px;padding:10px 14px;margin:8px 0 12px;background:var(--info-soft);display:grid;gap:2px}.f4nfb p{margin:0}.f4nfd{margin-top:8px;border-top:1px solid var(--line);padding-top:6px}.f4nfd>summary{cursor:pointer;font-weight:600;color:var(--info)}.f4nfd h4{margin:10px 0 6px;font-size:14px}.f4nfd .f4at{background:var(--card,#fff)}
 .f4cfg{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px}@media(max-width:900px){.f4cfg{grid-template-columns:1fr}}.f4cfg h4{margin:4px 0 6px;font-size:14px}.f4vl{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:4px}
 .f4vl li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13.5px}.f4vl li span{font-size:12px;font-weight:600;color:var(--muted)}.f4vl li.s span{color:var(--brand-ink,#3F6B12)}.f4vl li.n span{color:var(--bad)}.f4vl em{font-style:normal;font-variant-numeric:tabular-nums}
 .f4tot{display:grid;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}.f4tot>div{display:flex;justify-content:space-between;gap:8px;font-size:14px}.f4tot .cfmt{font-size:16px;border-top:1px solid var(--line);padding-top:4px}
 .f4kp{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;margin-bottom:12px}.f4tl{display:grid;gap:6px}.f4tr{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) auto auto;gap:6px;align-items:center}@media(max-width:560px){.f4tr{grid-template-columns:1fr 1fr}}
 .f4guia{margin-bottom:12px}.f4guia summary{cursor:pointer}.f4ul{margin:0;padding-left:18px;display:grid;gap:6px}
 </style>`);
+/* aviso "Fechamento realizado": tocar no aviso (sino ou notificação no celular) abre a Gestão financeira */
+const f4IrNf=()=>{ui.cat='impl';ui.tab='minhas';ui.chat=null;ui.mIni=ui.mIni||hoje().slice(0,8)+'01';ui.mFim=ui.mFim||hoje();render();window.scrollTo(0,0)};
+{const _g=gIr;gIr=function(url){let q=null;try{q=new URL(url||'',location.href).searchParams}catch(e){}if(q&&q.get('fin')==='nf'&&gTecPerfil())return f4IrNf();return _g.apply(this,arguments)}}
+{if(new URLSearchParams(location.search).get('fin')==='nf'){try{history.replaceState(null,'',location.pathname)}catch(e){}window.__f4Nf=1}}
+{const _r=render;render=function(){const r=_r.apply(this,arguments);try{if(window.__f4Nf&&ME&&gTecPerfil()){window.__f4Nf=0;setTimeout(f4IrNf,0)}}catch(e){}return r}}
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
