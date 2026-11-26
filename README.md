@@ -1131,6 +1131,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Implantação · material por lançamento em quantidades inteiras (26/11, `mod/kmzlanc2.js`).** Ao agendar só um lançamento, o total de cada material do ROI é dividido entre os lançamentos em quantidades inteiras (maiores restos; cada lançamento que usa o item recebe ao menos 1 quando o total permite) e a soma das partes é sempre o total do ROI. Quando o ROI salvo tem bem menos material do que o KMZ do projeto (ROI salvo antes de mudar o desenho), o bloco "Lançamentos deste agendamento" avisa quais itens e pede para salvar o cadastro de novo. Sem SQL novo.
 
+- **Implantação · menu do Financeiro no formato da RE Corretiva (26/11, `mod/finimpnav.js`).** Em Painel de KPIs › Financeiro, "Contrato LPU" e "Contrato fixo" deixam de ser títulos e viram grupos que abrem e fecham, como na RE Corretiva. O grupo da tela aberta começa aberto; abrir o outro grupo leva para a primeira tela dele (Budget e ROI ou Fechamento do mês); com o grupo fechado, as pendências de aprovação aparecem no próprio grupo. As telas não mudam. Sem SQL novo.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1195,6 +1197,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 26/11/2026 | Implantação: menu do Financeiro com os grupos Contrato LPU e Contrato fixo abrindo e fechando, igual à RE Corretiva | `agenda.html` (`mod/finimpnav.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: material do agendamento por lançamento em quantidades inteiras e aviso quando o ROI salvo está desatualizado em relação ao KMZ | `agenda.html` (`mod/kmzlanc2.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: projetos já salvos passam a ter os lançamentos e o material separados sozinhos (lidos do KMZ de lançamento anexado) | `agenda.html` (`mod/kmzlanc2.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: agendar só um lançamento do projeto (KMZ e material só dos lançamentos marcados), material por lançamento (cadastro, Materiais e mão de obra, Necessidade da logística) e fase Lançamento na rua fechando só com todos os lançamentos | `agenda.html` (`mod/kmzlanc2.js`). Sem SQL novo. |

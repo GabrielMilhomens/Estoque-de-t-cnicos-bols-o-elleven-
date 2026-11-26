@@ -24200,6 +24200,24 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .f6kv{margin:0 0 16px}.f6kv h3{margin:0 0 2px;font-size:15px}.f6kv p{margin:0 0 6px;font-size:13px}
 </style>`);
 
+/* ===== 26/11: menu do Financeiro da Implantação no mesmo formato da RE Corretiva =====
+   Financeiro > "Contrato LPU" e "Contrato fixo" viram grupos que abrem e fecham (antes eram só títulos).
+   O grupo da tela aberta começa aberto; abrir o outro grupo leva para a primeira tela dele; com o grupo
+   fechado, o número de pendências (Aprovação de LPU, Aprovação das baixas) aparece no próprio grupo. */
+{const _r=render;render=function(){const r=_r.apply(this,arguments);try{fiNavGrupos()}catch(e){console.warn('fiNav',e)}return r}}
+function fiNavGrupos(){document.querySelectorAll('.nlv > .cfigl.lpu').forEach(h=>{const box=h.parentElement;if(!box||box.querySelector(':scope > [data-act="fiGrp"]'))return;
+  const its=[...box.querySelectorAll(':scope > button[data-act="pSec"][data-v="fin"][data-s]')],cf=k=>typeof CFI_KEYS!=='undefined'&&CFI_KEYS.includes(k);
+  const G={lpu:its.filter(b=>!cf(b.dataset.s)),cf:its.filter(b=>cf(b.dataset.s))},atual=ui.tab==='painel'&&ui.pSec==='fin'&&ui.finSub?(cf(ui.finSub)?'cf':'lpu'):null,op=ui.fiGrpOp||{};
+  const frag=document.createDocumentFragment();
+  [['lpu','Contrato LPU'],['cf','Contrato fixo']].forEach(([k,n])=>{const L=G[k];if(!L.length)return;const ab=op[k]!=null?op[k]:atual===k,nb=L.reduce((s,b)=>s+(+((b.querySelector('.nbadge')||{}).textContent)||0),0);
+    const t=document.createElement('template');t.innerHTML=`<button class="nit ${ab?'pai':''}" data-act="fiGrp" data-g="${k}" data-f="${L[0].dataset.s}" aria-current="false" aria-expanded="${ab}"><span class="nt">${n}</span>${!ab&&nb?`<span class="nbadge">${nb}</span>`:''}<span class="nch">${ab?ICN.up:ICN.dn}</span></button>`;
+    frag.appendChild(t.content.firstChild);if(ab){const d=document.createElement('div');d.className='nlv';L.forEach(b=>d.appendChild(b));frag.appendChild(d)}});
+  box.querySelectorAll(':scope > .cfigl').forEach(x=>x.remove());its.forEach(b=>{if(b.parentElement===box)b.remove()});box.appendChild(frag)})}
+ACT.fiGrp=el=>{const k=el.dataset.g,op=ui.fiGrpOp=ui.fiGrpOp||{},cf=s=>typeof CFI_KEYS!=='undefined'&&CFI_KEYS.includes(s),na=ui.tab==='painel'&&ui.pSec==='fin',atual=na&&ui.finSub?(cf(ui.finSub)?'cf':'lpu'):null,ab=op[k]!=null?op[k]:atual===k;
+  if(ab){op[k]=false;render();return}op[k]=true;if(atual!==k&&el.dataset.f){ACT.pSec({dataset:{v:'fin',s:el.dataset.f}});return}render()};
+/* escolher uma tela reabre o grupo dela */
+{const _p=ACT.pSec;ACT.pSec=function(el){try{const s=el&&el.dataset&&el.dataset.s;if(s&&el.dataset.v==='fin'){const op=ui.fiGrpOp=ui.fiGrpOp||{};op[typeof CFI_KEYS!=='undefined'&&CFI_KEYS.includes(s)?'cf':'lpu']=true}}catch(e){}return _p.apply(this,arguments)}}
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
