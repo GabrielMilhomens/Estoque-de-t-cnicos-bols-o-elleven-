@@ -1110,6 +1110,7 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - **Terceiros e técnicos:** ativo/inativo (filtro), técnicos e auxiliares cadastrados no Financeiro além dos usuários da ferramenta, lista em Excel e PDF.
   - **Códigos SAP:** lê a planilha nova (aba "Códigos SAP" e "Contas contábeis" com "Quando usar cada conta") e a antiga; "Novo código" e "Editar" (códigos incluídos à mão ficam ao atualizar pela planilha); Excel.
   - **Importar fechamentos** (Apoio, permissão `fin_impp`): modelo com as abas LPU (uma linha por item) e Contrato fixo (uma linha por contrato e mês). A LPU entra aprovada no mês da competência em `ag_fin_baixas` (como a lançada em PDF); o contrato entra em Outros contratos (`ag_fin_contratos` tipo valor informado + `ag_fin_ctr_mes`). Conferência antes de gravar (erros e avisos, LPU da ferramenta no mesmo mês e CNPJ) e "Desfazer" por importação. O fechamento manual do contrato fixo também ganhou "Desfazer".
+- **LPU com aprovação cancelada volta para preencher de novo (26/11, `mod/lpudup.js`):** na aprovação (aba Reprovadas), a LPU com o selo "Aprovação cancelada" tem o botão "Devolver para preencher de novo" (o "Reabrir para ajuste" com o texto próprio): ela vira "Devolvida para ajuste" com o motivo, e o histórico guarda o cancelamento e a devolução. Se outra LPU da mesma atividade continua aprovada, a janela avisa (a trava de duplicidade barra o reenvio). Em Minha equipe, o administrador da empresa vê a seção "LPU devolvida para ajuste" com "Corrigir e reenviar a LPU" (também em Gestão financeira › Para ajuste). Corrigido o título "LPU para preencher" da Minha equipe, que mostrava `span class="chip">0` como texto.
 
 
 ## 8. Publicação
@@ -1176,6 +1177,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 26/11/2026 | LPU com aprovação cancelada pode ser devolvida para o técnico e o administrador da empresa preencherem de novo; seção "LPU devolvida para ajuste" na Minha equipe | `agenda.html` (`mod/lpudup.js`, `mod/cfimpl.js`). Sem SQL novo. |
 | 26/11/2026 | Financeiro: período único, comparação mês/ano, observações, budget do ano, detalhamento em Contas a pagar, Solicitar nota no app, detalhe do contrato fixo, terceiros ativos/técnicos, códigos SAP novos e importação de fechamentos com desfazer | **`agenda_ajuste_100_financeiro_pamela.sql` no Supabase**, depois `agenda.html` (`mod/finpam.js`). Dar a tela "Importar fechamentos" (`fin_impp`) para a Pamela em Usuários e acessos. |
 | 25/11/2026 | Prestador vê na Gestão financeira as LPUs lançadas em PDF no Financeiro | **`agenda_ajuste_99_fin_baixas_prestador.sql` no Supabase**, depois `agenda.html` (`mod/finpdf.js`). |
 | 25/11/2026 | Contrato fixo: fechamento manual (período fora da ferramenta) e desconto com motivo; NF separada em LPU, contrato fixo e descontos | `agenda.html` (`mod/cfman.js`, `mod/finmod.js`, `mod/finfix.js`). Sem SQL novo. Para novembro: Fechamento do mês › Fechamento manual › período 21/10 a 20/11 em cada equipe. |

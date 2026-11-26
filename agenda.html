@@ -22544,7 +22544,7 @@ function cfiEqCard(h,a,cons){const k=`data-k="a:${a.id}"`,j=h.indexOf(k);if(j<0)
   if(!imp&&!S.lpus.some(l=>l.ag===a.id&&l.status!=='reprovada'))art=art.replace(/(<span class="eqt">)/,`<span class="cfitag">Contrato fixo: ${cons?'o administrador da empresa faz a baixa em Minha equipe':'a baixa substitui a LPU e vai para a aprovação da Implantação'}</span>$1`);
   return h.slice(0,i)+art+h.slice(j)}
 {const _e=viewEquipe;viewEquipe=function(){let h=_e.apply(this,arguments);try{const cons=ui.tab==='eqVer';S.ags.forEach(a=>{if((a.status==='lpu'||a.status==='nao_concluida')&&cfiK(a.tec))h=cfiEqCard(h,a,cons)});
-  h=h.replace(/>LPU para preencher </,S.ags.some(a=>a.status==='lpu'&&cfiK(a.tec))?'>LPU e baixas para preencher <':'>LPU para preencher ')}catch(e){console.warn('cfiEq',e)}return h}}
+  h=h.replace(/>LPU para preencher </,S.ags.some(a=>a.status==='lpu'&&cfiK(a.tec))?'>LPU e baixas para preencher <':'>LPU para preencher <')}catch(e){console.warn('cfiEq',e)}return h}}
 document.head.insertAdjacentHTML('beforeend','<style>.cfitag{display:block;margin:6px 0 2px;font-size:13px;color:var(--info);background:var(--info-soft);border-radius:8px;padding:6px 10px}</style>');
 
 /* ===== 20/11: celular e modo escuro =====
@@ -22978,7 +22978,7 @@ function lpuAtivFecha(a,dia){if(!a)return;if(dia){const x=(a.diario||[]).find(y=
 {const _v=viewAprov;viewAprov=function(){let h=_v.apply(this,arguments);
   S.lpus.forEach(l=>{const d=lpuDups(l);if(d.length&&h.includes(`data-act="aOpen" data-id="${l.id}"`)){const ap=d.filter(x=>x.status==='aprovada').length;
       h=h.replace(new RegExp(`(data-act="aOpen" data-id="${l.id}"[^>]*><div><b>[^<]*</b>)`),`$1 <span class="chip bad" title="Outra LPU da mesma atividade${l.dia?' e do mesmo dia':''}">Duplicada${ap?` · ${ap>1?ap+' aprovadas':'outra aprovada'}`:''}</span>`)}
-    const ca=l.aprovCanc;if(ca&&l.status==='reprovada')h=h.replace(`<button class="btn primary" data-act="lpuReab" data-id="${l.id}">Reabrir para ajuste</button>`,'');
+    const ca=l.aprovCanc;if(ca&&l.status==='reprovada')h=h.replace(`<button class="btn primary" data-act="lpuReab" data-id="${l.id}">Reabrir para ajuste</button>`,`<button class="btn primary" data-act="lpuReab" data-id="${l.id}">Devolver para preencher de novo</button>`);
     if(l.status==='aprovada'&&pode('a_aprovar'))h=h.replace(`<button class="btn" data-act="pdf" data-id="${l.id}">Ver PDF</button>`,m=>m+`<button class="btn danger" data-act="lpuCancAp" data-id="${l.id}">Cancelar aprovação</button>`);
     if(ca&&l.status==='reprovada')h=h.replace(new RegExp(`(data-act="aOpen" data-id="${l.id}"[^>]*><div><b>[^<]*</b>)`),`$1 <span class="chip">Aprovação cancelada</span>`)});
   return h}}
@@ -23015,6 +23015,25 @@ document.head.insertAdjacentHTML('beforeend',`<style>body.lpuEnv [data-act="lpuE
 function sgNomePad(tec,gtd){try{if(ui.perfil==='terc'&&tec&&tec!==ME.id)return meNome()}catch(e){}return gtd?gTecN(tec):tecN(tec)}
 {const _s=ACT.sgOk;ACT.sgOk=async function(){const t0=Date.now()-1000,nm=meNome();const r=await _s.apply(this,arguments);
   try{let m=false;S.lpus.forEach(l=>(l.hist||[]).forEach(h=>{if(h.em>=t0&&!h.login&&/assinad/i.test(h.acao||'')){h.login=nm;m=true}}));if(m)save()}catch(e){}return r}}
+
+/* 26/11: LPU com aprovação cancelada pode voltar para o técnico (e o administrador da empresa) preencher de novo.
+   Usa o "Reabrir para ajuste": a LPU vira "Devolvida para ajuste" com o motivo; se outra LPU da mesma atividade
+   continua aprovada, a janela avisa (a trava de duplicidade segura o reenvio igual). */
+{const _r=ACT.lpuReab;ACT.lpuReab=function(el){const r=_r.apply(this,arguments);try{const l=S.lpus.find(x=>x.id===el.dataset.id);if(!l||!l.aprovCanc||l.status!=='reprovada')return r;
+  const m=$('modal'),h=m.querySelector('h3'),inf=m.querySelector('.result.info'),t=$('reabMot'),bt=m.querySelector('[data-act="lpuReabOk"]'),cx=(S.cnpj||{})[l.tec]||{},adm=cx.empresa&&cx.empresa!==l.tec?gTecN(cx.empresa):'';
+  const o=lpuDups(l).find(x=>x.status==='aprovada'&&x.id!==l.id);
+  if(h)h.textContent='Devolver para preencher de novo';
+  if(inf)inf.innerHTML=`A aprovação desta LPU foi cancelada (${esc(l.aprovCanc.motivo||'')}). Ela volta como <span style="font-weight:700">Devolvida para ajuste</span> para ${esc(l.tecNome||tecN(l.tec))}${adm?` e para o administrador da empresa, ${esc(adm)}, que preenche a LPU de novo em Minha equipe`:''}. Depois de corrigida e reenviada, entra de novo na aprovação. O histórico guarda o cancelamento e a devolução.`;
+  if(o&&inf)inf.insertAdjacentHTML('afterend',`<div class="result warn" style="margin:0 0 10px">Outra LPU da mesma atividade${o.dia?' e do mesmo dia':''} continua aprovada (${brl(o.total)}). Se esta era a duplicada, não devolva: ela será barrada de novo no reenvio.</div>`);
+  if(t&&(!t.value||t.value===l.aprovCanc.motivo))t.value='Aprovação cancelada: preencher a LPU de novo. ';if(bt)bt.textContent='Devolver para preencher';}catch(e){}return r}}
+{const _o=ACT.lpuReabOk;ACT.lpuReabOk=function(el){const l=S.lpus.find(x=>x.id===el.dataset.id),c=l&&l.aprovCanc&&l.status==='reprovada';const r=_o.apply(this,arguments);if(c&&l.status==='ajuste'){l.aprovCanc=Object.assign({},l.aprovCanc,{devolvida:{por:meNome(),em:Date.now()}});try{save()}catch(e){}}return r}}
+/* Minha equipe: LPU devolvida para ajuste (inclusive a que teve a aprovação cancelada) aparece para o administrador corrigir */
+{const _v=viewEquipe;viewEquipe=function(){const h=_v.apply(this,arguments);try{const ids=new Set([...(typeof eqIds==='function'?eqIds():[]),ui.tec]);
+  const L=S.lpus.filter(l=>l.status==='ajuste'&&(l.prestador===ui.tec||ids.has(l.tec))).sort((a,b)=>String(b.data).localeCompare(String(a.data)));if(!L.length)return h;
+  const card=l=>{const m=(l.hist||[]).slice().reverse().find(x=>x.motivo);return `<article class="eqc"><div class="eqh"><b>${esc(cliN(l.etiqueta)||l.cliente||l.etiqueta)}</b><span class="chip warn">${l.aprovCanc?'Aprovação cancelada · preencher de novo':'Devolvida para ajuste'}</span></div>
+    <small>${esc(l.etiqueta)} · ${dBR(l.data)} · ${brl(l.total)}</small><span class="eqt">${esc(l.tecNome||tecN(l.tec))}</span>${m?`<p class="note" style="margin:6px 0 0">${esc(m.motivo)}</p>`:''}<div class="actions" style="justify-content:flex-start;margin-top:8px"><button class="bigbtn" data-act="ajuste" data-id="${l.id}">Corrigir e reenviar a LPU</button></div></article>`};
+  const sec=`<section class="eqs"><h3 class="lsub">LPU devolvida para ajuste <span class="chip">${L.length}</span></h3>${L.map(card).join('')}</section>`;
+  const i=h.indexOf('<section class="eqs"><h3 class="lsub">LPU');return i<0?h+sec:h.slice(0,i)+sec+h.slice(i)}catch(e){console.warn('eqAj',e);return h}}}
 
 /* ===== 24/11: trabalhos no mesmo cliente (mesma etiqueta) — substitui o "-UP1" de 19/11 =====
    Em "Incluir novo projeto", quando a etiqueta do ROI já está na base, a ferramenta pergunta que trabalho é:
