@@ -1129,6 +1129,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Implantação · lançamentos separados também nos projetos já salvos (26/11, `mod/kmzlanc2.js`).** Projeto com ROI pelo KMZ salvo antes da separação por lançamento: na primeira vez que se abre o agendamento, o cadastro ou "Materiais e mão de obra", a ferramenta lê o KMZ de lançamento anexado ao projeto, separa os lançamentos e o material de cada um e grava no projeto (`roiKmz.lancs`). Não precisa enviar o KMZ de novo. Sem SQL novo.
 
+- **Implantação · material por lançamento em quantidades inteiras (26/11, `mod/kmzlanc2.js`).** Ao agendar só um lançamento, o total de cada material do ROI é dividido entre os lançamentos em quantidades inteiras (maiores restos; cada lançamento que usa o item recebe ao menos 1 quando o total permite) e a soma das partes é sempre o total do ROI. Quando o ROI salvo tem bem menos material do que o KMZ do projeto (ROI salvo antes de mudar o desenho), o bloco "Lançamentos deste agendamento" avisa quais itens e pede para salvar o cadastro de novo. Sem SQL novo.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1193,6 +1195,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 26/11/2026 | Implantação: material do agendamento por lançamento em quantidades inteiras e aviso quando o ROI salvo está desatualizado em relação ao KMZ | `agenda.html` (`mod/kmzlanc2.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: projetos já salvos passam a ter os lançamentos e o material separados sozinhos (lidos do KMZ de lançamento anexado) | `agenda.html` (`mod/kmzlanc2.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: agendar só um lançamento do projeto (KMZ e material só dos lançamentos marcados), material por lançamento (cadastro, Materiais e mão de obra, Necessidade da logística) e fase Lançamento na rua fechando só com todos os lançamentos | `agenda.html` (`mod/kmzlanc2.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: KMZ com mais de um lançamento lido separadamente, desenho com vários lançamentos (abas) e edição do KMZ enviado no editor de desenho | `agenda.html` (`mod/kmzlanc.js`). Sem SQL novo. |

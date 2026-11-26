@@ -24119,6 +24119,8 @@ function f6AgDe(p,exceto){const L=f6Ls(p),o={};if(!L)return o;S.ags.filter(a=>a.
   const fim=(a.fasesFin||[]).includes('rua')||a.lancFeito;s.forEach(n=>{if(!o[n]||fim)o[n]=(fim?'concluído':'agendado')+' '+dBR(a.data).slice(0,5)+' · '+tecN(a.tec)})});return o}
 function f6Bloco(p,F){const L=f6Ls(p);if(!L||!(F.fases||[]).includes('rua'))return '';const ed=ui.agEd&&ui.agEd.modo==='edit'?ui.agEd.id:null,ag=f6AgDe(p,ed),sel=new Set(F.lancSel||L.map(x=>x.n));
   return `<div class="f6ag"><b>Lançamentos deste agendamento</b><small class="muted">O projeto tem ${L.length} lançamentos. Marque o que esta equipe vai fazer: o técnico recebe o KMZ e a lista de material só dos marcados.</small>
+   ${(()=>{const it=((p.roi&&p.roi.itens)||[]).filter(i=>pontaItem(i)==='A'),D=[];it.forEach(i=>{const k=mKey(i),sw=L.reduce((s,x)=>s+x.itens.filter(y=>mKey(y)===k).reduce((a,y)=>a+(+y.qtd||0),0),0);if(sw>0&&(+i.qtd||0)<sw*0.8)D.push(`${String(i.desc||'').toLowerCase()}: ${(+i.qtd).toLocaleString('pt-BR')} no ROI e ${sw.toLocaleString('pt-BR')} no KMZ`)});
+     return D.length?`<div class="result warn" style="margin:0;font-size:13px">O ROI salvo tem menos material do que o KMZ do projeto (${esc(D.slice(0,2).join('; '))}${D.length>2?` e mais ${D.length-2}`:''}). A lista abaixo divide o que está no ROI. Para atualizar, abra o cadastro, use o desenho de novo e salve.</div>`:''})()}
    ${L.map(x=>`<label class="chk ${sel.has(x.n)?'on':''}"><input type="checkbox" data-ch="f6Ls" value="${x.n}" ${sel.has(x.n)?'checked':''}><span><b>${esc(f6Nome(x))}</b><small>${esc([f6Pontas(x),x.itens.length+' '+(x.itens.length===1?'item':'itens')+' de material',ag[x.n]].filter(Boolean).join(' · '))}</small></span></label>`).join('')}</div>`}
 {const _f=agendForm;agendForm=function(p){const F=ui.agForm||{};try{const L=f6Ls(p);if(L&&!F.__f6&&!(ui.agEd&&ui.agEd.modo==='edit')){F.__f6=true;const ag=f6AgDe(p),livre=L.filter(x=>!ag[x.n]).map(x=>x.n);if(livre.length&&livre.length<L.length)F.lancSel=livre}}catch(e){}
   let h=_f.apply(this,arguments);try{const b=f6Bloco(p,F);if(b){const k2=h.indexOf('data-k="2"'),i2=k2>=0?h.lastIndexOf('<div class="agbk',k2):-1,k='<div class="agbk"><div class="agbh"><i>2</i>',i=i2>=0?i2:h.indexOf(k);h=i>=0?h.slice(0,i)+b+h.slice(i):h+b}}catch(e){console.warn('f6ag',e)}return h}}
@@ -24129,8 +24131,15 @@ Object.assign(CH,{f6Ls:el=>{const F=ui.agForm=ui.agForm||{},p=pPor(ui.agSel),L=f
 /* edição e replicação: o formulário volta com os lançamentos do agendamento */
 {const _f=agFormDe;agFormDe=function(a,modo){const F=_f.apply(this,arguments);try{if(F&&a){F.__f6=true;F.lancSel=f6Sel(a)?a.lancs.slice():null}}catch(e){}return F}}
 /* material: só o dos lançamentos marcados (o que não é de um lançamento vai com o Lançamento 1) */
-function f6Ajusta(p,sel,lista){const L=f6Ls(p);if(!L||!sel)return lista;const S1=new Set(sel),q={},qa={};L.forEach(x=>x.itens.forEach(i=>{const k=mKey(i);qa[k]=(qa[k]||0)+(+i.qtd||0);if(S1.has(x.n))q[k]=(q[k]||0)+(+i.qtd||0)}));const com1=S1.has(L[0].n);
-  return lista.map(n=>{if(!/^A\b/.test(String(n.ponta||''))||/interno/.test(String(n.ponta||'')))return n;const k=mKey(n),tot=+n.qtd||0,res=Math.max(0,tot-(qa[k]||0)),nq=Math.round(((q[k]||0)*(tot&&qa[k]>tot?tot/qa[k]:1)+(com1?res:0))*100)/100;return Object.assign({},n,{qtd:nq})}).filter(n=>+n.qtd>0)}
+/* divide o total do projeto entre os lançamentos, em quantidades inteiras (maiores restos); total menor que a soma dos
+   lançamentos (ROI ajustado ou salvo antes) reparte na proporção; total maior: a sobra vai com o Lançamento 1 */
+function f6Reparte(tot,W){const n=W.length,sw=W.reduce((s,w)=>s+w,0),inteiro=Math.abs(tot-Math.round(tot))<1e-9;if(!sw)return W.map((_,i)=>i===0?tot:0);
+  if(tot>=sw){return W.map((w,i)=>i===0?Math.round((w+tot-sw)*100)/100:w)}
+  const ex=W.map(w=>tot*w/sw);if(!inteiro)return ex.map(x=>Math.round(x*100)/100);
+  const pos=W.filter(w=>w>0).length,min1=Math.round(tot)>=pos,b=ex.map((x,i)=>min1&&W[i]>0?Math.max(1,Math.floor(x)):Math.floor(x));while(b.reduce((s,x)=>s+x,0)>Math.round(tot)){const i=b.indexOf(Math.max(...b));b[i]--}let falta=Math.round(tot)-b.reduce((s,x)=>s+x,0);ex.map((x,i)=>[x-b[i],i]).sort((a,c)=>c[0]-a[0]||a[1]-c[1]).forEach(([,i])=>{if(falta>0){b[i]++;falta--}});return b}
+function f6Ajusta(p,sel,lista){const L=f6Ls(p);if(!L||!sel)return lista;const S1=new Set(sel);
+  return lista.map(n=>{if(!/^A\b/.test(String(n.ponta||''))||/interno/.test(String(n.ponta||'')))return n;const k=mKey(n),tot=+n.qtd||0,W=L.map(x=>x.itens.filter(i=>mKey(i)===k).reduce((s,i)=>s+(+i.qtd||0),0));
+    const A=f6Reparte(tot,W),nq=Math.round(L.reduce((s,x,i)=>s+(S1.has(x.n)?A[i]:0),0)*100)/100;return Object.assign({},n,{qtd:nq})}).filter(n=>+n.qtd>0)}
 {const _n=necessidade;necessidade=function(p,fases){const r=_n.apply(this,arguments);try{const F=ui.agForm;if(F&&fases===F.fases&&p&&p.etiqueta===ui.agSel&&F.lancSel&&fases.includes('rua'))return f6Ajusta(p,F.lancSel,r)}catch(e){}return r}}
 /* KMZ só dos lançamentos marcados, a partir do KMZ de lançamento do projeto */
 async function f6KmzSel(e,sel){const x=anxKmz(e,'kmzL');if(!x)throw new Error('o projeto não tem KMZ de lançamento anexado');const txt=await anxTexto(x),D=f6Dono(txt);
