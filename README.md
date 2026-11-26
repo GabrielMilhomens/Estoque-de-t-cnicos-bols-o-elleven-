@@ -1123,6 +1123,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - **Conta contábil no formato da Pamela:** uma linha por conta (CAPEX/OPEX, executado, budget, uso e saldo, selo "comentário"); ao abrir, o budget do mês editável, a composição por terceiro com barras (LPU e contrato fixo numa linha só, já com variáveis e descontos), o comentário do mês (Salvar) e os anteriores, e Excel da conta contábil.
 
 
+- **Implantação · mais de um lançamento no mesmo projeto (26/11, `mod/kmzlanc.js`).** No cadastro de projeto, o KMZ com vários lançamentos em locais diferentes passa a ser lido lançamento por lançamento: as linhas que se tocam formam um lançamento, cada um com tipo de cabo, metragem e pontas (nome do ponto mais próximo). Linhas chamadas "LANÇAMENTO" que não eram reconhecidas como cabo passam a contar. O painel mostra a lista e o botão **Editar no mapa**, que abre o KMZ no editor de desenho, com uma aba por lançamento (postes, cordoalhas, reservas e caixas trazidos do KMZ). No desenho é possível criar **+ Outro lançamento** e tirar um lançamento; ao usar no cadastro, os lançamentos viram um KMZ só (uma pasta por lançamento) e materiais, mão de obra e ROI somam todos. Reabrir o desenho mantém as abas (salvas em `roiKmz.desL`). Sem SQL novo.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1187,6 +1189,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 26/11/2026 | Implantação: KMZ com mais de um lançamento lido separadamente, desenho com vários lançamentos (abas) e edição do KMZ enviado no editor de desenho | `agenda.html` (`mod/kmzlanc.js`). Sem SQL novo. |
 | 26/11/2026 | Financeiro (2ª conversa com a Pamela): evolução mensal na Visão geral, histórico do SAP no Budget de todas as áreas e nos terceiros, Contas a pagar com abas LPU/Contrato fixo (sai Contratos fixos do menu), duplicar variável do contrato, Conta contábil em linhas com composição e comentário | `agenda.html` (`mod/finpam2.js`, `mod/finpam.js`). Sem SQL novo. |
 | 26/11/2026 | LPU em PDF de Melhoria · Opex/Capex passa a contar no Budget de todas as áreas; filtros e busca em Lançadas no Financeiro | `agenda.html` (`mod/finpdf.js`, `mod/finpam.js`). Sem SQL novo. |
 | 26/11/2026 | Conta contábil: resumo do mês no topo (total gasto, orçado, % utilizado, CAPEX/OPEX) | `agenda.html` (`mod/finpam.js`). Sem SQL novo. |

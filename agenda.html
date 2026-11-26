@@ -23938,6 +23938,117 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 </style>`);
 {const _c=ACT.f2Conta;ACT.f2Conta=function(el){ui.f5CO=el.dataset.c;return _c.apply(this,arguments)}}
 
+/* ===== 26/11: Implantação · novo projeto · mais de um lançamento no mesmo projeto =====
+   1. KMZ do projeto: linhas chamadas "LANÇAMENTO" (ou na pasta LANÇAMENTO) também são cabo. Sem nenhuma linha com
+      CABO/DROP/xxFO no nome, as linhas com cor de cabo do padrão entram como cabo (com aviso). Cada lançamento
+      separado (linhas que não se tocam) vira um cabo: metros, pontas, reservas e postes de cada um. A etapa ROI mostra
+      a lista dos lançamentos (tipo de cabo, metros, de onde até onde).
+   2. Desenhar aqui: abas de lançamento (Lançamento 1, 2, … e "+ Outro lançamento"). Cada lançamento tem as suas
+      coordenadas de início e fim e o seu desenho; ao usar no cadastro, os desenhos viram um KMZ só (uma pasta por
+      lançamento) e os materiais, a mão de obra e o ROI somam todos. Editar o desenho volta com todas as abas.
+   3. KMZ enviado: "Editar no mapa" abre o KMZ no desenho (uma aba por lançamento, com os postes, a cordoalha, as
+      reservas e as caixas do arquivo). Ao usar no cadastro, o KMZ vira o desenho ajustado. */
+
+/* ---------- 1. leitura do KMZ ---------- */
+const f6Ex=l=>/EXISTENTE/.test(kmN((l.pasta||'')+' '+l.nome)),f6Cord=l=>/CORDOALHA/.test(kmN(l.nome+' '+(l.pasta||''))),f6Rota=l=>/^ROTA\b/.test(kmN(l.nome));
+const f6EhCabo=l=>/\bCABOS?\b/.test(kmN(l.pasta||''))||/DROP|CABO|\b\d+\s*FO\b|^[A-Z]{3}\d{3}\b/.test(kmN(l.nome));
+const f6Lanc=l=>/LANCAMENTO/.test(kmN(l.nome)+' '+kmN(String(l.pasta||'').split(' / ').pop()));
+function f6Prep(K){if(!K||!K.L||K._f6)return K;const cand=K.L.filter(l=>!f6Ex(l)&&!f6Cord(l)&&!f6Rota(l)&&!f6EhCabo(l)),av=[];let use=cand.filter(f6Lanc);
+  if(!use.length&&!K.L.some(l=>!f6Ex(l)&&!f6Cord(l)&&!f6Rota(l)&&f6EhCabo(l))){use=cand.filter(l=>{const c=kmCor(l.cor).k;return !!KM_CORFO[c]||c==='verde'});
+    if(use.length)av.push(`Nenhuma linha com CABO, DROP ou xxFO no nome: ${use.length} ${use.length>1?'linhas entraram':'linha entrou'} como cabo pela cor do traço (padrão construtivo).`)}
+  return Object.assign({},K,{L:K.L.map(l=>use.includes(l)?Object.assign({},l,{nome:'CABO '+(l.nome||'')}):l),_f6:true,_av:av})}
+/* lançamentos: cabos que se tocam (até 15 m nas pontas ou 5 m da linha) formam um lançamento */
+function f6Lancs(K){const C=K.L.filter(l=>!f6Ex(l)&&!f6Cord(l)&&!f6Rota(l)&&f6EhCabo(l));if(!C.length)return[];const n=C.length,pai=[...Array(n).keys()],f=i=>pai[i]===i?i:(pai[i]=f(pai[i]));
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=C[i].c,b=C[j].c,E=[a[0],a[a.length-1]],F=[b[0],b[b.length-1]];if(E.some(x=>F.some(y=>kmHav(x,y)<=15))||E.some(x=>kmDist(x,b)<=5)||F.some(y=>kmDist(y,a)<=5))pai[f(i)]=f(j)}
+  const G={};C.forEach((l,i)=>(G[f(i)]=G[f(i)]||[]).push(l));
+  const tipo=l=>{const tx=kmN(l.nome),fo=((tx.match(/(\d+)\s*F\.?O\b/)||[])[1]||'').replace(/^0+/,''),c=kmCor(l.cor);if(c.k==='verde'||/DROP|FIG\.?\s*8/.test(tx))return 'Drop fig. 8';const x=fo||KM_CORFO[c.k];return x?`Cabo ${x}FO`:'Cabo (traço '+c.n+')'};
+  const nomeEm=ll=>{let b=null,bd=60;K.P.forEach(p=>{if(!String(p.nome||'').trim())return;const d=kmHav(p.ll,ll);if(d<bd){bd=d;b=p.nome}});return b};
+  return Object.values(G).map(ls=>{const E=[];ls.forEach(l=>{E.push(l.c[0],l.c[l.c.length-1])});let a=E[0],b=E[1],md=-1;for(let i=0;i<E.length;i++)for(let j=i+1;j<E.length;j++){const d=kmHav(E[i],E[j]);if(d>md){md=d;a=E[i];b=E[j]}}
+    return{ls,m:Math.round(ls.reduce((s,l)=>s+kmLen(l.c),0)),tipos:[...new Set(ls.map(tipo))],de:nomeEm(a),ate:nomeEm(b),a,b}}).sort((x,y)=>y.m-x.m).map((x,i)=>Object.assign(x,{n:i+1}))}
+{const _m=kmMat;kmMat=function(K){const K2=f6Prep(K),M=_m.call(this,K2);try{if(K2&&K2._av&&K2._av.length)M.av=K2._av.concat(M.av.filter(a=>!/Nenhuma linha de cabo reconhecida/.test(a)));
+  M.lancs=f6Lancs(K2).map(x=>({n:x.n,m:x.m,tipos:x.tipos,de:x.de,ate:x.ate}))}catch(e){console.warn('f6',e)}return M}}
+
+/* lista dos lançamentos na etapa ROI */
+function f6LancHtml(M,ed){const L=(M&&M.lancs)||[];if(!L.length)return '';
+  return `<div class="f6l"><div class="f6lh"><b>${L.length>1?L.length+' lançamentos neste KMZ':'1 lançamento neste KMZ'}</b>${ed?`<button type="button" class="btn sm" data-act="f6Edita">Editar no mapa</button>`:''}</div>
+   <ul>${L.map(x=>`<li><span class="f6n">${x.n}</span><span><b>${esc(x.tipos.join(' + '))} · ${kmN0(x.m)} m desenhados</b><small class="muted">${x.de||x.ate?`${esc(x.de||'ponta sem nome')} → ${esc(x.ate||'ponta sem nome')}`:'pontas sem nome no KMZ'}</small></span></li>`).join('')}</ul>
+   ${L.length>1?'<p class="muted" style="margin:4px 0 0;font-size:12.5px">Cada lançamento conta como um cabo (2 pontas de 30 m cada); materiais, mão de obra e ROI somam todos.</p>':''}</div>`}
+{const _p=krPainel;krPainel=function(){let h=_p.apply(this,arguments);try{const W=ui.wiz,R=W&&W.kr;if(!R||!R.M||R.soExt)return h;const ed=!!(R.K||R.arq)&&W.roiModo!=='des',b=f6LancHtml(R.M,ed);if(!b)return h;
+  const re=/(<p class="muted" style="margin:-4px 0 8px;font-size:13px">Arquivo:[\s\S]*?<\/p>)/;return re.test(h)?h.replace(re,'$1'+b):h.replace('<div class="krbox">','<div class="krbox">'+b)}catch(e){console.warn('f6p',e);return h}}}
+/* guarda o KMZ lido (para "Editar no mapa") */
+{const _a=CH.krArq;CH.krArq=async function(el){const r=await _a.apply(this,arguments);try{const W=ui.wiz,R=W&&W.kr,f=el&&el.files&&el.files[0];if(R&&f&&R.M&&!R.soExt){R.K=kmParse(await kmzTexto(await f.arrayBuffer(),f.name));renderWiz()}}catch(e){}return r}}
+
+/* ---------- 3. KMZ enviado → desenho (uma aba por lançamento) ---------- */
+const f6Fmt=ll=>(+ll[0]).toFixed(7)+', '+(+ll[1]).toFixed(7);
+function f6CaboK(ls){const c=kmCor(ls[0].cor).k,tx=kmN(ls.map(l=>l.nome).join(' ')),fo=((tx.match(/(\d+)\s*F\.?O\b/)||[])[1]||'').replace(/^0+/,'');if(c==='verde'||/DROP|FIG/.test(tx))return 'drop';const x=fo||KM_CORFO[c]||'12';return KA_CABO['fo'+x]?'fo'+x:'fo12'}
+function f6DeKmz(K0){const K=f6Prep(K0),G=f6Lancs(K),av=[];if(!G.length)throw new Error('não achei lançamentos (linhas de cabo) no KMZ');
+  const cli=K.P.filter(p=>/^CLIENTE\b/.test(kmN(p.nome))||/grn-blank/.test(p.ic||'')),cxs=K.P.filter(p=>/^(NOVA )?(CEO|CE|CTO|CDO)\b|^(CEO|CE|CTO)[\s\-_]?\d|CAIXA DE EMENDA/.test(kmN(p.nome)));
+  const usados=new Set();
+  const S=G.map(g=>{/* começa pela ponta do cliente (ou a que não tem caixa) */const pc=e=>cli.some(p=>kmHav(p.ll,e)<=60),px=e=>cxs.some(p=>kmHav(p.ll,e)<=60);
+    let ini=pc(g.a)?g.a:pc(g.b)?g.b:px(g.a)&&!px(g.b)?g.b:g.a;const ch=klCadeia(g.ls,ini),c=ch.c.map(v=>[+v[0],+v[1]]);if(ch.soltas)av.push(`Lançamento ${g.n}: ${ch.soltas} ${ch.soltas>1?'trechos não se ligaram':'trecho não se ligou'} ao resto e ficou de fora do desenho.`);
+    const perto=(ll,m)=>kmDist(ll,c)<=m,fim=c[c.length-1];
+    const P=K.P.filter(p=>{const t=kmTipoPoste(p);return t&&perto(p.ll,10)&&!usados.has(p)}).map(p=>{usados.add(p);return{t:kmTipoPoste(p),ll:p.ll.slice(),esq:false,nome:''}});
+    const cords=K.L.filter(l=>f6Cord(l)&&!f6Ex(l)&&l.c.some(v=>perto(v,15))).map(l=>({nome:String(l.nome||'CORDOALHA').replace(/\s*-\s*DIEL[ÉE]TRICA$/i,''),c:l.c.map(v=>v.slice())}));
+    const rts=K.P.filter(p=>(/^(NOVA )?RT\b|^R$|RESERVA/.test(kmN(p.nome))||/^r$/i.test(p.ic||''))&&perto(p.ll,50)).map(p=>({ll:p.ll.slice(),semCord:true}));
+    const cxF=cxs.filter(p=>kmHav(p.ll,fim)<=60).sort((x,y)=>kmHav(x.ll,fim)-kmHav(y.ll,fim))[0];
+    const X=K.P.filter(p=>p!==cxF&&perto(p.ll,40)&&!kmTipoPoste(p)).map(p=>{const n=kmN(p.nome);const k=/^CS\b|^CS[\s\-_]?\d|CAIXA SUBTERR/.test(n)?'cs':/^(NOVA )?CTO\b|^CTO[\s\-_]?\d/.test(n)?'cto':/^(NOVA )?(CEO|CE)\b|^(CEO|CE)[\s\-_]?\d|CAIXA DE EMENDA/.test(n)?'ceo':null;return k?{k,ll:p.ll.slice(),nome:p.nome||k.toUpperCase(),spl:''}:null}).filter(Boolean);
+    const cabo=f6CaboK(g.ls),cxn=cxF?cxF.nome:(g.ate||'CTO');if(g.tipos.length>1)av.push(`Lançamento ${g.n}: tem ${g.tipos.join(' e ')}; no desenho ficou como ${KA_CABO_N[cabo]||cabo} (troque os trechos no mapa, se precisar).`);
+    return{v:1,c,P,cords,esq:[],rts,tr:[],cordU:[],seg:[],X,cabo,mel:false,form:{klCli:f6Fmt(c[0]),klCx:f6Fmt(fim),klCxN:cxn,klCabo:cabo,klVao:'35'},topo:null,cid:'',crit:false,cxn,orig:'',ors:true,ext:null}});
+  const fora=K.P.filter(p=>!usados.has(p)&&String(p.nome||'').trim()&&!kmTipoPoste(p)&&!cli.includes(p)&&!cxs.includes(p)&&!/^(NOVA )?RT\b|^R$|RESERVA/.test(kmN(p.nome))).map(p=>p.nome);
+  if(fora.length)av.push(`Pontos que o desenho não usa (ficam fora do KMZ desenhado): ${[...new Set(fora)].slice(0,6).join(', ')}${fora.length>6?'…':''}.`);
+  return{S,av}}
+
+/* ---------- 2. abas de lançamento no desenho ---------- */
+const f6LS=()=>{if(!KLB.lancs||!KLB.lancs.length){KLB.lancs=[{S:null}];KLB.li=0}return KLB.lancs};
+function f6Le(){const v=id=>(($(id)||{}).value||'').trim();return['klCli','klCx','klCxN','klCabo','klVao','klTopo','klCid'].reduce((o,id)=>(o[id]=v(id),o),{crit:!!($('klCrit')||{}).checked,esp:!!($('klEsp')||{}).checked})}
+function f6Guarda(){const L=f6LS(),i=KLB.li||0;if(KLB.D){const S=klSerial();L[i]={S,m:KLB.D.tot||0}}else L[i]=Object.assign({},L[i],{form:f6Le()})}
+function f6Abas(){const o=$('klab');if(!o||!KLB.wiz)return;const L=f6LS(),i=KLB.li||0;if(KLB.D)L[i].m=KLB.D.tot||0;let bar=o.querySelector('.f6abas');
+  const h=`<div class="f6abas" role="tablist" aria-label="Lançamentos do projeto">${L.map((x,k)=>`<button type="button" role="tab" aria-selected="${k===i}" class="${k===i?'on':''}" data-act="f6Aba" data-i="${k}">Lançamento ${k+1}<small>${(k===i?KLB.D:x.S)?kmN0(Math.round(k===i?KLB.D.tot:x.m||0))+' m':'a desenhar'}</small></button>`).join('')}
+   <button type="button" class="f6mais" data-act="f6Novo">+ Outro lançamento</button>${L.length>1?`<button type="button" class="linkbtn f6del" data-act="f6Del">Tirar o lançamento ${i+1}</button>`:''}
+   ${L.length>1?`<p class="muted">Cada lançamento tem o seu início e fim. Ao usar no cadastro, os ${L.length} lançamentos viram um KMZ só e os materiais, a mão de obra e o ROI somam todos.</p>`:''}</div>`;
+  if(bar)bar.outerHTML=h;else{const f=o.querySelector('.klf');if(f)f.insertAdjacentHTML('afterbegin',h)}
+  const a=$('klCliL'),b=$('klCxL');if(a&&!KLB.mel)a.textContent=i?'Início do lançamento (coordenada) *':'Coordenada do cliente *';if(b&&!KLB.mel)b.textContent=i?'Fim do lançamento: caixa de derivação ou emenda *':'Coordenada da caixa de derivação *';
+  const u=o.querySelector('[data-act="klabUsar"]');if(u&&L.length>1)u.textContent=`Usar os ${L.length} lançamentos no cadastro`}
+{const _r=klabRes;klabRes=function(){const r=_r.apply(this,arguments);try{f6Abas()}catch(e){console.warn('f6abas',e)}return r}}
+async function f6Carrega(i){const L=f6LS(),x=L[i];KLB.li=i;KLB.modo='';KLB.sel=null;
+  if(x&&x.S){klDeserial(x.S);KLB.wiz=true;const keep=f6Le();['klCli','klCx','klCxN'].forEach(k=>{const e=$(k);if(e)e.value=''});klabForm();if(!(x.S.form))['klCabo','klVao','klTopo','klCid'].forEach(k=>{const e=$(k);if(e)e.value=keep[k]});await klabRefaz(false)}
+  else{const keep=f6Le();Object.assign(KLB,{D:null,M:null,V:null,kml:'',kmz:null,erro:''});['klCli','klCx','klCxN'].forEach(k=>{const e=$(k);if(e)e.value=(x&&x.form&&x.form[k])||''});['klCabo','klVao','klTopo','klCid'].forEach(k=>{const e=$(k);if(e&&keep[k])e.value=keep[k]});
+    if(KLB.map){try{KLB.map.remove()}catch(e){}KLB.map=null}klabRes()}}
+Object.assign(ACT,{
+  f6Aba:async el=>{const i=+el.dataset.i;if(i===(KLB.li||0))return;f6Guarda();await f6Carrega(i)},
+  f6Novo:async()=>{f6Guarda();const L=f6LS();L.push({S:null});await f6Carrega(L.length-1);const c=$('klCli');if(c)c.focus();toast('Lançamento '+L.length+': informe o início e o fim e toque em Desenhar traçado.')},
+  f6Del:async el=>{const L=f6LS();if(L.length<2)return;if(!el.dataset.ok){el.dataset.ok=1;el.textContent=`Confirmar: tirar o lançamento ${(KLB.li||0)+1}`;return}L.splice(KLB.li||0,1);await f6Carrega(Math.max(0,(KLB.li||0)-1))},
+  f6Edita:async()=>{const W=ui.wiz,R=W&&W.kr;if(!R)return;let K=R.K;try{if(!K&&R.arq)K=R.K=kmParse(await kmzTexto(await R.arq.arrayBuffer(),R.arq.name));if(!K)throw new Error('envie o KMZ de novo para editar');
+      const {S,av}=f6DeKmz(K);R.desL=S;R.desD=S[0];R.edDeKmz=true;KLB.wizRef=null;KLB.lancs=null;await ACT.klabWiz();if(av.length)setTimeout(()=>toast(av.join(' '),'warn'),300)}
+    catch(e){toast('Não foi possível abrir o KMZ no mapa: '+(e.message||e),'bad')}}});
+/* abre com as abas do projeto */
+{const _w=ACT.klabWiz;ACT.klabWiz=async function(){const W=ui.wiz;if(W&&KLB.wizRef!==W){const L=W.kr&&W.kr.desL;KLB.lancs=L&&L.length?L.map(S=>({S,m:(()=>{try{return Math.round(kmLen(S.c))}catch(e){return 0}})()})):null;KLB.li=0}
+  const r=await _w.apply(this,arguments);f6Abas();return r}}
+/* desenhar um lançamento novo não apaga os ajustes de materiais e mão de obra dos outros */
+{const _g=ACT.klabGera;ACT.klabGera=async function(){const ed=KLB.ed,varios=KLB.wiz&&(KLB.lancs||[]).length>1;const r=await _g.apply(this,arguments);if(varios&&ed){KLB.ed=ed;try{KLB.V=klValores();klabRes()}catch(e){}}return r}}
+/* juntar os lançamentos num KMZ só ao usar no cadastro */
+function f6Junta(K){if(K.length===1)return K[0];const cab=K[0].slice(0,K[0].indexOf('</ExtendedData>')+15),corpo=k=>k.slice(k.indexOf('</ExtendedData>')+15,k.lastIndexOf('</Document>'));
+  return cab+K.map((k,i)=>`\n<Folder><name>LANÇAMENTO ${i+1}</name>${corpo(k)}</Folder>`).join('')+'\n</Document></kml>'}
+{const _u=ACT.klabUsar;ACT.klabUsar=async function(el){const W=ui.wiz;try{f6Guarda()}catch(e){}const L=f6LS().filter(x=>x.S);
+  if(L.length<=1){if(L.length===1&&!KLB.D)await f6Carrega(f6LS().indexOf(L[0]));const r=await _u.apply(this,arguments);if(W&&W.kr){W.kr.desL=L.map(x=>x.S);f6Guia(W)}return r}
+  el.disabled=true;toast('Juntando os lançamentos…');let K=[],X=[];try{const o=window.KM_ESQ;for(const x of L){klDeserial(x.S);KLB.wiz=true;await klabRefaz(true);K.push(KLB.kml);X=X.concat(KLB.D.X||[])}
+    const kml=f6Junta(K);window.KM_ESQ=true;let M;try{M=kmMat(kmParse(kml))}finally{window.KM_ESQ=o}Object.assign(KLB,{kml,M,kmz:await kaKmz(kml)});KLB.D.X=X}catch(e){el.disabled=false;toast('Não foi possível juntar os lançamentos: '+(e.message||e),'bad');return}
+  el.disabled=false;const r=await _u.apply(this,arguments);if(W&&W.kr){W.kr.desL=L.map(x=>x.S);W.kr.desD=L[0].S;f6Guia(W)}return r}}
+/* a guia da etapa 1 passa a dizer "desenhado aqui" quando o KMZ vira desenho */
+const f6Guia=W=>{try{if(W&&W.g&&W.g.m==='kmz'&&W.kr&&W.kr.edDeKmz){W.g.m='des';W.roiModo='des';renderWiz()}}catch(e){}};
+/* guarda e devolve os lançamentos no projeto */
+{const _s=ACT.wizSave;ACT.wizSave=function(){const W=ui.wiz,id=W&&W.id,etq=ui.roiTmp&&ui.roiTmp.etiqueta,R=W&&W.kr,o=_s.apply(this,arguments);
+  const fim=()=>{try{const p=S.previsao.find(x=>(id&&x.id===id)||(etq&&x.etiqueta===etq));if(p&&p.roiKmz&&R&&R.desL&&R.desL.length){p.roiKmz.desL=R.desL;save()}}catch(e){}};
+  if(o&&typeof o.then==='function')return o.then(x=>{fim();return x});fim();return o}}
+{const _w=ACT.wiz;ACT.wiz=function(){const r=_w.apply(this,arguments);try{const W=ui.wiz,p=W&&W.id&&S.previsao.find(x=>x.id===W.id);if(W&&W.kr&&p&&p.roiKmz&&p.roiKmz.desL)W.kr.desL=p.roiKmz.desL}catch(e){}return r}}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.f6l{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 10px;background:var(--card,#fff)}.f6lh{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:6px}
+.f6l ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}.f6l li{display:flex;gap:10px;align-items:flex-start}.f6l li>span:last-child{display:grid;gap:1px;min-width:0}.f6n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--brand,#8CBF3F);color:#fff;font-weight:700;display:grid;place-items:center;font-size:13px}
+.f6abas{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 12px;padding:0 0 10px;border-bottom:1px solid var(--line)}.f6abas [role=tab]{font:inherit;border:1px solid var(--line);background:var(--card,#fff);border-radius:10px;padding:6px 10px;cursor:pointer;display:grid;text-align:left;font-weight:600}
+.f6abas [role=tab] small{font-weight:500;color:var(--muted);font-size:12px}.f6abas [role=tab].on{border-color:var(--brand,#8CBF3F);background:var(--brand-soft,#E6F1D5)}.f6mais{font:inherit;border:1px dashed var(--brand,#8CBF3F);background:none;border-radius:10px;padding:8px 10px;cursor:pointer;color:var(--brand-ink,#3F6B12);font-weight:600}
+.f6abas p{flex-basis:100%;margin:2px 0 0;font-size:12.5px}.f6del{font-size:13px}
+</style>`);
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
