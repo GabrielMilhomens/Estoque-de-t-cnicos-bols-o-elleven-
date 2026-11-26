@@ -22610,7 +22610,7 @@ function fbAlvo(){if(!FB.ok||!ME||gTecPerfil())return null;if(ui.cat==='impl')re
   if(al.S)S.lpus=add(sA,al.S);if(al.G&&gA)G.lpus=add(gA,al.G);try{return _r.apply(this,arguments)}finally{S.lpus=sA;if(gA)G.lpus=gA}}}
 {const _n=melLpuNat;melLpuNat=function(l){if(l&&l._fbNat)return l._fbNat;return _n.apply(this,arguments)}}
 {const _f=finPlantoes;finPlantoes=function(){const o=_f.apply(this,arguments);if(!FB.ok)return o;const ja=new Set(S.lpus.concat(G.lpus||[]).map(l=>l.id));return o.concat(FB.rows.map(fbVirt).filter(l=>!ja.has(l.id)))}}
-{const _a=finAreaL;finAreaL=function(l){if(l&&l._fbNat)return 'mel';if(l&&l._fbArea==='rpr')return 'rpr';return _a.apply(this,arguments)}}
+{const _a=finAreaL;finAreaL=function(l){if(l&&l._fbNat)return l._fbNat==='ox'?'mox':'mcx';if(l&&l._fbArea==='rpr')return 'rpr';return _a.apply(this,arguments)}}
 async function fbAbrePdf(id){const r=FB.rows.find(x=>'fb:'+x.id===id||x.id===id);if(!r||!r.pdf_path){toast('Esta LPU foi lançada sem PDF.','warn');return}const w=window.open('','_blank');
   const s=await sb.storage.from('financeiro').createSignedUrl(r.pdf_path,300);if(s.error||!s.data){if(w)w.close();toast('Não foi possível abrir o PDF.','bad');return}if(w&&!w.closed)w.location.href=s.data.signedUrl;else location.href=s.data.signedUrl}
 {const _p=ACT.pdfArq;ACT.pdfArq=function(el){if(String(el.dataset.id).startsWith('fb:'))return fbAbrePdf(el.dataset.id);return _p.apply(this,arguments)}}
@@ -23781,7 +23781,7 @@ tr.f4on td{background:var(--brand-soft,#E6F1D5)}.f4open>td{padding:0!important}.
 .f4vl li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13.5px}.f4vl li b{min-width:0;overflow-wrap:anywhere}.f4pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 6px;font-size:13.5px;background:var(--soft,#F6F8F3);border-radius:8px;padding:6px 8px}.f4txt{max-height:320px;overflow:auto;margin-bottom:6px}.f4vl li span{font-size:12px;font-weight:600;color:var(--muted)}.f4vl li.s span{color:var(--brand-ink,#3F6B12)}.f4vl li.n span{color:var(--bad)}.f4vl em{font-style:normal;font-variant-numeric:tabular-nums}
 .f4tot{display:grid;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}.f4tot>div{display:flex;justify-content:space-between;gap:8px;font-size:14px}.f4tot .cfmt{font-size:16px;border-top:1px solid var(--line);padding-top:4px}
 .f4kp{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;margin-bottom:12px}.f4tl{display:grid;gap:6px}.f4tr{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) auto auto;gap:6px;align-items:center}@media(max-width:560px){.f4tr{grid-template-columns:1fr 1fr}}
-.f4guia{margin-bottom:12px}.f4guia summary{cursor:pointer}.f4ul{margin:0;padding-left:18px;display:grid;gap:6px}
+.f4fbf{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 10px}.f4fbf .inp{width:auto;min-width:0}.f4fbf input[type=search]{flex:1 1 260px}.f4guia{margin-bottom:12px}.f4guia summary{cursor:pointer}.f4ul{margin:0;padding-left:18px;display:grid;gap:6px}
 </style>`);
 /* aviso "Fechamento realizado": tocar no aviso (sino ou notificação no celular) abre a Gestão financeira */
 const f4IrNf=()=>{ui.cat='impl';ui.tab='minhas';ui.chat=null;ui.mIni=ui.mIni||hoje().slice(0,8)+'01';ui.mFim=ui.mFim||hoje();render();window.scrollTo(0,0)};
@@ -23803,6 +23803,33 @@ IN.f4CfmExtra=el=>{const M=ui.cfm;if(!M)return;M.F.extra=el.value;if(M.area==='r
 {const _s=ACT.cfmSalvar;ACT.cfmSalvar=async function(){const M=ui.cfm;if(!M||!M.edit)return _s.apply(this,arguments);const ja=cfFech(M.area,M.tec,M.ref),era=ja?!!ja.manual:null;if(ja)ja.manual=true;M.F.editado=true;M.vig=false;
   const r=await _s.apply(this,arguments);const x=cfFech(M.area,M.tec,M.ref);
   if(x&&x.manual&&x.apr&&Date.now()-x.apr.em<60000){x.ids=M.ids0||[];x.editado=true;await cfSalvar(x)}else if(ja&&era===false)ja.manual=false;return r}}
+
+/* ---------- 26/11: Lançar LPU em PDF · filtros na lista "Lançadas no Financeiro" ---------- */
+const f4FbPrest=r=>r.tecnico?gTecN(r.tecnico):r.empresa||'—';
+function f4FbFiltra(){const m=f4M(),F=ui.f4Fb||{},q=normK(F.q||''),todos=F.todos,dt=F.dt||'inc';
+  const dOf=r=>dt==='rel'?String(r.data_rel||'').slice(0,10):isoD(new Date(r.criado_em));
+  const base=FB.rows.filter(r=>todos||isoD(new Date(r.criado_em)).slice(0,7)===m);
+  const L=base.filter(r=>(!F.c||fbContaFull(r.area).slice(11,15)===F.c)&&(!F.p||f4FbPrest(r)===F.p)&&(!F.ini||dOf(r)>=F.ini)&&(!F.fim||(dOf(r)&&dOf(r)<=F.fim))
+    &&(!q||normK([r.cliente,r.etiqueta,r.empresa,f4FbPrest(r),r.cnpj,fmtCnpj(r.cnpj||''),r.criado_nome,r.arquivo,FB_AN[r.area],r.protocolo].join(' ')).includes(q))).sort((a,b)=>String(b.criado_em).localeCompare(String(a.criado_em)));
+  return{m,F,todos,dt,base,L}}
+function f4FbLista(){const ed=f2Edita(),{m,F,todos,dt,base,L}=f4FbFiltra();
+  const contas=[...new Set(base.map(r=>fbContaFull(r.area).slice(11,15)).filter(Boolean))].sort(),prs=[...new Set(base.map(f4FbPrest))].sort((a,b)=>a.localeCompare(b)),on=F.q||F.c||F.p||F.ini||F.fim;
+  const sel=(k,v,o,l)=>`<select class="inp" data-ch="f4Fb" data-k="${k}" aria-label="${l}"><option value="">${l}</option>${o.map(([x,n])=>`<option value="${esc(x)}" ${x===v?'selected':''}>${esc(n)}</option>`).join('')}</select>`;
+  const flt=`<div class="f4fbf"><input class="inp" type="search" id="f4FbQ" data-in="f4FbQ" value="${esc(F.q||'')}" placeholder="Buscar cliente, etiqueta, prestador ou CNPJ">
+   ${sel('c',F.c||'',contas.map(c=>[c,c+' · '+fcNome(c)]),'Todas as contas')}${sel('p',F.p||'',prs.map(x=>[x,x]),'Todos os prestadores')}
+   <select class="inp" data-ch="f4Fb" data-k="dt" aria-label="Data"><option value="inc" ${dt==='inc'?'selected':''}>Data de inclusão</option><option value="rel" ${dt==='rel'?'selected':''}>Data do relatório</option></select>
+   <label class="f inline"><span>De</span><input type="date" class="inp" data-ch="f4Fb" data-k="ini" value="${F.ini||''}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="f4Fb" data-k="fim" value="${F.fim||''}"></label>
+   <label class="chk"><input type="checkbox" data-ch="f4Fb" data-k="todos" ${todos?'checked':''}> Todos os meses</label>${on?'<button class="btn sm" data-act="f4FbLimpa">Limpar filtros</button>':''}<span class="muted">${L.length} de ${base.length} · ${brl(L.reduce((s,r)=>s+(+r.total||0),0))}</span></div>`;
+  return `<div class="fgtop" style="margin-top:18px"><h3 style="margin:0">Lançadas no Financeiro <span class="muted" style="font-weight:500">· ${todos?'todos os meses':f2MesN(m)}</span></h3>${L.length?'<button class="btn sm" data-act="f4FbXlsx">Baixar Excel</button>':''}</div>${flt}
+   ${L.length?`<div class="tablewrap"><table class="f2t"><thead><tr><th>Incluída</th><th>Área</th><th>Prestador</th><th>Cliente · etiqueta</th><th class="r">Valor</th><th></th></tr></thead><tbody>${L.map(r=>`<tr><td>${dtBR(new Date(r.criado_em).getTime())}<br><small class="muted">${esc(r.criado_nome||'')}</small></td><td>${esc(FB_AN[r.area]||r.area)}<br><small class="muted">${esc(fbContaFull(r.area).slice(11,15))}</small></td><td>${esc(f4FbPrest(r))}${r.cnpj?`<br><small class="muted">${fmtCnpj(r.cnpj)}</small>`:''}</td><td>${esc(r.cliente||'—')}<br><small class="muted">${esc(r.etiqueta||'')}${r.data_rel?' · relatório '+dBR(r.data_rel):''}</small></td><td class="r"><b>${brl(+r.total||0)}</b></td><td class="r" style="white-space:nowrap">${r.pdf_path?`<button class="btn sm" data-act="fbPdf" data-id="${r.id}">PDF</button>`:''}${ed?` <button class="btn sm" data-act="fbApaga" data-id="${r.id}">Excluir</button>`:''}</td></tr>`).join('')}
+    <tr><td colspan="4"><b>Total ${on?'filtrado':todos?'':'do mês'}</b></td><td class="r"><b>${brl(L.reduce((s,r)=>s+(+r.total||0),0))}</b></td><td></td></tr></tbody></table></div>`:`<p class="fgempty">${base.length?'Nenhuma LPU com esses filtros.':'Nenhuma LPU lançada no Financeiro '+(todos?'ainda.':'neste mês.')}</p>`}`}
+{const v=RP_VIEWS.finImp;RP_VIEWS.finImp=function(){const h=v.apply(this,arguments);if(!FB.ok)return h;const i=h.indexOf('<div class="fgtop" style="margin-top:18px"><h3 style="margin:0">Lançadas no Financeiro</h3>');return i<0?h:h.slice(0,i)+f4FbLista()}}
+Object.assign(CH,{f4Fb:el=>{ui.f4Fb=ui.f4Fb||{};ui.f4Fb[el.dataset.k]=el.type==='checkbox'?el.checked:el.value;render()}});
+Object.assign(IN,{f4FbQ:el=>{ui.f4Fb=ui.f4Fb||{};ui.f4Fb.q=el.value;render();refoca(el.id)}});
+Object.assign(ACT,{f4FbLimpa:()=>{ui.f4Fb={todos:(ui.f4Fb||{}).todos,dt:(ui.f4Fb||{}).dt};render()},
+  f4FbXlsx:()=>{const {m,F,L}=f4FbFiltra(),aoa=[['Incluída','Lançada por','Área','Conta','Prestador','CNPJ','Cliente','Etiqueta','Data do relatório','Valor']];
+    L.forEach(r=>aoa.push([dtBR(new Date(r.criado_em).getTime()),r.criado_nome||'',FB_AN[r.area]||r.area,fbContaFull(r.area),f4FbPrest(r),r.cnpj?fmtCnpj(r.cnpj):'',r.cliente||'',r.etiqueta||'',r.data_rel?dBR(r.data_rel):'',+r.total||0]));
+    f2Xlsx(aoa,'lpus_lancadas_financeiro_'+(F.todos?'todas':m)+'.xlsx','Lançadas')}});
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
