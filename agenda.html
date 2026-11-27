@@ -2881,7 +2881,7 @@ function pEquipes(){const b=pBase(),F=ui.eqF||'all',tecs=TEC.filter(t=>F==='all'
   <section><div class="secth"><h3>Produtividade por técnico</h3></div><div class="tablewrap"><table><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Não concl.</th><th class="r">Taxa de conclusão</th><th class="r">Dias de execução</th><th class="r">Execução média</th></tr></thead><tbody>${tecR||'<tr><td colspan="9" class="muted">Sem atividades no período.</td></tr>'}</tbody></table></div></section>
   <section><div class="secth"><h3>Equipe própria x terceiros</h3></div><div class="tablewrap"><table><thead><tr><th>Equipe</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Taxa de conclusão</th><th class="r">Concl. por técnico/dia</th></tr></thead><tbody>${eqR}</tbody></table></div></section>`}
 function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&pode('a_budget'),B=(S.budget||{})[mes]||{};
-  const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC'&&lpuImpl0005(l)),ap=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes),pe=LT.filter(l=>l.status==='aguardando'||l.status==='ajuste');
+  const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC'&&lpuImpl0005(l)),ap=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesBud(l)===mes),pe=LT.filter(l=>l.status==='aguardando'||l.status==='ajuste');
   const contas=LPU_CONTAS.filter(c=>/^3\.1\.1\.2\.05\.0005/.test(c)).filter(c=>ed||+B[c]>0||ap.some(l=>l.conta===c)||pe.some(l=>l.conta===c));
   const cod=c=>c.split(' - ')[0],nome=c=>c.split(' - ').slice(1).join(' - ').replace(/^Serviços de /,'');
   const rows=contas.map(c=>{const orc=+B[c]||0,A=ap.filter(l=>l.conta===c),P=pe.filter(l=>l.conta===c),uso=A.reduce((s,l)=>s+l.total,0),comp=P.reduce((s,l)=>s+l.total,0),disp=orc-uso,p=orc?Math.round(uso/orc*100):0,tot=Math.max(orc,uso+comp)||1;return{c,orc,A,P,uso,comp,disp,p,wU:uso/tot*100,wC:comp/tot*100,est:orc&&uso+comp>orc}});
@@ -2892,7 +2892,7 @@ function pBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&pode('a_bud
   const inP=l=>l.data>=ui.pIni&&l.data<=ui.pFim;
   const moRows=moCalc();
   const moT={roi:moRows.reduce((s,r)=>s+(r.roi||0),0),tot:moRows.reduce((s,r)=>s+r.tot,0)};
-  return `<section class="panel"><div class="secth"><div><h3>Budget de mão de obra terceirizada</h3><span class="muted">Consumido pelas LPUs aprovadas no mês da aprovação, conforme a conta contábil de cada uma.</span></div>
+  return `<section class="panel"><div class="secth"><div><h3>Budget de mão de obra terceirizada</h3><span class="muted">Consumido pelas LPUs aprovadas até o fechamento do mês (pedido da NF ao terceiro; aprovada depois do pedido conta no mês seguinte), conforme a conta contábil de cada uma.</span></div>
    <div class="tools"><label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${meses.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>${pode('a_budget')?(ed?'<button class="btn primary" data-act="bSalvar">Salvar budget</button><button class="btn" data-act="bEdit">Cancelar</button>':'<button class="btn" data-act="bEdit">Definir budget do mês</button>'):''}</div></div>
    <div class="kpis" style="margin:10px 0">${kp(brl(tO),'Budget do mês')}${kp(brl(tU),`Consumido: ${pct(tU,tO)}% (${ap.length===1?'1 LPU aprovada':ap.length+' LPUs aprovadas'})`,'ok')}${kp(brl(tO-tU),'Disponível',tO-tU<0?'bad':'')}${kp(brl(tC),`Aguardando aprovação (${nL(pe.length)})`,'warn')}</div>
    <div class="tablewrap"><table><thead><tr><th>Conta contábil</th><th class="r">Budget</th><th class="r">Consumido</th><th class="r">Disponível</th><th class="r">Aguardando aprovação</th><th style="min-width:180px">Consumo</th></tr></thead><tbody>
@@ -4992,7 +4992,7 @@ function gPainelGeral(){
 /* ---------- FINANCEIRO DO GTD: budget e detalhamento ---------- */
 const gSoma=L=>L.reduce((s,l)=>s+(+l.total||0),0);
 function gFinBudget(){const mes=ui.bMes||hoje().slice(0,7),ed=ui.bEdit&&pode('a_budget'),B=(S.budget||{})[mes]||{},orc=+B[GTD_CONTA]||0;ui.bMes=mes;
-  const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes,GT=G.lpus.filter(l=>!gLpuClt(l)),ap=GT.filter(doMes),pe=GT.filter(l=>l.status==='aguardando'||l.status==='ajuste'),
+  const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesBud(l)===mes,GT=G.lpus.filter(l=>!gLpuClt(l)),ap=GT.filter(doMes),pe=GT.filter(l=>l.status==='aguardando'||l.status==='ajuste'),
     impl=S.lpus.filter(l=>l.conta===GTD_CONTA&&doMes(l)&&tecT(l.tec)==='TERC'),reg=G.lpus.filter(l=>gLpuClt(l)&&l.status!=='reprovada'&&String(l.data||'').slice(0,7)===mes);
   const uso=gSoma(ap)+gSoma(impl),comp=gSoma(pe),disp=orc-uso,p=orc?Math.round(uso/orc*100):0,tot=Math.max(orc,uso+comp)||1,cor=p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)';
   const meses=[];for(let k=-12;k<=2;k++){const d=new Date(hoje().slice(0,4),+hoje().slice(5,7)-1+k,1);meses.push(d.getFullYear()+'-'+pad(d.getMonth()+1))}
@@ -6091,7 +6091,7 @@ function kcProj(p,t){const tp=normK(p.topologia||''),req=fasesReq(p).map(f=>f.k)
 const kcR=v=>'R$ '+Math.round(v).toLocaleString('pt-BR');
 function kcOrc(){const mes=hoje().slice(0,7),B=(S.budget||{})[mes]||{},tO=LPU_CONTAS.filter(c=>/^3\.1\.1\.2\.05\.0005/.test(c)).reduce((s,c)=>s+(+B[c]||0),0);
   const LT=S.lpus.filter(l=>tecT(l.tec)==='TERC'&&lpuImpl0005(l));
-  const tU=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes).reduce((s,l)=>s+(+l.total||0),0);return{tO,disp:tO-tU}}
+  const tU=LT.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesBud(l)===mes).reduce((s,l)=>s+(+l.total||0),0);return{tO,disp:tO-tU}}
 /* peças da tela */
 function kcTile(L,T){if(!kcVe())return '';const tot=L.reduce((s,p)=>s+kcProj(p,T[p.id]).prev,0),O=kcOrc(),pc=O.disp>0?Math.round(tot/O.disp*100):null;
   return `<div class="kpi kccost"><div class="kch"><div><b>≈ ${kcR(tot)}</b><span>Custo previsto do backlog (LPU)</span></div></div>
@@ -16305,7 +16305,7 @@ function reCiaChAtual(){const s=ui.sign||{},k=String(s.key||ui.lpuTela||''),id=k
 {const _v=viewGPainel;viewGPainel=function(){const h=_v.apply(this,arguments);if(!reAt()||ui.gSec!=='fin'||ui.gFinSub!=='budget'||(typeof reLadoP==='function'&&reLadoP()))return h;return h.replace('consumido pelas LPUs aprovadas no mês da aprovação.','consumido pelas LPUs aprovadas no mês da aprovação. A preventiva e a companhia elétrica (3.1.1.2.05.0101) ficam em RE Preventiva › Painel de KPIs › Budget.')}}
 const rpLpuVal=L=>(L||[]).reduce((s,i)=>s+(+i.qtd||0)*(rpLpuIt(i.cod).valor||0),0);
 const reTerc=id=>!id||gTecV(id)!=='CLT';
-function rePrevDados(mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes,CH=G.lpus.filter(l=>rePrevL(l)&&!gLpuClt(l));
+function rePrevDados(mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesBud(l)===mes,CH=G.lpus.filter(l=>rePrevL(l)&&!gLpuClt(l));
   const chAp=CH.filter(doMes),chPe=CH.filter(l=>l.status==='aguardando'||l.status==='ajuste');
   const P=(typeof RP!=='undefined'&&RP.rows?rpProgs():[]).filter(x=>['prev','cia'].includes(x.tipo)&&x.status!=='canc');
   /* 14/11: LPU enviada passa pela Aprovação de LPU (env.v2); aprovada conta no mês da aprovação; contrato fixo não tem LPU */
@@ -16844,7 +16844,7 @@ if(typeof PX_TX!=='undefined'){const pn=PX_TX[1].find(n=>n[0]==='tx_painel');if(
   const b=pxNorm(permDe(ME.papel,ME.pBase),ME.papel);ME.perm=ME.perm.filter(k=>k!=='a_budget'&&k!=='a_aprovar'&&k!=='f_aprov');if(b.includes('tx_a_budget'))ME.perm.push('a_budget');if(b.includes('tx_a_aprovar'))ME.perm.push('a_aprovar','f_aprov')}}
 const txLpus=()=>S.lpus.filter(lpuTx);
 function txFinBudget(){const mes=ui.bMes||hoje().slice(0,7);ui.bMes=mes;const ed=ui.txbEd&&pode('a_budget'),B=(S.budget||{})[mes]||{},orc=+B[TX_FIN]||0;
-  const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes,terc=l=>tecT(l.tec)==='TERC';
+  const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesBud(l)===mes,terc=l=>tecT(l.tec)==='TERC';
   const I=txLpus(),Gt=(G.lpus||[]).filter(l=>!gLpuClt(l)&&lpuTx(l));
   const iA=I.filter(l=>terc(l)&&doMes(l)),iP=I.filter(l=>terc(l)&&['aguardando','ajuste'].includes(l.status)),gA=Gt.filter(doMes),gP=Gt.filter(l=>['aguardando','ajuste'].includes(l.status));
   const soma=L=>L.reduce((s,l)=>s+(+l.total||0),0),uso=soma(iA)+soma(gA),comp=soma(iP)+soma(gP),disp=orc-uso,p=orc?Math.round(uso/orc*100):0,tot=Math.max(orc,uso+comp)||1,cor=p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)';
@@ -16905,7 +16905,7 @@ function finTodas(){if(typeof RP!=='undefined'&&!RP.ok&&!RP.bus)rpCarregar().the
   return S.lpus.concat(G.lpus||[],typeof reLpusProg==='function'?reLpusProg():[],finPlantoes())}
 const finClt=l=>l.chamado||l._pl||l._rp?gLpuClt(l):tecT(l.tec)!=='TERC';
 function finMes(mes){const L=finTodas(),R={};FIN_AR.forEach(([k])=>R[k]={uso:0,comp:0,nAp:0,nPe:0});
-  L.forEach(l=>{const k=finAreaL(l);if(!R[k]||finClt(l))return;const t=+l.total||0;if(l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes){R[k].uso+=t;R[k].nAp++}else if(['aguardando','ajuste'].includes(l.status)){R[k].comp+=t;R[k].nPe++}});
+  L.forEach(l=>{const k=finAreaL(l);if(!R[k]||finClt(l))return;const t=+l.total||0;if(l.status==='aprovada'&&aprovEm(l)&&mesBud(l)===mes){R[k].uso+=t;R[k].nAp++}else if(['aguardando','ajuste'].includes(l.status)){R[k].comp+=t;R[k].nPe++}});
   return R}
 const finBud=(mes,cod)=>{const B=(S.budget||{})[mes]||{};const k=Object.keys(B).find(c=>c.startsWith('3.1.1.2.05.'+cod));return k?+B[k]||0:0};
 const finMeses=()=>{const M=[];for(let k=-12;k<=2;k++){const d=new Date(hoje().slice(0,4),+hoje().slice(5,7)-1+k,1);M.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))}return M};
@@ -18592,7 +18592,7 @@ function viewMelAprov(){const nats=melFinNats(),sel=melSel(nats,'melFN'),ap=['cx
   return melFinTit('Aprovação de LPU',sub)+melSeg(nats,'melFN')+h}
 {['gAprovar','gDecidir'].forEach(k=>{const f=ACT[k];if(!f)return;ACT[k]=function(el){if(!melAt()||ui.perfil==='coord')return f.apply(this,arguments);const l=(G.lpus||[]).find(x=>x.id===(el&&el.dataset&&el.dataset.id)),n=melLpuNat(l);
   if(n&&!melTem(`mel_${n}_lpu`))return semPerm();return f.apply(this,arguments)}})}
-function melBudNat(n,mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesDe(aprovEm(l))===mes,L=melLpus([n]).filter(l=>!gLpuClt(l)),soma=A=>A.reduce((s,l)=>s+(+l.total||0),0);
+function melBudNat(n,mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&mesBud(l)===mes,L=melLpus([n]).filter(l=>!gLpuClt(l)),soma=A=>A.reduce((s,l)=>s+(+l.total||0),0);
   const A=L.filter(doMes),P=L.filter(l=>['aguardando','ajuste'].includes(l.status)),clt=melLpus([n]).filter(l=>gLpuClt(l)&&l.status!=='reprovada'&&String(l.data||'').slice(0,7)===mes);return{A,P,clt,uso:soma(A),comp:soma(P),vClt:soma(clt)}}
 function viewMelBud(){const nats=melNats(),sel=melSel(nats,'melFN'),mes=ui.bMes||hoje().slice(0,7);ui.bMes=mes;const M=finMeses(),nL=n=>n+(n===1?' LPU':' LPUs');
   const card=n=>{const R=melBudNat(n,mes),ox=n==='ox',orc=ox?(+((S.budget||{})[mes]||{})[MEL_CONTA.ox]||0):0,ed=ox&&ui.melBEd&&pode('a_budget'),disp=orc-R.uso,p=orc?Math.round(R.uso/orc*100):0,tot=Math.max(orc,R.uso+R.comp)||1,cor=p>100?'var(--bad)':p>=80?'var(--warn)':'var(--brand-ink)';
@@ -21967,7 +21967,7 @@ const f2Ok=()=>{if(!F2.ok&&!F2.bus)f2Carregar();return F2.ok};
 let F2C=null;{const _r=render;render=function(){F2C=null;return _r.apply(this,arguments)}}
 const f2EhCf=l=>!!(l&&(l.cf||l._cf));
 const f2LpuCod=l=>fcCod(l.conta)||FIN_AREA_COD[finAreaL(l)]||'';
-function f2Idx(){if(F2C)return F2C;const M={};finTodas().forEach(l=>{if(l.status!=='aprovada'||finClt(l)||l._cfPrev)return;const a=aprovEm(l);if(!a)return;const m=mesDe(a);(M[m]=M[m]||[]).push(l)});return F2C=M}
+function f2Idx(){if(F2C)return F2C;const M={};finTodas().forEach(l=>{if(l.status!=='aprovada'||finClt(l)||l._cfPrev)return;const m=mesBud(l);if(!m)return;(M[m]=M[m]||[]).push(l)});return F2C=M}
 const f2Lpus=m=>f2Idx()[m]||[];
 function f2TerL(l){let e;try{e=lpuEmpresa(l)}catch(x){e={id:l.tec,nome:tecNomeL?tecNomeL(l):'—',cnpj:''}}const cn=soDig(e.cnpj);const t=cn&&F2.terc.find(x=>soDig(x.cnpj)===cn);
   return{chave:cn?'cnpj:'+cn:'tec:'+e.id,nome:t?t.nome:(e.nome||'—'),fin:t||null,cnpj:cn,emp:e.id}}
@@ -21976,7 +21976,8 @@ const f2Cm=(c,m)=>F2.cm.find(x=>x.contrato===c.id&&x.mes===m)||{};
 function f2Calc(c,m){const x=f2Cm(c,m),B=c.bonus||[],ok=x.bonus_ok||[],bv=x.bonus_val||{};let base=0,ex=0,falta=0;const a=+x.atividades||0;
   if(c.tipo==='meta'){base=(+c.meta_qtd||0)*(+c.meta_unit||0);ex=Math.max(0,a-(+c.meta_qtd||0))*(+c.excedente||0);falta=Math.max(0,(+c.meta_qtd||0)-a)}
   else if(c.tipo==='informado')base=+x.valor_informado||0;
-  else if(c.tipo==='avulso'||c.tipo==='improd')base=x.valor_informado!=null?+x.valor_informado:+c.fixo||0;
+  else if(c.tipo==='avulso')base=x.valor_informado!=null?+x.valor_informado:(m===c.inicio?+c.fixo||0:0); /* 27/11: avulso não se repete: o valor é preenchido mês a mês (o do cadastro vale só no mês de início) */
+  else if(c.tipo==='improd')base=x.valor_informado!=null?+x.valor_informado:+c.fixo||0;
   else base=+c.fixo||0;
   const bon=B.filter(b=>ok.includes(b.id)).reduce((s,b)=>s+(bv[b.id]!=null?+bv[b.id]:+b.valor||0),0),desc=x.desconto!=null?+x.desconto:+c.desconto||0;
   return{base,ex,falta,bon,desc,ativ:a,total:Math.round((base+ex+bon-desc)*100)/100,x}}
@@ -22122,7 +22123,7 @@ function viewFinCtr(){if(!f2Ok())return f2Top('Contratos fixos','Contratos mensa
    (ina.length?`<details style="margin-top:10px"><summary>${ina.length} contrato${ina.length>1?'s':''} fora deste mês (encerrado ou ainda não iniciado)</summary><ul>${ina.map(c=>`<li>${esc(c.nome)} · ${esc(f2TerC(c).nome)}${c.fim?' · até '+f2MesN(c.fim):''}${c.inicio?' · desde '+f2MesN(c.inicio):''}${ed?` <button class="link" data-act="f2CtrEd" data-id="${c.id}">Editar</button>`:''}</li>`).join('')}</ul></details>`:'')}
 function f2CtrMesForm(c,m,x,ed){const d=ed?'':'disabled',X=x.x,B=c.bonus||[];
   return `<div class="f2cm"><div class="f2cmg">${c.tipo==='meta'?`<label class="f"><span>Atividades no mês (meta ${c.meta_qtd})</span><input class="inp" inputmode="numeric" id="f2cm_at" value="${X.atividades!=null?X.atividades:''}" ${d}></label>`:''}
-   ${['informado','avulso','improd'].includes(c.tipo)?`<label class="f"><span>Valor do mês</span><input class="inp" inputmode="decimal" id="f2cm_vi" value="${X.valor_informado!=null?String(X.valor_informado).replace('.',','):''}" placeholder="${c.fixo?String(c.fixo).replace('.',','):'0,00'}" ${d}></label>`:''}
+   ${['informado','avulso','improd'].includes(c.tipo)?`<label class="f"><span>Valor do mês</span><input class="inp" inputmode="decimal" id="f2cm_vi" value="${X.valor_informado!=null?String(X.valor_informado).replace('.',','):''}" placeholder="${c.tipo==='avulso'?(m===c.inicio&&c.fixo?String(c.fixo).replace('.',','):'Preencha o valor deste mês'):c.fixo?String(c.fixo).replace('.',','):'0,00'}" ${d}></label>`:''}
    <label class="f"><span>Desconto do mês</span><input class="inp" inputmode="decimal" id="f2cm_de" value="${X.desconto!=null?String(X.desconto).replace('.',','):''}" placeholder="${c.desconto?String(c.desconto).replace('.',','):'0,00'}" ${d}></label>
    <label class="f"><span>Nº da NF</span><input class="inp" id="f2cm_nf" value="${esc(X.nf||'')}" ${d}></label><label class="f"><span>Emissão da NF</span><input class="inp" type="date" id="f2cm_nd" value="${X.nf_data||''}" ${d}></label><label class="f"><span>Vencimento</span><input class="inp" type="date" id="f2cm_ve" value="${X.venc||''}" ${d}></label></div>
    ${B.length?`<div class="f2bon"><b>Bonificações do mês</b>${B.map(b=>`<label class="chk"><input type="checkbox" id="f2cm_b_${b.id}" ${(X.bonus_ok||[]).includes(b.id)?'checked':''} ${d}> ${esc(b.nome)} · ${brl(b.valor)}</label>`).join('')}</div>`:''}
@@ -23263,7 +23264,7 @@ const f3AreaN=cod=>{const N=(typeof FIN_AR!=='undefined'?FIN_AR:[]).filter(a=>a[
 {const _t=finTabela;finTabela=function(){return _t.apply(this,arguments).replace(/<small>3\.1\.1\.2\.05\.(\d{4})<\/small>/g,(m,c)=>`<small>3.1.1.2.05.${c}<br><span class="muted">${esc(fcNome(c))}</span></small>`)}}
 const f3Orig=l=>f2EhCf(l)?(f3Var(l)?'Variáveis do contrato':/desconto/i.test(l.categoria||'')?'Desconto do contrato':'Contrato fixo'):l._fb?'LPU lançada em PDF':'LPU da ferramenta';
 {const _f=viewFinConta;viewFinConta=function(){const h=_f.apply(this,arguments);try{const m=ui.fcMes||hoje().slice(0,7),c=ui.fcCod||'0008';if(f2HistM(m).length)return h;
-  const P=finTodas().filter(l=>l._cfPrev&&f2LpuCod(l)===c&&aprovEm(l)&&mesDe(aprovEm(l))===m);if(!P.length)return h;const R={};P.forEach(l=>{const k=f2TerL(l);const r=R[k.chave]=R[k.chave]||{nome:k.nome,v:0,per:new Set()};r.v+=+l.total||0;r.per.add(String(l.cliente||'').replace(/^Contrato fixo (\(valor do contrato\) )?/,''))});
+  const P=finTodas().filter(l=>l._cfPrev&&f2LpuCod(l)===c&&aprovEm(l)&&mesBud(l)===m);if(!P.length)return h;const R={};P.forEach(l=>{const k=f2TerL(l);const r=R[k.chave]=R[k.chave]||{nome:k.nome,v:0,per:new Set()};r.v+=+l.total||0;r.per.add(String(l.cliente||'').replace(/^Contrato fixo (\(valor do contrato\) )?/,''))});
   const bx=`<div class="fgcard" style="margin-top:14px"><h3 style="margin:0">Contratos fixos ainda não fechados</h3><p class="muted" style="margin:2px 0 10px">Fora do executado, das contas a pagar e do e-mail de NF até o fechamento ser aprovado na área. O budget da área já reserva esse valor.</p>
    <div class="tablewrap"><table class="f2t"><thead><tr><th>Terceiro</th><th>Período</th><th class="r">Valor do contrato</th></tr></thead><tbody>${Object.values(R).map(r=>`<tr><td><b>${esc(r.nome)}</b></td><td>${esc([...r.per].join(', '))}</td><td class="r">${brl(r.v)}</td></tr>`).join('')}</tbody></table></div></div>`;
   return h+bx}catch(e){console.warn('f3c',e);return h}}}
@@ -24397,7 +24398,7 @@ if(typeof fbCom==='function')Object.keys(ACT).filter(k=>/xlsx|excel|planilha/i.t
 const finExtraElig=()=>!!ME&&!(typeof gTecPerfil==='function'&&gTecPerfil());
 function finExtraKick(){if(!finExtraElig())return;try{if(typeof CF!=='undefined'&&!CF.ok&&!CF.bus&&!CF.err)cfCarregar()}catch(e){}
   try{if(typeof FB!=='undefined'&&!FB.ok&&!FB.bus&&!FB.err&&(['coord','sup','enc'].includes(ui.perfil)||pode('fin_vis')||pode('fin_imp')))fbCarregar()}catch(e){}}
-const finExtraPronto=()=>{finExtraKick();const cf=typeof CF==='undefined'||CF.ok||!!CF.err,fbE=['coord','sup','enc'].includes(ui.perfil)||pode('fin_vis')||pode('fin_imp'),fb=typeof FB==='undefined'||!fbE||FB.ok||!!FB.err;return cf&&fb};
+let finExtraPronto=()=>{finExtraKick();const cf=typeof CF==='undefined'||CF.ok||!!CF.err,fbE=['coord','sup','enc'].includes(ui.perfil)||pode('fin_vis')||pode('fin_imp'),fb=typeof FB==='undefined'||!fbE||FB.ok||!!FB.err;return cf&&fb};
 const FIN_CARREG='<section class="panel"><p class="muted" role="status" style="margin:0">Carregando os contratos fixos e as LPUs lançadas no Financeiro para mostrar o budget completo…</p></section>';
 ['pBudget','gFinBudget'].forEach(n=>{try{const f=eval(n);if(typeof f!=='function')return;eval(n+'=function(){if(!finExtraPronto())return FIN_CARREG;return f.apply(this,arguments)}')}catch(e){}});
 {const _r=render;render=function(){finExtraKick();return _r.apply(this,arguments)}}
@@ -24409,12 +24410,12 @@ function ctrfLista(){if(typeof CF==='undefined'||!CF.ok){finExtraKick();return '
       det:k.area==='impl'?`até ${cfiLim(k)} m`:`${+k.qtd||0} chamados · excedente ${brl(k.exc!=null?+k.exc:CF_EXC)}`,fixo:+k.fixo||0,vars:(k.vars||[]).length,desde:cfDesde(k),per:k.area==='re'&&cfkCustom(k)?`${k.ini?dBR(k.ini):''}${k.fim?' a '+dBR(k.fim):' em diante'}<br><small class="muted">fecha ${cfkCicloTxt(cfkCiclo(k)).replace(' (padrão)','')}</small>`:'',
       at:k.ativo!==false,bt:ed?`<button class="btn sm" data-act="ctrfEd" data-id="${k.id}">Editar</button>`:''}))
    .concat((F2.ctr||[]).map(c=>{const t=(F2.terc||[]).find(x=>x.id===c.terceiro);return{ar:'Financeiro',nome:c.nome||(t&&t.nome)||'—',emp:t&&t.nome!==c.nome?t.nome:'',det:({fixo:'Valor fixo',meta:'Meta de atividades',informado:'Valor informado no mês',avulso:'Avulso',improdutivo:'Improdutivos'})[c.tipo]||c.tipo||'',
-      fixo:+c.fixo||0,vars:(c.bonus||[]).length,desde:c.inicio||'',at:c.ativo!==false,bt:ed?`<button class="btn sm" data-act="f2CtrEd" data-id="${c.id}">Editar</button>`:''}}))
+      fixo:c.tipo==='avulso'?null:+c.fixo||0,vars:(c.bonus||[]).length,desde:c.inicio||'',at:c.ativo!==false,bt:ed?`<button class="btn sm" data-act="f2CtrEd" data-id="${c.id}">Editar</button>`:''}}))
    .sort((a,b)=>(b.at-a.at)||a.ar.localeCompare(b.ar)||String(a.nome).localeCompare(String(b.nome)));
   const hj=typeof cfRefHoje==='function'?cfRefHoje():'';
   return `<h3 class="f5h3">Contratos cadastrados <small class="muted">(${R.length})</small></h3><p class="muted" style="margin:-4px 0 8px;font-size:13px">Todos os contratos, de qualquer mês. Um contrato novo entra nas faturas a partir do período em que começa a valer.</p>
    <section class="panel"><div class="tablewrap"><table class="ctrfl"><thead><tr><th>Área</th><th>Equipe / terceiro</th><th>Regra</th><th class="r">Fixo/mês</th><th>Vale a partir de</th><th>Situação</th><th></th></tr></thead><tbody>
-   ${R.map(r=>`<tr><td>${esc(r.ar)}</td><td><b>${esc(r.nome)}</b>${r.emp?`<br><small class="muted">${esc(r.emp)}</small>`:''}</td><td><small>${esc(r.det)}${r.vars?` · ${r.vars} variável(is)`:''}</small></td><td class="r"><b>${brl(r.fixo)}</b></td>
+   ${R.map(r=>`<tr><td>${esc(r.ar)}</td><td><b>${esc(r.nome)}</b>${r.emp?`<br><small class="muted">${esc(r.emp)}</small>`:''}</td><td><small>${esc(r.det)}${r.vars?` · ${r.vars} variável(is)`:''}</small></td><td class="r">${r.fixo==null?'<small class="muted">preenchido<br>mês a mês</small>':`<b>${brl(r.fixo)}</b>`}</td>
      <td class="nw">${r.per?r.per:r.desde?esc(r.ar==='Financeiro'?mesN(r.desde):cfPerTxt(r.desde)):'—'}${r.ar!=='Financeiro'&&r.desde&&r.desde>=hj?`<br><small class="muted">competência ${esc(mesN(r.desde))}</small>`:''}</td>
      <td>${r.at?'<span class="chip ok">Ativo</span>':'<span class="chip">Inativo</span>'}</td><td>${r.bt}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">Nenhum contrato cadastrado.</td></tr>'}</tbody></table></div></section>`}
 {const v=f4ViewPagar;f4ViewPagar=function(){const h=v.apply(this,arguments);if((ui.f4PagT||'lpu')!=='ctr'||!f2Ok())return h;let l='';try{l=ctrfLista()}catch(e){console.warn('ctrfLista',e)}return h+l}}
@@ -24450,6 +24451,31 @@ const cfkCicloTxt=D=>D===1?'do dia 1 ao último dia do mês':D===21?'do dia 21 a
 {const _l=cfLpus;cfLpus=function(){const L=_l.apply(this,arguments);return L.map(o=>{if(!o||!o._cfK||!/valor do contrato/.test(o.cliente||''))return o;
   const k=CF.rows.find(x=>x.id===o._cfK);if(!cfkCustom(k))return o;const fr=cfkFrac(k,o._cfRef);return fr>=0.9999?o:Object.assign(o,{total:Math.round((+k.fixo||0)*fr*100)/100})})}}
 {const _a=cfAreaLinhas;cfAreaLinhas=function(m){return _a.apply(this,arguments).map(x=>{if(x.ap||!x.k||x.k.area!=='re'||!cfkCustom(x.k))return x;return Object.assign(x,{cons:x.fixo})})}}
+
+/* ---------- 27/11: mês do budget = fechamento (pedido da NF), não mais só o mês da aprovação ----------
+   A LPU aprovada conta no mês da aprovação, MAS se a NF daquele mês (fatura de LPU do terceiro) já foi solicitada antes
+   da aprovação, ela passa para o mês seguinte (e assim por diante). Ex.: NF de novembro solicitada em 27/11 → o que foi
+   aprovado até 27/11 fica em novembro; aprovado em 28/11 vai para dezembro. Contratos fixos seguem o período deles.
+   Quem não lê as faturas do Financeiro continua vendo pelo mês da aprovação. Todos os "mesBud(l)" usam mesBud(l). */
+let FBM={k:null,M:new Map(),c:new Map()};
+const fbmMais=(m,k)=>{const d=new Date(+m.slice(0,4),+m.slice(5,7)-1+k,1);return d.getFullYear()+'-'+pad(d.getMonth()+1)};
+function fbmNf(){const F=(typeof F2!=='undefined'&&F2.ok&&F2.fat)||null;if(!F)return null;if(FBM.k===F&&FBM.n===F.length)return FBM.M;const M=new Map();
+  F.forEach(f=>{if(f.tipo!=='lpu')return;const h=(f.hist||[]).filter(x=>/^NF solicitada/.test(x.acao||'')).map(x=>+x.em||Date.parse(x.em)).filter(Boolean);
+    const t=h.length?Math.min(...h):(f.etapa>=0?Date.parse(f.criado_em||f.atualizado_em||'')||null:null);if(t)M.set(f.chave+'|'+f.mes,t)});
+  FBM={k:F,n:F.length,M,c:new Map()};return M}
+function mesBud(l){const a=aprovEm(l);if(!a)return null;let m=mesDe(a);if(l._cf||l.cf||l._cfPrev||l._cfi)return m;const M=fbmNf();if(!M||!M.size)return m;
+  const ck=l.id+'|'+a;if(FBM.c.has(ck))return FBM.c.get(ck);let ch='';try{ch=f2TerL(l).chave}catch(e){}
+  if(ch)for(let i=0;i<24;i++){const t=M.get(ch+'|'+m);if(t&&a>t)m=fbmMais(m,1);else break}FBM.c.set(ck,m);return m}
+{const _r=render;render=function(){FBM.c=new Map();return _r.apply(this,arguments)}}
+/* as telas das áreas também esperam as faturas (para o budget bater com o Financeiro) */
+const fbmVeFin=()=>!!ME&&!(typeof gTecPerfil==='function'&&gTecPerfil())&&(ui.perfil==='coord'||Object.values(typeof FIN_K!=='undefined'?FIN_K:{}).some(k=>pode(k)));
+{const _k=finExtraKick;finExtraKick=function(){_k.apply(this,arguments);try{if(fbmVeFin()&&!F2.ok&&!F2.bus&&!F2.err)f2Carregar().then(()=>{if(ui.cat!=='fin')render()})}catch(e){}}}
+{const _p=finExtraPronto;finExtraPronto=function(){const o=_p.apply(this,arguments);return o&&(!fbmVeFin()||F2.ok||!!F2.err)}}
+/* ---------- 27/11: "Budget de todas as áreas" sai do menu (a Conta contábil já mostra) ---------- */
+{const i=FIN_T.indexOf('finVis');if(i>=0)FIN_T.splice(i,1)}
+RP_VIEWS.finVis=function(){ui.tab='finConta';return RP_VIEWS.finConta.apply(this,arguments)};
+{const _t=tabsDe;tabsDe=function(){let T=_t.apply(this,arguments);if(!T.includes('finVis'))return T;T=T.filter(t=>t!=='finVis');if(!T.includes('finConta'))T.push('finConta');return T}}
+{const _r=render;render=function(){if(ui.tab==='finVis')ui.tab='finConta';return _r.apply(this,arguments)}}
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).

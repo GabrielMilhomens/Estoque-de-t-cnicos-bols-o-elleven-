@@ -1175,6 +1175,11 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Contrato fixo da RE Corretiva com ciclo de fechamento próprio, início e fim (27/11, `mod/cfciclo.js`, `mod/ctrfin.js`):** no cadastro da RE Corretiva aberto pelo Financeiro, o campo "Vale a partir do período" virou três: **Fechamento** (dia em que o período começa, de 1 a 28: dia 1 = do dia 1 ao último dia do mês; dia 21 = 21 a 20, o padrão), **Início do contrato** e **Fim do contrato** (opcional). A competência continua sendo o mês em que o período termina. Período coberto só em parte (início ou fim no meio): valor fixo e franquia proporcionais aos dias, e só contam os chamados dentro das datas. A aprovação do fechamento fica liberada depois do fim do período do próprio contrato. Budget, Contas a pagar e "Contratos do mês" usam o valor proporcional. Campos novos em `ag_contrato_fixo.dados` (`ciclo`, `ini`, `fim`); contratos sem eles seguem iguais. A lista "Contratos cadastrados" mostra as datas e o ciclo.
 
+- **Financeiro: mês do budget pelo fechamento, avulso sem recorrência e menu (27/11, `mod/finbudmes.js`, `mod/finmod.js`, `mod/ctrfin.js`, `patch1.py`):**
+  - **Mês do budget = fechamento (pedido da NF).** A LPU aprovada conta no mês da aprovação, mas, se a NF de LPU daquele mês já tinha sido solicitada ao terceiro antes da aprovação, ela passa para o mês seguinte. Ex.: NF de novembro solicitada em 27/11 → aprovado até 27/11 fica em novembro; aprovado em 28/11 vai para dezembro. Vale para o budget das áreas, a Conta contábil, Contas a pagar e o e-mail de NF (todos os `mesDe(aprovEm(l))` viraram `mesBud(l)` no `patch1.py`). Contratos fixos seguem o período deles. Quem não lê as faturas do Financeiro continua vendo pelo mês da aprovação. As telas de budget esperam as faturas carregarem.
+  - **Contrato avulso não se repete:** o valor do cadastro vale só no mês de início; nos outros meses o valor é preenchido mês a mês (sem valor = R$ 0,00). Improdutivos continuam como antes.
+  - **"Budget de todas as áreas" saiu do menu** (a Conta contábil já mostra); quem tinha só esse acesso passa a ver a Conta contábil, e links antigos abrem a Conta contábil.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1239,6 +1244,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Financeiro: LPU aprovada depois do pedido da NF vai para o mês seguinte; contrato avulso preenchido mês a mês; "Budget de todas as áreas" saiu do menu | `agenda.html` (`mod/finbudmes.js`, `mod/finmod.js`, `mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Contrato fixo da RE Corretiva: ciclo de fechamento próprio (ex.: dia 1 ao fim do mês), início e fim do contrato, com valor proporcional no período parcial | `agenda.html` (`mod/cfciclo.js`, `mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Contas a pagar › Contrato fixo: lista de todos os contratos cadastrados com Editar; contrato da RE com "Vale a partir do período" | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Budget das áreas espera os contratos fixos e as LPUs lançadas no Financeiro (não mostra mais valor incompleto por alguns segundos) | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |
