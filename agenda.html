@@ -23035,6 +23035,15 @@ function sgNomePad(tec,gtd){try{if(ui.perfil==='terc'&&tec&&tec!==ME.id)return m
   const sec=`<section class="eqs"><h3 class="lsub">LPU devolvida para ajuste <span class="chip">${L.length}</span></h3>${L.map(card).join('')}</section>`;
   const i=h.indexOf('<section class="eqs"><h3 class="lsub">LPU');return i<0?h+sec:h.slice(0,i)+sec+h.slice(i)}catch(e){console.warn('eqAj',e);return h}}}
 
+/* 27/11: o botão de devolver aparece em toda LPU reprovada (inclusive a que teve a aprovação cancelada), em qualquer
+   tela que mostre o cartão com "Ver PDF" (Aprovação de LPU, Detalhamento das LPUs), mesmo quando o cartão vem montado
+   de outro jeito. Quem pode: quem tem a permissão de aprovar LPU (não precisa ser quem aprovou). */
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{if(!pode('a_aprovar'))return o;const main=document.querySelector('main');if(!main)return o;
+  main.querySelectorAll('[data-act="pdf"][data-id]').forEach(b=>{const id=b.dataset.id,l=S.lpus.find(x=>String(x.id)===String(id));if(!l||l.status!=='reprovada'||l.cf)return;
+    const box=b.parentElement;if(!box||box.querySelector(`[data-act="lpuReab"][data-id="${CSS.escape(String(l.id))}"]`))return;
+    b.insertAdjacentHTML('afterend',`<button class="btn primary" data-act="lpuReab" data-id="${esc(String(l.id))}">${l.aprovCanc?'Devolver para preencher de novo':'Reabrir para ajuste'}</button>`)})}catch(e){}return o}}
+{const _r=ACT.lpuReab;ACT.lpuReab=function(el){try{const id=el&&el.dataset&&el.dataset.id;if(id&&!S.lpus.find(x=>x.id===id)){const l=S.lpus.find(x=>String(x.id)===String(id));if(l)return _r.call(this,{dataset:Object.assign({},el.dataset,{id:l.id})})}}catch(e){}return _r.apply(this,arguments)}}
+
 /* ===== 24/11: trabalhos no mesmo cliente (mesma etiqueta) — substitui o "-UP1" de 19/11 =====
    Em "Incluir novo projeto", quando a etiqueta do ROI já está na base, a ferramenta pergunta que trabalho é:
    Upgrade, Mudança de ponto, Mudança de endereço, Novo trabalho no cliente, ou Corrigir o cadastro do trabalho atual.

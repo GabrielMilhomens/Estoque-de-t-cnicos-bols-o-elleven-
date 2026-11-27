@@ -1133,6 +1133,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Implantação · menu do Financeiro no formato da RE Corretiva (26/11, `mod/finimpnav.js`).** Em Painel de KPIs › Financeiro, "Contrato LPU" e "Contrato fixo" deixam de ser títulos e viram grupos que abrem e fecham, como na RE Corretiva. O grupo da tela aberta começa aberto; abrir o outro grupo leva para a primeira tela dele (Budget e ROI ou Fechamento do mês); com o grupo fechado, as pendências de aprovação aparecem no próprio grupo. As telas não mudam. Sem SQL novo.
 
+- **Financeiro · botão de devolver em toda LPU reprovada (27/11, `mod/lpudup.js`).** O botão "Devolver para preencher de novo" (LPU com a aprovação cancelada) ou "Reabrir para ajuste" (LPU reprovada) passa a ser colocado em todo cartão de LPU reprovada que tem "Ver PDF", mesmo quando o cartão vem montado de outro jeito (antes faltava em alguns cartões). Pode usar quem tem a permissão de aprovar LPU, não só quem aprovou. Sem SQL novo.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1197,6 +1199,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Financeiro: botão "Devolver para preencher de novo" garantido em toda LPU reprovada (inclusive com a aprovação cancelada) | `agenda.html` (`mod/lpudup.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: menu do Financeiro com os grupos Contrato LPU e Contrato fixo abrindo e fechando, igual à RE Corretiva | `agenda.html` (`mod/finimpnav.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: material do agendamento por lançamento em quantidades inteiras e aviso quando o ROI salvo está desatualizado em relação ao KMZ | `agenda.html` (`mod/kmzlanc2.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: projetos já salvos passam a ter os lançamentos e o material separados sozinhos (lidos do KMZ de lançamento anexado) | `agenda.html` (`mod/kmzlanc2.js`). Sem SQL novo. |
