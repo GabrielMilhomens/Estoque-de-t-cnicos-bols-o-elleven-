@@ -1165,6 +1165,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Lançar LPU em PDF com prestador de Terceiros e técnicos (27/11, `mod/finpdf.js`):** o campo "Prestador" do card do PDF e do "Lançar à mão" lista também quem está cadastrado em Financeiro › Terceiros e técnicos (grupo próprio), além dos prestadores da ferramenta. O PDF já sugere o terceiro pelo CNPJ ou pelo nome/apelidos. A LPU grava a coluna `terceiro` de `ag_fin_baixas` (já existe desde o ajuste 95; não precisa de SQL novo) e entra como terceiro no budget da área, nos totais por prestador e em Contas a pagar.
 
+- **Contrato fixo da RE Corretiva pelo Financeiro: todas as equipes (27/11, `mod/ctrfin.js`):** no "Novo contrato › RE Corretiva" aberto pelo Financeiro, a lista de técnico/equipe traz todas as equipes terceiras (as que ainda geram LPU aparecem com "· ainda com LPU"), não só as já marcadas Sem LPU. A caixa "Marcar a equipe como Sem LPU" vem marcada: ao salvar, a equipe passa a Sem LPU em Usuários e acessos (se quem salvou não tiver permissão para isso, o contrato é salvo e o aviso pede para a coordenação marcar).
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1229,6 +1231,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Novo contrato da RE Corretiva pelo Financeiro lista todas as equipes terceiras e marca a escolhida como Sem LPU ao salvar | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Lançar LPU em PDF: prestador pode ser escolhido entre os cadastrados em Terceiros e técnicos (sugestão pelo CNPJ) | `agenda.html` (`mod/finpdf.js`). Sem SQL novo. |
 | 27/11/2026 | Contratos cadastrados só no Financeiro: "Novo contrato" de Contas a pagar pergunta a área (RE Corretiva, Implantação ou outro); as áreas ficam só com a consulta, o fechamento, as metas e a aprovação | **`agenda_ajuste_101_contratos_pelo_financeiro.sql` no Supabase**, depois `agenda.html` (`mod/ctrfin.js`). |
 | 27/11/2026 | Financeiro: aviso de NF com o contrato (LPU ou fixo) e o prazo de cada um (fixo: 1º dia útil depois do dia 20); quadro e detalhamento só do contrato do aviso, na aba certa | `agenda.html` (`mod/finnftipo.js`). Sem SQL novo. |

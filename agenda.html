@@ -24335,7 +24335,18 @@ function ctrfAviso(a){return `<div class="ctrfav"><svg viewBox="0 0 24 24" width
   ACT[n]=function(){if(cfEdita()||!ctrfPode())return f.apply(this,arguments);const p=ui.perfil;ui.perfil='coord';try{return f.apply(this,arguments)}finally{ui.perfil=p}}});
 /* aberto pelo Financeiro: "Voltar" vira "Cancelar" e, depois de salvar, volta para a tela do Financeiro */
 {const _m=cfModalK;cfModalK=function(){const r=_m.apply(this,arguments);if(ui.ctrFin){const b=document.querySelector('#modal [data-act="cfContratos"]');if(b){b.dataset.act='close';b.textContent='Cancelar'}const h=document.querySelector('#modal h3');if(h&&!/RE Corretiva/.test(h.textContent))h.textContent+=' · RE Corretiva'}return r}}
-{const _s=ACT.cfKSalvar;ACT.cfKSalvar=async function(){const fin=!!ui.ctrFin;const r=await _s.apply(this,arguments);if(fin&&!ui.cfEd){ui.ctrFin=false;closeModal();render()}return r}}
+/* 27/11: pelo Financeiro, a RE Corretiva lista todas as equipes terceiras (não só as já marcadas Sem LPU); ao salvar, marca a equipe como Sem LPU */
+{const _t=cfTecsSemLpu;cfTecsSemLpu=function(){const L=_t.apply(this,arguments);if(!ui.ctrFin)return L;const m=new Map();L.forEach(t=>m.set(t.id,t));
+  (G.tecs||[]).filter(t=>t.vinculo==='terceiro').concat(TEC.filter(t=>t.tipo==='TERC'&&!t.virt)).forEach(t=>{if(!m.has(t.id))m.set(t.id,{id:t.id,nome:t.nome+' · ainda com LPU'})});
+  return [...m.values()].sort((a,b)=>String(a.nome).localeCompare(String(b.nome)))}}
+{const _m=cfModalK;cfModalK=function(){const r=_m.apply(this,arguments);if(ui.ctrFin&&ui.cfEd&&!ui.cfEd.id){const sel=document.querySelector('#modal [data-cfk="tec"]');const lb=sel&&sel.closest('label');
+  if(lb){if(ui.ctrfSl==null)ui.ctrfSl=true;lb.insertAdjacentHTML('afterend',`<label class="chk ctrfsl"><input type="checkbox" id="ctrfSl" ${ui.ctrfSl?'checked':''}><span>Marcar a equipe como <b>Sem LPU</b>: os chamados dela passam a ser pagos pelo contrato e não geram LPU.</span></label>`);
+   const sm=lb.querySelector('small');if(sm)sm.remove();$('ctrfSl').addEventListener('change',e=>{ui.ctrfSl=e.target.checked})}}return r}}
+{const _s=ACT.cfKSalvar;ACT.cfKSalvar=async function(){const fin=!!ui.ctrFin,E=ui.cfEd,tec=E&&E.tec,novo=E&&!E.id,sl=ui.ctrfSl!==false;const r=await _s.apply(this,arguments);
+  if(fin&&!ui.cfEd){ui.ctrFin=false;ui.ctrfSl=null;if(novo&&tec&&sl&&!semLpuEq(tec)){const u=await sb.from('agenda_papeis').update({sem_lpu:true}).eq('user_id',tec).select('user_id');
+      if(u.error||!(u.data||[]).length)toast('Contrato salvo. Peça à coordenação para marcar '+gTecN(tec)+' como Sem LPU em Usuários e acessos.','warn');
+      else{S.cnpj=S.cnpj||{};S.cnpj[tec]=Object.assign({},S.cnpj[tec]||{},{sem_lpu:true});toast('Contrato salvo e '+gTecN(tec)+' marcado como Sem LPU.')}}
+    closeModal();render()}return r}}
 {const _o=ACT.cfiKOk;ACT.cfiKOk=async function(){const r=await _o.apply(this,arguments);if(ui.ctrFin&&!$('modal').classList.contains('open')){ui.ctrFin=false;render()}return r}}
 {const _e=ACT.cfiKEd;ACT.cfiKEd=function(){const r=_e.apply(this,arguments);if(ui.ctrFin){const h=document.querySelector('#modal h3');if(h&&!/Implantação/.test(h.textContent))h.textContent+=' · Implantação'}return r}}
 /* lista de contratos da RE (botão "Contratos" da tela antiga): só consulta */
@@ -24350,7 +24361,7 @@ const ctrfCarrega=async()=>{if(typeof CF==='undefined')return;if(!CF.ok&&!CF.bus
 {const _n=ACT.f2CtrNovo;Object.assign(ACT,{
   f2CtrNovo:function(){if(!ctrfPode())return _n.apply(this,arguments);ctrfCarrega();ctrfEscolha()},
   ctrfNovo:async el=>{const a=el.dataset.a;if(a==='fin'){closeModal();return _n()}await ctrfCarrega();if(!CF.ok){toast('Os contratos das áreas ainda não carregaram. Tente de novo.','bad');return}
-    ui.ctrFin=true;if(a==='re')ACT.cfKEd({dataset:{}});else ACT.cfiKEd({dataset:{}})},
+    ui.ctrFin=true;ui.ctrfSl=null;if(a==='re')ACT.cfKEd({dataset:{}});else ACT.cfiKEd({dataset:{}})},
   ctrfEd:async el=>{await ctrfCarrega();const k=CF.rows.find(x=>x.id===el.dataset.id);if(!k)return;ui.ctrFin=true;if(k.area==='impl')ACT.cfiKEd({dataset:{id:k.id}});else ACT.cfKEd({dataset:{id:k.id}})},
   ctrfIr:()=>{closeModal();ui.cat='fin';ui.tab='finPagar';ui.chat=null;render();try{window.scrollTo(0,0)}catch(e){}}})}
 /* detalhe do contrato da área no Financeiro: botão Editar contrato */
@@ -24358,6 +24369,7 @@ const ctrfCarrega=async()=>{if(typeof CF==='undefined')return;if(!CF.ok&&!CF.bus
 document.head.insertAdjacentHTML('beforeend',`<style>
 .ctrfav{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;margin:0 0 12px;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:10px;background:var(--brand-soft,var(--surface));color:var(--ink)}
 .ctrfav svg{flex:none;color:var(--brand)}.ctrfav>div{flex:1;min-width:200px;line-height:1.45}.ctrfav small{color:var(--muted)}
+.ctrfsl{display:flex!important;gap:8px;align-items:flex-start;margin:2px 0 12px;font-size:14px;line-height:1.4}.ctrfsl input{margin-top:3px;flex:none}.ctrfsl span{flex:1;min-width:0}
 .ctrfop{display:grid;gap:10px;margin:12px 0}.ctrfb{display:flex;flex-direction:column;gap:4px;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
 .ctrfb:hover,.ctrfb:focus-visible{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-soft,transparent)}.ctrfb b{font-size:15px}.ctrfb small{color:var(--muted);line-height:1.4}
 </style>`);
