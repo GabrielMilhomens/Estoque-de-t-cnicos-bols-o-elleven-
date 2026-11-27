@@ -290,6 +290,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 99. `agenda_ajuste_98_financeiro_ve_todos.sql` — quem vê o Financeiro (`ag_fin_ve()`) passa a ler `ag_lpus` (todas as áreas), `ag_re_prog` e `ag_plantao`; `ag_cnpjs()` também responde para o Financeiro e inclui técnicos inativos (para juntar por CNPJ). Só leitura.
 100. `agenda_ajuste_99_fin_baixas_prestador.sql` — função `ag_fin_baixa_minha(tecnico, cnpj)` e leitura de `ag_fin_baixas` (e do PDF no bucket `financeiro`, pasta `lpu/`) para o prestador: lançadas para ele, para técnico da empresa dele ou com o CNPJ da empresa. Só leitura.
 101. `agenda_ajuste_100_financeiro_pamela.sql` — melhorias do Financeiro (26/11): tabela `ag_fin_obs` (observações por mês, conta ou prestador), `ag_fin_lotes` (importações, para desfazer) e coluna `lote` em `ag_fin_baixas`, `ag_fin_contratos` e `ag_fin_ctr_mes` (mais `itens` e `obs` no mês do contrato); `ativo` e `tecnicos` em `ag_fin_terceiros`; função `ag_fin_aviso_nf` (aviso "Solicitar nota" no app do dono da empresa pelo CNPJ, só quem edita o Financeiro); leitura de `ag_chamados` para quem vê o Financeiro (policy `agch_select_fin`). Rodar antes de publicar o `agenda.html`. Não subir no GitHub.
+102. `agenda_ajuste_101_contratos_pelo_financeiro.sql` — contratos cadastrados pelo Financeiro (27/11): policies `agcf_insert_fin` e `agcf_update_fin` em `ag_contrato_fixo` para quem tem "editar financeiro" (`ag_fin_edita()`), só nas linhas `tipo = 'contrato'`. Fechamentos, metas e aprovação continuam com a coordenação e a supervisão. Rodar antes de publicar o `agenda.html`. Não subir no GitHub.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -1160,6 +1161,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
   O aviso guarda o tipo na referência (`finnf:<prestador>:<mês>:lpu|ctr|lpu+ctr`). Assim, "Ver o que entrou nesta nota" e o Excel trazem só o contrato do aviso. Na Gestão financeira do prestador (e na Visão do técnico da gestão), o quadro aparece na aba do contrato, e tocar no aviso ou na notificação abre essa aba. Os avisos enviados antes desta versão continuam com o texto antigo e valem para as duas abas. Sem SQL novo.
 
+- **Contratos cadastrados só no Financeiro (27/11, `mod/ctrfin.js`, `agenda_ajuste_101_contratos_pelo_financeiro.sql`):** em Contas a pagar, "Novo contrato" pergunta onde o contrato atua: **RE Corretiva** (contrato fixo por chamados, abre o mesmo cadastro de antes), **Implantação** (contrato fixo por baixas) ou **Outro contrato** (o cadastro do Financeiro: fixo, meta, informado, avulso, improdutivo). Os contratos da RE e da Implantação gravam em `ag_contrato_fixo` e aparecem na hora na área. O detalhe do contrato da área no Financeiro ganhou "Editar contrato". Nas áreas (Implantação › Financeiro › Contrato fixo › Contratos e RE Corretiva › Contrato fixo › Contratos) saíram "Novo contrato" e "Editar": fica a consulta, com o aviso e o botão "Abrir no Financeiro". Fechamento, metas e aprovação continuam nas áreas. Quem edita é quem tem "editar financeiro" (e a coordenação).
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1224,6 +1227,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Contratos cadastrados só no Financeiro: "Novo contrato" de Contas a pagar pergunta a área (RE Corretiva, Implantação ou outro); as áreas ficam só com a consulta, o fechamento, as metas e a aprovação | **`agenda_ajuste_101_contratos_pelo_financeiro.sql` no Supabase**, depois `agenda.html` (`mod/ctrfin.js`). |
 | 27/11/2026 | Financeiro: aviso de NF com o contrato (LPU ou fixo) e o prazo de cada um (fixo: 1º dia útil depois do dia 20); quadro e detalhamento só do contrato do aviso, na aba certa | `agenda.html` (`mod/finnftipo.js`). Sem SQL novo. |
 | 27/11/2026 | Financeiro: Visão do técnico (gestão) mostra o aviso de NF que o administrador da empresa recebeu, com o detalhamento | `agenda.html` (`mod/finnfvis.js`). Sem SQL novo. |
 | 27/11/2026 | Modo sem internet em todas as áreas: cópia dos dados no aparelho, fila de gravações (horários, fotos, relatórios, LPU, baixas, chamados, mensagens) que sobe sozinha quando a internet volta, sem duplicar; login sem internet; faixa de aviso e lista de registros guardados; `sw.js` guarda a ferramenta para abrir sem internet | `agenda.html` (`mod/offline.js`) e `sw.js`. Sem SQL novo. Publicar os dois. |

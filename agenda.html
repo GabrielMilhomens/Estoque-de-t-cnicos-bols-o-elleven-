@@ -19901,7 +19901,7 @@ const cfTitulo=(h,grp)=>h.replace('<h2>Financeiro · GTD Manutenção</h2>',`<h2
     return cfTitulo(cfTrocaViews(h,sub,'cf').replace(/consumido pelas LPUs aprovadas no mês da aprovação\./,'consumido pelas LPUs aprovadas no mês da aprovação e pelos contratos fixos (valor do contrato todo mês; depois do fechamento aprovado, o total do fechamento).'),'cf')}
   if(sub==='cfix')return cfTitulo(cfTrocaViews(_v.apply(this,arguments),sub,'cf'),'cf');
   const top=`<div class="toolbar"><div><h2>Financeiro · GTD Manutenção · Contrato fixo</h2><p class="muted">${sub==='cfk'?'Contratos das equipes Sem LPU. O valor fixo de cada contrato consome o budget geral da RE Corretiva todo mês, a partir do período do cadastro.':sub==='cfprest'?'Quanto cada empresa recebe por contrato fixo nos períodos escolhidos (21 a 20).':'Fechamento de cada equipe por período: chamados, fixo, excedentes, variáveis e improdutivo.'}</p></div>
-    ${sub==='cfk'?(cfEdita()?'<div class="tools"><button class="btn primary" data-act="cfKEd">Novo contrato</button></div>':''):cfRangeSel()}</div>${cfViews(sub,'cf')}`;
+    ${sub==='cfk'?'':cfRangeSel()}</div>${cfViews(sub,'cf')}`;
   if(CF.err)return top+`<div class="result bad">${esc(CF.err)} <button class="btn sm" data-act="cfRecarr">Tentar de novo</button></div>`;
   if(!CF.ok)return top+'<p class="muted pad">Carregando…</p>';
   return top+'<div class="cfpg">'+(sub==='cfk'?cfViewContratos():sub==='cfprest'?cfViewPrest():cfViewDet())+'</div>'}}
@@ -19920,13 +19920,13 @@ function cfLinhas(){const de=ui.cfDe||cfRefMais(cfRefHoje(),-2),ate=ui.cfAte||cf
   return L.sort((p,q)=>q.ref.localeCompare(p.ref)||gTecN(p.k.tec).localeCompare(gTecN(q.k.tec)))}
 const cfKp=(v,l,c)=>`<div class="kpi ${c||''}"><b>${v}</b><span>${l}</span></div>`;
 function cfViewContratos(){const K=CF.rows.filter(x=>x.tipo==='contrato'&&x.area==='re').sort((p,q)=>(p.ativo===false)-(q.ativo===false)||gTecN(p.tec).localeCompare(gTecN(q.tec))),At=K.filter(k=>k.ativo!==false);
-  if(!K.length)return `<section class="panel"><p class="muted">Nenhum contrato fixo cadastrado.${cfEdita()?' Use <b>Novo contrato</b>.':' Quem tem acesso ao financeiro cadastra os contratos.'}</p></section>`;
+  if(!K.length)return `${ctrfAviso('re')}<section class="panel"><p class="muted">Nenhum contrato fixo cadastrado.</p></section>`;
   const mx=k=>(+k.fixo||0)+(k.vars||[]).reduce((s,v)=>s+(+v.valor||0),0);
-  return `<div class="kpis cfk3">${cfKp(At.length,'Contratos ativos')}${cfKp(brl(At.reduce((s,k)=>s+(+k.fixo||0),0)),'Consumo fixo do budget por mês')}${cfKp(brl(At.reduce((s,k)=>s+mx(k),0)),'Máximo por mês sem excedentes (fixo + variáveis)')}</div>
+  return `${ctrfAviso('re')}<div class="kpis cfk3">${cfKp(At.length,'Contratos ativos')}${cfKp(brl(At.reduce((s,k)=>s+(+k.fixo||0),0)),'Consumo fixo do budget por mês')}${cfKp(brl(At.reduce((s,k)=>s+mx(k),0)),'Máximo por mês sem excedentes (fixo + variáveis)')}</div>
    <section class="panel"><div class="tablewrap"><table><thead><tr><th>Equipe</th><th>Empresa</th><th class="r">Franquia</th><th class="r">Valor fixo/mês</th><th class="r">Excedente</th><th>Variáveis</th><th>Desde</th><th>Situação</th><th></th></tr></thead><tbody>
    ${K.map(k=>{const cx=(S.cnpj||{})[k.tec]||{};return `<tr><td><b>${esc(gTecN(k.tec))}</b></td><td>${esc(cx.empresa?gTecN(cx.empresa):'—')}</td><td class="r">${+k.qtd||0}</td><td class="r">${brl(+k.fixo||0)}</td><td class="r">${brl(k.exc!=null?+k.exc:CF_EXC)}</td>
      <td>${(k.vars||[]).length?(k.vars||[]).map(v=>`<small class="cfvl">${esc(v.nome)} · ${brl(+v.valor||0)}</small>`).join(''):'<small class="muted">—</small>'}</td><td class="nw">${cfPerTxt(cfDesde(k)).slice(0,5)}${cfDesde(k).slice(0,4)!==cfRefHoje().slice(0,4)?'/'+cfDesde(k).slice(0,4):''}</td>
-     <td>${k.ativo===false?`<span class="chip">Inativo${k.ate?' desde '+cfPerTxt(k.ate).slice(-10):''}</span>`:'<span class="chip ok">Ativo</span>'}</td><td>${cfEdita()?`<button class="btn sm" data-act="cfKEd" data-id="${k.id}">Editar</button>`:''}</td></tr>`}).join('')}
+     <td>${k.ativo===false?`<span class="chip">Inativo${k.ate?' desde '+cfPerTxt(k.ate).slice(-10):''}</span>`:'<span class="chip ok">Ativo</span>'}</td><td>${false?`<button class="btn sm" data-act="cfKEd" data-id="${k.id}">Editar</button>`:''}</td></tr>`}).join('')}
    </tbody></table></div></section>`}
 function cfViewPrest(){const L=cfLinhas();if(!L.length)return '<section class="panel"><p class="muted">Nenhum contrato no período.</p></section>';const M={};
   L.forEach(x=>{const m=M[x.emp]=M[x.emp]||{eq:new Set(),n:0,fixo:0,exc:0,var:0,imp:0,apr:0,pend:0,nAp:0,nT:0};m.eq.add(x.k.tec);m.n+=x.A.n;m.nT++;
@@ -22486,14 +22486,14 @@ const cfiReal=fn=>{if(!CFI_ALL||S.lpus===CFI_ALL)return fn();const F=S.lpus;S.lp
 function cfiView(sub){if(!CF.ok&&!CF.err){if(!CF.bus)cfCarregar();return '<p class="muted pad">Carregando…</p>'}if(CF.err)return `<div class="result bad">${esc(CF.err)}</div>`;
   if(sub==='cfiAprov')return viewAprov(true);
   if(sub==='cfiK'){const K=cfiKs().sort((p,q)=>(p.ativo===false)-(q.ativo===false)||gTecN(p.tec).localeCompare(gTecN(q.tec))),vv=v=>brl(+v||0);
-    return `<div class="tools" style="margin-bottom:12px">${cfiEd()?'<button class="btn primary" data-act="cfiKEd">Novo contrato</button>':''}</div>${K.length?`<section class="panel"><div class="tablewrap"><table class="cfpg"><thead><tr><th>Equipe</th><th>Empresa</th><th class="r">Fixo/mês</th><th class="r">Até o limite</th><th class="r">CFO</th><th class="r">Fusão</th><th class="r">Identificação</th><th class="r">Itens na tabela</th><th>Metas</th><th>Situação</th><th></th></tr></thead><tbody>
-     ${K.map(k=>{const cx=(S.cnpj||{})[k.tec]||{};return `<tr><td><b>${esc(gTecN(k.tec))}</b></td><td>${cx.empresa?esc(gTecN(cx.empresa)):'—'}</td><td class="r"><b>${vv(k.fixo)}</b><br><small class="muted">desde ${cfPerTxt(cfDesde(k)).slice(0,5)}</small></td><td class="r">${vv(k.fixo650)}<br><small class="muted">até ${cfiLim(k)} m</small></td><td class="r">${vv(k.cfo)}</td><td class="r">${vv(k.fus)}</td><td class="r">${vv(k.ide)}</td><td class="r">${(k.tab||[]).length}</td><td>${(k.vars||[]).map(v=>`<small class="cfvl">${esc(v.nome)} · ${vv(v.valor)}</small>`).join('')||'<small class="muted">—</small>'}</td><td>${k.ativo===false?'<span class="chip">Inativo</span>':'<span class="chip ok">Ativo</span>'}</td><td>${cfiEd()?`<button class="btn sm" data-act="cfiKEd" data-id="${k.id}">Editar</button>`:''}</td></tr>`}).join('')}</tbody></table></div></section>`:'<section class="panel"><p class="muted">Nenhum contrato fixo na Implantação ainda.</p></section>'}`}
+    return `${ctrfAviso('impl')}${K.length?`<section class="panel"><div class="tablewrap"><table class="cfpg"><thead><tr><th>Equipe</th><th>Empresa</th><th class="r">Fixo/mês</th><th class="r">Até o limite</th><th class="r">CFO</th><th class="r">Fusão</th><th class="r">Identificação</th><th class="r">Itens na tabela</th><th>Metas</th><th>Situação</th><th></th></tr></thead><tbody>
+     ${K.map(k=>{const cx=(S.cnpj||{})[k.tec]||{};return `<tr><td><b>${esc(gTecN(k.tec))}</b></td><td>${cx.empresa?esc(gTecN(cx.empresa)):'—'}</td><td class="r"><b>${vv(k.fixo)}</b><br><small class="muted">desde ${cfPerTxt(cfDesde(k)).slice(0,5)}</small></td><td class="r">${vv(k.fixo650)}<br><small class="muted">até ${cfiLim(k)} m</small></td><td class="r">${vv(k.cfo)}</td><td class="r">${vv(k.fus)}</td><td class="r">${vv(k.ide)}</td><td class="r">${(k.tab||[]).length}</td><td>${(k.vars||[]).map(v=>`<small class="cfvl">${esc(v.nome)} · ${vv(v.valor)}</small>`).join('')||'<small class="muted">—</small>'}</td><td>${k.ativo===false?'<span class="chip">Inativo</span>':'<span class="chip ok">Ativo</span>'}</td><td></td></tr>`}).join('')}</tbody></table></div></section>`:'<section class="panel"><p class="muted">Nenhum contrato fixo na Implantação ainda.</p></section>'}`}
   if(sub==='cfiDet'){const L=S.lpus.filter(l=>l.cf&&l.status!=='reprovada'&&lpuNoPer(l,'cfd')).sort((a,b)=>String(b.data).localeCompare(String(a.data)));const st={aprovada:['Aprovada','ok'],aguardando:['Aguardando','warn'],ajuste:['Em ajuste','bad'],conferencia:['Conferência','info']};
     return `${lpuPerBar('cfd','cfiXlsx')}<div class="kpis cfk3">${kp(brl(L.filter(l=>l.status==='aprovada').reduce((s,l)=>s+(+l.total||0),0)),'Aprovadas','ok')}${kp(brl(L.filter(l=>l.status!=='aprovada').reduce((s,l)=>s+(+l.total||0),0)),'Aguardando ou em ajuste','warn')}${kp(L.length,'Baixas no período')}</div>
      <section class="panel"><div class="tablewrap"><table class="cfpg"><thead><tr><th>Data</th><th>Atividade</th><th>Equipe</th><th>Tipo</th><th class="r">Metros</th><th class="r">Valor</th><th>Situação</th><th></th></tr></thead><tbody>${L.map(l=>`<tr><td>${dBR(l.data)}</td><td><b>${esc(l.etiqueta)}</b><br><small class="muted">${esc(cliN(l.etiqueta))}</small></td><td>${esc(tecN(l.tec))}</td><td>${esc(CFI_CAT[l.cf.cat]||'')}${l.cf.add?`<br><small class="muted">+ adicional ${brl(l.cf.add.v)}: ${esc(l.cf.add.mot||'')}</small>`:''}</td><td class="r">${l.cf.m?(+l.cf.m).toLocaleString('pt-BR'):'—'}</td><td class="r"><b>${brl(+l.total||0)}</b></td><td><span class="chip ${(st[l.status]||['',''])[1]}">${(st[l.status]||[l.status])[0]}</span></td><td><button class="btn sm" data-act="pdf" data-id="${l.id}">PDF</button></td></tr>`).join('')||'<tr><td colspan="8" class="muted">Nenhuma baixa no período.</td></tr>'}</tbody></table></div></section>`}
   const ref=ui.cfiRef||(ui.cfiRef=cfRefHoje()),K=cfiKs().filter(k=>k.ativo!==false||cfFech('impl',k.tec,ref));
   return `<div class="tools" style="margin-bottom:12px"><button class="btn sm" data-act="cfiRef" data-k="-1" aria-label="Período anterior">‹</button><b class="cfper">${cfPerTxt(ref)}</b><button class="btn sm" data-act="cfiRef" data-k="1" aria-label="Próximo período">›</button></div>
-   ${K.length?`<div class="cfigrid">${K.map(k=>cfiFechCard(k,ref)).join('')}</div>`:`<section class="panel"><p class="muted">Nenhum contrato fixo na Implantação.${cfiEd()?' Cadastre em <b>Contratos</b>.':''}</p></section>`}`}
+   ${K.length?`<div class="cfigrid">${K.map(k=>cfiFechCard(k,ref)).join('')}</div>`:`<section class="panel"><p class="muted">Nenhum contrato fixo na Implantação. Os contratos são cadastrados no Financeiro (Contas a pagar › Novo contrato).</p></section>`}`}
 /* ---------- Financeiro (menu Financeiro, Pamela) › Contratos fixos: os contratos das áreas, mês a mês ----------
    Mês de referência = mês em que o período termina (21/10 a 20/11 → novembro), igual ao budget. Esses valores já entram no
    executado, nas contas a pagar e no e-mail de NF; não cadastre o mesmo contrato de novo no Financeiro. */
@@ -24313,6 +24313,45 @@ function f4FimDiv(h,i){let d=0;const re=/<div\b|<\/div>/g;re.lastIndex=i;let m;w
 function f4NfAbaDoAviso(){const lim=Date.now()-50*864e5,A=(G.avisos||[]).filter(a=>/^finnf:/.test(a.ref||'')&&new Date(a.em).getTime()>lim).sort((a,b)=>String(b.em).localeCompare(String(a.em))),r=A[0]&&f4RefTipos(A[0].ref);if(r)ui.mSub=r.tipos.includes('ctr')?'cf':'lpu'}
 {const _g=gIr;gIr=function(url){try{const q=new URL(url||'',location.href).searchParams;if(q.get('fin')==='nf'&&gTecPerfil())f4NfAbaDoAviso()}catch(e){}return _g.apply(this,arguments)}}
 {if(window.__f4Nf)ui.f4NfAuto=1;const _m=viewMinhas;viewMinhas=function(){try{if(ui.f4NfAuto&&(G.avisos||[]).length){ui.f4NfAuto=0;f4NfAbaDoAviso()}}catch(e){}return _m.apply(this,arguments)}}
+
+/* ---------- Contratos cadastrados só no Financeiro (27/11/2026) ----------
+   "Novo contrato" do Financeiro (Contas a pagar) pergunta onde o contrato atua: RE Corretiva (contrato fixo por chamados),
+   Implantação (contrato fixo por baixas) ou outro contrato do Financeiro. Os da RE e da Implantação gravam em ag_contrato_fixo
+   e aparecem na hora na área. Nas áreas fica só a consulta; o fechamento, as metas e a aprovação continuam lá. */
+const ctrfPode=()=>!!ME&&typeof f2Edita==='function'&&f2Edita()&&!(typeof gerSoVer==='function'&&gerSoVer());
+const ctrfVeFin=()=>!!ME&&(ui.perfil==='coord'||pode('fin_pagar'));
+function ctrfAviso(a){return `<div class="ctrfav"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/></svg><div><b>Os contratos são cadastrados e editados no Financeiro</b> (Contas a pagar › Novo contrato).<br><small>Aqui ficam o fechamento${a==='impl'?', as baixas':', as metas'} e a aprovação.</small></div>${ctrfVeFin()?'<button class="btn sm" data-act="ctrfIr">Abrir no Financeiro</button>':''}</div>`}
+/* as telas da área chamam os editores com a permissão da coordenação; quem tem "editar financeiro" passa a poder usá-los */
+['cfKEd','cfVAdd','cfVRm','cfKSalvar','cfContratos','cfiKEd','cfiKOk','cfiKAtivo','cfiTabAdd','cfiTabDel','cfiVarAdd','cfiVarDel','f5VDup','f5ViDup'].forEach(n=>{const f=ACT[n];if(typeof f!=='function')return;
+  ACT[n]=function(){if(cfEdita()||!ctrfPode())return f.apply(this,arguments);const p=ui.perfil;ui.perfil='coord';try{return f.apply(this,arguments)}finally{ui.perfil=p}}});
+/* aberto pelo Financeiro: "Voltar" vira "Cancelar" e, depois de salvar, volta para a tela do Financeiro */
+{const _m=cfModalK;cfModalK=function(){const r=_m.apply(this,arguments);if(ui.ctrFin){const b=document.querySelector('#modal [data-act="cfContratos"]');if(b){b.dataset.act='close';b.textContent='Cancelar'}const h=document.querySelector('#modal h3');if(h&&!/RE Corretiva/.test(h.textContent))h.textContent+=' · RE Corretiva'}return r}}
+{const _s=ACT.cfKSalvar;ACT.cfKSalvar=async function(){const fin=!!ui.ctrFin;const r=await _s.apply(this,arguments);if(fin&&!ui.cfEd){ui.ctrFin=false;closeModal();render()}return r}}
+{const _o=ACT.cfiKOk;ACT.cfiKOk=async function(){const r=await _o.apply(this,arguments);if(ui.ctrFin&&!$('modal').classList.contains('open')){ui.ctrFin=false;render()}return r}}
+{const _e=ACT.cfiKEd;ACT.cfiKEd=function(){const r=_e.apply(this,arguments);if(ui.ctrFin){const h=document.querySelector('#modal h3');if(h&&!/Implantação/.test(h.textContent))h.textContent+=' · Implantação'}return r}}
+/* lista de contratos da RE (botão "Contratos" da tela antiga): só consulta */
+{const _m=cfModalContratos;cfModalContratos=function(){const r=_m.apply(this,arguments);if(ui.ctrFin)return r;try{document.querySelectorAll('#modal [data-act="cfKEd"]').forEach(b=>b.remove());const l=document.querySelector('#modal .cfklist');if(l)l.insertAdjacentHTML('beforebegin',ctrfAviso('re'))}catch(e){}return r}}
+function ctrfEscolha(){openModal(`<h3>Novo contrato</h3><p class="muted">Onde esse contrato atua? Os contratos da RE Corretiva e da Implantação aparecem na hora na área, para o fechamento e a aprovação.</p>
+  <div class="ctrfop">
+   <button class="ctrfb" data-act="ctrfNovo" data-a="re"><b>RE Corretiva</b><small>Contrato fixo por chamados: franquia, valor fixo, excedente e metas. Para o técnico ou a equipe marcada como Sem LPU.</small></button>
+   <button class="ctrfb" data-act="ctrfNovo" data-a="impl"><b>Implantação</b><small>Contrato fixo por baixas: valor fixo, limite de metros, CFO, fusão, identificação e tabela de itens.</small></button>
+   <button class="ctrfb" data-act="ctrfNovo" data-a="fin"><b>Outro contrato</b><small>Valor fixo, meta de atividades, valor informado no mês, avulso ou improdutivos, sem área de campo.</small></button>
+  </div><div class="actions"><button class="btn" data-act="close">Cancelar</button></div>`)}
+const ctrfCarrega=async()=>{if(typeof CF==='undefined')return;if(!CF.ok&&!CF.bus){try{await cfCarregar()}catch(e){}}};
+{const _n=ACT.f2CtrNovo;Object.assign(ACT,{
+  f2CtrNovo:function(){if(!ctrfPode())return _n.apply(this,arguments);ctrfCarrega();ctrfEscolha()},
+  ctrfNovo:async el=>{const a=el.dataset.a;if(a==='fin'){closeModal();return _n()}await ctrfCarrega();if(!CF.ok){toast('Os contratos das áreas ainda não carregaram. Tente de novo.','bad');return}
+    ui.ctrFin=true;if(a==='re')ACT.cfKEd({dataset:{}});else ACT.cfiKEd({dataset:{}})},
+  ctrfEd:async el=>{await ctrfCarrega();const k=CF.rows.find(x=>x.id===el.dataset.id);if(!k)return;ui.ctrFin=true;if(k.area==='impl')ACT.cfiKEd({dataset:{id:k.id}});else ACT.cfKEd({dataset:{id:k.id}})},
+  ctrfIr:()=>{closeModal();ui.cat='fin';ui.tab='finPagar';ui.chat=null;render();try{window.scrollTo(0,0)}catch(e){}}})}
+/* detalhe do contrato da área no Financeiro: botão Editar contrato */
+{const _d=f4CfDet;f4CfDet=function(k){const h=_d.apply(this,arguments);if(!ctrfPode()||!k||!k.id)return h;return h.replace('<button class="btn sm" data-act="f4CfXlsx"',`<button class="btn sm" data-act="ctrfEd" data-id="${k.id}">Editar contrato</button><button class="btn sm" data-act="f4CfXlsx"`)}}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.ctrfav{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;margin:0 0 12px;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:10px;background:var(--brand-soft,var(--surface));color:var(--ink)}
+.ctrfav svg{flex:none;color:var(--brand)}.ctrfav>div{flex:1;min-width:200px;line-height:1.45}.ctrfav small{color:var(--muted)}
+.ctrfop{display:grid;gap:10px;margin:12px 0}.ctrfb{display:flex;flex-direction:column;gap:4px;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
+.ctrfb:hover,.ctrfb:focus-visible{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-soft,transparent)}.ctrfb b{font-size:15px}.ctrfb small{color:var(--muted);line-height:1.4}
+</style>`);
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
