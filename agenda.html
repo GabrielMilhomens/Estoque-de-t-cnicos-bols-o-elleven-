@@ -24378,6 +24378,15 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 
 /* 27/11: as planilhas das áreas (Baixar planilha / Excel) também levam as LPUs lançadas em PDF no Financeiro, como a tela */
 if(typeof fbCom==='function')Object.keys(ACT).filter(k=>/xlsx|excel|planilha/i.test(k)).forEach(k=>{const f=ACT[k];if(typeof f!=='function')return;ACT[k]=function(){const a=arguments;let r;fbCom(()=>{r=f.apply(this,a)});return r}});
+/* 27/11: budget das áreas só aparece depois de carregar os contratos fixos e as LPUs lançadas no Financeiro (antes mostrava
+   um valor menor por alguns segundos, diferente do menu Financeiro). Os dois passam a carregar logo depois do login. */
+const finExtraElig=()=>!!ME&&!(typeof gTecPerfil==='function'&&gTecPerfil());
+function finExtraKick(){if(!finExtraElig())return;try{if(typeof CF!=='undefined'&&!CF.ok&&!CF.bus&&!CF.err)cfCarregar()}catch(e){}
+  try{if(typeof FB!=='undefined'&&!FB.ok&&!FB.bus&&!FB.err&&(['coord','sup','enc'].includes(ui.perfil)||pode('fin_vis')||pode('fin_imp')))fbCarregar()}catch(e){}}
+const finExtraPronto=()=>{finExtraKick();const cf=typeof CF==='undefined'||CF.ok||!!CF.err,fbE=['coord','sup','enc'].includes(ui.perfil)||pode('fin_vis')||pode('fin_imp'),fb=typeof FB==='undefined'||!fbE||FB.ok||!!FB.err;return cf&&fb};
+const FIN_CARREG='<section class="panel"><p class="muted" role="status" style="margin:0">Carregando os contratos fixos e as LPUs lançadas no Financeiro para mostrar o budget completo…</p></section>';
+['pBudget','gFinBudget'].forEach(n=>{try{const f=eval(n);if(typeof f!=='function')return;eval(n+'=function(){if(!finExtraPronto())return FIN_CARREG;return f.apply(this,arguments)}')}catch(e){}});
+{const _r=render;render=function(){finExtraKick();return _r.apply(this,arguments)}}
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).

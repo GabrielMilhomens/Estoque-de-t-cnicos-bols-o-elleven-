@@ -1169,6 +1169,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Planilhas das áreas com as LPUs lançadas em PDF (27/11, `mod/finpdf.js`, `mod/ctrfin.js`):** as LPUs lançadas no Financeiro já apareciam nas telas das áreas, mas não iam para as planilhas baixadas (ex.: "Mão de obra por etiqueta: ROI x LPU executada"). Agora todo botão de planilha/Excel das áreas roda com as mesmas LPUs da tela (função `fbCom`).
 
+- **Budget das áreas igual ao Financeiro desde a primeira tela (27/11, `mod/ctrfin.js`):** os contratos fixos (`ag_contrato_fixo`) e as LPUs lançadas em PDF (`ag_fin_baixas`) carregavam só quando alguma tela pedia, e o budget da Implantação/GTD aparecia por alguns segundos sem eles (ex.: R$ 75.194,37 em vez de R$ 102.576,57, faltando o fechamento do contrato fixo). Agora os dois carregam logo depois do login e o quadro do budget mostra "Carregando…" até chegarem, em vez de um valor incompleto.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1233,6 +1235,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Budget das áreas espera os contratos fixos e as LPUs lançadas no Financeiro (não mostra mais valor incompleto por alguns segundos) | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Planilhas das áreas (ex.: mão de obra por etiqueta) passam a incluir as LPUs lançadas em PDF no Financeiro | `agenda.html` (`mod/finpdf.js`, `mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Novo contrato da RE Corretiva pelo Financeiro lista todas as equipes terceiras e marca a escolhida como Sem LPU ao salvar | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Lançar LPU em PDF: prestador pode ser escolhido entre os cadastrados em Terceiros e técnicos (sugestão pelo CNPJ) | `agenda.html` (`mod/finpdf.js`). Sem SQL novo. |
