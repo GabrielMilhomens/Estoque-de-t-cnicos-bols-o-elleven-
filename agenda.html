@@ -19968,13 +19968,13 @@ document.head.insertAdjacentHTML('beforeend',`<style>.cfk3{grid-template-columns
 function eqTimeBox(EQ,ags,chs,F){if(!EQ||!EQ.length)return '';const campoA=['deslocamento','no_local','execucao'],campoG=['desloc','local','atend'];
   const sit=id=>{const a=ags.find(x=>x.tec===id&&campoA.includes(x.status)),c=chs.find(x=>x.tec===id&&campoG.includes(x.status));if(a||c)return['Em campo','info'];
     if(ags.some(x=>x.tec===id&&x.status==='agendada')||chs.some(x=>x.tec===id&&x.status==='aberto'))return['Com atividade agendada',''];return['Sem atividade agora','ok']};
-  return `<section class="eqtime"><h3 class="lsub">Sua equipe <span class="chip">${EQ.length}</span></h3><div class="eqtl">${EQ.map(e=>{const s=sit(e.id),fx=typeof semLpuEq==='function'&&semLpuEq(e.id);
+  return `<section class="eqtime"><h3 class="lsub">Sua equipe <span class="chip">${EQ.length}</span></h3><div class="eqtl">${EQ.map(e=>{const s=sit(e.id),fx=(typeof semLpuEq==='function'&&semLpuEq(e.id))||(typeof cfiK==='function'&&!!cfiK(e.id));
     return `<button class="eqtp" data-act="eqTecSel" data-id="${e.id}" aria-pressed="${F===e.id}"><b>${esc(e.nome)}</b><small>${fx?'Contrato fixo':'LPU'}</small><span class="chip ${s[1]}">${s[0]}</span></button>`}).join('')}</div>
     ${F?'<button class="linkbtn" data-act="eqTecSel" data-id="">Ver a equipe toda</button>':''}</section>`}
 ACT.eqTecSel=el=>{const v=el.dataset.id||'';ui.eqTec=ui.eqTec===v?'':v;render()};
 document.head.insertAdjacentHTML('beforeend',`<style>.eqtime{margin:0 0 14px}.eqtl{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:8px}
-.eqtp{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--card,#fff);padding:10px 12px;cursor:pointer;font:inherit;color:inherit}
-.eqtp small{color:var(--muted)}.eqtp[aria-pressed="true"]{border-color:#5a8f1c;background:#f3f9ea}.eqtime .linkbtn{margin-top:6px;padding:0}</style>`);
+.eqtp{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff);padding:10px 12px;cursor:pointer;font:inherit;color:inherit}
+.eqtp small{color:var(--muted)}.eqtp[aria-pressed="true"]{border-color:var(--brand,#5a8f1c);background:var(--brand-soft,#f3f9ea);color:var(--ink)}.eqtime .linkbtn{margin-top:6px;padding:0}</style>`);
 
 /* 14/11: RE Preventiva (programadas: Preventiva, Melhoria, Retirada e Companhia elétrica) no mesmo fluxo das outras áreas.
    - Técnico (CLT ou terceiro, não funcionário): faz o apontamento e, concluída, preenche a LPU (montada pelos apontamentos).
@@ -22543,8 +22543,8 @@ function cfiEqCard(h,a,cons){const k=`data-k="a:${a.id}"`,j=h.indexOf(k);if(j<0)
     .replace('LPU já enviada: encerrar a atividade','Baixa já enviada: encerrar a atividade');
   if(!imp&&!S.lpus.some(l=>l.ag===a.id&&l.status!=='reprovada'))art=art.replace(/(<span class="eqt">)/,`<span class="cfitag">Contrato fixo: ${cons?'o administrador da empresa faz a baixa em Minha equipe':'a baixa substitui a LPU e vai para a aprovação da Implantação'}</span>$1`);
   return h.slice(0,i)+art+h.slice(j)}
-{const _e=viewEquipe;viewEquipe=function(){let h=_e.apply(this,arguments);try{const cons=ui.tab==='eqVer';S.ags.forEach(a=>{if((a.status==='lpu'||a.status==='nao_concluida')&&cfiK(a.tec))h=cfiEqCard(h,a,cons)});
-  h=h.replace(/>LPU para preencher </,S.ags.some(a=>a.status==='lpu'&&cfiK(a.tec))?'>LPU e baixas para preencher <':'>LPU para preencher <')}catch(e){console.warn('cfiEq',e)}return h}}
+{const _e=viewEquipe;viewEquipe=function(){if(typeof CF!=='undefined'&&!CF.ok&&!CF.bus&&!CF.err)cfCarregar();let h=_e.apply(this,arguments);try{const cons=ui.tab==='eqVer';S.ags.forEach(a=>{if((a.status==='lpu'||a.status==='nao_concluida')&&cfiK(a.tec))h=cfiEqCard(h,a,cons)});
+  const temCf=S.ags.some(a=>(a.status==='lpu'||a.status==='nao_concluida')&&cfiK(a.tec));h=h.replace(/>LPU para preencher </,temCf?'>LPU e baixas para preencher <':'>LPU para preencher <')}catch(e){console.warn('cfiEq',e)}return h}}
 document.head.insertAdjacentHTML('beforeend','<style>.cfitag{display:block;margin:6px 0 2px;font-size:13px;color:var(--info);background:var(--info-soft);border-radius:8px;padding:6px 10px}</style>');
 
 /* ===== 20/11: celular e modo escuro =====

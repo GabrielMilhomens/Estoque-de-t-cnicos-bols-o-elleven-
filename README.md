@@ -1135,6 +1135,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Financeiro · botão de devolver em toda LPU reprovada (27/11, `mod/lpudup.js`).** O botão "Devolver para preencher de novo" (LPU com a aprovação cancelada) ou "Reabrir para ajuste" (LPU reprovada) passa a ser colocado em todo cartão de LPU reprovada que tem "Ver PDF", mesmo quando o cartão vem montado de outro jeito (antes faltava em alguns cartões). Pode usar quem tem a permissão de aprovar LPU, não só quem aprovou. Sem SQL novo.
 
+- **Implantação · equipe de contrato fixo na Minha equipe e na Visão da empresa terceira (27/11, `mod/cfimpl.js`, `mod/eqtime.js`).** Os contratos fixos passam a ser carregados ao abrir Minha equipe ou a Visão da empresa terceira; antes só carregavam depois de passar pelo Financeiro ou pela Gestão financeira, e até lá a atividade do funcionário de contrato fixo aparecia como "LPU pendente". Agora aparece direto "Baixa pendente", com o botão "Fazer a baixa do contrato fixo" para o administrador da empresa e o aviso de quem faz a baixa na visão da gestão; o cartão do funcionário em "Sua equipe" mostra "Contrato fixo" no lugar de "LPU". Modo escuro: o cartão do funcionário escolhido ficava claro com letra clara; agora usa as cores do tema. Sem SQL novo.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1199,6 +1201,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Implantação: Minha equipe e Visão da empresa terceira mostram a baixa do contrato fixo (não "LPU pendente") sem precisar abrir o Financeiro antes; cartão do funcionário com "Contrato fixo"; cor do cartão escolhido no modo escuro | `agenda.html` (`mod/cfimpl.js`, `mod/eqtime.js`). Sem SQL novo. |
 | 27/11/2026 | Financeiro: botão "Devolver para preencher de novo" garantido em toda LPU reprovada (inclusive com a aprovação cancelada) | `agenda.html` (`mod/lpudup.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: menu do Financeiro com os grupos Contrato LPU e Contrato fixo abrindo e fechando, igual à RE Corretiva | `agenda.html` (`mod/finimpnav.js`). Sem SQL novo. |
 | 26/11/2026 | Implantação: material do agendamento por lançamento em quantidades inteiras e aviso quando o ROI salvo está desatualizado em relação ao KMZ | `agenda.html` (`mod/kmzlanc2.js`). Sem SQL novo. |
