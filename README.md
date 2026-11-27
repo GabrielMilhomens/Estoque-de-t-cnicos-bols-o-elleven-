@@ -1163,6 +1163,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Contratos cadastrados só no Financeiro (27/11, `mod/ctrfin.js`, `agenda_ajuste_101_contratos_pelo_financeiro.sql`):** em Contas a pagar, "Novo contrato" pergunta onde o contrato atua: **RE Corretiva** (contrato fixo por chamados, abre o mesmo cadastro de antes), **Implantação** (contrato fixo por baixas) ou **Outro contrato** (o cadastro do Financeiro: fixo, meta, informado, avulso, improdutivo). Os contratos da RE e da Implantação gravam em `ag_contrato_fixo` e aparecem na hora na área. O detalhe do contrato da área no Financeiro ganhou "Editar contrato". Nas áreas (Implantação › Financeiro › Contrato fixo › Contratos e RE Corretiva › Contrato fixo › Contratos) saíram "Novo contrato" e "Editar": fica a consulta, com o aviso e o botão "Abrir no Financeiro". Fechamento, metas e aprovação continuam nas áreas. Quem edita é quem tem "editar financeiro" (e a coordenação).
 
+- **Lançar LPU em PDF com prestador de Terceiros e técnicos (27/11, `mod/finpdf.js`):** o campo "Prestador" do card do PDF e do "Lançar à mão" lista também quem está cadastrado em Financeiro › Terceiros e técnicos (grupo próprio), além dos prestadores da ferramenta. O PDF já sugere o terceiro pelo CNPJ ou pelo nome/apelidos. A LPU grava a coluna `terceiro` de `ag_fin_baixas` (já existe desde o ajuste 95; não precisa de SQL novo) e entra como terceiro no budget da área, nos totais por prestador e em Contas a pagar.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1227,6 +1229,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Lançar LPU em PDF: prestador pode ser escolhido entre os cadastrados em Terceiros e técnicos (sugestão pelo CNPJ) | `agenda.html` (`mod/finpdf.js`). Sem SQL novo. |
 | 27/11/2026 | Contratos cadastrados só no Financeiro: "Novo contrato" de Contas a pagar pergunta a área (RE Corretiva, Implantação ou outro); as áreas ficam só com a consulta, o fechamento, as metas e a aprovação | **`agenda_ajuste_101_contratos_pelo_financeiro.sql` no Supabase**, depois `agenda.html` (`mod/ctrfin.js`). |
 | 27/11/2026 | Financeiro: aviso de NF com o contrato (LPU ou fixo) e o prazo de cada um (fixo: 1º dia útil depois do dia 20); quadro e detalhamento só do contrato do aviso, na aba certa | `agenda.html` (`mod/finnftipo.js`). Sem SQL novo. |
 | 27/11/2026 | Financeiro: Visão do técnico (gestão) mostra o aviso de NF que o administrador da empresa recebeu, com o detalhamento | `agenda.html` (`mod/finnfvis.js`). Sem SQL novo. |

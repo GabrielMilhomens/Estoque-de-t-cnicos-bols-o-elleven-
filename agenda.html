@@ -22597,7 +22597,11 @@ const fbContaOps=()=>{const n={};FB_AREAS.forEach(x=>{n[x[2]]=(n[x[2]]||0)+1});r
 const fbAreaDeConta=c=>({'0005':'impl','0006':'gtd','0007':'tx','0008':'re','0101':'rep','0102':'rpr','0103':'melox'})[String(c||'')]||'';
 async function fbCarregar(){if(FB.bus)return;FB.bus=true;try{FB.rows=await todas(()=>sb.from('ag_fin_baixas').select('*'));FB.ok=true;FB.err=''}catch(e){FB.err=String((e&&e.message)||e);FB.ok=false}finally{FB.bus=false}render()}
 const fbPode=()=>!!ME&&!gTecPerfil()&&(['coord','sup','enc'].includes(ui.perfil)||(typeof f2Edita==='function'&&(ui.cat==='fin'||ui.cat==='ger')));
-function fbVirt(r){const em=new Date(r.criado_em||Date.now()).getTime()||Date.now(),a=r.area,o={id:'fb:'+r.id,_fb:r.id,ag:null,chamado:null,tec:r.tecnico||undefined,status:'aprovada',total:+r.total||0,conta:r.conta,data:isoD(new Date(em)),
+/* 27/11: LPU de prestador que só está em Financeiro › Terceiros e técnicos: vira o prestador virtual 'ft:<id>' (terceiro), para entrar no budget e nos totais */
+const FB_VT=[];function fbVt(r){if(r.tecnico||!r.terceiro)return r.tecnico||undefined;const id='ft:'+r.terceiro;if(!FB_VT.some(t=>t.id===id)){const f=((typeof F2!=='undefined'&&F2.terc)||[]).find(t=>t.id===r.terceiro);FB_VT.push({id,nome:(f&&f.nome)||r.empresa||'Terceiro',tipo:'TERC',virt:true})}
+  const v=FB_VT.find(t=>t.id===id);S.tecExt=S.tecExt||{};S.tecExt[id]=v.nome;return id}
+if(!TEC.__fbv){const _f=Array.prototype.find;Object.defineProperty(TEC,'find',{configurable:true,writable:true,value:function(fn,th){const x=_f.call(this,fn,th);return x!==undefined||!FB_VT.length?x:_f.call(FB_VT,fn,th)}});TEC.__fbv=1}
+function fbVirt(r){const em=new Date(r.criado_em||Date.now()).getTime()||Date.now(),a=r.area,o={id:'fb:'+r.id,_fb:r.id,ag:null,chamado:null,tec:fbVt(r),status:'aprovada',total:+r.total||0,conta:r.conta,data:isoD(new Date(em)),
   etiqueta:r.etiqueta||'',cliente:r.cliente||r.empresa||'',categoria:'LPU lançada no Financeiro',fases:['Lançada no Financeiro'],dataRel:r.data_rel,pdf_path:null,_fbPdf:r.pdf_path,
   itens:(r.itens||[]).map(i=>({cod:i.c||'',desc:i.d||'',fator:i.f||'',classe:i.cl||'',medida:i.m||'',unit:+i.u||0,qtd:+i.q||0})),hist:[{acao:'Aprovada',por:(r.criado_nome||'Financeiro')+' (Financeiro)',em}]};
   if(['gtd','re','rep','rpr'].includes(a))o._pl=a==='rep'||a==='rpr'?'rep':a;if(a==='rpr')o._fbArea='rpr';if(a==='melcx'||a==='melox'){o._pl='mel';o._fbNat=a==='melcx'?'cx':'ox'}return o}
@@ -22658,8 +22662,13 @@ async function fbLePdf(file){if(!window.pdfjsLib)throw new Error('O leitor de PD
 
 /* ---------- prestador da ferramenta pelo CNPJ ---------- */
 const fbPrestOpts=()=>TEC.filter(t=>tecT(t.id)==='TERC'&&!((S.cnpj||{})[t.id]||{}).empresa).sort((a,b)=>a.nome.localeCompare(b.nome));
-function fbAchaPrest(cnpj,nome){const c=soDig(cnpj);if(c){const t=fbPrestOpts().find(t=>soDig(((S.cnpj||{})[t.id]||{}).cnpj)===c);if(t)return t.id}
-  const n=normK(nome||'');if(n.length>4){const t=fbPrestOpts().find(t=>{const a=normK(t.nome);return a&&(a.includes(n)||n.includes(a.split(' (')[0]))});if(t)return t.id}return ''}
+/* 27/11: também os cadastrados em Financeiro › Terceiros e técnicos (valor 'ft:<id>'), menos os que já são prestadores na ferramenta (mesmo CNPJ) */
+const fbFinOpts=()=>{const cn=new Set(fbPrestOpts().map(t=>soDig(((S.cnpj||{})[t.id]||{}).cnpj)).filter(Boolean));return((typeof F2!=='undefined'&&F2.terc)||[]).filter(t=>t.ativo!==false&&!(soDig(t.cnpj)&&cn.has(soDig(t.cnpj)))).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)))};
+const fbFt=v=>/^ft:/.test(v||'')?((typeof F2!=='undefined'&&F2.terc)||[]).find(t=>t.id===v.slice(3))||null:null;
+function fbPrestSel(v,attr){const P=fbPrestOpts(),T=fbFinOpts(),o=(k,n)=>`<option value="${k}" ${k===v?'selected':''}>${esc(n)}</option>`;
+  return `<select class="inp" ${attr}>${o('','Escolha…')}${P.length?`<optgroup label="Prestadores na ferramenta">${P.map(t=>o(t.id,t.nome+(((S.cnpj||{})[t.id]||{}).cnpj?' · '+fmtCnpj(S.cnpj[t.id].cnpj):''))).join('')}</optgroup>`:''}${T.length?`<optgroup label="Terceiros e técnicos (Financeiro)">${T.map(t=>o('ft:'+t.id,t.nome+(t.cnpj?' · '+fmtCnpj(t.cnpj):''))).join('')}</optgroup>`:''}</select>`}
+function fbAchaPrest(cnpj,nome){const c=soDig(cnpj);if(c){const t=fbPrestOpts().find(t=>soDig(((S.cnpj||{})[t.id]||{}).cnpj)===c);if(t)return t.id;const f=fbFinOpts().find(t=>soDig(t.cnpj)===c);if(f)return 'ft:'+f.id}
+  const n=normK(nome||'');if(n.length>4){const t=fbPrestOpts().find(t=>{const a=normK(t.nome);return a&&(a.includes(n)||n.includes(a.split(' (')[0]))});if(t)return t.id;const f=fbFinOpts().find(t=>[t.nome].concat(t.apelidos||[]).some(x=>{const a=normK(x||'');return a&&(a.includes(n)||n.includes(a))}));if(f)return 'ft:'+f.id}return ''}
 const fbDup=r=>FB.rows.find(x=>soDig(x.cnpj)===soDig(r.cnpj)&&String(x.etiqueta||'')===String(r.etiqueta||'')&&Math.abs((+x.total||0)-r.total)<0.01&&(x.data_rel||'')===(r.data||''));
 
 /* ---------- tela ---------- */
@@ -22670,7 +22679,7 @@ function viewFinImp(){if(!FB.ok){if(!FB.bus&&!FB.err)fbCarregar();return f2Top('
     <dl class="f2dl"><div><dt>Cliente / POP</dt><dd>${esc(r.cliente||'—')}</dd></div><div><dt>Etiqueta</dt><dd>${esc(r.etiqueta||'—')}</dd></div><div><dt>Data do relatório</dt><dd>${r.data?dBR(r.data):'—'}</dd></div><div><dt>Conta no PDF</dt><dd>${esc(r.contaDesc||r.conta||'—')}</dd></div><div><dt>Itens</dt><dd>${r.itens.length}</dd></div></dl>
     ${r.aviso?`<div class="result warn" style="margin:6px 0">${esc(r.aviso)}</div>`:''}${dup?`<div class="result bad" style="margin:6px 0">Parece repetida: já lançada em ${dtBR(new Date(dup.criado_em).getTime())} por ${esc(dup.criado_nome||'')}.</div>`:''}
     <div class="fbsel"><label class="f"><span>Conta contábil (consome o budget dela)</span><select class="inp" data-ch="fbSet" data-i="${i}" data-k="area">${op(r.area,[['','Escolha…']].concat(fbContaOps()))}</select></label>
-     <label class="f"><span>Prestador na ferramenta</span><select class="inp" data-ch="fbSet" data-i="${i}" data-k="tec">${op(r.tec,[['','Escolha…']].concat(P))}</select></label></div>
+     <label class="f"><span>Prestador</span>${fbPrestSel(r.tec,`data-ch="fbSet" data-i="${i}" data-k="tec"`)}</label></div>
     ${ed?`<div class="tools" style="margin-top:8px"><button class="btn primary" data-act="fbLanca" data-i="${i}" ${r.area&&r.tec?'':'disabled'}>Lançar aprovada · ${brl(r.total)}</button><button class="btn" data-act="fbTira" data-i="${i}">Descartar</button></div>`:''}</div>`};
   return f2Top('Lançar LPU em PDF','LPU de prestador que não passou pela ferramenta. Ela entra <b>já aprovada</b>: consome o budget da área escolhida no mês de hoje e aparece nos totais por prestador e no detalhamento da área.',
      ed?`<label class="btn primary">Escolher PDFs<input type="file" accept="application/pdf,.pdf" multiple hidden data-ch="fbArq"></label><button class="btn" data-act="fbManual">Lançar à mão</button>`:'')+
@@ -22687,8 +22696,8 @@ Object.assign(CH,{
   fbSet:el=>{const r=(ui.fbLidos||[])[+el.dataset.i];if(r){r[el.dataset.k]=el.value;render()}}});
 async function fbGrava(r){let path=null;if(r.file){const p=`lpu/${hoje().slice(0,7)}/${Date.now()}_${Math.random().toString(36).slice(2,7)}.pdf`;const u=await sb.storage.from('financeiro').upload(p,r.file,{contentType:'application/pdf',upsert:false});
     if(u.error){toast('Não foi possível guardar o PDF: '+u.error.message,'bad');return false}path=p}
-  const cx=(S.cnpj||{})[r.tec]||{},row={area:r.area,conta:fbContaFull(r.area),tecnico:r.tec||null,empresa:r.empresa||gTecN(r.tec),cnpj:soDig(r.cnpj||cx.cnpj||'')||null,cliente:r.cliente||null,etiqueta:r.etiqueta||null,protocolo:r.protocolo||null,cidade:r.cidade||null,
-    data_rel:r.data||null,total:Math.round((+r.total||0)*100)/100,itens:r.itens||[],pdf_path:path,arquivo:r.arquivo||null,obs:r.obs||null,criado_nome:ME.nome};
+  const ft=fbFt(r.tec),cx=ft?{cnpj:ft.cnpj}:(S.cnpj||{})[r.tec]||{},row={area:r.area,conta:fbContaFull(r.area),tecnico:ft?null:(r.tec||null),empresa:r.empresa||(ft?ft.nome:gTecN(r.tec)),cnpj:soDig(r.cnpj||cx.cnpj||'')||null,cliente:r.cliente||null,etiqueta:r.etiqueta||null,protocolo:r.protocolo||null,cidade:r.cidade||null,
+    data_rel:r.data||null,total:Math.round((+r.total||0)*100)/100,itens:r.itens||[],pdf_path:path,arquivo:r.arquivo||null,obs:r.obs||null,criado_nome:ME.nome};if(ft)row.terceiro=ft.id;
   const ins=await sb.from('ag_fin_baixas').insert(row).select();if(ins.error){toast('Não foi possível lançar: '+ins.error.message+(/relation|does not exist|schema cache/i.test(ins.error.message)?' (falta rodar o ajuste 95)':/area_check/i.test(ins.error.message)?' (falta rodar o ajuste 97)':''),'bad');return false}
   const nv=Object.assign({id:uid(),criado_em:new Date().toISOString()},row,(ins.data||[])[0]||{});if(!nv.criado_em)nv.criado_em=new Date().toISOString();FB.rows.push(nv);return true}
 Object.assign(ACT,{
@@ -22700,7 +22709,7 @@ Object.assign(ACT,{
     if(r.pdf_path)try{await sb.storage.from('financeiro').remove([r.pdf_path])}catch(e){}FB.rows=FB.rows.filter(x=>x.id!==r.id);closeModal();render();toast('LPU excluída.')},
   fbManual:()=>{const P=fbPrestOpts();openModal(`<h3>Lançar LPU à mão</h3><p class="muted">Para PDF em imagem ou LPU sem arquivo. Entra já aprovada.</p><div class="f2form">
     <label class="f"><span>Área *</span><select class="inp" id="fbmA"><option value="">Escolha…</option>${FB_AREAS.map(a=>`<option value="${a[0]}">${a[1]}</option>`).join('')}</select></label>
-    <label class="f"><span>Prestador na ferramenta *</span><select class="inp" id="fbmT"><option value="">Escolha…</option>${P.map(t=>`<option value="${t.id}">${esc(t.nome)}</option>`).join('')}</select></label>
+    <label class="f"><span>Prestador *</span>${fbPrestSel('','id="fbmT"')}</label>
     <label class="f"><span>Valor total *</span><input class="inp" id="fbmV" inputmode="decimal" placeholder="0,00"></label><label class="f"><span>Data do relatório</span><input class="inp" type="date" id="fbmD"></label>
     <label class="f"><span>Cliente / POP</span><input class="inp" id="fbmC"></label><label class="f"><span>Etiqueta</span><input class="inp" id="fbmE"></label>
     <label class="f f2w"><span>Descrição do serviço</span><input class="inp" id="fbmS" placeholder="Ex.: lançamento de 800 m de cabo"></label>
