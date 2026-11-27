@@ -1173,6 +1173,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Contas a pagar › Contrato fixo: lista de todos os contratos e início do contrato da RE (27/11, `mod/ctrfin.js`):** abaixo dos contratos do mês entrou "Contratos cadastrados", com todos os contratos (RE Corretiva, Implantação e os do Financeiro), de qualquer mês, e o botão Editar. Contrato novo só entra nas faturas a partir do período em que começa a valer (cadastrado em 27/11 → período 21/11 a 20/12 → competência dezembro); por isso não aparecia em "Contratos do mês" de novembro. O cadastro da RE Corretiva aberto pelo Financeiro ganhou "Vale a partir do período" (como o da Implantação), para fazer o contrato valer num período anterior.
 
+- **Contrato fixo da RE Corretiva com ciclo de fechamento próprio, início e fim (27/11, `mod/cfciclo.js`, `mod/ctrfin.js`):** no cadastro da RE Corretiva aberto pelo Financeiro, o campo "Vale a partir do período" virou três: **Fechamento** (dia em que o período começa, de 1 a 28: dia 1 = do dia 1 ao último dia do mês; dia 21 = 21 a 20, o padrão), **Início do contrato** e **Fim do contrato** (opcional). A competência continua sendo o mês em que o período termina. Período coberto só em parte (início ou fim no meio): valor fixo e franquia proporcionais aos dias, e só contam os chamados dentro das datas. A aprovação do fechamento fica liberada depois do fim do período do próprio contrato. Budget, Contas a pagar e "Contratos do mês" usam o valor proporcional. Campos novos em `ag_contrato_fixo.dados` (`ciclo`, `ini`, `fim`); contratos sem eles seguem iguais. A lista "Contratos cadastrados" mostra as datas e o ciclo.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1237,6 +1239,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Contrato fixo da RE Corretiva: ciclo de fechamento próprio (ex.: dia 1 ao fim do mês), início e fim do contrato, com valor proporcional no período parcial | `agenda.html` (`mod/cfciclo.js`, `mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Contas a pagar › Contrato fixo: lista de todos os contratos cadastrados com Editar; contrato da RE com "Vale a partir do período" | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Budget das áreas espera os contratos fixos e as LPUs lançadas no Financeiro (não mostra mais valor incompleto por alguns segundos) | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Planilhas das áreas (ex.: mão de obra por etiqueta) passam a incluir as LPUs lançadas em PDF no Financeiro | `agenda.html` (`mod/finpdf.js`, `mod/ctrfin.js`). Sem SQL novo. |

@@ -24342,14 +24342,21 @@ function ctrfAviso(a){return `<div class="ctrfav"><svg viewBox="0 0 24 24" width
   (G.tecs||[]).filter(t=>t.vinculo==='terceiro').concat(TEC.filter(t=>t.tipo==='TERC'&&!t.virt)).forEach(t=>{if(!m.has(t.id))m.set(t.id,{id:t.id,nome:t.nome+' · ainda com LPU'})});
   return [...m.values()].sort((a,b)=>String(a.nome).localeCompare(String(b.nome)))}}
 {const _m=cfModalK;cfModalK=function(){const r=_m.apply(this,arguments);if(ui.ctrFin&&ui.cfEd){const E=ui.cfEd,g=document.querySelector('#modal .cfg3');
-  if(g){const h=cfRefHoje(),d=E.desde||(E.id&&cfDesde(CF.rows.find(x=>x.id===E.id)||{}))||h,O=[];for(let i=-6;i<=3;i++)O.push(cfRefMais(h,i));if(!O.includes(d))O.unshift(d);E.desde=d;
-   g.insertAdjacentHTML('afterend',`<label class="f"><span>Vale a partir do período (consome o budget e entra nas faturas)</span><select class="inp" id="ctrfDesde">${O.map(r=>`<option value="${r}" ${r===d?'selected':''}>${cfPerTxt(r)}</option>`).join('')}</select></label>`);
-   $('ctrfDesde').addEventListener('change',e=>{E.desde=e.target.value})}}
+  if(g){const k0=E.id&&CF.rows.find(x=>x.id===E.id);if(E.ciclo==null){E.ciclo=k0?cfkCiclo(k0):21;E.ini=k0?(k0.ini||isoD(new Date(cfIni(cfDesde(k0))))):hoje();E.fim=k0&&k0.fim||''}
+   const prev=()=>{const el=$('ctrfPrev');if(!el)return;if(!E.ini){el.textContent='Informe o início do contrato.';return}const k={tipo:'contrato',ciclo:E.ciclo,ini:E.ini,fim:E.fim},D=cfkCiclo(k),ref=cfkRefDe(D,E.ini),fr=cfkFrac(k,ref);
+     el.innerHTML=`Primeiro período: <b>${cfkPerTxt(k,ref)}</b> · competência ${esc(f4MesN?f4MesN(ref):ref)}${fr<0.9999?` · <b>${Math.round(fr*100)}%</b> do fixo e da franquia (proporcional aos dias)`:''}${E.fim&&E.fim<E.ini?' · <span style="color:var(--bad)">o fim está antes do início</span>':''}`};
+   g.insertAdjacentHTML('afterend',`<div class="ctrfper"><label class="f"><span>Fechamento (período de apuração)</span><select class="inp" id="ctrfCiclo">${Array.from({length:28},(_,i)=>i+1).map(d=>`<option value="${d}" ${d===+E.ciclo?'selected':''}>${cfkCicloTxt(d)}</option>`).join('')}</select></label>
+     <label class="f"><span>Início do contrato *</span><input class="inp" type="date" id="ctrfIni" value="${esc(E.ini||'')}"></label><label class="f"><span>Fim do contrato <small class="muted">(opcional)</small></span><input class="inp" type="date" id="ctrfFim" value="${esc(E.fim||'')}"></label>
+     <p class="muted" id="ctrfPrev" style="margin:0;font-size:13px;grid-column:1/-1"></p></div>`);
+   $('ctrfCiclo').addEventListener('change',e=>{E.ciclo=+e.target.value;prev()});$('ctrfIni').addEventListener('change',e=>{E.ini=e.target.value;prev()});$('ctrfFim').addEventListener('change',e=>{E.fim=e.target.value;prev()});prev()}}
  if(ui.ctrFin&&ui.cfEd&&!ui.cfEd.id){const sel=document.querySelector('#modal [data-cfk="tec"]');const lb=sel&&sel.closest('label');
   if(lb){if(ui.ctrfSl==null)ui.ctrfSl=true;lb.insertAdjacentHTML('afterend',`<label class="chk ctrfsl"><input type="checkbox" id="ctrfSl" ${ui.ctrfSl?'checked':''}><span>Marcar a equipe como <b>Sem LPU</b>: os chamados dela passam a ser pagos pelo contrato e não geram LPU.</span></label>`);
    const sm=lb.querySelector('small');if(sm)sm.remove();$('ctrfSl').addEventListener('change',e=>{ui.ctrfSl=e.target.checked})}}return r}}
-{const _s=ACT.cfKSalvar;ACT.cfKSalvar=async function(){const fin=!!ui.ctrFin,E=ui.cfEd,tec=E&&E.tec,novo=E&&!E.id,sl=ui.ctrfSl!==false,ds=E&&E.desde;const r=await _s.apply(this,arguments);
-  if(fin&&!ui.cfEd&&ds){const k=CF.rows.find(x=>x.tipo==='contrato'&&x.area==='re'&&x.tec===tec);if(k&&cfDesde(k)!==ds){const p=ui.perfil;if(!cfEdita())ui.perfil='coord';let pr;try{k.desde=ds;cfH(k,'Início alterado',cfPerTxt(ds));pr=cfSalvar(k)}finally{ui.perfil=p}await pr}}
+{const _s=ACT.cfKSalvar;ACT.cfKSalvar=async function(){const fin=!!ui.ctrFin,E=ui.cfEd,tec=E&&E.tec,novo=E&&!E.id,sl=ui.ctrfSl!==false,per=fin&&E&&E.ciclo!=null?{ciclo:+E.ciclo||21,ini:E.ini||'',fim:E.fim||''}:null;
+  if(per){if(!per.ini){toast('Informe o início do contrato.','bad');return}if(per.fim&&per.fim<per.ini){toast('O fim do contrato está antes do início.','bad');return}}
+  const r=await _s.apply(this,arguments);
+  if(fin&&!ui.cfEd&&per){const k=CF.rows.find(x=>x.tipo==='contrato'&&x.area==='re'&&x.tec===tec);if(k){const ds=cfkRefDe(per.ciclo,per.ini),mud=k.ciclo!==per.ciclo||(k.ini||'')!==per.ini||(k.fim||'')!==per.fim||cfDesde(k)!==ds;
+    if(mud){k.ciclo=per.ciclo;k.ini=per.ini;if(per.fim)k.fim=per.fim;else delete k.fim;k.desde=ds;cfH(k,'Período alterado',`${cfkCicloTxt(per.ciclo)} · início ${dBR(per.ini)}${per.fim?' · fim '+dBR(per.fim):''}`);await cfSalvar(k)}}}
   if(fin&&!ui.cfEd){ui.ctrFin=false;ui.ctrfSl=null;if(novo&&tec&&sl&&!semLpuEq(tec)){const u=await sb.from('agenda_papeis').update({sem_lpu:true}).eq('user_id',tec).select('user_id');
       if(u.error||!(u.data||[]).length)toast('Contrato salvo. Peça à coordenação para marcar '+gTecN(tec)+' como Sem LPU em Usuários e acessos.','warn');
       else{S.cnpj=S.cnpj||{};S.cnpj[tec]=Object.assign({},S.cnpj[tec]||{},{sem_lpu:true});toast('Contrato salvo e '+gTecN(tec)+' marcado como Sem LPU.')}}
@@ -24378,6 +24385,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .ctrfav svg{flex:none;color:var(--brand)}.ctrfav>div{flex:1;min-width:200px;line-height:1.45}.ctrfav small{color:var(--muted)}
 .ctrfsl{display:flex!important;gap:8px;align-items:flex-start;margin:2px 0 12px;font-size:14px;line-height:1.4}.ctrfsl input{margin-top:3px;flex:none}.ctrfsl span{flex:1;min-width:0}
 .ctrfl td:first-child,.ctrfl td:last-child,.ctrfl td .btn{white-space:nowrap}
+.ctrfper{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 10px}.ctrfper>label:first-child{grid-column:1/-1}@media(max-width:520px){.ctrfper{grid-template-columns:1fr}}
 .ctrfop{display:grid;gap:10px;margin:12px 0}.ctrfb{display:flex;flex-direction:column;gap:4px;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
 .ctrfb:hover,.ctrfb:focus-visible{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-soft,transparent)}.ctrfb b{font-size:15px}.ctrfb small{color:var(--muted);line-height:1.4}
 </style>`);
@@ -24398,7 +24406,7 @@ const FIN_CARREG='<section class="panel"><p class="muted" role="status" style="m
    27/11 → período 21/11 a 20/12 → competência de dezembro). */
 function ctrfLista(){if(typeof CF==='undefined'||!CF.ok){finExtraKick();return '<p class="muted">Carregando os contratos…</p>'}const ed=ctrfPode(),mesN=r=>{try{return f4MesN(r)}catch(e){return r}};
   const R=CF.rows.filter(x=>x.tipo==='contrato').map(k=>({ar:k.area==='impl'?'Implantação':'RE Corretiva',nome:gTecN(k.tec),emp:((S.cnpj||{})[k.tec]||{}).empresa?gTecN(S.cnpj[k.tec].empresa):'',
-      det:k.area==='impl'?`até ${cfiLim(k)} m`:`${+k.qtd||0} chamados · excedente ${brl(k.exc!=null?+k.exc:CF_EXC)}`,fixo:+k.fixo||0,vars:(k.vars||[]).length,desde:cfDesde(k),
+      det:k.area==='impl'?`até ${cfiLim(k)} m`:`${+k.qtd||0} chamados · excedente ${brl(k.exc!=null?+k.exc:CF_EXC)}`,fixo:+k.fixo||0,vars:(k.vars||[]).length,desde:cfDesde(k),per:k.area==='re'&&cfkCustom(k)?`${k.ini?dBR(k.ini):''}${k.fim?' a '+dBR(k.fim):' em diante'}<br><small class="muted">fecha ${cfkCicloTxt(cfkCiclo(k)).replace(' (padrão)','')}</small>`:'',
       at:k.ativo!==false,bt:ed?`<button class="btn sm" data-act="ctrfEd" data-id="${k.id}">Editar</button>`:''}))
    .concat((F2.ctr||[]).map(c=>{const t=(F2.terc||[]).find(x=>x.id===c.terceiro);return{ar:'Financeiro',nome:c.nome||(t&&t.nome)||'—',emp:t&&t.nome!==c.nome?t.nome:'',det:({fixo:'Valor fixo',meta:'Meta de atividades',informado:'Valor informado no mês',avulso:'Avulso',improdutivo:'Improdutivos'})[c.tipo]||c.tipo||'',
       fixo:+c.fixo||0,vars:(c.bonus||[]).length,desde:c.inicio||'',at:c.ativo!==false,bt:ed?`<button class="btn sm" data-act="f2CtrEd" data-id="${c.id}">Editar</button>`:''}}))
@@ -24407,9 +24415,41 @@ function ctrfLista(){if(typeof CF==='undefined'||!CF.ok){finExtraKick();return '
   return `<h3 class="f5h3">Contratos cadastrados <small class="muted">(${R.length})</small></h3><p class="muted" style="margin:-4px 0 8px;font-size:13px">Todos os contratos, de qualquer mês. Um contrato novo entra nas faturas a partir do período em que começa a valer.</p>
    <section class="panel"><div class="tablewrap"><table class="ctrfl"><thead><tr><th>Área</th><th>Equipe / terceiro</th><th>Regra</th><th class="r">Fixo/mês</th><th>Vale a partir de</th><th>Situação</th><th></th></tr></thead><tbody>
    ${R.map(r=>`<tr><td>${esc(r.ar)}</td><td><b>${esc(r.nome)}</b>${r.emp?`<br><small class="muted">${esc(r.emp)}</small>`:''}</td><td><small>${esc(r.det)}${r.vars?` · ${r.vars} variável(is)`:''}</small></td><td class="r"><b>${brl(r.fixo)}</b></td>
-     <td class="nw">${r.desde?esc(r.ar==='Financeiro'?mesN(r.desde):cfPerTxt(r.desde)):'—'}${r.ar!=='Financeiro'&&r.desde&&r.desde>=hj?`<br><small class="muted">competência ${esc(mesN(r.desde))}</small>`:''}</td>
+     <td class="nw">${r.per?r.per:r.desde?esc(r.ar==='Financeiro'?mesN(r.desde):cfPerTxt(r.desde)):'—'}${r.ar!=='Financeiro'&&r.desde&&r.desde>=hj?`<br><small class="muted">competência ${esc(mesN(r.desde))}</small>`:''}</td>
      <td>${r.at?'<span class="chip ok">Ativo</span>':'<span class="chip">Inativo</span>'}</td><td>${r.bt}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">Nenhum contrato cadastrado.</td></tr>'}</tbody></table></div></section>`}
 {const v=f4ViewPagar;f4ViewPagar=function(){const h=v.apply(this,arguments);if((ui.f4PagT||'lpu')!=='ctr'||!f2Ok())return h;let l='';try{l=ctrfLista()}catch(e){console.warn('ctrfLista',e)}return h+l}}
+
+/* ---------- 27/11: contrato fixo da RE Corretiva com ciclo de fechamento próprio, início e fim ----------
+   k.ciclo = dia em que o período começa (1 a 28; padrão 21 → 21 a 20). Dia 1 → do dia 1 ao último dia do mês. A competência
+   (ref AAAA-MM) é o mês em que o período termina, como no padrão. k.ini / k.fim = datas do contrato (fim opcional).
+   Período que o contrato cobre só em parte: valor fixo e franquia proporcionais aos dias; só contam os chamados dentro das datas. */
+const cfkCiclo=k=>{const d=parseInt((k||{}).ciclo,10)||21;return d>=1&&d<=28?d:21};
+const cfkCustom=k=>!!k&&k.tipo==='contrato'&&(cfkCiclo(k)!==21||!!k.ini||!!k.fim);
+function cfkPer(D,ref){const y=+ref.slice(0,4),m=+ref.slice(5,7),o=D===1?0:-1;return[new Date(y,m-1+o,D).getTime(),new Date(y,m+o,D).getTime()-1]}
+function cfkRefDe(D,iso){const d=new Date(String(iso).slice(0,10)+'T12:00:00');if(D>1&&d.getDate()>=D)d.setMonth(d.getMonth()+1,1);return d.getFullYear()+'-'+pad(d.getMonth()+1)}
+function cfkJan(k,ref){const P=cfkPer(cfkCiclo(k),ref);let i=P[0],f=P[1];if(k.ini)i=Math.max(i,new Date(k.ini+'T00:00:00').getTime());if(k.fim)f=Math.min(f,new Date(k.fim+'T23:59:59.999').getTime());return{i,f,P}}
+function cfkFrac(k,ref){const J=cfkJan(k,ref);if(J.f<J.i)return 0;const dia=864e5,tot=Math.round((J.P[1]+1-J.P[0])/dia),n=Math.round((J.f+1-J.i)/dia);return Math.max(0,Math.min(1,n/tot))}
+const cfkPerTxt=(k,ref)=>{const J=cfkJan(k,ref);return dBR(isoD(new Date(J.i))).slice(0,5)+' a '+dBR(isoD(new Date(J.f)))};
+const cfkCicloTxt=D=>D===1?'do dia 1 ao último dia do mês':D===21?'do dia 21 ao dia 20 (padrão)':`do dia ${D} ao dia ${D-1} do mês seguinte`;
+/* chamados: janela do contrato (pega os períodos padrão vizinhos e filtra pelas datas) */
+{const _c=cfChamados;cfChamados=function(a,tec,ref){const k=cfContrato(a,tec);if(!cfkCustom(k))return _c.apply(this,arguments);const J=cfkJan(k,ref);if(J.f<J.i)return[];
+  const M=new Map();[-1,0,1].forEach(d=>(_c.call(this,a,tec,cfRefMais(ref,d))||[]).forEach(c=>M.set(c.id,c)));
+  return[...M.values()].filter(c=>{const t=(c.ts||{}).desloc;return t>=J.i&&t<=J.f}).sort((p,q)=>p.ts.desloc-q.ts.desloc)}}
+/* apuração: fixo e franquia proporcionais no período parcial (enquanto o fechamento não foi enviado) */
+{const _a=cfApura;cfApura=function(a,tec,ref){const r=_a.apply(this,arguments),k=cfContrato(a,tec);if(a!=='re'||!cfkCustom(k)||(r.F&&!['aberto','dev'].includes(r.F.status)))return r;
+  const fr=cfkFrac(k,ref);if(fr>=0.9999)return r;const fixo=Math.round(r.fixo*fr*100)/100,qtd=Math.round(r.qtd*fr),ne=Math.max(0,r.n-qtd),ni=Math.max(0,qtd-r.n),un=qtd?fixo/qtd:0;
+  return Object.assign(r,{fixo,qtd,ne,ni,un,vImp:Math.round(ni*un*100)/100,vExc:ne*r.exc,total:fixo+ne*r.exc+r.vOk,prop:fr})}}
+/* períodos do contrato: param no período do fim e pulam os que ficam fora das datas */
+{const _r=cfRefs;cfRefs=function(k){const L=_r.apply(this,arguments);if(!cfkCustom(k))return L;return L.filter(r=>cfkFrac(k,r)>0)}}
+/* fechamento só depois do fim do período do contrato */
+['cfEnviar','cfFecharOk'].forEach(n=>{const f=ACT[n];if(typeof f!=='function')return;ACT[n]=function(el){try{const k=cfContrato('re',el.dataset.tec);if(cfkCustom(k)){const fim=cfkPer(cfkCiclo(k),el.dataset.ref)[1];
+  if(Date.now()<=fim){toast('O período deste contrato fecha em '+dBR(isoD(new Date(fim)))+'. A aprovação fica liberada depois disso.','bad');return}}}catch(e){}return f.apply(this,arguments)}});
+/* Financeiro: detalhe do contrato mostra o período do contrato */
+{const _d=f4CfDet;f4CfDet=function(k,m){const h=_d.apply(this,arguments);if(!k||k.area!=='re'||!cfkCustom(k))return h;return h.replace(cfPerTxt(m),cfkPerTxt(k,m))}}
+/* reserva do budget antes do fechamento (valor do contrato) também proporcional no período parcial */
+{const _l=cfLpus;cfLpus=function(){const L=_l.apply(this,arguments);return L.map(o=>{if(!o||!o._cfK||!/valor do contrato/.test(o.cliente||''))return o;
+  const k=CF.rows.find(x=>x.id===o._cfK);if(!cfkCustom(k))return o;const fr=cfkFrac(k,o._cfRef);return fr>=0.9999?o:Object.assign(o,{total:Math.round((+k.fixo||0)*fr*100)/100})})}}
+{const _a=cfAreaLinhas;cfAreaLinhas=function(m){return _a.apply(this,arguments).map(x=>{if(x.ap||!x.k||x.k.area!=='re'||!cfkCustom(x.k))return x;return Object.assign(x,{cons:x.fixo})})}}
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
