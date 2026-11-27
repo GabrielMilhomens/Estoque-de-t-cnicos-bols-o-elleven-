@@ -24227,6 +24227,29 @@ ACT.fiGrp=el=>{const k=el.dataset.g,op=ui.fiGrpOp=ui.fiGrpOp||{},cf=s=>typeof CF
 /* escolher uma tela reabre o grupo dela */
 {const _p=ACT.pSec;ACT.pSec=function(el){try{const s=el&&el.dataset&&el.dataset.s;if(s&&el.dataset.v==='fin'){const op=ui.fiGrpOp=ui.fiGrpOp||{};op[typeof CFI_KEYS!=='undefined'&&CFI_KEYS.includes(s)?'cf':'lpu']=true}}catch(e){}return _p.apply(this,arguments)}}
 
+/* ===== 27/11: Visão da empresa terceira · pré-visualização do que o administrador vê =====
+   Na LPU ou baixa pendente, o botão "Ver como o administrador vê" abre a mesma tela que o administrador da empresa abre
+   em Minha equipe (LPU ou baixa do contrato fixo, com os passos). Dá para navegar e preencher para orientar, mas nada é
+   salvo nem enviado: o envio (assinatura) fica bloqueado e o rascunho é descartado ao sair. */
+const EQS_BLOQ=new Set(['sgOk','lpuJaEnviada','eqLpuDia','eqDiaAdiar']);
+const eqsOn=()=>ui.tab==='eqVer'&&!!ui.eqSim;
+{const _v=viewEqVer;viewEqVer=function(){try{if(eqsOn()){const a=getAg(ui.eqSim);
+    if(a&&a.status==='lpu'){const sv=S.equipe;S.equipe=TEC.filter(t=>t.empresa===ui.eqAdm).map(t=>({id:t.id,nome:t.nome}));ui.lpuTela=a.id;let h;try{h=viewEquipe()}finally{S.equipe=sv}
+      const adm=(TEC.find(t=>t.id===ui.eqAdm)||{}).nome||'empresa',cf=typeof cfiK==='function'&&cfiK(a.tec);
+      return `<div class="result eqsban" role="status"><div><b>Pré-visualização: é isto que o administrador ${esc(adm)} vê ao tocar em "${cf?'Fazer a baixa do contrato fixo':'Preencher a LPU'}".</b><br>Você pode passar pelos passos para orientar; nada é salvo nem enviado.</div><button class="btn" data-act="eqSimSai">Sair da pré-visualização</button></div>`+h}}
+    if(ui.eqSim){ui.eqSim=null;ui.lpuTela=null}}catch(e){console.warn('eqSim',e);ui.eqSim=null}
+  let h=_v.apply(this,arguments);
+  try{const ids=new Set(TEC.filter(t=>t.empresa===ui.eqAdm).map(t=>t.id));S.ags.filter(a=>a.status==='lpu'&&ids.has(a.tec)&&!S.lpus.some(l=>l.ag===a.id&&l.status!=='reprovada')).forEach(a=>{const k=`data-k="a:${a.id}"`,j=h.indexOf(k);if(j<0)return;const f=h.indexOf('</article>',j);if(f<0)return;
+    const cf=typeof cfiK==='function'&&cfiK(a.tec);h=h.slice(0,f)+`<button class="btn eqsbtn" data-act="eqSim" data-id="${a.id}">Ver como o administrador vê ${cf?'a baixa':'a LPU'}</button>`+h.slice(f)})}catch(e){}
+  return h}}
+Object.assign(ACT,{eqSim:el=>{const id=el.dataset.id;delete ui.draft[id];ui.eqSim=id;ui.lpuTela=id;ui.lpuP=1;ui.lpuQ='';ui.lpuCls='';ui.lpuContaAb=false;render();window.scrollTo(0,0)},
+  eqSimSai:()=>{const id=ui.eqSim;ui.eqSim=null;ui.lpuTela=null;if(id)delete ui.draft[id];try{closeModal()}catch(e){}render();window.scrollTo(0,0)}});
+{const _f=ACT.lpuFechar;ACT.lpuFechar=function(){if(eqsOn())return ACT.eqSimSai();return _f.apply(this,arguments)}}
+/* trocar de tela sai da pré-visualização */
+{const _r=render;render=function(){if(ui.eqSim&&ui.tab!=='eqVer'){if(ui.lpuTela===ui.eqSim)ui.lpuTela=null;delete ui.draft[ui.eqSim];ui.eqSim=null}return _r.apply(this,arguments)}}
+document.addEventListener('click',e=>{if(!eqsOn())return;const el=e.target.closest('[data-act]');if(el&&EQS_BLOQ.has(el.dataset.act)){toast('Pré-visualização: só o administrador da empresa envia.','bad');e.preventDefault();e.stopImmediatePropagation()}},true);
+document.head.insertAdjacentHTML('beforeend',`<style>.eqsban{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 12px;background:var(--warn-soft);color:var(--ink);border:1px solid var(--warn)}.eqsban>div{min-width:0;flex:1 1 260px}.eqsbtn{margin-top:8px}</style>`);
+
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
 </script>
