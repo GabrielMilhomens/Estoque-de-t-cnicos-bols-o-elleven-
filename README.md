@@ -1152,6 +1152,14 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - **Continua precisando de internet:** primeiro acesso no aparelho, telas nunca abertas com internet, abrir PDF ou KMZ ainda não baixado, rota e endereço no carimbo da foto, cadastro de usuários e funções do banco que não estão na lista de leitura.
   - **Publicação:** sem SQL novo. Publicar `agenda.html` **e o `sw.js` novo** no GitHub.
 
+- **Financeiro · Visão do técnico mostra o pedido de NF (27/11, `mod/finnfvis.js`).** O aviso "Fechamento de <mês> realizado" vai só para o app do administrador da empresa (aviso individual e notificação), por isso a gestão não via nada na Gestão financeira dele em Visão do técnico. Agora essa tela monta o mesmo quadro a partir da fatura em "NF solicitada": para quem o aviso foi, quando e por quem, o texto (valor e prazo da NF), "Ver o que entrou nesta nota" e o Excel. Aparece nas abas Contrato fixo e Contrato LPU. Sem SQL novo.
+
+- **Financeiro · aviso de NF diz o contrato e o prazo de cada um (27/11, `mod/finnftipo.js`).** "Solicitar nota" monta o aviso com o contrato:
+  - título "Fechamento de <mês> realizado · Contrato fixo", "· Contrato LPU" ou "· Contrato LPU e Contrato fixo";
+  - texto com o período do contrato fixo (21 a 20) e o prazo de cada contrato: Contrato LPU até o último dia útil do mês; Contrato fixo até o 1º dia útil depois do dia 20. Com os dois, pede uma NF para cada contrato.
+
+  O aviso guarda o tipo na referência (`finnf:<prestador>:<mês>:lpu|ctr|lpu+ctr`). Assim, "Ver o que entrou nesta nota" e o Excel trazem só o contrato do aviso. Na Gestão financeira do prestador (e na Visão do técnico da gestão), o quadro aparece na aba do contrato, e tocar no aviso ou na notificação abre essa aba. Os avisos enviados antes desta versão continuam com o texto antigo e valem para as duas abas. Sem SQL novo.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1216,6 +1224,8 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Financeiro: aviso de NF com o contrato (LPU ou fixo) e o prazo de cada um (fixo: 1º dia útil depois do dia 20); quadro e detalhamento só do contrato do aviso, na aba certa | `agenda.html` (`mod/finnftipo.js`). Sem SQL novo. |
+| 27/11/2026 | Financeiro: Visão do técnico (gestão) mostra o aviso de NF que o administrador da empresa recebeu, com o detalhamento | `agenda.html` (`mod/finnfvis.js`). Sem SQL novo. |
 | 27/11/2026 | Modo sem internet em todas as áreas: cópia dos dados no aparelho, fila de gravações (horários, fotos, relatórios, LPU, baixas, chamados, mensagens) que sobe sozinha quando a internet volta, sem duplicar; login sem internet; faixa de aviso e lista de registros guardados; `sw.js` guarda a ferramenta para abrir sem internet | `agenda.html` (`mod/offline.js`) e `sw.js`. Sem SQL novo. Publicar os dois. |
 | 27/11/2026 | Implantação: Visão da empresa terceira com pré-visualização da LPU ou baixa do contrato fixo como o administrador vê (sem enviar) | `agenda.html` (`mod/eqsim.js`). Sem SQL novo. |
 | 27/11/2026 | Implantação: Minha equipe e Visão da empresa terceira mostram a baixa do contrato fixo (não "LPU pendente") sem precisar abrir o Financeiro antes; cartão do funcionário com "Contrato fixo"; cor do cartão escolhido no modo escuro | `agenda.html` (`mod/cfimpl.js`, `mod/eqtime.js`). Sem SQL novo. |

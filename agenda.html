@@ -24250,6 +24250,70 @@ Object.assign(ACT,{eqSim:el=>{const id=el.dataset.id;delete ui.draft[id];ui.eqSi
 document.addEventListener('click',e=>{if(!eqsOn())return;const el=e.target.closest('[data-act]');if(el&&EQS_BLOQ.has(el.dataset.act)){toast('Pré-visualização: só o administrador da empresa envia.','bad');e.preventDefault();e.stopImmediatePropagation()}},true);
 document.head.insertAdjacentHTML('beforeend',`<style>.eqsban{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 12px;background:var(--warn-soft);color:var(--ink);border:1px solid var(--warn)}.eqsban>div{min-width:0;flex:1 1 260px}.eqsbtn{margin-top:8px}</style>`);
 
+/* ===== 27/11: Visão do técnico (gestão) · Gestão financeira mostra o pedido de NF =====
+   O aviso "Fechamento de <mês> realizado" vai só para o app do administrador da empresa (avisos são individuais), por isso
+   a gestão não via nada ao olhar a Gestão financeira dele. Agora a Visão do técnico monta o mesmo quadro a partir da
+   fatura (etapa NF solicitada): texto do aviso, para quem foi, quando e por quem, e o detalhamento com o Excel. */
+function f5NfGest(tec){if(typeof F2==='undefined'||!F2.ok)return null;const cx=(S.cnpj||{})[tec]||{},dono=cx.empresa&&cx.empresa!==tec?cx.empresa:tec,cn=soDig(((S.cnpj||{})[dono]||{}).cnpj||cx.cnpj||'');
+  const ch=new Set(['tec:'+tec,'tec:'+dono].concat(cn?['cnpj:'+cn]:[])),lim=Date.now()-50*864e5;
+  const L=F2.fat.filter(f=>ch.has(f.chave)&&+f.etapa>=0).map(f=>{const h=(f.hist||[]).filter(x=>/^NF solicitada/.test(x.acao||'')).pop();return h&&h.em>lim?{f,h}:null}).filter(Boolean).sort((a,b)=>b.h.em-a.h.em);
+  if(!L.length)return null;const{f,h}=L[0],m=f.mes;let g=null;try{g=f2NfGrupos(m).find(x=>x.chave===f.chave)}catch(e){}if(!g)return null;
+  const tipos=['lpu','ctr'].filter(t=>g[t]&&g[t].s&&(g[t].s.hist||[]).some(x=>/^NF solicitada/.test(x.acao||''))),tot=Math.round(tipos.reduce((s,t)=>s+g[t].valor,0)*100)/100,pz=f2UltUtil(m);
+  const partes=tipos.map(t=>`${t==='lpu'?'LPU':'contrato fixo'} ${brl(g[t].valor)}`).join(' + ');
+  const para=Object.entries(S.cnpj||{}).filter(([id,x])=>(cn&&soDig(x.cnpj)===cn&&(!x.empresa||x.empresa===id))||id===String(f.chave).replace(/^tec:/,'')).map(([id])=>tecN(id)).filter(Boolean);
+  return{id:'gest:'+f.chave+':'+m,ref:'finnf:'+f.chave+':'+m,em:h.em,por:h.por,acao:h.acao,para,titulo:`Fechamento de ${f2MesN(m)} realizado`,texto:`Valor para a nota: ${brl(tot)}${tipos.length>1?' ('+partes+')':''}. Emita a NF até ${dBR(pz)} (último dia útil) e envie ao seu gestor da NetTurbo. O detalhamento está na sua Gestão financeira.`}}
+let F5_AV=null;
+{const _m=viewMinhas;viewMinhas=function(){const h=_m.apply(this,arguments);try{if(gTecPerfil()||!(ui.tab==='campo'&&ui.campoSec==='fin')||!ui.tec)return h;
+    if(typeof F2!=='undefined'&&!F2.ok&&!F2.bus&&typeof f2Carregar==='function'){f2Carregar().then(()=>render()).catch(()=>{});return h}
+    const av=F5_AV=f5NfGest(ui.tec);if(!av)return h;
+    const b=`<div class="f4nfb" role="status"><small class="muted" style="display:block;margin-bottom:4px">É isto que ${esc(av.para.join(', ')||'o administrador da empresa')} vê no app (aviso e notificação enviados em ${dtBR(av.em)} por ${esc(av.por||'')}). O aviso vai só para o administrador da empresa, não para os funcionários.</small><b>${esc(av.titulo)}</b><p>${esc(av.texto)}</p>${f4NfPrestDet(av)}</div>`;
+    const j=h.indexOf('</h2>'),i=j<0?-1:h.indexOf('</div>',j);return i<0?b+h:h.slice(0,i+6)+b+h.slice(i+6)}catch(e){console.warn('f5nf',e);return h}}}
+{const _x=ACT.f4NfPrestXlsx;ACT.f4NfPrestXlsx=function(el){if(F5_AV&&el&&el.dataset&&el.dataset.id===F5_AV.id){const G0=G.avisos||[];G.avisos=G0.concat([F5_AV]);try{return _x.apply(this,arguments)}finally{G.avisos=G0}}return _x.apply(this,arguments)}}
+
+/* ===== 27/11: Solicitar nota · o aviso diz de qual contrato é o fechamento e o prazo de cada um =====
+   - Título e texto dizem se é Contrato LPU, Contrato fixo ou os dois.
+   - Prazo: Contrato LPU, último dia útil do mês; Contrato fixo, 1º dia útil depois do dia 20 (fim do período 21 a 20).
+   - O aviso guarda o tipo (ref finnf:<prestador>:<mês>:<lpu|ctr|lpu+ctr>): "Ver o que entrou nesta nota" e o Excel trazem
+     só o contrato do aviso, e na Gestão financeira do prestador o quadro aparece na aba do contrato (Contrato fixo ou LPU).
+     Aviso antigo, sem o tipo, vale para os dois. */
+function f4CfPrazo(m){const [y,mo]=m.split('-').map(Number),d=new Date(y,mo-1,21);while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);return isoD(d)}
+function f4NfTexto(m,gs,tipos){const nm=t=>t==='lpu'?'Contrato LPU':'Contrato fixo',per=t=>t==='ctr'&&typeof cfPerTxt==='function'?` (período ${cfPerTxt(m)})`:'',
+    pz=t=>t==='lpu'?`${dBR(f2UltUtil(m))} (último dia útil do mês)`:`${dBR(f4CfPrazo(m))} (1º dia útil depois do dia 20)`,tot=f4R2(tipos.reduce((s,t)=>s+gs[t].valor,0));
+  const titulo=`Fechamento de ${f2MesN(m)} realizado · ${tipos.length>1?'Contrato LPU e Contrato fixo':nm(tipos[0])}`;
+  const texto=tipos.length>1?`${tipos.map(t=>`${nm(t)}${per(t)}: valor para a nota ${brl(gs[t].valor)}, emita a NF até ${pz(t)}`).join('. ')}. Emita uma NF para cada contrato e envie ao seu gestor da NetTurbo. O detalhamento está na sua Gestão financeira.`
+    :`${nm(tipos[0])}${per(tipos[0])}. Valor para a nota: ${brl(tot)}. Emita a NF até ${pz(tipos[0])} e envie ao seu gestor da NetTurbo. O detalhamento está na sua Gestão financeira, aba ${nm(tipos[0])}.`;
+  return{titulo,texto,tot}}
+{const _d=f4SolDados;f4SolDados=function(ch,tp){const D=_d.apply(this,arguments);if(!D||!D.tipos.length)return D;const x=f4NfTexto(D.m,D.gs,D.tipos);return Object.assign(D,{titulo:x.titulo,texto:x.texto,pz:D.tipos.includes('lpu')?D.pz:f4CfPrazo(D.m)})}}
+const f4RefTipos=ref=>{const x=/^finnf:(.*):(\d{4}-\d{2})(?::((?:lpu|ctr)(?:\+(?:lpu|ctr))?))?$/.exec(ref||'');return x?{ch:x[1],m:x[2],tipos:x[3]?x[3].split('+'):['lpu','ctr']}:null};
+f4NfPrestGs=function(av){const r=f4RefTipos(av&&av.ref);if(!r)return null;let g=null;try{g=f2NfGrupos(r.m).find(y=>y.chave===r.ch)}catch(e){}return g?{g,m:r.m,tipos:r.tipos}:null};
+f4NfPrestDet=function(av){const D=f4NfPrestGs(av);if(!D)return '';const T=['lpu','ctr'].filter(t=>D.g[t]&&D.tipos.includes(t)),A={};if(!T.length)return '';T.forEach(t=>A[t]=f4Ativs(D.g[t]));const n=T.reduce((s,t)=>s+A[t].length,0),tot=T.reduce((s,t)=>s+D.g[t].valor,0);
+  return `<details class="f4nfd"><summary>Ver o que entrou nesta nota · ${n} atividade(s) · ${brl(tot)}</summary><p class="muted" style="margin:6px 0">Toque na atividade para ver os itens.</p>
+   ${T.map(t=>`<h4>${t==='lpu'?'Contrato LPU':'Contrato fixo'} · ${brl(D.g[t].valor)}</h4><div class="f4ats">${A[t].map(f4AtivHtml).join('')}</div>`).join('')}
+   <div class="tools" style="margin-top:8px"><button class="btn sm" data-act="f4NfPrestXlsx" data-id="${esc(av.id)}">Baixar detalhamento (Excel)</button></div></details>`};
+ACT.f4NfPrestXlsx=el=>{const av=(G.avisos||[]).concat(typeof F5_AV!=='undefined'&&F5_AV?[F5_AV]:[]).find(a=>a.id===el.dataset.id),D=f4NfPrestGs(av);if(!D)return;const gs=['lpu','ctr'].filter(t=>D.g[t]&&D.tipos.includes(t)).map(t=>Object.assign({},D.g[t],{nome:D.g.nome}));
+  f2Xlsx(f4DetAoa(gs,D.m).map(r=>r.filter((c,i)=>i!==2)),'fechamento_'+D.tipos.join('_')+'_'+D.m+'.xlsx','Fechamento')};
+/* o aviso sai com o tipo na referência */
+ACT.f4SolOk=async el=>{const D=f4SolDados(el.dataset.c,el.dataset.t);if(!D)return;el.disabled=true;const r=await sb.rpc('ag_fin_aviso_nf',{p_cnpj:D.cn||null,p_para:D.dono,p_titulo:D.titulo,p_texto:D.texto,p_ref:'finnf:'+el.dataset.c+':'+D.m+':'+D.tipos.join('+')});
+  if(r.error){el.disabled=false;return toast('Não foi possível avisar o prestador: '+r.error.message+(/function|does not exist|schema cache/i.test(r.error.message)?' (falta rodar o ajuste 100)':''),'bad')}
+  for(const t of D.tipos){const g=D.gs[t];if(g.etapa<0)await f2FatGrava(g,{etapa:0},r.data?`NF solicitada (aviso no app para ${r.data} pessoa${r.data>1?'s':''})`:'NF solicitada (sem usuário no app)')}closeModal();render();
+  toast(r.data?`Nota solicitada (${D.tipos.map(t=>t==='lpu'?'Contrato LPU':'Contrato fixo').join(' e ')}): ${D.gs.nome} recebeu o aviso no app.`:'Marcado como NF solicitada. Ninguém da empresa tem o app: mande pelo WhatsApp.',r.data?'':'warn')};
+/* Gestão financeira do prestador: o quadro do aviso aparece na aba do contrato dele */
+const f4NfAba=h=>/data-act="cfMSub"/.test(h)?(ui.mSub==='lpu'?'lpu':'ctr'):null;
+{const _m=viewMinhas;viewMinhas=function(){let h=_m.apply(this,arguments);try{if(!/class="f4nfb"/.test(h))return h;const aba=f4NfAba(h);
+    if(gTecPerfil()){const lim=Date.now()-50*864e5,A=(G.avisos||[]).filter(a=>/^finnf:/.test(a.ref||'')&&new Date(a.em).getTime()>lim).sort((a,b)=>String(b.em).localeCompare(String(a.em)));
+      const av=A.find(a=>{const r=f4RefTipos(a.ref);return !aba||(r&&r.tipos.includes(aba))});
+      const i=h.indexOf('<div class="f4nfb"'),j=i<0?-1:f4FimDiv(h,i);if(i<0||j<0)return h;
+      const b=av?`<div class="f4nfb" role="status"><b>${esc(av.titulo)}</b><p>${esc(av.texto)}</p><small class="muted">Aviso do Financeiro · ${dtBR(new Date(av.em).getTime())}</small>${f4NfPrestDet(av)}</div>`:'';return h.slice(0,i)+b+h.slice(j)}
+    if(aba&&typeof F5_AV!=='undefined'&&F5_AV){const r=f4RefTipos(F5_AV.ref);if(r&&!r.tipos.includes(aba)){const i=h.indexOf('<div class="f4nfb"'),j=i<0?-1:f4FimDiv(h,i);if(i>=0&&j>=0)return h.slice(0,i)+h.slice(j)}}}catch(e){console.warn('f4nfAba',e)}return h}}
+function f4FimDiv(h,i){let d=0;const re=/<div\b|<\/div>/g;re.lastIndex=i;let m;while((m=re.exec(h))){if(m[0]==='</div>'){d--;if(!d)return m.index+6}else d++}return -1}
+/* Visão do técnico (gestão): mesmo texto e tipo do aviso */
+{const _g=f5NfGest;f5NfGest=function(tec){const av=_g.apply(this,arguments);if(!av)return av;try{const r=f4RefTipos(av.ref),g=f2NfGrupos(r.m).find(x=>x.chave===r.ch),tipos=['lpu','ctr'].filter(t=>g&&g[t]&&g[t].s&&(g[t].s.hist||[]).some(x=>/^NF solicitada/.test(x.acao||'')));
+    if(g&&tipos.length){const x=f4NfTexto(r.m,g,tipos);Object.assign(av,{ref:'finnf:'+r.ch+':'+r.m+':'+tipos.join('+'),titulo:x.titulo,texto:x.texto})}}catch(e){}return av}}
+/* tocar no aviso (ou na notificação) abre a Gestão financeira na aba do contrato do aviso */
+function f4NfAbaDoAviso(){const lim=Date.now()-50*864e5,A=(G.avisos||[]).filter(a=>/^finnf:/.test(a.ref||'')&&new Date(a.em).getTime()>lim).sort((a,b)=>String(b.em).localeCompare(String(a.em))),r=A[0]&&f4RefTipos(A[0].ref);if(r)ui.mSub=r.tipos.includes('ctr')?'cf':'lpu'}
+{const _g=gIr;gIr=function(url){try{const q=new URL(url||'',location.href).searchParams;if(q.get('fin')==='nf'&&gTecPerfil())f4NfAbaDoAviso()}catch(e){}return _g.apply(this,arguments)}}
+{if(window.__f4Nf)ui.f4NfAuto=1;const _m=viewMinhas;viewMinhas=function(){try{if(ui.f4NfAuto&&(G.avisos||[]).length){ui.f4NfAuto=0;f4NfAbaDoAviso()}}catch(e){}return _m.apply(this,arguments)}}
+
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
    - Leitura com internet: vai ao banco e guarda uma cópia no aparelho (IndexedDB "impl_offline": linhas por tabela e a
