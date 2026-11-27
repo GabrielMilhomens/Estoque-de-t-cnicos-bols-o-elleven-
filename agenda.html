@@ -22701,7 +22701,7 @@ async function fbGrava(r){let path=null;if(r.file){const p=`lpu/${hoje().slice(0
     if(u.error){toast('Não foi possível guardar o PDF: '+u.error.message,'bad');return false}path=p}
   const ft=fbFt(r.tec),cx=ft?{cnpj:ft.cnpj}:(S.cnpj||{})[r.tec]||{},row={area:r.area,conta:fbContaFull(r.area),tecnico:ft?null:(r.tec||null),empresa:r.empresa||(ft?ft.nome:gTecN(r.tec)),cnpj:soDig(r.cnpj||cx.cnpj||'')||null,cliente:r.cliente||null,etiqueta:r.etiqueta||null,protocolo:r.protocolo||null,cidade:r.cidade||null,
     data_rel:r.data||null,total:Math.round((+r.total||0)*100)/100,itens:r.itens||[],pdf_path:path,arquivo:r.arquivo||null,obs:r.obs||null,criado_nome:ME.nome};if(ft)row.terceiro=ft.id;
-  const ins=await sb.from('ag_fin_baixas').insert(row).select();if(ins.error){toast('Não foi possível lançar: '+ins.error.message+(/relation|does not exist|schema cache/i.test(ins.error.message)?' (falta rodar o ajuste 95)':/area_check/i.test(ins.error.message)?' (falta rodar o ajuste 97)':''),'bad');return false}
+  const ins=await sb.from('ag_fin_baixas').insert(row).select();if(ins.error){toast('Não foi possível lançar: '+ins.error.message+(/relation|does not exist|schema cache/i.test(ins.error.message)?' (falta rodar o ajuste 95)':/area_check/i.test(ins.error.message)?' (falta rodar o ajuste 102)':''),'bad');return false}
   const nv=Object.assign({id:uid(),criado_em:new Date().toISOString()},row,(ins.data||[])[0]||{});if(!nv.criado_em)nv.criado_em=new Date().toISOString();FB.rows.push(nv);return true}
 Object.assign(ACT,{
   fbLanca:async el=>{const i=+el.dataset.i,r=(ui.fbLidos||[])[i];if(!r||!r.area||!r.tec)return;el.disabled=true;if(await fbGrava(r)){ui.fbLidos.splice(i,1);toast(`LPU lançada aprovada em ${FB_AN[r.area]}: ${brl(r.total)}.`);render()}else el.disabled=false},
@@ -24500,6 +24500,27 @@ Object.assign(IN,{f4PQ:el=>{ui.f4PQ=el.value;clearTimeout(ui.f4PTq);ui.f4PTq=set
 /* planilha de Contas a pagar segue os filtros */
 {const _p=f4PagXlsx;f4PagXlsx=function(){const _f=f2Faturas;f2Faturas=mm=>f4pfAplica(_f(mm));try{return _p.apply(this,arguments)}finally{f2Faturas=_f}};ACT.f2PagXlsx=()=>f4PagXlsx()}
 document.head.insertAdjacentHTML('beforeend',`<style>.f4pf{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}.f4pf input{flex:1 1 240px;min-width:0}.f4pf select{flex:0 1 auto;width:auto}.f4pf small{margin-left:4px}</style>`);
+/* ---------- 27/11: Solicitar NF: busca e filtro por etapa na lista de terceiros ---------- */
+let F4NF_FIL=false;
+{const _g=f2NfGrupos;f2NfGrupos=function(m){const G=_g.apply(this,arguments);if(!F4NF_FIL)return G;const q=normK(String(ui.fnQ||'').trim()),et=ui.fnEt==null?'':String(ui.fnEt);if(!q&&et==='')return G;
+  return G.filter(g=>{if(q){const s=normK([g.nome,g.fin&&g.fin.codigo_sap,g.fin&&g.fin.email,g.fin&&(g.fin.apelidos||[]).join(' ')].filter(Boolean).join(' '));if(!s.includes(q))return false}
+    if(et!==''){const e=Math.min(g.lpu?g.lpu.etapa:9,g.ctr?g.ctr.etapa:9),ee=e===9?-1:e;if(+et<0?ee>=0:ee!==+et)return false}return true})}}
+{const _v=RP_VIEWS.finNf;RP_VIEWS.finNf=function(){F4NF_FIL=true;let h;try{h=_v.apply(this,arguments)}finally{F4NF_FIL=false}
+  const op=F4PF_ET.map(([k,t])=>`<option value="${k}" ${String(ui.fnEt==null?'':ui.fnEt)===k?'selected':''}>${t}</option>`).join(''),at=String(ui.fnQ||'').trim()||(ui.fnEt!=null&&ui.fnEt!=='');
+  const bar=`<div class="f4nff"><input class="inp" type="search" data-in="fnQ" value="${esc(ui.fnQ||'')}" placeholder="Buscar terceiro" aria-label="Buscar terceiro"><select class="inp" data-ch="f4PF" data-k="fnEt" aria-label="Etapa">${op}</select>${at?'<button class="btn sm" data-act="fnLimpa">Limpar</button>':''}</div>`;
+  h=h.replace('As LPUs entram no mês em que foram aprovadas na ferramenta.','As LPUs entram no mês do fechamento: aprovadas até o pedido da NF; depois disso, no mês seguinte.');
+  return h.replace('<div class="f2nf"><div class="f2tl">','<div class="f2nf"><div class="f2tl">'+bar)}}
+Object.assign(ACT,{fnLimpa:()=>{ui.fnQ='';ui.fnEt='';render()}});
+Object.assign(IN,{fnQ:el=>{ui.fnQ=el.value;clearTimeout(ui.fnTq);ui.fnTq=setTimeout(()=>{const pos=el.selectionStart,y=window.scrollY;render();window.scrollTo(0,y);const n=document.querySelector('[data-in="fnQ"]');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},300)}});
+document.head.insertAdjacentHTML('beforeend',`<style>.f4nff{display:flex;flex-direction:column;gap:6px;position:sticky;top:0;z-index:2;background:var(--bg,var(--surface));padding:0 0 6px}.f4nff .btn{align-self:flex-start}</style>`);
+/* ---------- 27/11: Lançar LPU em PDF: todas as contas da Conta contábil ----------
+   Contas sem área de campo (ex.: 0009 Consultoria de Regularização, 0003, 0015) entram como área "ct<código>"
+   (ajuste 102 libera esse valor em ag_fin_baixas.area). Elas contam só na Conta contábil, Contas a pagar e NF. */
+(FC||[]).forEach(([cod,n])=>{if(FB_AREAS.some(x=>x[2].endsWith('.'+cod)))return;const k='ct'+cod,lc=typeof LPU_CONTAS!=='undefined'&&LPU_CONTAS.find(c=>c.startsWith('3.1.1.2.05.'+cod)),nm=/^Servi/i.test(n)?n:'Serviços de '+n,full=lc||('3.1.1.2.05.'+cod+' - '+nm);FB_AREAS.push([k,n,full]);FB_AN[k]=nm});
+{const _v=fbVirt;fbVirt=function(r){const o=_v.apply(this,arguments);if(r&&/^ct\d{4}$/.test(r.area||''))o._fbArea='ct';return o}}
+{const _a=finAreaL;finAreaL=function(l){if(l&&l._fbArea==='ct')return 'ct';return _a.apply(this,arguments)}}
+const fbCtDe=c=>FB_AREAS.some(x=>x[0]==='ct'+c)?'ct'+c:'';
+{const _a=CH.fbArq;if(typeof _a==='function')CH.fbArq=async function(){const r=await _a.apply(this,arguments);let n=0;(ui.fbLidos||[]).forEach(x=>{if(!x.area&&x.conta){const a=fbCtDe(x.conta);if(a){x.area=a;n++}}});if(n)render();return r}}
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).

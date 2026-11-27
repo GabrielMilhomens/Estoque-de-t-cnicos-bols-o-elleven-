@@ -291,6 +291,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 100. `agenda_ajuste_99_fin_baixas_prestador.sql` — função `ag_fin_baixa_minha(tecnico, cnpj)` e leitura de `ag_fin_baixas` (e do PDF no bucket `financeiro`, pasta `lpu/`) para o prestador: lançadas para ele, para técnico da empresa dele ou com o CNPJ da empresa. Só leitura.
 101. `agenda_ajuste_100_financeiro_pamela.sql` — melhorias do Financeiro (26/11): tabela `ag_fin_obs` (observações por mês, conta ou prestador), `ag_fin_lotes` (importações, para desfazer) e coluna `lote` em `ag_fin_baixas`, `ag_fin_contratos` e `ag_fin_ctr_mes` (mais `itens` e `obs` no mês do contrato); `ativo` e `tecnicos` em `ag_fin_terceiros`; função `ag_fin_aviso_nf` (aviso "Solicitar nota" no app do dono da empresa pelo CNPJ, só quem edita o Financeiro); leitura de `ag_chamados` para quem vê o Financeiro (policy `agch_select_fin`). Rodar antes de publicar o `agenda.html`. Não subir no GitHub.
 102. `agenda_ajuste_101_contratos_pelo_financeiro.sql` — contratos cadastrados pelo Financeiro (27/11): policies `agcf_insert_fin` e `agcf_update_fin` em `ag_contrato_fixo` para quem tem "editar financeiro" (`ag_fin_edita()`), só nas linhas `tipo = 'contrato'`. Fechamentos, metas e aprovação continuam com a coordenação e a supervisão. Rodar antes de publicar o `agenda.html`. Não subir no GitHub.
+103. `agenda_ajuste_102_lpu_pdf_todas_contas.sql` — Lançar LPU em PDF em qualquer conta contábil (27/11): `ag_fin_baixas.area` passa a aceitar "ct" + código da conta (ex.: `ct0009`) para as contas sem área de campo. Rodar antes de publicar o `agenda.html`. Não subir no GitHub.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -1182,6 +1183,10 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Contas a pagar: filtros da lista de faturas (27/11, `mod/finpagfil.js`):** acima da tabela, busca por terceiro (nome, código SAP, apelido ou ticket), CAPEX/OPEX, etapa (NF a solicitar, NF solicitada, NF recebida, lançada no SAP, aprovada, paga) e ordenação (terceiro, maior valor, vencimento), com "Limpar filtros" e a contagem filtrada. Os quadros de totais e a planilha "Baixar planilha" seguem os filtros.
 
+- **Solicitar NF: busca e filtro por etapa na lista de terceiros (27/11, `mod/finpagfil.js`):** acima da lista, busca por nome, código SAP, e-mail ou apelido e filtro por etapa (NF a solicitar … paga), com "Limpar". O texto da tela passou a explicar a regra nova do mês (aprovadas até o pedido da NF).
+
+- **Lançar LPU em PDF: todas as contas da Conta contábil (27/11, `mod/finpagfil.js`, `mod/finpdf.js`, `agenda_ajuste_102_lpu_pdf_todas_contas.sql`):** a lista "Conta contábil" do card do PDF (e do "Lançar à mão") passou a trazer também as contas sem área de campo (0003 Serviços Operacional Técnico, 0009 Consultoria de Regularização, 0015 Melhoria Pop e as que entrarem na Conta contábil). Elas gravam a área `ct<código>` e contam só na Conta contábil, em Contas a pagar e na NF (não entram no budget das áreas). PDF com conta 0009 já vem com a conta escolhida.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1246,6 +1251,8 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Lançar LPU em PDF: todas as contas da Conta contábil (inclusive 0003, 0009, 0015) | **`agenda_ajuste_102_lpu_pdf_todas_contas.sql` no Supabase**, depois `agenda.html` (`mod/finpagfil.js`, `mod/finpdf.js`). |
+| 27/11/2026 | Solicitar NF: busca e filtro por etapa na lista de terceiros | `agenda.html` (`mod/finpagfil.js`). Sem SQL novo. |
 | 27/11/2026 | Contas a pagar: filtros na lista de faturas (terceiro, CAPEX/OPEX, etapa, ordenação) | `agenda.html` (`mod/finpagfil.js`). Sem SQL novo. |
 | 27/11/2026 | Financeiro: LPU aprovada depois do pedido da NF vai para o mês seguinte; contrato avulso preenchido mês a mês; "Budget de todas as áreas" saiu do menu | `agenda.html` (`mod/finbudmes.js`, `mod/finmod.js`, `mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Contrato fixo da RE Corretiva: ciclo de fechamento próprio (ex.: dia 1 ao fim do mês), início e fim do contrato, com valor proporcional no período parcial | `agenda.html` (`mod/cfciclo.js`, `mod/ctrfin.js`). Sem SQL novo. |
