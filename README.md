@@ -1171,6 +1171,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Budget das áreas igual ao Financeiro desde a primeira tela (27/11, `mod/ctrfin.js`):** os contratos fixos (`ag_contrato_fixo`) e as LPUs lançadas em PDF (`ag_fin_baixas`) carregavam só quando alguma tela pedia, e o budget da Implantação/GTD aparecia por alguns segundos sem eles (ex.: R$ 75.194,37 em vez de R$ 102.576,57, faltando o fechamento do contrato fixo). Agora os dois carregam logo depois do login e o quadro do budget mostra "Carregando…" até chegarem, em vez de um valor incompleto.
 
+- **Contas a pagar › Contrato fixo: lista de todos os contratos e início do contrato da RE (27/11, `mod/ctrfin.js`):** abaixo dos contratos do mês entrou "Contratos cadastrados", com todos os contratos (RE Corretiva, Implantação e os do Financeiro), de qualquer mês, e o botão Editar. Contrato novo só entra nas faturas a partir do período em que começa a valer (cadastrado em 27/11 → período 21/11 a 20/12 → competência dezembro); por isso não aparecia em "Contratos do mês" de novembro. O cadastro da RE Corretiva aberto pelo Financeiro ganhou "Vale a partir do período" (como o da Implantação), para fazer o contrato valer num período anterior.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1235,6 +1237,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Contas a pagar › Contrato fixo: lista de todos os contratos cadastrados com Editar; contrato da RE com "Vale a partir do período" | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Budget das áreas espera os contratos fixos e as LPUs lançadas no Financeiro (não mostra mais valor incompleto por alguns segundos) | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Planilhas das áreas (ex.: mão de obra por etiqueta) passam a incluir as LPUs lançadas em PDF no Financeiro | `agenda.html` (`mod/finpdf.js`, `mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Novo contrato da RE Corretiva pelo Financeiro lista todas as equipes terceiras e marca a escolhida como Sem LPU ao salvar | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |

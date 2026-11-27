@@ -24341,10 +24341,15 @@ function ctrfAviso(a){return `<div class="ctrfav"><svg viewBox="0 0 24 24" width
 {const _t=cfTecsSemLpu;cfTecsSemLpu=function(){const L=_t.apply(this,arguments);if(!ui.ctrFin)return L;const m=new Map();L.forEach(t=>m.set(t.id,t));
   (G.tecs||[]).filter(t=>t.vinculo==='terceiro').concat(TEC.filter(t=>t.tipo==='TERC'&&!t.virt)).forEach(t=>{if(!m.has(t.id))m.set(t.id,{id:t.id,nome:t.nome+' · ainda com LPU'})});
   return [...m.values()].sort((a,b)=>String(a.nome).localeCompare(String(b.nome)))}}
-{const _m=cfModalK;cfModalK=function(){const r=_m.apply(this,arguments);if(ui.ctrFin&&ui.cfEd&&!ui.cfEd.id){const sel=document.querySelector('#modal [data-cfk="tec"]');const lb=sel&&sel.closest('label');
+{const _m=cfModalK;cfModalK=function(){const r=_m.apply(this,arguments);if(ui.ctrFin&&ui.cfEd){const E=ui.cfEd,g=document.querySelector('#modal .cfg3');
+  if(g){const h=cfRefHoje(),d=E.desde||(E.id&&cfDesde(CF.rows.find(x=>x.id===E.id)||{}))||h,O=[];for(let i=-6;i<=3;i++)O.push(cfRefMais(h,i));if(!O.includes(d))O.unshift(d);E.desde=d;
+   g.insertAdjacentHTML('afterend',`<label class="f"><span>Vale a partir do período (consome o budget e entra nas faturas)</span><select class="inp" id="ctrfDesde">${O.map(r=>`<option value="${r}" ${r===d?'selected':''}>${cfPerTxt(r)}</option>`).join('')}</select></label>`);
+   $('ctrfDesde').addEventListener('change',e=>{E.desde=e.target.value})}}
+ if(ui.ctrFin&&ui.cfEd&&!ui.cfEd.id){const sel=document.querySelector('#modal [data-cfk="tec"]');const lb=sel&&sel.closest('label');
   if(lb){if(ui.ctrfSl==null)ui.ctrfSl=true;lb.insertAdjacentHTML('afterend',`<label class="chk ctrfsl"><input type="checkbox" id="ctrfSl" ${ui.ctrfSl?'checked':''}><span>Marcar a equipe como <b>Sem LPU</b>: os chamados dela passam a ser pagos pelo contrato e não geram LPU.</span></label>`);
    const sm=lb.querySelector('small');if(sm)sm.remove();$('ctrfSl').addEventListener('change',e=>{ui.ctrfSl=e.target.checked})}}return r}}
-{const _s=ACT.cfKSalvar;ACT.cfKSalvar=async function(){const fin=!!ui.ctrFin,E=ui.cfEd,tec=E&&E.tec,novo=E&&!E.id,sl=ui.ctrfSl!==false;const r=await _s.apply(this,arguments);
+{const _s=ACT.cfKSalvar;ACT.cfKSalvar=async function(){const fin=!!ui.ctrFin,E=ui.cfEd,tec=E&&E.tec,novo=E&&!E.id,sl=ui.ctrfSl!==false,ds=E&&E.desde;const r=await _s.apply(this,arguments);
+  if(fin&&!ui.cfEd&&ds){const k=CF.rows.find(x=>x.tipo==='contrato'&&x.area==='re'&&x.tec===tec);if(k&&cfDesde(k)!==ds){const p=ui.perfil;if(!cfEdita())ui.perfil='coord';let pr;try{k.desde=ds;cfH(k,'Início alterado',cfPerTxt(ds));pr=cfSalvar(k)}finally{ui.perfil=p}await pr}}
   if(fin&&!ui.cfEd){ui.ctrFin=false;ui.ctrfSl=null;if(novo&&tec&&sl&&!semLpuEq(tec)){const u=await sb.from('agenda_papeis').update({sem_lpu:true}).eq('user_id',tec).select('user_id');
       if(u.error||!(u.data||[]).length)toast('Contrato salvo. Peça à coordenação para marcar '+gTecN(tec)+' como Sem LPU em Usuários e acessos.','warn');
       else{S.cnpj=S.cnpj||{};S.cnpj[tec]=Object.assign({},S.cnpj[tec]||{},{sem_lpu:true});toast('Contrato salvo e '+gTecN(tec)+' marcado como Sem LPU.')}}
@@ -24372,6 +24377,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .ctrfav{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;margin:0 0 12px;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:10px;background:var(--brand-soft,var(--surface));color:var(--ink)}
 .ctrfav svg{flex:none;color:var(--brand)}.ctrfav>div{flex:1;min-width:200px;line-height:1.45}.ctrfav small{color:var(--muted)}
 .ctrfsl{display:flex!important;gap:8px;align-items:flex-start;margin:2px 0 12px;font-size:14px;line-height:1.4}.ctrfsl input{margin-top:3px;flex:none}.ctrfsl span{flex:1;min-width:0}
+.ctrfl td:first-child,.ctrfl td:last-child,.ctrfl td .btn{white-space:nowrap}
 .ctrfop{display:grid;gap:10px;margin:12px 0}.ctrfb{display:flex;flex-direction:column;gap:4px;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
 .ctrfb:hover,.ctrfb:focus-visible{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-soft,transparent)}.ctrfb b{font-size:15px}.ctrfb small{color:var(--muted);line-height:1.4}
 </style>`);
@@ -24387,6 +24393,23 @@ const finExtraPronto=()=>{finExtraKick();const cf=typeof CF==='undefined'||CF.ok
 const FIN_CARREG='<section class="panel"><p class="muted" role="status" style="margin:0">Carregando os contratos fixos e as LPUs lançadas no Financeiro para mostrar o budget completo…</p></section>';
 ['pBudget','gFinBudget'].forEach(n=>{try{const f=eval(n);if(typeof f!=='function')return;eval(n+'=function(){if(!finExtraPronto())return FIN_CARREG;return f.apply(this,arguments)}')}catch(e){}});
 {const _r=render;render=function(){finExtraKick();return _r.apply(this,arguments)}}
+/* 27/11: Contas a pagar › Contrato fixo ganha a lista de TODOS os contratos cadastrados (RE Corretiva, Implantação e os do
+   Financeiro), com Editar. Contrato novo só entra nas faturas a partir do período em que começa a valer (ex.: cadastrado em
+   27/11 → período 21/11 a 20/12 → competência de dezembro). */
+function ctrfLista(){if(typeof CF==='undefined'||!CF.ok){finExtraKick();return '<p class="muted">Carregando os contratos…</p>'}const ed=ctrfPode(),mesN=r=>{try{return f4MesN(r)}catch(e){return r}};
+  const R=CF.rows.filter(x=>x.tipo==='contrato').map(k=>({ar:k.area==='impl'?'Implantação':'RE Corretiva',nome:gTecN(k.tec),emp:((S.cnpj||{})[k.tec]||{}).empresa?gTecN(S.cnpj[k.tec].empresa):'',
+      det:k.area==='impl'?`até ${cfiLim(k)} m`:`${+k.qtd||0} chamados · excedente ${brl(k.exc!=null?+k.exc:CF_EXC)}`,fixo:+k.fixo||0,vars:(k.vars||[]).length,desde:cfDesde(k),
+      at:k.ativo!==false,bt:ed?`<button class="btn sm" data-act="ctrfEd" data-id="${k.id}">Editar</button>`:''}))
+   .concat((F2.ctr||[]).map(c=>{const t=(F2.terc||[]).find(x=>x.id===c.terceiro);return{ar:'Financeiro',nome:c.nome||(t&&t.nome)||'—',emp:t&&t.nome!==c.nome?t.nome:'',det:({fixo:'Valor fixo',meta:'Meta de atividades',informado:'Valor informado no mês',avulso:'Avulso',improdutivo:'Improdutivos'})[c.tipo]||c.tipo||'',
+      fixo:+c.fixo||0,vars:(c.bonus||[]).length,desde:c.inicio||'',at:c.ativo!==false,bt:ed?`<button class="btn sm" data-act="f2CtrEd" data-id="${c.id}">Editar</button>`:''}}))
+   .sort((a,b)=>(b.at-a.at)||a.ar.localeCompare(b.ar)||String(a.nome).localeCompare(String(b.nome)));
+  const hj=typeof cfRefHoje==='function'?cfRefHoje():'';
+  return `<h3 class="f5h3">Contratos cadastrados <small class="muted">(${R.length})</small></h3><p class="muted" style="margin:-4px 0 8px;font-size:13px">Todos os contratos, de qualquer mês. Um contrato novo entra nas faturas a partir do período em que começa a valer.</p>
+   <section class="panel"><div class="tablewrap"><table class="ctrfl"><thead><tr><th>Área</th><th>Equipe / terceiro</th><th>Regra</th><th class="r">Fixo/mês</th><th>Vale a partir de</th><th>Situação</th><th></th></tr></thead><tbody>
+   ${R.map(r=>`<tr><td>${esc(r.ar)}</td><td><b>${esc(r.nome)}</b>${r.emp?`<br><small class="muted">${esc(r.emp)}</small>`:''}</td><td><small>${esc(r.det)}${r.vars?` · ${r.vars} variável(is)`:''}</small></td><td class="r"><b>${brl(r.fixo)}</b></td>
+     <td class="nw">${r.desde?esc(r.ar==='Financeiro'?mesN(r.desde):cfPerTxt(r.desde)):'—'}${r.ar!=='Financeiro'&&r.desde&&r.desde>=hj?`<br><small class="muted">competência ${esc(mesN(r.desde))}</small>`:''}</td>
+     <td>${r.at?'<span class="chip ok">Ativo</span>':'<span class="chip">Inativo</span>'}</td><td>${r.bt}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">Nenhum contrato cadastrado.</td></tr>'}</tbody></table></div></section>`}
+{const v=f4ViewPagar;f4ViewPagar=function(){const h=v.apply(this,arguments);if((ui.f4PagT||'lpu')!=='ctr'||!f2Ok())return h;let l='';try{l=ctrfLista()}catch(e){console.warn('ctrfLista',e)}return h+l}}
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
