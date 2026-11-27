@@ -1139,6 +1139,19 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Implantação · Visão da empresa terceira: ver a LPU ou a baixa como o administrador vê (27/11, `mod/eqsim.js`).** Em cada LPU ou baixa pendente da Visão da empresa terceira, o botão "Ver como o administrador vê a baixa/LPU" abre a mesma tela que o administrador da empresa abre em Minha equipe (baixa do contrato fixo ou LPU, com os passos), com o aviso de pré-visualização. Dá para passar pelos passos para orientar o administrador; nada é salvo nem enviado (a assinatura e o envio ficam bloqueados e o rascunho é descartado ao sair). Sem SQL novo.
 
+- **Modo sem internet em todas as áreas (27/11, `mod/offline.js` e `sw.js`).** A ferramenta passa a funcionar em sombra de sinal ou sem dados móveis, para técnicos, administradores de empresa e gestão.
+  - **Como funciona:** todo acesso ao Supabase passa por uma camada no aparelho (o cliente é criado com `global.fetch` = `OFF.fetch`). Com internet, cada leitura vai ao banco e guarda uma cópia no aparelho (IndexedDB `impl_offline`). Sem internet, a tela é montada com essa cópia, com os mesmos filtros da consulta.
+  - **Gravações sem internet:** horários (deslocamento, chegada, início, conclusão), passos dos chamados do GTD, da RE Corretiva e da Transmissão, fotos, PDFs de relatório e de LPU, LPU e baixa assinadas, mensagens e demais registros entram numa fila no aparelho, na ordem, e a tela segue normalmente.
+  - **Quando a internet volta:** a fila sobe sozinha, na ordem e com o login renovado. Ela é enviada no evento "online", a cada 20 s, ao voltar para o app e antes de qualquer leitura. Com sinal fraco (o aparelho diz que tem rede, mas o banco não responde), a leitura cai na cópia em até 15 s, a gravação vai para a fila em até 30 s, e um teste a cada 30 s detecta a volta do sinal.
+  - **Sem duplicar:** um registro que o banco já tinha (resposta perdida, reenvio) conta como enviado. Assim a LPU não duplica quando a resposta se perde e o envio se repete.
+  - **Registro recusado pelo banco:** vai para "não aceitos", com o motivo e as opções "Tentar de novo" e "Descartar" (o descarte pede confirmação).
+  - **Login:** com o login vencido e sem internet, a ferramenta abre com o último login do aparelho e renova o login quando a internet volta.
+  - **Na tela:** uma faixa "Sem internet" com o número de registros guardados e o botão "Ver" (lista e "Enviar agora"). O "Tudo salvo" vira "Guardado no aparelho · N para enviar", e as confirmações avisam que o registro ficou no aparelho.
+  - **Sair da ferramenta:** não é possível sair com registros ainda não enviados. Ao sair com tudo enviado, a cópia do aparelho é apagada.
+  - **`sw.js`:** guarda `agenda.html`, ícones e bibliotecas. A página busca na internet primeiro e usa a cópia guardada sem internet; as bibliotecas usam a cópia. A ferramenta precisa ser aberta uma vez com internet em cada aparelho.
+  - **Continua precisando de internet:** primeiro acesso no aparelho, telas nunca abertas com internet, abrir PDF ou KMZ ainda não baixado, rota e endereço no carimbo da foto, cadastro de usuários e funções do banco que não estão na lista de leitura.
+  - **Publicação:** sem SQL novo. Publicar `agenda.html` **e o `sw.js` novo** no GitHub.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1203,6 +1216,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Modo sem internet em todas as áreas: cópia dos dados no aparelho, fila de gravações (horários, fotos, relatórios, LPU, baixas, chamados, mensagens) que sobe sozinha quando a internet volta, sem duplicar; login sem internet; faixa de aviso e lista de registros guardados; `sw.js` guarda a ferramenta para abrir sem internet | `agenda.html` (`mod/offline.js`) e `sw.js`. Sem SQL novo. Publicar os dois. |
 | 27/11/2026 | Implantação: Visão da empresa terceira com pré-visualização da LPU ou baixa do contrato fixo como o administrador vê (sem enviar) | `agenda.html` (`mod/eqsim.js`). Sem SQL novo. |
 | 27/11/2026 | Implantação: Minha equipe e Visão da empresa terceira mostram a baixa do contrato fixo (não "LPU pendente") sem precisar abrir o Financeiro antes; cartão do funcionário com "Contrato fixo"; cor do cartão escolhido no modo escuro | `agenda.html` (`mod/cfimpl.js`, `mod/eqtime.js`). Sem SQL novo. |
 | 27/11/2026 | Financeiro: botão "Devolver para preencher de novo" garantido em toda LPU reprovada (inclusive com a aprovação cancelada) | `agenda.html` (`mod/lpudup.js`). Sem SQL novo. |

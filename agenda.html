@@ -4218,7 +4218,7 @@ Object.assign(ACT,{
 /* =====================================================================
    PRODUÇÃO: Supabase (login, dados, arquivos)
    ===================================================================== */
-const sb=supabase.createClient('https://ksatofcjlqziqhblpwul.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzYXRvZmNqbHF6aXFoYmxwd3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTA3NTIsImV4cCI6MjEwNTMyNjc1Mn0.IOAHnOcxVdrP1gBD7nCoQ6wq1mB-dEYVJQIM_WiJaqc');
+const sb=supabase.createClient('https://ksatofcjlqziqhblpwul.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzYXRvZmNqbHF6aXFoYmxwd3VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTA3NTIsImV4cCI6MjEwNTMyNjc1Mn0.IOAHnOcxVdrP1gBD7nCoQ6wq1mB-dEYVJQIM_WiJaqc',{global:{fetch:(...a)=>(window.OFF?window.OFF.fetch(...a):fetch(...a))}});
 let ME=null,SYNC_T=null,SYNC_P=Promise.resolve(),SYNC_PEND=false,RT=null;
 const meNome=()=>ME?ME.nome:'';
 const SNAP={p:new Map(),c:new Map(),a:new Map(),l:new Map()};
@@ -24249,6 +24249,220 @@ Object.assign(ACT,{eqSim:el=>{const id=el.dataset.id;delete ui.draft[id];ui.eqSi
 {const _r=render;render=function(){if(ui.eqSim&&ui.tab!=='eqVer'){if(ui.lpuTela===ui.eqSim)ui.lpuTela=null;delete ui.draft[ui.eqSim];ui.eqSim=null}return _r.apply(this,arguments)}}
 document.addEventListener('click',e=>{if(!eqsOn())return;const el=e.target.closest('[data-act]');if(el&&EQS_BLOQ.has(el.dataset.act)){toast('Pré-visualização: só o administrador da empresa envia.','bad');e.preventDefault();e.stopImmediatePropagation()}},true);
 document.head.insertAdjacentHTML('beforeend',`<style>.eqsban{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 12px;background:var(--warn-soft);color:var(--ink);border:1px solid var(--warn)}.eqsban>div{min-width:0;flex:1 1 260px}.eqsbtn{margin-top:8px}</style>`);
+
+/* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
+   Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
+   - Leitura com internet: vai ao banco e guarda uma cópia no aparelho (IndexedDB "impl_offline": linhas por tabela e a
+     última resposta de cada consulta). Sem internet: responde com a cópia do aparelho (filtros da consulta aplicados aqui).
+   - Gravação sem internet (ou com algo ainda na fila): entra na fila do aparelho, na ordem, e a tela segue como se tivesse
+     gravado (a cópia local já mostra a mudança). Fotos e PDFs também: o arquivo fica guardado no aparelho até subir.
+   - Quando a internet volta (evento online, a cada 20 s, ao voltar para o app e antes de qualquer leitura), a fila sobe
+     na ordem, com o login renovado. Registro que o banco já tinha (repetido) conta como enviado: não duplica.
+     Registro que o banco recusa vai para "não aceitos", com o motivo, para tentar de novo ou descartar.
+   - Login: sem internet e com o login vencido, a ferramenta abre com o último login do aparelho; renova ao voltar a internet.
+   - Funções que dependem do servidor na hora (rota, endereço da foto, PDFs e KMZ ainda não abertos, cadastro de usuários,
+     relatórios gerenciais) continuam pedindo internet. */
+const OFF=(()=>{
+  const NF=window.fetch.bind(window);
+  const PKS={ag_complementos:'etiqueta',agenda_papeis:'user_id'};
+  const RPC_LER=new Set(['ag_projetos_tecnico','ag_minha_equipe','ag_cnpjs','ag_fases_outros_tecnicos','ag_tecnicos_lista','ag_tecnicos_agora','ag_painel_dia','ag_tx_mel_pessoas']);
+  const RPC_FILA=new Set(['ag_marcar_vistas','ag_marcar_vistas_rp','ag_tx_mel_avisar']);
+  const T_LER=15000,T_GRAVAR=30000,T_FN=12000,MAX_URL=600;
+  const st={on:navigator.onLine!==false,q:[],err:[],tabs:new Map(),urls:new Map(),flushing:null,login:false,seq:0,ouv:new Set(),feitos:0};
+  /* ---------- IndexedDB ---------- */
+  let dbp=null;
+  const db=()=>dbp||(dbp=new Promise((res,rej)=>{try{const r=indexedDB.open('impl_offline',1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('q',{keyPath:'k'});d.createObjectStore('e',{keyPath:'k'});d.createObjectStore('t');d.createObjectStore('u')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}));
+  const tx=async(store,mode,fn)=>{const d=await db();return new Promise((res,rej)=>{const t=d.transaction(store,mode),s=t.objectStore(store);let out;const rq=fn(s);if(rq)rq.onsuccess=()=>{out=rq.result};t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})};
+  const allOf=async store=>{const d=await db();return new Promise((res,rej)=>{const out=[],t=d.transaction(store,'readonly'),c=t.objectStore(store).openCursor();c.onsuccess=()=>{const x=c.result;if(x){out.push([x.key,x.value]);x.continue()}};t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error)})};
+  /* primeiro a fila (pequena), depois a cópia das tabelas */
+  const readyQ=(async()=>{try{const [q,e]=await Promise.all([allOf('q'),allOf('e')]);st.q=q.map(x=>x[1]).concat(st.q).sort((a,b)=>a.k-b.k);st.err=e.map(x=>x[1]).sort((a,b)=>a.k-b.k);st.seq=Math.max(0,...st.q.map(x=>x.k%1000))}catch(e){console.warn('offline: fila',e)}})();
+  const ready=(async()=>{try{await readyQ;
+      const [t,u]=await Promise.all([allOf('t'),allOf('u')]);
+      t.forEach(([k,v])=>{const pk=pkDe(k),T=st.tabs.get(k);if(T){/* já chegou coisa nova do banco: a cópia antiga só completa */(v.rows||[]).forEach(r=>{const c=chaveLinha(r,pk);if(c!=null&&!T.rows.has(c))T.rows.set(c,r)});T.ok=T.ok||!!v.ok;T.full=T.full||!!v.full;(v.novos||[]).forEach(x=>T.novos.add(x));return}const m=new Map();(v.rows||[]).forEach(r=>m.set(chaveLinha(r,pk),r));st.tabs.set(k,{rows:m,ok:!!v.ok,full:!!v.full,novos:new Set(v.novos||[])})});
+      const novas=new Map(st.urls);st.urls.clear();u.sort((a,b)=>(a[1].at||0)-(b[1].at||0)).forEach(([k,v])=>st.urls.set(k,v));novas.forEach((v,k)=>{st.urls.delete(k);st.urls.set(k,v)});
+      if(st.urls.size>MAX_URL){const sobra=[...st.urls.keys()].slice(0,st.urls.size-MAX_URL);sobra.forEach(k=>st.urls.delete(k));tx('u','readwrite',s=>{sobra.forEach(k=>s.delete(k))}).catch(()=>{})}
+    }catch(e){console.warn('offline: sem armazenamento no aparelho',e)}})();
+  /* ---------- utilitários ---------- */
+  const pkDe=t=>PKS[t]||'id';
+  const chaveLinha=(r,pk)=>r&&r[pk]!=null?String(r[pk]):null;
+  const hdrs=init=>{const h=new Headers((init&&init.headers)||{});return h};
+  const resp=(status,body,h)=>new Response(status===204||body==null?null:(typeof body==='string'?body:JSON.stringify(body)),{status,headers:Object.assign({'content-type':'application/json; charset=utf-8','x-offline':'1'},h||{})});
+  const semRede=()=>{const e=new TypeError('Failed to fetch (sem internet)');return e};
+  /* sem internet e sem cópia no aparelho: erro 504 (o supabase-js não repete; com TypeError ele repete por vários segundos) */
+  const semCopia=()=>resp(504,{code:'OFFLINE',message:'Sem internet e sem cópia desta informação no aparelho',details:'',hint:'Abra esta tela uma vez com internet'});
+  const uid=()=>(crypto.randomUUID?crypto.randomUUID():'off-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+  const avisa=()=>{st.ouv.forEach(f=>{try{f()}catch(e){}})};
+  const marcaOff=()=>{if(st.on){st.on=false;avisa()}};
+  const marcaOn=()=>{if(!st.on){st.on=true;avisa()}};
+  async function net(input,init,ms){const ac=new AbortController(),sig=init&&init.signal;let tm=null;if(sig){if(sig.aborted)ac.abort();else sig.addEventListener('abort',()=>ac.abort(),{once:true})}
+    tm=setTimeout(()=>ac.abort(),ms);try{return await NF(input,Object.assign({},init,{signal:ac.signal}))}finally{clearTimeout(tm)}}
+  /* ---------- tabelas locais ---------- */
+  const tab=(n,cria)=>{let T=st.tabs.get(n);if(!T&&cria){T={rows:new Map(),ok:false,full:false,novos:new Set()};st.tabs.set(n,T)}return T};
+  const salvaT={};
+  const gravaTab=n=>{delete salvaT[n];const T=st.tabs.get(n);if(!T)return Promise.resolve();return tx('t','readwrite',s=>s.put({ok:T.ok,full:T.full,novos:[...T.novos],rows:[...T.rows.values()]},n)).catch(()=>{})};
+  function persisteTab(n,ja){if(ja){clearTimeout(salvaT[n]);return gravaTab(n)}if(!salvaT[n])salvaT[n]=setTimeout(()=>gravaTab(n),1200)}
+  const gravaTudo=()=>Object.keys(salvaT).forEach(n=>{clearTimeout(salvaT[n]);gravaTab(n)});addEventListener('pagehide',gravaTudo);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')gravaTudo()});
+  let salvaU=null;const urlPend=new Map();
+  function guardaUrl(k,v){if(v&&v.b&&v.b.length>1500000)return;st.urls.delete(k);st.urls.set(k,v);urlPend.set(k,v);if(st.urls.size>MAX_URL){const k0=st.urls.keys().next().value;st.urls.delete(k0);urlPend.set(k0,null)}
+    clearTimeout(salvaU);salvaU=setTimeout(()=>{const P=[...urlPend];urlPend.clear();tx('u','readwrite',s=>{P.forEach(([k,v])=>v?s.put(v,k):s.delete(k))}).catch(()=>{})},1500)}
+  /* filtros do PostgREST (os mais usados); o que não reconhece faz a consulta cair na cópia exata */
+  const NAO='__nao_suportado__';
+  function partes(s){const out=[];let d=0,q=false,cur='';for(const ch of s){if(ch==='"'){q=!q;cur+=ch;continue}if(!q&&ch==='(')d++;if(!q&&ch===')')d--;if(!q&&d===0&&ch===','){out.push(cur);cur='';continue}cur+=ch}if(cur)out.push(cur);return out}
+  const tira=v=>String(v).replace(/^"(.*)"$/,'$1');
+  function lista(v){const m=/^\((.*)\)$/.exec(v);if(!m)throw NAO;return partes(m[1]).map(tira)}
+  function val(r,col){if(col.includes('->')){const ps=col.split(/->>?/);let x=r[ps[0]];for(const p of ps.slice(1)){if(x==null)return null;if(typeof x==='string'){try{x=JSON.parse(x)}catch(e){return null}}x=x[p]}return x}return r[col]}
+  const num=x=>x!==''&&x!=null&&!isNaN(+x);
+  const igual=(x,v)=>{if(x==null)return false;if(typeof x==='boolean')return String(x)===v;if(num(x)&&num(v))return +x===+v;return String(x)===v};
+  const comp=(x,v)=>{if(x==null)return null;if(num(x)&&num(v))return +x-(+v);const a=String(x),b=String(v);return a<b?-1:a>b?1:0};
+  function cond(r,col,expr){let neg=false;if(expr.startsWith('not.')){neg=true;expr=expr.slice(4)}const i=expr.indexOf('.');if(i<0)throw NAO;const op=expr.slice(0,i),v=tira(expr.slice(i+1)),x=val(r,col);let ok;
+    switch(op){case 'eq':ok=igual(x,v);break;case 'neq':ok=x!=null&&!igual(x,v);break;
+      case 'gt':{const c=comp(x,v);ok=c!=null&&c>0;break}case 'gte':{const c=comp(x,v);ok=c!=null&&c>=0;break}case 'lt':{const c=comp(x,v);ok=c!=null&&c<0;break}case 'lte':{const c=comp(x,v);ok=c!=null&&c<=0;break}
+      case 'is':ok=v==='null'?x==null:v==='true'?x===true:v==='false'?x===false:(()=>{throw NAO})();break;
+      case 'in':ok=lista(v).some(y=>igual(x,y));break;
+      case 'like':case 'ilike':{const re=new RegExp('^'+v.replace(/[.+?^${}()|[\]\\]/g,'\\$&').replace(/[*%]/g,'.*')+'$',op==='ilike'?'i':'');ok=x!=null&&re.test(String(x));break}
+      case 'cs':{if(!Array.isArray(x)){ok=false;break}const L=/^\{(.*)\}$/.test(v)?partes(v.slice(1,-1)).map(tira):lista(v);ok=L.every(y=>x.some(z=>igual(z,y)));break}
+      case 'ov':{if(!Array.isArray(x)){ok=false;break}const L=/^\{(.*)\}$/.test(v)?partes(v.slice(1,-1)).map(tira):lista(v);ok=L.some(y=>x.some(z=>igual(z,y)));break}
+      default:throw NAO}
+    return neg?!ok:ok}
+  function logica(r,op,corpo){const it=partes(corpo).map(p=>{const m=/^(not\.)?(and|or)\((.*)\)$/.exec(p);if(m){const v=logica(r,m[2],m[3]);return m[1]?!v:v}const i=p.indexOf('.');if(i<0)throw NAO;return cond(r,p.slice(0,i),p.slice(i+1))});return op==='and'?it.every(Boolean):it.some(Boolean)}
+  const RESERV=new Set(['select','order','limit','offset','on_conflict','columns']);
+  function filtros(sp){const F=[];for(const[k,v]of sp.entries()){if(RESERV.has(k))continue;if(k==='or'||k==='and'){const m=/^\((.*)\)$/.exec(v);if(!m)throw NAO;F.push(r=>logica(r,k,m[1]));continue}
+      if(/^not\.(or|and)$/.test(k)){const m=/^\((.*)\)$/.exec(v);if(!m)throw NAO;F.push(r=>!logica(r,k.slice(4),m[1]));continue}
+      if(k.includes('.')&&!k.includes('->'))throw NAO;F.push(r=>cond(r,k,v))}return r=>F.every(f=>f(r))}
+  function ordena(L,o){if(!o)return L;const ks=partes(o).map(p=>{const s=p.split('.');return{c:s[0],d:s.includes('desc'),nf:s.includes('nullsfirst')}});
+    return L.slice().sort((a,b)=>{for(const k of ks){const x=val(a,k.c),y=val(b,k.c);if(x==null&&y==null)continue;if(x==null)return k.nf?-1:1;if(y==null)return k.nf?1:-1;const c=num(x)&&num(y)?(+x)-(+y):String(x)<String(y)?-1:String(x)>String(y)?1:0;if(c)return k.d?-c:c}return 0})}
+  function avalia(T,sp){const f=filtros(sp);let L=[...T.rows.values()].filter(f);const total=L.length;L=ordena(L,sp.get('order'));const off=+sp.get('offset')||0,lim=sp.has('limit')?+sp.get('limit'):null;L=L.slice(off,lim==null?undefined:off+lim);return{page:L,total,off}}
+  function ingere(n,dados,sp,completa,tudo){const pk=pkDe(n),rows=Array.isArray(dados)?dados:dados&&typeof dados==='object'?[dados]:[];const T=tab(n,true),vistos=new Set();
+    rows.forEach(r=>{const k=chaveLinha(r,pk);if(k==null)return;vistos.add(k);const o=T.rows.get(k);T.rows.set(k,o?Object.assign({},o,r):r)});
+    if(completa){try{const f=filtros(sp);[...T.rows].forEach(([k,r])=>{if(!vistos.has(k)&&f(r))T.rows.delete(k)})}catch(e){}}
+    const comPk=rows.some(r=>chaveLinha(r,pk)!=null);if(comPk||(sp&&!rows.length))T.ok=true;if(comPk&&tudo)T.full=true;vistos.forEach(k=>T.novos.delete(k));persisteTab(n)}
+  /* gravação aplicada na cópia local; devolve as linhas afetadas */
+  function aplica(it){if(it.tipo!=='rest'||it.rpc)return [];const n=it.tab,T=tab(n,true),pk=pkDe(n),sp=new URL(it.url).searchParams,corpo=it.json;let out=[];
+    if(it.m==='POST'){const conf=sp.get('on_conflict')||pk,rows=Array.isArray(corpo)?corpo:corpo?[corpo]:[];
+      rows.forEach(r=>{let k=chaveLinha(r,pk);if(k==null&&conf!==pk){const e=[...T.rows].find(([,x])=>x[conf]!=null&&String(x[conf])===String(r[conf]));if(e)k=e[0]}
+        if(k==null)return out.push(r);const o=T.rows.get(k),nv=o?Object.assign({},o,r):r;if(!o)T.novos.add(k);T.rows.set(k,nv);out.push(nv)})}
+    else if(it.m==='PATCH'){let f;try{f=filtros(sp)}catch(e){f=null}if(f)[...T.rows].forEach(([k,r])=>{if(f(r)){const nv=Object.assign({},r,corpo||{});T.rows.set(k,nv);out.push(nv)}});
+      if(!out.length){const eq={};for(const[k,v]of sp.entries())if(!RESERV.has(k)&&/^eq\./.test(v))eq[k]=tira(v.slice(3));if(Object.keys(eq).length)out=[Object.assign({},eq,corpo||{})]}}
+    else if(it.m==='DELETE'){let f;try{f=filtros(sp)}catch(e){f=null}if(f)[...T.rows].forEach(([k,r])=>{if(f(r)){out.push(r);T.rows.delete(k)}})}
+    persisteTab(n,!st.on||st.q.length>0);return out}
+  function sintetico(it,afet){const acc=it.h.accept||'',pref=it.h.prefer||'',repr=/return=representation/.test(pref),obj=/vnd\.pgrst\.object/.test(acc);
+    if(it.tipo==='sto'){if(it.m==='DELETE'||/\/object\/[^/]+$/.test(new URL(it.url).pathname))return resp(200,[]);const p=decodeURIComponent(new URL(it.url).pathname.split('/storage/v1/object/')[1]||'');return resp(200,{Id:uid(),Key:p})}
+    if(it.rpc)return resp(200,'null');
+    const rows=afet||[];if(!repr)return resp(it.m==='POST'?201:204,null);if(obj)return rows.length?resp(it.m==='POST'?201:200,rows[0]):resp(406,{code:'PGRST116',message:'JSON object requested, multiple (or no) rows returned',details:'',hint:null});
+    return resp(it.m==='POST'?201:200,rows)}
+  /* ---------- fila ---------- */
+  const DESC={ag_agendamentos:'Atividade',ag_lpus:'LPU',ag_projetos:'Projeto',ag_complementos:'Projeto',ag_chamados:'Chamado',ag_mensagens:'Mensagem',ag_avisos:'Aviso',ag_anexos:'Anexo',ag_rp_atividades:'Atividade da RE Preventiva'};
+  function descreve(it){if(it.tipo==='sto')return(it.m==='DELETE'?'Remover arquivo':'Foto ou arquivo')+': '+decodeURIComponent(String(new URL(it.url).pathname).split('/').pop());if(it.rpc)return 'Confirmação ('+it.tab.replace(/^rpc\//,'')+')';
+    const b=Array.isArray(it.json)?it.json[0]:it.json,n=DESC[it.tab]||it.tab.replace(/^ag_/,'').replace(/_/g,' ');const id=b&&(b.etiqueta||b.cliente||'');return n+(it.m==='DELETE'?' (remoção)':'')+(id?' · '+id:'')}
+  async function montaItem(url,init,m,tipo,path){const h={};hdrs(init).forEach((v,k)=>{if(k!=='authorization')h[k]=v});let body=init.body,json=null,fd=null,blob=null,txt=null;
+    if(body instanceof FormData){fd=[];for(const[k,v]of body.entries())fd.push([k,v,v&&v.name||''])}else if(body instanceof Blob)blob=body;else if(body instanceof ArrayBuffer||ArrayBuffer.isView(body))blob=new Blob([body]);else if(body!=null){txt=String(body);try{json=JSON.parse(txt)}catch(e){}}
+    const it={k:Date.now()*1000+(++st.seq%1000),url,m,h,txt,fd,blob,json,tipo,tab:path.split('?')[0],rpc:tipo==='rest'&&path.startsWith('rpc/'),em:Date.now()};it.desc=descreve(it);return it}
+  async function enfileira(it){st.ultFila=Date.now();st.q.push(it);try{await tx('q','readwrite',s=>s.put(it))}catch(e){console.warn('offline: fila só na memória',e)}avisa()}
+  async function tiraFila(it){st.q=st.q.filter(x=>x.k!==it.k);try{await tx('q','readwrite',s=>s.delete(it.k))}catch(e){}avisa()}
+  let GS=null;const lidoLogin=()=>{try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k)){const v=JSON.parse(localStorage.getItem(k));const s=v&&(v.currentSession||v);if(s&&s.access_token)return s}}}catch(e){}return null};
+  async function token(){try{const r=GS?await GS():null;if(r&&r.data&&r.data.session)return r.data.session.access_token}catch(e){}const s=lidoLogin();return s&&s.access_token}
+  async function envia(it){const h=Object.assign({},it.h),t=await token();if(t)h.authorization='Bearer '+t;let body=null;
+    if(it.fd){body=new FormData();it.fd.forEach(([k,v,nm])=>v instanceof Blob?body.append(k,v,nm||undefined):body.append(k,v));delete h['content-type']}else if(it.blob)body=it.blob;else if(it.txt!=null)body=it.txt;
+    const r=await net(it.url,{method:it.m,headers:h,body},T_GRAVAR);const txt=await r.text().catch(()=>'');return{ok:r.ok,status:r.status,txt}}
+  const repetido=(it,r)=>it.m==='POST'&&(r.status===409||/23505|duplicate key|already exists|Duplicate/i.test(r.txt||''));
+  async function flush(){if(st.flushing)return st.flushing;if(!st.q.length)return 0;
+    st.flushing=(async()=>{let feitos=0;try{while(st.q.length){const it=st.q[0];let r;try{r=await envia(it)}catch(e){marcaOff();break}marcaOn();
+        if(r.ok||repetido(it,r)){feitos++;if(r.ok&&it.tipo==='rest'&&!it.rpc&&r.txt){try{const j=JSON.parse(r.txt);ingere(it.tab,j,null,false)}catch(e){}}await tiraFila(it);continue}
+        if(r.status===401||/jwt|JWT|token/i.test(r.txt||'')&&r.status===400){if(!it._re){it._re=1;try{await sb.auth.refreshSession()}catch(e){}continue}st.login=true;avisa();break}
+        it._re=0;const e=Object.assign({},it,{status:r.status,msg:String(r.txt||'').slice(0,400),erroEm:Date.now()});st.err.push(e);try{await tx('e','readwrite',s=>s.put(e))}catch(x){}await tiraFila(it)}}
+      finally{st.flushing=null}
+      if(feitos){st.feitos+=feitos;st.login=false;avisa();try{if(typeof carregarAuto==='function')setTimeout(()=>carregarAuto(),400)}catch(e){}}return feitos})();
+    return st.flushing}
+  /* ---------- leitura ---------- */
+  const chaveUrl=(m,url,init,corpo)=>{const h=hdrs(init);return m+' '+url+' '+(h.get('accept')||'')+' '+(h.get('prefer')||'')+(corpo?' '+corpo:'')};
+  async function ler(url,init,path,m){const T0=path.split('?')[0],sp=new URL(url).searchParams,k=chaveUrl(m,url,init);
+    if(st.on&&navigator.onLine!==false){if(st.q.length)await flush().catch(()=>{});
+      if(st.on&&!st.q.length){try{const r=await net(url,init,T_LER);marcaOn();if(r.ok){try{const txt=m==='HEAD'?'':await r.clone().text();const h={};['content-range','content-type'].forEach(x=>{const v=r.headers.get(x);if(v)h[x]=v});guardaUrl(k,{s:r.status,h,b:txt,at:Date.now()});
+            if(txt){const j=JSON.parse(txt);let comp=false;try{filtros(sp);comp=!sp.has('limit')&&!sp.has('offset')&&!/vnd\.pgrst\.object/.test(hdrs(init).get('accept')||'')}catch(e){}ingere(T0,j,sp,comp,/(^|,)\*($|,)/.test(sp.get('select')||'*'))}}catch(e){}}return r}
+        catch(e){if(init&&init.signal&&init.signal.aborted)throw e;marcaOff()}}}
+    return lerLocal(url,init,T0,sp,m,k)}
+  function lerLocal(url,init,T0,sp,m,k){const h=hdrs(init),acc=h.get('accept')||'',T=st.tabs.get(T0);let R=null;
+    const tudo=/(^|,)\*($|,)/.test(sp.get('select')||'*');if(T&&T.ok&&(T.full||!tudo)){try{R=avalia(T,sp)}catch(e){R=null}}
+    if(!R){const c=st.urls.get(k);if(!c)return semCopia();let b=c.b;if(T&&b){try{const pk=pkDe(T0),ov=r=>{const l=r&&T.rows.get(chaveLinha(r,pk));return l?Object.assign({},r,l):r};let j=JSON.parse(b);if(Array.isArray(j)){j=j.map(ov);if(T.novos.size){let f=null;try{f=filtros(sp)}catch(e){}const tem=new Set(j.map(r=>chaveLinha(r,pk)));if(f)T.novos.forEach(x=>{const r=T.rows.get(x);if(r&&!tem.has(x)&&f(r))j.push(r)})}}else j=ov(j);b=JSON.stringify(j)}catch(e){}}return resp(c.s,m==='HEAD'?null:b,c.h)}
+    const cr=R.page.length?`${R.off}-${R.off+R.page.length-1}/${R.total}`:`*/${R.total}`;
+    if(m==='HEAD')return resp(200,null,{'content-range':cr});
+    if(/vnd\.pgrst\.object/.test(acc))return R.page.length===1?resp(200,R.page[0],{'content-range':cr}):resp(406,{code:'PGRST116',message:'JSON object requested, multiple (or no) rows returned',details:'',hint:null});
+    return resp(200,R.page,{'content-range':cr})}
+  async function lerRpc(url,init,path){const corpo=typeof init.body==='string'?init.body:'',k=chaveUrl('POST',url,init,corpo);
+    if(st.on&&navigator.onLine!==false){if(st.q.length)await flush().catch(()=>{});
+      if(st.on){try{const r=await net(url,init,T_LER);marcaOn();if(r.ok){try{const txt=await r.clone().text();guardaUrl(k,{s:r.status,h:{'content-type':r.headers.get('content-type')||'application/json'},b:txt,at:Date.now()})}catch(e){}}return r}catch(e){marcaOff()}}}
+    const c=st.urls.get(k);if(!c)return semCopia();return resp(c.s,c.b,c.h)}
+  /* ---------- gravação ---------- */
+  async function gravar(url,init,path,m,tipo){const it=await montaItem(url,init,m,tipo,path);
+    if(!st.q.length&&st.on&&navigator.onLine!==false){try{const r=await net(url,init,T_GRAVAR);marcaOn();
+        if(r.ok&&tipo==='rest'&&!it.rpc){let feito=false;if(r.status!==204){try{const txt=await r.clone().text();if(txt){ingere(it.tab,JSON.parse(txt),null,false);feito=true}}catch(e){}}if(!feito)aplica(it)}return r}
+      catch(e){if(init&&init.signal&&init.signal.aborted)throw e;marcaOff()}}
+    const afet=aplica(it);await enfileira(it);setTimeout(()=>{if(st.on)flush()},50);return sintetico(it,afet)}
+  /* ---------- entrada única ---------- */
+  async function ofetch(input,init){init=init||{};const url=typeof input==='string'?input:input.url,m=String(init.method||(input&&input.method)||'GET').toUpperCase(),u=new URL(url,location.href),p=u.pathname;if(!st.base){st.base=u.origin;try{st.apikey=hdrs(init).get('apikey')}catch(e){}}
+    if(/\/auth\/v1\//.test(p))return net(input,init,T_LER).then(r=>{marcaOn();return r},e=>{marcaOff();throw e});
+    if(/\/functions\/v1\//.test(p))return net(input,init,T_FN);
+    await readyQ;const lendo=(m==='GET'||m==='HEAD')&&st.on&&navigator.onLine!==false&&!st.q.length;if(!lendo)await ready;
+    if(/\/rest\/v1\//.test(p)){const path=p.split('/rest/v1/')[1]+u.search;
+      if(path.startsWith('rpc/')){const nm=path.slice(4).split('?')[0];if(RPC_FILA.has(nm))return gravar(url,init,path,m,'rest');if(RPC_LER.has(nm))return lerRpc(url,init,path);return net(input,init,T_GRAVAR)}
+      if(m==='GET'||m==='HEAD')return ler(url,init,path,m);return gravar(url,init,path,m,'rest')}
+    if(/\/storage\/v1\/object\//.test(p)){const sub=p.split('/storage/v1/object/')[1]||'';
+      if((m==='POST'||m==='PUT'||m==='DELETE')&&!/^(sign|public|authenticated|list|info|move|copy|upload\/sign)\b/.test(sub))return gravar(url,init,p.split('/storage/v1/')[1],m,'sto');
+      if(st.q.length&&st.on)await flush().catch(()=>{});return net(input,init,T_LER).then(r=>{marcaOn();return r},e=>{marcaOff();throw e})}
+    return net(input,init,T_LER)}
+  /* gatilhos para subir a fila */
+  addEventListener('online',()=>{marcaOn();flush()});addEventListener('offline',()=>marcaOff());
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&st.q.length)flush()});
+  setInterval(()=>{if(st.q.length&&navigator.onLine!==false)flush()},20000);
+  /* sinal fraco: o aparelho diz que tem rede mas o banco não respondeu; testa de 30 em 30 s e volta sozinho */
+  setInterval(async()=>{if(st.on||navigator.onLine===false||!st.base)return;try{await net(st.base+'/rest/v1/',{headers:st.apikey?{apikey:st.apikey}:{}},8000);marcaOn();if(st.q.length)flush();else try{if(typeof carregarAuto==='function')carregarAuto()}catch(e){}}catch(e){}},30000);
+  return{fetch:ofetch,ready,flush,st,ouve:f=>st.ouv.add(f),pend:()=>st.q.length,erros:()=>st.err.length,on:()=>st.on&&navigator.onLine!==false,login:lidoLogin,
+    setGS:f=>{GS=f},
+    async limpa(){st.tabs.clear();st.urls.clear();st.err=[];try{await Promise.all(['t','u','e'].map(x=>tx(x,'readwrite',s=>s.clear())))}catch(e){}},
+    async descarta(k){st.err=st.err.filter(x=>x.k!==k);try{await tx('e','readwrite',s=>s.delete(k))}catch(e){}avisa()},
+    async tentaDeNovo(k){const e=st.err.find(x=>x.k===k);if(!e)return;st.err=st.err.filter(x=>x.k!==k);try{await tx('e','readwrite',s=>s.delete(k))}catch(x){}const it=Object.assign({},e,{k:Date.now()*1000+(++st.seq%1000)});delete it.status;delete it.msg;delete it.erroEm;await enfileira(it);flush()}}
+})();
+window.OFF=OFF;
+
+/* login sem internet: com o login vencido e sem rede, abre com o último login do aparelho */
+{const gs=sb.auth.getSession.bind(sb.auth);OFF.setGS(gs);sb.auth.getSession=async function(){const r=await gs();try{if(!(r&&r.data&&r.data.session)&&(!OFF.on()||(r&&r.error&&/fetch|network|retry/i.test(String(r.error.message||r.error.name||''))))){const s=OFF.login();if(s&&s.user)return{data:{session:s},error:null}}}catch(e){}return r}}
+
+/* ---------- tela: aviso de sem internet, pendências e não aceitos ---------- */
+function offBarHtml(){const n=OFF.pend(),e=OFF.erros(),on=OFF.on();if(on&&!n&&!e&&!OFF.st.login)return '';
+  const t=!on?`<b>Sem internet.</b> O que você registrar fica guardado no aparelho${n?` (${n} ${n===1?'registro':'registros'} para enviar)`:''} e sobe sozinho quando a internet voltar.`
+    :OFF.st.login?`<b>Entre de novo na ferramenta</b> para enviar ${n} ${n===1?'registro guardado':'registros guardados'} no aparelho.`
+    :n?`<b>Enviando ${n} ${n===1?'registro guardado':'registros guardados'} no aparelho…</b>`:'';
+  const te=e?`<b>${e} ${e===1?'registro não foi aceito':'registros não foram aceitos'} pelo banco.</b> Veja o motivo.`:'';
+  return `<div class="offbar ${!on?'off':e?'bad':''}" role="status">${t?`<span>${t}</span>`:''}${te?`<span>${te}</span>`:''}${n||e?`<button class="btn sm" data-act="offVer">Ver</button>`:''}</div>`}
+function offAtualiza(){const el=document.querySelector('main');if(!el)return;let b=document.getElementById('offBarBox');const h=offBarHtml();
+  if(!h){if(b)b.remove();return}if(!b){b=document.createElement('div');b.id='offBarBox'}if(b.parentElement!==el||el.firstElementChild!==b)el.prepend(b);if(b.innerHTML!==h)b.innerHTML=h;
+  try{const s=document.getElementById('syncSt');if(s&&/Tudo salvo/.test(s.textContent)&&OFF.pend())s.textContent='Guardado no aparelho · '+OFF.pend()+' para enviar'}catch(e){}}
+{const _r=render;render=function(){const o=_r.apply(this,arguments);try{offAtualiza()}catch(e){}return o}}
+OFF.ouve(()=>{offAtualiza();if(document.querySelector('#modal.open .offlst'))ACT.offVer()});
+{const _s=setSt;setSt=function(t,err){if(t==='Tudo salvo'&&typeof OFF!=='undefined'&&OFF.pend())t='Guardado no aparelho · '+OFF.pend()+' para enviar';return _s.call(this,t,err)}}
+const offMotivo=m=>{let t=String(m||'');try{const j=JSON.parse(t);t=j.message||j.error_description||j.error||t}catch(e){}if(/permission denied|row-level security|42501/i.test(t))t='sem permissão no banco ('+t+')';return t.slice(0,200)||'erro sem detalhe'};
+const offQuando=t=>{const d=new Date(t);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})};
+Object.assign(ACT,{
+  offVer:()=>{const Q=OFF.st.q,E=OFF.st.err,on=OFF.on();
+    openModal(`<h3 style="margin-top:0">Registros guardados no aparelho</h3><p class="muted" style="margin:0 0 10px">${on?'Com internet: a lista sobe sozinha, na ordem.':'Sem internet: a lista sobe sozinha quando a internet voltar. Não saia da ferramenta nem limpe os dados do navegador até subir.'}</p>
+     <div class="offlst">${E.length?`<h4>Não aceitos pelo banco (${E.length})</h4>${E.map(x=>`<div class="offit bad"><div><b>${esc(x.desc||'Registro')}</b><small>${offQuando(x.em)} · ${esc(offMotivo(x.msg))}</small></div><div class="offac"><button class="btn sm" data-act="offDeNovo" data-k="${x.k}">Tentar de novo</button><button class="btn sm danger" data-act="offDescarta" data-k="${x.k}">Descartar</button></div></div>`).join('')}`:''}
+      <h4>Para enviar (${Q.length})</h4>${Q.map(x=>`<div class="offit"><div><b>${esc(x.desc||'Registro')}</b><small>${offQuando(x.em)}</small></div></div>`).join('')||'<p class="muted">Nada para enviar.</p>'}</div>
+     <div class="actions"><button class="btn" data-act="close">Fechar</button>${Q.length?`<button class="btn primary" data-act="offAgora">Enviar agora</button>`:''}</div>`)},
+  offAgora:async()=>{toast('Enviando…');const n=await OFF.flush();if(OFF.pend())toast(OFF.on()?'Ainda há registros para enviar.':'Sem internet: os registros continuam guardados no aparelho.','bad');else toast(n?'Tudo enviado.':'Nada para enviar.')},
+  offDeNovo:el=>OFF.tentaDeNovo(+el.dataset.k),
+  offDescarta:el=>{const x=OFF.st.err.find(y=>y.k===+el.dataset.k);if(!x)return;if(ui.offDesc!==x.k){ui.offDesc=x.k;toast('Toque de novo em Descartar para confirmar: este registro não vai para o banco.','bad');return}ui.offDesc=null;OFF.descarta(x.k)}});
+/* sem internet, as confirmações ("enviada", "salvo"...) avisam que o registro está no aparelho */
+{const _t=toast;toast=function(m,k){try{if(k!=='bad'&&typeof m==='string'&&!OFF.on()&&(Date.now()-(OFF.st.ultFila||0)<4000||/enviad|salv|registrad|assinad/i.test(m))&&!/aparelho/.test(m))m=m.replace(/\.?\s*$/,'')+'. Sem internet: guardado no aparelho, sobe quando a internet voltar.'}catch(e){}return _t.call(this,m,k)}}
+/* sair da ferramenta com registros no aparelho: não deixa (o login some e a fila não sobe) */
+{const _l=ACT.logout;ACT.logout=async function(){if(OFF.pend()){toast(`Há ${OFF.pend()} ${OFF.pend()===1?'registro guardado':'registros guardados'} no aparelho que ainda não subiram. Conecte-se à internet e espere enviar antes de sair.`,'bad');ACT.offVer();return}try{await OFF.limpa()}catch(e){}return _l.apply(this,arguments)}}
+/* service worker: guarda a ferramenta e as bibliotecas para abrir sem internet */
+try{if('serviceWorker' in navigator)navigator.serviceWorker.ready.then(r=>{const L=[location.pathname.split('/').pop()||'agenda.html','manifest.webmanifest','icon-192.png','icon-512.png','badge-96.png'].concat([...document.querySelectorAll('script[src],link[rel=stylesheet][href]')].map(e=>e.src||e.href));(r.active||navigator.serviceWorker.controller)&&(r.active||navigator.serviceWorker.controller).postMessage({tipo:'guardar',urls:L})}).catch(()=>{})}catch(e){}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.offbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px;padding:8px 12px;border-radius:10px;background:var(--info-soft);color:var(--info);font-size:13.5px}
+.offbar>span{flex:1 1 220px;min-width:0}.offbar.off{background:var(--warn-soft);color:var(--ink);border:1px solid var(--warn)}.offbar.bad{background:var(--bad-soft);color:var(--bad)}
+.offlst h4{margin:12px 0 6px;font-size:14px}.offit{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px}
+.offit>div:first-child{display:grid;min-width:0;flex:1 1 200px}.offit small{color:var(--muted);overflow-wrap:anywhere}.offit.bad{border-color:var(--bad)}.offac{display:flex;gap:6px}
+</style>`);
 
 sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){RECUP=true;NP_OPEN=true;showAuth('cNewPass');return}checarSessao()});
 checarSessao();
