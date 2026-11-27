@@ -22609,9 +22609,11 @@ function fbVirt(r){const em=new Date(r.criado_em||Date.now()).getTime()||Date.no
 function fbAlvo(){if(!FB.ok||!ME||gTecPerfil())return null;if(ui.cat==='impl')return{S:['impl']};if(ui.cat!=='gtd')return null;const a=ui.gArea||'gtd';
   if(typeof melAt==='function'&&melAt())return{G:['melcx','melox']};if(a==='tx')return{S:['tx']};if(a==='re'||a==='rep')return{G:['re','rep','rpr']};if(a==='gtd')return{G:['gtd']};return null}
 {const _r=render;render=function(){if(!FB.ok&&!FB.bus&&!FB.err&&ME&&!gTecPerfil()&&(['coord','sup','enc'].includes(ui.perfil)||pode('fin_vis')||pode('fin_imp')))fbCarregar();
-  const al=fbAlvo();if(!al)return _r.apply(this,arguments);const sA=S.lpus,gA=G.lpus;
+  return fbCom(()=>_r.apply(this,arguments))}}
+/* roda fn com as LPUs lançadas no Financeiro somadas às listas da área aberta (tela e planilhas) */
+function fbCom(fn){const al=fbAlvo();if(!al||S.lpus.filter2||(G.lpus&&G.lpus.filter2))return fn();const sA=S.lpus,gA=G.lpus;
   const add=(arr,as)=>{const V=FB.rows.filter(r=>as.includes(r.area)).map(fbVirt);if(!V.length)return arr;const F=arr.concat(V);F.find=arr.find.bind(arr);F.findIndex=arr.findIndex.bind(arr);F.push=arr.push.bind(arr);F.filter2=arr;return F};
-  if(al.S)S.lpus=add(sA,al.S);if(al.G&&gA)G.lpus=add(gA,al.G);try{return _r.apply(this,arguments)}finally{S.lpus=sA;if(gA)G.lpus=gA}}}
+  if(al.S)S.lpus=add(sA,al.S);if(al.G&&gA)G.lpus=add(gA,al.G);try{return fn()}finally{S.lpus=sA;if(gA)G.lpus=gA}}
 {const _n=melLpuNat;melLpuNat=function(l){if(l&&l._fbNat)return l._fbNat;return _n.apply(this,arguments)}}
 {const _f=finPlantoes;finPlantoes=function(){const o=_f.apply(this,arguments);if(!FB.ok)return o;const ja=new Set(S.lpus.concat(G.lpus||[]).map(l=>l.id));return o.concat(FB.rows.map(fbVirt).filter(l=>!ja.has(l.id)))}}
 {const _a=finAreaL;finAreaL=function(l){if(l&&l._fbNat)return l._fbNat==='ox'?'mox':'mcx';if(l&&l._fbArea==='rpr')return 'rpr';return _a.apply(this,arguments)}}
@@ -24373,6 +24375,9 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .ctrfop{display:grid;gap:10px;margin:12px 0}.ctrfb{display:flex;flex-direction:column;gap:4px;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
 .ctrfb:hover,.ctrfb:focus-visible{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-soft,transparent)}.ctrfb b{font-size:15px}.ctrfb small{color:var(--muted);line-height:1.4}
 </style>`);
+
+/* 27/11: as planilhas das áreas (Baixar planilha / Excel) também levam as LPUs lançadas em PDF no Financeiro, como a tela */
+if(typeof fbCom==='function')Object.keys(ACT).filter(k=>/xlsx|excel|planilha/i.test(k)).forEach(k=>{const f=ACT[k];if(typeof f!=='function')return;ACT[k]=function(){const a=arguments;let r;fbCom(()=>{r=f.apply(this,a)});return r}});
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).

@@ -1167,6 +1167,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Contrato fixo da RE Corretiva pelo Financeiro: todas as equipes (27/11, `mod/ctrfin.js`):** no "Novo contrato › RE Corretiva" aberto pelo Financeiro, a lista de técnico/equipe traz todas as equipes terceiras (as que ainda geram LPU aparecem com "· ainda com LPU"), não só as já marcadas Sem LPU. A caixa "Marcar a equipe como Sem LPU" vem marcada: ao salvar, a equipe passa a Sem LPU em Usuários e acessos (se quem salvou não tiver permissão para isso, o contrato é salvo e o aviso pede para a coordenação marcar).
 
+- **Planilhas das áreas com as LPUs lançadas em PDF (27/11, `mod/finpdf.js`, `mod/ctrfin.js`):** as LPUs lançadas no Financeiro já apareciam nas telas das áreas, mas não iam para as planilhas baixadas (ex.: "Mão de obra por etiqueta: ROI x LPU executada"). Agora todo botão de planilha/Excel das áreas roda com as mesmas LPUs da tela (função `fbCom`).
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1231,6 +1233,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Planilhas das áreas (ex.: mão de obra por etiqueta) passam a incluir as LPUs lançadas em PDF no Financeiro | `agenda.html` (`mod/finpdf.js`, `mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Novo contrato da RE Corretiva pelo Financeiro lista todas as equipes terceiras e marca a escolhida como Sem LPU ao salvar | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Lançar LPU em PDF: prestador pode ser escolhido entre os cadastrados em Terceiros e técnicos (sugestão pelo CNPJ) | `agenda.html` (`mod/finpdf.js`). Sem SQL novo. |
 | 27/11/2026 | Contratos cadastrados só no Financeiro: "Novo contrato" de Contas a pagar pergunta a área (RE Corretiva, Implantação ou outro); as áreas ficam só com a consulta, o fechamento, as metas e a aprovação | **`agenda_ajuste_101_contratos_pelo_financeiro.sql` no Supabase**, depois `agenda.html` (`mod/ctrfin.js`). |
