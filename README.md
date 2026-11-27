@@ -1180,6 +1180,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - **Contrato avulso não se repete:** o valor do cadastro vale só no mês de início; nos outros meses o valor é preenchido mês a mês (sem valor = R$ 0,00). Improdutivos continuam como antes.
   - **"Budget de todas as áreas" saiu do menu** (a Conta contábil já mostra); quem tinha só esse acesso passa a ver a Conta contábil, e links antigos abrem a Conta contábil.
 
+- **Contas a pagar: filtros da lista de faturas (27/11, `mod/finpagfil.js`):** acima da tabela, busca por terceiro (nome, código SAP, apelido ou ticket), CAPEX/OPEX, etapa (NF a solicitar, NF solicitada, NF recebida, lançada no SAP, aprovada, paga) e ordenação (terceiro, maior valor, vencimento), com "Limpar filtros" e a contagem filtrada. Os quadros de totais e a planilha "Baixar planilha" seguem os filtros.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1244,6 +1246,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 27/11/2026 | Contas a pagar: filtros na lista de faturas (terceiro, CAPEX/OPEX, etapa, ordenação) | `agenda.html` (`mod/finpagfil.js`). Sem SQL novo. |
 | 27/11/2026 | Financeiro: LPU aprovada depois do pedido da NF vai para o mês seguinte; contrato avulso preenchido mês a mês; "Budget de todas as áreas" saiu do menu | `agenda.html` (`mod/finbudmes.js`, `mod/finmod.js`, `mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Contrato fixo da RE Corretiva: ciclo de fechamento próprio (ex.: dia 1 ao fim do mês), início e fim do contrato, com valor proporcional no período parcial | `agenda.html` (`mod/cfciclo.js`, `mod/ctrfin.js`). Sem SQL novo. |
 | 27/11/2026 | Contas a pagar › Contrato fixo: lista de todos os contratos cadastrados com Editar; contrato da RE com "Vale a partir do período" | `agenda.html` (`mod/ctrfin.js`). Sem SQL novo. |

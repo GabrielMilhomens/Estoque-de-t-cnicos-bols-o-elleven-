@@ -24477,6 +24477,30 @@ RP_VIEWS.finVis=function(){ui.tab='finConta';return RP_VIEWS.finConta.apply(this
 {const _t=tabsDe;tabsDe=function(){let T=_t.apply(this,arguments);if(!T.includes('finVis'))return T;T=T.filter(t=>t!=='finVis');if(!T.includes('finConta'))T.push('finConta');return T}}
 {const _r=render;render=function(){if(ui.tab==='finVis')ui.tab='finConta';return _r.apply(this,arguments)}}
 
+/* ---------- 27/11: Contas a pagar: filtros da lista de faturas (terceiro, CAPEX/OPEX, etapa) e ordenação ---------- */
+const F4PF_ET=[['','Todas as etapas'],['-1','NF a solicitar'],['0','NF solicitada'],['1','NF recebida'],['2','Lançada no SAP'],['3','Aprovada'],['4','Paga']];
+const f4pfAtivo=()=>!!(String(ui.f4PQ||'').trim()||ui.f4PCx||ui.f4PEt!=null&&ui.f4PEt!==''||ui.f4POrd);
+function f4pfAplica(L){const q=normK(String(ui.f4PQ||'').trim()),cx=ui.f4PCx||'',et=ui.f4PEt==null?'':String(ui.f4PEt),o=ui.f4POrd||'';
+  let R=L.filter(g=>{if(q){const s=normK([g.nome,g.fin&&g.fin.codigo_sap,g.s&&g.s.ticket_sap,g.fin&&(g.fin.apelidos||[]).join(' ')].filter(Boolean).join(' '));if(!s.includes(q))return false}
+    if(cx){const c=f4Cx(g);if(!(c[cx]>0))return false}if(et!==''){const e=+et;if(e<0?g.etapa>=0:g.etapa!==e)return false}return true});
+  if(o==='valor')R=R.slice().sort((a,b)=>b.valor-a.valor);else if(o==='venc')R=R.slice().sort((a,b)=>String(f2Venc(a)||'9999').localeCompare(String(f2Venc(b)||'9999')));else if(o==='nome')R=R.slice().sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
+  return R}
+function f4pfBarra(n,N,tot){const op=(v,L)=>L.map(([k,t])=>`<option value="${k}" ${String(v==null?'':v)===k?'selected':''}>${t}</option>`).join('');
+  return `<div class="f4pf" role="search"><input class="inp" type="search" data-in="f4PQ" value="${esc(ui.f4PQ||'')}" placeholder="Buscar terceiro, código SAP ou ticket" aria-label="Buscar terceiro">
+   <select class="inp" data-ch="f4PF" data-k="f4PCx" aria-label="CAPEX ou OPEX">${op(ui.f4PCx||'',[['','CAPEX e OPEX'],['CAPEX','Só CAPEX'],['OPEX','Só OPEX']])}</select>
+   <select class="inp" data-ch="f4PF" data-k="f4PEt" aria-label="Etapa">${op(ui.f4PEt,F4PF_ET)}</select>
+   <select class="inp" data-ch="f4PF" data-k="f4POrd" aria-label="Ordenar">${op(ui.f4POrd||'',[['','Ordem padrão'],['nome','Terceiro (A a Z)'],['valor','Maior valor'],['venc','Vencimento']])}</select>
+   ${f4pfAtivo()?`<button class="btn sm" data-act="f4PLimpa">Limpar filtros</button><small class="muted">${n} de ${N} faturas · ${brl(tot)}</small>`:''}</div>`}
+{const v=f4ViewPagar;f4ViewPagar=function(){if(!f2Ok())return v.apply(this,arguments);const _f=f2Faturas;let n=0,N=0,tot=0;
+  const T=ui.f4PagT||'lpu';f2Faturas=mm=>{const L=_f(mm),R=f4pfAplica(L),Lt=L.filter(g=>g.tipo===T),Rt=R.filter(g=>g.tipo===T);N=Lt.length;n=Rt.length;tot=Rt.reduce((s,g)=>s+(+g.valor||0),0);return R};let h;try{h=v.apply(this,arguments)}finally{f2Faturas=_f}
+  const b=f4pfBarra(n,N,tot),i=h.search(/<div class="tablewrap"><table class="f2t f2pag">|<p class="fgempty">Nenhuma fatura/);return i<0?h:h.slice(0,i)+b+h.slice(i)}}
+Object.assign(CH,{f4PF:el=>{ui[el.dataset.k]=el.value;render()}});
+Object.assign(ACT,{f4PLimpa:()=>{ui.f4PQ='';ui.f4PCx='';ui.f4PEt='';ui.f4POrd='';render()}});
+Object.assign(IN,{f4PQ:el=>{ui.f4PQ=el.value;clearTimeout(ui.f4PTq);ui.f4PTq=setTimeout(()=>{const pos=el.selectionStart,y=window.scrollY;render();window.scrollTo(0,y);const n=document.querySelector('[data-in="f4PQ"]');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},300)}});
+/* planilha de Contas a pagar segue os filtros */
+{const _p=f4PagXlsx;f4PagXlsx=function(){const _f=f2Faturas;f2Faturas=mm=>f4pfAplica(_f(mm));try{return _p.apply(this,arguments)}finally{f2Faturas=_f}};ACT.f2PagXlsx=()=>f4PagXlsx()}
+document.head.insertAdjacentHTML('beforeend',`<style>.f4pf{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}.f4pf input{flex:1 1 240px;min-width:0}.f4pf select{flex:0 1 auto;width:auto}.f4pf small{margin-left:4px}</style>`);
+
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
    - Leitura com internet: vai ao banco e guarda uma cópia no aparelho (IndexedDB "impl_offline": linhas por tabela e a
