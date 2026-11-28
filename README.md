@@ -1214,6 +1214,12 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Planilha da Visão geral com a origem da entrega (28/11, `mod/impkpi.js`):** a aba Entregas ganha "Demanda recebida em" (primeiro agendamento de interno ou ativação da etiqueta, em qualquer data) e "Origem da entrega" (demanda do mês, demanda de meses anteriores, sem agendamento de interno ou ativação — ativado fora da ferramenta — ou atividade em cliente já ativo), com a mesma regra do quadro Circuitos entregues.
 
+- **Painel de KPIs do GTD Manutenção no padrão novo (28/11, `mod/gtdkpi.js`):** só o GTD muda (a RE Corretiva continua como está).
+  - **Visão geral:** 5 quadros comparados com o período anterior (chamados, MTTR médio, eficiência no SLA de 4h, reincidências, improdutivos; tocar abre os chamados), linha com tempo até o despacho, encaminhados, dentro/acima de 4h e reforços, SLA de 4 horas e Chamados por semana (dentro, acima de 4h e em aberto; tocar na semana lista os chamados). Sai o SLA de indisponibilidade.
+  - **Chamados (nova):** por categoria numa tabela só (chamados, %, MTTR, dentro de 4h, eficiência), por cidade, por desfecho (RFO, com os validados sem RFO) e lista de reincidências.
+  - **Equipes (nova):** equipe própria × terceiros, por técnico (com filtro, eficiência e reforços) e por empresa terceira.
+  - **Tempos de atendimento:** 6 quadros comparados com o período anterior e tabela "Por cidade".
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1278,6 +1284,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 28/11/2026 | Painel de KPIs do GTD no padrão novo: Visão geral com quadros comparados e chamados por semana, telas Chamados e Equipes, Tempos com quadros e por cidade; sai o SLA de indisponibilidade | `agenda.html` (`mod/gtdkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Planilha da Visão geral: aba Entregas com "Demanda recebida em" e "Origem da entrega" | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Demanda × entrega: cliente com ativação anterior ao período não conta como demanda nova (números batem com Circuitos entregues) | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Visão gerencial: Financeiro pela Conta contábil; indicadores da Implantação e da Transmissão de volta (Transmissão no período da Visão gerencial) | `agenda.html` (`mod/gerfix.js`). Sem SQL novo. |

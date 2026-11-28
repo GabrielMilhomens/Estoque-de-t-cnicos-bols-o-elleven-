@@ -25017,7 +25017,7 @@ function ikRecDe(e){const A=pdAgs().filter(a=>a.etiqueta===e&&a.status!=='cancel
   T.per='custom';T.f={};T.q='';ui.txIni=ui.gpIni;ui.txFim=ui.gpFim;try{return _g.apply(this,arguments)}finally{T.per=o.per;T.f=o.f;T.q=o.q;ui.txIni=o.ini;ui.txFim=o.fim}}}
 gerKpis=function(html){if(html==null)return null;const d=document.createElement('div');d.innerHTML=html;const tx=e=>e?e.textContent.replace(/\s+/g,' ').trim():'',cor=s=>(String(s).match(/\b(ok|warn|bad)\b/)||[])[1]||'';
   let I=[];
-  if(d.querySelector('.gfk .gfc')){I=[...d.querySelectorAll('.gfk .gfc')].map(e=>[tx(e.querySelector('.v')),tx(e.querySelector('.l')),'']).concat([...d.querySelectorAll('.ikline:not(.ikin)>div')].map(e=>[tx(e.querySelector('b')),tx(e.querySelector('span')),'']))}
+  if(d.querySelector('.gfk .gfc')){I=[...d.querySelectorAll('.gfk .gfc')].map(e=>[tx(e.querySelector('.v')),tx(e.querySelector('.l')),'']).concat([...d.querySelectorAll('.ikline:not(.ikin)>*')].map(e=>[tx(e.querySelector('b')),tx(e.querySelector('span')),'']))}
   else if(d.querySelector('.tkkpis .tkkpi'))I=[...d.querySelectorAll('.tkkpis .tkkpi')].map(e=>[tx(e.querySelector('b')),tx(e.querySelector('.tkkl')),e.querySelector('.tkkd .tkruim')&&!/igual/.test(tx(e.querySelector('.tkkd')))?'warn':'']);
   else I=[...d.querySelectorAll('.kpis .kpi, .tvkg .tvkv')].map(e=>{const v=e.querySelector('b'),l=e.querySelector('span,small');return[tx(v),tx(l),cor((e.className||'')+' '+((v&&v.className)||''))]});
   I=I.filter(x=>x[0]).slice(0,9);
@@ -25033,6 +25033,133 @@ function gerFin(m){if(!F2.ok){if(!F2.bus&&!F2.err)f2Carregar().then(()=>{if(ui.t
 {const _v=RP_VIEWS.gerKpi;RP_VIEWS.gerKpi=function(){const h=_v.apply(this,arguments),k='<article class="fgcard" style="margin-top:14px">',i=h.lastIndexOf(k);if(i<0)return h;
   const mes=ui.gpFim.slice(0,7);return h.slice(0,i)+`${k}<div class="secth"><div><h3><span class="ario a-fin" style="width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center">${arSvg('fin',17)}</span>Financeiro · Conta contábil · ${mesNome(mes)}</h3><small class="muted">Executado e budget de cada conta (mês do fim do período)</small></div><button class="btn sm" data-act="gerConta" data-c="">Abrir a Conta contábil</button></div>${gerFin(mes)}</article>`}}
 ACT.gerConta=el=>{const c=el.dataset.c||'',m=(ui.gpFim||hoje()).slice(0,7);gerVai('fin','finConta',()=>{try{f4SetM(m)}catch(e){ui.finM=m}ui.fcCod=c;ui.f5CO=c})};
+
+/* ---------- 28/11: Painel de KPIs do GTD Manutenção no padrão novo ----------
+   Visão geral: 5 quadros comparados com o período anterior (chamados, MTTR, eficiência SLA 4h, reincidências, improdutivos),
+   linha de números secundários, SLA de 4 horas e Chamados por semana (toque na semana para ver os chamados). Sai o SLA de indisponibilidade.
+   Chamados (nova): por categoria (chamados, MTTR, SLA numa tabela só), por cidade, por desfecho (RFO) e lista de reincidências.
+   Equipes (nova): equipe própria × terceiros, por técnico (com filtro) e por empresa terceira.
+   Tempos de atendimento: quadros comparados com o período anterior e tabela "Por cidade".
+   Só o GTD Manutenção muda; a RE Corretiva continua como está. */
+const gkOn=()=>ui.cat==='gtd'&&(ui.gArea||'gtd')==='gtd'&&!(typeof gTecPerfil==='function'&&gTecPerfil());
+const GK_SUB=[['geral','Visão geral'],['cham','Chamados'],['equipes','Equipes']];
+const gkSub=()=>GK_SUB.some(x=>x[0]===ui.gkSub)?ui.gkSub:'geral';
+try{TP.gtd.grupos.splice(1,0,['Cidade',r=>{const c=G.ch.find(x=>x.id===r.id)||{};return c.cidade?String(c.cidade).toLowerCase().replace(/(^|\s)\S/g,x=>x.toUpperCase()):'Sem cidade'},0])}catch(e){}
+/* período anterior (mês inteiro → mês anterior; senão, o mesmo tamanho logo antes) */
+function gkAntPer(){const a=ui.gpIni,b=ui.gpFim;if(a.slice(8)==='01'&&b.slice(0,7)===a.slice(0,7)){const m=gfMais(a.slice(0,7),-1),fm=ikFimMes(m+'-01'),full=b===ikFimMes(a)||b>=hoje();
+    const dd=full?fm:(m+'-'+b.slice(8)>fm?fm:m+'-'+b.slice(8));return[m+'-01',dd,gfMesN(m)]}const n=pdDias(a,b)+1;return[addD(a,-n),addD(a,-1),'o período anterior']}
+function gkAnt(fn){const a=ui.gpIni,b=ui.gpFim,[x,y]=gkAntPer();ui.gpIni=x;ui.gpFim=y;try{return fn()}finally{ui.gpIni=a;ui.gpFim=b}}
+const gkCard=(l,v,s,dl,act)=>`<${act?`button type="button" data-act="kdA" data-f="${act}"`:'div'} class="gfc${act?' gkbt':''}"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s||'&nbsp;'}</span><span class="d">${dl?`<em class="${dl[1]}">${dl[0]}</em> vs. ${gkAntPer()[2]}`:'&nbsp;'}</span></${act?'button':'div'}>`;
+const gkPer=()=>{const i=ui.gpIni||hoje().slice(0,8)+'01',f=ui.gpFim||hoje();ui.gpIni=i;ui.gpFim=f;return[i,f]};
+const gkP=()=>{const[i,f]=gkPer();return G.ch.filter(c=>c.status!=='cancelado'&&gDiaDe(c)>=i&&gDiaDe(c)<=f)};
+const gkMed=L=>L.length?L.reduce((s,x)=>s+x,0)/L.length:null,gkT=c=>c.validadoEm-gIni(c),gkOk=c=>gkT(c)<=g4Lim(c);
+const gkDur=ms=>ms==null?'—':gDur(ms),gkCid=c=>c.cidade?String(c.cidade).toLowerCase().replace(/(^|\s)\S/g,x=>x.toUpperCase()):'Sem cidade';
+const gkCli=c=>esc(c.cliente||'—')+(c.etiqueta?' · '+esc(c.etiqueta):'');
+const gkEf=(o,n)=>{if(!n)return '<span class="mu">—</span>';const p=Math.round(o/n*1000)/10;return `<span class="gkef"><span class="gkefb"><i style="width:${Math.min(p,100)}%;background:${p>=G4_META?'#7cb342':'#c0504d'}"></i><em style="left:${G4_META}%"></em></span><b class="${p>=G4_META?'':'dn'}">${g4Pct(p)}</b></span>`};
+/* reforços (mesma regra da coluna "Como reforço") */
+function gkRef(){const[ini,fim]=gkPer(),M={};try{const all=refChTodos(),P=new Set(G.ch.filter(c=>!refChDe(c)).map(c=>c.id));
+  all.filter(x=>refChDe(x)&&!x.refSaida&&x.status!=='cancelado'&&P.has(x.refDe)&&(()=>{const p=all.find(y=>y.id===x.refDe);return p&&gDiaDe(p)>=ini&&gDiaDe(p)<=fim})()).forEach(x=>{if(x.tec)M[x.tec]=(M[x.tec]||0)+1})}catch(e){}return M}
+function gkDados(){const P=gkP(),D=g4Dados(P),V=D.V,rei=P.filter(c=>gReinc(c).length).length,imp=P.filter(c=>c.desfecho==='Improdutivo').length,R=gkRef();
+  return{P,D,V,n:P.length,ab:P.filter(c=>GTD_ABERTOS.includes(c.status)).length,mttr:gkMed(V.map(gkT)),ef:D.ef,rei,reiP:P.length?Math.round(rei/P.length*100):0,imp,impP:P.length?Math.round(imp/P.length*100):0,
+    desp:gkMed(P.filter(c=>c.ts&&c.ts.despacho).map(c=>c.ts.despacho-gIni(c)).filter(x=>x>=0)),enc:P.filter(c=>c.desfecho==='Encaminhado').length,ref:Object.values(R).reduce((s,x)=>s+x,0),R}}
+const gkMin=ms=>ms==null?null:ms/60000;
+/* ---------- cabeçalho com o período ---------- */
+function gkHead(t,sub,xl){const[ini,fim]=gkPer(),T=hoje(),PER=[['hoje','Hoje',T,T],['7','7 dias',addD(T,-6),T],['30','30 dias',addD(T,-29),T],['mes','Este mês',T.slice(0,8)+'01',T]],perAt=(PER.find(x=>x[2]===ini&&x[3]===fim)||[''])[0];
+  return `<div class="gfhd"><div><h2>${t}</h2><p class="muted">${sub} · comparado com ${gkAntPer()[2]}</p></div><div class="tools"><div class="gfseg" role="group" aria-label="Período">${PER.map(([k,n])=>`<button data-act="tvPer" data-v="${k}" aria-pressed="${perAt===k}">${n}</button>`).join('')}<button data-act="tvPer" data-v="datas" aria-pressed="${!perAt}">Escolher datas</button></div>${xl?`<button class="btn" data-act="${xl}">Baixar planilha</button>`:''}</div></div>
+   ${!perAt||ui.gpDatas?`<div class="tools" style="margin:-4px 0 12px"><label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ini}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${fim}"></label></div>`:''}`}
+/* ---------- Visão geral ---------- */
+function gkSemanas(P){const[ini,fim]=gkPer(),W=[];for(let d=ini;d<=fim&&W.length<10;d=addD(d,7)){const f=addD(d,6)>fim?fim:addD(d,6),X=P.filter(c=>gDiaDe(c)>=d&&gDiaDe(c)<=f);W.push({d,f,X})}return W}
+function gkGeral(h0){const c=gkDados(),a=gkAnt(gkDados),dl=(x,y,f,m)=>ikDl(x,y,f,m);KD.P=c.P;
+  const mt=gkMin(c.mttr),mtA=gkMin(a.mttr),tvatn=(String(h0).match(/<section class="tvatn">[\s\S]*?<\/section>/)||[''])[0];
+  let g4=(String(h0).match(/<section class="panel g4"[\s\S]*?<\/section>/)||[''])[0];g4=g4.replace(/<div class="g4cat">[\s\S]*?<\/div><\/div>(?=\s*(<p|<\/section>))/,'');
+  const cards=`<div class="gfk ik5">${gkCard('Chamados',c.n,`${c.ab} em aberto agora`,dl(c.n,a.n,'n'),'all')}${gkCard('MTTR médio',gkDur(c.mttr),'do início à validação do NOC',dl(mt,mtA,'t',true),'mttr')}
+   ${gkCard('Eficiência SLA 4h',c.ef==null?'—':g4Pct(c.ef),`<span class="ikmeta"><i style="width:${Math.min(c.ef||0,100)}%"></i><em style="left:${G4_META}%"></em></span> meta ${G4_META}% · ${c.D.ok.length} de ${c.V.length}`,dl(c.ef,a.ef,'p'),'ok')}
+   ${gkCard('Reincidências',c.rei,`${c.reiP}% dos chamados · 30 dias`,dl(c.rei,a.rei,'n',true),'rei')}${gkCard('Improdutivos',c.imp,`${c.impP}% dos chamados`,dl(c.imp,a.imp,'n',true),'imp')}</div>`;
+  const line=`<div class="ikline">${[[gkDur(c.desp),'Tempo médio até o despacho','desp'],[c.enc,'Encaminhados para outra equipe','enc'],[c.D.ok.length,'Dentro de 4h · média '+gkDur(c.D.mOk),'ok'],[c.D.fora.length,'Acima de 4h · média '+gkDur(c.D.mFora),'no'],[c.ref,'Como reforço','']].map(([b,s,f])=>f?`<button type="button" class="gkln" data-act="kdA" data-f="${f}"><b>${b}</b><span>${s}</span></button>`:`<div><b>${b}</b><span>${s}</span></div>`).join('')}</div>`;
+  const W=gkSemanas(c.P),mx=Math.max(1,...W.map(w=>w.X.length)),T=hoje();let si=ui.gkWk!=null&&W[ui.gkWk]?ui.gkWk:-1;if(si<0)for(let i=W.length-1;i>=0;i--)if(W[i].X.length){si=i;break}
+  const st=c=>!c.validadoEm?'ab':gkOk(c)?'ok':'no',cor={ok:'#7cb342',no:'#c0504d',ab:'#c9cfc3'};
+  const bar=(w,i)=>{const n=w.X.length,k=s=>w.X.filter(c=>st(c)===s).length,v=k('ok')+k('no'),pe=v?Math.round(k('ok')/v*100):null,run=w.f>=T&&w.d<=T;
+    return `<button class="ikwk ${i===si?'on':''}" data-act="gkWk" data-i="${i}" aria-pressed="${i===si}"><span class="ikn">${n||'—'}</span><span class="ikst" style="height:${n/mx*100}%">${['ab','no','ok'].map(s=>k(s)?`<i style="flex:${k(s)};background:${cor[s]}"></i>`:'').join('')}</span><small><b>${dBR(w.d).slice(0,5)}</b> a ${dBR(w.f).slice(0,5)}</small><small class="${pe!=null&&pe<G4_META?'dn':''}">${pe!=null?pe+'% no SLA':run?'em andamento':'&nbsp;'}</small></button>`};
+  const S0=W[si],lim=ui.gkWkTodos?999:8,L=S0?S0.X.slice().sort((x,y)=>(y.validadoEm?gkT(y):1e15)-(x.validadoEm?gkT(x):1e15)):[];
+  const nm={ok:'dentro de 4h',no:'acima de 4h',ab:'em aberto'},ch={ok:'ok',no:'bad',ab:'warn'};
+  const sem=`<section class="panel gfp"><div class="secth"><h3>Chamados por semana</h3><span class="muted">toque na semana para ver os chamados</span></div>
+   ${W.some(w=>w.X.length)?`<div class="ikbars">${W.map(bar).join('')}</div><div class="ikleg"><span><i style="background:${cor.ok}"></i>Dentro de 4h</span><span><i style="background:${cor.no}"></i>Acima de 4h</span><span><i style="background:${cor.ab}"></i>Em aberto</span><span>% = validados da semana dentro do SLA (meta ${G4_META}%)</span></div>
+   ${S0&&S0.X.length?`<div class="iklist"><div class="ikhd"><b>Semana de ${dBR(S0.d).slice(0,5)} a ${dBR(S0.f).slice(0,5)}</b> <span class="mu">· ${S0.X.length} ${S0.X.length===1?'chamado':'chamados'} · ${S0.X.filter(c=>st(c)==='no').length} acima de 4h</span></div><div class="tablewrap"><table class="gft"><thead><tr><th>Cliente · etiqueta</th><th>Categoria</th><th>Técnico</th><th class="r">MTTR</th><th></th></tr></thead><tbody>
+   ${L.slice(0,lim).map(x=>`<tr class="ifrow" data-act="gAbrir" data-id="${x.id}" tabindex="0"><td><b>${gkCli(x)}</b><br><small class="mu">O&amp;M ${esc(x.pom||'')} · ${dBR(gDiaDe(x)).slice(0,5)}</small></td><td>${esc(x.categoria||'—')}</td><td class="mu">${esc(gTecN(x.tec)||'—')}</td><td class="r"><b class="${st(x)==='no'?'dn':''}">${x.validadoEm?gkDur(gkT(x)):'—'}</b></td><td><span class="chip ${ch[st(x)]}">${nm[st(x)]}</span></td></tr>`).join('')}</tbody></table></div>
+   ${L.length>lim?`<p class="gfnote">mostrando ${lim} de ${L.length} · <button class="lk" data-act="gkWkTodos">ver todos</button></p>`:''}</div>`:''}`:'<p class="muted">Nenhum chamado no período.</p>'}</section>`;
+  return gkHead('Visão geral',`${dBR(ui.gpIni)} a ${dBR(ui.gpFim)} · chamados pelo dia de início`,'g4Xlsx')+tvatn+cards+line+g4+sem}
+/* ---------- Chamados ---------- */
+function gkCham(){const c=gkDados(),a=gkAnt(gkDados),P=c.P,V=c.V;KD.P=P;
+  const grp=(L,fn)=>{const m={};L.forEach(x=>{const k=fn(x)||'—';(m[k]=m[k]||[]).push(x)});return Object.entries(m).sort((x,y)=>y[1].length-x[1].length)};
+  const cat=grp(P,x=>x.categoria),cA=grp(a.P,x=>x.categoria),top=cat[0],topA=top?(cA.find(x=>x[0]===top[0])||[0,[]])[1].length:0;
+  const reiE={};P.filter(x=>gReinc(x).length).forEach(x=>{const e=x.etiqueta||x.cliente||x.id,o=reiE[e];if(!o||gIni(x)>gIni(o))reiE[e]=x});const RE=Object.values(reiE).sort((x,y)=>gReinc(y).length-gReinc(x).length||gIni(y)-gIni(x));
+  const sR=V.filter(x=>!x.desfecho).length,sRA=a.V.filter(x=>!x.desfecho).length;
+  const cards=`<div class="gfk">${gkCard('Chamados',c.n,`${V.length} validados pelo NOC`,ikDl(c.n,a.n,'n'),'all')}${gkCard('Maior categoria',top?esc(top[0]):'—',top?`${top[1].length} chamados · ${Math.round(top[1].length/c.n*100)}%`:'&nbsp;',top?ikDl(top[1].length,topA,'n',true):null,top?'grp:'+top[0]:'')}
+   ${gkCard('Reincidências',RE.length,'etiquetas com 2+ chamados em 30 dias',ikDl(RE.length,(()=>{const s=new Set();a.P.filter(x=>gReinc(x).length).forEach(x=>s.add(x.etiqueta||x.cliente||x.id));return s.size})(),'n',true),'rei')}${gkCard('Sem RFO',sR,'validados sem desfecho registrado',ikDl(sR,sRA,'n',true))}</div>`;
+  const vOk=L=>L.filter(x=>x.validadoEm),tCat=`<section class="panel gfp"><div class="secth"><h3>Por categoria</h3><span class="muted">chamados · MTTR · SLA de 4h · toque para ver os chamados</span></div><div class="tablewrap"><table class="gft"><thead><tr><th>Categoria</th><th class="r">Chamados ↓</th><th class="r">%</th><th class="r">MTTR médio</th><th class="r">Dentro de 4h</th><th>Eficiência · meta ${G4_META}%</th></tr></thead><tbody>
+   ${cat.map(([k,L])=>{const v=vOk(L),o=v.filter(gkOk).length;return `<tr class="ifrow" data-act="kdA" data-f="grp:${esc(k)}" tabindex="0"><td><b>${esc(k)}</b></td><td class="r"><b>${L.length}</b></td><td class="r mu">${Math.round(L.length/c.n*100)}%</td><td class="r">${gkDur(gkMed(v.map(gkT)))}</td><td class="r">${o} de ${v.length}</td><td>${gkEf(o,v.length)}</td></tr>`}).join('')||'<tr><td colspan="6" class="mu">Nenhum chamado no período.</td></tr>'}</tbody>
+   ${cat.length?`<tfoot><tr><td>Total</td><td class="r">${c.n}</td><td class="r">100%</td><td class="r">${gkDur(c.mttr)}</td><td class="r">${c.D.ok.length} de ${V.length}</td><td>${gkEf(c.D.ok.length,V.length)}</td></tr></tfoot>`:''}</table></div></section>`;
+  const cid=grp(P,gkCid).slice(0,10),tCid=`<section class="panel gfp"><div class="secth"><h3>Por cidade</h3><span class="muted">10 com mais chamados</span></div><div class="tablewrap"><table class="gft"><thead><tr><th>Cidade</th><th class="r">Chamados ↓</th><th class="r">MTTR</th><th class="r">No SLA</th></tr></thead><tbody>
+   ${cid.map(([k,L])=>{const v=vOk(L),o=v.filter(gkOk).length,p=v.length?Math.round(o/v.length*100):null;return `<tr><td><b>${esc(k)}</b></td><td class="r"><b>${L.length}</b></td><td class="r">${gkDur(gkMed(v.map(gkT)))}</td><td class="r">${p==null?'<span class="mu">—</span>':`<b class="${p<G4_META?'dn':''}">${p}%</b>`}</td></tr>`}).join('')||'<tr><td colspan="4" class="mu">—</td></tr>'}</tbody></table></div></section>`;
+  const des=grp(V.filter(x=>x.desfecho),x=>x.desfecho),nV=V.length||1,tDes=`<section class="panel gfp"><div class="secth"><h3>Por desfecho (RFO)</h3><span class="muted">dos chamados validados</span></div><div class="tablewrap"><table class="gft"><thead><tr><th>Desfecho</th><th class="r">Chamados ↓</th><th class="r">%</th></tr></thead><tbody>
+   ${des.map(([k,L])=>`<tr><td>${esc(k)}</td><td class="r"><b>${L.length}</b></td><td class="r mu">${Math.round(L.length/nV*100)}%</td></tr>`).join('')}${sR?`<tr><td class="mu">Sem RFO registrado</td><td class="r"><b>${sR}</b></td><td class="r mu">${Math.round(sR/nV*100)}%</td></tr>`:''}${!des.length&&!sR?'<tr><td colspan="3" class="mu">Nenhum chamado validado no período.</td></tr>':''}</tbody></table></div></section>`;
+  const lim=ui.gkReTodos?999:10,tRe=`<section class="panel gfp"><div class="secth"><h3>Reincidências <span class="mu" style="font-weight:500">· ${RE.length}</span></h3><span class="muted">etiquetas com mais de um chamado em 30 dias</span></div>
+   ${RE.length?`<div class="tablewrap"><table class="gft"><thead><tr><th>Cliente · etiqueta</th><th>Cidade</th><th class="r">Chamados em 30 dias ↓</th><th>Categorias</th><th>Último chamado</th><th>Técnicos</th></tr></thead><tbody>
+   ${RE.slice(0,lim).map(x=>{const L=[x].concat(gReinc(x)),cc={};L.forEach(y=>{const k=y.categoria||'—';cc[k]=(cc[k]||0)+1});const tc=[...new Set(L.map(y=>gTecN(y.tec)).filter(Boolean))];
+     return `<tr class="ifrow" data-act="gAbrir" data-id="${x.id}" tabindex="0"><td><b>${gkCli(x)}</b></td><td class="mu">${esc(gkCid(x))}</td><td class="r"><b class="dn">${L.length}</b></td><td>${Object.entries(cc).map(([k,n])=>esc(k)+(n>1?' ×'+n:'')).join(' · ')}</td><td>${dBR(gDiaDe(x)).slice(0,5)}</td><td class="mu">${esc(tc.join(', ')||'—')}</td></tr>`}).join('')}</tbody></table></div>
+   ${RE.length>lim?`<p class="gfnote"><button class="lk" data-act="gkReTodos">ver as ${RE.length} reincidências</button></p>`:''}<p class="gfnote">Toque no cliente para abrir o último chamado.</p>`:'<p class="muted">Nenhuma reincidência no período.</p>'}</section>`;
+  return gkHead('Chamados','Volume, categorias, cidades, desfechos e reincidências','g4Xlsx')+cards+tCat+`<div class="grid2 even">${tCid}${tDes}</div>`+tRe}
+/* ---------- Equipes ---------- */
+function gkEqD(){const P=gkP(),R=gkRef(),T={};P.forEach(c=>{if(!c.tec)return;(T[c.tec]=T[c.tec]||[]).push(c)});
+  const g=L=>{const v=L.filter(c=>c.validadoEm),o=v.filter(gkOk).length;return{n:L.length,v:v.length,o,ef:v.length?Math.round(o/v.length*1000)/10:null,m:gkMed(v.map(gkT)),imp:L.filter(c=>c.desfecho==='Improdutivo').length,ab:L.filter(c=>GTD_ABERTOS.includes(c.status)).length}};
+  const tecs=Object.entries(T).map(([id,L])=>Object.assign({id,nome:gTecN(id)||'—',vin:gTecV(id)||'—',ref:R[id]||0},g(L))).sort((a,b)=>b.n-a.n);
+  const tp=k=>tecs.filter(t=>k==='CLT'?t.vin==='CLT':t.vin!=='CLT'),agr=L=>{const X=[].concat(...L.map(t=>T[t.id]));return Object.assign({nt:L.length,ref:L.reduce((s,t)=>s+t.ref,0)},g(X))};
+  return{P,T,tecs,clt:agr(tp('CLT')),ter:agr(tp('TERC')),tot:agr(tecs),tp,agr}}
+function gkEquipes(){const c=gkEqD(),a=gkAnt(gkEqD),F=ui.gkEqF||'all';KD.P=c.P;
+  const emp=id=>{const x=(S.cnpj||{})[id]||{};return x.empresa?gTecN(x.empresa):''},pc=x=>x==null?'—':g4Pct(x);
+  const cards=`<div class="gfk ik5">${gkCard('Técnicos em campo',c.tecs.length,`${c.clt.nt} CLT · ${c.ter.nt} ${c.ter.nt===1?'terceiro':'terceiros'}`,ikDl(c.tecs.length,a.tecs.length,'n'))}
+   ${gkCard('Chamados por técnico',c.tecs.length?ikF.n(c.tot.n/c.tecs.length):'—','média no período',c.tecs.length&&a.tecs.length?ikDl(c.tot.n/c.tecs.length,a.tot.n/a.tecs.length,'n'):null)}
+   ${gkCard('Eficiência CLT',pc(c.clt.ef),`${c.clt.o} de ${c.clt.v} dentro de 4h`,ikDl(c.clt.ef,a.clt.ef,'p'))}${gkCard('Eficiência terceiros',pc(c.ter.ef),`${c.ter.o} de ${c.ter.v} dentro de 4h`,ikDl(c.ter.ef,a.ter.ef,'p'))}
+   ${gkCard('Improdutivos',c.tot.imp,`${c.ter.imp} ${c.ter.imp===1?'terceiro':'terceiros'} · ${c.clt.imp} CLT`,ikDl(c.tot.imp,a.tot.imp,'n',true),'imp')}</div>`;
+  const row=(n,x)=>`<tr><td><b>${n}</b></td><td class="r">${x.nt}</td><td class="r">${x.n}</td><td class="r">${x.ref||'—'}</td><td class="r">${x.o}</td><td>${gkEf(x.o,x.v)}</td><td class="r">${gkDur(x.m)}</td><td class="r">${x.imp}</td></tr>`;
+  const t1=`<section class="panel gfp"><div class="secth"><h3>Equipe própria × terceiros</h3></div><div class="tablewrap"><table class="gft"><thead><tr><th>Equipe</th><th class="r">Técnicos</th><th class="r">Chamados</th><th class="r">Como reforço</th><th class="r">Dentro de 4h</th><th>Eficiência · meta ${G4_META}%</th><th class="r">MTTR médio</th><th class="r">Improdutivos</th></tr></thead><tbody>${row('Equipe própria (CLT)',c.clt)}${row('Terceiros',c.ter)}</tbody><tfoot>${row('Total',c.tot).replace(/<\/?b>/g,'').replace('<tr>','<tr>')}</tfoot></table></div></section>`;
+  const cnt=k=>k==='all'?c.tecs.length:c.tp(k).length,vis=F==='all'?c.tecs:c.tp(F);
+  const t2=`<section class="panel gfp"><div class="secth"><h3>Por técnico</h3><div class="gfseg">${[['all','Todos'],['CLT','Equipe própria'],['TERC','Terceiros']].map(([k,n])=>`<button data-act="gkEqF" data-v="${k}" aria-pressed="${F===k}">${n} · ${cnt(k)}</button>`).join('')}</div></div><div class="tablewrap"><table class="gft"><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Chamados ↓</th><th class="r">Em aberto</th><th class="r">Como reforço</th><th class="r">Dentro de 4h</th><th>Eficiência</th><th class="r">MTTR médio</th><th class="r">Improdutivos</th></tr></thead><tbody>
+   ${vis.map(t=>`<tr class="ifrow" data-act="kdA" data-f="tec:${t.id}" tabindex="0"><td><b>${esc(t.nome)}</b></td><td class="mu">${t.vin==='CLT'?'CLT':'Terceiro'+(emp(t.id)?' · '+esc(emp(t.id)):'')}</td><td class="r"><b>${t.n}</b></td><td class="r">${t.ab||'—'}</td><td class="r">${t.ref?`<button class="lk" data-act="kdA" data-f="ref:${t.id}">${t.ref}</button>`:'—'}</td><td class="r">${t.o}</td><td>${gkEf(t.o,t.v)}</td><td class="r">${gkDur(t.m)}</td><td class="r ${t.imp>1?'dn':''}">${t.imp}</td></tr>`).join('')||'<tr><td colspan="9" class="mu">Nenhum chamado despachado no período.</td></tr>'}</tbody></table></div>
+   <p class="gfnote">Em vermelho: eficiência abaixo da meta de ${G4_META}% ou mais de 1 improdutivo · toque no técnico para ver os chamados</p></section>`;
+  const E={};c.tp('TERC').forEach(t=>{const k=emp(t.id)||t.nome;(E[k]=E[k]||[]).push(t)});const ES=Object.entries(E).map(([k,L])=>[k,c.agr(L)]).sort((x,y)=>y[1].n-x[1].n);
+  const t3=ES.length?`<section class="panel gfp"><div class="secth"><h3>Por empresa terceira</h3><span class="muted">soma dos técnicos de cada empresa</span></div><div class="tablewrap"><table class="gft"><thead><tr><th>Empresa</th><th class="r">Técnicos</th><th class="r">Chamados ↓</th><th class="r">Dentro de 4h</th><th>Eficiência</th><th class="r">MTTR médio</th><th class="r">Improdutivos</th></tr></thead><tbody>
+   ${ES.map(([k,x])=>`<tr><td><b>${esc(k)}</b></td><td class="r">${x.nt}</td><td class="r"><b>${x.n}</b></td><td class="r">${x.o}</td><td>${gkEf(x.o,x.v)}</td><td class="r">${gkDur(x.m)}</td><td class="r">${x.imp}</td></tr>`).join('')}</tbody></table></div></section>`:'';
+  return gkHead('Equipes','Chamados, SLA e MTTR por técnico e por empresa',null)+cards+t1+t2+t3}
+/* ---------- ligação com o painel ---------- */
+{const _gp=gPainelGeral;gPainelGeral=function(){if(!gkOn())return _gp.apply(this,arguments);const s=gkSub();try{if(s==='cham')return `<div class="gfwrap ifwrap ikwrap">${gkCham()}</div>`;if(s==='equipes')return `<div class="gfwrap ifwrap ikwrap">${gkEquipes()}</div>`;
+  const h=_gp.apply(this,arguments);return `<div class="gfwrap ifwrap ikwrap">${gkGeral(h)}</div>`}catch(e){console.warn('gk',e);return _gp.apply(this,arguments)}}}
+/* drill: chamados do técnico */
+{const _k=kdLista;kdLista=function(f){if(gkOn()&&String(f).startsWith('tec:')){const id=f.slice(4);return[KD.P.filter(c=>c.tec===id),'Técnico · '+gTecN(id),'Chamados do período em que é o técnico principal.']}
+  if(gkOn()&&f==='sla')return _k.call(this,'ok');return _k.apply(this,arguments)}}
+/* menu: Visão geral, Chamados, Equipes */
+{const _n=gNavPainel;gNavPainel=function(){let h=_n.apply(this,arguments);if(!gkOn()||ui.tab!=='gPainel')return h;const on=ui.gSec==='geral'||!ui.gSec,s=gkSub();
+  return h.replace(/<button class="nit " data-act="gpSec" data-v="geral" aria-current="(true|false)"><span class="nt">Visão geral<\/span><\/button>/,()=>GK_SUB.map(([k,n])=>`<button class="nit " data-act="gpSec" data-v="geral" data-g="${k}" aria-current="${on&&s===k}"><span class="nt">${n}</span></button>`).join(''))}}
+{const _c=navChips;navChips=function(){let h=_c.apply(this,arguments);if(!gkOn()||ui.tab!=='gPainel')return h;const on=ui.gSec==='geral'||!ui.gSec,s=gkSub();
+  return h.replace(/<button class="nchip (on)?" role="tab" aria-selected="(true|false)" data-act="gpSec" data-v="geral">Visão geral<\/button>/,()=>GK_SUB.map(([k,n])=>`<button class="nchip ${on&&s===k?'on':''}" role="tab" aria-selected="${on&&s===k}" data-act="gpSec" data-v="geral" data-g="${k}">${n}</button>`).join(''))}}
+{const _s=ACT.gpSec;ACT.gpSec=el=>{if(el.dataset.v==='geral'){ui.gkSub=el.dataset.g||'geral';ui.gkWk=null}return _s(el)}}
+Object.assign(ACT,{gkWk:el=>{ui.gkWk=+el.dataset.i;ui.gkWkTodos=false;render()},gkWkTodos:()=>{ui.gkWkTodos=true;render()},gkReTodos:()=>{ui.gkReTodos=true;render()},gkEqF:el=>{ui.gkEqF=el.dataset.v;render()}});
+{const _t=ACT.tvPer;ACT.tvPer=el=>{ui.gkWk=null;return _t(el)}}
+/* ---------- Tempos de atendimento: quadros comparados ---------- */
+{const _x=pTempos;pTempos=function(K){if(K!=='gtd'||!gkOn())return _x.apply(this,arguments);const h=_x.apply(this,arguments);try{const a=arguments,P=gkAnt(()=>_x.apply(this,a)),C=ikKv(h),CP=ikKv(P);
+  const g=(L,pre)=>{const x=ikGet(L,pre);return x?ikNum(x.v):null},tot=ikGet(C,'Total médio'),nA=ikGet(C,'Chamados considerados'),hs=ikGet(C,'Horas somadas');
+  const et=TP.gtd.et.filter(([k])=>k!=='rfo').map(([k,n,m])=>[m,n]);
+  const cards=`<div class="gfk ik5 gk6">${gkCard('Total por chamado',tot?esc(tot.v):'—',`${nA?esc(nA.v):0} chamados${hs?' · '+esc(hs.v):''}`,ikDl(g(C,'Total médio'),g(CP,'Total médio'),'t',true))}${et.map(([m,n])=>{const x=ikGet(C,m);return gkCard(n,x?esc(x.v):'—',n==='Até a saída'?'despacho e preparação':'média por chamado',ikDl(g(C,m),g(CP,m),'t',true))}).join('')}</div>`;
+  return h.replace(/<div class="kpis">[\s\S]*?<\/div>\s*<div class="kpis tpkm"[^>]*>[\s\S]*?<\/div><\/div>/,cards)}catch(e){console.warn('gkTp',e);return h}}}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.gk6{grid-template-columns:repeat(6,minmax(0,1fr))!important}@media(max-width:1100px){.gk6{grid-template-columns:repeat(3,minmax(0,1fr))!important}}@media(max-width:700px){.gk6{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+button.gfc.gkbt{font:inherit;color:inherit;text-align:left;cursor:pointer}button.gfc.gkbt:hover,button.gfc.gkbt:focus-visible{border-color:var(--brand)}
+.ikline .gkln{all:unset;display:flex;gap:7px;align-items:baseline;cursor:pointer;border-radius:8px}.ikline .gkln b{font-size:18px}.ikline .gkln span{color:var(--muted);font-size:13.5px}.ikline .gkln:hover span{text-decoration:underline}
+.gkef{display:inline-flex;align-items:center;gap:8px}.gkefb{display:inline-block;width:110px;height:6px;border-radius:3px;background:var(--line);position:relative}.gkefb i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}.gkefb em{position:absolute;top:-3px;width:2px;height:12px;background:var(--muted)}
+.ikwrap .tvatn{margin-bottom:14px}@media(max-width:700px){.ikwrap .gfhd .gfseg{max-width:100%;overflow-x:auto;flex-wrap:nowrap}.ikwrap .gfhd .gfseg button{flex:none}}
+</style>`);
+/* Visão gerencial: o card do GTD sempre lê a Visão geral */
+{const _g=gerHtml;gerHtml=function(k){if(k!=='gtd')return _g.apply(this,arguments);const o=ui.gkSub;ui.gkSub='geral';try{return _g.apply(this,arguments)}finally{ui.gkSub=o}}}
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
