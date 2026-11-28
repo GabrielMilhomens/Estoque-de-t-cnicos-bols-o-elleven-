@@ -25000,6 +25000,13 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 /* 28/11: etiqueta que já tinha a ativação concluída antes do primeiro interno/ativação do período não é demanda nova
    (é atividade em cliente já ativo, como validação de link); sai da demanda, da eficiência e das semanas */
 {const _d=pdDemanda;pdDemanda=function(){return _d.apply(this,arguments).filter(x=>!(x.f&&x.f.data&&x.f.data<x.rec))}}
+/* 28/11: planilha da Visão geral — aba Entregas com a data da demanda e a origem (bate com o quadro Circuitos entregues) */
+function ikRecDe(e){const A=pdAgs().filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&!a.improd&&fasesOf(a).some(k=>k==='interno'||k==='ativ')).map(a=>a.data).sort();return A[0]||''}
+{const _x=ACT.pgXlsx;ACT.pgXlsx=function(el){const orig=xlsxBaixar,dS=new Set(pdDemanda().map(x=>x.e)),pn=ikPerN();
+  xlsxBaixar=function(arq,abas,msg){try{abas.forEach(a=>{if(a[0]!=='Entregas'||!Array.isArray(a[1]))return;a[1]=a[1].map(r=>{if(!r||typeof r!=='object'||!('Etiqueta' in r))return r;const e=r['Etiqueta'],rec=ikRecDe(e),o={};
+      const orig2=dS.has(e)?'Demanda '+pn:rec&&rec<ui.pIni?(pn==='do período'?'Demanda de antes do período':'Demanda de meses anteriores'):!rec?'Sem agendamento de interno ou ativação (ativado fora da ferramenta)':'Atividade em cliente já ativo';
+      Object.keys(r).forEach(k=>{o[k]=r[k];if(k==='Data da ativação'){o['Demanda recebida em']=rec?dBR(rec):'—';o['Origem da entrega']=orig2}});return o})})}catch(e){console.warn('ikXlsx',e)}return orig.call(this,arq,abas,msg)};
+  try{return _x.apply(this,arguments)}finally{xlsxBaixar=orig}}}
 
 /* ---------- 28/11: Visão gerencial ----------
    1. Indicadores da Implantação (quadros novos do Painel de KPIs) e da Transmissão (quadros .tkkpi) voltam a aparecer.

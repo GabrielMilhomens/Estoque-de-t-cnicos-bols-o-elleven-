@@ -1212,6 +1212,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Demanda × entrega sem cliente já ativo (28/11, `mod/impkpi.js`):** etiqueta cuja ativação foi concluída antes do primeiro agendamento de interno ou ativação do período (atividade em cliente já ativo, como validação de link) deixa de contar como demanda nova; com isso "Entregues da demanda" bate com o "da demanda do mês" do quadro Circuitos entregues e a eficiência considera só demanda nova.
 
+- **Planilha da Visão geral com a origem da entrega (28/11, `mod/impkpi.js`):** a aba Entregas ganha "Demanda recebida em" (primeiro agendamento de interno ou ativação da etiqueta, em qualquer data) e "Origem da entrega" (demanda do mês, demanda de meses anteriores, sem agendamento de interno ou ativação — ativado fora da ferramenta — ou atividade em cliente já ativo), com a mesma regra do quadro Circuitos entregues.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1276,6 +1278,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 28/11/2026 | Planilha da Visão geral: aba Entregas com "Demanda recebida em" e "Origem da entrega" | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Demanda × entrega: cliente com ativação anterior ao período não conta como demanda nova (números batem com Circuitos entregues) | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Visão gerencial: Financeiro pela Conta contábil; indicadores da Implantação e da Transmissão de volta (Transmissão no período da Visão gerencial) | `agenda.html` (`mod/gerfix.js`). Sem SQL novo. |
 | 28/11/2026 | Visão geral da Implantação: circuitos entregues separados em "da demanda do mês" e "de meses anteriores"; "Entregues da demanda" no Demanda × entrega | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
