@@ -1234,6 +1234,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Planilhas das áreas só com a área aberta (28/11, `mod/areaxlsx.js`):** os botões "Baixar planilha" do GTD, RE Corretiva e demais áreas do mesmo painel pegavam chamados e LPUs de todas as áreas (ex.: rompimento, reforço e massiva na planilha do GTD; GTD na da RE Corretiva). Agora toda planilha usa o mesmo filtro de área da tela.
 
+- **Dica nas barras por semana (28/11, `mod/impkpi.js`, `mod/gtdkpi.js`):** ao passar o mouse numa barra do Demanda × entrega (Implantação) ou do Chamados por semana (GTD), aparece quanto tem de cada parte, com quantidade e %: entregue, em andamento e aguardando agendamento; ou dentro de 4h, acima de 4h e em aberto. Mostra também o total e o % da semana.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1298,6 +1300,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 28/11/2026 | Dica ao passar o mouse nas barras por semana da Visão geral (Implantação e GTD) com a quantidade de cada parte | `agenda.html` (`mod/impkpi.js`, `mod/gtdkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Planilhas do GTD e da RE Corretiva só com os chamados e LPUs da área aberta | `agenda.html` (`mod/areaxlsx.js`). Sem SQL novo. |
 | 28/11/2026 | Budget do GTD: plantões com o nome certo; planilha do Valor por cliente com a aba "LPUs" (origem e conta contábil de cada LPU) | `agenda.html` (`mod/gtdfin.js`). Sem SQL novo. |
 | 28/11/2026 | LPU das atividades da Implantação com a conta fixa 0005 (Instalação CLIENTE), sem troca pelo técnico | `agenda.html` (`mod/lpuconta.js`). Sem SQL novo. |
