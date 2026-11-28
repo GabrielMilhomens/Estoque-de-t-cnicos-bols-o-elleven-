@@ -1206,6 +1206,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **M.O. aprovada em andamento na Visão geral (28/11, `mod/impkpi.js`):** o quadro M.O. aprovada mostra a quantidade de circuitos entregues e, embaixo, a M.O. aprovada e a quantidade dos circuitos trabalhados no período e ainda não entregues (mesma lista de "Etiquetas em andamento" da Execução em campo; mesma regra: LPUs aprovadas de terceiros de todas as fases, lançadas no Financeiro com a etiqueta e baixas do contrato fixo).
 
+- **Circuitos entregues × demanda na Visão geral (28/11, `mod/impkpi.js`):** o quadro Circuitos entregues separa quantos são da demanda do mês (os mesmos do Demanda × entrega) e quantos começaram em meses anteriores e foram ativados no período; no Demanda × entrega, "Entregues" passa a "Entregues da demanda".
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1270,6 +1272,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 28/11/2026 | Visão geral da Implantação: circuitos entregues separados em "da demanda do mês" e "de meses anteriores"; "Entregues da demanda" no Demanda × entrega | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Visão geral da Implantação: M.O. aprovada com a quantidade de entregues e a M.O. dos circuitos em andamento (trabalhados e não entregues) | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Visão geral da Implantação: tempo de ativação = dias por circuito de todas as fases (mesmo número das Entregas); variação zero aparece como "= igual" | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Financeiro e Painel de KPIs da Implantação no padrão novo: Budget com LPU × fixo e valor por cliente, Previsão dos projetos, aprovação de LPU e das baixas com fila e detalhe, quadros comparados com o mês anterior, Demanda × entrega por semana, Produção de rede, tempos por cidade e topologia, equipes por empresa | `agenda.html` (`mod/impfin.js`, `mod/impkpi.js`). Sem SQL novo. |
