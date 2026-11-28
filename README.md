@@ -292,6 +292,7 @@ A cota de 1 GB é da organização Netturbo no Supabase e soma este projeto (`es
 101. `agenda_ajuste_100_financeiro_pamela.sql` — melhorias do Financeiro (26/11): tabela `ag_fin_obs` (observações por mês, conta ou prestador), `ag_fin_lotes` (importações, para desfazer) e coluna `lote` em `ag_fin_baixas`, `ag_fin_contratos` e `ag_fin_ctr_mes` (mais `itens` e `obs` no mês do contrato); `ativo` e `tecnicos` em `ag_fin_terceiros`; função `ag_fin_aviso_nf` (aviso "Solicitar nota" no app do dono da empresa pelo CNPJ, só quem edita o Financeiro); leitura de `ag_chamados` para quem vê o Financeiro (policy `agch_select_fin`). Rodar antes de publicar o `agenda.html`. Não subir no GitHub.
 102. `agenda_ajuste_101_contratos_pelo_financeiro.sql` — contratos cadastrados pelo Financeiro (27/11): policies `agcf_insert_fin` e `agcf_update_fin` em `ag_contrato_fixo` para quem tem "editar financeiro" (`ag_fin_edita()`), só nas linhas `tipo = 'contrato'`. Fechamentos, metas e aprovação continuam com a coordenação e a supervisão. Rodar antes de publicar o `agenda.html`. Não subir no GitHub.
 103. `agenda_ajuste_102_lpu_pdf_todas_contas.sql` — Lançar LPU em PDF em qualquer conta contábil (27/11): `ag_fin_baixas.area` passa a aceitar "ct" + código da conta (ex.: `ct0009`) para as contas sem área de campo. Rodar antes de publicar o `agenda.html`. Não subir no GitHub.
+104. `agenda_ajuste_103_horario_real_gtd.sql` — Horário real do chamado (28/11): tabela `ag_gtd_hora` (chamado, horário real em que a atividade terminou, motivo, quem corrigiu) usada no MTTR e no SLA de 4h; grava coordenação, supervisão ou quem tiver "Corrigir o horário real do chamado" (`a_gHora`). Rodar antes de publicar o `agenda.html`. Não subir no GitHub.
 
 Os scripts são idempotentes (`if not exists`, `drop policy if exists`, `create or replace`) e podem ser executados de novo sem perda de dados.
 
@@ -1220,6 +1221,11 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - **Equipes (nova):** equipe própria × terceiros, por técnico (com filtro, eficiência e reforços) e por empresa terceira.
   - **Tempos de atendimento:** 6 quadros comparados com o período anterior e tabela "Por cidade".
 
+- **Horário real do chamado e MTTR sem tempo negativo (28/11, `mod/gtdhora.js`, `patch1.py`, `agenda_ajuste_103_horario_real_gtd.sql`):**
+  - Chamado agendado em que o técnico saiu antes do horário: o MTTR começa na saída do técnico (o que vier primeiro: horário agendado ou saída). Acaba o MTTR negativo; vale para SLA, Tempos e lista de chamados (GTD e RE Corretiva).
+  - Corrigir horário: na lista de chamados do painel (abrir o chamado na lista), "Corrigir horário" informa o horário real em que a atividade terminou e o motivo (técnico sem acesso ao app, app sem internet, esqueceu de registrar, outro). MTTR, SLA de 4h, lista e planilhas usam esse horário; o registro original do chamado não muda e a correção pode ser desfeita. O chamado corrigido aparece com a marca "horário corrigido" e quem corrigiu.
+  - Permissão nova "Corrigir o horário real do chamado" (Usuários › GTD Manutenção › Tempos de atendimento), padrão da supervisão; a coordenação sempre pode.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1284,6 +1290,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 28/11/2026 | MTTR começa na saída do técnico quando ele sai antes do agendado (sem MTTR negativo) e correção do horário real do chamado pela supervisão/coordenação | **`agenda_ajuste_103_horario_real_gtd.sql` no Supabase**, depois `agenda.html` (`mod/gtdhora.js`, `patch1.py`). |
 | 28/11/2026 | Painel de KPIs do GTD no padrão novo: Visão geral com quadros comparados e chamados por semana, telas Chamados e Equipes, Tempos com quadros e por cidade; sai o SLA de indisponibilidade | `agenda.html` (`mod/gtdkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Planilha da Visão geral: aba Entregas com "Demanda recebida em" e "Origem da entrega" | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Demanda × entrega: cliente com ativação anterior ao período não conta como demanda nova (números batem com Circuitos entregues) | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |

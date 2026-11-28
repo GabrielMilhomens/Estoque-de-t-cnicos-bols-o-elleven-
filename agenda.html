@@ -4789,7 +4789,7 @@ const gChatBtn=c=>{const n=gNMsg('g',c.id),nv=gNNova('g',c.id);return `<span cla
 const gAceiteChip=c=>c.status!=='aberto'||!c.tec?'':gAceito(c)?`<span class="chip ok">Aceito ${gQuando(c.aceite.em)}</span>`:'<span class="chip warn">Aguardando aceite</span>';
 const gChip=c=>{const x=ui.perfil==='func'&&['aprov','concl'].includes(c.status)?['Encerrado','ok']:ui.perfil==='func'&&c.status==='lpu'?['Com o administrador','']:GST[gStK(c)]||[c.status,''];return `<span class="chip ${x[1]}">${x[0]}</span>`};
 const gT=v=>v?new Date(v).getTime():null;
-/* 01/11: sem agendamento, o MTTR começa no horário em que o NOC desceu o chamado (nocem.js), quando informado */const gIni=c=>c.agendaEm&&c.agendaEm>c.criadoEm?c.agendaEm:(c.nocEm&&c.nocEm<=c.criadoEm?c.nocEm:c.criadoEm);
+/* 01/11: sem agendamento, o MTTR começa no horário em que o NOC desceu o chamado (nocem.js), quando informado */const gIni0=c=>c.agendaEm&&c.agendaEm>c.criadoEm?c.agendaEm:(c.nocEm&&c.nocEm<=c.criadoEm?c.nocEm:c.criadoEm),gIni=c=>{const b=gIni0(c),d=c&&c.ts&&c.ts.desloc;return d&&d<b?d:b};
 const gDur=ms=>{const m=Math.max(0,Math.round(ms/60000)),h=Math.floor(m/60),r=m%60;if(h>=24)return Math.floor(h/24)+'d '+(h%24)+'h';return h?h+'h'+pad(r):r+' min'};
 const gHHMM=ms=>{const m=Math.max(0,Math.round(ms/60000));return pad(Math.floor(m/60))+':'+pad(m%60)};
 const gQuando=t=>t?(isoD(new Date(t))===hoje()?'hoje ':dBR(isoD(new Date(t))).slice(0,5)+' ')+hm(t):'';
@@ -25160,6 +25160,56 @@ button.gfc.gkbt{font:inherit;color:inherit;text-align:left;cursor:pointer}button
 </style>`);
 /* Visão gerencial: o card do GTD sempre lê a Visão geral */
 {const _g=gerHtml;gerHtml=function(k){if(k!=='gtd')return _g.apply(this,arguments);const o=ui.gkSub;ui.gkSub='geral';try{return _g.apply(this,arguments)}finally{ui.gkSub=o}}}
+
+/* ---------- 28/11: horário real do chamado (GTD / RE Corretiva) ----------
+   Quando o horário registrado não é o real (ex.: técnico sem acesso ao app), a supervisão ou a coordenação informa
+   o horário real em que a atividade terminou, com o motivo. O MTTR, o SLA de 4h, a lista de chamados, os Tempos e as
+   planilhas passam a usar esse horário; o registro original do chamado não muda (fica em ag_gtd_hora, ajuste 103).
+   Permissão: "Corrigir o horário real do chamado" (a_gHora), padrão da supervisão; a coordenação sempre pode. */
+G.hora=G.hora||{};G.horaErr='';
+{const gtd=PERM_T.find(g=>g[0]==='GTD Manutenção');const walk=L=>{for(const n of L){if(n[0]==='g_tempos')return n;if(n[3]){const r=walk(n[3]);if(r)return r}}return null};
+  const t=gtd&&walk(gtd[1]);if(t&&!(t[3]||[]).some(n=>n[0]==='a_gHora'))(t[3]=t[3]||[]).push(['a_gHora','Corrigir o horário real do chamado (MTTR e SLA)','a']);
+  [PERM_ALL,typeof PX_GK!=='undefined'?PX_GK:[],typeof GTD_KEYS!=='undefined'?GTD_KEYS:[]].forEach(A=>{if(!A.includes('a_gHora'))A.push('a_gHora')});
+  if(PERM_PAD.supervisor&&!PERM_PAD.supervisor.includes('a_gHora'))PERM_PAD.supervisor.push('a_gHora');PERM_NOVAS.a_gHora=['supervisor']}
+const ghPode=()=>ui.perfil==='coord'||pode('a_gHora');
+async function ghCarregar(){try{const r=await todas(()=>sb.from('ag_gtd_hora').select('*'));const M={};r.forEach(x=>M[x.chamado]=x);G.hora=M;G.horaErr=''}
+  catch(e){G.hora={};G.horaErr=/ag_gtd_hora|does not exist|schema cache|relation/i.test(String(e.message||e))?'Rode o script agenda_ajuste_103_horario_real_gtd.sql no Supabase.':String(e.message||e)}}
+{const _c=gCarregar;gCarregar=async function(){const r=await _c.apply(this,arguments);if(G.ch&&G.ch.length&&!(typeof gTecPerfil==='function'&&gTecPerfil()))await ghCarregar();return r}}
+/* aplica o horário corrigido só enquanto a tela é montada (o chamado salvo continua com o horário original) */
+function ghCom(fn){const M=G.hora||{},o=[];(G.ch||[]).forEach(c=>{const a=M[c.id];if(a&&c.validadoEm){const f=new Date(a.fim).getTime();if(!isNaN(f)){o.push([c,c.validadoEm]);c.validadoEm=f;c._hAj=a}}});
+  try{return fn()}finally{o.forEach(([c,v])=>{c.validadoEm=v;delete c._hAj})}}
+{const _r=render;render=function(){const a=arguments,t=this;return ghCom(()=>_r.apply(t,a))}}
+if(typeof kdRender==='function'){const _k=kdRender;kdRender=function(){const a=arguments,t=this;return ghCom(()=>_k.apply(t,a))}}
+['g4Xlsx','kdXlsx','tpXlsx'].forEach(k=>{const _x=ACT[k];if(_x)ACT[k]=function(){const a=arguments,t=this;return ghCom(()=>_x.apply(t,a))}});
+/* item 1: chamado agendado em que o técnico saiu antes do horário — o MTTR começa na saída (gIni, patch1) */
+/* lista de chamados (kpidrill): marca e botão de correção */
+if(typeof kdHtml==='function'){const _h=kdHtml;kdHtml=function(){let h=_h.apply(this,arguments);try{
+  Object.keys(G.hora||{}).forEach(id=>{h=h.replace(new RegExp(`(data-act="kdOpen" data-id="${id}"><td><b>[^<]*</b><small>[^<]*</small>)`),'$1<span class="chip info">horário corrigido</span>')});
+  h=h.replace(/<button class="btn sm primary" data-act="kdAbrir" data-id="([^"]+)">Abrir o chamado<\/button>/g,(m,id)=>{const c=(G.ch||[]).find(x=>x.id===id),a=(G.hora||{})[id];
+    const nota=a?`<small class="muted">Horário corrigido por ${esc(a.por_nome||'—')}: terminou ${new Date(a.fim).toLocaleString('pt-BR').slice(0,17)} (${esc(a.motivo||'')}). O registro original continua no chamado.</small>`:'';
+    return m+(c&&c.validadoEm&&ghPode()?`<button class="btn sm" data-act="ghAbrir" data-id="${id}">${a?'Ver ou desfazer a correção':'Corrigir horário'}</button>`:'')+nota})}catch(e){console.warn('gh kd',e)}return h}}
+const GH_MOT=['Técnico sem acesso ao app','App sem internet no local','Técnico esqueceu de registrar','Outro'];
+function ghModal(id){const c=(G.ch||[]).find(x=>x.id===id);if(!c)return;const a=(G.hora||{})[id],orig=c.validadoEm,ini=gIni(c);
+  const v=t=>{if(!t)return '';const d=new Date(t),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`};
+  openModal(`<h3>Corrigir o horário real · O&amp;M ${esc(c.pom||'')}</h3><p class="muted">${esc(c.cliente||'')}${c.etiqueta?' · '+esc(c.etiqueta):''} · ${esc(c.categoria||'')} · ${esc(gTecN(c.tec)||'—')}</p>
+   <div class="kdet" style="margin:10px 0"><div>Início do MTTR<b>${new Date(ini).toLocaleString('pt-BR').slice(0,17)}</b></div><div>Validação registrada<b>${orig?new Date(orig).toLocaleString('pt-BR').slice(0,17):'—'}</b></div><div>MTTR registrado<b>${orig?gDur(orig-ini):'—'}</b></div></div>
+   <label class="f"><span>Horário real em que a atividade terminou</span><input type="datetime-local" class="inp" id="ghFim" value="${v(a?new Date(a.fim).getTime():orig)}"></label>
+   <label class="f"><span>Motivo</span><select class="inp" id="ghMot">${GH_MOT.map(m=>`<option ${a&&a.motivo&&a.motivo.startsWith(m)?'selected':''}>${m}</option>`).join('')}</select></label>
+   <label class="f"><span>Detalhe (opcional)</span><input class="inp" id="ghObs" maxlength="200" value="${esc(a&&a.motivo&&a.motivo.includes(' · ')?a.motivo.split(' · ').slice(1).join(' · '):'')}" placeholder="Ex.: técnico avisou pelo WhatsApp às 15h"></label>
+   <p class="muted" style="font-size:13px">O MTTR, o SLA de 4h, a lista de chamados e as planilhas passam a usar este horário. O registro original do chamado não muda.</p>
+   ${a?`<p class="muted" style="font-size:13px">Corrigido por ${esc(a.por_nome||'—')} em ${new Date(a.em).toLocaleString('pt-BR').slice(0,17)}.</p>`:''}
+   <div class="ma">${a?`<button class="btn" data-act="ghDesfazer" data-id="${id}">Desfazer a correção</button>`:''}<button class="btn" data-act="close">Cancelar</button><button class="btn primary" data-act="ghSalvar" data-id="${id}">Salvar</button></div>`)}
+let GH_KD=null;const ghVolta=()=>{if(GH_KD&&typeof KD!=='undefined'){KD.f=GH_KD.f;KD.open=GH_KD.open;GH_KD=null;kdRender()}};
+Object.assign(ACT,{ghAbrir:el=>{if(!ghPode())return semPerm();if(G.horaErr){toast(G.horaErr,'bad');return}if(typeof KD!=='undefined'&&KD.f){GH_KD={f:KD.f,open:KD.open};KD.f=null;kdRender()}ghModal(el.dataset.id)},
+  ghSalvar:async el=>{if(!ghPode())return semPerm();const id=el.dataset.id,c=(G.ch||[]).find(x=>x.id===id),fv=$('ghFim').value,f=fv?new Date(fv).getTime():NaN,mot=$('ghMot').value,obs=$('ghObs').value.trim();
+    if(!c||isNaN(f)){toast('Informe o horário real.','bad');return}if(f<=gIni(c)){toast('O horário real precisa ser depois do início do MTTR.','bad');return}if(f>Date.now()){toast('O horário real não pode ser no futuro.','bad');return}
+    const row={chamado:id,fim:new Date(f).toISOString(),motivo:mot+(obs?' · '+obs:''),por:ME.id,por_nome:meNome(),em:new Date().toISOString()};
+    const r=await sb.from('ag_gtd_hora').upsert(row);if(r.error){toast(/ag_gtd_hora|does not exist|schema cache/i.test(r.error.message)?'Rode o script agenda_ajuste_103_horario_real_gtd.sql no Supabase.':'Não foi possível salvar: '+r.error.message,'bad');return}
+    G.hora[id]=row;closeModal();toast('Horário corrigido. MTTR e SLA atualizados.','ok');render();ghVolta()},
+  ghDesfazer:async el=>{if(!ghPode())return semPerm();const id=el.dataset.id,r=await sb.from('ag_gtd_hora').delete().eq('chamado',id);if(r.error){toast('Não foi possível desfazer: '+r.error.message,'bad');return}
+    delete G.hora[id];closeModal();toast('Correção desfeita.','ok');render();ghVolta()}});
+
+{const _c=ACT.close;if(_c)ACT.close=function(){const r=_c.apply(this,arguments);if(GH_KD)setTimeout(ghVolta,0);return r}}
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
