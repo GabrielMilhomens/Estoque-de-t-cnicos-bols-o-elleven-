@@ -24552,7 +24552,7 @@ function gfBudgetDados(mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&gf
 function gfBudget(){const mes=ui.bMes||hoje().slice(0,7);ui.bMes=mes;const ed=ui.bEdit&&pode('a_budget'),D=gfBudgetDados(mes),A=gfBudgetDados(gfMais(mes,-1));
   const disp=D.orc-D.uso,p=D.orc?Math.round(D.uso/D.orc*100):0,comp=gSoma(D.pe),nAp=D.ap.length+D.impl.length;
   const meses=[];for(let k=-12;k<=2;k++)meses.push(gfMais(hoje().slice(0,7),k));
-  const grpCat=L=>{const m={};L.forEach(l=>{const k=l.conta===GTD_CONTA&&!l.chamado?'Lançadas pela Implantação':gfCat(l);(m[k]=m[k]||[]).push(l)});return m};
+  const grpCat=L=>{const m={};L.forEach(l=>{const k=l._fb?'Lançadas no Financeiro (PDF)':l.conta===GTD_CONTA&&!l.chamado?'Atividades da Implantação na conta 0006':gfCat(l);(m[k]=m[k]||[]).push(l)});return m};
   const C=grpCat(D.ap.concat(D.impl)),Cp=grpCat(A.ap.concat(A.impl)),cats=Object.entries(C).sort((a,b)=>gSoma(b[1])-gSoma(a[1]));
   const cores=['#3f6b2f','#5f8f45','#7cb342','#a3c97f','#c6dcae','#dbe8cf'],cor=i=>cores[Math.min(i,cores.length-1)];
   const nCh=L=>new Set(L.map(l=>l.chamado||l.id)).size,tot=D.uso||1,dU=gfDelta(D.uso,A.uso,true);
@@ -24574,7 +24574,7 @@ function gfCliDados(mes,D){const hist=ui.gfHist==='todo',q=normK(String(ui.gfQ||
   const clt=hist?G.lpus.filter(l=>gLpuClt(l)&&l.status!=='reprovada'):D.reg;
   const chM=(G.ch||[]).filter(c=>c.status!=='cancelado'&&(hist||String(gDiaDe(c)).slice(0,7)===mes));
   const M={},key=(et,cl)=>et?'e:'+normK(et):'c:'+normK(cl||''),get=(et,cl,cid)=>{const k=key(et,cl);return M[k]=M[k]||{et:et||'',cli:cl||'—',cid:cid||'',ch:new Set(),t:0,c:0,ult:null,rei:false}};
-  terc.forEach(l=>{const c=gfCh(l),r=get(gfEt(l,c),gfCli(l,c),c.cidade);r.t+=+l.total||0;if(l.chamado)r.ch.add(l.chamado)});
+  terc.forEach(l=>{const c=gfCh(l),et=gfEt(l,c),cl0=gfCli(l,c),r=get(et,cl0==='—'&&!et&&l._fb?'Sem etiqueta · lançadas no Financeiro (PDF)':cl0==='—'&&!et&&!l.chamado?'Sem etiqueta · atividades da Implantação':cl0,c.cidade);r.t+=+l.total||0;if(l.chamado)r.ch.add(l.chamado)});
   clt.forEach(l=>{const c=gfCh(l),r=get(gfEt(l,c),gfCli(l,c),c.cidade);r.c+=+l.total||0;if(l.chamado)r.ch.add(l.chamado)});
   chM.forEach(c=>{const r=M[key(c.etiqueta,c.cliente)];if(!r)return;r.ch.add(c.id);if(!r.cid)r.cid=c.cidade||'';if(!r.ult||gIni(c)>gIni(r.ult))r.ult=c;if(gReinc(c).length)r.rei=true});
   return Object.values(M).filter(r=>!q||normK([r.cli,r.et,r.cid].join(' ')).includes(q)).sort((a,b)=>(b.t+b.c)-(a.t+a.c))}

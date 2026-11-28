@@ -1226,6 +1226,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
   - Corrigir horário: na lista de chamados do painel (abrir o chamado na lista), "Corrigir horário" informa o horário real em que a atividade terminou e o motivo (técnico sem acesso ao app, app sem internet, esqueceu de registrar, outro). MTTR, SLA de 4h, lista e planilhas usam esse horário; o registro original do chamado não muda e a correção pode ser desfeita. O chamado corrigido aparece com a marca "horário corrigido" e quem corrigiu.
   - Permissão nova "Corrigir o horário real do chamado" (Usuários › GTD Manutenção › Tempos de atendimento), padrão da supervisão; a coordenação sempre pode.
 
+- **Budget do GTD: nome certo das LPUs sem chamado (28/11, `mod/gtdfin.js`):** "Lançadas pela Implantação" juntava duas coisas. Agora aparecem separadas: "Lançadas no Financeiro (PDF)" (Lançar LPU em PDF na área GTD) e "Atividades da Implantação na conta 0006" (LPU de atividade da agenda da Implantação lançada na conta da manutenção). No Valor por cliente, a linha sem etiqueta passa a dizer de onde veio.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1290,6 +1292,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 28/11/2026 | Budget do GTD: "Lançadas pela Implantação" separado em "Lançadas no Financeiro (PDF)" e "Atividades da Implantação na conta 0006" | `agenda.html` (`mod/gtdfin.js`). Sem SQL novo. |
 | 28/11/2026 | MTTR começa na saída do técnico quando ele sai antes do agendado (sem MTTR negativo) e correção do horário real do chamado pela supervisão/coordenação | **`agenda_ajuste_103_horario_real_gtd.sql` no Supabase**, depois `agenda.html` (`mod/gtdhora.js`, `patch1.py`). |
 | 28/11/2026 | Painel de KPIs do GTD no padrão novo: Visão geral com quadros comparados e chamados por semana, telas Chamados e Equipes, Tempos com quadros e por cidade; sai o SLA de indisponibilidade | `agenda.html` (`mod/gtdkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Planilha da Visão geral: aba Entregas com "Demanda recebida em" e "Origem da entrega" | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
