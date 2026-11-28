@@ -1210,6 +1210,8 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Visão gerencial (28/11, `mod/gerfix.js`):** Financeiro passa a mostrar a Conta contábil do Financeiro (total gasto, orçado, % utilizado, CAPEX/OPEX e uma linha por conta com executado de LPU + contratos fixos, budget, uso e saldo; tocar na conta abre a Conta contábil com ela aberta). Implantação volta a mostrar os indicadores (quadros novos do Painel de KPIs) e Transmissão também, agora no mesmo período da Visão gerencial.
 
+- **Demanda × entrega sem cliente já ativo (28/11, `mod/impkpi.js`):** etiqueta cuja ativação foi concluída antes do primeiro agendamento de interno ou ativação do período (atividade em cliente já ativo, como validação de link) deixa de contar como demanda nova; com isso "Entregues da demanda" bate com o "da demanda do mês" do quadro Circuitos entregues e a eficiência considera só demanda nova.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1274,6 +1276,7 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 28/11/2026 | Demanda × entrega: cliente com ativação anterior ao período não conta como demanda nova (números batem com Circuitos entregues) | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Visão gerencial: Financeiro pela Conta contábil; indicadores da Implantação e da Transmissão de volta (Transmissão no período da Visão gerencial) | `agenda.html` (`mod/gerfix.js`). Sem SQL novo. |
 | 28/11/2026 | Visão geral da Implantação: circuitos entregues separados em "da demanda do mês" e "de meses anteriores"; "Entregues da demanda" no Demanda × entrega | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |
 | 28/11/2026 | Visão geral da Implantação: M.O. aprovada com a quantidade de entregues e a M.O. dos circuitos em andamento (trabalhados e não entregues) | `agenda.html` (`mod/impkpi.js`). Sem SQL novo. |

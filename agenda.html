@@ -24997,6 +24997,9 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .ikwrap .grid2.even{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}.ikwrap table td:first-child{white-space:nowrap}@media(max-width:900px){.ikwrap .grid2.even{grid-template-columns:1fr}}
 @media(max-width:600px){.ikbars{height:180px;gap:4px}.ikst{width:28px}.ikwk small{font-size:10.5px}}
 </style>`);
+/* 28/11: etiqueta que já tinha a ativação concluída antes do primeiro interno/ativação do período não é demanda nova
+   (é atividade em cliente já ativo, como validação de link); sai da demanda, da eficiência e das semanas */
+{const _d=pdDemanda;pdDemanda=function(){return _d.apply(this,arguments).filter(x=>!(x.f&&x.f.data&&x.f.data<x.rec))}}
 
 /* ---------- 28/11: Visão gerencial ----------
    1. Indicadores da Implantação (quadros novos do Painel de KPIs) e da Transmissão (quadros .tkkpi) voltam a aparecer.
