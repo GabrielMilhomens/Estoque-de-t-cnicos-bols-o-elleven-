@@ -3637,7 +3637,7 @@ function alertasCabo(a,l){const out=[];if(!a)return out;const rel=metrosAg(a),p=
   const tot=metrosProj(a.etiqueta);if(tot!=null&&roi&&tot!==roi)out.push({t:tot>roi?'Lançado acima do ROI':'Lançado abaixo do ROI',d:`O ROI previa <b>${roi.toLocaleString('pt-BR')} m</b> de cabo e o projeto já tem <b>${tot.toLocaleString('pt-BR')} m</b> lançados nos relatórios: <b>${difTxt(tot-roi,roi)}</b>.`,curto:`ROI ${difTxt(tot-roi)}`});
   return out}
 const relBtns=a=>a&&a.rel?`${a.rel.parcial&&a.rel.parcial.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.parcial.path)}">Relatório da não conclusão</button>`:''}${a.rel.foto&&a.rel.foto.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.foto.path)}">Relatório fotográfico${a.rel.foto.fotos?` (${a.rel.foto.fotos} fotos)`:''}</button>`:''}${a.rel.entrega&&a.rel.entrega.path?`<button class="btn sm" data-act="relVer" data-p="${esc(a.rel.entrega.path)}">Relatório de entrega</button>`:''}`:'';
-function viewAprov(emb){
+function viewAprov(emb){if(typeof ifAprovOn==='function'&&ifAprovOn())return ifAprov(emb);
   const tabs=[['aguardando','Aguardando'],['ajuste','Em ajuste'],['aprovada','Aprovadas'],['reprovada','Reprovadas']];
   const AP=S.lpus.filter(l=>lpuNoPer(l,'a')),tot=s=>AP.filter(l=>l.status===s).reduce((x,l)=>x+l.total,0),cnt=s=>AP.filter(l=>l.status===s).length;
   const rows=AP.filter(l=>l.status===ui.aTab).sort((a,b)=>b.data.localeCompare(a.data));
@@ -15631,6 +15631,11 @@ function vtaHtml(l){const d=vtaDe(l);if(!d)return '';
    ${P.length?`<ul class="vtal">${P.slice(0,10).map(q=>`<li><b>${esc(q.item||'')}</b>${q.g?` <span class="chip ${q.g==='critica'?'bad':q.g==='obs'?'':'warn'}">${esc(vtaGrav(q.g))}</span>`:''}${q.txt?` <span class="muted">${esc(q.txt)}</span>`:''}</li>`).join('')}${P.length>10?`<li class="muted">e mais ${P.length-10}…</li>`:''}</ul>`:''}
    ${bl?`<div class="result warn" style="margin:8px 0 0"><b>Lançamento com pendência na vistoria.</b> Confira as pendências antes de decidir: dá para aprovar mesmo assim, devolver para ajuste ou reprovar.</div>`:''}</section>`}
 document.head.insertAdjacentHTML('beforeend','<style>.vta{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}.vta.bl{border-color:var(--bad)}.vta .lsub{margin:0 0 6px}.vtah{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:14px}.vtal{margin:8px 0 0;padding-left:18px;font-size:14px}.vtal li{margin:3px 0}</style>');
+/* 28/11: Financeiro do GTD no padrão novo. Entra antes dos outros módulos para que plantão, melhoria, contrato fixo e a espera
+   do carregamento continuem embrulhando o budget e a aprovação (gtdfin.js tem as telas). */
+{const _b=gFinBudget;gFinBudget=function(){return typeof gfOn==='function'&&gfOn()?gfBudget():_b.apply(this,arguments)}}
+{const _a=viewGAprov;viewGAprov=function(emb){return typeof gfOn==='function'&&gfOn()&&emb&&!G.erro?gfAprov():_a.apply(this,arguments)}}
+
 
 /* ---------- 08/11: chats · editar mensagem e várias fotos de uma vez ----------
    Conversa da atividade (Implantação), do chamado (GTD, Transmissão e Rede Externa) e Chat com NOC (sala):
@@ -24521,6 +24526,474 @@ document.head.insertAdjacentHTML('beforeend',`<style>.f4nff{display:flex;flex-di
 {const _a=finAreaL;finAreaL=function(l){if(l&&l._fbArea==='ct')return 'ct';return _a.apply(this,arguments)}}
 const fbCtDe=c=>FB_AREAS.some(x=>x[0]==='ct'+c)?'ct'+c:'';
 {const _a=CH.fbArq;if(typeof _a==='function')CH.fbArq=async function(){const r=await _a.apply(this,arguments);let n=0;(ui.fbLidos||[]).forEach(x=>{if(!x.area&&x.conta){const a=fbCtDe(x.conta);if(a){x.area=a;n++}}});if(n)render();return r}}
+
+/* ---------- 28/11: Financeiro do GTD Manutenção no padrão novo (só a área GTD; RE, Transmissão e Melhoria seguem como estão) ----------
+   Menu: Budget · Totais por prestador · Detalhamento das LPUs · Aprovação de LPU. Sempre "Cliente · etiqueta".
+   Budget: 4 quadros, consumo por categoria do chamado (com o mês anterior) e valor por cliente (terceiros + CLT).
+   Aprovação: fila à esquerda e detalhe à direita (conferência, itens desta LPU, chamados da etiqueta nos últimos 30 dias, histórico). */
+const gfOn=()=>typeof areaAt==='function'&&areaAt()==='gtd'&&!(typeof gTecPerfil==='function'&&gTecPerfil());
+const gfCh=l=>(G.ch||[]).find(c=>c.id===l.chamado)||{ts:{}};
+const gfCat=l=>l.categoria||gfCh(l).categoria||'—';
+const gfEt=(l,c)=>{c=c||(l?gfCh(l):{});return (c&&c.etiqueta)||(l&&l.etiqueta&&!/^OM-/i.test(l.etiqueta)?l.etiqueta:'')};
+const gfCli=(l,c)=>(l&&l.cliente)||(c&&c.cliente)||(typeof cliN==='function'&&cliN(gfEt(l,c)))||'—';
+const gfNome=(l,c)=>{const e=gfEt(l,c);return esc(gfCli(l,c))+(e?' · '+esc(e):'')};
+const gfMesN=m=>{try{return mesNome(m).replace(/\/\d{4}$/,'').toLowerCase()}catch(e){return m}};
+const gfMais=(m,k)=>{const d=new Date(+m.slice(0,4),+m.slice(5,7)-1+k,1);return d.getFullYear()+'-'+pad(d.getMonth()+1)};
+const gfMesBud=l=>typeof mesBud==='function'?mesBud(l):(aprovEm(l)?mesBud(l):null);
+function gfCard(l,v,s,d,dc){if(s===null)return `<div class="gfc"><span class="l">${l}</span><span class="v">${v}</span></div>`;return `<div class="gfc"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s||'&nbsp;'}</span><span class="d">${d?`<em class="${dc||''}">${d}</em> vs. ${gfMesN(gfMais(ui.bMes||hoje().slice(0,7),-1))}`:'&nbsp;'}</span></div>`}
+const gfDelta=(a,b,menorMelhor)=>{const d=a-b;if(!b&&!a)return['',''];if(Math.abs(d)<0.005)return['= igual',''];return[(d>0?'▲ ':'▼ ')+brl(Math.abs(d)),(d>0)===!!menorMelhor?'dn':'up']};
+const gfHead=(t,sub,tools)=>`<div class="gfhd"><div><h2>${t}</h2><p class="muted">${sub}</p></div>${tools?`<div class="tools">${tools}</div>`:''}</div>`;
+
+/* ---------- Budget ---------- */
+function gfBudgetDados(mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&gfMesBud(l)===mes,GT=G.lpus.filter(l=>!gLpuClt(l));
+  const ap=GT.filter(doMes),impl=S.lpus.filter(l=>l.conta===GTD_CONTA&&doMes(l)&&tecT(l.tec)==='TERC'),pe=GT.filter(l=>l.status==='aguardando'||l.status==='ajuste');
+  const reg=G.lpus.filter(l=>gLpuClt(l)&&l.status!=='reprovada'&&String(l.data||'').slice(0,7)===mes);
+  return{ap,impl,pe,reg,uso:gSoma(ap)+gSoma(impl),orc:+((S.budget||{})[mes]||{})[GTD_CONTA]||0}}
+function gfBudget(){const mes=ui.bMes||hoje().slice(0,7);ui.bMes=mes;const ed=ui.bEdit&&pode('a_budget'),D=gfBudgetDados(mes),A=gfBudgetDados(gfMais(mes,-1));
+  const disp=D.orc-D.uso,p=D.orc?Math.round(D.uso/D.orc*100):0,comp=gSoma(D.pe),nAp=D.ap.length+D.impl.length;
+  const meses=[];for(let k=-12;k<=2;k++)meses.push(gfMais(hoje().slice(0,7),k));
+  const grpCat=L=>{const m={};L.forEach(l=>{const k=l.conta===GTD_CONTA&&!l.chamado?'Lançadas pela Implantação':gfCat(l);(m[k]=m[k]||[]).push(l)});return m};
+  const C=grpCat(D.ap.concat(D.impl)),Cp=grpCat(A.ap.concat(A.impl)),cats=Object.entries(C).sort((a,b)=>gSoma(b[1])-gSoma(a[1]));
+  const cores=['#3f6b2f','#5f8f45','#7cb342','#a3c97f','#c6dcae','#dbe8cf'],cor=i=>cores[Math.min(i,cores.length-1)];
+  const nCh=L=>new Set(L.map(l=>l.chamado||l.id)).size,tot=D.uso||1,dU=gfDelta(D.uso,A.uso,true);
+  const barra=cats.map(([k,L],i)=>{const v=gSoma(L),w=D.orc?v/Math.max(D.orc,D.uso)*100:v/tot*100;return `<i style="width:${w}%;background:${cor(i)}" title="${esc(k)} · ${brl(v)}">${w>14?esc(k)+' · '+brl(v):''}</i>`}).join('')+(D.orc&&disp>0?`<i class="gfrest" style="width:${disp/Math.max(D.orc,D.uso)*100}%" title="Disponível · ${brl(disp)}"></i>`:'');
+  const linhas=cats.map(([k,L],i)=>{const v=gSoma(L),vp=gSoma(Cp[k]||[]),d=gfDelta(v,vp,true),n=nCh(L);return `<tr><td><span class="gfdot" style="background:${cor(i)}"></span><b>${esc(k)}</b></td><td class="r">${n}</td><td class="r">${L.length}</td><td class="r"><b>${brl(v)}</b></td><td class="r">${brl(n?v/n:0)}</td><td class="r mu">${pct(v,tot)}%</td><td class="r">${d[0]?`<span class="${d[1]}">${d[0]}</span>`:'<span class="mu">—</span>'}</td></tr>`}).join('');
+  const nT=nCh(D.ap.concat(D.impl));
+  return gfHead('Budget',`Mão de obra terceirizada do GTD · conta ${esc(GTD_CONTA.slice(0,15))} Manutenção CLIENTE · consome no mês do fechamento (pedido da NF)`,
+    `<label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${meses.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>${pode('a_budget')?(ed?'<button class="btn primary" data-act="gbSalvar">Salvar budget</button><button class="btn" data-act="bEdit">Cancelar</button>':'<button class="btn" data-act="bEdit">Definir budget do mês</button>'):''}`)+
+   (ed?`<section class="panel" style="margin-bottom:12px"><label class="f inline"><span>Budget de ${mesNome(mes)} (R$)</span><input class="inp r" type="number" min="0" step="100" id="gBud" value="${D.orc||''}" placeholder="0"></label></section>`:'')+
+   `<div class="gfk">${gfCard('Budget do mês',brl(D.orc),D.orc?'conta 0006 · Manutenção CLIENTE':'sem budget definido')}${gfCard('Consumido',brl(D.uso),`${D.orc?p+'% do budget · ':''}${nAp} ${nAp===1?'LPU':'LPUs'}`,dU[0],dU[1])}${gfCard('Disponível',brl(disp),D.orc?pct(Math.max(disp,0),D.orc)+'% do budget':'&nbsp;')}${gfCard('Aguardando aprovação',brl(comp),`${D.pe.length} ${D.pe.length===1?'LPU':'LPUs'} · consomem ao aprovar`)}</div>
+   <section class="panel gfp"><div class="secth"><h3>Onde foi o consumo</h3><span class="muted">${brl(D.uso)}${D.orc?' de '+brl(D.orc):''} · por categoria do chamado</span></div>
+    ${cats.length?`<div class="gfbar">${barra}</div>`:''}
+    <div class="tablewrap"><table class="gft"><thead><tr><th>Categoria</th><th class="r">Chamados</th><th class="r">LPUs</th><th class="r">Valor ↓</th><th class="r">Médio por chamado</th><th class="r">% do consumido</th><th class="r">vs. ${gfMesN(gfMais(mes,-1))}</th></tr></thead><tbody>${linhas||'<tr><td colspan="7" class="mu">Nenhuma LPU aprovada no mês.</td></tr>'}</tbody>
+    ${cats.length?`<tfoot><tr><td>Total consumido</td><td class="r">${nT}</td><td class="r">${nAp}</td><td class="r">${brl(D.uso)}</td><td class="r">${brl(nT?D.uso/nT:0)}</td><td class="r">100%</td><td class="r">${dU[0]?`<span class="${dU[1]}">${dU[0]}</span>`:'—'}</td></tr></tfoot>`:''}</table></div>
+    <p class="gfnote">Equipe própria (CLT): ${D.reg.length} ${D.reg.length===1?'LPU':'LPUs'} · ${brl(gSoma(D.reg))} de referência · passam pela aprovação, mas não consomem o budget${D.impl.length?` · inclui ${brl(gSoma(D.impl))} de ${D.impl.length} LPU(s) da Implantação lançadas nessa conta`:''}</p></section>
+   ${gfClientes(mes,D)}`}
+function gfCliDados(mes,D){const hist=ui.gfHist==='todo',q=normK(String(ui.gfQ||'').trim());
+  const terc=hist?G.lpus.filter(l=>!gLpuClt(l)&&l.status==='aprovada').concat(S.lpus.filter(l=>l.conta===GTD_CONTA&&l.status==='aprovada'&&tecT(l.tec)==='TERC')):D.ap.concat(D.impl);
+  const clt=hist?G.lpus.filter(l=>gLpuClt(l)&&l.status!=='reprovada'):D.reg;
+  const chM=(G.ch||[]).filter(c=>c.status!=='cancelado'&&(hist||String(gDiaDe(c)).slice(0,7)===mes));
+  const M={},key=(et,cl)=>et?'e:'+normK(et):'c:'+normK(cl||''),get=(et,cl,cid)=>{const k=key(et,cl);return M[k]=M[k]||{et:et||'',cli:cl||'—',cid:cid||'',ch:new Set(),t:0,c:0,ult:null,rei:false}};
+  terc.forEach(l=>{const c=gfCh(l),r=get(gfEt(l,c),gfCli(l,c),c.cidade);r.t+=+l.total||0;if(l.chamado)r.ch.add(l.chamado)});
+  clt.forEach(l=>{const c=gfCh(l),r=get(gfEt(l,c),gfCli(l,c),c.cidade);r.c+=+l.total||0;if(l.chamado)r.ch.add(l.chamado)});
+  chM.forEach(c=>{const r=M[key(c.etiqueta,c.cliente)];if(!r)return;r.ch.add(c.id);if(!r.cid)r.cid=c.cidade||'';if(!r.ult||gIni(c)>gIni(r.ult))r.ult=c;if(gReinc(c).length)r.rei=true});
+  return Object.values(M).filter(r=>!q||normK([r.cli,r.et,r.cid].join(' ')).includes(q)).sort((a,b)=>(b.t+b.c)-(a.t+a.c))}
+function gfClientes(mes,D){const R=gfCliDados(mes,D),lim=ui.gfCliTodos?R.length:30,cap=s=>String(s||'').replace(/(^|\s)\S/g,x=>x.toUpperCase()).replace(/\B\S+/g,x=>x.toLowerCase());
+  const T=R.reduce((s,r)=>({n:s.n+r.ch.size,t:s.t+r.t,c:s.c+r.c}),{n:0,t:0,c:0});
+  return `<section class="panel gfp"><div class="secth"><h3>Valor por cliente <span class="mu" style="font-weight:500">· ${R.length}</span></h3><div class="tools"><input class="inp" type="search" data-in="gfQ" value="${esc(ui.gfQ||'')}" placeholder="Buscar cliente, etiqueta ou cidade" style="width:240px"><div class="gfseg"><button data-act="gfHist" data-v="mes" aria-pressed="${ui.gfHist!=='todo'}">No mês</button><button data-act="gfHist" data-v="todo" aria-pressed="${ui.gfHist==='todo'}">Todo o histórico</button></div><button class="btn sm" data-act="gfCliXlsx">Baixar planilha</button></div></div>
+   <div class="tablewrap"><table class="gft"><thead><tr><th>Cliente</th><th>Cidade</th><th class="r">Chamados</th><th class="r">Terceiros</th><th class="r">CLT <small class="mu">(fora do budget)</small></th><th class="r">Total ↓</th><th>Última categoria</th></tr></thead><tbody>
+   ${R.slice(0,lim).map(r=>`<tr><td><b>${esc(r.cli)}</b>${r.et?`<br><small class="mu">${esc(r.et)}</small>`:''}</td><td class="mu">${esc(cap(r.cid))||'—'}</td><td class="r">${r.ch.size}${r.rei?' <span class="gfbad">● reincidente</span>':''}</td><td class="r">${r.t?brl(r.t):'<span class="mu">—</span>'}</td><td class="r">${r.c?brl(r.c):'<span class="mu">—</span>'}</td><td class="r"><b>${brl(r.t+r.c)}</b></td><td class="mu">${r.ult?esc(r.ult.categoria||'—'):'—'}</td></tr>`).join('')||'<tr><td colspan="7" class="mu">Nenhum cliente com LPU '+(ui.gfHist==='todo'?'':'no mês')+'.</td></tr>'}</tbody>
+   ${R.length?`<tfoot><tr><td>Total</td><td></td><td class="r">${T.n}</td><td class="r">${brl(T.t)}</td><td class="r">${brl(T.c)}</td><td class="r">${brl(T.t+T.c)}</td><td></td></tr></tfoot>`:''}</table></div>
+   ${R.length>lim?`<p class="gfnote"><button class="btn sm" data-act="gfCliTodos">Ver os ${R.length} clientes</button></p>`:''}
+   <p class="gfnote">Terceiros: LPUs aprovadas que consumiram o budget${ui.gfHist==='todo'?'':' no mês'} · CLT: valor de referência da equipe própria · reincidente: chamado na mesma etiqueta nos últimos 30 dias (mesma regra dos Chamados)</p></section>`}
+
+/* ---------- Aprovação: fila + detalhe ---------- */
+function gfConf(l,c){const R=[],add=(st,t,d,x)=>R.push({st,t,d,x:x||''});
+  const re=c.id?gReinc(c):[];if(c.id)add(re.length?'bad':'ok','Reincidência',re.length?`${re.length+1} chamados nesta etiqueta nos últimos 30 dias · último em ${dBR(isoD(new Date(gIni(re.sort((a,b)=>gIni(b)-gIni(a))[0]))))}`:'nenhum outro chamado nesta etiqueta nos últimos 30 dias',re.length?'reincidente':'');
+  const s=c.id?gSla(c):null;if(s&&c.validadoEm){const ini=gIni(c),lim=ini+4*GTD_H,h=x=>new Date(x).toTimeString().slice(0,5);add(s.ok?'ok':'bad','SLA de 4h (indisponibilidade)',`início ${dBR(isoD(new Date(ini)))} ${h(ini)} · limite ${h(lim)} · normalizado ${dBR(isoD(new Date(c.validadoEm)))} ${h(c.validadoEm)}`,s.ok?'':'+ '+gDur(c.validadoEm-lim))}
+  const fora=(l.itens||[]).filter(i=>typeof itemOf==='function'&&!itemOf(i.cod));add(fora.length?'bad':'ok','Itens dentro da tabela',fora.length?`${fora.length} ${fora.length===1?'item fora':'itens fora'} da tabela: ${fora.map(i=>esc(i.cod)).join(', ')}`:`${(l.itens||[]).length} ${(l.itens||[]).length===1?'item':'itens'} da LPU vigente`);
+  const nf=(c.rfoFotos||[]).length;add(c.rfoPdf?'ok':(c.rfoTxt?'na':'bad'),'Relatório e fotos',c.rfoPdf?`relatório do atendimento${nf?' · '+nf+(nf===1?' foto':' fotos'):''}`:c.rfoTxt?'RFO em texto, sem PDF':'sem relatório do atendimento',c.rfoPdf?`<button class="lk" data-act="relVer" data-p="${esc(c.rfoPdf)}">ver</button>`:'');
+  const cat=gfCat(l),P=G.lpus.filter(x=>x.id!==l.id&&x.status==='aprovada'&&!gLpuClt(x)&&gfCat(x)===cat&&aprovEm(x)&&Date.now()-aprovEm(x)<=90*864e5),med=P.length?gSoma(P)/P.length:null;
+  if(med!=null)add(l.total>2*med?'bad':'ok','Valor × média da categoria',`${brl(l.total)} · média de ${esc(cat.toLowerCase())} nos últimos 90 dias ${brl(med)} (${P.length} ${P.length===1?'LPU':'LPUs'})`,l.total>2*med?'mais que o dobro':'');
+  else add('na','Valor × média da categoria','sem LPUs aprovadas dessa categoria nos últimos 90 dias para comparar');
+  const dup=c.id?G.lpus.filter(x=>x.id!==l.id&&x.chamado===c.id&&x.status!=='reprovada'):[];add(dup.length?'bad':'ok','Duplicidade',dup.length?`outra LPU neste chamado (${dup.map(x=>brl(x.total)+' · '+(x.status==='aprovada'?'aprovada':'pendente')).join(', ')})`:'nenhuma outra LPU neste chamado',dup.length?'duplicada':'');
+  if(c.desfecho==='Improdutivo')add('bad','Desfecho','chamado encerrado como improdutivo','improdutivo');
+  return R}
+function gfDetalhe(l){const c=gfCh(l),t=c.ts||{},clt=gLpuClt(l),K=gfConf(l,c),al=K.filter(k=>k.st==='bad'),sitN={aguardando:'aguardando aprovação',ajuste:'devolvida para ajuste',aprovada:'aprovada',reprovada:'reprovada'};
+  const ic={ok:'✓',bad:'!',na:'–'},et=gfEt(l,c);
+  const L30=c.id&&et?G.ch.filter(x=>x.status!=='cancelado'&&normK(x.etiqueta)===normK(et)&&(x.id===c.id||(gIni(x)<=gIni(c)&&gIni(c)-gIni(x)<=30*GTD_DIA))).sort((a,b)=>gIni(b)-gIni(a)):[];
+  const H=[];if(c.criadoEm)H.push([c.criadoEm,'Chamado aberto']);if(t.chegada)H.push([t.chegada,'Chegada ao cliente']);if(c.validadoEm)H.push([c.validadoEm,'Chamado normalizado / validado']);(l.hist||[]).forEach(h=>H.push([+h.em||Date.parse(h.em),`${esc(h.acao)} por ${esc(h.por)}${h.motivo?': '+esc(h.motivo):''}`]));
+  H.sort((a,b)=>b[0]-a[0]);
+  const pd=pode('a_gAprovar')&&l.status==='aguardando';
+  return `<section class="panel gfdp"><div class="gfdh"><div><small class="mu">LPU · ${sitN[l.status]||esc(l.status)}${clt?' · equipe própria (CLT)':''}</small><h3>${gfNome(l,c)}</h3><div class="mu" style="font-size:13.5px">${l._pl?'Plantão':'O&amp;M '+esc(l.pom||c.pom||'')} · ${esc(c.cidade||'—')} · <b class="ink">${esc(gfCat(l))}</b>${c.desfecho?' · '+esc(c.desfecho):''} · ${dBR(l.data)} · ${esc(gTecN(l.tec))}</div>${aprovPor(l)?`<small class="mu">${aprovPor(l)}</small>`:''}</div>
+    <div class="r"><div class="gfval">${brl(l.total)}</div><small class="mu">${clt?'referência · não consome o budget':l.status==='aprovada'?'conta 0006 · consumiu o budget':'conta 0006 · consome o budget ao aprovar'}</small></div></div>
+   ${al.length?`<div class="gfal"><b>${al.length} ${al.length===1?'alerta':'alertas'}</b> · ${al.map(k=>k.t+(k.x&&!/</.test(k.x)?' ('+k.x+')':'')).join(' · ')}</div>`:''}
+   ${l.obs?`<div class="note" style="margin-top:10px"><b>Observação do técnico:</b> ${esc(l.obs)}</div>`:''}
+   <h4>Conferência</h4><div class="gfck">${K.map(k=>`<div><span class="gfi ${k.st}">${ic[k.st]}</span><div><b>${k.t}</b><small>${k.d}</small></div><span class="${k.st==='bad'?'gfbad':''}">${k.x}</span></div>`).join('')}</div>
+   <h4>Itens desta LPU</h4><div class="tablewrap"><table class="gft"><thead><tr><th>Código</th><th>Serviço</th><th>Fator</th><th class="r">Qtd.</th><th class="r">Unit.</th><th class="r">Total</th></tr></thead><tbody>${(l.itens||[]).map(i=>`<tr><td class="mu">${esc(i.cod)}</td><td>${esc(i.desc)}</td><td class="mu">${esc(i.fator||'Comum')}</td><td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r"><b>${brl(i.unit*i.qtd)}</b></td></tr>`).join('')||'<tr><td colspan="6" class="mu">Sem itens.</td></tr>'}</tbody><tfoot><tr><td>Total</td><td></td><td></td><td></td><td></td><td class="r">${brl(l.total)}</td></tr></tfoot></table></div>
+   ${L30.length?`<h4>Chamados desta etiqueta nos últimos 30 dias</h4><div class="tablewrap"><table class="gft"><thead><tr><th>Data ↓</th><th>O&amp;M</th><th>Categoria</th><th>Desfecho</th><th>Técnico</th><th class="r">LPU</th></tr></thead><tbody>${L30.map(x=>{const lx=gLpuDe(x),me=x.id===c.id;return `<tr class="${me?'gfme':''}"><td>${dBR(isoD(new Date(gIni(x))))}</td><td>${me?'<b>'+esc(x.pom)+' · este</b>':esc(x.pom)}</td><td class="mu">${esc(x.categoria||'—')}</td><td class="mu">${esc(x.desfecho||'—')}</td><td class="mu">${esc(gTecN(x.tec))}</td><td class="r">${lx?brl(lx.total)+(gLpuClt(lx)?' · CLT':''):'<span class="mu">—</span>'}</td></tr>`}).join('')}</tbody></table></div>`:''}
+   ${H.length?`<h4>Histórico</h4><div class="gftl">${H.map(([em,tx])=>`<div><i></i><b>${dtBR(em)}</b> ${tx}</div>`).join('')}</div>`:''}
+   <div class="gfact">${c.id?`<button class="btn" data-act="gAbrirRel" data-id="${c.id}">Abrir chamado</button>`:''}<button class="btn" data-act="pdfArq" data-id="${l.id}">Ver PDF</button>${pd?`<button class="btn" data-act="gDecidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="gDecidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="gAprovar" data-id="${l.id}">${al.length?'Aprovar mesmo assim':'Aprovar'}</button>`:''}</div></section>`}
+function gfAprov(){const tabs=[['aguardando','Aguardando'],['ajuste','Em ajuste'],['aprovada','Aprovadas'],['reprovada','Reprovadas']],tab=tabs.some(x=>x[0]===ui.gaTab)?ui.gaTab:'aguardando';
+  const AP=G.lpus.filter(l=>lpuNoPer(l,'ga')),cnt=s=>AP.filter(l=>l.status===s).length,tot=s=>gSoma(AP.filter(l=>l.status===s));
+  const rows=AP.filter(l=>l.status===tab).sort((a,b)=>String(b.data).localeCompare(String(a.data)));
+  const sel=rows.find(l=>l.id===ui.gaOpen)||rows[0];
+  const item=l=>{const c=gfCh(l),n=gfConf(l,c).filter(k=>k.st==='bad').length;return `<button class="gfqi ${sel&&l.id===sel.id?'on':''}" data-act="gfSel" data-id="${l.id}"><div><b>${esc(gfCli(l,c))}</b>${gfEt(l,c)?` <small class="mu">· ${esc(gfEt(l,c))}</small>`:''}</div><div class="gfqm"><span>${l._pl?'Plantão':'O&amp;M '+esc(l.pom||c.pom||'')} · ${esc(gTecN(l.tec))}${gLpuClt(l)?' (CLT)':''} · ${esc(gfCat(l).toLowerCase())} · ${dBR(l.data).slice(0,5)}</span><b>${brl(l.total)}</b></div>${n?`<span class="gfbad">● ${n} ${n===1?'alerta':'alertas'}</span>`:'<span class="gfok">● sem alertas</span>'}</button>`};
+  return gfHead('Aprovação de LPU','Confira e aprove, devolva ou reprove · LPUs de terceiros e da equipe própria (CLT); as da CLT não consomem o budget')+
+   `<div class="gfk">${tabs.map(([k,n])=>gfCard(n,brl(tot(k)),`${cnt(k)} ${cnt(k)===1?'LPU':'LPUs'}`)).join('')}</div>
+   <div class="gffl"><div class="gfseg">${tabs.map(([k,n])=>`<button data-act="gaTab" data-t="${k}" aria-pressed="${tab===k}">${n} · ${cnt(k)}</button>`).join('')}</div></div>
+   ${lpuPerBar('ga','gaXlsx')}
+   ${rows.length?`<div class="gfmd"><div class="gfql">${rows.map(item).join('')}</div>${gfDetalhe(sel)}</div>`:'<p class="muted pad">Nenhuma LPU nesta situação.</p>'}`}
+
+/* ---------- Totais por prestador e Detalhamento: mesmo conteúdo, cabeçalho e quadros no padrão novo ---------- */
+const gfPer=()=>`<label class="f inline"><span>De</span><input type="date" class="inp" data-ch="gpIni" value="${ui.gpIni||hoje().slice(0,8)+'01'}"></label><label class="f inline"><span>Até</span><input type="date" class="inp" data-ch="gpFim" value="${ui.gpFim||hoje()}"></label>`;
+const gfKpis=h=>h.replace(/<div class="kpis[^"]*"[^>]*>([\s\S]*?)<\/div>(?=\s*<(?:section|div class="grid2|div class="tools))/,(m,inner)=>`<div class="gfk">${inner.replace(/<div class="kpi[^"]*"><b>([\s\S]*?)<\/b><span>([\s\S]*?)<\/span><\/div>/g,(x,v,l)=>gfCard(l,v,null))}</div>`);
+
+/* ---------- liga na tela do GTD ---------- */
+{const _v=viewGPainel;viewGPainel=function(){if(!gfOn()||G.erro)return _v.apply(this,arguments);const sec=gSecsOk().some(x=>x[0]===ui.gSec)?ui.gSec:'geral';if(sec!=='fin')return _v.apply(this,arguments);
+  ui.gSec=sec;const subs=gSubsOk();if(!subs.length)return _v.apply(this,arguments);const sub=subs.some(x=>x[0]===ui.gFinSub)?ui.gFinSub:subs[0][0];ui.gFinSub=sub;
+  if(!['budget','prest','det','aprov'].includes(sub))return _v.apply(this,arguments);
+  let h;if(sub==='budget')h=gFinBudget();
+  else if(sub==='aprov')h=viewGAprov(true);
+  else if(sub==='prest')h=gfHead('Totais por prestador','LPUs de terceiros do GTD pela data do atendimento, sem as reprovadas · equipe própria (CLT) não entra',gfPer())+gfKpis(pPrest('GTD',ui.gpIni||hoje().slice(0,8)+'01',ui.gpFim||hoje()));
+  else h=gfHead('Detalhamento das LPUs','Em quais serviços e classes o valor das LPUs do GTD está concentrado',gfPer())+gfKpis(gFinDet());
+  return `<div class="gfwrap">${h}</div>`}}
+{const _n=gNavPainel;gNavPainel=function(){const h=_n.apply(this,arguments);return gfOn()?h.replace('<span class="nt">Budget e consumo</span>','<span class="nt">Budget</span>'):h}}
+Object.assign(ACT,{gfSel:el=>{ui.gaOpen=el.dataset.id;render();try{if(window.innerWidth<900){const d=document.querySelector('.gfdp');if(d)d.scrollIntoView({block:'start'})}}catch(e){}},
+  gfHist:el=>{ui.gfHist=el.dataset.v;render()},gfCliTodos:()=>{ui.gfCliTodos=true;render()},
+  gfCliXlsx:()=>{const mes=ui.bMes||hoje().slice(0,7),R=gfCliDados(mes,gfBudgetDados(mes));xlsxBaixar(`gtd_valor_por_cliente_${ui.gfHist==='todo'?'historico':mes}`,[['Valor por cliente',R.map(r=>({'Cliente':r.cli,'Etiqueta':r.et,'Cidade':r.cid,'Chamados':r.ch.size,'Reincidente':r.rei?'sim':'','Terceiros (R$)':Math.round(r.t*100)/100,'CLT fora do budget (R$)':Math.round(r.c*100)/100,'Total (R$)':Math.round((r.t+r.c)*100)/100,'Última categoria':r.ult?r.ult.categoria||'':''}))]])}});
+{const _q=(k)=>el=>{ui[k]=el.value;clearTimeout(ui.gfTq);ui.gfTq=setTimeout(()=>{const pos=el.selectionStart,y=window.scrollY;render();window.scrollTo(0,y);const n=document.querySelector(`[data-in="${k}"]`);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},300)};Object.assign(IN,{gfQ:_q('gfQ'),gfAQ:_q('gfAQ')})}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.gfwrap{font-variant-numeric:tabular-nums}.gfhd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}.gfhd h2{margin:0}.gfhd p{margin:4px 0 0}.gfhd .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gfk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}@media(max-width:900px){.gfk{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gfc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;grid-template-rows:auto auto auto auto;row-gap:6px;min-width:0}
+.gfc .l{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gfc .v{font-size:28px;font-weight:700;line-height:1.15;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gfc .s,.gfc .d{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gfc .d em{font-style:normal;font-weight:700}
+.gfwrap .up{color:#3b7d3a}.gfwrap .dn{color:var(--bad)}.gfwrap .mu{color:var(--muted)}.gfwrap .ink{color:var(--ink)}.gfwrap .r{text-align:right}
+.gfp{margin-top:16px}.gfbar{display:flex;height:32px;border-radius:8px;overflow:hidden;gap:2px;margin:8px 0 12px}.gfbar i{display:flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;min-width:3px}.gfbar .gfrest{background:var(--line)}
+.gfdot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px;vertical-align:middle}
+.gft{width:100%;border-collapse:collapse;font-size:14px}.gft th{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:left;font-weight:700;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}.gft th.r{text-align:right}.gft td{padding:9px 8px;border-bottom:1px solid var(--line)}.gft tfoot td{border-bottom:0;border-top:2px solid var(--line);font-weight:700}
+.gfnote{font-size:12.5px;color:var(--muted);margin:8px 0 0}.gfbad{color:var(--bad);font-weight:700;font-size:12.5px;white-space:nowrap}.gfok{color:#3b7d3a;font-size:12.5px}
+.gfseg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;flex:none;flex-wrap:wrap}.gfseg button{border:0;background:none;padding:6px 12px;border-radius:999px;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap}.gfseg button[aria-pressed="true"]{background:var(--ink);color:var(--surface);font-weight:600}
+.gffl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.gfmd{display:grid;grid-template-columns:320px minmax(0,1fr);gap:14px;align-items:start;margin-top:12px}@media(max-width:900px){.gfmd{grid-template-columns:1fr}}
+.gfql{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 140px);overflow:auto;position:sticky;top:10px}.gfqi{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:5px;font:inherit;color:var(--ink);cursor:pointer}.gfqi.on{outline:2px solid var(--ink);outline-offset:-1px}
+.gfqm{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted)}.gfqm b{color:var(--ink);font-size:14px;white-space:nowrap}
+.gfdp{margin:0}.gfdh{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding-bottom:12px;border-bottom:1px solid var(--line)}.gfdh h3{margin:2px 0}.gfval{font-size:28px;font-weight:700}
+.gfal{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--bad);background:color-mix(in srgb,var(--bad) 8%,transparent);border-radius:0 8px 8px 0;font-size:14px}
+.gfdp h4{margin:16px 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.gfck{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px}.gfck>div{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:9px 12px;border-top:1px solid var(--line);font-size:14px}.gfck>div:first-child{border-top:0}.gfck small{display:block;color:var(--muted);font-size:12.5px}
+.gfi{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;background:#6f9a4f}.gfi.bad{background:var(--bad)}.gfi.na{background:var(--line);color:var(--muted)}
+.gfme td{background:color-mix(in srgb,var(--ink) 4%,transparent)}.gftl{display:flex;flex-direction:column;gap:8px;font-size:13.5px;border-left:2px solid var(--line);margin-left:6px;padding-left:14px}.gftl>div{position:relative}.gftl i{position:absolute;left:-20px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--ink)}.gftl b{margin-right:6px}
+.gfact{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.gfwrap button.lk{border:0;background:none;color:inherit;text-decoration:underline;cursor:pointer;font:inherit}
+</style>`);
+
+/* ---------- 28/11: Financeiro da Implantação no padrão novo (mesmo do GTD) ----------
+   Menu: Budget (fora dos grupos) · Contrato LPU (Totais, Detalhamento, Previsão dos projetos, Aprovação) · Contrato fixo.
+   Budget: 4 quadros, onde foi o consumo (contrato LPU × contrato fixo), valor por cliente (LPU, fixo, CLT, ROI) e previsão do mês.
+   Aprovação de LPU e Aprovação das baixas: fila à esquerda e detalhe à direita (conferência, itens desta LPU, LPU × ROI por fase, histórico).
+   Sempre "Cliente · etiqueta". Sai o bloco "Deslocamento por km". A aprovação continua pelos botões de sempre (aprovar, devolver, reprovar). */
+const ifPainel=()=>ui.tab==='painel'&&ui.pSec==='fin';
+const ifAprovOn=()=>ifPainel()&&['aprov','cfiAprov'].includes(ui.finSub)&&!window.__txAprov;
+let IF_ALL=null,IF_NOKLB=0;
+const ifL=()=>IF_ALL||S.lpus;
+const ifSoma=L=>L.reduce((s,l)=>s+(+l.total||0),0);
+const ifCliN=e=>{const p=pPor(e)||{};return p.cliente||cliN(e)||''};
+const ifNome=l=>{const c=ifCliN(l.etiqueta);return c?esc(c)+(l.etiqueta?' · '+esc(l.etiqueta):''):esc(l.etiqueta||'—')};
+const ifM=v=>(+v||0).toLocaleString('pt-BR')+' m';
+
+/* ---------- menu: Budget fora dos grupos; Previsão dos projetos dentro do Contrato LPU ---------- */
+{const b=FSUB.find(x=>x[0]==='budget');if(b){b[1]='Budget';b[2]='Mão de obra terceirizada da Implantação: contrato LPU + contrato fixo.'}
+  const i=FSUB.findIndex(x=>x[0]==='det');FSUB.splice(i<0?FSUB.length:i+1,0,['prev','Previsão dos projetos','O que ainda falta executar nos projetos em aberto, pela LPU, comparado com o budget do mês.']);FSUB_K.prev='f_budget'}
+{const _r=render;render=function(){const tir=[];if(!(typeof kcVe==='function'&&kcVe()))for(let i=FSUB.length-1;i>=0;i--)if(FSUB[i][0]==='prev')tir.push(FSUB.splice(i,1)[0]);
+  try{return _r.apply(this,arguments)}finally{tir.forEach(x=>{const j=FSUB.findIndex(y=>y[0]==='det');FSUB.splice(j<0?FSUB.length:j+1,0,x)})}}}
+{const _n=fiNavGrupos;fiNavGrupos=function(){const B=[];document.querySelectorAll('.nlv > .cfigl.lpu').forEach(h=>{const box=h.parentElement,b=box&&box.querySelector(':scope > button[data-act="pSec"][data-v="fin"][data-s="budget"]');if(b){b.remove();B.push([box,b])}});
+  const r=_n.apply(this,arguments);B.forEach(([box,b])=>{const g=box.querySelector(':scope > [data-act="fiGrp"]');box.insertBefore(b,g||null)});return r}}
+/* Deslocamento por km sai do Budget */
+dkPainel=function(){return ''};
+{const _k=klbPainel;klbPainel=function(){return IF_NOKLB?'':_k.apply(this,arguments)}}
+
+/* ---------- Budget ---------- */
+function ifBudDados(mes){const L=finTodas().filter(l=>finAreaL(l)==='impl'&&!finClt(l));
+  const ap=L.filter(l=>l.status==='aprovada'&&aprovEm(l)&&mesBud(l)===mes),pe=L.filter(l=>['aguardando','ajuste'].includes(l.status));
+  const fx=ap.filter(l=>l._cfi),lp=ap.filter(l=>!l._cfi);
+  return{ap,pe,fx,lp,uso:ifSoma(ap),orc:finBud(mes,'0005')}}
+function ifPrevAberto(){if(!(typeof kcVe==='function'&&kcVe()))return null;let t=0,n=0;
+  S.previsao.filter(p=>p.etiqueta&&etapa(p)!=='entregue').forEach(p=>{let v=0;try{v=kleUsa(p)?klbProj(p).prev:kcProj(p,kTrab(p)).prev}catch(e){}if(v>0){t+=v;n++}});return{t,n}}
+function ifBudget(){if(typeof finExtraPronto==='function'&&!finExtraPronto())return FIN_CARREG;
+  const mes=ui.bMes||hoje().slice(0,7);ui.bMes=mes;const D=ifBudDados(mes),A=ifBudDados(gfMais(mes,-1)),disp=D.orc-D.uso,comp=ifSoma(D.pe);
+  const meses=[];for(let k=-12;k<=2;k++)meses.push(gfMais(hoje().slice(0,7),k));
+  const dU=gfDelta(D.uso,A.uso,true),nP=new Set(D.lp.map(l=>l.prestador||l.tec)).size,nK=new Set(D.fx.map(l=>l.tec)).size;
+  let nB=0;try{new Set(D.fx.map(l=>l.tec+'|'+l._cfRef)).forEach(x=>{const[t,r]=x.split('|');nB+=cfiApura(t,r).B.length})}catch(e){}
+  const vL=ifSoma(D.lp),vF=ifSoma(D.fx),tot=D.uso||1,W=Math.max(D.orc,D.uso)||1;
+  const linha=(n,cor,q,v,va,sub)=>{const d=gfDelta(v,va,true);return `<tr><td><span class="gfdot" style="background:${cor}"></span><b>${n}</b></td><td class="r">${q}</td><td class="r"><b>${brl(v)}</b></td><td class="r mu">${pct(v,tot)}%</td><td class="r">${d[0]?`<span class="${d[1]}">${d[0]}</span>`:'<span class="mu">—</span>'}</td><td class="r"><button class="lk" data-act="ifIr" data-s="${sub}">ver detalhes</button></td></tr>`};
+  const prev=ifPrevAberto(),fim=D.uso+comp+(prev?prev.t:0);
+  return gfHead('Budget',`Mão de obra terceirizada da Implantação · contrato LPU + contrato fixo · consome no mês do fechamento (pedido da NF)`,
+    `<label class="f inline"><span>Mês</span><select class="inp" data-ch="bMes">${meses.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${mesNome(m)}</option>`).join('')}</select></label>${pode('a_budget')?'<button class="btn" data-act="bEdit">Definir budget do mês</button>':''}`)+
+   `<div class="gfk">${gfCard('Budget do mês',brl(D.orc),D.orc?'conta 0005 · Instalação CLIENTE':'sem budget definido')}${gfCard('Consumido',brl(D.uso),`${D.orc?pct(D.uso,D.orc)+'% do budget':'&nbsp;'}`,dU[0],dU[1])}${gfCard('Disponível',brl(disp),D.orc?pct(Math.max(disp,0),D.orc)+'% do budget':'&nbsp;')}${gfCard('Aguardando aprovação',brl(comp),`${D.pe.length} ${D.pe.length===1?'LPU':'LPUs'} · consomem ao aprovar`)}</div>
+   <section class="panel gfp"><div class="secth"><h3>Onde foi o consumo</h3><span class="muted">${brl(D.uso)}${D.orc?' de '+brl(D.orc):''}</span></div>
+    ${D.uso?`<div class="gfbar">${vL?`<i style="width:${vL/W*100}%;background:#3f6b2f" title="Contrato LPU · ${brl(vL)}">${vL/W>.16?'Contrato LPU · '+brl(vL):''}</i>`:''}${vF?`<i style="width:${vF/W*100}%;background:#7cb342" title="Contrato fixo · ${brl(vF)}">${vF/W>.16?'Contrato fixo · '+brl(vF):''}</i>`:''}${D.orc&&disp>0?`<i class="gfrest" style="width:${disp/W*100}%" title="Disponível · ${brl(disp)}"></i>`:''}</div>`:''}
+    <div class="tablewrap"><table class="gft"><thead><tr><th>Tipo de contrato</th><th class="r">Quantidade</th><th class="r">Valor ↓</th><th class="r">% do consumido</th><th class="r">vs. ${gfMesN(gfMais(mes,-1))}</th><th></th></tr></thead><tbody>
+    ${linha('Contrato LPU','#3f6b2f',`${D.lp.length} ${D.lp.length===1?'LPU':'LPUs'} · ${nP} ${nP===1?'prestador':'prestadores'}`,vL,ifSoma(A.lp),'prest')}
+    ${D.fx.length||A.fx.length?linha('Contrato fixo','#7cb342',`${nK} ${nK===1?'contrato':'contratos'} · ${nB} ${nB===1?'baixa':'baixas'}`,vF,ifSoma(A.fx),'cfiFech'):''}</tbody>
+    <tfoot><tr><td>Total consumido</td><td></td><td class="r">${brl(D.uso)}</td><td class="r">100%</td><td class="r">${dU[0]?`<span class="${dU[1]}">${dU[0]}</span>`:'—'}</td><td></td></tr></tfoot></table></div>
+    <p class="gfnote">Contrato LPU: LPUs de terceiros aprovadas até o fechamento do mês · Contrato fixo: valor do contrato no período (fixo ou a produção, se passar), as baixas não consomem uma a uma</p></section>
+   ${ifClientes(mes)}
+   <section class="panel gfp"><div class="secth"><h3>Previsão de fechamento do mês</h3><span class="muted">${prev?'pelos projetos em aberto · ':''}<button class="lk" data-act="ifIr" data-s="prev">ver previsão dos projetos</button></span></div>
+    <div class="ifprev"><div><b>${brl(D.uso)}</b><span>Consumido</span></div><div><b>${brl(comp)}</b><span>Aguardando</span></div>${prev?`<div><b>${brl(prev.t)}</b><span>Previsto em aberto · ${prev.n} ${prev.n===1?'projeto':'projetos'}</span></div>`:''}<div><b>${D.orc?pct(fim,D.orc)+'%':'—'}</b><span>${D.orc?'Previsão do budget':'Budget do mês não definido'}</span></div></div></section>`}
+/* valor por cliente: LPU de terceiros, baixas do contrato fixo e CLT, comparado com a mão de obra do ROI */
+function ifCliDados(mes){const hist=ui.ifHist==='todo',q=normK(String(ui.ifQ||'').trim()),tx=l=>typeof lpuTx==='function'&&lpuTx(l);
+  const L=S.lpus.filter(l=>!l.chamado&&!tx(l)&&l.etiqueta&&l.status!=='reprovada');
+  const ok=l=>{const clt=tecT(l.tec)!=='TERC';if(clt)return hist||String(l.data||'').slice(0,7)===mes;if(l.status!=='aprovada')return false;return hist||mesBud(l)===mes};
+  const TM=typeof trabMapa==='function'?trabMapa():new Map(),M={};L.filter(ok).forEach(l=>{const e=l.etiqueta,tn=TM.has(e)?trabDe(l):0,key=e+(tn?'#'+tn:''),r=M[key]=M[key]||{e,k:key,tn,p:pPor(e)||{},lp:0,fx:0,clt:0,Ls:[]};const v=+l.total||0;if(tecT(l.tec)!=='TERC')r.clt+=v;else if(l.cf)r.fx+=v;else r.lp+=v;r.Ls.push(l)});
+  return Object.values(M).map(r=>{r.cli=r.p.cliente||cliN(r.e)||'';r.tot=r.lp+r.fx+r.clt;r.roi=ifRoiMO(r.p);if(r.tn&&r.tn!==TM.get(r.e)){const tr=(r.p.trabs||[]).find(x=>x.n===r.tn)||{};r.roi=tr.proj?klbMO(tr.proj):null}if(r.tn)r.trT=trabN(r.tn)+(TM.get(r.e)===r.tn?' · atual':'');r.dif=r.roi==null?null:r.tot-r.roi;return r})
+    .filter(r=>!q||normK([r.cli,r.e,r.p.cidade||''].join(' ')).includes(q)).sort((a,b)=>b.tot-a.tot)}
+function ifClientes(mes){const R=ifCliDados(mes),lim=ui.ifCliTodos?R.length:30,ab=ui.ifAb||{},hist=ui.ifHist==='todo';
+  const T=R.reduce((s,r)=>({lp:s.lp+r.lp,fx:s.fx+r.fx,clt:s.clt+r.clt,tot:s.tot+r.tot,roi:s.roi+(r.roi||0),dif:r.dif==null?s.dif:(s.dif||0)+r.dif}),{lp:0,fx:0,clt:0,tot:0,roi:0,dif:null});
+  const v=x=>x?brl(x):'<span class="mu">—</span>',dif=d=>d==null?'<span class="mu">—</span>':`<b class="${d>0?'dn':''}">${d>0?'+ ':d<0?'− ':''}${brl(Math.abs(d))}</b>`;
+  const tp=l=>tecT(l.tec)!=='TERC'?'CLT':l.cf?'Contrato fixo':'Contrato LPU';
+  const det=r=>`<tr class="ifdet"><td colspan="8"><div class="tablewrap"><table class="gft"><thead><tr><th>Data</th><th>Fases</th><th>Tipo</th><th>Prestador / técnico</th><th>Situação</th><th class="r">Valor</th></tr></thead><tbody>${r.Ls.slice().sort((a,b)=>String(a.data).localeCompare(String(b.data))).map(l=>`<tr><td>${dBR(l.data)}</td><td>${esc(fasesN(l)||'—')}</td><td class="mu">${tp(l)}</td><td>${esc(tecN(l.tec))}</td><td><span class="chip ${(LST[l.status]||['',''])[1]}">${esc((LST[l.status]||[l.status])[0])}</span></td><td class="r">${brl(l.total)}</td></tr>`).join('')}</tbody></table></div></td></tr>`;
+  return `<section class="panel gfp"><div class="secth"><h3>Valor por cliente <span class="mu" style="font-weight:500">· ${R.length}</span></h3><div class="tools"><input class="inp" type="search" data-in="ifQ" value="${esc(ui.ifQ||'')}" placeholder="Buscar cliente ou etiqueta" style="width:230px"><div class="gfseg"><button data-act="ifHist" data-v="mes" aria-pressed="${!hist}">No mês</button><button data-act="ifHist" data-v="todo" aria-pressed="${hist}">Todo o histórico</button></div><button class="btn sm" data-act="ifCliXlsx">Baixar planilha</button></div></div>
+   <div class="tablewrap"><table class="gft ifcli"><thead><tr><th>Cliente</th><th>Cidade</th><th class="r">Contrato LPU</th><th class="r">Contrato fixo</th><th class="r">CLT</th><th class="r">Total ↓</th><th class="r">M.O. no ROI</th><th class="r">Diferença</th></tr></thead><tbody>
+   ${R.slice(0,lim).map(r=>{const o=!!ab[r.k];return `<tr class="ifrow${o?' on':''}" data-act="ifAb" data-e="${esc(r.k)}" tabindex="0" aria-expanded="${o}"><td><b>${esc(r.cli||'—')}</b><br><small class="mu">${esc(r.e)}${r.trT?` <span class="chip" style="font-size:11px">${esc(r.trT)}</span>`:''} ${o?'▴':'▾'}</small></td><td class="mu">${esc(r.p.cidade||'—')}</td><td class="r">${v(r.lp)}</td><td class="r">${v(r.fx)}</td><td class="r">${v(r.clt)}</td><td class="r"><b>${brl(r.tot)}</b></td><td class="r">${r.roi==null?'<span class="mu">sem ROI</span>':brl(r.roi)}</td><td class="r">${dif(r.dif)}</td></tr>${o?det(r):''}`}).join('')||`<tr><td colspan="8" class="mu">${ui.ifQ?'Nenhum cliente ou etiqueta encontrado.':'Nenhuma LPU '+(hist?'':'no mês')+'.'}</td></tr>`}</tbody>
+   ${R.length?`<tfoot><tr><td>Total</td><td></td><td class="r">${brl(T.lp)}</td><td class="r">${brl(T.fx)}</td><td class="r">${brl(T.clt)}</td><td class="r">${brl(T.tot)}</td><td class="r">${brl(T.roi)}</td><td class="r">${dif(T.dif)}</td></tr></tfoot>`:''}</table></div>
+   ${R.length>lim?`<p class="gfnote"><button class="btn sm" data-act="ifCliTodos">Ver os ${R.length} clientes</button></p>`:''}
+   <p class="gfnote">${hist?'Todo o histórico':'No mês'}: contrato LPU = LPUs de terceiros aprovadas${hist?'':' que consumiram o budget no mês'} · contrato fixo = valor das baixas aprovadas na etiqueta · CLT = valor de referência da equipe própria (não consome o budget) · diferença = total − mão de obra do ROI, em vermelho quando passa · toque no cliente para ver as LPUs e baixas</p></section>`}
+
+/* ---------- Aprovação: LPU × ROI por fase ---------- */
+const ifRoiMO=p=>{const v=klbMO(p);if(v!=null)return v;try{const R=rcRoi(p);if(R&&R.L.length)return Math.round(R.L.reduce((s,x)=>s+(+x.v||0),0)*100)/100}catch(e){}return null};
+const IF_FN={lanc:'Lançamento',ext:'Extensão de sinal',ativ:'Ativação'};
+function ifFases(l){const p=pPor(l.etiqueta),R=typeof rcRoi==='function'?rcRoi(p):null;if(!R)return null;
+  const FS=['lanc','ext','ativ'],roi={},apr={},esta={};R.L.forEach(x=>{if(FS.includes(x.fase))roi[x.fase]=(roi[x.fase]||0)+(+x.v||0)});
+  const fOf=(o,i)=>{const F=rcFasesRoi(o);if(F.length<=1)return F[0];const m=R.L.find(x=>x.cod===i.cod&&F.includes(x.fase));return m?m.fase:F[0]};
+  const add=(M,o)=>(o.itens||[]).forEach(i=>{const f=fOf(o,i);if(f)M[f]=(M[f]||0)+(+i.unit||0)*(+i.qtd||0)});
+  ifL().filter(o=>o.id!==l.id&&o.etiqueta===l.etiqueta&&!o.chamado&&o.status==='aprovada').forEach(o=>add(apr,o));add(esta,l);
+  const mine=rcFasesRoi(l),r2=v=>Math.round(v*100)/100;
+  const rows=FS.filter(f=>roi[f]||apr[f]||esta[f]).map(f=>{const ex=r2((apr[f]||0)+(esta[f]||0));return{f,n:IF_FN[f],roi:r2(roi[f]||0),apr:r2(apr[f]||0),esta:r2(esta[f]||0),ex,dif:ex?r2(ex-(roi[f]||0)):null,me:mine.includes(f)}});
+  const S2=k=>r2(rows.reduce((s,x)=>s+x[k],0));return{R,rows,roi:S2('roi'),apr:S2('apr'),esta:S2('esta'),ex:S2('ex'),mine}}
+function ifFasesHtml(l,F,rot){if(!F)return `<p class="mu" style="font-size:13.5px">Este projeto não tem ROI com mão de obra nem KMZ lido para estimar. Sem base para comparar.</p>`;
+  const d=x=>x.dif==null?'<span class="mu">a executar</span>':`<b class="${x.dif>0?'dn':''}">${x.dif>0?'+ ':x.dif<0?'− ':''}${brl(Math.abs(x.dif))}</b>`,v=x=>x?brl(x):'<span class="mu">—</span>';
+  const ac=F.rows.filter(x=>x.me&&x.dif>0);
+  return `<div class="tablewrap"><table class="gft"><thead><tr><th>Fase</th><th class="r">M.O. no ROI</th><th class="r">Já aprovado</th><th class="r">${rot}</th><th class="r">Executado</th><th class="r">Diferença</th></tr></thead><tbody>
+   ${F.rows.map(x=>`<tr class="${x.me?'gfme':''}"><td>${x.me?`<b>${x.n}</b> <small class="mu">· ${rot.toLowerCase()}</small>`:x.n}</td><td class="r">${v(x.roi)}</td><td class="r">${v(x.apr)}</td><td class="r">${x.esta?'<b>'+brl(x.esta)+'</b>':'<span class="mu">—</span>'}</td><td class="r">${v(x.ex)}</td><td class="r">${d(x)}</td></tr>`).join('')}</tbody>
+   <tfoot><tr><td>Projeto</td><td class="r">${brl(F.roi)}</td><td class="r">${brl(F.apr)}</td><td class="r">${brl(F.esta)}</td><td class="r">${brl(F.ex)}</td><td class="r">${F.roi?pct(F.ex,F.roi)+'% do ROI':'—'}</td></tr></tfoot></table></div>
+   <p class="gfnote">${ac.length?`Com ${rot==='Esta baixa'?'esta baixa':'esta LPU'}, ${ac.map(x=>`a fase ${x.n.toLowerCase()} passa ${brl(x.dif)} do ROI`).join(' e ')}${F.roi?`; o projeto está em ${pct(F.ex,F.roi)}% do ROI`:''}.`:F.mine.length?`Dentro do ROI na${F.mine.length>1?'s fases':' fase'} ${F.mine.map(f=>IF_FN[f].toLowerCase()).join(' e ')}.`:''} ${F.R.orig==='roi'?'ROI gerado na ferramenta.':'Estimativa KMZ × LPU (o projeto não tem ROI gerado na ferramenta).'} Já aprovado: LPUs e baixas aprovadas do projeto (terceiros e CLT).</p>`}
+
+/* ---------- Aprovação: conferência ---------- */
+function ifConf(l){const R=[],add=(st,t,d,x)=>R.push({st,t,d,x:x||''}),a=getAg(l.ag),p=pPor(l.etiqueta)||{},F=ifFases(l);
+  if(l.cf){const c=l.cf,m=+c.m||0,rel=metrosAg(a),roi=+p.metros||0,k=(typeof cfContrato==='function'&&cfContrato('impl',l.tec))||{},lim=typeof cfiLim==='function'?cfiLim(k):650;
+    if(c.cat!=='cfo'){if(rel!=null&&m&&m!==rel)add('bad','Metragem',`baixa ${ifM(m)} · relatório ${ifM(rel)}${roi?' · ROI do projeto '+ifM(roi):''}`,`${m>rel?'+':'−'}${ifM(Math.abs(m-rel))}`);
+      else if(rel==null&&m)add('bad','Metragem',`baixa ${ifM(m)} · o relatório não tem metragem de lançamento`,'sem relatório');
+      else add('ok','Metragem',`baixa ${ifM(m)}${rel!=null?' · relatório '+ifM(rel):''}${roi?' · ROI do projeto '+ifM(roi):''}`)}
+    const tOk=c.cat==='cfo'||(c.cat==='a650'?m<=lim:m>lim);add(tOk?'ok':'bad','Tipo de baixa',`${esc((CFI_CAT||{})[c.cat]||c.cat||'—')}${c.cat==='cfo'?' · valor fixo por atividade':tOk?' · confere com a metragem':` · ${ifM(m)} não confere com o limite de ${lim} m`}`);
+    const sI=Math.round((l.itens||[]).reduce((s,i)=>s+(+i.unit||0)*(+i.qtd||0),0)*100)/100,vOk=Math.abs(sI-(+l.total||0))<0.01;
+    add(vOk?'ok':'bad','Valor pela tabela do contrato',vOk?`${(l.itens||[]).length} ${(l.itens||[]).length===1?'item':'itens'} da tabela do contrato`:`itens somam ${brl(sI)} e a baixa ${brl(l.total)}`);
+    if(c.add)add('na','Valor adicional',esc(c.add.mot||'sem motivo'),brl(c.add.v))}
+  else{const al=alertasCabo(a,l),lc=caboLpu(l),rel=metrosAg(a);
+    if(al.length)add('bad','Cabo',al.map(x=>x.d.replace(/<[^>]+>/g,'')).join(' '),esc(al[0].curto||''));
+    else if(lc||rel!=null)add('ok','Cabo',`LPU ${ifM(lc)}${rel!=null?' · relatório '+ifM(rel):''}${+p.metros?' · ROI do projeto '+ifM(p.metros):''}`);
+    else add('na','Cabo','LPU sem serviço de lançamento de cabo');
+    const fora=(l.itens||[]).filter(i=>typeof itemOf==='function'&&!itemOf(i.cod)&&!/^CF-/.test(i.cod));add(fora.length?'bad':'ok','Itens dentro da tabela',fora.length?`${fora.length} ${fora.length===1?'item fora':'itens fora'} da tabela: ${fora.map(i=>esc(i.cod)).join(', ')}`:`${(l.itens||[]).length} ${(l.itens||[]).length===1?'item':'itens'} · valores da LPU vigente`)}
+  if(a){const rs=relsDe(a),env=rs.filter(r=>a.rel&&a.rel[r.k]),bt=typeof relBtnsAll==='function'?relBtnsAll(a):'';add(!rs.length?'na':env.length===rs.length?'ok':'bad',l.cf?'Relatório e fotos':'Relatórios',rs.length?(env.length===rs.length?'enviados':`${rs.length-env.length} de ${rs.length} pendentes`)+(a.ts&&a.ts.conclusao?' · atividade concluída em '+dtBR(a.ts.conclusao):''):'nenhum relatório pedido nesta atividade',bt?`<span class="ifbt">${bt}</span>`:'')}
+  if(!l.cf&&typeof vtaDe==='function'){const v=vtaDe(l);if(v){if(vtaBloq(l))add('bad','Vistoria de lançamento','última vistoria com pendência','pendência');else if(v.ult)add('ok','Vistoria de lançamento','vistoria aprovada'+(v.ult.data?' em '+dBR(v.ult.data):''));else add('na','Vistoria de lançamento',v.disp?'vistoria dispensada':'projeto ainda sem vistoria')}}
+  if(F){const me=F.rows.filter(x=>x.me),ac=me.filter(x=>x.dif>0);if(me.length)add(ac.length?'bad':'ok',l.cf?'Baixa × ROI':'LPU × ROI',me.map(x=>`fase ${x.n.toLowerCase()}: executado ${brl(x.ex)} · ROI ${brl(x.roi)}`).join(' · '),ac.length?'+ '+brl(ac.reduce((s,x)=>s+x.dif,0)):'');else add('na',l.cf?'Baixa × ROI':'LPU × ROI','as fases desta atividade não estão no ROI')}
+  else add('na',l.cf?'Baixa × ROI':'LPU × ROI','projeto sem ROI de mão de obra para comparar');
+  const dp=typeof lpuDups==='function'?(()=>{const o=S.lpus;S.lpus=ifL();try{return lpuDups(l)}finally{S.lpus=o}})():[];add(dp.length?'bad':'ok','Duplicidade',dp.length?`outra ${l.cf?'baixa':'LPU'} da mesma atividade${l.dia?' e do mesmo dia':''} (${dp.map(x=>brl(x.total)+' · '+lpuStN(x.status)).join(', ')})`:`nenhuma outra ${l.cf?'baixa':'LPU'} da mesma atividade`,dp.length?'duplicada':'');
+  return{K:R,F}}
+
+/* ---------- Aprovação: detalhe e fila ---------- */
+function ifDetalhe(l){const a=getAg(l.ag),p=pPor(l.etiqueta)||{},{K,F}=ifConf(l),al=K.filter(k=>k.st==='bad'),clt=tecT(l.tec)!=='TERC',cf=!!l.cf;
+  const sitN={aguardando:'aguardando aprovação',ajuste:'devolvida para ajuste',aprovada:'aprovada',reprovada:'reprovada',conferencia:'em conferência do prestador'},ic={ok:'✓',bad:'!',na:'–'};
+  const cx=(S.cnpj||{})[l.tec]||{},emp=cx.empresa?gTecN(cx.empresa):'',tipo=cf?esc((CFI_CAT||{})[l.cf.cat]||'Contrato fixo'):esc(fasesN(l)||'—');
+  let per='',ctr='';if(cf){try{const k=cfContrato('impl',l.tec)||{},ref=typeof cfkRefDe==='function'?cfkRefDe(cfkCiclo(k),l.data):null;if(ref){const A=cfiApura(l.tec,ref),stN={aberto:'aberto',dev:'devolvido',env:'enviado',apr:'aprovado'};per=`período ${cfPerTxt(ref)}`;
+    ctr=`<div class="ifbox"><div><small>Contrato</small><b>${esc(emp||tecN(l.tec))}</b></div><div><small>Baixas aprovadas no período</small><b>${A.B.length} · ${brl(A.vb)}</b></div><div><small>Fixo do período</small><b>${brl(A.fixo)}</b></div><div><small>Fechamento</small><b>${stN[A.st]||esc(A.st)}</b></div></div>`}}catch(e){}}
+  const H=[];if(a&&a.ts){if(a.ts.chegada)H.push([a.ts.chegada,'Chegada ao cliente']);if(a.ts.conclusao)H.push([a.ts.conclusao,'Atividade concluída'])}(l.hist||[]).forEach(h=>H.push([typeof h.em==='number'?h.em:Date.parse(h.em),`${esc(h.acao)} por ${esc(h.por)}${h.motivo?': '+esc(h.motivo):''}`]));H.sort((x,y)=>y[0]-x[0]);
+  const conf=(()=>{const h=(l.hist||[]).slice().reverse().find(x=>/pelo prestador/.test(x.acao));return h?`<div class="note" style="margin-top:10px"><b>Conferida pelo prestador:</b> ${esc(h.por)} em ${dtBR(h.em)}. Executada por ${esc(l.tecNome||tecN(l.tec))}.</div>`:''})();
+  const pd=l.status==='aguardando'&&pode('a_aprovar'),bl=al.length||(!cf&&typeof vtaBloq==='function'&&vtaBloq(l));
+  const itens=`<div class="tablewrap"><table class="gft"><thead><tr><th>${cf?'Item da tabela do contrato':'Código'}</th>${cf?'':'<th>Serviço</th>'}<th class="r">Qtd.</th><th class="r">Unit.</th><th class="r">Total</th></tr></thead><tbody>${(l.itens||[]).map(i=>`<tr>${cf?`<td>${esc(i.desc)}</td>`:`<td class="mu">${esc(i.cod)}</td><td>${esc(i.desc)}${i.fator&&i.fator!=='Comum'?` <small class="mu">· ${esc(i.fator)}</small>`:''}</td>`}<td class="r">${i.qtd}</td><td class="r">${brl(i.unit)}</td><td class="r"><b>${brl(i.unit*i.qtd)}</b></td></tr>`).join('')||`<tr><td colspan="5" class="mu">Sem itens.</td></tr>`}</tbody><tfoot><tr><td>Total</td>${cf?'':'<td></td>'}<td></td><td></td><td class="r">${brl(l.total)}</td></tr></tfoot></table></div>`;
+  const mDif=cf&&K.find(k=>k.t==='Metragem'&&k.st==='bad');
+  return `<section class="panel gfdp"><div class="gfdh"><div><small class="mu">${cf?'Baixa do contrato fixo':'LPU'} · ${sitN[l.status]||esc(l.status)}${clt?' · equipe própria (CLT)':''}</small><h3>${ifNome(l)}</h3><div class="mu" style="font-size:13.5px">${esc([p.cidade,p.topologia].filter(Boolean).join(' · '))}${p.cidade||p.topologia?' · ':''}<b class="ink">${tipo}</b> · ${dBR(l.data)} · ${esc(tecN(l.tec))}${cf&&emp&&!tecN(l.tec).includes(emp)?' ('+esc(emp)+')':''}</div>${l.dia||l.parcial?`<div style="margin-top:4px">${l.dia?`<span class="chip info">LPU parcial · dia ${dBR(l.dia).slice(0,5)}</span> `:''}${l.parcial?'<span class="chip warn">Atividade não concluída</span>':''}</div>`:''}${aprovPor(l)?`<small class="mu">${aprovPor(l)}</small>`:''}</div>
+    <div class="r"><div class="gfval">${brl(l.total)}</div><small class="mu">${clt?'referência · não consome o budget':cf?(per||'contrato fixo')+' · consome no fechamento do contrato':l.status==='aprovada'?'conta 0005 · consumiu o budget':'conta 0005 · consome o budget ao aprovar'}</small></div></div>
+   ${al.length?`<div class="gfal"><b>${al.length} ${al.length===1?'alerta':'alertas'}</b> · ${al.map(k=>k.t+(k.x&&!/</.test(k.x)?' ('+k.x+')':'')).join(' · ')}</div>`:''}
+   ${conf}${l.obs?`<div class="note" style="margin-top:10px"><b>Observação do técnico:</b> ${esc(l.obs)}</div>`:''}${l.parcial?`<div class="result warn" style="margin-top:10px"><b>LPU de atividade não concluída.</b> Motivo: ${esc(l.parcial.motivo)}${l.parcial.obs?'. '+esc(l.parcial.obs):''}. Confira se os serviços lançados correspondem ao que foi executado.</div>`:''}
+   <h4>Conferência</h4><div class="gfck">${K.map(k=>`<div><span class="gfi ${k.st}">${ic[k.st]}</span><div><b>${k.t}</b><small>${k.d}</small></div><span class="${k.st==='bad'?'gfbad':''}">${k.x}</span></div>`).join('')}</div>
+   ${!cf&&typeof vtaBloq==='function'&&vtaBloq(l)?vtaHtml(l):''}
+   <h4>${cf?'Como chegou no valor':'Itens desta LPU'}</h4>${itens}${mDif?'<p class="gfnote">A metragem da baixa não confere com o relatório: para corrigir, devolva para ajuste.</p>':''}${cf&&l.cf.add?`<p class="gfnote">Inclui valor adicional de ${brl(l.cf.add.v)}: ${esc(l.cf.add.mot||'')}</p>`:''}
+   <h4>${cf?'Baixa':'LPU'} × ROI do projeto</h4>${ifFasesHtml(l,F,cf?'Esta baixa':'Esta LPU')}
+   ${!cf&&F?`<details class="ifrc"><summary>Ver por serviço</summary>${rcBloco(l)}</details>`:''}
+   ${ctr}
+   ${H.length?`<h4>Histórico</h4><div class="gftl">${H.map(([em,tx])=>`<div><i></i><b>${dtBR(em)}</b> ${tx}</div>`).join('')}</div>`:''}
+   <div class="gfact"><button class="btn" data-act="pdf" data-id="${l.id}">Ver PDF</button>${pd?`<button class="btn" data-act="decidir" data-t="reprovada" data-id="${l.id}">Reprovar</button><button class="btn" data-act="decidir" data-t="ajuste" data-id="${l.id}">Devolver para ajuste</button><button class="btn primary" data-act="aprovar" data-id="${l.id}">${bl?'Aprovar mesmo assim':'Aprovar'}</button>`:''}</div></section>`}
+function ifAprov(emb){const tabs=[['aguardando','Aguardando'],['ajuste','Em ajuste'],['aprovada','Aprovadas'],['reprovada','Reprovadas']];if(!tabs.some(x=>x[0]===ui.aTab))ui.aTab='aguardando';const tab=ui.aTab,cf=ui.finSub==='cfiAprov';
+  const AP=S.lpus.filter(l=>lpuNoPer(l,'a')),cnt=s=>AP.filter(l=>l.status===s).length;
+  const rows=AP.filter(l=>l.status===tab).sort((a,b)=>String(b.data).localeCompare(String(a.data))),sel=rows.find(l=>l.id===ui.aOpen)||rows[0];
+  const item=l=>{const n=ifConf(l).K.filter(k=>k.st==='bad').length,on=sel&&l.id===sel.id,et=l.etiqueta||'',c=ifCliN(et),sub=l.cf?((l.cf.cat==='cfo'?'CFO':(l.cf.cat==='m650'?'acima de ':'até ')+((typeof cfiLim==='function'?cfiLim((typeof cfContrato==='function'&&cfContrato('impl',l.tec))||{}):650))+' m')):(fasesN(l)||'').toLowerCase();
+    return `<button class="lhead" data-act="aOpen" data-id="${l.id}" aria-expanded="${!!on}" aria-current="${on?'true':'false'}"><div><b>${esc(c||et)}</b> <span>${c&&et?'· '+esc(et):''}</span></div><div class="gfqm"><span>${esc(tecN(l.tec))} · ${esc(sub)} · ${dBR(l.data).slice(0,5)}</span><b>${brl(l.total)}</b></div>${n?`<span class="gfbad">● ${n} ${n===1?'alerta':'alertas'}</span>`:'<span class="gfok">● sem alertas</span>'}</button>`};
+  return `${emb?'':`<div class="toolbar"><div><h2>${cf?'Aprovação das baixas':'Aprovação de LPU'}</h2></div></div>`}
+   <div class="gffl"><div class="gfseg">${tabs.map(([k,n])=>`<button data-act="aTab" data-t="${k}" aria-pressed="${tab===k}">${n} · ${cnt(k)}</button>`).join('')}</div></div>
+   ${lpuPerBar('a','aXlsx')}
+   ${rows.length?`<div class="gfmd"><div class="gfql ifql">${rows.map(item).join('')}</div>${ifDetalhe(sel)}</div>`:'<p class="muted pad">Nenhuma LPU nesta situação.</p>'}`}
+{const _v=viewAprov;viewAprov=function(){if(!ifAprovOn())return _v.apply(this,arguments);const o=IF_ALL;IF_ALL=IF_ALL||S.lpus;try{return _v.apply(this,arguments)}finally{IF_ALL=o}}}
+{const _o=ACT.aOpen;ACT.aOpen=el=>{if(!ifAprovOn())return _o(el);ui.aOpen=el.dataset.id;render();try{if(window.innerWidth<900){const d=document.querySelector('.gfdp');if(d)d.scrollIntoView({block:'start'})}}catch(e){}}}
+
+/* ---------- Budget, previsão e cabeçalhos ---------- */
+{const _p=pBudget;pBudget=function(){if(ifPainel()){if(ui.finSub==='prev'){const h=klbPainel();return h||'<section class="panel"><p class="muted">Sem projetos em aberto para prever.</p></section>'}
+    if(!ui.finSub||ui.finSub==='budget'){if(!ui.bEdit||!pode('a_budget'))return ifBudget();IF_NOKLB=1;try{return _p.apply(this,arguments)}finally{IF_NOKLB=0}}}
+  return _p.apply(this,arguments)}}
+const IF_HD={budget:null,prev:['Previsão dos projetos','O que ainda falta executar nos projetos em aberto, pela LPU · a LPU real de cada fase substitui a previsão dela'],aprov:['Aprovação de LPU','Confira e aprove, devolva ou reprove · LPU de equipe própria (CLT) não consome o budget'],cfiAprov:['Aprovação das baixas','Baixas do contrato fixo feitas pela empresa · contam no período da data da atividade']};
+{const _v=viewPainel;viewPainel=function(){const h=_v.apply(this,arguments);if(!ifPainel()||ui.tab!=='painel')return h;const sub=ui.finSub;
+  let r=h.replace('<div class="pbody">','<div class="pbody gfwrap ifwrap">');
+  r=r.replace(/<div class="phd"><h3>([\s\S]*?)<\/h3><p class="muted">([\s\S]*?)<\/p><\/div>/,(m,t,q)=>{if(sub in IF_HD&&IF_HD[sub]===null)return '';const x=IF_HD[sub];return `<div class="gfhd"><div><h2>${x?x[0]:t.replace(/^Financeiro: /,'').replace(/^./,c=>c.toUpperCase())}</h2><p class="muted">${x?x[1]:q}</p></div></div>`});
+  if(sub==='prev')r=r.replace(/<div class="tools"><label class="f inline"><span>De<\/span>[\s\S]*?data-ch="pFim"[^>]*><\/label><\/div>/,'');
+  if(['prest','det','cfiDet'].includes(sub)&&typeof gfKpis==='function')r=gfKpis(r);
+  return r}}
+Object.assign(ACT,{ifIr:el=>ACT.pSec({dataset:{v:'fin',s:el.dataset.s}}),ifHist:el=>{ui.ifHist=el.dataset.v;render()},ifCliTodos:()=>{ui.ifCliTodos=true;render()},
+  ifAb:el=>{const e=el.dataset.e,ab=ui.ifAb=ui.ifAb||{};ab[e]=!ab[e];render()},
+  ifCliXlsx:()=>{const mes=ui.bMes||hoje().slice(0,7),R=ifCliDados(mes),x=v=>Math.round((+v||0)*100)/100;
+    xlsxBaixar(`implantacao_valor_por_cliente_${ui.ifHist==='todo'?'historico':mes}`,[['Valor por cliente',R.map(r=>({'Cliente':r.cli,'Etiqueta':r.e,'Trabalho':r.trT||'','Cidade':r.p.cidade||'','Contrato LPU (R$)':x(r.lp),'Contrato fixo (R$)':x(r.fx),'CLT fora do budget (R$)':x(r.clt),'Total (R$)':x(r.tot),'Mão de obra no ROI (R$)':r.roi==null?'Sem ROI':x(r.roi),'Diferença total − ROI (R$)':r.dif==null?'':x(r.dif)}))],
+      ['LPUs e baixas',R.flatMap(r=>r.Ls.map(l=>({'Cliente':r.cli,'Etiqueta':r.e,'Data':dBR(l.data),'Fases':fasesN(l),'Tipo':tecT(l.tec)!=='TERC'?'CLT':l.cf?'Contrato fixo':'Contrato LPU','Prestador / técnico':tecN(l.tec),'Situação':(LST[l.status]||[l.status])[0],'Valor (R$)':x(l.total)})))]],R.length+' clientes exportados.')}});
+{const _q=k=>el=>{ui[k]=el.value;clearTimeout(ui.ifTq);ui.ifTq=setTimeout(()=>{const pos=el.selectionStart,y=window.scrollY;render();window.scrollTo(0,y);const n=document.querySelector(`[data-in="${k}"]`);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},300)};IN.ifQ=_q('ifQ')}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.ifwrap .gfhd h2{font-size:22px}.ifql .lhead{all:unset;box-sizing:border-box;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:5px;color:var(--ink);cursor:pointer;width:100%}
+.ifql .lhead[aria-current="true"]{outline:2px solid var(--ink);outline-offset:-1px}.ifql .lhead:focus-visible{outline:2px solid var(--brand-ink,#3F6B12)}.ifql .lhead>div:first-child span{display:inline;color:var(--muted);font-size:13px}.ifql .lhead>div:first-child small{display:none}@media(min-width:900px){.ifwrap>.views{display:none}}.ifql .lhead .chip{font-size:11px;margin-left:4px}
+.ifprev{display:flex;flex-wrap:wrap;gap:12px 40px;align-items:baseline}.ifprev>div{display:flex;gap:8px;align-items:baseline}.ifprev b{font-size:21px}.ifprev span{color:var(--muted);font-size:13px}
+.ifrow{cursor:pointer}.ifrow:hover td,.ifrow.on td{background:color-mix(in srgb,var(--ink) 3%,transparent)}.ifdet>td{background:color-mix(in srgb,var(--ink) 2%,transparent);padding:8px 12px 14px}
+.ifbox{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px}.ifbox small{display:block;color:var(--muted);font-size:12px}.ifbox b{font-size:15px}@media(max-width:700px){.ifbox{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ifbt{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}.ifbt .btn{padding:3px 8px;font-size:12px}
+@media(max-width:900px){.gfql{position:static;max-height:none;overflow:visible}}@media(max-width:600px){.gfck>div{grid-template-columns:26px minmax(0,1fr)}.gfck>div>span:last-child:not(:empty){grid-column:2;justify-content:flex-start}.gfdh{flex-wrap:wrap}.gfdh>.r{text-align:left}}
+.ifrc{margin-top:8px}.ifrc>summary{cursor:pointer;font-size:13.5px;color:var(--muted)}.ifrc .rcbox{margin-top:8px}
+</style>`);
+
+/* ---------- 28/11: Painel de KPIs da Implantação no padrão novo ----------
+   Cada seção abre com 5 quadros comparados com o período anterior (mês inteiro → mês anterior) e uma linha de números secundários.
+   Visão geral: circuitos entregues, M.O. aprovada dos circuitos entregues (LPU de terceiros + baixas do contrato fixo), eficiência,
+   tempo de ativação (dias corridos do primeiro agendamento de interno ou ativação até a ativação finalizada) e improdutivas;
+   Demanda × entrega em uma barra por semana (recebimento ou entrega) com a lista da semana. Agendamentos por dia, etiquetas em
+   andamento, retrabalho e improdutivas passam para Execução em campo. "Rede executada" vira "Produção de rede".
+   Tempos ganha "Por cidade" e "Por topologia"; Equipes ganha "Por empresa terceira". */
+{const r=PSEC.find(x=>x[0]==='rede');if(r){r[1]='Produção de rede';r[2]='Cabo, cordoalha, CEOs e extensão de fibra pelas LPUs do período'}}
+try{TP.impl.grupos.push(['Cidade',r=>{const p=pPor(r.etq)||{};return p.cidade?String(p.cidade).toLowerCase().replace(/(^|\s)\S/g,x=>x.toUpperCase()):'Sem cidade'},0],['Topologia',r=>(pPor(r.etq)||{}).topologia||'Sem topologia',0])}catch(e){}
+const ikOn=()=>ui.tab==='painel'&&ui.cat!=='gtd';
+const ikFimMes=d=>{const x=new Date(+d.slice(0,4),+d.slice(5,7),0);return isoD(x)};
+function ikAntPer(){const a=ui.pIni,b=ui.pFim;if(a.slice(8)==='01'&&b.slice(0,7)===a.slice(0,7)){const m=gfMais(a.slice(0,7),-1),fm=ikFimMes(m+'-01'),full=b===ikFimMes(a)||b>=hoje();
+    const dd=full?fm:(m+'-'+b.slice(8)>fm?fm:m+'-'+b.slice(8));return[m+'-01',dd,gfMesN(m)]}
+  const n=pdDias(a,b)+1;return[addD(a,-n),addD(a,-1),'o período anterior']}
+function ikAnt(fn){const a=ui.pIni,b=ui.pFim,[x,y]=ikAntPer();ui.pIni=x;ui.pFim=y;try{return fn()}finally{ui.pIni=a;ui.pFim=b}}
+const ikVs=()=>ikAntPer()[2];
+const ikF={n:x=>(Math.round(x*10)/10).toLocaleString('pt-BR'),t:x=>tpH(Math.round(x)),p:x=>(Math.round(x*10)/10).toLocaleString('pt-BR')+' p.p.',r:x=>brl(x),m:x=>Math.round(x).toLocaleString('pt-BR')+' m',d:x=>(Math.round(x*10)/10).toLocaleString('pt-BR')+(Math.round(x*10)/10===1?' dia':' dias')};
+function ikDl(a,b,f,menor){if(a==null||b==null||isNaN(a)||isNaN(b))return null;const d=a-b;if(Math.abs(d)<1e-6)return['= igual',''];return[(d>0?'▲ ':'▼ ')+(ikF[f]||ikF.n)(Math.abs(d)),(d>0)===!menor?'up':'dn']}
+const ikCard=(l,v,s,dl)=>`<div class="gfc"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s||'&nbsp;'}</span><span class="d">${dl?`<em class="${dl[1]}">${dl[0]}</em> vs. ${ikVs()}`:'&nbsp;'}</span></div>`;
+/* números dos quadros antigos: rótulo → valor */
+const ikTxt=s=>String(s).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+function ikKv(h){const o=[];String(h).replace(/class="kpi[^"]*"[^>]*><b>([\s\S]*?)<\/b><span>([\s\S]*?)<\/span>/g,(m,v,l)=>{const t=ikTxt(v),i=t.indexOf('(');o.push({v:i>0?t.slice(0,i).trim():t,x:i>0?t.slice(i).replace(/^\(|\)$/g,''):'',l:ikTxt(l)})});return o}
+const ikGet=(K,pre)=>K.find(x=>x.l.toLowerCase().startsWith(pre.toLowerCase()));
+function ikNum(v){if(v==null)return null;v=String(v);if(/\d+h\d*|\d+\s*min/.test(v)){const h=v.match(/(\d+)h(\d*)/),m=v.match(/(\d+)\s*min/);return h?+h[1]*60+(+h[2]||0):m?+m[1]:null}
+  const s=v.replace(/R\$|%|\s*m\b|dias?|[^\d,.\-]/g,'').replace(/\./g,'').replace(',','.');return s===''||isNaN(+s)?null:+s}
+const ikDom=h=>{const t=document.createElement('template');t.innerHTML=h;return t.content};
+const ikOut=f=>{const d=document.createElement('div');d.appendChild(f);return d.innerHTML};
+const ikH3=n=>((n.querySelector&&(n.matches&&n.matches('h3')?n:n.querySelector('h3')))||{}).textContent||'';
+/* linha de números secundários: os quadros antigos que não viraram quadro grande */
+function ikLinha(K,fora){const L=K.filter(x=>!fora.some(f=>x.l.toLowerCase().startsWith(f.toLowerCase())));return L.length?`<div class="ikline">${L.map(x=>`<div><b>${esc(x.v)}</b><span>${esc(x.l)}</span></div>`).join('')}</div>`:''}
+
+/* ---------- Visão geral ---------- */
+function ikAtivDias(e){const A=pdAgs().filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&!a.improd&&fasesOf(a).some(k=>k==='interno'||k==='ativ')).map(a=>a.data).sort(),f=faseFim(e,'ativ');return A.length&&f?Math.max(0,pdDias(A[0],f.data)):null}
+function ikGeralD(){const b=pBase(),E=b.ent.map(x=>x.p.etiqueta),set=new Set(E),D=pdDemanda(),R=agReal(ui.pIni,ui.pFim);
+  const LT=S.lpus.filter(l=>set.has(l.etiqueta)&&l.status==='aprovada'&&!l.chamado&&tecT(l.tec)==='TERC'),mo=ifSoma(LT);
+  let mR=0,roi=0;E.forEach(e=>{const r=ifRoiMO(pPor(e));if(r!=null){roi+=r;mR+=ifSoma(LT.filter(l=>l.etiqueta===e))}});
+  const AD=E.map(ikAtivDias).filter(x=>x!=null),dem=D.length,ent=D.filter(x=>x.sit==='ok').length;
+  return{b,n:E.length,val:b.ent.reduce((s,x)=>s+(+x.p.valor||0),0),mo,moC:E.length?mo/E.length:null,roiP:roi?Math.round(mR/roi*100):null,D,dem,ent,ef:dem?Math.round(ent/dem*100):null,at:AD.length?AD.reduce((s,x)=>s+x,0)/AD.length:null,imp:R.imp.length,real:R.real,impP:R.real?Math.round(R.imp.length/R.real*1000)/10:0}}
+function ikGeralCards(){const c=ikGeralD(),a=ikAnt(ikGeralD),sv=S.semValor;
+  return `<div class="gfk ik5">${ikCard('Circuitos entregues',c.n,sv?'&nbsp;':brl(c.val)+' de valor mensal',ikDl(c.n,a.n,'n'))}
+   ${sv?'':ikCard('M.O. aprovada',brl(c.mo),c.n?`${brl(c.moC)}/circuito${c.roiP!=null?' · '+c.roiP+'% do ROI':''}`:'dos circuitos entregues',c.moC!=null&&a.moC!=null?(d=>d&&[d[0]+'/circuito',d[1]])(ikDl(c.moC,a.moC,'r',true)):null)}
+   ${ikCard('Eficiência de entrega',c.ef==null?'—':c.ef+'%',`<span class="ikmeta"><i style="width:${Math.min(c.ef||0,100)}%"></i><em style="left:${PD_META}%"></em></span> meta ${PD_META}%`,ikDl(c.ef,a.ef,'p'))}
+   ${ikCard('Tempo de ativação',c.at==null?'—':ikF.d(c.at),'média por circuito entregue',ikDl(c.at,a.at,'d',true))}
+   ${ikCard('Improdutivas',String(c.impP).replace('.',',')+'%',`${c.imp} de ${c.real} atividades`,ikDl(c.impP,a.impP,'p',true))}</div>`}
+function ikDemanda(){const D=pdDemanda(),b=pBase(),md=ui.ikDm==='ent'?'ent':'rec',T=hoje(),dem=D.length,ent=D.filter(x=>x.sit==='ok').length,and=D.filter(x=>x.sit==='and').length,ag=dem-ent-and,ef=dem?Math.round(ent/dem*100):null;
+  const W=[];for(let d=ui.pIni;d<=ui.pFim&&W.length<10;d=addD(d,7)){const f=addD(d,6)>ui.pFim?ui.pFim:addD(d,6);
+    const X=md==='rec'?D.filter(x=>x.rec>=d&&x.rec<=f):b.ent.filter(x=>x.f.data>=d&&x.f.data<=f).map(x=>({e:x.p.etiqueta,p:x.p,f:x.f,sit:'ok'}));W.push({d,f,X})}
+  const mx=Math.max(1,...W.map(w=>w.X.length));let si=ui.ikWk!=null&&W[ui.ikWk]?ui.ikWk:-1;if(si<0){for(let i=W.length-1;i>=0;i--)if(W[i].X.length){si=i;break}}
+  const cor={ok:'#7cb342',and:'#c9cfc3',ag:'#c0504d'},nm={ok:'Entregue',and:'Em andamento',ag:'Aguardando agendamento'};
+  const bar=(w,i)=>{const n=w.X.length,c=k=>w.X.filter(x=>x.sit===k).length,run=w.f>=T,pe=n?Math.round(c('ok')/n*100):null;
+    return `<button class="ikwk ${i===si?'on':''}" data-act="ikWk" data-i="${i}" aria-pressed="${i===si}"><span class="ikn">${n||'—'}</span><span class="ikst" style="height:${n/mx*100}%">${['ag','and','ok'].map(k=>c(k)?`<i style="flex:${c(k)};background:${cor[k]}"></i>`:'').join('')}</span><small><b>${dBR(w.d).slice(0,5)}</b> a ${dBR(w.f).slice(0,5)}</small><small class="${md==='rec'&&!run&&pe!=null&&pe<PD_META?'dn':''}">${run?(w.d<=T?'em execução':'a vir'):md==='rec'&&pe!=null?pe+'%':'&nbsp;'}</small></button>`};
+  const prox=e=>{const a=pdAgs().filter(x=>x.etiqueta===e&&pdAberta(x)).sort((x,y)=>x.data.localeCompare(y.data))[0];return a?`${(FCURTO[fasesOf(a)[0]]||fasesN(a)).toLowerCase()} agendado ${dBR(a.data).slice(0,5)}`:'aguardando agendamento'};
+  const S0=W[si];
+  return `<section class="panel gfp"><div class="secth"><h3>Demanda × entrega</h3><div class="gfseg"><button data-act="ikDm" data-v="rec" aria-pressed="${md==='rec'}">Por semana de recebimento</button><button data-act="ikDm" data-v="ent" aria-pressed="${md==='ent'}">Por semana de entrega</button></div></div>
+   <div class="ikline ikin"><div><b>${dem}</b><span>Demanda recebida</span></div><div><b>${ent}</b><span>Entregues</span></div><div><b>${and}</b><span>Em andamento</span></div><div><b>${ag}</b><span><i class="ikdot" style="background:${cor.ag}"></i>Aguardando agendamento</span></div><div><b>${ef==null?'—':ef+'%'}</b><span>Eficiência · meta ${PD_META}%</span></div></div>
+   ${W.some(w=>w.X.length)?`<div class="ikbars">${W.map(bar).join('')}</div>
+   <div class="ikleg">${md==='rec'?Object.entries(nm).reverse().map(([k,n])=>`<span><i style="background:${cor[k]}"></i>${n}</span>`).join('')+'<span>% = entregues da demanda da semana</span>':'<span><i style="background:'+cor.ok+'"></i>Circuitos com a ativação finalizada na semana</span>'}</div>
+   ${S0&&S0.X.length?`<div class="iklist"><div class="ikhd"><b>Semana de ${dBR(S0.d).slice(0,5)} a ${dBR(S0.f).slice(0,5)}</b> <span class="mu">· ${S0.X.length} ${md==='rec'?(S0.X.length===1?'etiqueta recebida':'etiquetas recebidas'):(S0.X.length===1?'circuito entregue':'circuitos entregues')}</span></div><div class="tablewrap"><table class="gft"><tbody>${S0.X.map(x=>{const p=x.p||pPor(x.e)||{};return `<tr><td><b>${esc(x.e)}</b></td><td>${esc(p.cliente||cliN(x.e)||'')}${p.cidade?' · '+esc(String(p.cidade).toLowerCase().replace(/(^|\s)\S/g,y=>y.toUpperCase())):''}</td><td><span class="ikdot" style="background:${cor[x.sit]}"></span><b class="${x.sit==='ag'?'dn':''}">${nm[x.sit]}</b></td><td class="mu">${x.sit==='ok'&&x.f?'ativação '+dBR(x.f.data).slice(0,5):prox(x.e)}</td></tr>`}).join('')}</tbody></table></div></div>`:''}`:'<p class="muted">Nenhuma demanda no período.</p>'}
+   <p class="gfnote">Demanda: etiquetas com o primeiro agendamento de lançamento interno ou ativação no período (sem cancelados e improdutivas). Eficiência: da demanda do período, quantas já tiveram a ativação finalizada.</p></section>`}
+let IK_G0=null;
+{const _g=pGeral;IK_G0=_g;pGeral=function(){const h=_g.apply(this,arguments);if(!ikOn())return h;try{const F=ikDom(h),N=[...F.childNodes].filter(n=>n.nodeType===1);
+  const tools=N.find(n=>n.matches('.tools')),k1=N.find(n=>n.matches('.kpis'));
+  const K=k1?ikKv(k1.outerHTML):[];
+  return (tools?tools.outerHTML:'')+ikGeralCards()+ikLinha(K,['Circuitos entregues','Valor mensal','Dias de execução','Improdutivas'])+ikDemanda()}catch(e){console.warn('ikGeral',e);return h}}}
+/* partes da Visão geral antiga que vão para Execução em campo */
+function ikDaGeral(){const F=ikDom(IK_G0()),N=[...F.childNodes].filter(n=>n.nodeType===1),o={dia:'',etq:'',fim:''};let modo=null;
+  N.forEach(n=>{const t=ikH3(n);if(/^Agendamentos por dia/.test(t)){o.dia=n.outerHTML;modo=null;return}
+    if(n.matches('h3.lsub')){modo=/Etiquetas com atuação/.test(t)?'etq':null;if(modo)o.etq+=n.outerHTML.replace(/Etiquetas com atuação no período e não entregues/,'Etiquetas em andamento');return}
+    if(/^Retrabalho|^Improdutivas/.test(t)){o.fim+=n.outerHTML;modo=null;return}
+    if(modo==='etq'&&(n.matches('.kpis')||/^Onde estão|^Lista/.test(t)))o.etq+=n.outerHTML});return o}
+
+/* ---------- Execução em campo ---------- */
+function ikExecD(){const b=pBase();return{b,ag:b.ags.length,cp:b.conc.length?b.dentro.length/b.conc.length*100:null,nao:b.nao.length,reag:b.nao.filter(a=>a.reag).length}}
+{const _x=pExec;pExec=function(){const h=_x.apply(this,arguments);if(!ikOn())return h;try{const a=arguments,P=ikAnt(()=>_x.apply(this,a)),K=ikKv(h),KP=ikKv(P),c=ikExecD(),p=ikAnt(ikExecD);
+  const pv=(K0,l)=>{const x=ikGet(K0,l);return x?ikNum(x.v):null},ch=ikGet(K,'Chegadas'),ex=ikGet(K,'Execução média');
+  const cards=`<div class="gfk ik5">${ikCard('Atividades agendadas',c.ag,(ikGet(K,'Atividades agendadas')||{l:''}).l.replace(/^Atividades agendadas\s*/,'').replace(/^\(|\)$/g,''),ikDl(c.ag,p.ag,'n'))}
+   ${ikCard('Concluídas no prazo',c.cp==null?'—':Math.round(c.cp)+'%',`${c.b.dentro.length} de ${c.b.conc.length}`,ikDl(c.cp==null?null:Math.round(c.cp),p.cp==null?null:Math.round(p.cp),'p'))}
+   ${ikCard('Não concluídas',c.nao,`${c.reag} já ${c.reag===1?'reagendada':'reagendadas'}`,ikDl(c.nao,p.nao,'n',true))}
+   ${ikCard('Chegadas no horário',ch?esc(ch.v):'—','dentro da previsão',ikDl(pv(K,'Chegadas'),pv(KP,'Chegadas'),'p'))}
+   ${ikCard('Execução média',ex?esc(ex.v):'—','por atividade',ikDl(pv(K,'Execução média'),pv(KP,'Execução média'),'t',true))}</div>`;
+  const F=ikDom(h),N=[...F.childNodes].filter(n=>n.nodeType===1),G=ikDaGeral(),resto=N.filter(n=>!n.matches('.kpis')).map(n=>n.outerHTML).join('');
+  return cards+ikLinha(K,['Atividades agendadas','Concluídas dentro','Não concluídas','Chegadas','Execução média'])+G.dia+resto+G.etq+G.fim}catch(e){console.warn('ikExec',e);return h}}}
+
+/* ---------- Entregas ---------- */
+function ikEntD(){const b=pBase();return{n:b.ent.length,val:b.ent.reduce((s,x)=>s+(+x.p.valor||0),0),t:b.mTot,ia:b.mIA}}
+{const _x=pEntregas;pEntregas=function(){const h=_x.apply(this,arguments);if(!ikOn())return h;try{const a=arguments,K=ikKv(h),KP=ikKv(ikAnt(()=>_x.apply(this,a))),c=ikEntD(),p=ikAnt(ikEntD),mg=ikGet(K,'Migrações'),mp=ikGet(KP,'Migrações');
+  const cards=`<div class="gfk">${ikCard('Circuitos entregues',c.n,S.semValor?'&nbsp;':brl(c.val)+' de valor mensal',ikDl(c.n,p.n,'n'))}${ikCard('Dias por circuito',c.t==null?'—':f1(c.t),'todas as fases',ikDl(c.t,p.t,'n',true))}${ikCard('Interno + ativação',c.ia==null?'—':ikF.d(c.ia),'por circuito',ikDl(c.ia,p.ia,'n',true))}${ikCard('Migrações GPON → PtP',mg?esc(mg.v):'0',`de ${c.n} ${c.n===1?'entrega':'entregas'}`,ikDl(mg?ikNum(mg.v):0,mp?ikNum(mp.v):0,'n'))}</div>`;
+  return h.replace(/<div class="kpis[^"]*"[^>]*>[\s\S]*?<\/div>(?=\s*<(?:div class="grid2|section))/,cards)}catch(e){console.warn('ikEnt',e);return h}}}
+
+/* ---------- Produção de rede ---------- */
+{const _x=pRede;pRede=function(){const h=_x.apply(this,arguments);if(!ikOn())return h;try{const a=arguments,K=ikKv(h),KP=ikKv(ikAnt(()=>_x.apply(this,a)));
+  const S5=[['Cabo lançado','Cabo lançado','pelas LPUs do período','m'],['Cordoalha','Cordoalha','lançada','m'],['Reaberturas','CEOs','reaberturas e fechamentos','n'],['Extensão de fibra','Extensão de fibra','lançada','m'],['LPUs no período','LPUs no período','','n']];
+  const cards=`<div class="gfk ik5">${S5.map(([pre,l,s,f])=>{const x=ikGet(K,pre),y=ikGet(KP,pre);return ikCard(l,x?esc(x.v):'—',s||(x?esc(x.x||x.l.replace(/^LPUs no período\s*/,'').replace(/^\(|\)$/g,'')):''),x&&y?ikDl(ikNum(x.v),ikNum(y.v),f):null)}).join('')}</div>`;
+  return h.replace(/<div class="kpis[^"]*"[^>]*>[\s\S]*?<\/div>(?=\s*<section)/,cards)}catch(e){console.warn('ikRede',e);return h}}}
+
+/* ---------- Tempos de atendimento ---------- */
+{const _x=pTempos;pTempos=function(K){if((K&&K!=='impl')||!ikOn())return _x.apply(this,arguments);const h=_x.apply(this,arguments);try{const a=arguments,P=ikAnt(()=>_x.apply(this,a)),C=ikKv(h),CP=ikKv(P);
+  const g=(L,pre)=>{const x=ikGet(L,pre);return x?ikNum(x.v):null},tot=ikGet(C,'Total médio'),nA=ikGet(C,'Atividades'),hs=ikGet(C,'Horas somadas');
+  const et=TP.impl.et.map(([k,n,m])=>[m,n]);
+  const cards=`<div class="gfk ik5">${ikCard('Total por atividade',tot?esc(tot.v):'—',`${nA?esc(nA.v):0} atividades${hs?' · '+esc(hs.v):''}`,ikDl(g(C,'Total médio'),g(CP,'Total médio'),'t',true))}${et.map(([m,n])=>{const x=ikGet(C,m);return ikCard(n,x?esc(x.v):'—','média por atividade',ikDl(g(C,m),g(CP,m),'t',true))}).join('')}</div>`;
+  return h.replace(/<div class="kpis">[\s\S]*?<\/div>\s*<div class="kpis tpkm"[^>]*>[\s\S]*?<\/div><\/div>/,cards)}catch(e){console.warn('ikTp',e);return h}}}
+
+/* ---------- Equipes ---------- */
+function ikEqD(){const b=pBase(),dias=x=>new Set(x.map(a=>a.data)).size;
+  const grp=x=>{const v=x.filter(a=>a.data<=b.T),c=x.filter(a=>a.status==='concluida'),nt=new Set(v.map(a=>a.tec)).size,nd=dias(v);return{x,ag:x.length,c:c.length,d:c.filter(dentroPrev).length,n:x.filter(a=>a.status==='nao_concluida').length,tx:v.length?c.length/v.length*100:null,nt,pd:nt&&nd?c.length/(nt*nd):null,ex:media(c,a=>dur(a.ts.inicio,a.ts.conclusao)),de:new Set(x.flatMap(a=>diasExecAg(a).map(d=>a.tec+'|'+d))).size}};
+  const T=grp(b.ags),nC=new Set(b.ags.filter(a=>tecT(a.tec)==='CLT').map(a=>a.tec)).size,nT=new Set(b.ags.filter(a=>tecT(a.tec)==='TERC').map(a=>a.tec)).size;
+  return{b,grp,T,nC,nT,ntec:nC+nT,np:T.c?T.d/T.c*100:null}}
+function pEquipesIk(){const c=ikEqD(),p=ikAnt(ikEqD),F=ui.eqF||'all',T=c.T,pc=x=>x==null?'—':Math.round(x)+'%',d1=x=>x==null?'—':x.toFixed(1).replace('.',',');
+  const emp=t=>{const x=(S.cnpj||{})[t]||{};return x.empresa?gTecN(x.empresa):''};
+  const tecs=TEC.map(t=>({t,g:c.grp(c.b.ags.filter(a=>a.tec===t.id))})).filter(x=>x.g.ag).sort((a,b)=>b.g.c-a.g.c);
+  const vis=tecs.filter(x=>F==='all'||x.t.tipo===F||(F==='TERC'&&x.t.tipo!=='CLT'));
+  const red=g=>g.tx!=null&&g.tx<85||g.n>1;
+  const eq=['CLT','TERC'].map(tp=>{const g=c.grp(c.b.ags.filter(a=>tp==='CLT'?tecT(a.tec)==='CLT':tecT(a.tec)!=='CLT'));return `<tr><td><b>${tp==='CLT'?'Equipe própria (CLT)':'Terceiros'}</b></td><td class="r">${g.nt}</td><td class="r">${g.ag}</td><td class="r">${g.c}</td><td class="r">${g.d}</td><td class="r"><b>${pc(g.tx)}</b></td><td class="r">${d1(g.pd)}</td><td class="r">${fdur(g.ex)}</td></tr>`}).join('');
+  const E={};tecs.filter(x=>x.t.tipo!=='CLT').forEach(x=>{const k=emp(x.t.id)||x.t.nome;(E[k]=E[k]||[]).push(x.t.id)});
+  const emps=Object.entries(E).map(([k,ids])=>({k,g:c.grp(c.b.ags.filter(a=>ids.includes(a.tec)))})).sort((a,b)=>b.g.c-a.g.c);
+  const cnt=k=>tecs.filter(x=>k==='all'||(k==='CLT'?x.t.tipo==='CLT':x.t.tipo!=='CLT')).length;
+  return `<div class="gfk ik5">${ikCard('Técnicos em campo',c.ntec,`${c.nC} CLT · ${c.nT} ${c.nT===1?'terceiro':'terceiros'}`,ikDl(c.ntec,p.ntec,'n'))}${ikCard('Concluídas',T.c,`de ${T.ag} agendadas`,ikDl(T.c,p.T.c,'n'))}${ikCard('Taxa de conclusão',pc(T.tx),`${T.c} de ${T.x.filter(a=>a.data<=c.b.T).length}`,ikDl(T.tx==null?null:Math.round(T.tx),p.T.tx==null?null:Math.round(p.T.tx),'p'))}${ikCard('No prazo',pc(c.np),'dentro da previsão',ikDl(c.np==null?null:Math.round(c.np),p.np==null?null:Math.round(p.np),'p'))}${ikCard('Por técnico/dia',d1(T.pd),'atividades concluídas',ikDl(T.pd,p.T.pd,'n'))}</div>
+   <section class="panel gfp"><div class="secth"><h3>Equipe própria × terceiros</h3></div><div class="tablewrap"><table class="gft"><thead><tr><th>Equipe</th><th class="r">Técnicos</th><th class="r">Agendadas</th><th class="r">Concluídas</th><th class="r">Dentro da previsão</th><th class="r">Taxa de conclusão</th><th class="r">Concl. por técnico/dia</th><th class="r">Execução média</th></tr></thead><tbody>${eq}</tbody>
+    <tfoot><tr><td>Total</td><td class="r">${T.nt}</td><td class="r">${T.ag}</td><td class="r">${T.c}</td><td class="r">${T.d}</td><td class="r">${pc(T.tx)}</td><td class="r">${d1(T.pd)}</td><td class="r">${fdur(T.ex)}</td></tr></tfoot></table></div></section>
+   <section class="panel gfp"><div class="secth"><h3>Produtividade por técnico</h3><div class="gfseg">${[['all','Todos'],['CLT','Equipe própria'],['TERC','Terceiros']].map(([k,n])=>`<button data-act="eqF" data-v="${k}" aria-pressed="${F===k}">${n} · ${cnt(k)}</button>`).join('')}</div></div>
+    <div class="tablewrap"><table class="gft"><thead><tr><th>Técnico</th><th>Vínculo</th><th class="r">Agend.</th><th class="r">Concl. ↓</th><th class="r">No prazo</th><th class="r">Não concl.</th><th class="r">Taxa</th><th class="r">Dias</th><th class="r">Execução</th></tr></thead><tbody>
+    ${vis.map(({t,g})=>`<tr><td><b>${esc(t.nome)}</b></td><td class="mu">${t.tipo==='CLT'?'CLT':'Terceiro'+(emp(t.id)?' · '+esc(emp(t.id)):'')}</td><td class="r">${g.ag}</td><td class="r"><b>${g.c}</b></td><td class="r">${g.d}</td><td class="r ${g.n>1?'dn':''}">${g.n}</td><td class="r"><b class="${g.tx!=null&&g.tx<85?'dn':''}">${pc(g.tx)}</b></td><td class="r">${g.de}</td><td class="r">${fdur(g.ex)}</td></tr>`).join('')||'<tr><td colspan="9" class="mu">Sem atividades no período.</td></tr>'}</tbody></table></div>
+    <p class="gfnote">Em vermelho: taxa de conclusão abaixo de 85% ou mais de 1 não conclusão</p></section>
+   ${emps.length?`<section class="panel gfp"><div class="secth"><h3>Por empresa terceira</h3><span class="muted">soma dos técnicos de cada empresa</span></div><div class="tablewrap"><table class="gft"><thead><tr><th>Empresa</th><th class="r">Técnicos</th><th class="r">Agendadas</th><th class="r">Concluídas ↓</th><th class="r">Dentro da previsão</th><th class="r">Taxa de conclusão</th><th class="r">Concl. por técnico/dia</th></tr></thead><tbody>
+    ${emps.map(({k,g})=>`<tr><td><b>${esc(k)}</b></td><td class="r">${g.nt}</td><td class="r">${g.ag}</td><td class="r"><b>${g.c}</b></td><td class="r">${g.d}</td><td class="r"><b class="${g.tx!=null&&g.tx<85?'dn':''}">${pc(g.tx)}</b></td><td class="r">${d1(g.pd)}</td></tr>`).join('')}</tbody></table></div></section>`:''}`}
+{const _x=pEquipes;pEquipes=function(){if(!ikOn())return _x.apply(this,arguments);try{return pEquipesIk()}catch(e){console.warn('ikEq',e);return _x.apply(this,arguments)}}}
+
+/* ---------- cabeçalho das seções (fora do Financeiro) ---------- */
+{const _v=viewPainel;viewPainel=function(){const h=_v.apply(this,arguments);if(ui.tab!=='painel'||ui.pSec==='fin'||!PSEC.some(x=>x[0]===ui.pSec))return h;try{
+  let r=h.replace('<div class="pbody">','<div class="pbody gfwrap ifwrap ikwrap">'),bt='';
+  r=r.replace(/<div class="tools" style="justify-content:flex-end;margin-bottom:10px">(<button class="btn" data-act="[^"]+"[^>]*>Baixar planilha<\/button>)<\/div>/,(m,b)=>{bt=b;return ''});
+  const S0=PSEC.find(x=>x[0]===ui.pSec),sub=ui.pSec==='geral'?`${dBR(ui.pIni)} a ${dBR(ui.pFim)}`:esc(S0[2]||'');
+  r=r.replace(/<div class="phd"><h3>[\s\S]*?<\/h3><p class="muted">[\s\S]*?<\/p><\/div>/,`<div class="gfhd"><div><h2>${esc(S0[1])}</h2><p class="muted">${sub} · comparado com ${ikVs()}</p></div>${bt?`<div class="tools">${bt}</div>`:''}</div>`);
+  return r}catch(e){return h}}}
+Object.assign(ACT,{ikDm:el=>{ui.ikDm=el.dataset.v;ui.ikWk=null;render()},ikWk:el=>{ui.ikWk=+el.dataset.i;render()}});
+document.head.insertAdjacentHTML('beforeend',`<style>
+.gfk.ik5{grid-template-columns:repeat(5,minmax(0,1fr))}@media(max-width:1100px){.gfk.ik5{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:700px){.gfk.ik5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ikwrap .gfc .v{font-size:26px}.ikmeta{display:inline-block;position:relative;width:60px;height:5px;border-radius:3px;background:var(--line);vertical-align:middle;margin-right:4px}.ikmeta i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--ink)}.ikmeta em{position:absolute;top:-3px;width:2px;height:11px;background:var(--muted)}
+.ikline{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin-bottom:14px}.ikline>div{display:flex;gap:7px;align-items:baseline}.ikline b{font-size:18px}.ikline span{color:var(--muted);font-size:13.5px}
+.ikline.ikin{border:0;padding:4px 0 12px;border-bottom:1px solid var(--line);border-radius:0;justify-content:space-between}.ikdot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.ikbars{display:flex;gap:10px;align-items:flex-end;height:240px;margin:16px 0 8px}.ikwk{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;border:1px solid transparent;background:none;border-radius:10px;padding:6px 4px;cursor:pointer;font:inherit;color:var(--ink)}
+.ikwk.on{background:color-mix(in srgb,var(--ink) 4%,transparent);border-color:var(--line)}.ikwk .ikn{font-weight:700;font-size:13px}.ikst{width:56px;max-width:80%;display:flex;flex-direction:column;gap:2px;min-height:4px}.ikst i{display:block;border-radius:3px;min-height:3px}
+.ikwk small{font-size:12px;color:var(--muted);white-space:nowrap}.ikwk small b{color:var(--ink)}.ikwk small.dn{color:var(--bad);font-weight:700}
+.ikleg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}.ikleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.iklist{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}.ikhd{font-size:14px;margin-bottom:4px}
+.ikwrap section:not(.panel)>.secth,.ikwrap>.grid2 .secth{margin-top:16px}.ikwrap table:not(.gft) th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.ikwrap .grid2.even{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}.ikwrap table td:first-child{white-space:nowrap}@media(max-width:900px){.ikwrap .grid2.even{grid-template-columns:1fr}}
+@media(max-width:600px){.ikbars{height:180px;gap:4px}.ikst{width:28px}.ikwk small{font-size:10.5px}}
+</style>`);
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
