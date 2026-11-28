@@ -1228,6 +1228,12 @@ Terceira área de manutenção, sobre o mesmo motor do GTD (`ag_chamados` com `d
 
 - **Budget do GTD: nome certo das LPUs sem chamado (28/11, `mod/gtdfin.js`):** "Lançadas pela Implantação" juntava duas coisas. Agora aparecem separadas: "Lançadas no Financeiro (PDF)" (Lançar LPU em PDF na área GTD) e "Atividades da Implantação na conta 0006" (LPU de atividade da agenda da Implantação lançada na conta da manutenção). No Valor por cliente, a linha sem etiqueta passa a dizer de onde veio.
 
+- **LPU da Implantação com a conta fixa (28/11, `mod/lpuconta.js`):** toda atividade agendada na agenda da Implantação usa a descrição contábil fixa 3.1.1.2.05.0005 (Instalação CLIENTE). O técnico não tem mais o botão "Trocar" na LPU, e a correção da LPU pela gestão também mantém a 0005. Evita LPU da Implantação na 0006, que entrava no budget do GTD e no da Implantação ao mesmo tempo. GTD continua fixo na 0006; LPUs antigas não mudam.
+
+- **Budget do GTD: plantões com o nome certo e planilha com a conta (28/11, `mod/gtdfin.js`):** os plantões aprovados de terceiros apareciam como "Atividades da Implantação na conta 0006"; agora aparecem como "Plantões" (e "Sem etiqueta · plantões" no Valor por cliente). A planilha do Valor por cliente ganha a aba "LPUs", uma linha por LPU com origem (chamado do GTD, plantão, lançada no Financeiro em PDF ou atividade da Implantação), conta contábil, data, aprovação, cliente, etiqueta, O&M, categoria, prestador, vínculo e valor; os plantões entram na planilha como na tela.
+
+- **Planilhas das áreas só com a área aberta (28/11, `mod/areaxlsx.js`):** os botões "Baixar planilha" do GTD, RE Corretiva e demais áreas do mesmo painel pegavam chamados e LPUs de todas as áreas (ex.: rompimento, reforço e massiva na planilha do GTD; GTD na da RE Corretiva). Agora toda planilha usa o mesmo filtro de área da tela.
+
 ## 8. Publicação
 
 **Atual (piloto):** GitHub Pages, servindo os arquivos estáticos da raiz do repositório. Uma alteração publicada chega aos usuários em alguns minutos, sem reinstalar o app.
@@ -1292,6 +1298,9 @@ Registro das mudanças no código. A cada alteração, este README é atualizado
 
 | Data | Alteração | Arquivos e passos |
 |---|---|---|
+| 28/11/2026 | Planilhas do GTD e da RE Corretiva só com os chamados e LPUs da área aberta | `agenda.html` (`mod/areaxlsx.js`). Sem SQL novo. |
+| 28/11/2026 | Budget do GTD: plantões com o nome certo; planilha do Valor por cliente com a aba "LPUs" (origem e conta contábil de cada LPU) | `agenda.html` (`mod/gtdfin.js`). Sem SQL novo. |
+| 28/11/2026 | LPU das atividades da Implantação com a conta fixa 0005 (Instalação CLIENTE), sem troca pelo técnico | `agenda.html` (`mod/lpuconta.js`). Sem SQL novo. |
 | 28/11/2026 | Budget do GTD: "Lançadas pela Implantação" separado em "Lançadas no Financeiro (PDF)" e "Atividades da Implantação na conta 0006" | `agenda.html` (`mod/gtdfin.js`). Sem SQL novo. |
 | 28/11/2026 | MTTR começa na saída do técnico quando ele sai antes do agendado (sem MTTR negativo) e correção do horário real do chamado pela supervisão/coordenação | **`agenda_ajuste_103_horario_real_gtd.sql` no Supabase**, depois `agenda.html` (`mod/gtdhora.js`, `patch1.py`). |
 | 28/11/2026 | Painel de KPIs do GTD no padrão novo: Visão geral com quadros comparados e chamados por semana, telas Chamados e Equipes, Tempos com quadros e por cidade; sai o SLA de indisponibilidade | `agenda.html` (`mod/gtdkpi.js`). Sem SQL novo. |

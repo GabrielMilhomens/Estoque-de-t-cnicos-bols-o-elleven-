@@ -24545,6 +24545,11 @@ const gfDelta=(a,b,menorMelhor)=>{const d=a-b;if(!b&&!a)return['',''];if(Math.ab
 const gfHead=(t,sub,tools)=>`<div class="gfhd"><div><h2>${t}</h2><p class="muted">${sub}</p></div>${tools?`<div class="tools">${tools}</div>`:''}</div>`;
 
 /* ---------- Budget ---------- */
+const gfOrig=l=>l._fb?'PDF':String(l.id||'').startsWith('pl:')||l.categoria==='Plantão'?'Plantão':l.chamado?'Chamado':'Impl';
+const gfOrigN=l=>({PDF:'Lançadas no Financeiro (PDF)','Plantão':'Plantões',Impl:'Atividades da Implantação na conta 0006',Chamado:'Chamado do GTD'})[gfOrig(l)];
+/* plantões aprovados entram como no budget (mesma regra de plantao.js), para a planilha bater com a tela */
+function gfPlCom(fn){if(typeof PLT==='undefined'||!PLT.ok)return fn();const P=PLT.rows.filter(x=>x.area==='gtd'&&x.status==='apr'&&x.baixa).map(x=>({id:'pl:'+x.id,chamado:null,tec:x.tec,status:'aprovada',total:x.baixa.total,categoria:'Plantão',hist:[{acao:'Aprovada',por:x.apr.por,em:x.apr.em}],itens:x.baixa.itens,conta:GTD_CONTA,data:isoD(new Date(x.apr.em||Date.now()))}));
+  if(!P.length||G.lpus.some(l=>String(l.id).startsWith('pl:')))return fn();const all=G.lpus;G.lpus=all.concat(P);try{return fn()}finally{G.lpus=all}}
 function gfBudgetDados(mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&gfMesBud(l)===mes,GT=G.lpus.filter(l=>!gLpuClt(l));
   const ap=GT.filter(doMes),impl=S.lpus.filter(l=>l.conta===GTD_CONTA&&doMes(l)&&tecT(l.tec)==='TERC'),pe=GT.filter(l=>l.status==='aguardando'||l.status==='ajuste');
   const reg=G.lpus.filter(l=>gLpuClt(l)&&l.status!=='reprovada'&&String(l.data||'').slice(0,7)===mes);
@@ -24552,7 +24557,7 @@ function gfBudgetDados(mes){const doMes=l=>l.status==='aprovada'&&aprovEm(l)&&gf
 function gfBudget(){const mes=ui.bMes||hoje().slice(0,7);ui.bMes=mes;const ed=ui.bEdit&&pode('a_budget'),D=gfBudgetDados(mes),A=gfBudgetDados(gfMais(mes,-1));
   const disp=D.orc-D.uso,p=D.orc?Math.round(D.uso/D.orc*100):0,comp=gSoma(D.pe),nAp=D.ap.length+D.impl.length;
   const meses=[];for(let k=-12;k<=2;k++)meses.push(gfMais(hoje().slice(0,7),k));
-  const grpCat=L=>{const m={};L.forEach(l=>{const k=l._fb?'Lançadas no Financeiro (PDF)':l.conta===GTD_CONTA&&!l.chamado?'Atividades da Implantação na conta 0006':gfCat(l);(m[k]=m[k]||[]).push(l)});return m};
+  const grpCat=L=>{const m={};L.forEach(l=>{const k=gfOrig(l)==='Chamado'?gfCat(l):gfOrigN(l);(m[k]=m[k]||[]).push(l)});return m};
   const C=grpCat(D.ap.concat(D.impl)),Cp=grpCat(A.ap.concat(A.impl)),cats=Object.entries(C).sort((a,b)=>gSoma(b[1])-gSoma(a[1]));
   const cores=['#3f6b2f','#5f8f45','#7cb342','#a3c97f','#c6dcae','#dbe8cf'],cor=i=>cores[Math.min(i,cores.length-1)];
   const nCh=L=>new Set(L.map(l=>l.chamado||l.id)).size,tot=D.uso||1,dU=gfDelta(D.uso,A.uso,true);
@@ -24574,7 +24579,7 @@ function gfCliDados(mes,D){const hist=ui.gfHist==='todo',q=normK(String(ui.gfQ||
   const clt=hist?G.lpus.filter(l=>gLpuClt(l)&&l.status!=='reprovada'):D.reg;
   const chM=(G.ch||[]).filter(c=>c.status!=='cancelado'&&(hist||String(gDiaDe(c)).slice(0,7)===mes));
   const M={},key=(et,cl)=>et?'e:'+normK(et):'c:'+normK(cl||''),get=(et,cl,cid)=>{const k=key(et,cl);return M[k]=M[k]||{et:et||'',cli:cl||'—',cid:cid||'',ch:new Set(),t:0,c:0,ult:null,rei:false}};
-  terc.forEach(l=>{const c=gfCh(l),et=gfEt(l,c),cl0=gfCli(l,c),r=get(et,cl0==='—'&&!et&&l._fb?'Sem etiqueta · lançadas no Financeiro (PDF)':cl0==='—'&&!et&&!l.chamado?'Sem etiqueta · atividades da Implantação':cl0,c.cidade);r.t+=+l.total||0;if(l.chamado)r.ch.add(l.chamado)});
+  terc.forEach(l=>{const c=gfCh(l),et=gfEt(l,c),cl0=gfCli(l,c),r=get(et,cl0==='—'&&!et&&gfOrig(l)!=='Chamado'?'Sem etiqueta · '+gfOrigN(l).toLowerCase():cl0,c.cidade);r.t+=+l.total||0;if(l.chamado)r.ch.add(l.chamado)});
   clt.forEach(l=>{const c=gfCh(l),r=get(gfEt(l,c),gfCli(l,c),c.cidade);r.c+=+l.total||0;if(l.chamado)r.ch.add(l.chamado)});
   chM.forEach(c=>{const r=M[key(c.etiqueta,c.cliente)];if(!r)return;r.ch.add(c.id);if(!r.cid)r.cid=c.cidade||'';if(!r.ult||gIni(c)>gIni(r.ult))r.ult=c;if(gReinc(c).length)r.rei=true});
   return Object.values(M).filter(r=>!q||normK([r.cli,r.et,r.cid].join(' ')).includes(q)).sort((a,b)=>(b.t+b.c)-(a.t+a.c))}
@@ -24641,7 +24646,10 @@ const gfKpis=h=>h.replace(/<div class="kpis[^"]*"[^>]*>([\s\S]*?)<\/div>(?=\s*<(
 {const _n=gNavPainel;gNavPainel=function(){const h=_n.apply(this,arguments);return gfOn()?h.replace('<span class="nt">Budget e consumo</span>','<span class="nt">Budget</span>'):h}}
 Object.assign(ACT,{gfSel:el=>{ui.gaOpen=el.dataset.id;render();try{if(window.innerWidth<900){const d=document.querySelector('.gfdp');if(d)d.scrollIntoView({block:'start'})}}catch(e){}},
   gfHist:el=>{ui.gfHist=el.dataset.v;render()},gfCliTodos:()=>{ui.gfCliTodos=true;render()},
-  gfCliXlsx:()=>{const mes=ui.bMes||hoje().slice(0,7),R=gfCliDados(mes,gfBudgetDados(mes));xlsxBaixar(`gtd_valor_por_cliente_${ui.gfHist==='todo'?'historico':mes}`,[['Valor por cliente',R.map(r=>({'Cliente':r.cli,'Etiqueta':r.et,'Cidade':r.cid,'Chamados':r.ch.size,'Reincidente':r.rei?'sim':'','Terceiros (R$)':Math.round(r.t*100)/100,'CLT fora do budget (R$)':Math.round(r.c*100)/100,'Total (R$)':Math.round((r.t+r.c)*100)/100,'Última categoria':r.ult?r.ult.categoria||'':''}))]])}});
+  gfCliXlsx:()=>gfPlCom(()=>fbCom(()=>{const mes=ui.bMes||hoje().slice(0,7),D=gfBudgetDados(mes),R=gfCliDados(mes,D),hist=ui.gfHist==='todo',x=v=>Math.round((+v||0)*100)/100;
+    const terc=hist?G.lpus.filter(l=>!gLpuClt(l)&&l.status==='aprovada').concat(S.lpus.filter(l=>l.conta===GTD_CONTA&&l.status==='aprovada'&&tecT(l.tec)==='TERC')):D.ap.concat(D.impl),clt=hist?G.lpus.filter(l=>gLpuClt(l)&&l.status!=='reprovada'):D.reg;
+    const L=terc.map(l=>[l,'Terceiro (consome o budget)']).concat(clt.map(l=>[l,'CLT (fora do budget)'])).map(([l,v])=>{const c=gfCh(l),et=gfEt(l,c);return{'Origem':gfOrigN(l),'Conta contábil':l.conta||GTD_CONTA,'Data':dBR(l.data||''),'Aprovada em':aprovEm(l)?dBR(isoD(new Date(aprovEm(l)))):'','Cliente':(()=>{const cl=gfCli(l,c);return cl==='—'&&!et&&gfOrig(l)!=='Chamado'?'Sem etiqueta · '+gfOrigN(l).toLowerCase():cl})(),'Etiqueta':et,'O&M':c.pom||'','Categoria':gfOrig(l)==='Chamado'?gfCat(l):gfOrigN(l),'Prestador / técnico':gTecN(l.prestador||l.tec)||tecN(l.tec)||'','Vínculo':v,'Valor (R$)':x(l.total)}});
+    xlsxBaixar(`gtd_valor_por_cliente_${hist?'historico':mes}`,[['Valor por cliente',R.map(r=>({'Cliente':r.cli,'Etiqueta':r.et,'Cidade':r.cid,'Chamados':r.ch.size,'Reincidente':r.rei?'sim':'','Terceiros (R$)':x(r.t),'CLT fora do budget (R$)':x(r.c),'Total (R$)':x(r.t+r.c),'Última categoria':r.ult?r.ult.categoria||'':''}))],['LPUs',L]],R.length+' clientes e '+L.length+' LPUs exportados.')}))});
 {const _q=(k)=>el=>{ui[k]=el.value;clearTimeout(ui.gfTq);ui.gfTq=setTimeout(()=>{const pos=el.selectionStart,y=window.scrollY;render();window.scrollTo(0,y);const n=document.querySelector(`[data-in="${k}"]`);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},300)};Object.assign(IN,{gfQ:_q('gfQ'),gfAQ:_q('gfAQ')})}
 document.head.insertAdjacentHTML('beforeend',`<style>
 .gfwrap{font-variant-numeric:tabular-nums}.gfhd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}.gfhd h2{margin:0}.gfhd p{margin:4px 0 0}.gfhd .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -25210,6 +25218,29 @@ Object.assign(ACT,{ghAbrir:el=>{if(!ghPode())return semPerm();if(G.horaErr){toas
     delete G.hora[id];closeModal();toast('Correção desfeita.','ok');render();ghVolta()}});
 
 {const _c=ACT.close;if(_c)ACT.close=function(){const r=_c.apply(this,arguments);if(GH_KD)setTimeout(ghVolta,0);return r}}
+
+/* ---------- 28/11: LPU das atividades da Implantação com a conta fixa ----------
+   Toda atividade agendada pela Implantação (agenda da Implantação) tem a descrição contábil fixa
+   3.1.1.2.05.0005 · Instalação CLIENTE: o técnico não troca a conta na LPU, e a correção da LPU também mantém a 0005.
+   O GTD continua com a conta fixa dele (0006); o contrato fixo já usava a 0005. */
+const IC_CONTA=()=>LPU_CONTAS.find(c=>/^3\.1\.1\.2\.05\.0005/.test(c))||LPU_CONTAS[0];
+const icK=k=>{k=String(k||'');if(k.startsWith('L:')){const l=S.lpus.find(x=>x.id===k.slice(2));return !!l&&!l.chamado}return S.ags.some(a=>a.id===k)};
+const icFixa=k=>{const d=lpuDraft(k);d.conta=IC_CONTA();d.fixa=true;d.fixaImpl=true;return d};
+{const _v=lpuView;lpuView=function(a){if(a&&a.id&&S.ags.some(x=>x.id===a.id)){icFixa(a.id);ui.lpuContaAb=false;
+    return _v.apply(this,arguments).replace(/<span><small>Conta contábil<\/small>/,'<span><small>Conta contábil (fixa na Implantação)</small>').replace(/<button class="btn sm" data-act="lpuTrocar">[^<]*<\/button>/,'')}
+  return _v.apply(this,arguments)}}
+{const _e=lpuEditor;lpuEditor=function(key){if(icK(key)){icFixa(key);return _e.apply(this,arguments).replace(' (fixa no GTD Manutenção)',' (fixa na Implantação)')}return _e.apply(this,arguments)}}
+{const _c=ACT.lpuConta;ACT.lpuConta=el=>{if(icK(el.dataset.k)){icFixa(el.dataset.k);return}return _c(el)}}
+{const _t=ACT.lpuTrocar;ACT.lpuTrocar=el=>{const a=S.ags.find(x=>x.id===ui.lpuTela);if(a){ui.lpuContaAb=false;return}return _t(el)}}
+
+/* ---------- 28/11: planilhas das áreas do GTD só com os dados da área aberta ----------
+   A tela filtra os chamados e LPUs pela área (GTD, RE Corretiva, Transmissão...) só enquanto desenha; os botões
+   "Baixar planilha" rodam fora do desenho e pegavam chamados e LPUs de todas as áreas (ex.: rompimento e reforço na
+   planilha do GTD). Agora toda ação de planilha (…Xlsx) roda com o mesmo filtro e a mesma configuração da área. */
+function gAreaCom(fn){if(ui.cat!=='gtd'||gTecPerfil())return fn();const at=ui.gArea||'gtd',all=G.ch,allL=G.lpus,id=new Map(all.map(c=>[c.id,c])),ok=c=>areaDe(c)===at;
+  const F=all.filter(ok),FL=allL.filter(l=>{const c=id.get(l.chamado);return c?ok(c):at==='gtd'});G.ch=F;G.lpus=FL;
+  try{return areaModo(at,fn)}finally{if(G.ch===F)G.ch=all;if(G.lpus===FL)G.lpus=allL}}
+Object.keys(ACT).filter(k=>/Xlsx$/i.test(k)).forEach(k=>{const _x=ACT[k];ACT[k]=function(){const a=arguments,t=this;return gAreaCom(()=>_x.apply(t,a))}});
 
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
