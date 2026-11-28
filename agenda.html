@@ -24998,6 +24998,32 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 @media(max-width:600px){.ikbars{height:180px;gap:4px}.ikst{width:28px}.ikwk small{font-size:10.5px}}
 </style>`);
 
+/* ---------- 28/11: Visão gerencial ----------
+   1. Indicadores da Implantação (quadros novos do Painel de KPIs) e da Transmissão (quadros .tkkpi) voltam a aparecer.
+   2. Transmissão usa o mesmo período da Visão gerencial (antes ficava nos 30 dias do painel dela).
+   3. Financeiro: mostra a Conta contábil do Financeiro (executado, budget, uso e saldo de cada conta, LPU + contrato fixo);
+      tocar na conta abre a Conta contábil do Financeiro com ela aberta. */
+{const _g=gerHtml;gerHtml=function(k){if(k!=='tx')return _g.apply(this,arguments);const T=tkS(),o={per:T.per,f:T.f,q:T.q,ini:ui.txIni,fim:ui.txFim};
+  T.per='custom';T.f={};T.q='';ui.txIni=ui.gpIni;ui.txFim=ui.gpFim;try{return _g.apply(this,arguments)}finally{T.per=o.per;T.f=o.f;T.q=o.q;ui.txIni=o.ini;ui.txFim=o.fim}}}
+gerKpis=function(html){if(html==null)return null;const d=document.createElement('div');d.innerHTML=html;const tx=e=>e?e.textContent.replace(/\s+/g,' ').trim():'',cor=s=>(String(s).match(/\b(ok|warn|bad)\b/)||[])[1]||'';
+  let I=[];
+  if(d.querySelector('.gfk .gfc')){I=[...d.querySelectorAll('.gfk .gfc')].map(e=>[tx(e.querySelector('.v')),tx(e.querySelector('.l')),'']).concat([...d.querySelectorAll('.ikline:not(.ikin)>div')].map(e=>[tx(e.querySelector('b')),tx(e.querySelector('span')),'']))}
+  else if(d.querySelector('.tkkpis .tkkpi'))I=[...d.querySelectorAll('.tkkpis .tkkpi')].map(e=>[tx(e.querySelector('b')),tx(e.querySelector('.tkkl')),e.querySelector('.tkkd .tkruim')&&!/igual/.test(tx(e.querySelector('.tkkd')))?'warn':'']);
+  else I=[...d.querySelectorAll('.kpis .kpi, .tvkg .tvkv')].map(e=>{const v=e.querySelector('b'),l=e.querySelector('span,small');return[tx(v),tx(l),cor((e.className||'')+' '+((v&&v.className)||''))]});
+  I=I.filter(x=>x[0]).slice(0,9);
+  return I.length?`<div class="kpis gerk">${I.map(([v,l,c])=>kp(esc(v),esc(l),c)).join('')}</div>`:'<p class="fgempty">Sem indicadores no período.</p>'};
+function gerFin(m){if(!F2.ok){if(!F2.bus&&!F2.err)f2Carregar().then(()=>{if(ui.tab==='gerKpi')render()});return '<p class="fgempty">Carregando o financeiro…</p>'}
+  let tot=0,bud=0;const rows=FC.map(([c,n,g])=>{const {x,L}=f5Comp(c,m),b=f2Bud(m,c),p=f2Pct(x.tot,b),sd=b-x.tot,lp=L.reduce((s,r)=>s+r.lpu,0),ct=L.reduce((s,r)=>s+r.ctr,0);tot+=x.tot;bud+=b;
+    return `<tr class="f2row" data-act="gerConta" data-c="${c}" tabindex="0"><td>${f2Grupo(g)} <b>${c}</b> ${esc(/^Servi/.test(n)?n:'Serviços de '+n)}<br><small class="muted">${esc(f3AreaN(c)||FCN[c][3])} · ${x.hist?'histórico do SAP':x.tot?[lp?'LPU '+brl(lp):'',ct?'contratos '+brl(ct):''].filter(Boolean).join(' · '):'sem lançamentos no mês'}</small></td>
+     <td class="r"><b>${brl(x.tot)}</b></td><td class="r">${brl(b)}</td><td style="min-width:150px">${b?`<div class="f5uso">${f2Bar(x.tot,b)}<b style="color:${f2Cor(p)}">${p}%</b></div>`:'<small class="muted">sem budget</small>'}</td><td class="r"><b style="color:${sd<0?'var(--bad)':'inherit'}">${sd<0?'− '+brl(-sd):brl(sd)}</b></td></tr>`}).join('');
+  const sd=bud-tot;
+  return f4ContaKpis(m)+`<div class="tablewrap"><table class="f2t f5ct"><thead><tr><th>Conta contábil</th><th class="r">Executado</th><th class="r">Budget</th><th>Uso do budget</th><th class="r">Saldo</th></tr></thead><tbody>${rows}</tbody>
+   <tfoot><tr><td><b>Total</b></td><td class="r"><b>${brl(tot)}</b></td><td class="r"><b>${brl(bud)}</b></td><td>${bud?`<b style="color:${f2Cor(f2Pct(tot,bud))}">${f2Pct(tot,bud)}%</b>`:''}</td><td class="r"><b style="color:${sd<0?'var(--bad)':'inherit'}">${sd<0?'− '+brl(-sd):brl(sd)}</b></td></tr></tfoot></table></div>
+   <p class="muted" style="font-size:12.5px;margin:8px 0 0">Mesmos números da Conta contábil do Financeiro (LPU + contratos fixos, com variáveis e descontos). Toque na conta para ver a composição por terceiro.</p>`}
+{const _v=RP_VIEWS.gerKpi;RP_VIEWS.gerKpi=function(){const h=_v.apply(this,arguments),k='<article class="fgcard" style="margin-top:14px">',i=h.lastIndexOf(k);if(i<0)return h;
+  const mes=ui.gpFim.slice(0,7);return h.slice(0,i)+`${k}<div class="secth"><div><h3><span class="ario a-fin" style="width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center">${arSvg('fin',17)}</span>Financeiro · Conta contábil · ${mesNome(mes)}</h3><small class="muted">Executado e budget de cada conta (mês do fim do período)</small></div><button class="btn sm" data-act="gerConta" data-c="">Abrir a Conta contábil</button></div>${gerFin(mes)}</article>`}}
+ACT.gerConta=el=>{const c=el.dataset.c||'',m=(ui.gpFim||hoje()).slice(0,7);gerVai('fin','finConta',()=>{try{f4SetM(m)}catch(e){ui.finM=m}ui.fcCod=c;ui.f5CO=c})};
+
 /* ===== 27/11: MODO SEM INTERNET (todas as áreas) =====
    Tudo o que a ferramenta lê e grava no Supabase passa por aqui (createClient com global.fetch = OFF.fetch).
    - Leitura com internet: vai ao banco e guarda uma cópia no aparelho (IndexedDB "impl_offline": linhas por tabela e a
