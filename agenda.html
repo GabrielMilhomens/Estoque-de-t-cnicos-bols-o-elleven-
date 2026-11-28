@@ -24848,7 +24848,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 /* ---------- 28/11: Painel de KPIs da Implantação no padrão novo ----------
    Cada seção abre com 5 quadros comparados com o período anterior (mês inteiro → mês anterior) e uma linha de números secundários.
    Visão geral: circuitos entregues, M.O. aprovada dos circuitos entregues (LPU de terceiros + baixas do contrato fixo), eficiência,
-   tempo de ativação (dias corridos do primeiro agendamento de interno ou ativação até a ativação finalizada) e improdutivas;
+   tempo de ativação (o mesmo "dias por circuito, todas as fases" das Entregas) e improdutivas;
    Demanda × entrega em uma barra por semana (recebimento ou entrega) com a lista da semana. Agendamentos por dia, etiquetas em
    andamento, retrabalho e improdutivas passam para Execução em campo. "Rede executada" vira "Produção de rede".
    Tempos ganha "Por cidade" e "Por topologia"; Equipes ganha "Por empresa terceira". */
@@ -24862,8 +24862,8 @@ function ikAntPer(){const a=ui.pIni,b=ui.pFim;if(a.slice(8)==='01'&&b.slice(0,7)
 function ikAnt(fn){const a=ui.pIni,b=ui.pFim,[x,y]=ikAntPer();ui.pIni=x;ui.pFim=y;try{return fn()}finally{ui.pIni=a;ui.pFim=b}}
 const ikVs=()=>ikAntPer()[2];
 const ikF={n:x=>(Math.round(x*10)/10).toLocaleString('pt-BR'),t:x=>tpH(Math.round(x)),p:x=>(Math.round(x*10)/10).toLocaleString('pt-BR')+' p.p.',r:x=>brl(x),m:x=>Math.round(x).toLocaleString('pt-BR')+' m',d:x=>(Math.round(x*10)/10).toLocaleString('pt-BR')+(Math.round(x*10)/10===1?' dia':' dias')};
-function ikDl(a,b,f,menor){if(a==null||b==null||isNaN(a)||isNaN(b))return null;const d=a-b;if(Math.abs(d)<1e-6)return['= igual',''];return[(d>0?'▲ ':'▼ ')+(ikF[f]||ikF.n)(Math.abs(d)),(d>0)===!menor?'up':'dn']}
-const ikCard=(l,v,s,dl)=>`<div class="gfc"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s||'&nbsp;'}</span><span class="d">${dl?`<em class="${dl[1]}">${dl[0]}</em> vs. ${ikVs()}`:'&nbsp;'}</span></div>`;
+function ikDl(a,b,f,menor){if(a==null||b==null||isNaN(a)||isNaN(b))return null;const d=a-b,t=(ikF[f]||ikF.n)(Math.abs(d));if(Math.abs(d)<1e-6||!/[1-9]/.test(t))return['= igual',''];return[(d>0?'▲ ':'▼ ')+t,(d>0)===!menor?'up':'dn']}
+const ikCard=(l,v,s,dl,ext)=>`<div class="gfc"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s||'&nbsp;'}</span><span class="d">${dl?`<em class="${dl[1]}">${dl[0]}</em> vs. ${ikVs()}`:'&nbsp;'}</span>${ext||''}</div>`;
 /* números dos quadros antigos: rótulo → valor */
 const ikTxt=s=>String(s).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
 function ikKv(h){const o=[];String(h).replace(/class="kpi[^"]*"[^>]*><b>([\s\S]*?)<\/b><span>([\s\S]*?)<\/span>/g,(m,v,l)=>{const t=ikTxt(v),i=t.indexOf('(');o.push({v:i>0?t.slice(0,i).trim():t,x:i>0?t.slice(i).replace(/^\(|\)$/g,''):'',l:ikTxt(l)})});return o}
@@ -24879,15 +24879,16 @@ function ikLinha(K,fora){const L=K.filter(x=>!fora.some(f=>x.l.toLowerCase().sta
 /* ---------- Visão geral ---------- */
 function ikAtivDias(e){const A=pdAgs().filter(a=>a.etiqueta===e&&a.status!=='cancelada'&&!a.improd&&fasesOf(a).some(k=>k==='interno'||k==='ativ')).map(a=>a.data).sort(),f=faseFim(e,'ativ');return A.length&&f?Math.max(0,pdDias(A[0],f.data)):null}
 function ikGeralD(){const b=pBase(),E=b.ent.map(x=>x.p.etiqueta),set=new Set(E),D=pdDemanda(),R=agReal(ui.pIni,ui.pFim);
-  const LT=S.lpus.filter(l=>set.has(l.etiqueta)&&l.status==='aprovada'&&!l.chamado&&tecT(l.tec)==='TERC'),mo=ifSoma(LT);
+  const apT=l=>l.status==='aprovada'&&!l.chamado&&tecT(l.tec)==='TERC',LT=S.lpus.filter(l=>set.has(l.etiqueta)&&apT(l)),mo=ifSoma(LT);
+  let U=[];try{U=pdAtuadas().map(x=>x.e).filter(e=>!set.has(e))}catch(e){}const uS=new Set(U),moA=ifSoma(S.lpus.filter(l=>uS.has(l.etiqueta)&&apT(l)));
   let mR=0,roi=0;E.forEach(e=>{const r=ifRoiMO(pPor(e));if(r!=null){roi+=r;mR+=ifSoma(LT.filter(l=>l.etiqueta===e))}});
-  const AD=E.map(ikAtivDias).filter(x=>x!=null),dem=D.length,ent=D.filter(x=>x.sit==='ok').length;
-  return{b,n:E.length,val:b.ent.reduce((s,x)=>s+(+x.p.valor||0),0),mo,moC:E.length?mo/E.length:null,roiP:roi?Math.round(mR/roi*100):null,D,dem,ent,ef:dem?Math.round(ent/dem*100):null,at:AD.length?AD.reduce((s,x)=>s+x,0)/AD.length:null,imp:R.imp.length,real:R.real,impP:R.real?Math.round(R.imp.length/R.real*1000)/10:0}}
+  const dem=D.length,ent=D.filter(x=>x.sit==='ok').length;
+  return{b,nA:U.length,moA,n:E.length,val:b.ent.reduce((s,x)=>s+(+x.p.valor||0),0),mo,moC:E.length?mo/E.length:null,roiP:roi?Math.round(mR/roi*100):null,D,dem,ent,ef:dem?Math.round(ent/dem*100):null,at:b.mTot!=null?b.mTot:null,imp:R.imp.length,real:R.real,impP:R.real?Math.round(R.imp.length/R.real*1000)/10:0}}
 function ikGeralCards(){const c=ikGeralD(),a=ikAnt(ikGeralD),sv=S.semValor;
   return `<div class="gfk ik5">${ikCard('Circuitos entregues',c.n,sv?'&nbsp;':brl(c.val)+' de valor mensal',ikDl(c.n,a.n,'n'))}
-   ${sv?'':ikCard('M.O. aprovada',brl(c.mo),c.n?`${brl(c.moC)}/circuito${c.roiP!=null?' · '+c.roiP+'% do ROI':''}`:'dos circuitos entregues',c.moC!=null&&a.moC!=null?(d=>d&&[d[0]+'/circuito',d[1]])(ikDl(c.moC,a.moC,'r',true)):null)}
+   ${sv?'':ikCard('M.O. aprovada',brl(c.mo),c.n?`${c.n} ${c.n===1?'entregue':'entregues'} · ${brl(c.moC)}/circuito${c.roiP!=null?' · '+c.roiP+'% do ROI':''}`:'dos circuitos entregues',c.moC!=null&&a.moC!=null?(d=>d&&[d[0]+'/circuito',d[1]])(ikDl(c.moC,a.moC,'r',true)):null,`<span class="ikext"><b>${brl(c.moA)}</b> em andamento · ${c.nA} ${c.nA===1?'circuito':'circuitos'}<small>trabalhados no período e ainda não entregues</small></span>`)}
    ${ikCard('Eficiência de entrega',c.ef==null?'—':c.ef+'%',`<span class="ikmeta"><i style="width:${Math.min(c.ef||0,100)}%"></i><em style="left:${PD_META}%"></em></span> meta ${PD_META}%`,ikDl(c.ef,a.ef,'p'))}
-   ${ikCard('Tempo de ativação',c.at==null?'—':ikF.d(c.at),'média por circuito entregue',ikDl(c.at,a.at,'d',true))}
+   ${ikCard('Tempo de ativação',c.at==null?'—':ikF.d(c.at),'todas as fases · por circuito entregue',ikDl(c.at,a.at,'d',true))}
    ${ikCard('Improdutivas',String(c.impP).replace('.',',')+'%',`${c.imp} de ${c.real} atividades`,ikDl(c.impP,a.impP,'p',true))}</div>`}
 function ikDemanda(){const D=pdDemanda(),b=pBase(),md=ui.ikDm==='ent'?'ent':'rec',T=hoje(),dem=D.length,ent=D.filter(x=>x.sit==='ok').length,and=D.filter(x=>x.sit==='and').length,ag=dem-ent-and,ef=dem?Math.round(ent/dem*100):null;
   const W=[];for(let d=ui.pIni;d<=ui.pFim&&W.length<10;d=addD(d,7)){const f=addD(d,6)>ui.pFim?ui.pFim:addD(d,6);
@@ -24982,7 +24983,7 @@ function pEquipesIk(){const c=ikEqD(),p=ikAnt(ikEqD),F=ui.eqF||'all',T=c.T,pc=x=
 Object.assign(ACT,{ikDm:el=>{ui.ikDm=el.dataset.v;ui.ikWk=null;render()},ikWk:el=>{ui.ikWk=+el.dataset.i;render()}});
 document.head.insertAdjacentHTML('beforeend',`<style>
 .gfk.ik5{grid-template-columns:repeat(5,minmax(0,1fr))}@media(max-width:1100px){.gfk.ik5{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:700px){.gfk.ik5{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.ikwrap .gfc .v{font-size:26px}.ikmeta{display:inline-block;position:relative;width:60px;height:5px;border-radius:3px;background:var(--line);vertical-align:middle;margin-right:4px}.ikmeta i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--ink)}.ikmeta em{position:absolute;top:-3px;width:2px;height:11px;background:var(--muted)}
+.ikwrap .gfc .v{font-size:26px}.ikwrap .gfk .gfc{align-content:start}.ikext{display:block;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}.ikext b{color:var(--ink);font-size:15px}.ikext small{display:block;font-size:11.5px}.ikmeta{display:inline-block;position:relative;width:60px;height:5px;border-radius:3px;background:var(--line);vertical-align:middle;margin-right:4px}.ikmeta i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--ink)}.ikmeta em{position:absolute;top:-3px;width:2px;height:11px;background:var(--muted)}
 .ikline{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin-bottom:14px}.ikline>div{display:flex;gap:7px;align-items:baseline}.ikline b{font-size:18px}.ikline span{color:var(--muted);font-size:13.5px}
 .ikline.ikin{border:0;padding:4px 0 12px;border-bottom:1px solid var(--line);border-radius:0;justify-content:space-between}.ikdot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
 .ikbars{display:flex;gap:10px;align-items:flex-end;height:240px;margin:16px 0 8px}.ikwk{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;border:1px solid transparent;background:none;border-radius:10px;padding:6px 4px;cursor:pointer;font:inherit;color:var(--ink)}
